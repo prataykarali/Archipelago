@@ -352,7 +352,7 @@ def find_anchor_concept(query):
 
     try:
         import ollama
-        client = ollama.Client(host="http://localhost:11434")
+        client = ollama.Client(host=st.OLLAMA_HOST)
         
         candidate_lines = []
         for cand in ranked:

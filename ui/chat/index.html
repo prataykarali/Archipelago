@@ -289,7 +289,7 @@
                 <!-- Footer details -->
                 <div class="text-[10px] text-gray-500 mt-auto text-center border-t border-white/5 pt-4">
                     Archipelago RAG Engine v1.6<br>
-                    Running via localhost endpoint
+                    Cloud deployment
                 </div>
             </aside>
 
@@ -444,12 +444,14 @@ Back to Chat
 
 <!-- JS Logic -->
     <script>
-        // Student chat client — query only. No upload / ingest / delete endpoints.
-        const API_HOST = `http://${window.location.hostname || 'localhost'}:5051`;
-        const GRAPH_HOST = `http://${window.location.hostname || 'localhost'}:5050`;
+        // API endpoints — all relative so the app works behind any reverse proxy.
+        // In local dev, both services run on different ports. Set window.ARCHIPELAGO_API
+        // before this script to override (e.g. from a dev HTML wrapper).
+        const API_HOST = '';
+        const GRAPH_HOST = window.ARCHIPELAGO_GRAPH_HOST || '';
         const API_CONTRACT = Object.assign({
-            health: API_HOST + '/api/readiness',
-            chat: API_HOST + '/api/chat',
+            health: '/api/readiness',
+            chat: '/api/chat',
         }, window.ARCHIPELAGO_API || {});
         // Never allow student page to point at librarian mutate APIs
         delete API_CONTRACT.upload;
@@ -461,9 +463,9 @@ let chatHistory = [];
 let isGenerating = false;
 let conversationSessionId = null;
 
-        // Wire graph browse link (students may browse; only librarians upload there)
+        // Wire graph browse link — use explicit graph host if set, otherwise same origin
         const _graphLink = document.getElementById('open-graph-link');
-        if (_graphLink) _graphLink.href = GRAPH_HOST;
+        if (_graphLink) _graphLink.href = GRAPH_HOST || '/';
 
         const escapeHTML = (value) => String(value ?? '').replace(/[&<>'"]/g, char => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
