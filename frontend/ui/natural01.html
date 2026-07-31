@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particles Swarm Export</title>
+    <style>body { margin: 0; overflow: hidden; background: #000; }</style>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // CONFIG
+        const COUNT = 20000;
+        const SPEED_MULT = 1;
+        const AUTO_SPIN = true;
+
+        // SETUP
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.01);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 0, 100);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = AUTO_SPIN;
+        controls.autoRotateSpeed = 2.0;
+
+        // POST PROCESSING
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.strength = 1.8; bloomPass.radius = 0.4; bloomPass.threshold = 0;
+        composer.addPass(bloomPass);
+
+        // SWARM OBJECTS
+        const dummy = new THREE.Object3D();
+        const color = new THREE.Color();
+        const target = new THREE.Vector3();
+        const pColor = new THREE.Color(); // Kept for safety, for potential references
+        
+        // INSTANCED MESH
+        const geometry = new THREE.TetrahedronGeometry(0.25);
+        const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        
+        const instancedMesh = new THREE.InstancedMesh(geometry, material, COUNT);
+        instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        scene.add(instancedMesh);
+
+        // DATA ARRAYS
+        const positions = [];
+        for(let i=0; i<COUNT; i++) {
+            positions.push(new THREE.Vector3((Math.random()-0.5)*100, (Math.random()-0.5)*100, (Math.random()-0.5)*100));
+            instancedMesh.setColorAt(i, color.setHex(0x00ff88)); // Init Color
+        }
+
+        // CONTROL STUBS
+        const PARAMS = {"scale":118,"gravity":2.207,"rotation":0.4,"pulse":1.41,"distortion":0.36,"galaxies":3.31};
+        const addControl = (id, label, min, max, val) => {
+            return PARAMS[id] !== undefined ? PARAMS[id] : val;
+        };
+        const setInfo = () => {};
+        const annotate = () => {};
+
+        // ANIMATION LOOP
+        const clock = new THREE.Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime() * SPEED_MULT;
+            
+            // Shader Time Update
+            if(material.uniforms && material.uniforms.uTime) {
+                material.uniforms.uTime.value = time;
+            }
+
+            controls.update();
+
+            // SWARM LOGIC
+            const count = COUNT; // Alias for user code compatibility
+            for(let i=0; i<COUNT; i++) {
+                 // USER CODE INJECTION START
+                 const scale = addControl("scale", "Cosmic Scale", 20, 300, 120);
+                 const gravity = addControl("gravity", "Gravity Strength", 0.1, 5.0, 1.5);
+                 const rotation = addControl("rotation", "Rotation Velocity", 0.0, 5.0, 1.0);
+                 const pulse = addControl("pulse", "Energy Pulse", 0.0, 3.0, 1.2);
+                 const distortion = addControl("distortion", "Dimensional Distortion", 0.0, 2.0, 0.5);
+                 const galaxies = addControl("galaxies", "Galaxy Count", 1.0, 12.0, 4.0);
+                 
+                 const t = time * rotation;
+                 const p = i / Math.max(count, 1);
+                 
+                 const golden = 2.399963229728653;
+                 const arm = p * galaxies * 6.28318530718;
+                 const theta = i * golden + t * 0.25;
+                 
+                 const radiusBase = Math.sqrt(p) * scale;
+                 const waveA = Math.sin(theta * 2.0 + t * 0.8);
+                 const waveB = Math.cos(theta * 3.0 - t * 0.6);
+                 const waveC = Math.sin(arm * 2.0 + t);
+                 
+                 const radius =
+                 radiusBase *
+                 (1.0 + 0.25 * waveA + 0.15 * distortion * waveB);
+                 
+                 const swirl =
+                 theta +
+                 gravity * radius * 0.015 +
+                 0.5 * waveC;
+                 
+                 const x =
+                 Math.cos(swirl) * radius +
+                 Math.sin(theta * 4.0 + t) * distortion * radius * 0.15;
+                 
+                 const y =
+                 (radiusBase - scale * 0.5) * 0.8 +
+                 Math.sin(theta * 1.5 + t * 0.7) * scale * 0.18 +
+                 waveA * distortion * scale * 0.08;
+                 
+                 const z =
+                 Math.sin(swirl) * radius +
+                 Math.cos(theta * 5.0 - t) * distortion * radius * 0.15;
+                 
+                 target.set(x, y, z);
+                 
+                 const energy =
+                 0.5 +
+                 0.5 * Math.sin(
+                 radius * 0.05 -
+                 t * pulse +
+                 waveB
+                 );
+                 
+                 const hue =
+                 0.58 +
+                 0.18 * Math.sin(theta * 0.15 + t * 0.1) +
+                 0.08 * energy;
+                 
+                 const sat =
+                 0.75 +
+                 0.25 * Math.abs(
+                 Math.sin(theta * 0.5)
+                 );
+                 
+                 const light =
+                 0.35 +
+                 0.45 * energy +
+                 0.15 * Math.abs(waveA);
+                 
+                 color.setHSL(
+                 ((hue % 1) + 1) % 1,
+                 Math.min(1, sat),
+                 Math.min(1, light)
+                 );
+                 
+                 if (i === 0) {
+                 setInfo(
+                 "Celestial Genesis",
+                 "A living galaxy engine where streams of stardust orbit a cosmic singularity and evolve through gravitational waves."
+                 );
+                 
+                 annotate(
+                 "core",
+                 new THREE.Vector3(0, 0, 0),
+                 "Core Singularity"
+                 );
+                 
+                 annotate(
+                 "ring",
+                 new THREE.Vector3(scale * 0.6, 0, 0),
+                 "Stellar Ring"
+                 );
+                 
+                 annotate(
+                 "stream",
+                 new THREE.Vector3(0, scale * 0.3, scale * 0.6),
+                 "Energy Stream"
+                 );
+                 
+                 annotate(
+                 "nexus",
+                 new THREE.Vector3(-scale * 0.7, 0, 0),
+                 "Galactic Nexus"
+                 );
+                 }
+                 // USER CODE INJECTION END
+
+                 // LERP & UPDATE
+                 positions[i].lerp(target, 0.1);
+                 dummy.position.copy(positions[i]);
+                 dummy.updateMatrix();
+                 instancedMesh.setMatrixAt(i, dummy.matrix);
+                 instancedMesh.setColorAt(i, color); // Fix: Use 'color' which user modifies
+            }
+            instancedMesh.instanceMatrix.needsUpdate = true;
+            instancedMesh.instanceColor.needsUpdate = true;
+
+            composer.render();
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

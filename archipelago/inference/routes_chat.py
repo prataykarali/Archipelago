@@ -7,7 +7,7 @@ import threading
 
 from flask import Response, request, jsonify
 
-from ingestion_worker import graph_lock
+from archipelago.inference.graph_lock import graph_lock
 from archipelago.auth import require_student_or_open
 from archipelago.inference import state as st
 from archipelago.inference.routing import resolve_query_routing
@@ -18,11 +18,16 @@ from archipelago.inference.curriculum import (
 from archipelago.inference.citations import (
     build_concept_citation_map, build_citation_payloads, _resolve_printed_page,
 )
+from archipelago.inference.demo_query_books import (
+    enrich_reply_with_books,
+    merge_demo_citations,
+)
 from archipelago.inference.synthesis import (
     build_graph_notes, format_natural_fallback, synthesize_with_ollama_streaming,
     general_chat_reply, is_ollama_available, OLLAMA_UNAVAILABLE_MSG,
     render_library_books, render_library_chapters, render_library_chapter_lookup,
     identity_reply, onboarding_reply, not_indexed_reply, enforce_sterile_prose,
+    _scrub_slm_artifacts, _strip_latex, cleanse_model_citations,
 )
 from archipelago.inference.library_queries import (
     get_books_for_topic, clean_topic_query, get_chapters_of_book, get_chapters_containing_concept,
@@ -440,7 +445,7 @@ def api_chat():
                     "unlocks": unlocks,
                     "related_concepts": related_nodes,
                     "curriculum_paths": curriculum_paths,
-                    "citations": citation_payloads,
+                    "citations": merge_demo_citations(query, citation_payloads),
                     "routing": {
                         "route": route,
                         "score": routing.get("score"),
@@ -462,10 +467,22 @@ def api_chat():
                     "logs": step_logs,
                 }
                 sterile = bool((routing.get("slots") or {}).get("sterile"))
-                yield json.dumps(init_payload) + "\n[STREAM_START]\n"
+                # One first frame: metadata + grounded card (+ rewrite marker).
+                # Splitting these across yields let WSGI buffer the small tails
+                # until Ollama's first token — UI looked stuck for ~8–15s.
+                _fb_text = enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
+                grounded = enrich_reply_with_books(query, _fb_text)
+                first_frame = (
+                    json.dumps(init_payload)
+                    + "\n[STREAM_START]\n"
+                    + grounded
+                )
+                if wants_synthesis:
+                    first_frame += "\n[MODEL_REWRITE]\n"
+                yield first_frame
                 if wants_synthesis:
                     try:
-                        text = synthesize_with_ollama_streaming(
+                        token_gen = synthesize_with_ollama_streaming(
                             notes,
                             evidence_ids=evidence_ids,
                             user_query=query,
@@ -473,21 +490,35 @@ def api_chat():
                             sterile=sterile,
                             fallback_text=natural_fallback,
                             history=history,
+                            yield_stream=True,
                         )
-                        if text:
-                            yield text
+                        full_text = ""
+                        for tok in token_gen:
+                            if tok:
+                                full_text += tok
+                                yield tok
+                        if full_text.strip():
+                            clean = _scrub_slm_artifacts(_strip_latex(full_text))
+                            final = clean if clean.strip() else _fb_text
+                            yield "\n[STREAM_DONE]\n" + enrich_reply_with_books(query, final)
                         else:
-                            yield enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
+                            yield "\n[STREAM_DONE]\n" + enrich_reply_with_books(query, _fb_text)
                         return
                     except RuntimeError:
-                        yield OLLAMA_UNAVAILABLE_MSG
+                        yield "\n[STREAM_DONE]\n" + enrich_reply_with_books(query, _fb_text)
                         return
                     except Exception:
-                        yield OLLAMA_UNAVAILABLE_MSG
+                        yield "\n[STREAM_DONE]\n" + enrich_reply_with_books(query, _fb_text)
                         return
-                yield enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
 
-            return Response(generate_graph(), mimetype="text/plain")
+            return Response(
+                generate_graph(),
+                mimetype="text/plain",
+                headers={
+                    "X-Accel-Buffering": "no",
+                    "Cache-Control": "no-cache, no-transform",
+                },
+            )
 
     else:
         return jsonify({"error": f"Invalid mode: {mode}"}), 400
@@ -498,12 +529,26 @@ def init_concepts_data():
         with open(st.DATA_FILE, encoding="utf-8") as f:
             data = json.load(f)
         nodes = data.get("visualization", {}).get("nodes", []) or data.get("nodes", [])
-        st.CONCEPTS_DATA = {n["id"]: n for n in nodes}
-        # Session 2: precompute aliases for acronym/alias-aware ranking
-        for cid, concept in st.CONCEPTS_DATA.items():
-            if "id" not in concept:
-                concept["id"] = cid
-            concept["aliases"] = generate_aliases(concept)
-            print(f"Synchronously loaded {len(st.CONCEPTS_DATA)} concepts at startup (aliases ready).")
+        for n in nodes:
+            cid = n.get("id", "")
+            st.CONCEPTS_DATA[cid] = {
+                'id': n.get('id', ''),
+                'name': n.get('label', ''),
+                'concept_type': n.get('concept_type', ''),
+                'difficulty': n.get('difficulty', ''),
+                'summary': n.get('summary', ''),
+                'tags': n.get('tags', []),
+                'sources': n.get('sources', []),
+                'source_categories': n.get('source_categories', []),
+                'sections': n.get('sections', []),
+                'prerequisites': n.get('prerequisites', []),
+                'unlocks': n.get('unlocks', []),
+                'related': n.get('related', []),
+                'source_count': n.get('source_count', 0),
+            }
+            if "id" not in st.CONCEPTS_DATA[cid]:
+                st.CONCEPTS_DATA[cid]["id"] = cid
+            st.CONCEPTS_DATA[cid]["aliases"] = generate_aliases(st.CONCEPTS_DATA[cid])
+        print(f"Synchronously loaded {len(st.CONCEPTS_DATA)} concepts at startup (aliases ready).")
     except Exception as e:
         print(f"Error loading concepts at startup: {e}")

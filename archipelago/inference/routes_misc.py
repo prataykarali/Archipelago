@@ -12,8 +12,9 @@ from flask import jsonify, send_from_directory, request, redirect
 
 import kuzu
 
+from archipelago.inference.graph_lock import graph_lock
 from ingestion_jobs import JobStatus
-from ingestion_worker import job_store, get_worker, graph_lock
+from ingestion_worker import job_store, get_worker
 from archipelago.auth import require_librarian, librarian_token_expected
 from archipelago.inference import state as st
 import torch

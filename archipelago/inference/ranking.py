@@ -345,61 +345,13 @@ def find_anchor_concept(query):
 
     Strong hits need high cosine *and* non-trivial lexical fit so vague queries
     do not pin onto an unrelated high-dim embedding neighbor.
+
+    Heuristics only — no Ollama round-trip. Calling the SLM here used to block
+    the single GPU slot for 5–15s before chat synthesis could start.
     """
     ranked = rank_concepts(query, top_k=5)
     if not ranked:
         return None, 0.0
-
-    try:
-        import ollama
-        client = ollama.Client(host="http://localhost:11434")
-        
-        candidate_lines = []
-        for cand in ranked:
-            lbl = cand.get("label") or cand.get("name") or cand["id"]
-            summary = cand.get("summary") or ""
-            candidate_lines.append(f"- ID: '{cand['id']}' | Label: '{lbl}' | Summary: '{summary}'")
-        candidates_str = "\n".join(candidate_lines)
-
-        system_prompt = (
-            "You are a precise concept-matching system.\n"
-            "Given a user query and a list of candidate concepts, identify which concept ID "
-            "best matches the user query. You must only choose a concept ID from the list "
-            "if it is a clear, direct, and correct match.\n"
-            "If there is a match, reply ONLY with the matched concept's ID (e.g. 'low_rank_adaptation').\n"
-            "If none of the concepts in the list matches the query, reply ONLY with 'None'.\n"
-            "Do not explain, do not add introductory text, just output the raw ID or 'None'."
-        )
-        user_content = f"User Query: {query}\n\nCandidate Concepts:\n{candidates_str}\n\nAnswer:"
-
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            think=False,
-            options={"temperature": 0.0, "num_predict": 30},
-        )
-        llm_response = response.get("message", {}).get("content", "").strip()
-        cleaned_response = llm_response.strip().strip("'\"`").strip()
-        
-        if cleaned_response.lower() == "none":
-            return None, 0.0
-
-        for cand in ranked:
-            if cleaned_response == cand["id"] or cleaned_response.lower() == cand["id"].lower():
-                cos = float(cand.get("cos") or 0.0)
-                lexical = float(cand.get("lexical") or 0.0)
-                alias_boost = float(cand.get("alias_boost") or 0.0)
-                core_boost = float(cand.get("core_boost") or 0.0)
-                # LLM confirmation + surface evidence → same confidence scale
-                # as the heuristic path, so downstream gates behave identically.
-                if alias_boost >= 0.25 or core_boost >= 0.35:
-                    return cand["id"], max(cos, lexical, 0.9)
-                return cand["id"], max(cos, lexical)
-    except Exception as e:
-        print(f"Ollama call failed or unavailable during find_anchor_concept: {e}")
 
     for cand in ranked:
         cos = float(cand.get("cos") or 0.0)

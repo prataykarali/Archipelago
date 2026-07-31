@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import kuzu
 from thefuzz import fuzz
-from ingestion_worker import graph_lock
+from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference import state as st
 from archipelago.inference.ranking import rank_concepts
 from okf.config import infer_source_category

@@ -13,8 +13,11 @@ def main():
     threading.Thread(target=load_embedding_model, daemon=True).start()
     if os.getenv("ARCHIPELAGO_LOAD_AURA", "0") == "1":
         threading.Thread(target=load_aura_model, daemon=True).start()
-    print("\nArchipelago Inference — http://localhost:5051\n")
-    app.run(host=os.environ.get("ARCHIPELAGO_BIND", "127.0.0.1"), port=5051, debug=False)
+    host = os.environ.get("ARCHIPELAGO_BIND", "127.0.0.1")
+    port = int(os.environ.get("ARCHIPELAGO_INFERENCE_PORT", "5051"))
+    print(f"\nArchipelago Inference — http://localhost:{port}\n")
+    # threaded=True: readiness polls must not block /api/chat streaming.
+    app.run(host=host, port=port, debug=False, threaded=True)
 
 
 if __name__ == "__main__":

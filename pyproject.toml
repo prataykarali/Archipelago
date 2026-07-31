@@ -1,0 +1,119 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+    ".venv",
+    "__pycache__",
+    ".git",
+    "build",
+    "dist",
+    "okf_graph.db",
+    "okf_graph.db/",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "RUF",  # ruff-specific
+    "SIM",  # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # function call in default argument
+    "B904",  # raise without from
+    "SIM105",  # use contextlib.suppress
+    "UP007",  # use X | Y for type hints (keep Optional for readability)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B017", "S101", "SIM117"]
+"scripts/**" = ["B008", "S603", "S607"]
+"okf/cleanup_parts/*" = ["B904"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["archipelago", "okf"]
+force-sort-within-sections = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+show_error_codes = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "."
+
+[[tool.mypy.overrides]]
+module = [
+    "kuzu.*",
+    "ollama.*",
+    "fitz.*",
+    "docx.*",
+    "odf.*",
+    "thefuzz.*",
+    "pandas.*",
+    "levenshtein.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end live tests (opt-in via RUN_LIVE_E2E=1)",
+]
+
+[tool.bandit]
+targets = ["archipelago", "okf", "chat_server.py", "graph_server.py", "inference_server.py"]
+skips = ["B101"]
+exclude_dirs = ["tests", "scripts", ".venv", "__pycache__"]
+
+[tool.coverage.run]
+source = ["archipelago", "okf"]
+omit = ["tests/*", "scripts/*"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

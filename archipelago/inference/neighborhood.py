@@ -1,9 +1,10 @@
-"""Kuzu neighborhood traversal and concept citations."""
+"""Kuzu neighborhood traversal and concept citations.
+"""
 from __future__ import annotations
 
 import kuzu
 
-from ingestion_worker import graph_lock
+from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference import state as st
 
 _DIFFICULTY_RANK = {
