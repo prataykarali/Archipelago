@@ -77,7 +77,7 @@ def check_aiml_scope_via_llm(query: str) -> bool | None:
     try:
         import ollama
 
-        client = ollama.Client(host="http://localhost:11434")
+        client = ollama.Client(host=st.OLLAMA_HOST)
         response = client.chat(
             model=st.DEFAULT_OLLAMA_MODEL,
             messages=[

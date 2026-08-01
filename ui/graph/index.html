@@ -1122,8 +1122,9 @@ srchI.addEventListener('blur',()=>{setTimeout(()=>srchR.classList.remove('show')
 
 // ═══ LIBRARIAN TAB (staff only — students use Chat for queries) ═══
 (function(){
-  // The inference server (which owns /api/ingest and /api/manual/*) runs on port 5051.
-  const INFER_HOST = `${location.protocol}//${location.hostname}:5051`;
+  // The inference server owns /api/ingest and /api/manual/*.
+  // Use a relative base URL so the app works behind any reverse proxy.
+  const INFER_HOST = window.ARCHIPELAGO_INFER_HOST || '';
   const TOKEN_KEY = 'archipelago_librarian_token';
 
   const panel   = document.getElementById('librarian-panel');

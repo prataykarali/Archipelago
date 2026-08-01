@@ -1,31 +1,36 @@
-# Hugging Face Spaces (Docker) — Archipelago pilot chat + inference
-# Secrets (Space Settings → Repository secrets):
-#   OLLAMA_HOST (remote Ollama GPU endpoint, required)
-#   ARCHIPELAGO_TOKEN   (optional but recommended)
-#   ARCHIPELAGO_ERESOURCE_JSON content via mounted secret file if needed
-FROM python:3.12-slim
+# ── Archipelago — single-container production image ──────────────────────────
+FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    ARCHIPELAGO_BIND=0.0.0.0 \
-    ARCHIPELAGO_DB_READ_ONLY=1 \
-    PORT=7860
+# ── System dependencies ──────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
 
+# ── Working directory ────────────────────────────────────────────────────────
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl \
-    && rm -rf /var/lib/apt/lists/*
-
+# ── Install Python dependencies ──────────────────────────────────────────────
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# ── Copy source ──────────────────────────────────────────────────────────────
 COPY . .
 
-# HF Spaces expect the app on $PORT (default 7860)
-EXPOSE 7860
+# ── Runtime environment ──────────────────────────────────────────────────────
+ENV ARCHIPELAGO_BIND=0.0.0.0
+ENV ARCHIPELAGO_LOAD_AURA=0
+ENV ARCHIPELAGO_DB_PATH=/app/okf_graph.db
+ENV FLASK_ENV=production
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD curl -fsS "http://127.0.0.1:${PORT}/api/readiness" || exit 1
+# Northflank injects PORT automatically
+ENV PORT=5050
 
-CMD ["bash", "scripts/ops/hf_space_start.sh"]
+# ── Expose public port ───────────────────────────────────────────────────────
+EXPOSE 5050
+
+# ── Startup ──────────────────────────────────────────────────────────────────
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]

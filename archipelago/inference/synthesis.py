@@ -23,7 +23,7 @@ def is_ollama_available():
     if _ollama_cache["available"] is not None and (now - _ollama_cache["timestamp"]) < _CACHE_TTL:
         return _ollama_cache["available"]
     try:
-        client = ollama.Client(host="http://localhost:11434")
+        client = ollama.Client(host=st.OLLAMA_HOST)
         client.chat(model=st.DEFAULT_OLLAMA_MODEL, messages=[{"role": "user", "content": "hi"}], options={"num_predict": 5})
         _ollama_cache["available"] = True
     except Exception:
@@ -958,7 +958,7 @@ def run_ollama_agent(messages):
         },
     }]
     try:
-        client = ollama.Client(host='http://localhost:11434')
+        client = ollama.Client(host=st.OLLAMA_HOST)
         # Keep the conversational model explicit and lightweight.  Do not pick
         # the first installed model: that made deployments silently switch
         # behaviour and latency whenever a user downloaded another model.

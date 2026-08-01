@@ -145,7 +145,7 @@ def _run_dual_pass_guard(query: str) -> bool:
         return False
     try:
         import ollama
-        client = ollama.Client(host="http://localhost:11434")
+        client = ollama.Client(host=st.OLLAMA_HOST)
         response = client.chat(
             model=st.DEFAULT_OLLAMA_MODEL,
             messages=[
@@ -291,7 +291,7 @@ def _run_sanity_guard(query: str) -> bool:
         return False
     try:
         import ollama
-        client = ollama.Client(host="http://localhost:11434")
+        client = ollama.Client(host=st.OLLAMA_HOST)
         response = client.chat(
             model=st.DEFAULT_OLLAMA_MODEL,
             messages=[

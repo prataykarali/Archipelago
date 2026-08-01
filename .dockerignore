@@ -1,0 +1,61 @@
+# ── Python runtime artifacts ──────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+.pytest_cache/
+.ruff_cache/
+
+# ── Virtual environment ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+
+# ── Git & IDE ─────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.vscode/
+.idea/
+.kombai/
+
+# ── Generated / runtime data (not needed at build time) ───────────────────────
+logs/
+jobs/
+shares/
+pdfs/
+ingest_logs/
+work_queue.json
+_graph_edges.json
+_graph_nodes.json
+graph_data.js
+graph_data_export.json
+graph_output.txt
+okf_results.json
+accuracy.json
+
+# ── KuzuDB — large binary; mount as volume in production ─────────────────────
+okf_graph.db
+okf_graph.db/
+tmp_kuzu_test.db
+tmp_kuzu_test.db/
+
+# ── Training artefacts (not needed at runtime) ────────────────────────────────
+training_data/
+training/
+nb/
+
+# ── Tests and scratch ─────────────────────────────────────────────────────────
+tests/
+scratch/
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+*.bak*
+.~lock.*
+README.md
+PILOT_LAUNCH.md
+docs/

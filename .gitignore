@@ -60,33 +60,4 @@ okf_results.json.bak5-pre-domain-scrub
 
 # Office lock files
 .~lock.*#
-
-# Local ingestion models (GGUF, ~700MB total)
-ingest/
-
-# Environment secrets
 .env
-
-# IDE / editor configs
-.kombai/
-.claude/
-
-# Linter / test caches
-.ruff_cache/
-.pytest_cache/
-
-# Generated audit / visualization outputs
-source_audit.json
-archipelago_graph.html
-
-# Old graph DB backups
-okf_graph.bak*/
-
-# Font duplicates (canonical copy in frontend/ui/warfield/)
-warfield/
-
-# Presentation / demo assets (not runtime)
-ppt_assets/
-
-# Throwaway scripts
-scratch/

@@ -27,26 +27,15 @@ def add_cors_headers(response):
     return response
 
 
-@st.app.route("/pdfs/<path:filename>")
-def serve_pdf(filename):
-    """Serve local papers/textbooks from the pdfs folder.
+# HuggingFace dataset that holds the corpus PDFs.
+# Set HF_DATASET_REPO env var to override (useful for forks/mirrors).
+_HF_DATASET_REPO = os.environ.get(
+    "HF_DATASET_REPO", "Prataykarali/archipelago-books-cs"
+)
 
-    When the file is not on disk (slim deployments that don't ship the corpus
-    PDFs), redirect to the canonical public source (arXiv / mml-book) so the
-    reading pane can still stream the full document.
-    """
-    local = Path(st.PDF_DIR) / filename
-    if local.is_file():
-        return send_from_directory(str(st.PDF_DIR), filename)
-    remote = REMOTE_PDF_SOURCES.get(Path(filename).name)
-    if remote:
-        return redirect(remote, code=302)
-    return jsonify({"error": f"PDF not found: {filename}"}), 404
-
-
-# Canonical public URLs for the corpus documents (all openly licensed/hosted:
-# arXiv preprints and the officially-free MML book). Used as a streaming
-# fallback so full texts never need to live on this machine.
+# Canonical public URLs for the 6 core corpus documents (openly licensed:
+# arXiv preprints and the officially-free MML book). These work without
+# any HF token and are tried before the HF dataset fallback.
 REMOTE_PDF_SOURCES = {
     "Vaswani2017_Attention_Is_All_You_Need.pdf": "https://arxiv.org/pdf/1706.03762",
     "Hu2021_LoRA.pdf": "https://arxiv.org/pdf/2106.09685",
@@ -55,6 +44,58 @@ REMOTE_PDF_SOURCES = {
     "Edge2024_GraphRAG.pdf": "https://arxiv.org/pdf/2404.16130",
     "Deisenroth_Math_For_ML.pdf": "https://mml-book.github.io/book/mml-book.pdf",
 }
+
+
+def _hf_dataset_url(filename: str) -> str | None:
+    """Build a HuggingFace dataset resolve URL for *filename*.
+
+    Appends ``?token=<HF_TOKEN>`` when the env var is set so private
+    datasets are accessible. The token is injected server-side only —
+    the browser receives a 302 redirect and never sees the raw token
+    in JavaScript.
+
+    Returns None when HF_DATASET_REPO is not configured.
+    """
+    repo = _HF_DATASET_REPO
+    if not repo:
+        return None
+    # HF resolve URL pattern for dataset files
+    url = f"https://huggingface.co/datasets/{repo}/resolve/main/{filename}"
+    token = os.environ.get("HF_TOKEN", "").strip()
+    if token:
+        url = f"{url}?token={token}"
+    return url
+
+
+@st.app.route("/pdfs/<path:filename>")
+def serve_pdf(filename):
+    """Serve a corpus PDF with a 3-tier fallback strategy.
+
+    1. Local disk  — fast path for local dev where pdfs/ is present.
+    2. REMOTE_PDF_SOURCES — hardcoded arXiv / mml-book redirects for the
+       6 core papers (no token needed, always public).
+    3. HuggingFace dataset — resolves any remaining file from the
+       ``Prataykarali/archipelago-books-cs`` dataset via a 302 redirect.
+       HF_TOKEN is appended server-side so the browser never sees it.
+
+    PDFs are never downloaded into the container during normal inference.
+    """
+    # 1. Local disk (dev / persistent-volume deployments)
+    local = Path(st.PDF_DIR) / filename
+    if local.is_file():
+        return send_from_directory(str(st.PDF_DIR), filename)
+
+    # 2. Hardcoded public sources (arXiv, mml-book)
+    remote = REMOTE_PDF_SOURCES.get(Path(filename).name)
+    if remote:
+        return redirect(remote, code=302)
+
+    # 3. HuggingFace dataset resolve URL
+    hf_url = _hf_dataset_url(filename)
+    if hf_url:
+        return redirect(hf_url, code=302)
+
+    return jsonify({"error": f"PDF not found: {filename}"}), 404
 
 
 # ── Shared chats: tiny file-backed store (no DB, no auth beyond size caps) ──
