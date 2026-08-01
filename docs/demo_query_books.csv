@@ -1,0 +1,22 @@
+query_key,query_text,book_id,book_title,authors,total_copies,available_copies,availability,is_reference,shelf_location,notes
+lora,What is Low-Rank Adaptation (LoRA)?,hu2021_lora,LoRA: Low-Rank Adaptation of Large Language Models,"Edward J. Hu et al.",3,2,Available,No,AIML-PEFT-01,Primary PEFT paper for LoRA demos
+lora,What is Low-Rank Adaptation (LoRA)?,peft_survey,Parameter-Efficient Fine-Tuning Survey (library copy),Library PEFT Collection,2,1,Available,Yes,AIML-PEFT-REF,Reference only — does not leave library
+rag,Explain the main components of RAG,lewis2020_rag,Retrieval-Augmented Generation for Knowledge-Intensive NLP,"Patrick Lewis et al.",4,3,Available,No,AIML-RAG-01,Canonical RAG paper
+rag,Explain the main components of RAG,graphrag_ms,GraphRAG / hybrid retrieval notes (library binder),Microsoft Research / library notes,2,2,Available in library,Yes,AIML-RAG-REF,Reference binder
+bert,What are the prerequisites for BERT?,devlin2018_bert,BERT: Pre-training of Deep Bidirectional Transformers,"Jacob Devlin et al.",5,4,Available,No,AIML-NLP-01,Primary BERT paper
+bert,What are the prerequisites for BERT?,vaswani2017_attention,Attention Is All You Need,"Ashish Vaswani et al.",4,3,Available,No,AIML-NLP-02,Transformer prerequisite
+attention,How does the Attention mechanism work?,vaswani2017_attention,Attention Is All You Need,"Ashish Vaswani et al.",4,3,Available,No,AIML-NLP-02,Scaled dot-product attention source
+attention,How does the Attention mechanism work?,devlin2018_bert,BERT: Pre-training of Deep Bidirectional Transformers,"Jacob Devlin et al.",5,4,Available,No,AIML-NLP-01,Self-attention application
+dbms_buffer,DBMS buffer pools in Silberschatz,database_system_concepts_silberschatz,Database System Concepts,"Abraham Silberschatz, Henry F. Korth, S. Sudarshan",4,4,Available in library,Yes,DBMS-01,Reference — Silberschatz buffer manager chapters
+dbms_buffer,DBMS buffer pools in Silberschatz,database_management_systems_ramakrishnan,Database Management Systems,"Raghu Ramakrishnan, Johannes Gehrke",5,5,Available in library,Yes,DBMS-02,Reference companion on buffer pools
+ostep_paging,Virtual memory paging vs segmentation,ostep_three_easy_pieces,Operating Systems: Three Easy Pieces (OSTEP),"Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau",7,4,Available,No,OS-01,Circulating — paging chapters
+ostep_paging,Virtual memory paging vs segmentation,operating_system_concepts_silberschatz,Operating System Concepts (The Dinosaur Book),"Abraham Silberschatz, Peter B. Galvin, Greg Gagne",4,4,Available in library,Yes,OS-02,Reference — segmentation vs paging
+graphrag,GraphRAG: graph + RAG synthesis,graphrag_ms,From Local to Global: GraphRAG (library copy),Microsoft Research,2,1,Available,No,AIML-RAG-03,Graph + community summary RAG
+graphrag,GraphRAG: graph + RAG synthesis,lewis2020_rag,Retrieval-Augmented Generation for Knowledge-Intensive NLP,"Patrick Lewis et al.",4,3,Available,No,AIML-RAG-01,Classic RAG baseline for comparison
+peft_rank,Rank top PEFT & RAG papers,hu2021_lora,LoRA: Low-Rank Adaptation of Large Language Models,"Edward J. Hu et al.",3,2,Available,No,AIML-PEFT-01,Top PEFT method
+peft_rank,Rank top PEFT & RAG papers,lewis2020_rag,Retrieval-Augmented Generation for Knowledge-Intensive NLP,"Patrick Lewis et al.",4,3,Available,No,AIML-RAG-01,Top RAG paper
+peft_rank,Rank top PEFT & RAG papers,peft_survey,Parameter-Efficient Fine-Tuning Survey (library copy),Library PEFT Collection,2,1,Available,Yes,AIML-PEFT-REF,Reference survey
+multi_rag_dbms,Multi-topic: RAG + DBMS,lewis2020_rag,Retrieval-Augmented Generation for Knowledge-Intensive NLP,"Patrick Lewis et al.",4,3,Available,No,AIML-RAG-01,RAG half of multi-topic
+multi_rag_dbms,Multi-topic: RAG + DBMS,database_system_concepts_silberschatz,Database System Concepts,"Abraham Silberschatz, Henry F. Korth, S. Sudarshan",4,4,Available in library,Yes,DBMS-01,DBMS half — reference
+lora_vs_bert,Compare LoRA vs BERT,hu2021_lora,LoRA: Low-Rank Adaptation of Large Language Models,"Edward J. Hu et al.",3,2,Available,No,AIML-PEFT-01,Adapter-style PEFT side
+lora_vs_bert,Compare LoRA vs BERT,devlin2018_bert,BERT: Pre-training of Deep Bidirectional Transformers,"Jacob Devlin et al.",5,4,Available,No,AIML-NLP-01,Full fine-tune baseline side

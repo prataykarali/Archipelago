@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import kuzu
 
-from ingestion_worker import graph_lock
+from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference import state as st
 from archipelago.inference.aliases import _node_name, pdf_page_url, markdown_pdf_link
 from archipelago.inference.neighborhood import get_concept_citations, is_plausible_prereq

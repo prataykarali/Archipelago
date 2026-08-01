@@ -1,0 +1,241 @@
+{
+  "summary": {
+    "pass": 23,
+    "total": 23,
+    "pass_rate": 1.0,
+    "note": "Q13 fixed after FAQ disambiguation"
+  },
+  "results": [
+    {
+      "id": "Q6",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "OKF stands for **Open Knowledge Format** \u2014 Archipelago's structured concept schema for teachable technical topics (prerequisites, unlocks, tags)."
+    },
+    {
+      "id": "Q7",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "Every valid OKF concept object must include these 8 keys: `concept_name`, `concept_type`, `difficulty`, `summary`, `prerequisites`, `unlocks`, `related_to`, `tags`."
+    },
+    {
+      "id": "Q8",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "An OKF `concept_name` must be **\u22645 words**, formatted in **Title Case**."
+    },
+    {
+      "id": "Q9",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "In the OKF schema, the **`unlocks`** array lists downstream topics enabled after mastering the target concept."
+    },
+    {
+      "id": "Q10",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "Archipelago stores connected learning nodes in **K\u00f9zuDB** (embedded graph database)."
+    },
+    {
+      "id": "Q11",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "Queries longer than **500 characters** are rejected by the Stage-1 guardrail with an immediate API error payload: `Query too long` (limit 500 characters)."
+    },
+    {
+      "id": "Q12",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "Query vectorization uses the local embedding model **`Snowflake/snowflake-arctic-embed-m-v1.5`** (also referenced as Snowflake/arctic-embed-m-v1.5)."
+    },
+    {
+      "id": "Q13",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "The minimum cosine similarity threshold before K\u00f9zuDB retrieval is **0.75**...",
+      "note": "fixed cosine vs kuzu FAQ disambiguation"
+    },
+    {
+      "id": "Q14",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "When text has no teachable technical concept, the OKF extraction engine must return an empty JSON array: **`[]`**."
+    },
+    {
+      "id": "Q15",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "High-speed synthesis in the two-pass inference pipeline uses **Gemini** (configured primary: `gemini-2.5-flash` / flash-lite failover chain via `GEMINI_MODEL` / `ARCHIPELAGO_GEMINI_MODEL`)."
+    },
+    {
+      "id": "Q16",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "Institutional catalog integration introduced three node types: **`Subject`**, **`Resource`**, and **`JournalIssue`**."
+    },
+    {
+      "id": "Q17",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "A **`HAS_ISSUE`** edge connects a `JournalIssue` node to its parent paper/journal `Resource` node."
+    },
+    {
+      "id": "Q18",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "The `Document` node schema stores external PDF assets via **`pdf_url STRING`** without loading full binaries into server memory."
+    },
+    {
+      "id": "Q20",
+      "status": "PASS",
+      "route": "system_faq",
+      "expect_route": "system_faq",
+      "gen": "system_faq",
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "A concept must **never** appear in its own `prerequisites` or `unlocks` arrays \u2014 this rule prevents circular graph dependencies on individual nodes."
+    },
+    {
+      "id": "Q21",
+      "status": "PASS",
+      "route": "graph_strong",
+      "expect_route": "graph_strong",
+      "gen": "gemini",
+      "anchor": "vector_rag",
+      "dt": 3.88,
+      "preview": "Vector RAG (often referred to as semantic search in retrieval frameworks) is a baseline document-retrieval methodology that finds and utilizes relevant source texts through vector similarity against a"
+    },
+    {
+      "id": "Q26",
+      "status": "PASS",
+      "route": "graph_strong",
+      "expect_route": "graph_strong",
+      "gen": "gemini",
+      "anchor": "low_rank_adaptation",
+      "dt": 5.49,
+      "preview": "Low-Rank Adaptation (LoRA) is an efficient fine-tuning paradigm that freezes the pretrained model weights and injects trainable rank decomposition matrices into each layer of the Transformer architect"
+    },
+    {
+      "id": "Q27",
+      "status": "PASS",
+      "route": "graph_strong",
+      "expect_route": "graph_strong",
+      "gen": "gemini",
+      "anchor": "self_attention",
+      "dt": 5.22,
+      "preview": "To understand the self-attention mechanism, one must first study sequence modeling and autoregressive decomposition, where the joint probability of a sequence of tokens $(x_1, \\ldots, x_n)$ is factori"
+    },
+    {
+      "id": "Q28",
+      "status": "PASS",
+      "route": "graph_strong",
+      "expect_route": "graph_strong",
+      "gen": "gemini",
+      "anchor": "dimensionality_reduction",
+      "dt": 3.63,
+      "preview": "Mastering dimensionality reduction serves as a foundational technique in data science and machine learning, particularly by simplifying feature spaces, mitigating the curse of dimensionality, and impr"
+    },
+    {
+      "id": "Q30",
+      "status": "PASS",
+      "route": "graph_strong",
+      "expect_route": "graph_strong",
+      "gen": "gemini",
+      "anchor": "graph_rag",
+      "dt": 4.66,
+      "preview": "GraphRAG and standard Vector RAG differ fundamentally in their structural prerequisites and reliance on network topology versus flat vector spaces. Standard Vector RAG relies directly on text chunks e"
+    },
+    {
+      "id": "Q51",
+      "status": "PASS",
+      "route": "out_of_scope",
+      "expect_route": "out_of_scope",
+      "gen": null,
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "That topic is outside the library's catalog."
+    },
+    {
+      "id": "Q52",
+      "status": "PASS",
+      "route": "out_of_scope",
+      "expect_route": "out_of_scope",
+      "gen": null,
+      "anchor": null,
+      "dt": 0.0,
+      "preview": "That topic is outside the library's catalog."
+    },
+    {
+      "id": "Q61",
+      "status": "PASS",
+      "route": "graph_strong",
+      "expect_route": "graph_strong",
+      "gen": "gemini",
+      "anchor": "self_attention",
+      "dt": 4.2,
+      "preview": "Self-attention is a mechanism used within transformer architectures to compute representations of an input and output sequence by relating different positions of a single sequence [S5]. Unlike traditi"
+    },
+    {
+      "id": "LoRA",
+      "status": "PASS",
+      "route": "graph_strong",
+      "expect_route": "graph_strong",
+      "gen": "gemini",
+      "anchor": "low_rank_adaptation",
+      "dt": 4.77,
+      "preview": "Low-Rank Adaptation (LoRA) is an efficient parameter-tuning methodology designed to reduce the memory footprint required during the adaptation of large-scale models without sacrificing performance [S2"
+    }
+  ]
+}

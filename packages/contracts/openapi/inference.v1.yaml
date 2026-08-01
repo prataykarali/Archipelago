@@ -1,0 +1,29 @@
+openapi: 3.1.0
+info:
+  title: Archipelago Inference API
+  version: "1.0.0"
+paths:
+  /api/readiness:
+    get:
+      summary: Health
+      responses:
+        "200":
+          description: OK
+  /api/chat:
+    post:
+      summary: Streaming chat (metadata line + [STREAM_START] + tokens)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string }
+                session_id: { type: string }
+                history: { type: array, items: { type: object } }
+                synthesis: { type: boolean }
+      responses:
+        "200":
+          description: text/plain stream

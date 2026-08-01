@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Archipelago Backend API
+  version: "1.0.0"
+paths:
+  /api/ready:
+    get:
+      summary: Backend readiness
+      responses:
+        "200":
+          description: OK
+  /api/ingest/jobs:
+    post:
+      summary: Enqueue ingestion job
+      responses:
+        "202":
+          description: Accepted

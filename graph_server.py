@@ -12,6 +12,9 @@ from flask import Flask, jsonify, send_from_directory, request
 BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "okf_graph.json"
 STATIC_DIR = BASE_DIR / "graph_ui"
+_ASSET_ROOTS = tuple(
+    p for p in (BASE_DIR / "buttons", BASE_DIR / "ui" / "assets") if p.is_dir()
+)
 
 app = Flask(__name__, static_folder=str(STATIC_DIR))
 
@@ -152,6 +155,19 @@ def index():
 def archipelago_graph():
     """Original graph URL kept alive, but served from the live data viewer."""
     return send_from_directory(str(STATIC_DIR), "index.html")
+
+@app.route("/ui/assets/<path:filename>")
+def media_assets(filename):
+    """Serve button icons from repo buttons/ (and ui/assets) for the graph UI."""
+    safe = Path(filename)
+    if ".." in safe.parts:
+        return jsonify({"error": "not found"}), 404
+    for root in _ASSET_ROOTS:
+        candidate = root / filename
+        if candidate.is_file() or candidate.is_symlink():
+            return send_from_directory(str(root), filename, conditional=True)
+    fallback = _ASSET_ROOTS[0] if _ASSET_ROOTS else (BASE_DIR / "buttons")
+    return send_from_directory(str(fallback), filename, conditional=True)
 
 @app.route("/<path:filename>")
 def static_files(filename):

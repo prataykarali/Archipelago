@@ -1,0 +1,5 @@
+{"id": "row1", "prompt": "Extract LoRA paragraph from the document.", "gold_concepts": ["LoRA"], "model_output": []}
+{"id": "row2", "prompt": "Identify PCA related math expressions.", "gold_concepts": ["PCA", "matrix"], "model_output": []}
+{"id": "row3", "prompt": "List any celebrity mentions.", "gold_concepts": [], "model_output": []}
+{"id": "row4", "prompt": "Extract bibliography entries.", "gold_concepts": ["bibliography"], "model_output": []}
+{"id": "row5", "prompt": "Summarize key concepts in the passage.", "gold_concepts": ["key concept"], "model_output": []}
