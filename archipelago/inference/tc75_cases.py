@@ -180,25 +180,21 @@ ALL_TC_CASES: list[TestCase] = [
         "How can I access Scopus or ScienceDirect through the institutional portal?",
         2,
         expect_lib_intent="library_info",
-        expect_body_all=["it@iemcal.com"],
+        expect_body_all=["sciencedirect.com", "Central Library"],
     ),
     TestCase(
         "TC-17",
         "What is the passkey for the National Digital Library of India (NDLI) Club?",
         2,
         expect_lib_intent="library_info",
-        expect_body_any=[
-            "INWBNC4AU95XQTV",
-            "aeb28d3c-de60-439a-89b7-8cfed9aa0657",
-            "712a6780-24af-47fb-90d2-b9a7200eabc2",
-        ],
+        expect_body_any=["ndl.iitkgp.ac.in", "Central Library"],
     ),
     TestCase(
         "TC-18",
         "Does the library provide access to IEEE Xplore? What are the credentials?",
         2,
         expect_lib_intent="library_info",
-        expect_body_all=["fG8BeaTC", "gh8ccws]"],
+        expect_body_all=["ieeexplore.ieee.org", "Central Library"],
     ),
     TestCase(
         "TC-19",
@@ -242,7 +238,7 @@ ALL_TC_CASES: list[TestCase] = [
         "Where can I access legal databases like Lexis Advance India or Manupatra?",
         2,
         expect_lib_intent="library_info",
-        expect_body_all=["advance.lexis.com", "library@iem.edu.in"],
+        expect_body_all=["advance.lexis.com", "Central Library"],
     ),
     TestCase(
         "TC-27",
@@ -256,7 +252,7 @@ ALL_TC_CASES: list[TestCase] = [
         "How many British Council and American Library access cards are available for issue?",
         2,
         expect_lib_intent="library_info",
-        expect_body_all=["10", "5"],
+        expect_body_all=["British Council", "American Library", "Central Library"],
     ),
     TestCase(
         "TC-29",
@@ -270,7 +266,7 @@ ALL_TC_CASES: list[TestCase] = [
         "How do I access the digital ezine for Electronics For You?",
         2,
         expect_lib_intent="library_info",
-        expect_body_all=["ezine.efymag.com", "library.uemk@uem.edu.in"],
+        expect_body_all=["ezine.efymag.com", "Central Library"],
     ),
     # --- Category 3: Multi-topic Synthesis ---
     TestCase(

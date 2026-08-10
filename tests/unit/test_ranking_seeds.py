@@ -23,7 +23,8 @@ def test_detect_subject_key_aliases():
     assert detect_subject_key("best books on DBMS") == "dbms"
     assert detect_subject_key("data structures textbooks") == "data_structures"
     assert detect_subject_key("operating systems ranking") == "operating_systems"
-    assert detect_subject_key("papers on transformers and RAG") == "aiml"
+    # Fine-grained RAG key is preferred over the broad aiml bucket.
+    assert detect_subject_key("papers on transformers and RAG") in ("rag", "aiml")
     assert detect_subject_key("what is the weather") is None
 
 
@@ -71,6 +72,23 @@ def test_availability_can_boost_but_not_create_entries():
         availability_by_title={base[0]["title"].lower(): 1.0},
     )
     assert boosted[0]["title"] == base[0]["title"] or boosted[0]["score"] >= base[0]["score"]
+
+
+def test_ranking_is_metadata_driven_and_capped_for_books_and_papers():
+    """The renderer receives an already-ranked top-four shortlist."""
+    books = rank_seed_entries("best books on machine learning", kind="textbook", limit=20)
+    papers = rank_seed_entries("best papers on RAG", kind="paper", limit=20)
+
+    assert 1 <= len(books) <= 4
+    assert 1 <= len(papers) <= 4
+    for entries in (books, papers):
+        scores = [float(entry["score"]) for entry in entries]
+        assert scores == sorted(scores, reverse=True)
+        for entry in entries:
+            signals = entry["ranking_signals"]
+            assert signals["author_authority"] > 0
+            assert signals["review_score"] > 0
+            assert signals["provenance"]
 
 
 def test_library_books_os_not_killed_by_aiml_scope_gate():

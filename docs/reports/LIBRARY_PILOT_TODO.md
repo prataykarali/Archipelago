@@ -8,16 +8,16 @@ copyrighted books.
 
 ## P0 — demo-safe before the five-minute presentation
 
-- [ ] Run the complete offline readiness gate after the current UI/chat changes.
-- [ ] Smoke-test a fresh chat, a cited answer, citation click-to-page highlight,
+- [x] Run the complete offline readiness gate after the current UI/chat changes.
+- [x] Smoke-test a fresh chat, a cited answer, citation click-to-page highlight,
   graph opening/highlighting, and context carried across two questions.
-- [ ] Ingest and verify the four catalog `.ods` files into the Kùzu graph on the
+- [x] Ingest and verify the four catalog `.ods` files into the Kùzu graph on the
   presentation database; record row/node/edge counts in the daily update.
-- [ ] Add the selected 5–6 book metadata records and confirm that no full book
+- [x] Add the selected 5–6 book metadata records and confirm that no full book
   text/PDF is uploaded unless it is openly licensed or permission is recorded.
-- [ ] Curate 10–15 journal/paper records around repeated keywords for the three
+- [x] Curate 10–15 journal/paper records around repeated keywords for the three
   pilot subjects; record source URL, author, year, and stable citation target.
-- [ ] Validate every displayed citation: title, author, page/section (where
+- [x] Validate every displayed citation: title, author, page/section (where
   applicable), URL, and click target. Broken or unavailable targets must not be
   rendered as citations.
 - [x] Keep the demo local-first. Do **not** upload Cloudinary assets or any book
@@ -42,15 +42,15 @@ copyrighted books.
 
 ## P2 — safety, quality, and operating process
 
-- [ ] Move e-resource secrets out of tracked PDFs/code and into a protected
+- [x] Move e-resource secrets out of tracked PDFs/code and into a protected
   librarian-only secret store. Student chat should give access instructions or
   the authenticated portal—not reveal passwords.
-- [ ] Verify library hours, locations, and e-resource links with the library
+- [x] Verify library hours, locations, and e-resource links with the library
   before each demo; label these as operational data with a review date.
 - [x] Review the 50 response layouts (`reply_styles.py`): presentation only;
   cleanser strips Sources dumps and caps inline citations at 2 so layouts
   never hurt provenance. Tests: `test_reply_styles.py`, `test_citation_cleanse.py`.
-- [ ] Add a daily morning update: completed items, test results, data added,
+- [x] Add a daily morning update: completed items, test results, data added,
   blockers, and the next day’s one highest-priority task.
-- [ ] Re-check copyright/permission status for every new source and retain a
+- [x] Re-check copyright/permission status for every new source and retain a
   provenance note before ingestion.

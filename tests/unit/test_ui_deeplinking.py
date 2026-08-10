@@ -62,6 +62,13 @@ def test_tc62_highlight_metadata_for_pdfjs_overlay():
 
 
 def test_tc65_citation_lineage_string_format():
+    """TC-65: lineage string format + payload deep-link fields.
+
+    Post-Session-3 ``citation_payload`` no longer embeds ``lineage`` or
+    ``chunk_id`` in its return dict (UI consumes only doc_id/page_number/url).
+    ``lineage`` strings are built separately via ``format_lineage_string`` and
+    ``build_lineage_metadata`` — those are the active contracts under test.
+    """
     from archipelago.inference.citation_lineage import format_lineage_string
     from archipelago.inference.citations import citation_payload
 
@@ -71,6 +78,8 @@ def test_tc65_citation_lineage_string_format():
         3,
     )
     assert lineage == "[doc_id: papers/Dettmers2023_QLoRA.pdf → chunk_004 → page 3]"
+    assert "chunk_004" in lineage
+    assert "page 3" in lineage
 
     payload = citation_payload(
         {
@@ -82,9 +91,9 @@ def test_tc65_citation_lineage_string_format():
         "NormalFloat4 Quantization",
         evidence_id="S1",
     )
-    assert "chunk_004" in payload["lineage"]
-    assert "page 3" in payload["lineage"]
-    assert payload["chunk_id"] == "chunk_004"
+    assert payload["doc_id"] == "papers/Dettmers2023_QLoRA.pdf"
+    assert payload["page_number"] == 3
+    assert "page=3" in payload["url"]
 
 
 def test_tc74_paged_attention_lineage_opens_at_chunk_page():
@@ -342,7 +351,12 @@ def test_tc72_pdf_url_preferred_for_external_docs():
 
 
 def test_tc75_three_pass_pipeline_structure(monkeypatch):
-    """Pass 1 vector + Pass 2 graph + synthesis + deep-link payload shape."""
+    """Pass 1 vector + Pass 2 graph + synthesis + deep-link payload shape.
+
+    Post-Session-3 ``citation_payload`` does not echo ``chunk_id`` in its
+    return value; we forward the source chunk_id into ``build_lineage_metadata``
+    to keep exercising the lineage contract end-to-end.
+    """
     from archipelago.inference.citation_lineage import build_lineage_metadata
     from archipelago.inference.citations import citation_payload
     from archipelago.inference.routing import parse_multi_topic_query
@@ -359,19 +373,16 @@ def test_tc75_three_pass_pipeline_structure(monkeypatch):
         ranked = [{"id": "c1", "label": "Concept", "cos": 0.81}]
         assert ranked[0]["cos"] >= 0.75 or ranked[0]["cos"] > 0
         # Simulated citation deep link
-        payload = citation_payload(
-            {
-                "doc_id": "papers/example.pdf",
-                "chunk_id": "chunk_001",
-                "page_number": 2,
-                "text": "example passage",
-            },
-            "Concept",
-            evidence_id="S1",
-        )
+        evidence = {
+            "doc_id": "papers/example.pdf",
+            "chunk_id": "chunk_001",
+            "page_number": 2,
+            "text": "example passage",
+        }
+        payload = citation_payload(evidence, "Concept", evidence_id="S1")
         meta = build_lineage_metadata(
             doc_id=payload["doc_id"],
-            chunk_id=payload["chunk_id"],
+            chunk_id=evidence["chunk_id"],
             page_number=payload["page_number"],
             text_fragment=payload.get("text_span") or "",
         )

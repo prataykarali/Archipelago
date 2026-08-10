@@ -9,15 +9,45 @@ def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict
     # 1. Extraction Rate (raw, before cleanup)
     extraction_rate = (raw_extraction_count / total_chunks * 100) if total_chunks > 0 else 0
 
-    # 2. Schema Completeness — do all results have all required fields?
+    # 2. Schema Completeness — required fields present with valid types.
+    # Empty prerequisites/unlocks lists are valid (many concepts have none).
+    # Do NOT use truthiness on lists — that falsely tanks core completeness.
     required_fields = ["concept_name", "summary", "prerequisites", "unlocks"]
     expanded_fields = ["concept_type", "difficulty", "related_to", "tags"]
+    _list_fields = frozenset({"prerequisites", "unlocks", "related_to", "tags"})
+
+    def _core_complete(row: dict) -> bool:
+        name = row.get("concept_name")
+        summary = row.get("summary")
+        if not (isinstance(name, str) and name.strip()):
+            return False
+        if not (isinstance(summary, str) and summary.strip()):
+            return False
+        if not isinstance(row.get("prerequisites"), list):
+            return False
+        if not isinstance(row.get("unlocks"), list):
+            return False
+        return True
+
+    def _expanded_complete(row: dict) -> bool:
+        if not _core_complete(row):
+            return False
+        for field in expanded_fields:
+            value = row.get(field)
+            if value is None:
+                return False
+            if field in _list_fields and not isinstance(value, list):
+                return False
+        return True
+
     complete_core = 0
     complete_expanded = 0
     for r in okf_results:
-        if all(r.get(f) for f in required_fields):
+        if not isinstance(r, dict):
+            continue
+        if _core_complete(r):
             complete_core += 1
-        if all(r.get(f) is not None for f in required_fields + expanded_fields):
+        if _expanded_complete(r):
             complete_expanded += 1
 
     schema_completeness_core = (complete_core / len(okf_results) * 100) if okf_results else 0

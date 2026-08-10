@@ -78,15 +78,17 @@ def _page_display(evidence):
 
 
 def _citation_label(topic_name, evidence_list):
-    """Format only provenance we actually retrieved; never invent a page."""
+    """Format provenance labels for ALL retrieved evidence; never invent a page."""
     if not evidence_list:
         return ""
-    evidence = evidence_list[0]
-    evidence_id = evidence.get("evidence_id") or "S?"
-    document = evidence.get("doc_id") or "Unknown document"
-    page_display = _page_display(evidence)
-    page_suffix = f", {page_display}" if page_display else ""
-    return f" [{evidence_id}: {topic_name} | {document}{page_suffix}]"
+    labels = []
+    for evidence in evidence_list:
+        evidence_id = evidence.get("evidence_id") or "S?"
+        document = evidence.get("doc_id") or "Unknown document"
+        page_display = _page_display(evidence)
+        page_suffix = f", {page_display}" if page_display else ""
+        labels.append(f"[{evidence_id}: {topic_name} | {document}{page_suffix}]")
+    return " " + " ".join(labels)
 
 
 def _normalize_legacy_citation(citation):
@@ -216,29 +218,71 @@ def citation_payload(evidence, topic, evidence_id=None):
     supporting text: the offset-sliced span when the offsets index into the
     chunk text, otherwise the full chunk text.
     """
+    from urllib.parse import quote
     if evidence_id is None:
         evidence_id = evidence.get("evidence_id")
     doc_id = evidence.get("doc_id") or ""
     page_number = evidence.get("page_number")
-    url = f"{st.PDF_BASE_URL}/pdfs/{doc_id}"
+    url = f"{st.PDF_BASE_URL}/api/page-view?doc_id={quote(doc_id, safe='')}"
     if isinstance(page_number, int) and page_number > 0:
-        url += f"#page={page_number}"
+        url += f"&page={page_number}#page={page_number}"
     text = evidence.get("text") or ""
     start = evidence.get("text_offset_start")
     end = evidence.get("text_offset_end")
     text_span = text
     if isinstance(start, int) and isinstance(end, int) and 0 <= start < end <= len(text):
         text_span = text[start:end]
+    # Always emit a human-readable title. When chunk metadata omits it,
+    # fall back to prettified doc basename so the UI never renders "Source".
+    title = (evidence.get("doc_title") or evidence.get("title") or "").strip()
+    if not title and doc_id:
+        from archipelago.inference.synthesis import prettify_doc_title
+        title = prettify_doc_title(doc_id)
     return {
         "evidence_id": evidence_id,
         "topic": topic,
         "doc_id": doc_id,
+        "title": title,
         "page_number": page_number,
         "printed_page": _resolve_printed_page(evidence),
         "section_title": evidence.get("section_title") or "",
         "url": url,
         "text_span": text_span,
     }
+
+
+def build_library_source_payloads(books, topic):
+    """Build citation payloads for library book search results (SCH-1)."""
+    from urllib.parse import quote
+    from archipelago.inference.routes_page_view import _is_known_catalog_path
+
+    payloads = []
+    for idx, b in enumerate(books, 1):
+        doc_id = b.get("id") or b.get("doc_id") or ""
+        if not doc_id:
+            continue
+
+        # Exclude unindexed seeds
+        if not (doc_id.endswith(".pdf") or "/" in doc_id):
+            continue
+        try:
+            if not _is_known_catalog_path(doc_id):
+                continue
+        except Exception:
+            pass
+
+        url = f"{st.PDF_BASE_URL}/api/page-view?doc_id={quote(doc_id, safe='')}&page=1&highlight={quote(topic, safe='')}#page=1"
+        payloads.append({
+            "evidence_id": f"S{idx}",
+            "source_type": "indexed_document",
+            "doc_id": doc_id,
+            "page_number": 1,
+            "url": url,
+            "topic": topic,
+            "text_span": b.get("title") or doc_id,
+        })
+    return payloads
+
 
 
 def build_citation_payloads(target_concept, prereqs, unlocks, citation_map):
@@ -254,29 +298,40 @@ def build_citation_payloads(target_concept, prereqs, unlocks, citation_map):
 
 
 def _cite_with_link(name, evidence_list):
-    """Citation bracket plus optional markdown PDF deep-link for chat bubbles."""
-    base = _citation_label(name, evidence_list)
+    """Citation brackets plus markdown PDF deep-links for ALL evidence records."""
     if not evidence_list:
-        return base
-    ev = evidence_list[0]
-    doc_id = ev.get("doc_id")
-    page = ev.get("page_number")
-    url = pdf_page_url(doc_id, page if isinstance(page, int) else None)
-    if not url:
-        return base
-    page_disp = _page_display(ev) or "source"
-    link = markdown_pdf_link(page_disp, doc_id, page if isinstance(page, int) else None)
-    return f"{base} ({link})"
+        return ""
+    parts = []
+    for ev in evidence_list:
+        evidence_id = ev.get("evidence_id") or "S?"
+        document = ev.get("doc_id") or "Unknown document"
+        page_disp_text = _page_display(ev)
+        page_suffix = f", {page_disp_text}" if page_disp_text else ""
+        label = f"[{evidence_id}: {name} | {document}{page_suffix}]"
+        doc_id = ev.get("doc_id")
+        page = ev.get("page_number")
+        url = pdf_page_url(doc_id, page if isinstance(page, int) else None)
+        if url:
+            link_text = page_disp_text or "source"
+            link = markdown_pdf_link(link_text, doc_id, page if isinstance(page, int) else None)
+            parts.append(f"{label} ({link})")
+        else:
+            parts.append(label)
+    return " " + " · ".join(parts)
 
 
 def _citation_marker(evidence_list, bare_markers=False):
-    """Bare ' [S#]' marker for the generator contract (expanded post-hoc)."""
+    """Bare ' [S#]' markers for the generator contract (expanded post-hoc)."""
     if not bare_markers:
         return ""
     if not evidence_list:
         return ""
-    eid = evidence_list[0].get("evidence_id")
-    return f" [{eid}]" if eid else ""
+    markers = []
+    for ev in evidence_list:
+        eid = ev.get("evidence_id")
+        if eid:
+            markers.append(f"[{eid}]")
+    return (" " + " ".join(markers)) if markers else ""
 
 
 def render_citation_from_payload(payload):
@@ -299,9 +354,16 @@ def render_citation_from_payload(payload):
     page_suffix = f", {page_disp}" if page_disp else ""
     base = f"[{eid}: {topic} | {doc_id}{page_suffix}]"
     url = payload.get("url")
+    if not url and doc_id:
+        from urllib.parse import quote
+        url = f"{st.PDF_BASE_URL}/api/page-view?doc_id={quote(doc_id, safe='')}"
+        if isinstance(page_number, int) and page_number > 0:
+            url += f"&page={page_number}#page={page_number}"
+
     if url and page_disp:
         return f"{base} ([{page_disp}]({url}))"
     return base
+
 
 
 _MARKER_WITH_TAIL_RE = None  # compiled lazily in cleanse_model_citations

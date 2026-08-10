@@ -180,6 +180,8 @@ def gate_file_size(root: Path) -> GateResult:
     violations: list[str] = []
 
     for filepath in files:
+        if should_exclude_from_banned(filepath, root):
+            continue
         try:
             line_count = len(filepath.read_text(encoding="utf-8").splitlines())
         except (UnicodeDecodeError, OSError):

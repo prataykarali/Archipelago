@@ -145,17 +145,10 @@ def _is_chitchat(query: str) -> bool:
 
 
 def _has_domain_terms(query: str) -> bool:
-    q = f" {(query or '').lower()} "
-    for term in st._DOMAIN_TERMS:
-        # word-ish match: pad short tokens to avoid matching "ai" inside "said"
-        if len(term) <= 2:
-            if f" {term} " in q or q.strip().startswith(term + " ") or q.strip().endswith(" " + term):
-                return True
-            if re.search(rf"\b{re.escape(term)}\b", q):
-                return True
-        elif term in q:
-            return True
-    return False
+    """Stack + graph domain hit — no hardcoded list."""
+    from archipelago.inference.stack_domains import query_stack_domain_hits
+    q_terms = query_stack_domain_hits(query)
+    return bool(q_terms)
 
 
 def _is_learning_intent(query: str) -> bool:
@@ -171,13 +164,18 @@ def _is_offtopic(query: str) -> bool:
 
 
 def _is_learning_or_domain_query(query: str) -> bool:
-    """True when the user wants AIML learning / tech discussion (not weather etc.)."""
+    """True when query is near the book stack / concept graph (semantic or lexical)."""
     if _is_chitchat(query) or _is_offtopic(query):
         return False
     if _has_domain_terms(query):
         return True
-    # Learning intent alone is not enough ("what is the weather?") — need domain terms
-    # OR a non-trivial question that still looks technical via domain terms only.
+    # Semantic gate: paraphrases of indexed concepts (no hardcoding user words)
+    try:
+        from archipelago.inference.stack_domains import semantic_stack_match
+        if semantic_stack_match(query):
+            return True
+    except Exception:
+        pass
     return False
 
 
@@ -280,6 +278,10 @@ def rank_concepts(query, top_k=None):
             al = a.lower()
             if len(al) >= 3 and (al in query_lower or query_lower in al or al in (query or "").lower()):
                 alias_boost = max(alias_boost, 0.12)
+            # Substring match must be on word boundaries — 'ai' must not match 'interface'.
+            if len(al) <= 3:
+                if re.search(rf"\b{re.escape(al)}\b", query_lower) or re.search(rf"\b{re.escape(al)}\b", (query or "").lower()):
+                    alias_boost = max(alias_boost, 0.26)
             # Plural/singular: alias "rag" matches query token "rags"
             if len(al) >= 2 and any(
                 t == al or t == al + "s" or (t.endswith("s") and t[:-1] == al)

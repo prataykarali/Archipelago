@@ -72,6 +72,14 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
     live_db = tmp_path / "okf_graph.db"
     live_db.mkdir(parents=True, exist_ok=True)
     (live_db / "old_db_file").write_bytes(b"OLD")
+    # Prior multi-doc corpus — merge must retain peer doc ids in okf_results
+    prior = [
+        {"doc_id": "papers/prior_a.pdf", "concept_name": "PriorA"},
+        {"doc_id": "papers/prior_b.pdf", "concept_name": "PriorB"},
+    ]
+    (tmp_path / "okf_results.json").write_text(
+        json.dumps(prior), encoding="utf-8",
+    )
 
     job = tmp_store.create_job("success.pdf")
     upload = tmp_store.job_dir(job.job_id) / "upload.pdf"
@@ -84,9 +92,32 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
     lock = GraphLock()
     w = IngestionWorker(tmp_store, live_db_path=str(live_db), graph_lock=lock)
 
+    # Staged pipeline already merges; mock returns full multi-doc results
+    def fake_merged_pipeline(source_path, temp_db_path, on_progress, check_cancelled=None):
+        from unittest.mock import MagicMock
+        for stage in ["PARSING", "EXTRACTION", "CANONICALIZATION", "GRAPH_BUILD", "GRAPH_VALIDATION"]:
+            on_progress(stage, 100, {"message": f"{stage} done"})
+        mock_db = MagicMock()
+        mock_db.execute.return_value.has_next.return_value = False
+        merged = prior + [{"doc_id": "success.pdf", "concept_name": "NewConcept"}]
+        export = {
+            "stats": {"total_concepts": 3, "total_edges": 1},
+            "concepts": {
+                "c_new": {
+                    "name": "NewConcept",
+                    "sources": [{"doc_id": "success.pdf", "page_number": 1}],
+                }
+            },
+            "edges": [],
+            "visualization": {"nodes": [], "edges": []},
+        }
+        return merged, mock_db, export
+
     # Patch BASE_DIR and other internal calls to use our tmp directory path
     with patch("ingestion_worker.BASE_DIR", tmp_path), \
-         patch("kuzu.Database") as mock_kuzu_db:
+         patch("ingestion_worker.run_pipeline_staged", side_effect=fake_merged_pipeline), \
+         patch("kuzu.Database") as mock_kuzu_db, \
+         patch("catalog_bridge.auto_link_resources", return_value={"linked": 0}):
         mock_kuzu_db.return_value.execute.return_value.has_next.return_value = False
         w._process_job(job.job_id)
 
@@ -96,6 +127,11 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
 
     # Verify live JSON files are written to tmp_path (patched BASE_DIR)
     assert (tmp_path / "okf_results.json").exists()
+    saved = json.loads((tmp_path / "okf_results.json").read_text(encoding="utf-8"))
+    saved_ids = {r.get("doc_id") for r in saved}
+    assert "papers/prior_a.pdf" in saved_ids
+    assert "papers/prior_b.pdf" in saved_ids
+    assert "success.pdf" in saved_ids
     assert (tmp_path / "okf_graph.json").exists()
     assert (tmp_path / "graph_audit.json").exists()
 
@@ -107,8 +143,10 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
     final = tmp_store.get_job(job.job_id)
     assert final.status == JobStatus.COMPLETE
     assert final.graph_version == 1
-    assert final.result["nodes"] == 10
-    assert final.result["edges"] == 20
+    assert final.result.get("merge", {}).get("prior_doc_count") == 2
+    assert final.result["nodes"] == 3
+    assert final.result["edges"] == 1
+    assert "success.pdf" in str(final.result.get("merge", {}).get("uploading_doc_id") or "")
 
     # Quarantine DB directory should be cleaned up
     assert not temp_db_path.exists()

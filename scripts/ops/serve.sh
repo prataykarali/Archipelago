@@ -35,11 +35,17 @@ URL_HOST="$HOST"
 
 SERVICES=(inference graph chat)
 
-svc_port()    { case "$1" in inference) echo 5051;; graph) echo 5050;; chat) echo 5052;; esac; }
+# Port / program map. Prefers the *frontend* variants on ports 5150/5151/5152
+# (matches user systemd archipealgo-* units and frontend default env hooks).
+# Root graph_server.py/chat_server.py remain for local dev but serve.sh now
+# launches production-equivalent frontend stack.
+svc_port()    { case "$1" in inference) echo "${ARCHIPELAGO_INFERENCE_PORT:-5151}";;
+                              graph)     echo "${ARCHIPELAGO_GRAPH_PORT:-5150}";;
+                              chat)      echo "${PORT:-5152}";; esac; }
 svc_cmd()     { case "$1" in
                   inference) echo "-m archipelago.apps.inference_app";;
-                  graph)     echo "graph_server.py";;
-                  chat)      echo "chat_server.py";;
+                  graph)     echo "frontend/graph_server.py";;
+                  chat)      echo "frontend/chat_server.py";;
                 esac; }
 svc_desc()    { case "$1" in
                   inference) echo "inference/chat API";;
@@ -78,7 +84,13 @@ start_one() {
     echo "           Find it with: ss -tlnp | grep ${port}   then kill it and retry." >&2
     return 1
   fi
+  # Export svc-specific port env so server picks it up (esp. inference_5151).
   # shellcheck disable=SC2086  # cmd is intentionally word-split (-m module form)
+  case "$name" in
+    inference) export ARCHIPELAGO_INFERENCE_PORT="$port" ;;
+    graph)     export ARCHIPELAGO_GRAPH_PORT="$port" ;;
+    chat)      export PORT="$port" ;;
+  esac
   nohup "$PY" $cmd >> "${LOGS}/${name}.log" 2>&1 &
   echo $! > "${LOGS}/${name}.pid"
   echo "  ${name}: started pid $! → port ${port} ($(svc_desc "$name")), log: logs/${name}.log"

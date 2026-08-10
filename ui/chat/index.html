@@ -2790,10 +2790,17 @@
 
                 <!-- Chat History / Saved Sessions (GlassCard list) -->
                 <div class="flex flex-col gap-2">
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock-rotate-left text-accentPurple text-[11px]"></i>
-                        Chat History
-                    </h3>
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-accentPurple text-[11px]"></i>
+                            Chat History
+                        </h3>
+                        <button type="button" id="clear-saved-history-btn" onclick="clearAllSessions()"
+                            class="text-[10px] text-gray-500 hover:text-rose-300 transition-colors shrink-0"
+                            title="Clear all saved chats from this browser">
+                            Clear saved history
+                        </button>
+                    </div>
                     <div id="chat-history-list" class="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
                         <p class="text-[10px] text-gray-500 italic px-1">No saved chats.</p>
                     </div>
@@ -2959,6 +2966,27 @@
                                 <span class="depth-word-target">Rank top PEFT &amp; RAG papers</span>
                             </button>
 
+
+                            <button onclick="autoPrompt('What are the library hours and weekend issue rules?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Hours">
+                                <span class="depth-word-target">Library hours &amp; weekend rules</span>
+                            </button>
+
+                            <button onclick="autoPrompt('What e-resource portals does the central library provide?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="E-resources">
+                                <span class="depth-word-target">E-resource portals (IEEE, Pearson…)</span>
+                            </button>
+
+                            <button onclick="autoPrompt('How do I access Pearson eLibrary textbooks?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Pearson">
+                                <span class="depth-word-target">Pearson eLibrary — read from library</span>
+                            </button>
+
+                            <button onclick="autoPrompt('Suggest books on operating systems')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Books">
+                                <span class="depth-word-target">Suggest books on operating systems</span>
+                            </button>
+
                             <button onclick="autoPrompt('RAG + DBMS')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Library">
                                 <span class="depth-word-target">Multi-topic: RAG + DBMS</span>
@@ -2979,7 +3007,7 @@
                     <!-- 6. GlowBorderCard wrapping the input -->
                     <div class="max-w-4xl mx-auto glow-border-wrap">
                         <div class="relative flex items-center bg-black/40 rounded-xl">
-                            <textarea id="chat-input" placeholder="Ask an AIML question..." rows="1" class="w-full py-3 pl-4 pr-16 bg-transparent text-gray-200 text-sm rounded-xl border border-white/10 outline-none focus:border-accentPurple/50 focus:ring-1 focus:ring-accentPurple/20 transition-all duration-200 resize-none" onkeydown="handleKey(event)"></textarea>
+                            <textarea id="chat-input" placeholder="Ask AIML, books, library hours, e-resources…" rows="1" class="w-full py-3 pl-4 pr-16 bg-transparent text-gray-200 text-sm rounded-xl border border-white/10 outline-none focus:border-accentPurple/50 focus:ring-1 focus:ring-accentPurple/20 transition-all duration-200 resize-none" onkeydown="handleKey(event)"></textarea>
                             <div class="absolute right-3 flex items-center gap-2">
                                 <button type="button" id="send-btn" onclick="handleSendBtnClick(event)" class="w-10 h-10 rounded-lg bg-accentPurple text-white hover:bg-accentPurple/80 flex items-center justify-center transition-all duration-200 shadow-md shadow-accentPurple/20 z-20 cursor-pointer pointer-events-auto" aria-label="Send or stop message" title="Send message">
                                     <i id="send-btn-icon" class="fa-solid fa-arrow-up text-sm"></i>
@@ -3200,6 +3228,11 @@ let currentMode = 'rag_synthesis';
 let chatHistory = [];
 let isGenerating = false;
 const CHAT_RESPONSE_TIMEOUT_MS = 45000;
+        // Stream watchdogs: idle gap between chunks vs absolute wall-clock cap.
+        const STREAM_IDLE_TIMEOUT_MS = 25000;
+        const STREAM_HARD_TIMEOUT_MS = 120000;
+        // Cap history sent to the API so long chats stay under request size limits.
+        const MAX_HISTORY_TURNS_SENT = 12;
 let conversationSessionId = null;
 
         function primeAvatarVideo(vid, src) {
@@ -3420,13 +3453,34 @@ let conversationSessionId = null;
         // PREMIUM UI — SmoothUI / OriginKit component initializers
         // ═══════════════════════════════════════════════════════════════
 
-        // ── 0. Hero video — final_archi only (never archi_main / intro_archi) ─
+        // ── 0. Hero video — final_archi only (never archi_main.mp4 / intro_archi) ─
         (function initHeroVideo() {
             const HERO_SRC = (CURRENT_ORIGIN || '') + '/ui/assets/final_archi.mp4';
             const HERO_POSTER = '/ui/assets/final_archi_poster.jpg';
+            // wireLoopVideo: shared play/unlock helper for looping muted clips.
+            function wireLoopVideo(vid, src) {
+                if (!vid) return null;
+                if (src) {
+                    vid.src = src;
+                    vid.setAttribute('src', src);
+                }
+                vid.muted = true;
+                vid.defaultMuted = true;
+                vid.loop = true;
+                vid.autoplay = true;
+                vid.playsInline = true;
+                try { vid.load(); } catch (_) {}
+                const tryPlay = () => {
+                    const p = vid.play();
+                    if (p && typeof p.catch === 'function') p.catch(() => {});
+                };
+                vid.addEventListener('canplay', tryPlay, { once: true });
+                tryPlay();
+                return tryPlay;
+            }
             function wireHeroVideo(vid) {
                 if (!vid) return;
-                // Force final_archi only — strip any stale archi_main / intro paths
+                // Force final_archi only — strip any stale archi_main.mp4 / intro paths
                 vid.src = HERO_SRC;
                 vid.setAttribute('src', HERO_SRC);
                 vid.poster = HERO_POSTER;
@@ -3465,7 +3519,7 @@ let conversationSessionId = null;
                 tryPlay();
                 return tryPlay;
             }
-            // Header bg video is decorative/disabled — do NOT load archi_main into it
+            // Header bg video is decorative/disabled — do NOT load archi_main.mp4 into it
             const headerVid = document.getElementById('header-bg-video');
             if (headerVid) {
                 try { headerVid.removeAttribute('src'); headerVid.removeAttribute('poster'); headerVid.load(); } catch (_) {}
@@ -3980,7 +4034,7 @@ let conversationSessionId = null;
                     const ref = citation.is_reference ? 'Reference' : 'Circulating';
                     const avail = citation.available_copies != null ? citation.available_copies : '?';
                     const total = citation.total_copies != null ? citation.total_copies : '?';
-                    page.textContent = `${ref} · ${avail}/${total} copies` + (citation.shelf_location ? ` · ${citation.shelf_location}` : '');
+                    page.textContent = `${ref} · ${avail}/${total} copies` + (citation.shelf_location ? ` · ${citation.shelf_location}` : '') + ' · simulated — check OPAC';
                 } else {
                     page.textContent = citation.printed_page
                         || (Number.isFinite(pageNum) && pageNum > 0 ? `PDF page ${pageNum}` : 'Page not reported');
@@ -4025,7 +4079,7 @@ let conversationSessionId = null;
             if (input) {
                 input.disabled = false;
                 input.classList.remove('opacity-40');
-                input.placeholder = 'Ask an AIML question…';
+                input.placeholder = 'Ask AIML, books, library hours, e-resources…';
             }
             if (send) {
                 send.disabled = isGenerating;
@@ -4218,7 +4272,7 @@ function startNewChat() {
             <button onclick="autoPrompt('Explain virtual memory paging vs segmentation in OSTEP.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Note"><span class="depth-word-target">Virtual memory paging vs segmentation</span></button>
             <button onclick="autoPrompt('How does GraphRAG combine graph databases with RAG synthesis?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/graph_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Graph"><span class="depth-word-target">GraphRAG: graph + RAG synthesis</span></button>
             <button onclick="autoPrompt('Rank the most critical PEFT and RAG papers in the corpus by contribution.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/flash_card_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Flashcard"><span class="depth-word-target">Rank top PEFT &amp; RAG papers</span></button>
-            <button onclick="autoPrompt('RAG + DBMS')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Library"><span class="depth-word-target">Multi-topic: RAG + DBMS</span></button>
+<button onclick="autoPrompt('What are the library hours and weekend issue rules?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Hours"><span class="depth-word-target">Library hours &amp; weekend rules</span></button><button onclick="autoPrompt('What e-resource portals does the central library provide?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="E-resources"><span class="depth-word-target">E-resource portals (IEEE, Pearson…)</span></button><button onclick="autoPrompt('How do I access Pearson eLibrary textbooks?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Pearson"><span class="depth-word-target">Pearson eLibrary — read from library</span></button><button onclick="autoPrompt('Suggest books on operating systems')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Books"><span class="depth-word-target">Suggest books on operating systems</span></button>            <button onclick="autoPrompt('RAG + DBMS')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Library"><span class="depth-word-target">Multi-topic: RAG + DBMS</span></button>
             <button onclick="autoPrompt('LoRA vs BERT')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group"><img src="/ui/assets/settings_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Compare"><span class="depth-word-target">Compare LoRA vs BERT</span></button>
         </div>
     `;
@@ -4277,7 +4331,7 @@ function startNewChat() {
     const sendBtn = document.getElementById('send-btn');
     if (sendBtn) { sendBtn.disabled = false; sendBtn.classList.remove('opacity-50'); }
     const input = document.getElementById('chat-input');
-    if (input) { input.disabled = false; input.classList.remove('opacity-40'); input.placeholder = 'Ask an AIML question…'; input.value = ''; input.style.height = 'auto'; input.style.overflowY = 'hidden'; }
+    if (input) { input.disabled = false; input.classList.remove('opacity-40'); input.placeholder = 'Ask AIML, books, library hours, e-resources…'; input.value = ''; input.style.height = 'auto'; input.style.overflowY = 'hidden'; }
     window._lastChatMetadata = null;
     const citationsPlac = document.getElementById('citations-placeholder');
     const citationsList = document.getElementById('citations-list');
@@ -4590,8 +4644,83 @@ async function renderBookStack() {
     }
 }
 
+/** Map chat stack / catalog docs → library reader deep-link (?book=&pdf=#book-reader). */
+function resolveLibraryReaderLink(book) {
+    if (!book) return null;
+    const title = String(book.title || '').toLowerCase();
+    const rawPdf = String(book.pdf || book.id || book.doc_id || '')
+        .split('#')[0]
+        .replace(/^\/+/, '')
+        .replace(/^pdfs\//i, '');
+    const pdf = rawPdf.toLowerCase();
+    const cat = String(book.cat || book.type || book.kind || '').toLowerCase();
+
+    const RULES = [
+        { id: 'ostep_three_easy_pieces', test: (t, p) => p.includes('ostep') || t.includes('three easy pieces') || t.includes('ostep') },
+        { id: 'operating_system_concepts_silberschatz', test: (t, p) => t.includes('operating system concepts') || p.includes('operating_system_concepts') },
+        { id: 'introduction_to_algorithms_clrs', test: (t, p) => t.includes('introduction to algorithms') || t.includes('clrs') || p.includes('introduction_to_algorithms') },
+        { id: 'data_structures_algorithm_analysis_weiss', test: (t, p) => t.includes('data structures and algorithm analysis') || p.includes('data_structures_algorithm') },
+        { id: 'database_management_systems_ramakrishnan', test: (t, p) => (t.includes('database management systems') && !t.includes('concepts')) || p.includes('database_management_systems_ramakrishnan') },
+        { id: 'database_system_concepts_silberschatz', test: (t, p) => t.includes('database system concepts') || p.includes('database_system_concepts') },
+        { id: 'mml_deisenroth', test: (t, p) => t.includes('mathematics for machine learning') || p.includes('deisenroth') || p.includes('math_for_ml') },
+    ];
+
+    const page = Number(book.page_number || book.page) || 0;
+    const buildHref = (bookId, pdfPath) => {
+        const params = new URLSearchParams();
+        params.set('book', bookId);
+        if (pdfPath) params.set('pdf', pdfPath);
+        if (page > 1) params.set('page', String(page));
+        return '/library?' + params.toString() + '#book-reader';
+    };
+
+    for (let i = 0; i < RULES.length; i++) {
+        if (RULES[i].test(title, pdf)) {
+            let pdfPath = rawPdf;
+            if (pdfPath && /\.pdf$/i.test(pdfPath) && (pdfPath.includes('ostep') || RULES[i].id === 'ostep_three_easy_pieces')) {
+                if (!pdfPath.includes('/')) pdfPath = 'ostep_three_easy_pieces/' + pdfPath;
+            } else if (RULES[i].id === 'ostep_three_easy_pieces' && !(pdfPath && /\.pdf$/i.test(pdfPath))) {
+                pdfPath = 'ostep_three_easy_pieces/01_Introduction.pdf';
+            } else if (!(pdfPath && /\.pdf$/i.test(pdfPath))) {
+                pdfPath = '';
+            }
+            return buildHref(RULES[i].id, pdfPath || undefined);
+        }
+    }
+
+    // Any stack item with a real PDF (paper, textbook, chapter) → library reader pane.
+    if (rawPdf && /\.pdf$/i.test(rawPdf)) {
+        const bookKey = String(book.id || book.title || rawPdf)
+            .split('/')
+            .pop()
+            .replace(/\.pdf$/i, '')
+            .replace(/[^a-zA-Z0-9._-]+/g, '_')
+            .slice(0, 72);
+        return buildHref(bookKey || 'doc', rawPdf);
+    }
+
+    // Textbook / book card without local PDF still opens library details (metadata / Pearson).
+    if (cat === 'textbook' || cat === 'book' || cat === 'hardcopy' || cat === 'ebook') {
+        const bookKey = String(book.id || book.title || 'book')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_|_$/g, '')
+            .slice(0, 64);
+        if (bookKey) return buildHref(bookKey, undefined);
+    }
+    return null;
+}
+
 function openBookOrUnavailable(book) {
-    // Stack-of-Books click: prefer real page-view (doc+page+topic), else PDF, else summary.
+    // Stack-of-Books: always prefer Library details reader (#book-reader) so the
+    // student lands on the same PDF pane as /library — not a chat-only modal.
+    const libraryHref = resolveLibraryReaderLink(book);
+    if (libraryHref) {
+        window.location.href = libraryHref;
+        return;
+    }
+
+    // Prefer real page-view (doc+page+topic), else PDF modal, else summary.
     const title = book && book.title ? book.title : 'Untitled Document';
     const authors = (book && book.authors) || 'Corpus Document';
     const year = (book && book.year) || 2025;
@@ -4600,8 +4729,14 @@ function openBookOrUnavailable(book) {
     const pageNum = Number(book && (book.page_number || book.page)) || 1;
     const topic = (book && (book.topic || book.section_title || (topics[0] || ''))) || '';
     const summary = (book && (book.summary || book.passage || book.content)) || '';
+    // Last-resort: still route PDFs to library rather than the in-chat iframe.
     if (docId && /\.pdf/i.test(String(docId))) {
-        openPageViewerModal(String(docId).split('#')[0], pageNum, topic);
+        const bare = String(docId).split('#')[0].replace(/^\/+/, '').replace(/^pdfs\//i, '');
+        const params = new URLSearchParams();
+        params.set('book', bare.split('/').pop().replace(/\.pdf$/i, ''));
+        params.set('pdf', bare);
+        if (pageNum > 1) params.set('page', String(pageNum));
+        window.location.href = '/library?' + params.toString() + '#book-reader';
         return;
     }
     if (book && book.page_url && String(book.page_url).includes('page-view')) {
@@ -5254,7 +5389,15 @@ currentMode = mode;
             currentAbortController = new AbortController();
             const responseTimeoutId = window.setTimeout(() => {
                 currentAbortController?.abort('The response timed out.');
-            }, CHAT_RESPONSE_TIMEOUT_MS);
+            }, Math.max(CHAT_RESPONSE_TIMEOUT_MS, STREAM_HARD_TIMEOUT_MS));
+            let streamIdleTimeoutId = null;
+            const armStreamIdleWatchdog = () => {
+                if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
+                streamIdleTimeoutId = window.setTimeout(() => {
+                    currentAbortController?.abort('Stream idle timeout — no tokens received.');
+                }, STREAM_IDLE_TIMEOUT_MS);
+            };
+            armStreamIdleWatchdog();
 
             // Hoisted so catch/finally can keep partial GPU SLM text on abort.
             let buffer = '';
@@ -5278,10 +5421,13 @@ currentMode = mode;
             }
 
             try {
-                const cleanHistory = chatHistory.map(h => ({
-                    role: h.role,
-                    content: typeof h.content === 'string' ? h.content : JSON.stringify(h.content || '')
-                }));
+                // Send only the last N turns — long chats must not bloat the request body.
+                const cleanHistory = chatHistory
+                    .slice(-MAX_HISTORY_TURNS_SENT)
+                    .map(h => ({
+                        role: h.role,
+                        content: typeof h.content === 'string' ? h.content : JSON.stringify(h.content || '')
+                    }));
 
                 const response = await fetch(`${API_HOST}/api/chat`, {
                     method: 'POST',
@@ -5493,7 +5639,13 @@ currentMode = mode;
 
                     if (msgEl) {
                         msgEl.classList.remove('ai-typewriter-cursor', 'is-live-streaming');
-                        const finalText = staticStreamBuffer || assistantText;
+                        // Prefer the active stream buffer (rewrite used rewriteBuffer;
+                        // static first-paint used staticStreamBuffer). Falling back
+                        // only to assistantText avoided dropping the ranked card.
+                        const finalText = (rewriteBuffer && rewriteBuffer.trim())
+                            || (staticStreamBuffer && staticStreamBuffer.trim())
+                            || assistantText
+                            || '';
                         renderMarkdownSafely(
                             msgEl,
                             finalText,
@@ -5516,6 +5668,9 @@ currentMode = mode;
                     }
                     if (firstFinalize && window._lastChatMetadata && typeof renderHorizontalGraphCard === 'function') {
                         renderHorizontalGraphCard(assistantMsgId, window._lastChatMetadata);
+                    }
+                    if (firstFinalize && window._lastChatMetadata && (window._lastChatMetadata.mode === 'roadmap_assessment' || window._lastChatMetadata.mode === 'roadmap_probe') && typeof handleRoadmapMetadata === 'function') {
+                        handleRoadmapMetadata(window._lastChatMetadata, msgEl);
                     }
                 };
 
@@ -5554,13 +5709,19 @@ currentMode = mode;
 
                         if (markerIdx === -1) {
                             if (awaitingFinalFrame) {
-                                const currentDraft = liveRewriteMode ? assistantText : (staticStreamBuffer || assistantText);
-                                if (_shouldReplaceFinal(rest, currentDraft)) {
+                                const currentDraft = liveRewriteMode
+                                    ? (rewriteBuffer || assistantText)
+                                    : (staticStreamBuffer || assistantText);
+                                // STREAM_DONE payload is authoritative — always take it
+                                // when non-empty (avoids keeping a partial rewrite + old card).
+                                if (rest && rest.trim() && (_shouldReplaceFinal(rest, currentDraft) || !currentDraft || rest.length >= (currentDraft || '').length * 0.5)) {
                                     typewriter.update(rest, { instant: true });
+                                    staticStreamBuffer = rest;
+                                    rewriteBuffer = '';
+                                    assistantText = rest;
                                 }
                                 awaitingFinalFrame = false;
                                 liveRewriteMode = false;
-                                staticStreamBuffer = '';
                                 _finishStreamUi();
                             } else if (liveRewriteMode) {
                                 // Live model tokens — typewriter word-by-word, never wait for DONE.
@@ -5608,28 +5769,25 @@ currentMode = mode;
                         }
 
                         // STREAM_DONE / CLEAN — final cleansed frame follows.
-                        awaitingFinalFrame = true;
-                        if (rest.length) {
-                            // Compare incoming final frame against whichever buffer is active.
-                            const currentDraft = liveRewriteMode ? assistantText : (staticStreamBuffer || assistantText);
-                            if (_shouldReplaceFinal(rest, currentDraft) || liveRewriteMode) {
-                                // Prefer final cleansed text; keep longer live draft if final is a stub.
-                                if (_shouldReplaceFinal(rest, currentDraft) || !currentDraft) {
-                                    typewriter.update(rest, { instant: true });
-                                }
-                            }
-                            awaitingFinalFrame = false;
-                            liveRewriteMode = false;
-                            staticStreamBuffer = '';
-                            rest = '';
-                            _finishStreamUi();
+                        awaitingFinalFrame = false;
+                        liveRewriteMode = false;
+                        if (rest && rest.trim()) {
+                            // Full replacement: STREAM_DONE payload is authoritative.
+                            staticStreamBuffer = rest;
+                            rewriteBuffer = '';
+                            assistantText = rest;
+                            typewriter.update(rest, { instant: true });
                         }
+                        rest = '';
+                        _finishStreamUi();
                     }
                 };
 
                 while (true) {
                     const { done, value } = await reader.read();
+                    armStreamIdleWatchdog();
                     if (done) {
+                        if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
                         typewriter.flush();
                         if (!cleanedIndicator && msgEl) {
                             msgEl.innerHTML = '';
@@ -5669,7 +5827,7 @@ currentMode = mode;
                                 window._lastChatMetadata = metadata;
                                 populatePipeline(metadata);
                                 populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
-                                // renderHorizontalGraphCard deferred until typing finishes
+                                // renderHorizontalGraphCard & roadmap_assessment deferred until typing finishes
                             } catch (err) {
                                 console.error('Error parsing pipeline metadata:', err);
                             }
@@ -5685,7 +5843,12 @@ currentMode = mode;
                 // Add to conversational history
                 chatHistory.push({ role: 'user', content: inputVal });
                 chatHistory.push({ role: 'assistant', content: assistantText, citations: getResponseCitations(window._lastChatMetadata), metadata: window._lastChatMetadata });
-                saveSession();
+                try {
+                    saveSession();
+                } catch (saveErr) {
+                    // Never mis-label a localStorage quota failure as a stream failure.
+                    console.warn('saveSession failed after successful stream', saveErr);
+                }
 
             } catch (err) {
                 console.error(err);
@@ -5746,6 +5909,7 @@ currentMode = mode;
                 }
             } finally {
                 window.clearTimeout(responseTimeoutId);
+                if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
                 if (chatMsgs) chatMsgs.removeEventListener('scroll', checkUserScroll);
                 isGenerating = false;
                 try { window.isGenerating = false; } catch (_) {}
@@ -7271,30 +7435,102 @@ currentMode = mode;
 
 
         // LocalStorage Chat History Management
+        function _compactHistory(history) {
+            // Drop bulky citation/metadata payloads; keep role + short content only.
+            const MAX_TURNS = 40;
+            const MAX_CONTENT = 4000;
+            const src = Array.isArray(history) ? history : [];
+            return src.slice(-MAX_TURNS).map((m) => ({
+                role: m.role,
+                content: String(m.content || '').slice(0, MAX_CONTENT),
+            }));
+        }
+
+        function _writeSessions(sessions) {
+            const key = 'archipelago_sessions';
+            const payload = JSON.stringify(sessions || []);
+            try {
+                localStorage.setItem(key, payload);
+                return true;
+            } catch (err) {
+                const isQuota = !!(
+                    err && (
+                        err.name === 'QuotaExceededError'
+                        || err.code === 22
+                        || err.code === 1014
+                        || /quota/i.test(String(err.message || ''))
+                    )
+                );
+                if (!isQuota) {
+                    console.warn('localStorage setItem failed', err);
+                    return false;
+                }
+                // Evict oldest sessions, then retry with a compacted current list.
+                try {
+                    let trimmed = Array.isArray(sessions) ? sessions.slice() : [];
+                    while (trimmed.length > 1) {
+                        trimmed.pop();
+                        try {
+                            localStorage.setItem(key, JSON.stringify(trimmed));
+                            return true;
+                        } catch (_) { /* keep trimming */ }
+                    }
+                    // Last resort: store only compact current session.
+                    if (trimmed.length === 1) {
+                        trimmed[0] = {
+                            ...trimmed[0],
+                            history: _compactHistory(trimmed[0].history),
+                            lastMetadata: null,
+                        };
+                        localStorage.setItem(key, JSON.stringify(trimmed));
+                        return true;
+                    }
+                    localStorage.removeItem(key);
+                } catch (inner) {
+                    console.warn('QuotaExceededError recovery failed', inner);
+                }
+                return false;
+            }
+        }
+
+        function clearAllSessions() {
+            try { localStorage.removeItem('archipelago_sessions'); } catch (_) {}
+            try { renderChatHistory(); } catch (_) {}
+        }
+        window.clearAllSessions = clearAllSessions;
+
         function saveSession() {
             if (!chatHistory.length) return;
-            let sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+            let sessions = [];
+            try {
+                sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+            } catch (_) {
+                sessions = [];
+            }
+            if (!Array.isArray(sessions)) sessions = [];
             const existingIdx = sessions.findIndex(s => s.id === conversationSessionId);
-            
+
             // Generate a title from the first user query
             const userMsgs = chatHistory.filter(m => m.role === 'user');
             const title = userMsgs[0]?.content || "New Chat";
             const cleanTitle = title.length > 25 ? title.substring(0, 22) + "..." : title;
-            
+
             const sessionData = {
                 id: conversationSessionId,
                 title: cleanTitle,
-                history: chatHistory,
-                lastMetadata: window._lastChatMetadata,
+                history: _compactHistory(chatHistory),
+                lastMetadata: window._lastChatMetadata || null,
                 timestamp: Date.now()
             };
-            
+
             if (existingIdx !== -1) {
                 sessions[existingIdx] = sessionData;
             } else {
                 sessions.unshift(sessionData);
             }
-            localStorage.setItem('archipelago_sessions', JSON.stringify(sessions));
+            // Cap total saved sessions to reduce quota pressure.
+            if (sessions.length > 20) sessions = sessions.slice(0, 20);
+            _writeSessions(sessions);
             renderChatHistory();
         }
 
@@ -7368,9 +7604,15 @@ currentMode = mode;
         }
 
         function deleteSession(id) {
-            let sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+            let sessions = [];
+            try {
+                sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+            } catch (_) {
+                sessions = [];
+            }
+            if (!Array.isArray(sessions)) sessions = [];
             sessions = sessions.filter(s => s.id !== id);
-            localStorage.setItem('archipelago_sessions', JSON.stringify(sessions));
+            _writeSessions(sessions);
             if (conversationSessionId === id) {
                 startNewChat();
             } else {
@@ -7675,6 +7917,41 @@ currentMode = mode;
         } catch (err) {
             console.error('Catalog init failed:', err);
         }
+        // Auto-prefill and auto-submit from library deep-link (?query= and/or ?book=)
+        (() => {
+            const params = new URLSearchParams(window.location.search);
+            const queryVal = params.get('query');
+            const bookId = params.get('book');
+            let finalQuery = queryVal || '';
+            if (bookId && finalQuery) {
+                // Prefer exact id lookup; keep human title for the bubble.
+                if (!/id:/i.test(finalQuery) && !/book[_-]?id=/i.test(finalQuery)) {
+                    finalQuery = finalQuery.replace(/\s+$/, '') + ' id:' + bookId;
+                }
+            } else if (bookId && !finalQuery) {
+                finalQuery = 'Tell me about this book: id:' + bookId;
+            }
+            if (finalQuery) {
+                const input = document.getElementById('chat-input');
+                if (input) {
+                    input.value = finalQuery;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    const trySend = (attempt) => {
+                        const sendBtn = document.getElementById('send-btn');
+                        if (sendBtn && !sendBtn.disabled) {
+                            sendBtn.click();
+                            return;
+                        }
+                        // Retry once after bootstrap (catalog/readiness race).
+                        if (attempt < 2) {
+                            setTimeout(() => trySend(attempt + 1), 700);
+                        }
+                    };
+                    setTimeout(() => trySend(0), 500);
+                }
+            }
+        })();
     </script>
+    <script src="roadmap_quiz.js"></script>
 </body>
 </html>

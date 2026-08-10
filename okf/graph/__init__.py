@@ -12,3 +12,10 @@ from okf.graph.delete_document import (
     list_documents,
     filter_okf_results,
 )
+from okf.graph.merge_document import (
+    assert_merge_safe,
+    doc_ids_in_results,
+    load_okf_results,
+    merge_okf_results,
+    write_okf_results_atomic,
+)

@@ -174,12 +174,49 @@ def ingestion_capabilities():
         "auth_required": bool(librarian_token_expected()),
         "list_documents_api": "/api/documents",
         "delete_document_api": "DELETE /api/documents/<doc_id>",
+        "ranked_resources_api": "GET /api/rank/resources?q=&kind=&limit=",
         "max_file_size_mb": 50,
         "supported_formats": ["pdf", "md", "markdown", "txt"],
+        "merge_mode": "full_rebuild_from_merged_okf_results",
+        "metadata_fields": [
+            "title", "authors", "kind", "shelf_location", "license_mode",
+            "isbn", "subject", "year", "url",
+        ],
         "note": (
             "Upload/delete is only available from the Graph UI Librarian "
-            "console with a librarian token. Student chat cannot mutate the corpus."
+            "console with a librarian token. Student chat cannot mutate the corpus. "
+            "Each upload merges into okf_results and rebuilds the multi-doc live graph "
+            "(peers are retained; a safety guard aborts if prior docs would be wiped)."
         ),
+    }), 200
+
+
+@st.app.route("/api/rank/resources", methods=["GET"])
+def rank_resources_api():
+    """Full or top-N ranked books/papers from inventory + librarian seeds."""
+    from flask import request, jsonify
+    from archipelago.inference.unified_ranking import list_all_ranked, rank_resources
+
+    q = str(request.args.get("q") or request.args.get("topic") or "").strip()
+    kind = request.args.get("kind") or None
+    if kind:
+        kind = str(kind).strip().lower() or None
+    try:
+        limit = int(request.args.get("limit") or 4)
+    except (TypeError, ValueError):
+        limit = 4
+    full = str(request.args.get("full") or "").lower() in ("1", "true", "yes", "on")
+    if not q:
+        return jsonify({"error": "q (topic) is required", "results": []}), 400
+    if full:
+        results = list_all_ranked(q, kind=kind, limit=min(max(limit, 1), 200))
+    else:
+        results = rank_resources(q, kind=kind, limit=min(max(limit, 1), 4))
+    return jsonify({
+        "query": q,
+        "kind": kind,
+        "count": len(results),
+        "results": results,
     }), 200
 
 
@@ -223,6 +260,23 @@ def ingest_upload():
     # Marker so the worker always finds the quarantined source
     (job_dir / "upload_source_name.txt").write_text(filename, encoding="utf-8")
 
+    # Optional librarian metadata for shelf / inventory / license policy.
+    meta_keys = (
+        "title", "authors", "kind", "shelf_location", "location",
+        "license_mode", "isbn", "subject", "year", "url",
+    )
+    meta: dict = {}
+    for key in meta_keys:
+        val = request.form.get(key)
+        if val is not None and str(val).strip():
+            meta[key] = str(val).strip()
+    if meta:
+        import json as _json
+        (job_dir / "meta.json").write_text(
+            _json.dumps(meta, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
     # Enqueue and start worker
     worker = get_worker()
     worker.enqueue(job.job_id)
@@ -232,6 +286,8 @@ def ingest_upload():
         "status": "queued",
         "filename": filename,
         "format": ext.lstrip("."),
+        "merge_mode": "full_rebuild_from_merged_okf_results",
+        "metadata": meta or None,
     }), 202
 
 
@@ -286,520 +342,51 @@ def ingest_list():
     return jsonify({"jobs": job_store.list_jobs()}), 200
 
 
-@st.app.route("/api/documents", methods=["GET"])
-def list_graph_documents():
-    """List documents currently in the live knowledge graph."""
-    try:
-        with graph_lock.read_lock():
-            conn = kuzu.Connection(st.db)
-            from okf.graph.delete_document import list_documents
-            docs = list_documents(conn)
-        return jsonify({"documents": docs, "count": len(docs)}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+from archipelago.inference.routes_diagnostic import register_diagnostic_routes
+from archipelago.inference.routes_librarian import register_librarian_routes
+
+register_diagnostic_routes()
+register_librarian_routes()
 
 
-@st.app.route("/api/documents/<path:doc_id>", methods=["DELETE"])
-@require_librarian
-def delete_graph_document(doc_id):
-    """Librarian-only: delete a document and unmerge its contribution from the live graph.
+def estimate_ingestion_time(file_size_bytes: int, filename: str) -> dict[str, Any]:
+    """Estimate ingestion time based on file size and extension (SCH-1)."""
+    from typing import Any
+    ext = Path(filename).suffix.lower()
+    if ext in (".md", ".markdown", ".txt"):
+        seconds = 5
+    else:
+        # PDF files: base of 20 seconds, plus 15 seconds per MB
+        size_mb = file_size_bytes / (1024 * 1024)
+        seconds = int(20 + size_mb * 15)
 
-    Removes: Document, Chunks, MENTIONS, edges whose provenance is this doc,
-    and orphan concepts that no longer have mentions or structural edges.
-
-    Shared concepts used by other documents are retained.
-
-    Query params:
-      remove_pdf=1  — also delete the file under pdfs/ when present
-    """
-    remove_pdf = str(request.args.get("remove_pdf") or "").lower() in (
-        "1", "true", "yes", "on",
-    )
-    try:
-        from okf.graph.delete_document import delete_document_end_to_end
-
-        with graph_lock.write_lock():
-            stats = delete_document_end_to_end(
-                st.db,
-                doc_id,
-                base_dir=Path(st.BASE_DIR),
-                okf_results_path=Path(st.BASE_DIR) / "okf_results.json",
-                remove_pdf=remove_pdf,
-                pdf_dir=Path(st.PDF_DIR),
-            )
-            # Reload inference handles + concept cache
-            try:
-                st.reload_db()
-            except Exception as e:
-                stats["reload_warning"] = str(e)
-            try:
-                from archipelago.inference.embeddings import build_concept_embeddings
-                build_concept_embeddings()
-                stats["embeddings_rebuilt"] = True
-            except Exception as e:
-                stats["embeddings_warning"] = str(e)
-
-        return jsonify({"status": "deleted", **stats}), 200
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# ─── Manual Librarian Endpoints ───────────────────────────────────────────────
-
-@st.app.route("/api/manual/concept", methods=["POST", "OPTIONS"])
-@require_librarian
-def manual_add_concept():
-    """Librarian-only: insert a new concept node into KuzuDB and regenerate artifacts.
-
-    Expected JSON body::
-
-        {
-          "name":         "Agentic System",      # required
-          "concept_type": "architecture",        # required
-          "difficulty":   "advanced",            # required
-          "summary":      "An AI system that…", # optional
-          "tags":         ["agents", "llm"]      # optional list[str]
-        }
-    """
-    if request.method == "OPTIONS":
-        return "", 204
-
-    data = request.get_json(force=True, silent=True) or {}
-    name         = (data.get("name") or "").strip()
-    concept_type = (data.get("concept_type") or "").strip()
-    difficulty   = (data.get("difficulty") or "").strip()
-    summary      = (data.get("summary") or "").strip()
-    tags         = [t.strip() for t in (data.get("tags") or []) if t.strip()]
-
-    if not name:
-        return jsonify({"error": "Field 'name' is required."}), 400
-    if not concept_type:
-        return jsonify({"error": "Field 'concept_type' is required."}), 400
-    if not difficulty:
-        return jsonify({"error": "Field 'difficulty' is required."}), 400
-
-    # Derive a slug-style ID
-    concept_id = name.lower().replace(" ", "_").replace("-", "_")
-
-    try:
-        from okf.graph.ingest import ensure_concept
-        from okf.graph.export import export_graph
-        from okf.exports import write_all_artifacts as _waa
-
-        with graph_lock.write_lock():
-            conn = kuzu.Connection(st.db)
-            ensure_concept(conn, concept_id, name, concept_type, difficulty, summary, tags)
-            try:
-                from okf.exports import build_visual_graph, build_graph_rag_index
-                base_dir = Path(st.BASE_DIR)
-                graph_export = export_graph(conn)
-                graph_export["visualization"] = build_visual_graph([], graph_export)
-                graph_export["graph_rag_index"] = build_graph_rag_index([], graph_export)
-                _waa(graph_export, [], st.db, base_dir=base_dir)
-                try:
-                    st.reload_db()
-                except Exception:
-                    pass
-            except Exception as export_err:
-                return jsonify({
-                    "concept_id": concept_id,
-                    "name": name,
-                    "warning": f"Concept stored but artifact export failed: {export_err}",
-                }), 201
-
-        return jsonify({"concept_id": concept_id, "name": name, "status": "created"}), 201
-
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
-
-
-@st.app.route("/api/manual/edge", methods=["POST", "OPTIONS"])
-@require_librarian
-def manual_add_edge():
-    """Librarian-only: add a directed relationship between two existing concept nodes.
-
-    Expected JSON body::
-
-        {
-          "from_concept": "Retrieval-Augmented Generation",  # required
-          "to_concept":   "Agentic System",                  # required
-          "relation":     "enables"                          # required
-        }
-
-    ``relation`` must be one of: requires | enables | uses | extends |
-    part_of | contrasts_with | evaluated_by
-    """
-    if request.method == "OPTIONS":
-        return "", 204
-
-    VALID_RELATIONS = {
-        "requires", "enables", "uses", "extends",
-        "part_of", "contrasts_with", "evaluated_by",
+    return {
+        "estimated_seconds": seconds,
+        "estimated_time_formatted": f"{seconds} seconds",
     }
 
-    data         = request.get_json(force=True, silent=True) or {}
-    from_concept = (data.get("from_concept") or "").strip()
-    to_concept   = (data.get("to_concept") or "").strip()
-    relation     = (data.get("relation") or "").strip().lower()
 
-    if not from_concept:
-        return jsonify({"error": "Field 'from_concept' is required."}), 400
-    if not to_concept:
-        return jsonify({"error": "Field 'to_concept' is required."}), 400
-    if relation not in VALID_RELATIONS:
-        return jsonify({"error": f"'relation' must be one of: {sorted(VALID_RELATIONS)}"}), 400
-
-    def _id(name: str) -> str:
-        return name.lower().replace(" ", "_").replace("-", "_")
-
-    from_id = _id(from_concept)
-    to_id   = _id(to_concept)
-
-    try:
-        from okf.graph.ingest import create_edge
-        from okf.util import create_concept_id
-        from okf.graph.export import export_graph
-        from okf.exports import write_all_artifacts as _waa
-
-        # Prefer canonical IDs when names differ from slug form
-        from_id = create_concept_id(from_concept) or from_id
-        to_id = create_concept_id(to_concept) or to_id
-
-        with graph_lock.write_lock():
-            conn = kuzu.Connection(st.db)
-
-            # Verify both concepts exist (by id, then fuzzy name)
-            for cid, label in [(from_id, from_concept), (to_id, to_concept)]:
-                safe = cid.replace("'", "\\'")
-                res = conn.execute(
-                    f"MATCH (c:Concept {{id: '{safe}'}}) RETURN c.id LIMIT 1"
-                )
-                if not res.has_next():
-                    # try match by name
-                    safe_name = label.replace("'", "\\'")
-                    res2 = conn.execute(
-                        f"MATCH (c:Concept) WHERE c.name = '{safe_name}' RETURN c.id LIMIT 1"
-                    )
-                    if not res2.has_next():
-                        return jsonify({
-                            "error": f"Concept not found: '{label}' (id: '{cid}'). Add it first."
-                        }), 404
-                    resolved = res2.get_next()[0]
-                    if cid == from_id:
-                        from_id = resolved
-                    else:
-                        to_id = resolved
-
-            try:
-                create_edge(conn, from_id, to_id, relation, source="manual:librarian")
-            except ValueError as ve:
-                return jsonify({"error": str(ve)}), 409
-
-            try:
-                from okf.exports import build_visual_graph, build_graph_rag_index
-                base_dir = Path(st.BASE_DIR)
-                graph_export = export_graph(conn)
-                graph_export["visualization"] = build_visual_graph([], graph_export)
-                graph_export["graph_rag_index"] = build_graph_rag_index([], graph_export)
-                _waa(graph_export, [], st.db, base_dir=base_dir)
-                try:
-                    st.reload_db()
-                except Exception:
-                    pass
-            except Exception as export_err:
-                return jsonify({
-                    "from": from_concept, "to": to_concept, "relation": relation,
-                    "warning": f"Edge stored but artifact export failed: {export_err}",
-                }), 201
-
-        return jsonify({
-            "from": from_concept, "to": to_concept,
-            "relation": relation, "status": "created",
-        }), 201
-
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+def pdf_available(doc_id: str) -> bool:
+    """Check if the PDF file exists locally in the PDF directory."""
+    local = Path(st.PDF_DIR) / doc_id
+    return local.is_file()
 
 
+def resolve_pdf_file(doc_id: str) -> Path | None:
+    """Resolve a doc_id to a local PDF Path, or None if not found.
 
-@st.app.route("/")
-def server_root():
-    
-    gpu_info = "N/A"
-    if torch.cuda.is_available():
-        try:
-            gpu_info = f"Active ({torch.cuda.get_device_name(0)}, Memory: {torch.cuda.memory_allocated(0)/(1024**2):.1f}MB allocated)"
-        except Exception as e:
-            gpu_info = f"Available but inactive: {e}"
-            
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Archipelago Inference Server Diagnostic</title>
-        <meta charset="utf-8">
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-        <style>
-            :root {{
-                --bg: #0f0a15;
-                --card-bg: rgba(255, 255, 255, 0.03);
-                --bd: rgba(255, 255, 255, 0.08);
-                --tx: #f3f0f7;
-                --tx-mu: #a59fb1;
-                --accent: #8b5cf6;
-                --success: #10b981;
-                --warning: #f59e0b;
-            }}
-            body {{
-                background: var(--bg);
-                color: var(--tx);
-                font-family: 'Outfit', sans-serif;
-                margin: 0;
-                padding: 40px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                min-height: 100vh;
-                box-sizing: border-box;
-            }}
-            .container {{
-                max-width: 800px;
-                width: 100%;
-            }}
-            h1 {{
-                font-size: 32px;
-                font-weight: 800;
-                margin-bottom: 8px;
-                background: linear-gradient(135deg, #a78bfa, #f472b6);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                letter-spacing: -0.5px;
-            }}
-            .subtitle {{
-                color: var(--tx-mu);
-                margin-bottom: 40px;
-                font-size: 16px;
-            }}
-            .grid {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 20px;
-                margin-bottom: 40px;
-            }}
-            .card {{
-                background: var(--card-bg);
-                border: 1px solid var(--bd);
-                border-radius: 16px;
-                padding: 24px;
-                backdrop-filter: blur(20px);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            }}
-            .card-title {{
-                font-size: 11px;
-                font-weight: 600;
-                color: var(--tx-mu);
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 12px;
-            }}
-            .card-value {{
-                font-size: 18px;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }}
-            .status-dot {{
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                display: inline-block;
-            }}
-            .status-dot.active {{
-                background: var(--success);
-                box-shadow: 0 0 10px var(--success);
-            }}
-            .status-dot.inactive {{
-                background: var(--warning);
-                box-shadow: 0 0 10px var(--warning);
-            }}
-            .explain-section {{
-                background: rgba(139, 92, 246, 0.05);
-                border: 1px solid rgba(139, 92, 246, 0.2);
-                border-radius: 16px;
-                padding: 24px;
-                margin-bottom: 40px;
-                line-height: 1.6;
-            }}
-            .explain-title {{
-                font-weight: 600;
-                margin-bottom: 8px;
-                color: #c084fc;
-            }}
-            .test-form {{
-                background: var(--card-bg);
-                border: 1px solid var(--bd);
-                border-radius: 16px;
-                padding: 28px;
-            }}
-            input[type="text"] {{
-                width: 100%;
-                padding: 12px 16px;
-                border-radius: 10px;
-                border: 1px solid var(--bd);
-                background: rgba(0,0,0,0.2);
-                color: #fff;
-                font-family: inherit;
-                outline: none;
-                margin-bottom: 16px;
-                box-sizing: border-box;
-            }}
-            input[type="text"]:focus {{
-                border-color: var(--accent);
-            }}
-            button {{
-                background: var(--accent);
-                color: #fff;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 10px;
-                font-weight: 600;
-                cursor: pointer;
-                font-family: inherit;
-                transition: opacity 0.15s;
-            }}
-            button:hover {{
-                opacity: 0.9;
-            }}
-            pre {{
-                background: rgba(0,0,0,0.4);
-                padding: 16px;
-                border-radius: 10px;
-                overflow-x: auto;
-                font-size: 12.5px;
-                margin-top: 16px;
-                border: 1px solid var(--bd);
-                color: #86efac;
-                white-space: pre-wrap;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Archipelago Inference Server</h1>
-            <div class="subtitle">Diagnostic & Local RAG Control Panel (Port 5051)</div>
-            
-            <div class="grid">
-                <div class="card">
-                    <div class="card-title">Embedding Model</div>
-                    <div class="card-value">
-                        <span class="status-dot {'active' if st.use_embeddings else 'inactive'}"></span>
-                        <span>{'Active (Snowflake)' if st.use_embeddings else 'Loading / Standby'}</span>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Generator Model</div>
-                    <div class="card-value">
-                        <span class="status-dot active"></span>
-                        <span>Ollama ({st.DEFAULT_OLLAMA_MODEL})</span>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">KuzuDB Status</div>
-                    <div class="card-value">
-                        <span class="status-dot active"></span>
-                        <span>{len(st.CONCEPTS_DATA)} Concepts</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="explain-section">
-                <div class="explain-title">💨 Why is my computer's fan spinning?</div>
-                <div>
-                    The local inference server runs two models directly on your hardware (GPU: {gpu_info}):
-                    <ul>
-                        <li><strong>Snowflake Arctic Embed (M)</strong>: Converts query text into a 768-dimensional dense vector to find concept anchors in KuzuDB.</li>
-                        <li><strong>Ollama ({st.DEFAULT_OLLAMA_MODEL})</strong>: Natural language synthesis over retrieved graph notes — runs via local Ollama server.</li>
-                        <li><strong>lib-qwen (1.5B SLM, extraction-only)</strong>: Used exclusively during ingestion to extract concepts from PDFs. Not loaded at inference time.</li>
-                    </ul>
-                    Because these models run locally, loading model weights into memory and compiling tensors creates a temporary CPU/GPU load, which spins the system fan to cool down the processor.
-                </div>
-            </div>
-            
-            <div class="test-form">
-                <div class="card-title" style="margin-bottom:16px;">Test Inference Directly</div>
-                <input type="text" id="query" placeholder="Enter a concept (e.g. What is LoRA?)..." value="What is LoRA?">
-                <button onclick="runTest()">Run Inference</button>
-                <div id="output-section" style="display:none;">
-                    <div class="card-title" style="margin-top:20px; margin-bottom:8px;">Response Payload</div>
-                    <pre id="output"></pre>
-                </div>
-            </div>
-        </div>
-        
-        <script>
-            function runTest() {{
-                const query = document.getElementById('query').value;
-                const output = document.getElementById('output');
-                const outSec = document.getElementById('output-section');
-                outSec.style.display = 'block';
-                output.textContent = 'Initializing stream...';
-                
-                fetch('/api/chat', {{
-                    method: 'POST',
-                    headers: {{ 'Content-Type': 'application/json' }},
-                    body: JSON.stringify({{ query: query, mode: 'rag_synthesis', history: [] }})
-                }})
-                .then(res => {{
-                    if (!res.ok) throw new Error("HTTP error " + res.status);
-                    const reader = res.body.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = '';
-                    let metadataParsed = false;
-                    output.textContent = '';
-                    
-                    function read() {{
-                        return reader.read().then(({{ done, value }}) => {{
-                            if (done) {{
-                                if (buffer) {{
-                                    output.textContent += buffer;
-                                }}
-                                return;
-                            }}
-                            buffer += decoder.decode(value, {{ stream: true }});
-                            
-                            if (!metadataParsed) {{
-                                const index = buffer.indexOf('\n[STREAM_START]\n');
-                                if (index !== -1) {{
-                                    const metaStr = buffer.substring(0, index);
-                                    buffer = buffer.substring(index + 16);
-                                    metadataParsed = true;
-                                    output.textContent += "--- RETRIEVAL METADATA ---\n" + 
-                                        JSON.stringify(JSON.parse(metaStr), null, 2) + 
-                                        "\n\n--- ARCHIPELAGO GENERATION ---\n";
-                                }}
-                            }}
-                            
-                            if (metadataParsed) {{
-                                output.textContent += buffer;
-                                buffer = '';
-                            }}
-                            
-                            return read();
-                        }});
-                    }}
-                    return read();
-                }})
-                .catch(err => {{
-                    output.textContent = 'Error: ' + err;
-                }});
-            }}
-        </script>
-    </body>
-    </html>
+    Searches the PDF directory for the file. Accepts both bare filenames
+    (``Hu2021_LoRA.pdf``) and nested paths (``textbooks/mml.pdf``).
     """
-    return html
+    if not doc_id:
+        return None
+    local = Path(st.PDF_DIR) / doc_id
+    if local.is_file():
+        return local
+    # Try stripping leading slashes (defensive)
+    local = Path(st.PDF_DIR) / doc_id.lstrip("/\\")
+    if local.is_file():
+        return local
+    return None
 
 

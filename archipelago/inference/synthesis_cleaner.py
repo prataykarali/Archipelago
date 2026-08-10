@@ -208,29 +208,55 @@ def build_okf_footer(
     return "\n".join(parts)
 
 
+_MAX_SOURCE_LINES = 12
+
+
 def append_source_list(citations: list[dict[str, Any]] | None) -> str:
-    """Verified source list Python appends (model must not invent). Deduplicates by doc_id."""
+    """Verified source list Python appends (model must not invent).
+
+    Deduplicates by (doc_id, page) so multi-page evidence from the same PDF
+    is preserved — never collapse an entire document to a single page link.
+    """
     if not citations:
         return ""
     lines = ["", "**Sources**"]
-    seen_docs = set()
-    for c in citations:
-        doc_id = c.get("doc_id", "")
-        if doc_id in seen_docs:
-            continue
-        seen_docs.add(doc_id)
-        eid = c.get("evidence_id") or "S?"
-        # Use prettify_doc_title for better source names
-        from archipelago.inference.synthesis import prettify_doc_title
+    seen_keys: set[str] = set()
+    from archipelago.inference.synthesis import prettify_doc_title
 
+    for c in citations:
+        doc_id = str(c.get("doc_id") or "").strip()
+        page = int(c.get("page_number") or 1) or 1
+        key = f"{doc_id}|{page}"
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        eid = c.get("evidence_id") or "S?"
         title = (
             prettify_doc_title(doc_id)
             if doc_id
             else (c.get("title") or c.get("doc_title") or "Source")
         )
-        page = c.get("page_number") or 1
-        lines.append(f"[{eid}] {title}, p.{page}")
+        # Prefer deep-link when URL is present on the payload
+        url = str(c.get("url") or "").strip()
+        if url:
+            lines.append(f"[{eid}] {title}, [p.{page} ↗]({url})")
+        else:
+            lines.append(f"[{eid}] {title}, p.{page}")
+        if len(lines) - 2 >= _MAX_SOURCE_LINES:
+            break
     return "\n".join(lines)
+def enforce_sterile_prose(text: str, fallback: str | None = None) -> str:
+    """Strip greetings, prompt leaks, and style artifacts from SLM prose.
+
+    Returns cleaned text. If cleaning empties the result, returns *fallback*
+    (or the original text if no fallback is provided).
+    """
+    cleaned = _clean_body(text)
+    if not cleaned:
+        return fallback if fallback is not None else (text or "")
+    return cleaned
+
+
 def enforce_four_tier(
     text: str,
     *,

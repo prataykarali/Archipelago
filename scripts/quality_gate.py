@@ -39,6 +39,8 @@ EXCLUDE_DIRS = {
     "node_modules",
     "okf_graph.db",
     "okf_graph.db/",
+    ".strix-pentest",
+    "training",
 }
 
 BANNED_PATTERN_EXCLUDES = {"tests", "scripts"}

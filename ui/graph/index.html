@@ -488,6 +488,33 @@ svg#graph-svg.locked{cursor:default;pointer-events:none}
           <div class="lib-drop-hint">PDF, Markdown, or TXT · max 50 MB</div>
           <input id="lib-pdf-input" type="file" accept="application/pdf,.pdf,.md,.markdown,.txt,text/markdown,text/plain" style="display:none">
         </label>
+        <div id="lib-metadata-fields" style="margin-top:10px">
+          <label class="lib-label" for="lib-title">Title (optional)</label>
+          <input class="lib-input" id="lib-title" type="text" placeholder="e.g. Graph Attention Networks" autocomplete="off">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+            <div>
+              <label class="lib-label" for="lib-kind">Kind</label>
+              <select class="lib-input" id="lib-kind">
+                <option value="paper">Paper</option>
+                <option value="textbook">Textbook</option>
+                <option value="ebook">eBook</option>
+                <option value="syllabus">Syllabus</option>
+              </select>
+            </div>
+            <div>
+              <label class="lib-label" for="lib-license">License mode</label>
+              <select class="lib-input" id="lib-license">
+                <option value="full">Full text (OA papers)</option>
+                <option value="toc_only">TOC only (textbooks)</option>
+                <option value="metadata_only">Metadata only</option>
+              </select>
+            </div>
+          </div>
+          <label class="lib-label" for="lib-subject">Subject / domain</label>
+          <input class="lib-input" id="lib-subject" type="text" placeholder="e.g. gnn / deep_learning" autocomplete="off">
+          <label class="lib-label" for="lib-shelf">Shelf code</label>
+          <input class="lib-input" id="lib-shelf" type="text" placeholder="e.g. AIML-GNN-02" autocomplete="off">
+        </div>
         <div id="lib-upload-status" class="lib-status"></div>
         <ol class="lib-stages" id="lib-stages" style="display:none">
           <li class="lib-stage" data-stage="queued"><span class="lib-dot"></span>Queued</li>
@@ -1122,8 +1149,8 @@ srchI.addEventListener('blur',()=>{setTimeout(()=>srchR.classList.remove('show')
 
 // ═══ LIBRARIAN TAB (staff only — students use Chat for queries) ═══
 (function(){
-  // The inference server (which owns /api/ingest and /api/manual/*) runs on port 5051.
-  const INFER_HOST = `${location.protocol}//${location.hostname}:5051`;
+  // Inference owns /api/ingest (pilot default 5151; legacy 5051 still accepted via env).
+  const INFER_HOST = `${location.protocol}//${location.hostname}:${location.port === '5150' || location.port === '5152' ? '5151' : (location.port === '5050' || location.port === '5052' ? '5051' : '5151')}`;
   const TOKEN_KEY = 'archipelago_librarian_token';
 
   const panel   = document.getElementById('librarian-panel');
@@ -1293,10 +1320,32 @@ srchI.addEventListener('blur',()=>{setTimeout(()=>srchR.classList.remove('show')
       const status = (j.status||'').toLowerCase();
       if(status==='complete'||status==='completed'){
         setStage('complete','done');
-        setUploadStatus('✓ Ingestion complete! Reload the graph to see new concepts.','ok');
+        setUploadStatus('✓ Ingestion complete! Graph rebuilt.', 'ok');
         cancelBtn.style.display='none';
         uploadBtn.disabled=false;
         clearInterval(pollTimer);
+
+        // Deep-link to chat with the new document (prefer inventory_id from job result)
+        try {
+          const invId = (j.result && j.result.inventory_id) || '';
+          const titleEl = document.getElementById('lib-title');
+          const subjEl = document.getElementById('lib-subject');
+          const meta = invId || (titleEl && titleEl.value) || (subjEl && subjEl.value) || 'new_upload';
+          const bookId = invId || (
+            'librarian_upload_' + String(meta).toLowerCase()
+              .replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').slice(0, 48)
+          );
+          const chatUrl = `/chat?book=${encodeURIComponent(bookId)}&query=${encodeURIComponent('Tell me about this book: ' + (titleEl && titleEl.value || bookId))}`;
+          const linkEl = document.createElement('a');
+          linkEl.href = chatUrl;
+          linkEl.target = '_blank';
+          linkEl.rel = 'noopener';
+          linkEl.textContent = 'Ask about this upload in chat →';
+          linkEl.style.cssText = 'display:inline-block;margin-top:10px;padding:8px 12px;background:#0f172a;color:#86efac;border:1px solid #166534;border-radius:8px;text-decoration:none;font-size:13px;';
+          uploadStatus.appendChild(document.createElement('br'));
+          uploadStatus.appendChild(linkEl);
+          // Prior corpus intact message is only for failures; success means merge landed.
+        } catch (_e) { /* non-fatal UX */ }
         return;
       }
       if(status==='error'||status==='failed'){
@@ -1330,7 +1379,20 @@ srchI.addEventListener('blur',()=>{setTimeout(()=>srchR.classList.remove('show')
     setStage('queued','active');
     setUploadStatus('Submitting to ingestion service…','info');
     try {
-      const fd = new FormData(); fd.append('file', pdfFile);
+      const fd = new FormData();
+      fd.append('file', pdfFile);
+      // Optional librarian metadata (S12/S13)
+      const _val = (id) => { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; };
+      const title = _val('lib-title');
+      const kind = _val('lib-kind') || 'paper';
+      const subject = _val('lib-subject');
+      const licenseMode = _val('lib-license') || 'full';
+      const shelf = _val('lib-shelf');
+      if (title) fd.append('title', title);
+      if (kind) fd.append('kind', kind);
+      if (subject) fd.append('subject', subject);
+      if (licenseMode) fd.append('license_mode', licenseMode);
+      if (shelf) fd.append('shelf_location', shelf);
       const r = await fetch(`${INFER_HOST}/api/ingest`, {
         method:'POST',
         headers: librarianHeaders(),

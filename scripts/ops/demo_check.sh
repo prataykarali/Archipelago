@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 7-query pilot demo gate ("prove the patch").
 #
-# Sends the launch demo script's queries to the live chat API (:5051) and
+# Sends the launch demo script's queries to the live chat API (:5151) and
 # checks the routing/anchor each one must produce. Run after every restart:
 #
 #   ./scripts/ops/demo_check.sh
@@ -13,7 +13,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-API="${ARCHIPELAGO_API:-http://localhost:5051}"
+API="${ARCHIPELAGO_API:-http://localhost:5151}"
 PY="${ROOT}/.venv/bin/python"
 [[ -x "$PY" ]] || PY=python3
 

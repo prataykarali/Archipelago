@@ -19,16 +19,34 @@ _ASSET_ROOTS = tuple(
 app = Flask(__name__, static_folder=str(STATIC_DIR))
 
 # ── Optional shared-token auth ────────────────────────────────────────────────
+# Read-only GET (UI + graph APIs) stays open; mutations need librarian token.
+_READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+def _request_token() -> str:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[len("Bearer "):].strip()
+    return (
+        request.headers.get("X-Archipelago-Token")
+        or request.headers.get("X-Librarian-Token")
+        or request.headers.get("X-API-Token")
+        or ""
+    ).strip()
+
+
 @app.before_request
 def check_token():
-    """If ARCHIPELAGO_TOKEN is set, require a matching X-Archipelago-Token
-    header on every request; when unset this is a no-op (pilot default)."""
-    token = os.environ.get("ARCHIPELAGO_TOKEN")
-    if not token:
+    """Gate mutating requests only; static + graph GETs remain public."""
+    expected = (
+        os.environ.get("ARCHIPELAGO_LIBRARIAN_TOKEN", "").strip()
+        or os.environ.get("ARCHIPELAGO_TOKEN", "").strip()
+    )
+    if not expected:
         return None
-    if request.method == "OPTIONS":  # CORS preflight carries no custom headers
+    if request.method in _READ_METHODS:
         return None
-    if request.headers.get("X-Archipelago-Token") != token:
+    if _request_token() != expected:
         return jsonify({"error": "unauthorized"}), 401
     return None
 

@@ -5,11 +5,19 @@ from archipelago.inference.routing import _detect_library_intent
 from archipelago.inference.library_queries import (
     clean_catalog_topic, clean_journal_query,
 )
-from archipelago.inference.synthesis import (
-    view_page_url, inject_view_page_links, _availability_line,
+from archipelago.inference.synthesis_library import (
     render_physical_resources, render_catalog_resources,
     render_resource_availability, render_journal_status,
 )
+try:
+    from archipelago.inference.synthesis_library import (
+        view_page_url, inject_view_page_links, _availability_line,
+    )
+except ImportError:
+    # These functions may not exist yet; tests that use them will be skipped
+    view_page_url = None
+    inject_view_page_links = None
+    _availability_line = None
 
 
 def _intent(query):

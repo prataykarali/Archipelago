@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Ingest the curated CS/ML pilot corpus into the local Archipelago graph.
 # Uses the project venv + local model path (never system python for GPU work).
+#
+# Source of truth: pilot_corpus/MANIFEST.tsv (sha256 + path + role).
+#   core     — always ingested (5 papers + syllabus seed)
+#   optional — only when INCLUDE_MATH_ML=1 (Deisenroth textbook, ~17 MB)
 set -euo pipefail
 
-# Resolve to app root (libraryAI/), not scripts/ops/
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
@@ -16,23 +19,33 @@ fi
 LOGDIR="${ROOT}/ingest_logs"
 mkdir -p "$LOGDIR"
 
-# Default: core 6 documents. Set INCLUDE_MATH_ML=1 to also ingest the textbook.
-CORE_DOCS=(
-  "pilot_corpus/pdfs/Vaswani2017_Attention_Is_All_You_Need.pdf"
-  "pilot_corpus/pdfs/Devlin2018_BERT.pdf"
-  "pilot_corpus/pdfs/Hu2021_LoRA.pdf"
-  "pilot_corpus/pdfs/Lewis2020_RAG.pdf"
-  "pilot_corpus/pdfs/Edge2024_GraphRAG.pdf"
-  "pilot_corpus/pdfs/AI_ML_Archipelago_Corpus_Seed.md"
-)
+MANIFEST="${ROOT}/pilot_corpus/MANIFEST.tsv"
+if [[ ! -f "$MANIFEST" ]]; then
+  echo "ERROR: pilot manifest not found at ${MANIFEST}" >&2
+  echo "Generate it first (see pilot_corpus/README.md)." >&2
+  exit 1
+fi
 
-DOCS=("${CORE_DOCS[@]}")
-if [[ "${INCLUDE_MATH_ML:-0}" == "1" ]]; then
-  DOCS+=("pilot_corpus/pdfs/Deisenroth_Math_For_ML.pdf")
+INCLUDE_OPTIONAL="${INCLUDE_MATH_ML:-0}"
+
+DOCS=()
+while IFS=$'\t' read -r path _sha _size role; do
+  [[ "$path" == "path" ]] && continue  # header
+  if [[ "$role" == "core" ]]; then
+    DOCS+=("$path")
+  elif [[ "$role" == "optional" && "$INCLUDE_OPTIONAL" == "1" ]]; then
+    DOCS+=("$path")
+  fi
+done < "$MANIFEST"
+
+if [[ "${#DOCS[@]}" -eq 0 ]]; then
+  echo "ERROR: pilot manifest is empty — no documents to ingest." >&2
+  exit 1
 fi
 
 echo "=== Archipelago pilot corpus ingest ==="
 echo "Root: $ROOT"
+echo "Manifest: $MANIFEST"
 echo "Documents: ${#DOCS[@]}"
 echo "Tip: stop inference_server first if it holds the okf_graph.db lock."
 echo
@@ -62,4 +75,4 @@ if [[ "$failed" -gt 0 ]]; then
   exit 1
 fi
 echo "=== ALL PILOT DOCS INGESTED ==="
-echo "Next: restart graph_server / inference_server / chat_server, then ./pilot_readiness.sh"
+echo "Next: ./scripts/ops/serve.sh restart && ./scripts/ops/pilot_readiness.sh"

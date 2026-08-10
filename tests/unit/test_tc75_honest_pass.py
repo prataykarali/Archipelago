@@ -244,7 +244,7 @@ def _build_ctx(case) -> dict[str, Any]:
     # TC-59 de-greaser: technical core must survive
     if case.tc_id == "TC-59":
         from archipelago.inference.routing import _strip_persona_style
-        _, stripped = _strip_persona_style(case.query)
+        stripped, _ = _strip_persona_style(case.query)
         assert "recurrent" in stripped.lower() or "recurrent" in case.query.lower()
         routing = resolve_query_routing(case.query)
         ctx["route"] = routing.get("route") or "general_chat"

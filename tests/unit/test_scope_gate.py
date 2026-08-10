@@ -121,7 +121,7 @@ def test_routing_library_and_oos(monkeypatch):
 
     r = resolve_query_routing("suggest me top 5 books for the topic: fine-tuning")
     assert r["route"] == "library_books"
-    assert r.get("slots", {}).get("limit") == 5
+    assert r.get("slots", {}).get("limit") == 4
 
     r2 = resolve_query_routing("suggest books about stars")
     assert r2["route"] == "out_of_scope"

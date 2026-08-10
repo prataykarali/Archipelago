@@ -1,15 +1,45 @@
-"""Library Credentials — E-Resource & OPAC Access (SCH-2).
+"""Library e-resource metadata (SCH-2).
 
-Grounded in ``docs/IEM-UEM e-Resources Login Credentials (1).pdf``.
-Direct lookup only — never sent through a language model (prevents leakage / hallucination).
+Student-facing library chat must NEVER see plaintext passwords, passkeys,
+institutional emails tied to credentials, or personal subscriber addresses.
+This module therefore exposes:
+
+* ``E_RESOURCE_CREDENTIALS`` — portal metadata keyed by resource. All
+  human-secret fields (``password``, ``passkey``, ``passkey_alt``,
+  ``username``, ``registration_number``, ``credential_id`` for identifiable
+  emails) are either omitted or read from env vars with empty-string
+  defaults. Staff-side tooling may override via ``ARCHIPELAGO_ERESOURCE_JSON``
+  or ``ARCHIPELAGO_ERESOURCE_<KEY>_<FIELD>`` env vars; the chat UI never
+  receives raw dicts — only :func:`format_credential_for_response` output.
+* :func:`format_credential_for_response` — always redacts secret-shaped
+  values, regardless of whether they were loaded from env.
+
+Do NOT reintroduce plaintext passwords here. The pilot demo must not leak
+portal passwords to students. Librarians sharing credentials in person is
+a staff-side process, not a chat snippet.
 """
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
 
-# ── SCH-2: E-Resource Credentials Map (from Central Library PDF) ──────────
+def _env(field: str, resource_key: str) -> str:
+    """Return env override for a secret field, else ''."""
+    env_key = f"ARCHIPELAGO_ERESOURCE_{resource_key.upper()}_{field.upper()}"
+    return os.environ.get(env_key, "").strip()
+
+
+# ── SCH-2: E-Resource metadata map ────────────────────────────────────────
+# All institutional logins route students to the portal URL with
+# instructions to contact Central Library for credentials. No plaintext
+# passwords live here.
+#
+# If a librarian needs the actual secret to be shown (rare, staff-only
+# view), they must set the matching ARCHIPELAGO_ERESOURCE_<KEY>_<FIELD>
+# env var AND access the metadata via a non-student channel. The chat
+# formatter always redacts secret fields.
 
 E_RESOURCE_CREDENTIALS: dict[str, dict[str, Any]] = {
     "opac": {
@@ -17,12 +47,9 @@ E_RESOURCE_CREDENTIALS: dict[str, dict[str, Any]] = {
         "type": "Library Catalogue",
         "access": "Student / Faculty Credentials",
         "website": "https://uemk-opac.l2c2.co.in",
-        "credential_id": "Emp. ID / Enrollment No.",
-        "username": "Emp. ID / Enrollment No.",
-        "password": "Emp. ID / Enrollment No. (default)",
         "note": (
-            "Default password format: Enrollment number for students, "
-            "Employee ID for faculty members."
+            "Sign in with your Emp. ID (faculty) or Enrollment No. (students). "
+            "Password reset and account activation happen at the Central Library desk."
         ),
     },
     "ndli": {
@@ -30,16 +57,9 @@ E_RESOURCE_CREDENTIALS: dict[str, dict[str, Any]] = {
         "type": "Digital Library Portal",
         "access": "Registered Members",
         "website": "https://ndl.iitkgp.ac.in/",
-        "credential_id": "INWBNC4AU95XQTV",
-        "registration_number": "INWBNC4AU95XQTV",
-        # Primary passkey from docs/IEM-UEM e-Resources Login Credentials PDF.
-        "passkey": "aeb28d3c-de60-439a-89b7-8cfed9aa0657",
-        # Alternate passkey seen in some eval sheets / older handouts.
-        "passkey_alt": "712a6780-24af-47fb-90d2-b9a7200eabc2",
         "note": (
-            "Use the NDLI Club Registration Number and Passkey for portal entry. "
-            "Primary passkey (e-resources PDF): aeb28d3c-de60-439a-89b7-8cfed9aa0657. "
-            "Alternate club passkey on some handouts: 712a6780-24af-47fb-90d2-b9a7200eabc2."
+            "Use the NDLI Club registration number and passkey issued by the "
+            "Central Library. If you do not have these, request them at the desk."
         ),
     },
     "ieee": {
@@ -47,225 +67,169 @@ E_RESOURCE_CREDENTIALS: dict[str, dict[str, Any]] = {
         "type": "Research Database",
         "access": "Username / Password",
         "website": "https://ieeexplore.ieee.org/Xplore/home.jsp",
-        "credential_id": "fG8BeaTC",
-        "username": "fG8BeaTC",
-        "password": "gh8ccws]",
-        "note": "Institutional IEEE Xplore credentials from Central Library e-resources guide.",
+        "note": "Institutional IEEE Xplore credentials available from Central Library staff.",
     },
     "scopus": {
         "name": "Elsevier Scopus",
         "type": "Bibliographic Database",
-        "access": "User ID / Password",
+        "access": "On-campus IP-based / Institutional Login",
         "website": "https://www.scopus.com/",
-        "credential_id": "it@iemcal.com",
-        "username": "it@iemcal.com",
-        "password": "4359789IEMK",
-        "note": "On-campus / institutional Scopus access via Central Library credentials.",
+        "note": "On-campus IP-based access; off-campus use Central Library's institutional login.",
     },
     "science_direct": {
         "name": "Elsevier ScienceDirect",
         "type": "Full-Text Database",
-        "access": "User ID / Password",
+        "access": "On-campus IP-based / Institutional Login",
         "website": "https://www.sciencedirect.com/",
-        "credential_id": "it@iemcal.com",
-        "username": "it@iemcal.com",
-        "password": "4359789IEMK",
-        "note": "Same institutional credentials as Scopus.",
+        "note": "On-campus IP-based access; off-campus use Central Library's institutional login.",
     },
     "springer": {
-        "name": "Springer Link",
+        "name": "SpringerLink",
         "type": "Publisher Database",
-        "access": "Username / Password",
+        "access": "Institutional Login",
         "website": "https://link.springer.com/",
-        "credential_id": "management.library@iem.edu.in",
-        "username": "management.library@iem.edu.in",
-        "password": "Iemklib@2026",
-        "note": "Springer Link institutional login.",
+        "note": "SpringerLink institutional login — Central Library issues credentials.",
     },
     "ebsco": {
-        "name": "EBSCO Host",
+        "name": "EBSCOhost",
         "type": "Research Database",
-        "access": "Username / Password",
+        "access": "Institutional Login",
         "website": "https://search.ebscohost.com/",
-        "credential_id": "iemlibrary",
-        "username": "iemlibrary",
-        "password": "library@2019",
-        "note": "EBSCO Host institutional login.",
+        "note": "EBSCOhost institutional login — ask at the Central Library desk.",
     },
     "jgate": {
         "name": "J-Gate",
         "type": "Journal Gateway",
-        "access": "Username / Password",
+        "access": "Institutional Login",
         "website": "https://jgateplus.com/search/login/",
-        "credential_id": "trususer",
-        "username": "trususer",
-        "password": "Jgate3@2024",
-        "note": "J-Gate institutional login.",
+        "note": "J-Gate institutional login — Central Library issues user/password.",
     },
     "proquest": {
         "name": "ProQuest",
         "type": "Research Database",
-        "access": "Username / Password",
+        "access": "Institutional Login",
         "website": "https://www.proquest.com/login",
-        "credential_id": "IEM_LIB",
-        "username": "IEM_LIB",
-        "password": "ProQuest@1",
-        "note": "ProQuest institutional login.",
+        "note": "ProQuest institutional login — contact Central Library.",
     },
     "grammarly": {
         "name": "Grammarly",
         "type": "Writing Assistant",
-        "access": "User ID / Password",
+        "access": "Institutional Account",
         "website": "https://www.grammarly.com",
-        "credential_id": "pralay.kar@iem.edu.in",
-        "username": "pralay.kar@iem.edu.in",
-        "password": "Iem@1234",
-        "note": "Institutional Grammarly account.",
+        "note": "Institutional Grammarly account — credentials issued by Central Library.",
     },
     "turnitin": {
         "name": "Turnitin",
         "type": "Plagiarism Checker",
         "access": "Contact Library",
         "website": "https://uemkolkatta.turnitin.com/home/",
-        "credential_id": "Contact Mr. Raj Nag",
-        "note": "For Turnitin access, contact Mr. Raj Nag at the library.",
+        "note": "For Turnitin access, contact the Central Library team.",
     },
     "irins": {
         "name": "IRINS",
         "type": "Research Information System",
         "access": "Public Portal",
         "website": "https://uem-kolkata.irins.org/",
-        "credential_id": "N/A (public portal)",
-        "note": "IRINS faculty profiles portal.",
+        "note": "IRINS faculty profiles portal (public).",
     },
     "shodhganga": {
         "name": "Shodh Ganga",
         "type": "Thesis Repository",
         "access": "Public Portal",
         "website": "https://shodhganga.inflibnet.ac.in/handle/10603/297435",
-        "credential_id": "N/A (public portal)",
-        "note": "INFLIBNET Shodhganga theses repository.",
+        "note": "INFLIBNET Shodhganga theses repository (public).",
     },
     "infed": {
         "name": "INFED",
         "type": "Remote Access / IdP",
         "access": "Emp Id. / Enrollment No.",
         "website": "https://idp.uem.edu.in/",
-        "credential_id": "Emp Id. / Enrollment No.",
-        "username": "Emp Id. / Enrollment No.",
-        "password": "Contact Library",
-        "note": "Remote access identity provider; password via library staff.",
+        "note": "Remote access identity provider — password via Central Library.",
     },
     "pearson": {
         "name": "Pearson eLibrary",
         "type": "E-Book Platform",
-        "access": "Username / Password",
+        "access": "Institutional Login",
         "website": "https://elibrary.in.pearson.com/",
-        "credential_id": "library.uemk@uem.edu.in",
-        "username": "library.uemk@uem.edu.in",
-        "password": "Central-Library@#1",
-        "note": "Pearson eLibrary institutional login.",
+        "note": (
+            "Pearson eLibrary institutional login. Use the credentials issued "
+            "by Central Library (staff-side env: ARCHIPELAGO_ERESOURCE_PEARSON_*)."
+        ),
     },
     "delnet": {
         "name": "DELNET Digital Library",
         "type": "Consortium Library",
-        "access": "User Id / Password",
+        "access": "Institutional Login",
         "website": "https://discovery1.delnet.in/",
-        "credential_id": "wbuem",
-        "username": "wbuem",
-        "password": "uem6490",
-        "note": "DELNET institutional login.",
+        "note": "DELNET institutional login — Central Library issues user/password.",
     },
     "manupatra": {
         "name": "Manupatra",
         "type": "Legal Database",
-        "access": "User Id / Password",
+        "access": "Institutional Login",
         "website": "https://www.manupatrafast.com/",
-        "credential_id": "TCDMLLaw",
-        "username": "TCDMLLaw",
-        "password": "legal@1000",
-        "note": "Manupatra legal research database.",
+        "note": "Manupatra legal research database — credentials via Central Library.",
     },
     "lexis_advance": {
         "name": "Lexis Advance® India / Protege AI",
         "type": "Legal Database",
-        "access": "Username / Password",
+        "access": "Institutional Login",
         "website": "https://advance.lexis.com/in",
-        "credential_id": "library@iem.edu.in",
-        "username": "library@iem.edu.in",
-        "password": "legal@1000",
-        "note": "Also available at https://protege.in.lexis.com/general-ai",
+        "note": "Also available at https://protege.in.lexis.com/general-ai.",
     },
     "cambridge_core": {
         "name": "Cambridge Core / Cambridge Law Journal",
         "type": "Academic Publisher Database",
         "access": "IP Based (On-Campus)",
         "website": "https://www.cambridge.org/core/journals/cambridge-law-journal",
-        "credential_id": "IP Based (On-Campus)",
-        "note": "The Cambridge Law Journal and Cambridge English Today — on-campus IP-based access.",
+        "note": "On-campus IP-based access (no interactive login).",
     },
     "aiu": {
         "name": "Association of Indian Universities eLibrary",
         "type": "E-Library",
-        "access": "User Id / Password",
+        "access": "Institutional Login",
         "website": "https://aiu.refread.com/",
-        "credential_id": "vc@uem.edu.in",
-        "username": "vc@uem.edu.in",
-        "password": "Librarian@!#2015",
-        "note": "AIU eLibrary institutional login.",
+        "note": "AIU eLibrary institutional login — credentials via Central Library.",
     },
     "iei": {
         "name": "The Institution of Engineers (India) [IEI]",
         "type": "Professional Body Portal",
-        "access": "User Id / Password",
+        "access": "Institutional Login",
         "website": "https://www.ieindia.org/WebUI/IEI-Registration.aspx",
-        "credential_id": "C10004946",
-        "username": "C10004946",
-        "password": "C10004946",
-        "note": "IEI institutional registration credentials.",
+        "note": "IEI institutional registration — Central Library issues credentials.",
     },
     "magzter": {
         "name": "Magzter",
         "type": "Digital Magazines",
-        "access": "User Id / Password",
+        "access": "Institutional Login",
         "website": "https://www.magzter.com/",
-        "credential_id": "arup.kumar.manna92@gmail.com",
-        "username": "arup.kumar.manna92@gmail.com",
-        "password": "Arup@4",
-        "note": "Magzter digital magazine subscription.",
+        "note": "Magzter digital magazine subscription — Central Library account.",
     },
     "efy": {
         "name": "Electronics For You (EFY) ezine",
         "type": "E-Magazine",
-        "access": "User Id / Password",
+        "access": "Institutional Login",
         "website": "https://ezine.efymag.com/loginefy.asp",
-        "credential_id": "library.uemk@uem.edu.in",
-        "username": "library.uemk@uem.edu.in",
-        "password": "E190219",
-        "note": "EFY ezine institutional login.",
+        "note": "EFY ezine institutional login — Central Library issues user/password.",
     },
     "india_today": {
         "name": "India Today",
         "type": "E-Magazine",
         "access": "User Id + OTP",
         "website": "https://www.emagpub.com/indiatoday",
-        "credential_id": "library.uemk@uem.edu.in",
-        "username": "library.uemk@uem.edu.in",
-        "note": "Contact the Library to get OTP for access.",
+        "note": ("Contact the Central Library to get OTP for access."),
     },
     "institutional_repository": {
         "name": "Institutional Repository",
         "type": "Repository",
         "access": "Public Portal",
         "website": "https://uemk.ndl.gov.in/",
-        "credential_id": "N/A (public portal)",
-        "note": "UEM institutional repository.",
+        "note": "UEM institutional repository (public).",
     },
     "british_council": {
         "name": "British Council Library Membership",
         "type": "Physical Library Membership",
         "access": "Physical Access Card",
-        "credential_id": "10 Membership Access Cards Available",
         "card_count": 10,
         "note": "Central Library holds 10 British Council membership access cards. Contact the Library to avail.",
     },
@@ -273,7 +237,6 @@ E_RESOURCE_CREDENTIALS: dict[str, dict[str, Any]] = {
         "name": "American Library Membership",
         "type": "Physical Library Membership",
         "access": "Physical Access Card",
-        "credential_id": "5 Membership Access Cards Available",
         "card_count": 5,
         "note": "Central Library holds 5 American Library membership access cards. Contact the Library to avail.",
     },
@@ -323,31 +286,53 @@ _RESOURCE_ALIASES: dict[str, list[str]] = {
 }
 
 
-def lookup_credential(resource_name: str) -> dict | None:
-    """Look up credentials for a given resource name or free-text query."""
-    key = resource_name.strip().lower()
+def lookup_credential(resource_name: str) -> dict[str, Any] | None:
+    """Look up metadata for a given resource name or free-text query.
 
+    Returns a copy of the (redacted) metadata dict, or None.
+    """
+    key = resource_name.strip().lower()
+    if not key:
+        return None
     if key in E_RESOURCE_CREDENTIALS:
         return dict(E_RESOURCE_CREDENTIALS[key])
-
-    for resource_key, aliases in _RESOURCE_ALIASES.items():
-        for alias in aliases:
+    for resource_key_iter, aliases_iter in _RESOURCE_ALIASES.items():
+        for alias in aliases_iter:
             if key == alias or alias in key or key in alias:
-                return dict(E_RESOURCE_CREDENTIALS[resource_key])
-
+                return dict(E_RESOURCE_CREDENTIALS[resource_key_iter])
     for resource_key, creds in E_RESOURCE_CREDENTIALS.items():
         name_lower = creds["name"].lower()
         if key in name_lower or name_lower in key:
             return dict(creds)
-
     return None
 
 
+# Fields that MUST never be shown to the student-facing chat path regardless
+# of whether env or JSON populated them.
+_SECRET_FIELD_NAMES: frozenset[str] = frozenset({
+    "password",
+    "passkey",
+    "passkey_alt",
+    "username",
+    "credential_id",
+    "registration_number",
+})
+
+
+def _redacted(_value: Any) -> str:
+    return "_(contact Central Library)_"
+
+
 def format_credential_for_response(credential: dict[str, Any]) -> str:
-    """Format credential data into a human-readable response (no LLM)."""
+    """Format resource metadata for student chat.
+
+    The reply NEVER includes plaintext passwords, passkeys, usernames,
+    registration numbers, or e-mail identifiers. Only the portal name,
+    access type, public URL, card count (for physical memberships), and
+    librarian-issued note are rendered.
+    """
     name = credential.get("name", "Unknown Resource")
     access = credential.get("access", "")
-    cred_id = credential.get("credential_id", "")
     note = credential.get("note", "")
     website = credential.get("website", "")
 
@@ -357,22 +342,14 @@ def format_credential_for_response(credential: dict[str, Any]) -> str:
     ]
     if website:
         lines.append(f"   **Website**: {website}")
-    if cred_id:
-        lines.append(f"   **Credential**: `{cred_id}`")
-    if "registration_number" in credential:
-        lines.append(f"   **Registration Number**: `{credential['registration_number']}`")
-    if "passkey" in credential:
-        lines.append(f"   **Passkey**: `{credential['passkey']}`")
-    if "passkey_alt" in credential:
-        lines.append(f"   **Alternate Passkey**: `{credential['passkey_alt']}`")
-    if "username" in credential:
-        lines.append(f"   **Username / User ID**: `{credential['username']}`")
-    if "password" in credential:
-        lines.append(f"   **Password**: `{credential['password']}`")
     if "card_count" in credential:
         lines.append(f"   **Available Cards**: {credential['card_count']}")
     if note:
         lines.append(f"   _Note_: {note}")
+    lines.append(
+        "   _Credentials:_ ask at the Central Library desk. "
+        "Institutional portal usernames and passwords are never shown in chat."
+    )
 
     return "\n".join(lines)
 
@@ -411,27 +388,22 @@ _RESOURCE_NAME_PATTERN = re.compile(
 
 
 def detect_credentials_query(query: str) -> dict | None:
-    """Check if a user query is asking about e-resource credentials."""
+    """Check if a user query is asking about e-resource credentials.
+
+    Returns a routing dict ``{"route": "library_credentials", "resource_key",
+    "raw_query"}`` or None. Resource matching is by name/alias only — no
+    e-mail or passkey matching is done anymore (secrets no longer live in
+    this module).
+    """
     if not query:
         return None
 
     q_lower = query.lower().strip()
 
-    # Match known credential emails / ids even without "login" keywords
-    # (e.g. "Which database uses library@iem.edu.in?").
-    for resource_key, creds in E_RESOURCE_CREDENTIALS.items():
-        for field in ("credential_id", "username", "passkey", "registration_number"):
-            val = str(creds.get(field) or "").strip().lower()
-            if val and "@" in val and val in q_lower:
-                return {
-                    "route": "library_credentials",
-                    "resource_key": resource_key,
-                    "raw_query": query,
-                }
-
-    if not _CREDENTIALS_KEYWORDS.search(q_lower):
-        if not re.search(r"\b(login|credential|password|username|id|passkey)\b", q_lower):
-            return None
+    if not _CREDENTIALS_KEYWORDS.search(q_lower) and not re.search(
+        r"\b(login|credential|password|username|id|passkey)\b", q_lower
+    ):
+        return None
 
     resource_match = _RESOURCE_NAME_PATTERN.search(q_lower)
     if not resource_match:

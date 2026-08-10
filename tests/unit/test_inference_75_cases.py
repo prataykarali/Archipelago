@@ -252,6 +252,7 @@ def test_category2_library_intent_routing(tc_id, prompt, expected_intent):
 
 
 def test_tc16_scopus_credentials_from_secure_store(mock_cred_env):
+    """TC-16: Scopus query must yield a portal reply with NO leaked credentials."""
     from archipelago.inference.eresource_credentials import format_credential_reply
     from archipelago.inference.synthesis import render_library_info
 
@@ -259,33 +260,45 @@ def test_tc16_scopus_credentials_from_secure_store(mock_cred_env):
         "How can I access Scopus or ScienceDirect through the institutional portal?"
     )
     assert reply is not None
-    assert "it@iemcal.com" in reply
+    assert "sciencedirect.com" in reply or "scopus.com" in reply
+    # Adversarial: no institutional emails or passwords may leak to chat.
+    assert "it@iemcal.com" not in reply
+    assert "4359789" not in reply
+    assert "library.uemk" not in reply
     full = render_library_info(
         "How can I access Scopus or ScienceDirect through the institutional portal?"
     )
-    assert "it@iemcal.com" in full
+    assert "it@iemcal.com" not in full
+    assert "4359789" not in full
 
 
 def test_tc17_ndli_passkey_from_secure_store(mock_cred_env):
+    """TC-17: NDLI query mentions the portal but never the passkey."""
     from archipelago.inference.eresource_credentials import format_credential_reply
 
     reply = format_credential_reply(
         "What is the passkey for the National Digital Library of India (NDLI) Club?"
     )
     assert reply is not None
-    assert "INWBNC4AU95XQTV" in reply
-    assert "aeb28d3c-de60-439a-89b7-8cfed9aa0657" in reply
+    assert "ndl.iitkgp.ac.in" in reply
+    # Adversarial: the actual registration number / passkey must not leak.
+    assert "INWBNC4AU95XQTV" not in reply
+    assert "aeb28d3c-de60-439a-89b7-8cfed9aa0657" not in reply
+    assert "712a6780-24af-47fb-90d2-b9a7200eabc2" not in reply
 
 
 def test_tc18_ieee_credentials_from_secure_store(mock_cred_env):
+    """TC-18: IEEE query returns the portal; never the user/password."""
     from archipelago.inference.eresource_credentials import format_credential_reply
 
     reply = format_credential_reply(
         "Does the library provide access to IEEE Xplore? What are the credentials?"
     )
     assert reply is not None
-    assert "fG8BeaTC" in reply
-    assert "gh8ccws]" in reply
+    assert "ieeexplore.ieee.org" in reply
+    # Adversarial: no IEEE credentials leak.
+    assert "fG8BeaTC" not in reply
+    assert "gh8ccws]" not in reply
 
 
 def test_tc22_library_hours_sheet():
@@ -336,6 +349,7 @@ def test_tc25_pdf_url_property_on_document_contract():
 
 
 def test_tc26_lexis_from_secure_store(mock_cred_env):
+    """TC-26: Lexis portal reply; no library@iem credential leak."""
     from archipelago.inference.eresource_credentials import format_credential_reply
 
     reply = format_credential_reply(
@@ -343,7 +357,8 @@ def test_tc26_lexis_from_secure_store(mock_cred_env):
     )
     assert reply is not None
     assert "advance.lexis.com" in reply
-    assert "library@iem.edu.in" in reply
+    assert "library@iem.edu.in" not in reply
+    assert "legal@1000" not in reply
 
 
 def test_tc28_membership_cards_from_env(mock_cred_env):
@@ -360,6 +375,7 @@ def test_tc28_membership_cards_from_env(mock_cred_env):
 
 
 def test_tc29_opac_url_and_login_format(mock_cred_env):
+    """TC-29: OPAC portal + login format are fine to share; passwords are not."""
     from archipelago.inference.eresource_credentials import format_credential_reply
     from archipelago.inference.synthesis import render_library_info
 
@@ -374,6 +390,7 @@ def test_tc29_opac_url_and_login_format(mock_cred_env):
 
 
 def test_tc30_efy_ezine_from_secure_store(mock_cred_env):
+    """TC-30: EFY portal URL is fine; the shared email/login is not."""
     from archipelago.inference.eresource_credentials import format_credential_reply
 
     reply = format_credential_reply(
@@ -381,7 +398,8 @@ def test_tc30_efy_ezine_from_secure_store(mock_cred_env):
     )
     assert reply is not None
     assert "ezine.efymag.com" in reply
-    assert "library.uemk@uem.edu.in" in reply
+    assert "library.uemk@uem.edu.in" not in reply
+    assert "E190219" not in reply
 
 
 def test_tc19_subject_leaderboard_ods_or_graph():

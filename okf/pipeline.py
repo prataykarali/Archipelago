@@ -366,15 +366,34 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
         print(f"  --limit {limit}: processing only the first {limit} prose chunks")
         prose_chunks = prose_chunks[:limit]
 
-    # ── Stage 2: OKF v1.5 Extraction (LOCAL model only — never Ollama) ──
+    # ── Stage 2: OKF v1.5 Extraction (LOCAL model preferred; fine-tuned Ollama ok) ──
     print(f"\n[2] STAGE 2: OKF v1.5 Extraction via local model: {_local_path}")
     print("-" * 50)
 
     if extraction.LOCAL_MODEL is None:
         load_local_model()
-    if not extraction.LOCAL_MODE or extraction.LOCAL_MODEL is None:
-        print("ERROR: local model unavailable — --add never falls back to Ollama. Aborting.")
-        return
+    if extraction.LOCAL_MODE and extraction.LOCAL_MODEL is not None:
+        # Preferred path: PyTorch lib-qwen / aura-qwen loaded from disk.
+        pass
+    else:
+        # No local PyTorch model. Ollama is acceptable ONLY when MODEL_NAME is
+        # a fine-tuned extractor (lib-qwen family). Refusing all other names
+        # preserves the invariant that we never extract with the untuned base
+        # qwen3.5:0.8b.
+        from okf.config import MODEL_NAME as _okf_model
+        fine_tuned_prefixes = ("lib-qwen", "aura-qwen", "lora")
+        if any(_okf_model.startswith(p) for p in fine_tuned_prefixes):
+            print(
+                f"  Local PyTorch model missing; using fine-tuned Ollama model "
+                f"'{_okf_model}' for extraction."
+            )
+        else:
+            print(
+                "ERROR: local model unavailable and Ollama model "
+                f"'{_okf_model}' is not a fine-tuned extractor — "
+                "--add never falls back to the untuned base model. Aborting."
+            )
+            return
 
     new_results, new_successful = extract_chunks_with_model(prose_chunks)
     print(f"\n  Extracted: {len(new_results)} concepts from {len(prose_chunks)} chunks")

@@ -85,7 +85,8 @@ def check_aiml_scope_via_llm(query: str) -> bool | None:
                 {"role": "user", "content": query},
             ],
             think=False,
-            options={"temperature": 0.0, "num_predict": 8},
+            keep_alive="30m",
+            options={"temperature": 0.0, "num_predict": 8, "num_ctx": 2048},
         )
         ans = (response.get("message") or {}).get("content", "")
         parsed = parse_scope_answer(ans)

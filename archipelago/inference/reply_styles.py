@@ -142,6 +142,7 @@ def style_instruction(query: str) -> str:
         f"{style} "
         f"Be CONCISE (about 90–220 words). "
         f"Cite sources using bare [S#] markers — at least {_MIN_INLINE_CITATIONS_REQUESTED}, "
-        f"at most {_MAX_INLINE_CITATIONS_REQUESTED}. "
+        f"at most {_MAX_INLINE_CITATIONS_REQUESTED} inline markers from different [S#] evidence IDs. "
+        f"Never invent pages or a Sources dump. "
         f"Never print style labels or control tokens."
     )

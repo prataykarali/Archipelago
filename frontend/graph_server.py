@@ -30,14 +30,36 @@ app = Flask(__name__, static_folder=str(STATIC_DIR))
 
 
 # ── Optional shared-token auth ────────────────────────────────────────────────
+# Read-only GET (UI + /api/graph|/api/stats|…) stays open so the browser can
+# load the graph without custom headers. Mutating methods require the librarian
+# token when ARCHIPELAGO_LIBRARIAN_TOKEN / ARCHIPELAGO_TOKEN is set (SECURITY.md).
+_READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+def _request_token() -> str:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[len("Bearer "):].strip()
+    return (
+        request.headers.get("X-Archipelago-Token")
+        or request.headers.get("X-Librarian-Token")
+        or request.headers.get("X-API-Token")
+        or ""
+    ).strip()
+
+
 @app.before_request
 def check_token():
-    """If ARCHIPELAGO_TOKEN is set, require a matching X-Archipelago-Token
-    header on every request; when unset this is a no-op (pilot default)."""
-    token = os.environ.get("ARCHIPELAGO_TOKEN")
-    if not token:
+    """Gate mutating requests only; static + graph GETs remain public."""
+    expected = (
+        os.environ.get("ARCHIPELAGO_LIBRARIAN_TOKEN", "").strip()
+        or os.environ.get("ARCHIPELAGO_TOKEN", "").strip()
+    )
+    if not expected:
         return None
-    if request.headers.get("X-Archipelago-Token") != token:
+    if request.method in _READ_METHODS:
+        return None
+    if _request_token() != expected:
         return jsonify({"error": "unauthorized"}), 401
     return None
 

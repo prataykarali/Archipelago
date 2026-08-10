@@ -81,6 +81,7 @@ archipelago_graph.html
 
 # Old graph DB backups
 okf_graph.bak*/
+backups/
 
 # Font duplicates (canonical copy in frontend/ui/warfield/)
 warfield/
@@ -90,3 +91,7 @@ ppt_assets/
 
 # Throwaway scripts
 scratch/
+
+# Node (library showcase build only)
+node_modules/
+ui/library-showcase/node_modules/

@@ -245,7 +245,7 @@ def format_catalog_reply(query: str) -> str | None:
         if len(lines) <= 2:
             lines.append("_No subject ODS rows loaded — check docs/*.ods._")
         lines.append("")
-        lines.append("_Pilot catalog sample from institutional KOHA exports under docs/._")
+        lines.append("_not live against Koha - - Pilot catalog sample from institutional KOHA exports under docs/._")
         return "\n".join(lines)
 
     # Journal titles / issues

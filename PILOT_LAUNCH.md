@@ -18,6 +18,26 @@ One page: what the pilot is, how to start it, how to prove it works.
 - Flawless multi-hop curriculum — curriculum = graph edges, not a real teacher
 - "Any PDF becomes a perfect knowledge graph"
 
+**Do NOT demo (off-corpus / unsupported):**
+
+- Non (AIML|DBMS|OS|DSA) topics — e.g. "books about stars" returns the out-of-scope
+  bridge (fine as a deliberate safety beat, not as a knowledge demo)
+- Agent-framework deep dives (LangChain/AutoGPT internals — seeded nodes only)
+- Live OPAC availability / barcode checks, shelf counts as truth
+  (inventory is simulated for pilot — always say "check OPAC for live availability")
+- Full Pearson textbook text (metadata/TOC only, per copyright policy)
+
+## Restart / token directives
+
+- Code-only reload: `./scripts/ops/serve.sh restart`
+- After config/env edits: `./scripts/ops/serve.sh stop; ./scripts/ops/serve.sh start`
+- Librarian mutations (`POST /api/ingest`, `DELETE /api/documents/<id>`) require
+  `Authorization: Bearer $ARCHIPELAGO_LIBRARIAN_TOKEN` (401 without / with wrong token);
+  the graph API on :5150 takes the same secret as `X-Archipelago-Token`.
+- Upload proof: 202 returns `job_id`; poll `GET /api/ingest/<job_id>` until `COMPLETE`,
+  then `GET /api/documents` must list the new doc and `/api/stats` must show nodes grew
+  (merge = full rebuild from merged OKF results; prior pilot docs retained by safety guard).
+
 ## Start (one command)
 
 ```bash
@@ -35,9 +55,9 @@ table. Under the hood it uses `scripts/ops/serve.sh start|stop|status|restart`.
 
 | Who       | URL                                     | Can do                         |
 |-----------|-----------------------------------------|--------------------------------|
-| Student   | http://localhost:5052                   | Query only                     |
-| Librarian | http://localhost:5050 → Librarian tab   | Upload / delete / manual nodes |
-| API       | http://localhost:5051                   | Backend                        |
+| Student   | http://localhost:5152                   | Query only                     |
+| Librarian | http://localhost:5150 → Librarian tab   | Upload / delete / manual nodes |
+| API       | http://localhost:5151                   | Backend                        |
 
 **Hard-refresh browsers after a restart (Ctrl+Shift+R)** — the UIs cache JS.
 

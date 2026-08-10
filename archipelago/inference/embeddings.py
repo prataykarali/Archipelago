@@ -121,9 +121,26 @@ def build_concept_embeddings():
         _disable_embeddings(str(e))
 
 
-def get_snowflake_embedding(text):
+from collections import OrderedDict
+
+_EMB_CACHE: OrderedDict[str, torch.Tensor] = OrderedDict()
+_EMB_CACHE_MAX = 512
+
+
+def clear_embedding_cache() -> None:
+    _EMB_CACHE.clear()
+
+
+def get_snowflake_embedding(text: str) -> torch.Tensor | None:
     if not st.use_embeddings or st.embed_model is None or st.embed_tokenizer is None:
         return None
+    key = (text or "").strip().lower()
+    if not key:
+        return None
+    if key in _EMB_CACHE:
+        _EMB_CACHE.move_to_end(key)
+        return _EMB_CACHE[key]
+
     try:
         device = next(st.embed_model.parameters()).device
         prefix = "Represent this sentence for searching relevant passages: "
@@ -133,7 +150,11 @@ def get_snowflake_embedding(text):
             model_output = st.embed_model(**inputs)
             embeddings = model_output[0][:, 0]
             embeddings = F.normalize(embeddings, p=2, dim=1)
-        return embeddings[0].cpu()
+        res = embeddings[0].cpu()
+        _EMB_CACHE[key] = res
+        while len(_EMB_CACHE) > _EMB_CACHE_MAX:
+            _EMB_CACHE.popitem(last=False)
+        return res
     except Exception as e:
         _disable_embeddings(str(e))
         return None

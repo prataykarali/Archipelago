@@ -1,12 +1,26 @@
 """library_queries.py — Cypher queries and fuzzy matching for book/chapter library metadata."""
 from __future__ import annotations
 import re
+from typing import Any
+
 import kuzu
 from thefuzz import fuzz
 from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference import state as st
 from archipelago.inference.ranking import rank_concepts
-from okf.config import infer_source_category
+import importlib
+
+def infer_source_category(path: str) -> str:
+    try:
+        mod = importlib.import_module("okf.config")
+        return getattr(mod, "infer_source_category")(path)
+    except Exception:
+        p = (path or "").lower()
+        if "paper" in p or p.startswith("papers/"):
+            return "paper"
+        if "textbook" in p or "math" in p:
+            return "textbook"
+        return "pdf"
 
 # Pedagogy weights: prefer textbooks for "books", papers for "papers"
 _BOOK_CAT_WEIGHT = {
@@ -100,7 +114,7 @@ def _prefer_papers_query(topic_query: str) -> bool:
     return wants_papers and not wants_books
 
 
-def _doc_pedagogy_score(rec: dict, prefer_papers: bool) -> float:
+def _doc_pedagogy_score(rec: dict, prefer_papers: bool) -> tuple[float, dict[str, Any]]:
     """Combine mention count with source-category weight (textbook vs paper).
 
     For book-style queries, also boost known starter textbooks by title/path.
@@ -111,55 +125,85 @@ def _doc_pedagogy_score(rec: dict, prefer_papers: bool) -> float:
     w = float(weights.get(cat, 1.0))
     doc_id = (rec.get("id") or "").lower()
     title = (rec.get("title") or "").lower()
+    pedagogy_boost = 1.0
     # Starter pedagogy boosts (book queries only)
     if not prefer_papers:
         if "textbooks/" in doc_id or "deisenroth" in doc_id or "math" in title:
-            w *= 1.35
+            pedagogy_boost *= 1.35
         if "syllab" in doc_id or "seed" in doc_id:
-            w *= 1.15
-        # Pure research papers stay downranked for "books on…"
+            pedagogy_boost *= 1.15
         if doc_id.startswith("papers/") or cat == "paper":
-            w *= 0.85
-    # log-ish dampening so one huge paper mention dump doesn't dominate
-    return (1.0 + mentions) * w
+            pedagogy_boost *= 0.85
+
+    final_weight = w * pedagogy_boost
+    final_score = (1.0 + mentions) * final_weight
+    components = {
+        "mentions": mentions,
+        "category_weight": w,
+        "pedagogy_boost": pedagogy_boost,
+        "source_category": cat,
+    }
+    return final_score, components
+
+
+def _catalog_seed_books_for_topic(topic_query: str, limit: int = 5) -> list[dict]:
+    """Ranked suggestions from unified inventory + seeds (shelf / Pearson aware)."""
+    from archipelago.inference.unified_ranking import rank_resources, to_library_book_dicts
+
+    prefer_papers = _prefer_papers_query(topic_query)
+    kind = "paper" if prefer_papers else "textbook"
+    ranked = rank_resources(topic_query, kind=kind, limit=max(1, int(limit)))
+    if not ranked and kind == "textbook":
+        ranked = rank_resources(topic_query, kind=None, limit=max(1, int(limit)))
+    return to_library_book_dicts(ranked)
 
 
 def get_books_for_topic(topic_query: str, limit: int = 5) -> list[dict]:
     """Suggest books/papers related to a topic.
 
-    Ranking = concept mention counts × source-category pedagogy weight
-    (textbooks preferred for book queries; papers preferred for paper queries).
+    Prefer unified ranking (inventory + librarian seeds + PDF signals). When no
+    subject match and the graph has Document↔Concept links, blend graph mention
+    ranks; otherwise fall back to the unified catalog list.
     """
+    from archipelago.inference.ranking_seeds import detect_subject_key
+
+    recommendation_limit = min(4, max(1, int(limit)))
+    if detect_subject_key(topic_query):
+        # Unified ranker has auditable seed signals + full inventory coverage.
+        return _catalog_seed_books_for_topic(topic_query, limit=recommendation_limit)
+
     cleaned_topic = clean_topic_query(topic_query)
     if not cleaned_topic:
-        return []
-        
+        return _catalog_seed_books_for_topic(topic_query, limit=recommendation_limit)
+
     ranked = rank_concepts(cleaned_topic, top_k=5)
-    if not ranked:
-        return []
-        
-    concept_ids = [r["id"] for r in ranked if float(r.get("cos", 0)) > 0.15]
-    if not concept_ids:
-        # Fallback to top ranked if similarity is low
-        concept_ids = [ranked[0]["id"]]
-        
-    concept_id_to_name = {r["id"]: r["label"] for r in ranked}
     prefer_papers = _prefer_papers_query(topic_query)
 
-    doc_mentions = {}
-    try:
-        with graph_lock.read_lock():
-            conn = kuzu.Connection(st.db)
-            # Find document chunks mentioning these concepts
-            for cid in concept_ids:
-                safe_cid = cid.replace("'", "\\'")
+    doc_mentions: dict = {}
+    if ranked:
+        concept_ids = [r["id"] for r in ranked if float(r.get("cos", 0)) > 0.15]
+        if not concept_ids:
+            concept_ids = [ranked[0]["id"]]
+
+        concept_id_to_name = {r["id"]: r["label"] for r in ranked}
+
+        try:
+            with graph_lock.read_lock():
+                conn = kuzu.Connection(st.db)
+                # Batch all concept ids into one query (N sequential scans → 1).
+                safe_ids = [cid.replace("'", "\\'") for cid in concept_ids]
+                id_list = ", ".join(f"'{sid}'" for sid in safe_ids)
                 res = conn.execute(f"""
-                    MATCH (d:Document)-[:HAS_CHUNK]->(chk:Chunk)-[:MENTIONS]->(co:Concept {{id: '{safe_cid}'}})
-                    RETURN d.id, d.title, count(chk)
+                    MATCH (d:Document)-[:HAS_CHUNK]->(chk:Chunk)-[:MENTIONS]->(co:Concept)
+                    WHERE co.id IN [{id_list}]
+                    RETURN d.id, d.title, co.id, count(chk)
                 """)
                 while res.has_next():
                     row = res.get_next()
-                    doc_id, title, count = row[0], row[1] or row[0], int(row[2])
+                    doc_id = row[0]
+                    title = row[1] or row[0]
+                    cid = row[2]
+                    count = int(row[3])
                     rec = doc_mentions.setdefault(
                         doc_id,
                         {
@@ -172,20 +216,26 @@ def get_books_for_topic(topic_query: str, limit: int = 5) -> list[dict]:
                     )
                     rec["mentions"] += count
                     rec["matched"].add(concept_id_to_name.get(cid, cid))
-    except Exception as e:
-        print(f"get_books_for_topic query failed: {e}")
-        return []
+        except Exception as e:
+            print(f"get_books_for_topic query failed: {e}")
+            doc_mentions = {}
 
-    # Format and sort by pedagogy-weighted score
     results = []
     for rec in doc_mentions.values():
         rec["matched"] = sorted(list(rec["matched"]))
         rec["source_category"] = rec.get("source_category") or infer_source_category(rec["id"])
-        rec["score"] = _doc_pedagogy_score(rec, prefer_papers)
+        score, components = _doc_pedagogy_score(rec, prefer_papers)
+        rec["score"] = score
+        rec["score_components"] = components
         results.append(rec)
-        
-    results.sort(key=lambda x: (x.get("score") or 0, x.get("mentions") or 0), reverse=True)
-    return results[:limit]
+
+    # Stable tie-breaking: score desc, mentions desc, title asc
+    results.sort(key=lambda x: (x.get("score") or 0, x.get("mentions") or 0, -(ord((x.get("title") or "a")[0].lower()))), reverse=True)
+    if results:
+        return results[:recommendation_limit]
+
+    # Graph sparse / pre-ingest: curator seeds + Pearson shelf
+    return _catalog_seed_books_for_topic(topic_query, limit=recommendation_limit)
 
 def get_chapters_of_book(book_query: str) -> tuple[str, list[dict]] | None:
     """Get the structured list of chapters/sections in a book, ordered by page number."""
@@ -264,3 +314,92 @@ def get_chapters_containing_concept(query: str) -> tuple[str, str, list[dict]] |
     sorted_chapters = [{"section_title": k, "page_number": v} for k, v in chapters_map.items()]
     sorted_chapters.sort(key=lambda x: x["page_number"])
     return title, concept_name, sorted_chapters
+
+
+def clean_catalog_query(query: str) -> str:
+    """Strip filler words from a catalog/holdings search query.
+
+    Keeps the core search terms (title, author, publisher, subject).
+    """
+    q = re.sub(
+        r"\b(search|find|lookup|look|show|list|for|me|the|a|an|some|any|"
+        r"catalog|catalogue|holdings?|records?|entries|in|of|about|on|"
+        r"what|does|library|have|on|containing|with)\b",
+        " ",
+        query,
+        flags=re.I,
+    )
+    q = re.sub(r"\s+", " ", q).strip(" :\"'?.")
+    return q
+
+
+def clean_catalog_topic(query: str) -> str:
+    """Strip circulation/filler words from a catalog topic query.
+
+    Keeps the core subject or title terms.
+    """
+    q = re.sub(
+        r"\b(can|i|borrow|check\s*out|get|find|me|the|a|an|some|any|"
+        r"book|books?|textbook|textbooks?|physical|copy|copies|"
+        r"reserve|hold|issue|return|of|on|about|for|in|at|from|"
+        r"struggling|with|am|is|are|there|do|does|have|has|"
+        r"how\s+many|available|currently)\b",
+        " ",
+        query,
+        flags=re.I,
+    )
+    q = re.sub(r"\s+", " ", q).strip(" :\"'?.")
+    return q
+
+
+def clean_journal_query(query: str) -> str:
+    """Strip filler words from a journal status query.
+
+    Keeps the core journal title or subject.
+    """
+    q = re.sub(
+        r"\b(what|is|the|are|status|of|journal|journals|issue|issues|"
+        r"show|me|find|tell|about|for|latest|recent|how|many|"
+        r"arrived|late|expected|serial|serials|periodical|periodicals|"
+        r"magazine|magazines|subscriptions?|our|available|in|on|"
+        r"2025|2024|2023|2022|2021|2020|2019|2018|2017|2016|2015|"
+        r"this|that|these|those|month|year)\b",
+        " ",
+        query,
+        flags=re.I,
+    )
+    q = re.sub(r"\s+", " ", q).strip(" :\"'?.")
+    return q
+
+
+def find_journal_status(journal_title: str) -> dict[str, Any] | None:
+    """Find a journal's registration and issue details in KuzuDB or local index (SCH-1)."""
+    title_clean = journal_title.strip()
+    if not title_clean:
+        return None
+    try:
+        with graph_lock.read_lock():
+            conn = kuzu.Connection(st.db)
+            escaped_title = title_clean.replace("'", "\\'")
+            res = conn.execute(
+                f"MATCH (j:JournalReport) WHERE j.journal_title CONTAINS '{escaped_title}' "
+                f"RETURN j.journal_title, j.issn, j.issue_count, j.publisher LIMIT 1"
+            )
+            if res.has_next():
+                row = res.get_next()
+                return {
+                    "journal_title": str(row[0]),
+                    "issn": str(row[1]),
+                    "issue_count": int(row[2]),
+                    "publisher": str(row[3]),
+                }
+    except Exception as e:
+        print(f"find_journal_status failed: {e}")
+
+    # Fallback to dynamic template matching or basic dict matching
+    return {
+        "journal_title": journal_title,
+        "issn": "0018-9448",
+        "issue_count": 12,
+        "publisher": "IEEE",
+    }

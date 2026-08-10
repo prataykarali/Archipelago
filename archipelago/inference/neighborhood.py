@@ -137,6 +137,88 @@ def get_concept_citations(concept_id, limit=2):
     return citations[: max(1, int(limit))]
 
 
+_RELATION_TYPE_LABELS = {
+    "uses": "uses",
+    "extends": "extends",
+    "variant_of": "variant of",
+    "contrasts_with": "contrasts with",
+    "evaluated_by": "evaluated by",
+    "part_of": "part of",
+    "co_mention": "co-mentioned with",
+    "related": "related to",
+}
+
+
+def get_related_edges(concept_id: str, limit: int = 8) -> list[dict]:
+    """Return RELATED neighbors with human-readable relation_type labels (S9).
+
+    Never invents edges — only what Kuzu stores. Prefer non-co_mention subtypes.
+    """
+    safe = str(concept_id).replace("'", "\\'")
+    rows: list[dict] = []
+    try:
+        with graph_lock.read_lock():
+            conn = kuzu.Connection(st.db)
+            # Outgoing + incoming RELATED (undirected for chat display)
+            for direction in (
+                f"MATCH (a:Concept {{id: '{safe}'}})-[r:RELATED]->(b:Concept) "
+                f"RETURN b.id, b.name, b.summary, r.relation_type",
+                f"MATCH (a:Concept {{id: '{safe}'}})<-[r:RELATED]-(b:Concept) "
+                f"RETURN b.id, b.name, b.summary, r.relation_type",
+            ):
+                try:
+                    res = conn.execute(direction)
+                    while res.has_next():
+                        rid, name, summary, rel = res.get_next()
+                        if not rid or rid == concept_id:
+                            continue
+                        rel_s = str(rel or "related").strip().lower() or "related"
+                        rows.append({
+                            "id": rid,
+                            "name": name,
+                            "label": name,
+                            "summary": summary or "",
+                            "relation_type": rel_s,
+                            "relation_label": _RELATION_TYPE_LABELS.get(rel_s, rel_s.replace("_", " ")),
+                        })
+                except Exception as e:
+                    print(f"RELATED traversal error: {e}")
+    except Exception as e:
+        print(f"get_related_edges error: {e}")
+
+    # Dedupe by id; prefer non-co_mention
+    by_id: dict[str, dict] = {}
+    for r in rows:
+        rid = r["id"]
+        prev = by_id.get(rid)
+        if prev is None:
+            by_id[rid] = r
+        elif prev.get("relation_type") == "co_mention" and r.get("relation_type") != "co_mention":
+            by_id[rid] = r
+
+    ranked = sorted(
+        by_id.values(),
+        key=lambda x: (0 if x.get("relation_type") != "co_mention" else 1, x.get("label") or ""),
+    )
+    return ranked[: max(1, int(limit))]
+
+
+def format_connected_via(related_edges: list[dict], max_n: int = 5) -> str:
+    """Build the S9 'Connected via…' block for chat notes."""
+    if not related_edges:
+        return ""
+    lines = ["**Connected via:**"]
+    for r in related_edges[:max_n]:
+        name = r.get("label") or r.get("name") or r.get("id") or "?"
+        rel = r.get("relation_label") or r.get("relation_type") or "related to"
+        summ = (r.get("summary") or "").strip()
+        if summ:
+            lines.append(f"- {name} ({rel}): {summ[:120]}")
+        else:
+            lines.append(f"- {name} ({rel})")
+    return "\n".join(lines)
+
+
 def get_graph_neighborhood(concept_id, k=2):
     # Escape concept_id to prevent Cypher injection
     concept_id = str(concept_id).replace("'", "\\'")

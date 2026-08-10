@@ -43,12 +43,12 @@ from archipelago.inference.citations import (  # noqa: F401
     _normalize_legacy_citation, _evidence_for_concept, _evidence_for_prerequisite,
 )
 from archipelago.inference.synthesis import (  # noqa: F401
-    render_indexed_learning_path, synthesize_with_ollama, general_chat_reply,
-    build_graph_notes, format_natural_fallback, generate_aura_synthesis, run_ollama_agent,
+    general_chat_reply,
+    build_graph_notes, format_natural_fallback,
 )
 from archipelago.inference.routes_misc import (  # noqa: F401
     add_cors_headers, serve_pdf, readiness, ingestion_capabilities,
-    ingest_upload, ingest_status, ingest_cancel, ingest_list, server_root,
+    ingest_upload, ingest_status, ingest_cancel, ingest_list,
 )
 from archipelago.inference.graph_access import _default_graph_db  # noqa: F401
 from archipelago.inference.routes_chat import api_chat, init_concepts_data  # noqa: F401

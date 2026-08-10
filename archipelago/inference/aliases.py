@@ -101,6 +101,26 @@ def markdown_pdf_link(label, doc_id, page_number=None):
     return f"[{safe_label}]({url})"
 
 
+def page_view_markdown_link(doc_id: str, page: int | None = None, section: str = "") -> str:
+    """Markdown deep-link into the library page reader.
+
+    Generates a link like [Open "Title" in the library reader](/library?book=<id>#book-reader)
+    that lands the user on the library page with the book pre-selected.
+    """
+    if not doc_id:
+        return ""
+    # Build the library page deep-link URL
+    safe_id = doc_id.replace("/", "_").replace("\\", "_")
+    url = f"/library?book={safe_id}#book-reader"
+    label = doc_id
+    if page:
+        label += f" (p. {page})"
+    if section:
+        label += f" \u2014 {section}"
+    safe_label = label.replace("]", "\\]")
+    return f"[Open {safe_label} in the library reader]({url})"
+
+
 # Explicit core concept mappings: query alias → expected core concept_id substring
 _CORE_CONCEPT_MAP: dict[str, tuple[str, ...]] = {
     "lora": ("low_rank_adaptation",),
@@ -124,11 +144,11 @@ _CORE_CONCEPT_MAP: dict[str, tuple[str, ...]] = {
     "fine tuning": ("fine_tuning", "fine-tuning"),
     "finetuning": ("fine_tuning",),
     # Agents / frameworks — map onto best available pilot-graph nodes
-    "agent": ("ai_agent", "react_synergizing", "tool_use"),
-    "agents": ("ai_agent", "react_synergizing", "tool_use"),
-    "ai agent": ("ai_agent", "react_synergizing"),
-    "ai agents": ("ai_agent", "react_synergizing"),
-    "agentic": ("ai_agent", "react_synergizing"),
+    "agent": ("ai_agent", "agentic_systems", "react_synergizing", "tool_use"),
+    "agents": ("ai_agent", "agentic_systems", "react_synergizing", "tool_use"),
+    "ai agent": ("ai_agent", "agentic_systems", "react_synergizing"),
+    "ai agents": ("ai_agent", "agentic_systems", "react_synergizing"),
+    "agentic": ("ai_agent", "agentic_systems", "react_synergizing"),
     "tool use": ("tool_use", "ai_agent", "react_synergizing"),
     "tool calling": ("tool_use", "ai_agent", "react_synergizing"),
     "react": ("react_synergizing",),

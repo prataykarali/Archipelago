@@ -6,9 +6,11 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-# Default model can be overridden with the OKF_MODEL_NAME env var so the
-# pipeline stays model-agnostic.
-MODEL_NAME = os.environ.get("OKF_MODEL_NAME", "qwen3.5:0.8b")
+# Default extractor must be the FINE-TUNED model — pilots refuse to extract via
+# the untuned base (see okf/pipeline.py abort). Override with OKF_MODEL_NAME only
+# when pointing at another fine-tuned extractor; never set it to qwen3.5:0.8b
+# for real ingestion runs.
+MODEL_NAME = os.environ.get("OKF_MODEL_NAME", "lib-qwen:latest")
 BASE_DIR = Path(__file__).resolve().parent.parent
 MAX_RETRIES = 1
 

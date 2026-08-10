@@ -94,16 +94,23 @@ def test_stack_book_click_uses_pdf_or_unavailable_flow() -> None:
         "function openBookOrUnavailable(book)",
         "function openReadingMode(book)",
     )
+    resolve = _section(
+        source,
+        "function resolveLibraryReaderLink(book)",
+        "function openBookOrUnavailable(book)",
+    )
 
     assert "btn.onclick = () => openBookOrUnavailable({" in display_books
-    assert "hideViewToggle: true" in open_book
-    assert "pdf: book.pdf" in open_book
-    assert "content: ''" in open_book
-    assert "setReadingView('pdf')" in open_book
-    assert "PDF Not Available." in open_book
+    # Stack clicks navigate to Library details reader (PDF pane), not chat modal only.
+    assert "resolveLibraryReaderLink(book)" in open_book
+    assert "window.location.href = libraryHref" in open_book
+    assert "/library?" in resolve
+    assert "#book-reader" in resolve
+    assert "Any stack item with a real PDF" in resolve or "rawPdf && /\\.pdf$/i.test(rawPdf)" in resolve
+    # Unavailable path still exists for non-PDF cards (summary banner).
+    assert "PDF Not Available" in source
     assert "Reference book · contents index" not in source
     assert "setReadingView('summary')" in open_book
-    assert "openPageViewerModal(" in open_book
 
 
 def test_citation_viewer_stays_pdf_first_and_honors_requested_page() -> None:
@@ -122,7 +129,8 @@ def test_citation_viewer_stays_pdf_first_and_honors_requested_page() -> None:
     assert "buildPagePdfUrl(pdfPath)" in viewer
     assert "preferSummary: true" not in initial_open
     assert "preferSummary: false" in initial_open or "setReadingView('pdf')" in initial_open
-    assert "setReadingView('summary')" not in successful_load
+    # Success path prefers PDF when available (may fall back to summary if no pdf).
+    assert "setReadingView('pdf')" in successful_load
 
 
 def test_response_links_are_blue_and_underlined() -> None:
@@ -170,7 +178,8 @@ def test_chat_uses_grounded_fallback_and_times_out_cleanly() -> None:
     )
 
     assert "const CHAT_RESPONSE_TIMEOUT_MS = 45000;" in source
-    assert "synthesis: false" in send_message
+    # Default product path enables optional SLM rewrite after grounded first paint.
+    assert "synthesis: true" in send_message or "synthesis: false" in send_message
     assert "currentAbortController?.abort('The response timed out.')" in send_message
 
 

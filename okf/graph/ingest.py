@@ -149,7 +149,13 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
             return
         safe_doc_id = _kuzu_escape(doc_id)
         try:
-            conn.execute(f"MERGE (d:Document {{id: '{safe_doc_id}'}})")
+            from catalog_bridge import _pretty_title
+
+            safe_title = _kuzu_escape(_pretty_title(doc_id))
+            conn.execute(
+                f"MERGE (d:Document {{id: '{safe_doc_id}'}}) "
+                f"ON CREATE SET d.title = '{safe_title}'"
+            )
         except Exception as e:
             logger.warning("ensure_document failed for %s: %s", doc_id, e)
 
