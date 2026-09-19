@@ -380,7 +380,7 @@ svg#graph-svg.locked{cursor:default;pointer-events:none}
 </div>
 
 <header id="hdr">
-  <div class="brand" id="home-btn"><div class="brand-ico">🌐</div><div class="brand-name">Archipelago</div><div class="brand-tag">OKF v1.6</div><div class="brand-tag" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25);color:#d97706" title="Pilot build: limited AI/ML corpus (~450 concepts); niche topics may be sparse.">PILOT · LIMITED CORPUS</div></div>
+  <div class="brand" id="home-btn"><div class="brand-ico">🌐</div><div class="brand-name">Archipelago</div><div class="brand-tag">DEEP VIEW</div><div class="brand-tag" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25);color:#d97706" title="Pilot build: limited AI/ML corpus (~450 concepts); niche topics may be sparse.">PILOT · LIMITED CORPUS</div></div>
   <div id="nav-tabs">
     <button class="nav-tab active" id="tab-books" data-view="books">📚 Books</button>
     <button class="nav-tab" id="tab-concepts" data-view="concepts">🔬 Concepts</button>
@@ -488,33 +488,6 @@ svg#graph-svg.locked{cursor:default;pointer-events:none}
           <div class="lib-drop-hint">PDF, Markdown, or TXT · max 50 MB</div>
           <input id="lib-pdf-input" type="file" accept="application/pdf,.pdf,.md,.markdown,.txt,text/markdown,text/plain" style="display:none">
         </label>
-        <div id="lib-metadata-fields" style="margin-top:10px">
-          <label class="lib-label" for="lib-title">Title (optional)</label>
-          <input class="lib-input" id="lib-title" type="text" placeholder="e.g. Graph Attention Networks" autocomplete="off">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
-            <div>
-              <label class="lib-label" for="lib-kind">Kind</label>
-              <select class="lib-input" id="lib-kind">
-                <option value="paper">Paper</option>
-                <option value="textbook">Textbook</option>
-                <option value="ebook">eBook</option>
-                <option value="syllabus">Syllabus</option>
-              </select>
-            </div>
-            <div>
-              <label class="lib-label" for="lib-license">License mode</label>
-              <select class="lib-input" id="lib-license">
-                <option value="full">Full text (OA papers)</option>
-                <option value="toc_only">TOC only (textbooks)</option>
-                <option value="metadata_only">Metadata only</option>
-              </select>
-            </div>
-          </div>
-          <label class="lib-label" for="lib-subject">Subject / domain</label>
-          <input class="lib-input" id="lib-subject" type="text" placeholder="e.g. gnn / deep_learning" autocomplete="off">
-          <label class="lib-label" for="lib-shelf">Shelf code</label>
-          <input class="lib-input" id="lib-shelf" type="text" placeholder="e.g. AIML-GNN-02" autocomplete="off">
-        </div>
         <div id="lib-upload-status" class="lib-status"></div>
         <ol class="lib-stages" id="lib-stages" style="display:none">
           <li class="lib-stage" data-stage="queued"><span class="lib-dot"></span>Queued</li>
@@ -788,14 +761,35 @@ function showBooks(){
     }));
   });
 
-  const bNodes=Object.keys(bs).map(id=>{
-    const info=bk(id);return{id,label:info.name,icon:info.icon,color:info.color,
+  // Distinct color palette for big circle nodes
+  const BOOK_PALETTE = [
+    '#a78bfa','#10b981','#f97316','#0ea5e9','#d946ef','#f59e0b','#06b6d4','#84cc16',
+    '#ec4899','#6366f1','#ef4444','#14b8a6','#f43f5e','#3b82f6','#a855f7','#facc15',
+    '#22d3ee','#4ade80','#fb923c','#818cf8','#f472b6','#34d399','#fbbf24','#38bdf8'
+  ];
+  const bNames = Object.keys(bs);
+  const bNodes=bNames.map((id,i)=>{
+    const info=bk(id);
+    const nodeColor = info.color && info.color !== '#888' ? info.color : BOOK_PALETTE[i % BOOK_PALETTE.length];
+    return{id,label:info.name,icon:info.icon,color:nodeColor,
       author:info.author,year:info.year,full:info.full,nc:bs[id].nodes,ec:bs[id].edges,_d:bs[id].nodes};});
   const bEdges=Object.entries(bp).map(([k,w])=>{const[s,t]=k.split('|');return{source:s,target:t,weight:w};});
 
   const svg=d3.select('#graph-svg');const wrap=document.getElementById('graph-wrap');
   let W=wrap.clientWidth,H=wrap.clientHeight;
   const root=svg.append('g').attr('class','root');
+
+  // Glow filter for big circle nodes
+  const defs=svg.append('defs');
+  bNodes.forEach((bn,i)=>{
+    const filt=defs.append('filter').attr('id','bookGlow'+i).attr('x','-50%').attr('y','-50%').attr('width','200%').attr('height','200%');
+    filt.append('feGaussianBlur').attr('in','SourceGraphic').attr('stdDeviation','6').attr('result','blur');
+    filt.append('feFlood').attr('flood-color',bn.color).attr('flood-opacity','0.35').attr('result','color');
+    filt.append('feComposite').attr('in','color').attr('in2','blur').attr('operator','in').attr('result','glow');
+    const merge=filt.append('feMerge');
+    merge.append('feMergeNode').attr('in','glow');
+    merge.append('feMergeNode').attr('in','SourceGraphic');
+  });
 
   svgZoom=d3.zoom().scaleExtent([.3,4]).on('zoom',ev=>root.attr('transform',ev.transform));
   svg.call(svgZoom).on('dblclick.zoom',null);
@@ -808,46 +802,72 @@ function showBooks(){
   document.getElementById('z-reset').onclick=resetView;
 
   const sim=d3.forceSimulation(bNodes)
-    .force('link',d3.forceLink(bEdges).id(d=>d.id).distance(180).strength(.5))
-    .force('charge',d3.forceManyBody().strength(-800))
+    .force('link',d3.forceLink(bEdges).id(d=>d.id).distance(200).strength(.4))
+    .force('charge',d3.forceManyBody().strength(-900))
     .force('center',d3.forceCenter(0,0))
-    .force('collide',d3.forceCollide(85).strength(.7))
+    .force('collide',d3.forceCollide(90).strength(.7))
     .alphaDecay(.03);
   simulation=sim;
   let st=setTimeout(()=>sim.stop(),5000);
 
-  // Edges between books
+  // ── Curved edges (quadratic bezier paths) ──
   const eG=root.append('g');
-  const eS=eG.selectAll('.book-edge').data(bEdges).join('line')
+  const eS=eG.selectAll('.book-edge').data(bEdges).join('path')
     .attr('class','book-edge')
+    .attr('fill','none')
     .attr('stroke','rgba(200,200,255,.15)')
     .attr('stroke-width',d=>Math.min(Math.max(d.weight/4,1.5),7));
 
-  // Book nodes
+  function linkArc(d){
+    const dx=d.target.x-d.source.x;
+    const dy=d.target.y-d.source.y;
+    const dr=Math.sqrt(dx*dx+dy*dy)||1;
+    const offset=Math.min(50,dr*0.2);
+    const cx=(d.source.x+d.target.x)/2 - (dy/dr)*offset;
+    const cy=(d.source.y+d.target.y)/2 + (dx/dr)*offset;
+    return 'M '+d.source.x+' '+d.source.y+' Q '+cx+' '+cy+' '+d.target.x+' '+d.target.y;
+  }
+
+  // ── Big circle nodes with distinct radii, colors, glow ──
   const nG=root.append('g');
   const nS=nG.selectAll('.node-g').data(bNodes).join('g').attr('class','node-g')
     .call(d3.drag().on('start',(e,d)=>{sim.alpha(.3).restart();clearTimeout(st);st=setTimeout(()=>sim.stop(),4000);d.fx=d.x;d.fy=d.y;})
       .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;}).on('end',(e,d)=>{d.fx=null;d.fy=null;}));
 
-  nS.append('circle').attr('class','node-glow hub-glow').attr('r',d=>40+d.nc*.15).attr('fill',d=>d.color).attr('opacity',.08);
-  nS.append('circle').attr('class','node-core').attr('r',d=>25+d.nc*.12).attr('fill',d=>d.color)
-    .attr('stroke','rgba(255,255,255,.12)').attr('stroke-width',1);
-  nS.append('text').attr('class','book-label').attr('text-anchor','middle').attr('dy',-8).text(d=>`${d.icon} ${d.label}`);
-  nS.append('text').attr('class','book-sub').attr('text-anchor','middle').attr('dy',8).text(d=>`${d.author} ${d.year||''}`);
-  nS.append('text').attr('class','book-count').attr('text-anchor','middle').attr('dy',22).text(d=>`${d.nc} concepts · ${d.ec} edges`);
+  // Outer glow circle (bigger, semi-transparent)
+  nS.append('circle').attr('class','node-glow hub-glow')
+    .attr('r',d=>50+d.nc*0.22)
+    .attr('fill',d=>d.color).attr('opacity',.08);
+
+  // Main circle (big, differentiated radius per book)
+  nS.append('circle').attr('class','node-core')
+    .attr('r',d=>36+d.nc*0.22)
+    .attr('fill',d=>d.color)
+    .attr('stroke','rgba(255,255,255,.18)').attr('stroke-width',1.5)
+    .attr('filter',(d,i)=>'url(#bookGlow'+i+')');
+
+  // Book label
+  nS.append('text').attr('class','book-label').attr('text-anchor','middle').attr('dy',-10)
+    .text(d=>d.icon+' '+d.label);
+  // Author + year
+  nS.append('text').attr('class','book-sub').attr('text-anchor','middle').attr('dy',8)
+    .text(d=>d.author+' '+(d.year||''));
+  // Concept/edge count
+  nS.append('text').attr('class','book-count').attr('text-anchor','middle').attr('dy',24)
+    .text(d=>d.nc+' concepts');
 
   const tip=document.getElementById('tip');
   nS.on('mousemove',(e,d)=>{tip.style.left=(e.clientX+16)+'px';tip.style.top=(e.clientY-10)+'px';
     document.getElementById('tip-name').textContent=d.label;
     document.getElementById('tip-type').textContent=d.full;
-    document.getElementById('tip-summ').textContent=`${d.nc} concepts · ${d.ec} internal edges · Click to explore`;
+    document.getElementById('tip-summ').textContent=d.nc+' concepts \xb7 '+d.ec+' internal edges \xb7 Click to explore';
     tip.classList.add('v');})
     .on('mouseleave',()=>tip.classList.remove('v'))
     .on('click',(e,d)=>{e.stopPropagation();showConcepts(d.id);});
 
   sim.on('tick',()=>{
-    eS.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-    nS.attr('transform',d=>`translate(${d.x},${d.y})`);
+    eS.attr('d',linkArc);
+    nS.attr('transform',d=>'translate('+d.x+','+d.y+')');
   });
 
   setTimeout(()=>{W=wrap.clientWidth;H=wrap.clientHeight;resetView();},120);
@@ -857,6 +877,7 @@ function showBooks(){
   document.getElementById('st-e').textContent=allEdges.length;
   document.getElementById('st-view').textContent='Books Overview';
 }
+
 
 // ═══ 2. CONCEPTS GRAPH (per-book or all) ═══
 function showConcepts(bookId){
@@ -1149,8 +1170,8 @@ srchI.addEventListener('blur',()=>{setTimeout(()=>srchR.classList.remove('show')
 
 // ═══ LIBRARIAN TAB (staff only — students use Chat for queries) ═══
 (function(){
-  // Inference owns /api/ingest (pilot default 5151; legacy 5051 still accepted via env).
-  const INFER_HOST = `${location.protocol}//${location.hostname}:${location.port === '5150' || location.port === '5152' ? '5151' : (location.port === '5050' || location.port === '5052' ? '5051' : '5151')}`;
+  // The inference server (which owns /api/ingest and /api/manual/*) runs on port 5051.
+  const INFER_HOST = `${location.protocol}//${location.hostname}:5051`;
   const TOKEN_KEY = 'archipelago_librarian_token';
 
   const panel   = document.getElementById('librarian-panel');
@@ -1320,32 +1341,10 @@ srchI.addEventListener('blur',()=>{setTimeout(()=>srchR.classList.remove('show')
       const status = (j.status||'').toLowerCase();
       if(status==='complete'||status==='completed'){
         setStage('complete','done');
-        setUploadStatus('✓ Ingestion complete! Graph rebuilt.', 'ok');
+        setUploadStatus('✓ Ingestion complete! Reload the graph to see new concepts.','ok');
         cancelBtn.style.display='none';
         uploadBtn.disabled=false;
         clearInterval(pollTimer);
-
-        // Deep-link to chat with the new document (prefer inventory_id from job result)
-        try {
-          const invId = (j.result && j.result.inventory_id) || '';
-          const titleEl = document.getElementById('lib-title');
-          const subjEl = document.getElementById('lib-subject');
-          const meta = invId || (titleEl && titleEl.value) || (subjEl && subjEl.value) || 'new_upload';
-          const bookId = invId || (
-            'librarian_upload_' + String(meta).toLowerCase()
-              .replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').slice(0, 48)
-          );
-          const chatUrl = `/chat?book=${encodeURIComponent(bookId)}&query=${encodeURIComponent('Tell me about this book: ' + (titleEl && titleEl.value || bookId))}`;
-          const linkEl = document.createElement('a');
-          linkEl.href = chatUrl;
-          linkEl.target = '_blank';
-          linkEl.rel = 'noopener';
-          linkEl.textContent = 'Ask about this upload in chat →';
-          linkEl.style.cssText = 'display:inline-block;margin-top:10px;padding:8px 12px;background:#0f172a;color:#86efac;border:1px solid #166534;border-radius:8px;text-decoration:none;font-size:13px;';
-          uploadStatus.appendChild(document.createElement('br'));
-          uploadStatus.appendChild(linkEl);
-          // Prior corpus intact message is only for failures; success means merge landed.
-        } catch (_e) { /* non-fatal UX */ }
         return;
       }
       if(status==='error'||status==='failed'){
@@ -1379,20 +1378,7 @@ srchI.addEventListener('blur',()=>{setTimeout(()=>srchR.classList.remove('show')
     setStage('queued','active');
     setUploadStatus('Submitting to ingestion service…','info');
     try {
-      const fd = new FormData();
-      fd.append('file', pdfFile);
-      // Optional librarian metadata (S12/S13)
-      const _val = (id) => { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; };
-      const title = _val('lib-title');
-      const kind = _val('lib-kind') || 'paper';
-      const subject = _val('lib-subject');
-      const licenseMode = _val('lib-license') || 'full';
-      const shelf = _val('lib-shelf');
-      if (title) fd.append('title', title);
-      if (kind) fd.append('kind', kind);
-      if (subject) fd.append('subject', subject);
-      if (licenseMode) fd.append('license_mode', licenseMode);
-      if (shelf) fd.append('shelf_location', shelf);
+      const fd = new FormData(); fd.append('file', pdfFile);
       const r = await fetch(`${INFER_HOST}/api/ingest`, {
         method:'POST',
         headers: librarianHeaders(),

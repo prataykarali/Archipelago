@@ -15,7 +15,7 @@ from archipelago.inference.citations import (
     build_citation_payloads, compile_narrative_recipe,
 )
 from archipelago.inference.synthesis import (
-    format_natural_fallback,
+    render_indexed_learning_path, format_natural_fallback, synthesize_with_ollama,
 )
 from archipelago.inference.routes_chat import api_chat, init_concepts_data
 from archipelago.inference.embeddings import load_embedding_model, get_snowflake_embedding

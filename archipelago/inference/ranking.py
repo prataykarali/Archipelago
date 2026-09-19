@@ -145,10 +145,17 @@ def _is_chitchat(query: str) -> bool:
 
 
 def _has_domain_terms(query: str) -> bool:
-    """Stack + graph domain hit — no hardcoded list."""
-    from archipelago.inference.stack_domains import query_stack_domain_hits
-    q_terms = query_stack_domain_hits(query)
-    return bool(q_terms)
+    q = f" {(query or '').lower()} "
+    for term in st._DOMAIN_TERMS:
+        # word-ish match: pad short tokens to avoid matching "ai" inside "said"
+        if len(term) <= 2:
+            if f" {term} " in q or q.strip().startswith(term + " ") or q.strip().endswith(" " + term):
+                return True
+            if re.search(rf"\b{re.escape(term)}\b", q):
+                return True
+        elif term in q:
+            return True
+    return False
 
 
 def _is_learning_intent(query: str) -> bool:
@@ -164,18 +171,13 @@ def _is_offtopic(query: str) -> bool:
 
 
 def _is_learning_or_domain_query(query: str) -> bool:
-    """True when query is near the book stack / concept graph (semantic or lexical)."""
+    """True when the user wants AIML learning / tech discussion (not weather etc.)."""
     if _is_chitchat(query) or _is_offtopic(query):
         return False
     if _has_domain_terms(query):
         return True
-    # Semantic gate: paraphrases of indexed concepts (no hardcoding user words)
-    try:
-        from archipelago.inference.stack_domains import semantic_stack_match
-        if semantic_stack_match(query):
-            return True
-    except Exception:
-        pass
+    # Learning intent alone is not enough ("what is the weather?") — need domain terms
+    # OR a non-trivial question that still looks technical via domain terms only.
     return False
 
 
@@ -278,10 +280,6 @@ def rank_concepts(query, top_k=None):
             al = a.lower()
             if len(al) >= 3 and (al in query_lower or query_lower in al or al in (query or "").lower()):
                 alias_boost = max(alias_boost, 0.12)
-            # Substring match must be on word boundaries — 'ai' must not match 'interface'.
-            if len(al) <= 3:
-                if re.search(rf"\b{re.escape(al)}\b", query_lower) or re.search(rf"\b{re.escape(al)}\b", (query or "").lower()):
-                    alias_boost = max(alias_boost, 0.26)
             # Plural/singular: alias "rag" matches query token "rags"
             if len(al) >= 2 and any(
                 t == al or t == al + "s" or (t.endswith("s") and t[:-1] == al)
@@ -347,13 +345,61 @@ def find_anchor_concept(query):
 
     Strong hits need high cosine *and* non-trivial lexical fit so vague queries
     do not pin onto an unrelated high-dim embedding neighbor.
-
-    Heuristics only — no Ollama round-trip. Calling the SLM here used to block
-    the single GPU slot for 5–15s before chat synthesis could start.
     """
     ranked = rank_concepts(query, top_k=5)
     if not ranked:
         return None, 0.0
+
+    try:
+        import ollama
+        client = ollama.Client(host="http://localhost:11434")
+        
+        candidate_lines = []
+        for cand in ranked:
+            lbl = cand.get("label") or cand.get("name") or cand["id"]
+            summary = cand.get("summary") or ""
+            candidate_lines.append(f"- ID: '{cand['id']}' | Label: '{lbl}' | Summary: '{summary}'")
+        candidates_str = "\n".join(candidate_lines)
+
+        system_prompt = (
+            "You are a precise concept-matching system.\n"
+            "Given a user query and a list of candidate concepts, identify which concept ID "
+            "best matches the user query. You must only choose a concept ID from the list "
+            "if it is a clear, direct, and correct match.\n"
+            "If there is a match, reply ONLY with the matched concept's ID (e.g. 'low_rank_adaptation').\n"
+            "If none of the concepts in the list matches the query, reply ONLY with 'None'.\n"
+            "Do not explain, do not add introductory text, just output the raw ID or 'None'."
+        )
+        user_content = f"User Query: {query}\n\nCandidate Concepts:\n{candidates_str}\n\nAnswer:"
+
+        response = client.chat(
+            model=st.DEFAULT_OLLAMA_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            think=False,
+            options={"temperature": 0.0, "num_predict": 30},
+        )
+        llm_response = response.get("message", {}).get("content", "").strip()
+        cleaned_response = llm_response.strip().strip("'\"`").strip()
+        
+        if cleaned_response.lower() == "none":
+            return None, 0.0
+
+        for cand in ranked:
+            if cleaned_response == cand["id"] or cleaned_response.lower() == cand["id"].lower():
+                cos = float(cand.get("cos") or 0.0)
+                lexical = float(cand.get("lexical") or 0.0)
+                alias_boost = float(cand.get("alias_boost") or 0.0)
+                core_boost = float(cand.get("core_boost") or 0.0)
+                # LLM confirmation + surface evidence → same confidence scale
+                # as the heuristic path, so downstream gates behave identically.
+                if alias_boost >= 0.25 or core_boost >= 0.35:
+                    return cand["id"], max(cos, lexical, 0.9)
+                return cand["id"], max(cos, lexical)
+    except Exception as e:
+        print(f"Ollama call failed or unavailable during find_anchor_concept: {e}")
 
     for cand in ranked:
         cos = float(cand.get("cos") or 0.0)

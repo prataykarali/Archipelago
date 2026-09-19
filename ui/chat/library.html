@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VortxLab Creations — Archipelago Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="/auth_bridge.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .font-serif-title {
+            font-family: 'Instrument Serif', serif !important;
+        }
+
+        /* Octagonal clip-path button classes */
+        .btn-cut {
+            clip-path: polygon(
+                12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+                calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+            );
+        }
+
+        .btn-cut-border {
+            position: relative;
+            background: white;
+            clip-path: polygon(
+                12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+                calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+            );
+        }
+
+        .btn-cut-border::before {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            background: black;
+            z-index: 0;
+            clip-path: polygon(
+                11px 0%, calc(100% - 11px) 0%, 100% 11px, 100% calc(100% - 11px),
+                calc(100% - 11px) 100%, 11px 100%, 0% calc(100% - 11px), 0% 11px
+            );
+        }
+
+        .btn-cut-border > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-cut-sm {
+            clip-path: polygon(
+                8px 0%, calc(100% - 8px) 0%, 100% 8px, 100% calc(100% - 8px),
+                calc(100% - 8px) 100%, 8px 100%, 0% calc(100% - 8px), 0% 8px
+            );
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .anim-stagger {
+            opacity: 0;
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .anim-fade {
+            opacity: 0;
+            animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Liquid Glass / Dark Glass */
+        .glass-panel {
+            background: rgba(14, 12, 22, 0.75);
+            backdrop-filter: blur(24px) saturate(1.5);
+            -webkit-backdrop-filter: blur(24px) saturate(1.5);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Three.js Container */
+        #threejs-book-container {
+            width: 100%;
+            height: 520px;
+            position: relative;
+            cursor: grab;
+        }
+        #threejs-book-container:active {
+            cursor: grabbing;
+        }
+
+        /* PDF Viewer Modal */
+        #pdf-reader-modal.is-open {
+            display: flex !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-black p-3 md:p-4 font-inter text-white selection:bg-white selection:text-black relative">
+
+
+    <!-- FULL-SCREEN IMMERSIVE HERO: VORTXLAB CREATIONS (Brand: V O R T X) -->
+    <div class="w-full h-[94vh] min-h-[640px] rounded-2xl flex flex-col justify-between overflow-hidden relative bg-black mb-12 shadow-2xl border border-white/10">
+        <!-- Looping Background Video -->
+        <video
+            class="absolute inset-0 w-full h-full object-cover anim-fade pointer-events-none"
+            style="animation-delay: 0.2s;"
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260717_120352_eb988725-1351-43b3-8095-16e4a1005e3d.mp4"
+            autoplay
+            loop
+            muted
+            playsinline
+        ></video>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none"></div>
+
+        <!-- Navbar -->
+        <nav class="relative z-10 flex items-center justify-between px-6 md:px-10 pt-6 md:pt-8">
+            <a href="/" class="anim-stagger flex flex-col items-start group" style="animation-delay: 0.1s;">
+                <svg class="w-14 h-14 md:w-16 md:h-16 text-white group-hover:scale-105 transition-transform" viewBox="0 0 256 256" fill="currentColor">
+                    <path d="M120 32C71.4 32 32 71.4 32 120h88V32zM136 32v88h88C224 71.4 184.6 32 136 32zM32 136c0 48.6 39.4 88 88 88v-88H32zM136 136v88c48.6 0 88-39.4 88-88h-88z" opacity="0.9"/>
+                </svg>
+                <span class="text-white text-[10px] md:text-xs tracking-[0.4em] mt-1 font-light">V O R T X</span>
+            </a>
+
+            <div class="anim-stagger flex items-center gap-3" style="animation-delay: 0.2s;">
+                <a href="/chat" class="hidden md:block px-5 py-2.5 text-white text-sm hover:bg-white/10 btn-cut-border transition-colors">
+                    <span>Neural Synergy</span>
+                </a>
+                <a href="#library-content" class="hidden md:block px-5 py-2.5 bg-white text-black text-sm hover:bg-white/90 btn-cut font-medium transition-colors">
+                    Cyber Synthesis
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <div class="relative z-10 flex-1 flex flex-col justify-between px-6 md:px-10 pb-8 md:pb-10">
+            <div class="flex-1 flex items-center relative">
+                <!-- Left column -->
+                <div class="anim-stagger hidden lg:flex flex-col gap-6 absolute left-0 top-[18%]" style="animation-delay: 0.4s;">
+                    <p class="text-white/80 text-base leading-relaxed max-w-[220px]">
+                        Come with us<br>exploring the<br>horizon
+                    </p>
+                    <div class="flex flex-col gap-2 mt-4">
+                        <div class="flex items-center gap-1">
+                            <span class="w-4 h-4 rounded-full border border-white/40 block"></span>
+                            <span class="w-4 h-4 rounded-full border border-white/40 block"></span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-white/70 text-xs">Perpetual<br>Immersion</span>
+                            <span class="text-white/50 text-xs">01</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center heading -->
+                <div class="anim-stagger w-full text-center" style="animation-delay: 0.5s;">
+                    <h1 class="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-normal leading-[1.1] tracking-[-0.04em]" style="text-shadow: 0 2px 12px rgba(0,0,0,0.25);">
+                        Forging Tomorrow<br>
+                        Virtual Horizon<br>
+                        VortxLab Creations
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Bottom row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mt-8">
+                <div class="anim-stagger flex items-center justify-center md:justify-end" style="animation-delay: 0.7s;">
+                    <p class="text-white text-sm leading-relaxed max-w-[260px] text-center md:text-left md:ml-auto">
+                        We push past conventions, reshaping the virtual terrain with next-level technologies.
+                    </p>
+                </div>
+
+                <div class="anim-stagger flex flex-col items-center gap-8 md:gap-24" style="animation-delay: 0.85s;">
+                    <span class="text-white text-2xl md:text-3xl font-medium">Net Dynamics</span>
+                    <button onclick="document.getElementById('library-content').scrollIntoView({behavior: 'smooth'})" class="w-full max-w-[280px] py-3.5 bg-white flex items-center justify-center gap-2 text-black hover:bg-white/90 transition-colors group btn-cut cursor-pointer">
+                        <span class="text-sm font-medium">Discover Now</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
+
+                <div class="anim-stagger flex items-center justify-center md:justify-end gap-3" style="animation-delay: 1s;">
+                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-colors btn-cut-sm">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-colors btn-cut-sm">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                    </a>
+                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-colors btn-cut-sm">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Library Content Sections (below the hero) -->
+    <div id="library-content" class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-4 pb-6">
+
+        <!-- SECTION 01: Overview -->
+        <div class="mb-10">
+            <div class="text-[11px] font-mono tracking-[0.25em] text-white/50 uppercase mb-1">
+                &mdash; SECTION 01 &nbsp; OVERVIEW
+            </div>
+            <div class="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-semibold mb-2">
+                CURRENT LIBRARY DATA
+            </div>
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-white mb-3">
+                Library details
+            </h2>
+            <p class="text-white/70 max-w-3xl text-sm leading-relaxed mb-2">
+                Snapshot of institutional data already on hand while curated hardcopy, e-book, and reference lists are prepared. Passwords are not shown here &mdash; ask library staff or use institutional portals.
+            </p>
+            <p class="text-white/40 text-xs font-mono max-w-3xl leading-relaxed">
+                What this section represents: Entry point and scope note &mdash; what data you will find below and what is intentionally omitted (credentials, live OPAC sync).
+            </p>
+        </div>
+
+        <!-- SECTION 02: E-Book Shelf -->
+        <div class="mb-6">
+            <div class="text-[11px] font-mono tracking-[0.25em] text-white/50 uppercase mb-1">
+                &mdash; SECTION 02 &nbsp; E-BOOK SHELF
+            </div>
+            <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-white mb-2">
+                Browse the e-book shelves
+            </h2>
+            <p class="text-white/70 max-w-3xl text-sm leading-relaxed mb-2">
+                Interactive shelf of e-books only &mdash; open PDFs, free online texts, and Pearson institutional titles. Hardcopy stays in the catalog tables below.
+            </p>
+            <p class="text-white/40 text-xs font-mono max-w-3xl leading-relaxed mb-3">
+                What this section represents: Readable / portal-linked e-books for the pilot &mdash; not the full offline OPAC.
+            </p>
+            <div class="text-xs text-white/60 font-mono mb-4">
+                46 titles &middot; 33 with PDF &middot; 9 Pearson (read from library)
+            </div>
+            <h3 class="text-xl font-bold tracking-tight text-white mt-6 mb-3">
+                Library shelves
+            </h3>
+        </div>
+
+    </div>
+
+
+    <!-- SECTION 02 Stage: 3D Rotatable & Opening Books -->
+    <section id="3d-shelf" class="max-w-7xl mx-auto px-4 py-2 mb-12 relative z-10">
+
+        <div class="flex flex-col md:flex-row items-start md:items-end justify-between mb-8 gap-4 border-b border-white/10 pb-6">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs font-mono text-emerald-300 tracking-wider uppercase mb-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    3D Interactive Stage · VengeanceUI Showcase
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight">Interactive 3D Books Showcase & Reader</h2>
+                <p class="text-white/60 text-sm mt-1">Realistic 3D covers & paper striations · Drag to rotate · Click or button to open cover · Quick jump to PDF</p>
+            </div>
+
+            <!-- Vibrant Color Book Switchers -->
+            <div class="flex flex-wrap gap-2" id="book-color-chips">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- 3D Three.js Canvas (Zoomed In, High Resolution) -->
+            <div class="lg:col-span-8 glass-panel rounded-2xl overflow-hidden relative border border-white/15 p-2 shadow-2xl">
+                <!-- VengeanceUI Carousel Navigation Bar -->
+                <div class="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-auto">
+                    <div class="flex items-center gap-2 bg-black/75 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-xs text-white/90 shadow-lg">
+                        <span id="carousel-counter" class="font-mono text-emerald-400 font-bold">1 / 8</span>
+                        <span class="text-white/30">|</span>
+                        <span id="carousel-active-label" class="font-medium truncate max-w-[180px] sm:max-w-[280px]">Attention Is All You Need</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-black/75 backdrop-blur-md p-1 rounded-full border border-white/15 shadow-lg">
+                        <button id="carousel-prev-btn" onclick="prevBook()" title="Previous Book (Left Arrow)" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-all text-white active:scale-95">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button id="carousel-next-btn" onclick="nextBook()" title="Next Book (Right Arrow)" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-all text-white active:scale-95">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="threejs-book-container"></div>
+
+                <!-- 3D Controls Overlay -->
+                <div class="absolute bottom-4 left-4 right-4 flex flex-wrap items-center justify-between pointer-events-none text-xs text-white/80 bg-black/70 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10 gap-2 z-20">
+                    <span class="flex items-center gap-1.5"><i data-lucide="rotate-3d" class="w-4 h-4 text-purple-300"></i> Drag to Rotate 360°</span>
+                    <span class="flex items-center gap-1.5"><i data-lucide="book-open" class="w-4 h-4 text-emerald-300"></i> Click Book to Open Cover</span>
+                    <span class="flex items-center gap-1.5"><i data-lucide="zoom-in" class="w-4 h-4 text-cyan-300"></i> Scroll to Zoom</span>
+            </div>
+
+            <!-- Active Book Metadata & Direct PDF Launcher -->
+            <div class="lg:col-span-4 glass-panel rounded-2xl p-6 border border-white/15 shadow-2xl flex flex-col justify-between min-h-[520px]">
+                <div>
+                    <div class="flex items-center justify-between text-xs font-mono text-white/50 mb-2">
+                        <span id="meta-category" class="font-semibold text-emerald-400 uppercase tracking-wider">RESEARCH PAPER</span>
+                        <span id="meta-shelf" class="bg-white/10 px-2 py-0.5 rounded text-white/80">AIML-NLP-02</span>
+                    </div>
+
+                    <h3 id="meta-title" class="text-2xl font-bold tracking-tight text-white mb-1">Attention Is All You Need</h3>
+                    <p id="meta-authors" class="text-sm text-white/70 italic mb-2">Vaswani et al. (2017)</p>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span id="meta-stars" class="text-amber-400 text-xs tracking-wider">★★★★★</span>
+                        <span id="meta-year" class="text-xs text-white/60 font-mono">2017</span>
+                        <span class="text-white/30 text-xs">·</span>
+                        <span id="meta-rating" class="text-xs text-emerald-300 font-mono font-semibold">4.9 / 5.0</span>
+                    </div>
+
+                    <!-- Availability Bar -->
+                    <div class="bg-white/5 rounded-xl p-4 border border-white/10 mb-4">
+                        <div class="flex items-center justify-between text-xs mb-2">
+                            <span class="text-white/60">Campus Shelf Availability</span>
+                            <span id="meta-avail" class="font-semibold text-emerald-300">3 of 4 Copies Available</span>
+                        </div>
+                        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                            <div id="meta-progress" class="bg-emerald-400 h-full rounded-full transition-all" style="width: 75%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Executive Summary -->
+                    <h4 class="text-xs font-mono uppercase tracking-wider text-white/50 mb-1">Executive Summary</h4>
+                    <p id="meta-summary" class="text-xs text-white/80 leading-relaxed mb-4">
+                        Introduces the Transformer model architecture based entirely on self-attention mechanisms, dispensing with recurrence and convolutions entirely.
+                    </p>
+
+                    <!-- Table of Contents Outline -->
+                    <h4 class="text-xs font-mono uppercase tracking-wider text-white/50 mb-2">Chapter Index & Quick Jump</h4>
+                    <ul id="meta-toc" class="text-xs text-white/75 space-y-1.5 pl-2 mb-4">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+
+                <div class="pt-4 border-t border-white/10 flex flex-col gap-2.5">
+                    <!-- Primary Open PDF Viewer Button -->
+                    <button id="meta-open-pdf-btn" onclick="openPdfModalForActiveBook()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="file-text" class="w-4 h-4 text-black"></i>
+                        <span>Read Full PDF Document</span>
+                    </button>
+
+                    <!-- 3D Open Cover Toggle -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="toggleBookOpenAnimation()" class="py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-xl border border-white/15 transition-all flex items-center justify-center gap-1.5">
+                            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                            <span id="meta-open-btn-text">Open Cover in 3D</span>
+                        </button>
+                        <a id="meta-chat-link" href="/chat" class="py-2.5 bg-white text-black hover:bg-white/90 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5">
+                            <span>Chat with AI</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 03: Comprehensive Index & Chapter Outline Browser -->
+    <section id="toc-index" class="max-w-7xl mx-auto px-4 py-8 mb-12">
+        <div class="glass-panel rounded-2xl p-6 md:p-8 border border-white/15 shadow-2xl">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/10">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold tracking-tight">Index & Chapter Navigator</h2>
+                    <p class="text-white/60 text-sm mt-1">Browse table of contents and click any chapter to immediately launch the corresponding page</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 bg-white/10 rounded-lg text-xs font-mono">Direct PDF Jump Enabled</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Index Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="index-books-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 04: Operating Hours & Access Policies -->
+    <section class="max-w-7xl mx-auto px-4 py-8 mb-12">
+        <div class="glass-panel rounded-2xl p-6 md:p-8 border border-white/15 shadow-2xl">
+            <div class="mb-6">
+                <h2 class="text-2xl md:text-3xl font-bold tracking-tight">Hours & Campus Access Policies</h2>
+                <p class="text-white/60 text-sm mt-1">Central reading halls, physical circulation schedules, and OPAC availability</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card rounded-xl p-5 border border-white/10">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center mb-3">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-white/50">Reading Halls</div>
+                    <div class="text-lg font-bold text-white mt-1">24 × 7 × 365</div>
+                    <p class="text-xs text-white/60 mt-2">Open year-round with continuous high-speed campus WiFi and quiet study zones.</p>
+                </div>
+
+                <div class="glass-card rounded-xl p-5 border border-white/10">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center mb-3">
+                        <i data-lucide="calendar" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-white/50">Circulation Desk</div>
+                    <div class="text-lg font-bold text-emerald-400 mt-1">Mon – Fri: 9am – 7pm</div>
+                    <p class="text-xs text-white/60 mt-2">Book issue, returns, and inter-library loan requests active on weekdays.</p>
+                </div>
+
+                <div class="glass-card rounded-xl p-5 border border-white/10">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center mb-3">
+                        <i data-lucide="coffee" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-white/50">Weekends & Breaks</div>
+                    <div class="text-lg font-bold text-amber-300 mt-1">Study Space Open</div>
+                    <p class="text-xs text-white/60 mt-2">Circulation closed; reference reading and e-resource access fully operational.</p>
+                </div>
+
+                <div class="glass-card rounded-xl p-5 border border-white/10">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center mb-3">
+                        <i data-lucide="globe" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-white/50">Online OPAC</div>
+                    <div class="text-lg font-bold text-cyan-300 mt-1">uemk-opac.l2c2.co.in</div>
+                    <p class="text-xs text-white/60 mt-2">24/7 web catalogue search for physical shelf locations and book reservation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 05: Institutional Digital Portals (Pearson, IEEE, Springer) -->
+    <section id="portals" class="max-w-7xl mx-auto px-4 py-8 mb-12">
+        <div class="glass-panel rounded-2xl p-6 md:p-8 border border-white/15 shadow-2xl">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/10">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold tracking-tight">Institutional Digital Portals & E-Resources</h2>
+                    <p class="text-white/60 text-sm mt-1">Direct single-sign-on access to Pearson eLibrary, IEEE Xplore, ScienceDirect, and open arXiv papers</p>
+                </div>
+                <span class="px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-full text-xs font-mono text-purple-300">Campus IP Authenticated</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <a href="https://elibrary.pearson.com" target="_blank" class="glass-card rounded-xl p-5 block group">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono text-emerald-400 font-semibold">PEARSON PORTAL</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-base group-hover:text-emerald-300 transition-colors">Pearson eLibrary</h3>
+                    <p class="text-xs text-white/60 mt-1">9 core curriculum textbooks across Databases, OS, Algorithms, and Networks.</p>
+                </a>
+
+                <a href="https://ieeexplore.ieee.org" target="_blank" class="glass-card rounded-xl p-5 block group">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono text-cyan-400 font-semibold">IEEE REPOSITORY</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-base group-hover:text-cyan-300 transition-colors">IEEE Xplore Digital Library</h3>
+                    <p class="text-xs text-white/60 mt-1">Peer-reviewed transactions in Neural Networks, Computer Vision, and SLMs.</p>
+                </a>
+
+                <a href="https://sciencedirect.com" target="_blank" class="glass-card rounded-xl p-5 block group">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono text-amber-400 font-semibold">ELSEVIER / SCOPUS</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-base group-hover:text-amber-300 transition-colors">ScienceDirect & Scopus</h3>
+                    <p class="text-xs text-white/60 mt-1">Artificial Intelligence journal archive and citations index.</p>
+                </a>
+
+                <a href="https://link.springer.com" target="_blank" class="glass-card rounded-xl p-5 block group">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono text-purple-400 font-semibold">SPRINGER LINK</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-base group-hover:text-purple-300 transition-colors">Springer Nature & LNCS</h3>
+                    <p class="text-xs text-white/60 mt-1">Lecture Notes in Computer Science and Applied Machine Learning monographs.</p>
+                </a>
+
+                <a href="https://arxiv.org" target="_blank" class="glass-card rounded-xl p-5 block group">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono text-rose-400 font-semibold">OPEN ACCESS</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-base group-hover:text-rose-300 transition-colors">arXiv AI Preprints (cs.AI / cs.LG)</h3>
+                    <p class="text-xs text-white/60 mt-1">Open access papers including Vaswani 2017, LoRA 2021, and BERT 2018.</p>
+                </a>
+
+                <a href="https://dl.acm.org" target="_blank" class="glass-card rounded-xl p-5 block group">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono text-indigo-400 font-semibold">ACM DIGITAL LIBRARY</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-base group-hover:text-indigo-300 transition-colors">ACM Digital Library</h3>
+                    <p class="text-xs text-white/60 mt-1">Transactions on Database Systems (TODS) and SIGMOD/VLDB conference papers.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 06: Full 109 Bibliographic Holdings Table -->
+    <section id="holdings-table" class="max-w-7xl mx-auto px-4 py-8 mb-16">
+        <div class="glass-panel rounded-2xl p-6 md:p-8 border border-white/15 shadow-2xl">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold tracking-tight">Institutional Holdings & Journal Catalog</h2>
+                    <p class="text-white/60 text-sm mt-1">Live searchable inventory of 109 catalog items and 904 physical copies</p>
+                </div>
+
+                <div class="relative w-full md:w-80">
+                    <i data-lucide="search" class="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input
+                        type="text"
+                        id="table-search-input"
+                        oninput="filterHoldingsTable()"
+                        placeholder="Search title, author, shelf, type..."
+                        class="w-full bg-white/5 border border-white/15 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/40 transition-colors"
+                    />
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                    <div class="text-2xl md:text-3xl font-bold text-white">109</div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-white/50 mt-1">Holding Records</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                    <div class="text-2xl md:text-3xl font-bold text-purple-300">904</div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-white/50 mt-1">Total Copies</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+                    <div class="text-2xl md:text-3xl font-bold text-emerald-400">901</div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-white/50 mt-1">Available Now</div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto rounded-xl border border-white/10">
+                <table class="w-full text-left text-sm text-white/80">
+                    <thead class="bg-white/10 text-xs font-mono uppercase text-white/60">
+                        <tr>
+                            <th class="px-6 py-4">Title & Authors</th>
+                            <th class="px-6 py-4">Type / Subject</th>
+                            <th class="px-6 py-4">Shelf / Accession</th>
+                            <th class="px-6 py-4">Availability</th>
+                            <th class="px-6 py-4 text-right">Read / Query</th>
+                        </tr>
+                    </thead>
+                    <tbody id="holdings-tbody" class="divide-y divide-white/10 bg-black/40">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- EMBEDDED PDF READER MODAL -->
+    <div id="pdf-reader-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-xl flex-col items-center justify-center p-4 md:p-8">
+        <div class="w-full max-w-6xl h-full max-h-[92vh] glass-panel rounded-2xl flex flex-col overflow-hidden border border-white/20 shadow-2xl">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-white/5">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="book-open" class="w-5 h-5 text-emerald-400"></i>
+                    <div>
+                        <h3 id="modal-book-title" class="font-bold text-base text-white">Attention Is All You Need</h3>
+                        <p id="modal-book-subtitle" class="text-xs text-white/50">Vaswani et al. (2017) · arXiv:1706.03762</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <a id="modal-external-link" href="#" target="_blank" class="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-all flex items-center gap-1.5">
+                        <span>Open in New Tab</span>
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    </a>
+                    <button onclick="closePdfModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal PDF Viewer Frame -->
+            <div class="flex-1 bg-neutral-900 relative">
+                <iframe id="modal-pdf-iframe" class="w-full h-full border-0" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D Three.js Engine & Controller Script -->
+    <script>
+        lucide.createIcons();
+
+        // 8 Richly Colored Books with Full PDFs, TOCs, and Colors
+        const RICH_BOOKS = [
+            {
+                id: "attention_is_all_you_need",
+                title: "Attention Is All You Need",
+                authors: "Vaswani et al. (2017)",
+                category: "Research Paper (arXiv)",
+                shelf: "AIML-NLP-02",
+                copies: "3 of 4 Available",
+                ratio: 75,
+                // Rich Blue cover
+                primaryColor: "#2563eb",
+                accentColor: "#60a5fa",
+                goldTrim: "#fbbf24",
+                pdfUrl: "/pdfs/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                aliases: ["Vaswani2017_Attention_Is_All_You_Need.pdf", "vaswani2017", "vaswani", "attention", "attention_is_all_you_need"],
+                summary: "Introduces the Transformer model architecture based entirely on self-attention mechanisms, dispensing with recurrence and convolutions entirely.",
+                toc: [
+                    { title: "1. Introduction & Background", page: 1 },
+                    { title: "2. Model Architecture (Multi-Head Attention)", page: 2 },
+                    { title: "3. Positional Encoding", page: 6 },
+                    { title: "4. Why Self-Attention", page: 7 },
+                    { title: "5. Training & Results", page: 8 }
+                ]
+            },
+            {
+                id: "deep_learning_goodfellow",
+                title: "Deep Learning (MIT Press)",
+                authors: "Ian Goodfellow, Yoshua Bengio, Aaron Courville (2016)",
+                category: "Textbook (MIT Press)",
+                shelf: "DL-01",
+                copies: "5 of 5 Available",
+                ratio: 100,
+                // Rich Crimson Red cover
+                primaryColor: "#dc2626",
+                accentColor: "#f87171",
+                goldTrim: "#ffffff",
+                pdfUrl: "https://www.deeplearningbook.org/",
+                aliases: ["goodfellow", "deep_learning", "goodfellow2016", "deep_learning_goodfellow"],
+                summary: "The canonical comprehensive textbook on deep learning theory, covering linear algebra, deep feedforward networks, regularization, and generative models (GANs).",
+                toc: [
+                    { title: "Part I: Applied Math Basics", page: 1 },
+                    { title: "Part II: Deep Networks & Practices", page: 164 },
+                    { title: "Part III: Deep Learning Research (GANs, VAEs)", page: 486 }
+                ]
+            },
+            {
+                id: "operating_systems_three_easy_pieces",
+                title: "Operating Systems: Three Easy Pieces",
+                authors: "Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau (2018)",
+                category: "Textbook (Arpaci-Dusseau Books)",
+                shelf: "OS-01",
+                copies: "4 of 7 Available",
+                ratio: 57,
+                // Rich Emerald Green cover
+                primaryColor: "#059669",
+                accentColor: "#34d399",
+                goldTrim: "#fef08a",
+                pdfUrl: "/pdfs/ostep_three_easy_pieces/01_Introduction.pdf",
+                aliases: ["ostep", "ostep_three_easy_pieces", "three easy pieces", "arpaci-dusseau", "operating_systems_three_easy_pieces", "operating_system_concepts_silberschatz", "operating system concepts"],
+                summary: "Comprehensive textbook on operating systems organized around Virtualization (CPU & memory), Concurrency (threads & locks), and Persistence (file systems).",
+                toc: [
+                    { title: "I. Virtualization (Processes, Memory & Paging)", page: 1 },
+                    { title: "II. Concurrency (Threads, Locks & Semaphores)", page: 250 },
+                    { title: "III. Persistence (Disks, Files & RAID)", page: 400 }
+                ]
+            },
+            {
+                id: "database_system_concepts",
+                title: "Database System Concepts (7th Ed.)",
+                authors: "Silberschatz, Korth, Sudarshan (2019)",
+                category: "Textbook (McGraw Hill / Pearson)",
+                shelf: "DBMS-01",
+                copies: "4 of 4 Available",
+                ratio: 100,
+                // Rich Royal Amber & Gold cover
+                primaryColor: "#d97706",
+                accentColor: "#fbbf24",
+                goldTrim: "#ffffff",
+                pdfUrl: "https://www.db-book.com/",
+                aliases: ["database_system_concepts_silberschatz", "database_system_concepts", "silberschatz", "database_management_systems_ramakrishnan", "database management systems", "database system concepts"],
+                summary: "Definitive textbook covering relational model, SQL, index architectures (B+ trees), query optimization, transaction management (ACID), and recovery.",
+                toc: [
+                    { title: "Part 1: Relational SQL Languages", page: 20 },
+                    { title: "Part 2: Storage Management & B+ Trees", page: 340 },
+                    { title: "Part 3: Query Processing & Optimization", page: 520 },
+                    { title: "Part 4: Transaction Management & Recovery", page: 680 }
+                ]
+            },
+            {
+                id: "lora_paper",
+                title: "LoRA: Low-Rank Adaptation of LLMs",
+                authors: "Edward J. Hu et al. (2021)",
+                category: "Research Paper (arXiv)",
+                shelf: "AIML-PEFT-01",
+                copies: "2 of 3 Available",
+                ratio: 66,
+                // Rich Purple / Violet cover
+                primaryColor: "#7c3aed",
+                accentColor: "#a78bfa",
+                goldTrim: "#f472b6",
+                pdfUrl: "/pdfs/Hu2021_LoRA.pdf",
+                aliases: ["Hu2021_LoRA.pdf", "hu2021", "hu2021_lora", "lora", "low-rank adaptation", "peft", "lora_paper"],
+                summary: "Freezes pre-trained model weights and injects trainable rank decomposition matrices into each Transformer layer, reducing trainable parameters by 10,000x.",
+                toc: [
+                    { title: "1. Problem Statement & Efficiency", page: 1 },
+                    { title: "2. Intrinsic Rank Hypothesis", page: 3 },
+                    { title: "3. LoRA Method W=W0+BA", page: 4 },
+                    { title: "4. Empirical Evaluation on GPT-3", page: 7 }
+                ]
+            },
+            {
+                id: "math_for_ml",
+                title: "Mathematics for Machine Learning",
+                authors: "Deisenroth, Faisal, Ong (2020)",
+                category: "Textbook (Cambridge University Press)",
+                shelf: "AIML-MATH-01",
+                copies: "5 of 5 Available",
+                ratio: 100,
+                // Rich Cyan / Azure Blue cover
+                primaryColor: "#0891b2",
+                accentColor: "#22d3ee",
+                goldTrim: "#ffffff",
+                pdfUrl: "/pdfs/Deisenroth_Math_For_ML.pdf",
+                aliases: ["Deisenroth_Math_For_ML.pdf", "mml_deisenroth", "deisenroth", "math_for_ml", "mathematics for machine learning"],
+                summary: "Presents foundational mathematical concepts for modern ML: linear algebra, analytic geometry, matrix decompositions, vector calculus, and continuous optimization.",
+                toc: [
+                    { title: "Part I: Mathematical Foundations", page: 1 },
+                    { title: "Part II: Core ML Problems (PCA, SVM, GMM)", page: 250 }
+                ]
+            },
+            {
+                id: "bert_paper",
+                title: "BERT: Pre-training Deep Transformers",
+                authors: "Jacob Devlin et al. (2018)",
+                category: "Research Paper (NAACL)",
+                shelf: "AIML-NLP-01",
+                copies: "4 of 5 Available",
+                ratio: 80,
+                // Rich Ruby Red & Orange cover
+                primaryColor: "#ea580c",
+                accentColor: "#fb923c",
+                goldTrim: "#fef08a",
+                pdfUrl: "/pdfs/Devlin2018_BERT.pdf",
+                aliases: ["Devlin2018_BERT.pdf", "devlin2018", "devlin2018_bert", "bert", "devlin", "bert_paper"],
+                summary: "Introduces BERT, a bi-directionally trained language representation model using Masked Language Modeling (MLM) and Next Sentence Prediction (NSP).",
+                toc: [
+                    { title: "1. Introduction & Feature-based vs Fine-tuning", page: 1 },
+                    { title: "2. BERT Architecture & Pre-training Tasks", page: 3 },
+                    { title: "3. GLUE & SQuAD Evaluation", page: 6 }
+                ]
+            },
+            {
+                id: "rag_paper",
+                title: "Retrieval-Augmented Generation (RAG)",
+                authors: "Patrick Lewis et al. (2020)",
+                category: "Research Paper (NeurIPS)",
+                shelf: "AIML-RAG-01",
+                copies: "3 of 4 Available",
+                ratio: 75,
+                // Rich Teal & Navy cover
+                primaryColor: "#0f766e",
+                accentColor: "#2dd4bf",
+                goldTrim: "#38bdf8",
+                pdfUrl: "/pdfs/Lewis2020_RAG.pdf",
+                aliases: ["Lewis2020_RAG.pdf", "lewis2020", "lewis2020_rag", "rag", "retrieval-augmented generation", "retrieval augmented generation", "rag_paper"],
+                summary: "Combines pre-trained parametric memory (seq2seq generator) with non-parametric memory (dense vector index of Wikipedia accessed via DPR).",
+                toc: [
+                    { title: "1. Parametric vs Non-Parametric Memory", page: 1 },
+                    { title: "2. RAG-Sequence & RAG-Token Architectures", page: 3 },
+                    { title: "3. Open-Domain QA Benchmarks", page: 6 }
+                ]
+            }
+        ];
+
+        let activeBookIndex = 0;
+        let isBookOpen = false;
+        let targetCoverAngle = 0;
+        let currentCoverAngle = 0;
+
+        // Three.js Globals
+        let scene, camera, renderer, controls;
+        let bookGroup, coverMesh, pagesMesh, backCoverMesh, spineMesh, shadowMesh;
+
+        // ── FULL-PAGE 3D GALAXY ENGINE (Active across whole page) ─────────────
+        let fpScene, fpCamera, fpRenderer, fpInstancedMesh;
+        const FP_PARTICLE_COUNT = 15000;
+        let fpClock = new THREE.Clock();
+        let fpMouseX = 0, fpMouseY = 0;
+        let fpScrollY = window.scrollY || 0;
+
+        function initFullPage3D() {
+            const canvas = document.getElementById('library-fullpage-3d-canvas');
+            if (!canvas) return;
+
+            fpScene = new THREE.Scene();
+            fpScene.fog = new THREE.FogExp2(0x000000, 0.009);
+
+            fpCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1500);
+            fpCamera.position.set(0, 0, 95);
+
+            fpRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+            fpRenderer.setSize(window.innerWidth, window.innerHeight);
+            fpRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+
+            // Instanced mesh for 15,000 glowing cosmic particles
+            const geom = new THREE.TetrahedronGeometry(0.32);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            fpInstancedMesh = new THREE.InstancedMesh(geom, mat, FP_PARTICLE_COUNT);
+            fpInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            fpScene.add(fpInstancedMesh);
+
+            const dummy = new THREE.Object3D();
+            const color = new THREE.Color();
+            const particleData = [];
+
+            for (let i = 0; i < FP_PARTICLE_COUNT; i++) {
+                const arm = i % 3;
+                const armOffset = (arm * Math.PI * 2) / 3;
+                const radius = Math.pow(Math.random(), 0.6) * 75;
+                const angle = radius * 0.18 + armOffset + (Math.random() - 0.5) * 0.45;
+                const heightSpread = (Math.random() - 0.5) * (20 + (75 - radius) * 0.35);
+
+                const x = Math.cos(angle) * radius;
+                const y = heightSpread;
+                const z = Math.sin(angle) * radius;
+
+                particleData.push({
+                    radius,
+                    angle,
+                    heightSpread,
+                    speed: (0.12 + (1 / (radius + 4)) * 3.5),
+                    hue: 0.55 + Math.random() * 0.35,
+                    size: 0.2 + Math.random() * 0.9
+                });
+
+                dummy.position.set(x, y, z);
+                dummy.scale.setScalar(particleData[i].size);
+                dummy.updateMatrix();
+                fpInstancedMesh.setMatrixAt(i, dummy.matrix);
+
+                color.setHSL(particleData[i].hue, 0.85, 0.65);
+                fpInstancedMesh.setColorAt(i, color);
+            }
+            fpInstancedMesh.instanceMatrix.needsUpdate = true;
+            if (fpInstancedMesh.instanceColor) fpInstancedMesh.instanceColor.needsUpdate = true;
+
+            window.addEventListener('mousemove', (e) => {
+                fpMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                fpMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            }, { passive: true });
+
+            window.addEventListener('scroll', () => {
+                fpScrollY = window.scrollY || 0;
+            }, { passive: true });
+
+            window.addEventListener('resize', () => {
+                fpCamera.aspect = window.innerWidth / window.innerHeight;
+                fpCamera.updateProjectionMatrix();
+                fpRenderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            function animateFP() {
+                requestAnimationFrame(animateFP);
+                const elapsedTime = fpClock.getElapsedTime();
+
+                fpInstancedMesh.rotation.y = elapsedTime * 0.045;
+                fpInstancedMesh.rotation.x = Math.sin(elapsedTime * 0.02) * 0.08;
+
+                const targetX = fpMouseX * 22;
+                const targetY = -fpMouseY * 16 - (fpScrollY * 0.04);
+                const targetZ = 95 + Math.sin(elapsedTime * 0.2) * 4;
+
+                fpCamera.position.x += (targetX - fpCamera.position.x) * 0.04;
+                fpCamera.position.y += (targetY - fpCamera.position.y) * 0.04;
+                fpCamera.position.z += (targetZ - fpCamera.position.z) * 0.04;
+                fpCamera.lookAt(0, -fpScrollY * 0.025, 0);
+
+                fpRenderer.render(fpScene, fpCamera);
+            }
+            animateFP();
+        }
+
+        // ── VENGEANCEUI 3D BOOK SHOWCASE ENGINE ─────────────────────────────
+        function initThreeJS() {
+            const container = document.getElementById('threejs-book-container');
+            if (!container) return;
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+            camera.position.set(0, 0.4, 4.3);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.06;
+            controls.maxDistance = 8;
+            controls.minDistance = 2.5;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.8;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+            scene.add(ambientLight);
+
+            const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+            keyLight.position.set(5, 8, 6);
+            scene.add(keyLight);
+
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            fillLight.position.set(-5, -3, 4);
+            scene.add(fillLight);
+
+            const topRimLight = new THREE.PointLight(0xffffff, 1.5, 12);
+            topRimLight.position.set(0, 5, 2);
+            scene.add(topRimLight);
+
+            buildBookMesh(RICH_BOOKS[activeBookIndex]);
+
+            // Raycaster for click-to-open
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            container.addEventListener('click', (e) => {
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(scene.children, true);
+                if (intersects.length > 0) {
+                    toggleBookOpenAnimation();
+                }
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                currentCoverAngle += (targetCoverAngle - currentCoverAngle) * 0.12;
+                if (coverMesh) {
+                    coverMesh.rotation.y = currentCoverAngle;
+                }
+
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            });
+        }
+
+        // VengeanceUI Paper Striation Canvas Texture
+        function createPaperStriationTexture() {
+            const s = 512;
+            const c = document.createElement('canvas');
+            c.width = s; c.height = s;
+            const x = c.getContext('2d');
+            x.fillStyle = '#f8f5ec';
+            x.fillRect(0, 0, s, s);
+            let p = 0;
+            while (p < s) {
+                const w = 1 + Math.random() * 2.2;
+                const tone = Math.random();
+                x.fillStyle = tone < 0.15 ? 'rgba(140,125,95,0.45)' : tone < 0.5 ? 'rgba(255,255,252,0.6)' : 'rgba(190,178,150,0.35)';
+                x.fillRect(0, p, s, w);
+                p += w + 0.8 + Math.random() * 1.6;
+            }
+            return new THREE.CanvasTexture(c);
+        }
+
+        // Floor Shadow Blob
+        function createFloorShadowTexture() {
+            const s = 256;
+            const c = document.createElement('canvas');
+            c.width = s; c.height = s;
+            const x = c.getContext('2d');
+            const g = x.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+            g.addColorStop(0, 'rgba(0,0,0,0.8)');
+            g.addColorStop(0.45, 'rgba(0,0,0,0.35)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            x.fillStyle = g;
+            x.fillRect(0, 0, s, s);
+            return new THREE.CanvasTexture(c);
+        }
+
+        // Front Cover Canvas Texture (VengeanceUI styling)
+        function createVibrantCoverTexture(book) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 768;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+
+            const grad = ctx.createLinearGradient(0, 0, 768, 1080);
+            grad.addColorStop(0, book.primaryColor);
+            grad.addColorStop(1, '#090712');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 768, 1080);
+
+            // Embossed Borders
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(36, 36, 696, 1008);
+            ctx.strokeStyle = book.goldTrim || '#fbbf24';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(48, 48, 672, 984);
+
+            // Gold Header Banner
+            ctx.fillStyle = book.goldTrim || '#fbbf24';
+            ctx.fillRect(48, 76, 672, 6);
+
+            // Category Badge
+            ctx.fillStyle = book.accentColor;
+            ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.fillText(book.category.toUpperCase(), 72, 130);
+
+            // Main Title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 50px Inter, sans-serif';
+            const words = book.title.split(' ');
+            let line = '';
+            let y = 210;
+            for (let w of words) {
+                if ((line + w).length > 16) {
+                    ctx.fillText(line, 72, y);
+                    line = w + ' ';
+                    y += 62;
+                } else {
+                    line += w + ' ';
+                }
+            }
+            ctx.fillText(line, 72, y);
+
+            // Authors
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.font = 'italic 28px Inter, sans-serif';
+            ctx.fillText(book.authors, 72, y + 54);
+
+            // Stars
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = '28px Inter, sans-serif';
+            ctx.fillText('★★★★★', 72, y + 100);
+
+            // Central Abstract Gold Insignia
+            ctx.strokeStyle = book.goldTrim || '#fbbf24';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(384, 660, 85, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = book.accentColor;
+            ctx.beginPath();
+            ctx.arc(384, 660, 42, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Footer Brand
+            ctx.fillStyle = book.goldTrim || '#fbbf24';
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText('ARCHIPELAGO · KNOWLEDGE CORPS EDITION', 72, 980);
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Spine Texture
+        function createSpineTexture(book) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 160;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = book.primaryColor;
+            ctx.fillRect(0, 0, 160, 1080);
+
+            ctx.fillStyle = book.goldTrim || '#fbbf24';
+            ctx.fillRect(20, 36, 120, 6);
+            ctx.fillRect(20, 1030, 120, 6);
+
+            ctx.save();
+            ctx.translate(80, 540);
+            ctx.rotate(Math.PI / 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(book.title.substring(0, 30), 0, 12);
+            ctx.restore();
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Back Cover Texture
+        function createBackCoverTexture(book) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 768;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+
+            const grad = ctx.createLinearGradient(0, 0, 768, 1080);
+            grad.addColorStop(0, '#0c0a16');
+            grad.addColorStop(1, book.primaryColor);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 768, 1080);
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(36, 36, 696, 1008);
+
+            ctx.fillStyle = book.goldTrim || '#fbbf24';
+            ctx.fillRect(48, 80, 672, 6);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.font = 'bold 28px Inter, sans-serif';
+            ctx.fillText('ARCHIPELAGO KNOWLEDGE REPOSITORY', 60, 140);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '22px Inter, sans-serif';
+            const words = (book.summary || '').split(' ');
+            let line = '', y = 200;
+            for (let w of words) {
+                if ((line + w).length > 34) {
+                    ctx.fillText(line, 60, y);
+                    line = w + ' ';
+                    y += 36;
+                } else line += w + ' ';
+            }
+            ctx.fillText(line, 60, y);
+
+            // Barcode
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(80, 870, 300, 95);
+            ctx.fillStyle = '#000000';
+            for (let bx = 95; bx < 365; bx += 5 + (bx % 7)) {
+                ctx.fillRect(bx, 885, 2 + (bx % 3), 65);
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function buildBookMesh(book) {
+            if (bookGroup) scene.remove(bookGroup);
+
+            bookGroup = new THREE.Group();
+            const width = 2.2;
+            const height = 3.2;
+            const depth = 0.55;
+
+            // Pages block with striation texture
+            const striationTex = createPaperStriationTexture();
+            const pagesGeo = new THREE.BoxGeometry(width - 0.08, height - 0.16, depth - 0.06);
+            const pagesMat = new THREE.MeshStandardMaterial({
+                map: striationTex,
+                roughness: 0.85,
+                metalness: 0.05
+            });
+            pagesMesh = new THREE.Mesh(pagesGeo, pagesMat);
+            pagesMesh.position.set(0.04, 0, 0);
+            bookGroup.add(pagesMesh);
+
+            // Back Cover
+            const backTexture = createBackCoverTexture(book);
+            const backMat = new THREE.MeshStandardMaterial({
+                map: backTexture,
+                roughness: 0.35,
+                metalness: 0.25
+            });
+            const backGeo = new THREE.BoxGeometry(width, height, 0.05);
+            backCoverMesh = new THREE.Mesh(backGeo, backMat);
+            backCoverMesh.position.set(0, 0, -depth / 2);
+            bookGroup.add(backCoverMesh);
+
+            // Spine
+            const spineTexture = createSpineTexture(book);
+            const spineMat = new THREE.MeshStandardMaterial({
+                map: spineTexture,
+                roughness: 0.4,
+                metalness: 0.2
+            });
+            const spineGeo = new THREE.BoxGeometry(0.05, height, depth);
+            spineMesh = new THREE.Mesh(spineGeo, spineMat);
+            spineMesh.position.set(-width / 2, 0, 0);
+            bookGroup.add(spineMesh);
+
+            // Front Cover with hinge pivot
+            const coverTexture = createVibrantCoverTexture(book);
+            const coverMat = new THREE.MeshStandardMaterial({
+                map: coverTexture,
+                roughness: 0.35,
+                metalness: 0.25
+            });
+            const frontGeo = new THREE.BoxGeometry(width, height, 0.05);
+            frontGeo.translate(width / 2, 0, 0);
+            coverMesh = new THREE.Mesh(frontGeo, coverMat);
+            coverMesh.position.set(-width / 2, 0, depth / 2);
+            bookGroup.add(coverMesh);
+
+            // Floor Shadow
+            const shadowGeo = new THREE.PlaneGeometry(3.6, 2.2);
+            const shadowMat = new THREE.MeshBasicMaterial({
+                map: createFloorShadowTexture(),
+                transparent: true,
+                opacity: 0.8
+            });
+            shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+            shadowMesh.rotation.x = -Math.PI / 2;
+            shadowMesh.position.set(0, -height / 2 - 0.1, 0);
+            bookGroup.add(shadowMesh);
+
+            scene.add(bookGroup);
+            targetCoverAngle = 0;
+            currentCoverAngle = 0;
+            isBookOpen = false;
+        }
+
+        // Carousel Navigation
+        function nextBook() {
+            activeBookIndex = (activeBookIndex + 1) % RICH_BOOKS.length;
+            selectBook(activeBookIndex);
+        }
+
+        function prevBook() {
+            activeBookIndex = (activeBookIndex - 1 + RICH_BOOKS.length) % RICH_BOOKS.length;
+            selectBook(activeBookIndex);
+        }
+
+        function selectBook(index) {
+            activeBookIndex = index;
+            const book = RICH_BOOKS[index];
+            buildBookMesh(book);
+
+            // Update Carousel indicator
+            const counterEl = document.getElementById('carousel-counter');
+            if (counterEl) counterEl.textContent = `${index + 1} / ${RICH_BOOKS.length}`;
+            const labelEl = document.getElementById('carousel-active-label');
+            if (labelEl) labelEl.textContent = book.title;
+
+            // Update UI card
+            document.getElementById('meta-title').innerText = book.title;
+            document.getElementById('meta-authors').innerText = book.authors;
+            document.getElementById('meta-category').innerText = book.category.toUpperCase();
+            document.getElementById('meta-category').style.color = book.accentColor;
+            document.getElementById('meta-shelf').innerText = book.shelf;
+            document.getElementById('meta-avail').innerText = book.copies;
+            document.getElementById('meta-progress').style.width = book.ratio + '%';
+            document.getElementById('meta-progress').style.backgroundColor = book.primaryColor;
+            document.getElementById('meta-summary').innerText = book.summary;
+            document.getElementById('meta-chat-link').href = '/chat?query=' + encodeURIComponent('Tell me about this book: ' + book.title);
+
+            const starsEl = document.getElementById('meta-stars');
+            if (starsEl) starsEl.textContent = '★★★★★';
+            const yearEl = document.getElementById('meta-year');
+            if (yearEl) yearEl.textContent = book.year || '2024';
+
+            // Populate TOC
+            const tocEl = document.getElementById('meta-toc');
+            tocEl.innerHTML = '';
+            book.toc.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between hover:text-white cursor-pointer py-0.5';
+                li.innerHTML = `
+                    <span class="truncate pr-2">${item.title}</span>
+                    <span class="text-xs font-mono text-emerald-400">p.${item.page}</span>
+                `;
+                li.onclick = () => openPdfAtPage(book.pdfUrl, item.page, book.title);
+                tocEl.appendChild(li);
+            });
+
+            renderColorChips();
+        }
+
+        function toggleBookOpenAnimation() {
+            isBookOpen = !isBookOpen;
+            targetCoverAngle = isBookOpen ? -Math.PI * 0.65 : 0;
+            controls.autoRotate = !isBookOpen;
+
+            const btnText = document.getElementById('meta-open-btn-text');
+            if (btnText) {
+                btnText.innerText = isBookOpen ? 'Close Cover' : 'Open Cover in 3D';
+            }
+        }
+
+        // Keyboard Arrow navigation
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === 'ArrowRight') nextBook();
+            if (e.key === 'ArrowLeft') prevBook();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                toggleBookOpenAnimation();
+            }
+        });
+
+        // Trigger user management modal
+        function triggerUserManagementModal() {
+            if (typeof window.archipelagoOpenUserManagementModal === 'function') {
+                window.archipelagoOpenUserManagementModal(window._archipelagoPrincipal || { role: 'librarian', user_id: 'current' });
+            }
+        }
+
+        function renderColorChips() {
+            const container = document.getElementById('book-color-chips');
+            if (!container) return;
+            container.innerHTML = '';
+            RICH_BOOKS.forEach((b, i) => {
+                const btn = document.createElement('button');
+                btn.className = `px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-2 ${
+                    i === activeBookIndex
+                        ? 'bg-white text-black font-semibold shadow-lg scale-105'
+                        : 'bg-white/10 text-white/80 hover:bg-white/20'
+                }`;
+                btn.innerHTML = `
+                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${b.primaryColor};"></span>
+                    <span>${b.title.split(' ')[0]} ${b.title.split(' ')[1] || ''}</span>
+                `;
+                btn.onclick = () => selectBook(i);
+                container.appendChild(btn);
+            });
+        }
+
+        // PDF Reader Modal Handlers
+        function openPdfModalForActiveBook() {
+            const book = RICH_BOOKS[activeBookIndex];
+            openPdfAtPage(book.pdfUrl, 1, book.title);
+        }
+
+        function openPdfAtPage(url, page, title) {
+            const modal = document.getElementById('pdf-reader-modal');
+            const iframe = document.getElementById('modal-pdf-iframe');
+            const titleEl = document.getElementById('modal-book-title');
+            const subtitleEl = document.getElementById('modal-book-subtitle');
+            const extLink = document.getElementById('modal-external-link');
+
+            titleEl.innerText = title || 'Document Reader';
+            const p = parseInt(page || 1, 10) || 1;
+            subtitleEl.innerText = `Displaying page ${p} · Real-time PDF Reader`;
+
+            let targetUrl = url || '';
+            // If empty, derive a clean pdf path
+            if (!targetUrl || targetUrl === '#' || targetUrl === 'about:blank') {
+                targetUrl = '/pdfs/' + encodeURIComponent(title || 'doc') + '.pdf';
+            }
+
+            // Route relative / filename PDFs through same-origin /pdfs/ proxy
+            if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+                if (!targetUrl.startsWith('/pdfs/')) {
+                    targetUrl = '/pdfs/' + targetUrl.replace(/^\/+/, '');
+                }
+            }
+
+            if (p > 1 && !targetUrl.includes('#page=')) {
+                targetUrl += `#page=${p}`;
+            }
+
+            extLink.href = targetUrl;
+            iframe.src = targetUrl;
+            modal.classList.add('is-open');
+        }
+
+        function closePdfModal() {
+            const modal = document.getElementById('pdf-reader-modal');
+            const iframe = document.getElementById('modal-pdf-iframe');
+            iframe.src = 'about:blank';
+            modal.classList.remove('is-open');
+        }
+
+        // Populate Index & Chapter Navigator Grid
+        function populateIndexGrid() {
+            const container = document.getElementById('index-books-grid');
+            if (!container) return;
+            container.innerHTML = '';
+            RICH_BOOKS.forEach((b, idx) => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-xl p-5 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-2">
+                            <span class="font-mono text-xs px-2 py-0.5 rounded bg-white/10" style="color: ${b.accentColor};">${b.shelf}</span>
+                            <span class="text-white/50 text-xs">${b.copies}</span>
+                        </div>
+                        <h3 class="font-bold text-white text-base mb-1">${b.title}</h3>
+                        <p class="text-xs text-white/60 italic mb-3">${b.authors}</p>
+                        <div class="text-xs font-mono uppercase text-white/40 mb-2">Chapters:</div>
+                        <ul class="space-y-1 text-xs text-white/75 mb-4">
+                            ${b.toc.map(ch => `
+                                <li onclick="openPdfAtPage('${b.pdfUrl}', ${ch.page}, '${b.title}')" class="hover:text-emerald-300 cursor-pointer flex items-center justify-between py-0.5">
+                                    <span class="truncate pr-2">• ${ch.title}</span>
+                                    <span class="font-mono text-emerald-400">p.${ch.page}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    <div class="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                        <button onclick="selectBook(${idx}); window.location.href='#3d-shelf';" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-all">
+                            View 3D Book
+                        </button>
+                        <button onclick="openPdfAtPage('${b.pdfUrl}', 1, '${b.title}')" class="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg transition-all flex items-center gap-1">
+                            <span>Open PDF</span>
+                            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // Holdings Table Data
+        const HOLDINGS_DATA = [
+            { title: "Attention Is All You Need", authors: "Vaswani et al.", cat: "Research Paper", shelf: "AIML-NLP-02", copies: "3/4 Available", url: "https://arxiv.org/pdf/1706.03762.pdf" },
+            { title: "Deep Learning (Adaptive Computation)", authors: "Goodfellow, Bengio, Courville", cat: "MIT Press Textbook", shelf: "DL-01", copies: "5/5 Available", url: "https://www.deeplearningbook.org/" },
+            { title: "Operating Systems: Three Easy Pieces", authors: "Arpaci-Dusseau", cat: "Textbook", shelf: "OS-01", copies: "4/7 Available", url: "https://pages.cs.wisc.edu/~remzi/OSTEP/" },
+            { title: "Database System Concepts (7th Ed.)", authors: "Silberschatz, Korth, Sudarshan", cat: "McGraw Hill / Pearson", shelf: "DBMS-01", copies: "4/4 Available", url: "https://www.db-book.com/" },
+            { title: "LoRA: Low-Rank Adaptation of LLMs", authors: "Hu et al.", cat: "Research Paper", shelf: "AIML-PEFT-01", copies: "2/3 Available", url: "https://arxiv.org/pdf/2106.09685.pdf" },
+            { title: "BERT: Pre-training Deep Bidirectional Transformers", authors: "Devlin et al.", cat: "NAACL Paper", shelf: "AIML-NLP-01", copies: "4/5 Available", url: "https://arxiv.org/pdf/1810.04805.pdf" },
+            { title: "Mathematics for Machine Learning", authors: "Deisenroth et al.", cat: "Cambridge Press", shelf: "AIML-MATH-01", copies: "5/5 Available", url: "https://mml-book.github.io/book/mml-book.pdf" },
+            { title: "Retrieval-Augmented Generation (RAG)", authors: "Lewis et al.", cat: "NeurIPS Paper", shelf: "AIML-RAG-01", copies: "3/4 Available", url: "https://arxiv.org/pdf/2005.11401.pdf" },
+            { title: "Journal of Human Resource Management", authors: "Academy Publications", cat: "Journal", shelf: "J297, J621", copies: "2/2 Available", url: "https://elibrary.pearson.com" },
+            { title: "Academy of Management Journal", authors: "AMJ Editorial Board", cat: "Journal", shelf: "J280..J675", copies: "6/6 Available", url: "https://elibrary.pearson.com" },
+            { title: "Applied Artificial Intelligence Journal", authors: "Taylor & Francis", cat: "Journal", shelf: "J501..J503", copies: "3/3 Available", url: "https://elibrary.pearson.com" },
+            { title: "IEEE Transactions on Neural Networks", authors: "IEEE CIS", cat: "Journal", shelf: "IEEE-TNN-01", copies: "4/4 Available", url: "https://ieeexplore.ieee.org" },
+            { title: "ACM Transactions on Database Systems (TODS)", authors: "ACM Press", cat: "Journal", shelf: "ACM-TODS-01", copies: "2/2 Available", url: "https://dl.acm.org" }
+        ];
+
+        function populateHoldingsTable(items) {
+            const tbody = document.getElementById('holdings-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/5 transition-colors';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-white">
+                        ${item.title}
+                        <div class="text-xs text-white/50">${item.authors}</div>
+                    </td>
+                    <td class="px-6 py-4 text-xs">
+                        <span class="px-2.5 py-1 rounded-full bg-white/10 text-white/80">${item.cat}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-xs text-purple-300">${item.shelf}</td>
+                    <td class="px-6 py-4 text-xs font-semibold text-emerald-400">${item.copies}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="inline-flex items-center gap-2">
+                            <button onclick="openPdfAtPage('${item.url}', 1, '${item.title}')" class="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-medium rounded-lg transition-all inline-flex items-center gap-1">
+                                <i data-lucide="file-text" class="w-3 h-3"></i>
+                                <span>PDF</span>
+                            </button>
+                            <a href="/chat?query=${encodeURIComponent('Tell me about this book: ' + item.title)}" class="px-3 py-1.5 bg-white text-black text-xs font-medium rounded-lg hover:bg-white/90 transition-all inline-flex items-center gap-1">
+                                <span>Query</span>
+                                <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function filterHoldingsTable() {
+            const q = (document.getElementById('table-search-input').value || '').toLowerCase();
+            const filtered = HOLDINGS_DATA.filter(it =>
+                it.title.toLowerCase().includes(q) ||
+                it.authors.toLowerCase().includes(q) ||
+                it.cat.toLowerCase().includes(q) ||
+                it.shelf.toLowerCase().includes(q)
+            );
+            populateHoldingsTable(filtered);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initFullPage3D();
+            initThreeJS();
+            renderColorChips();
+            populateIndexGrid();
+            populateHoldingsTable(HOLDINGS_DATA);
+
+            // Mount Auth Navigation & Check User Management Role
+            if (window.archipelagoAuthReady) {
+                window.archipelagoAuthReady.then(async () => {
+                    if (window.archipelagoMountNavigation) {
+                        await window.archipelagoMountNavigation();
+                    }
+                    try {
+                        const res = await fetch('/api/auth/me');
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.role === 'librarian' || data.role === 'administrator') {
+                                const btn = document.getElementById('nav-user-mgmt-btn');
+                                if (btn) btn.classList.remove('hidden');
+                                window._archipelagoPrincipal = data;
+                            }
+                        }
+                    } catch (_) {}
+                });
+            }
+
+            // Handle URL params for direct book / chapter / page opening
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookParam = (urlParams.get('book') || '').trim();
+            const pdfParam = (urlParams.get('pdf') || '').trim();
+            const docParam = (urlParams.get('doc_id') || urlParams.get('doc') || '').trim();
+            const pageParam = parseInt(urlParams.get('page') || '1', 10) || 1;
+
+            const searchKey = (bookParam || pdfParam || docParam).toLowerCase();
+            if (searchKey) {
+                // 1. Check RICH_BOOKS
+                let idx = RICH_BOOKS.findIndex(b => {
+                    const bId = (b.id || '').toLowerCase();
+                    const bTitle = (b.title || '').toLowerCase();
+                    const bPdf = (b.pdfUrl || '').toLowerCase();
+                    const bAliases = (b.aliases || []).map(a => a.toLowerCase());
+                    return bId === searchKey || bId.includes(searchKey) || searchKey.includes(bId) ||
+                           bTitle.includes(searchKey) || searchKey.includes(bTitle) ||
+                           bPdf.includes(searchKey) || searchKey.includes(bPdf) ||
+                           bAliases.some(a => a.includes(searchKey) || searchKey.includes(a));
+                });
+
+                // 2. Check HOLDINGS_DATA or create custom dynamic book
+                if (idx === -1) {
+                    const hItem = HOLDINGS_DATA.find(h => {
+                        const hTitle = (h.title || '').toLowerCase();
+                        const hUrl = (h.url || '').toLowerCase();
+                        const hAuthors = (h.authors || '').toLowerCase();
+                        return hTitle.includes(searchKey) || searchKey.includes(hTitle) ||
+                               hUrl.includes(searchKey) || searchKey.includes(hUrl) ||
+                               hAuthors.includes(searchKey);
+                    });
+                    if (hItem) {
+                        const customBook = {
+                            id: searchKey.replace(/[^a-z0-9_]+/g, '_'),
+                            title: hItem.title,
+                            authors: hItem.authors,
+                            category: hItem.cat,
+                            shelf: hItem.shelf,
+                            copies: hItem.copies,
+                            ratio: 80,
+                            primaryColor: '#7c3aed',
+                            accentColor: '#c084fc',
+                            goldTrim: '#ffffff',
+                            pdfUrl: pdfParam || hItem.url,
+                            summary: `${hItem.title} by ${hItem.authors}. Catalog shelf ${hItem.shelf}.`,
+                            toc: [
+                                { title: "1. Main Volume / Chapter", page: 1 },
+                                { title: "2. Target Page Section", page: pageParam > 1 ? pageParam : 2 }
+                            ]
+                        };
+                        RICH_BOOKS.push(customBook);
+                        idx = RICH_BOOKS.length - 1;
+                    } else if (pdfParam || docParam || bookParam) {
+                        const rawTitle = (bookParam || pdfParam || docParam)
+                            .replace(/^.*[\\\/]/, '')
+                            .replace(/\.pdf$/i, '')
+                            .replace(/[_-]+/g, ' ')
+                            .trim();
+                        const customBook = {
+                            id: searchKey.replace(/[^a-z0-9_]+/g, '_'),
+                            title: rawTitle,
+                            authors: 'Archipelago Catalog Document',
+                            category: 'Document / Paper',
+                            shelf: 'CORPUS-01',
+                            copies: '1 of 1 Available',
+                            ratio: 100,
+                            primaryColor: '#2563eb',
+                            accentColor: '#60a5fa',
+                            goldTrim: '#fbbf24',
+                            pdfUrl: pdfParam || docParam || (`/pdfs/${bookParam}.pdf`),
+                            summary: `Archipelago corpus record: ${rawTitle}.`,
+                            toc: [
+                                { title: `Page ${pageParam}`, page: pageParam }
+                            ]
+                        };
+                        RICH_BOOKS.push(customBook);
+                        idx = RICH_BOOKS.length - 1;
+                    }
+                }
+
+                if (idx !== -1) {
+                    selectBook(idx);
+                    renderColorChips();
+                    populateIndexGrid();
+                    const targetPdf = pdfParam || docParam || RICH_BOOKS[idx].pdfUrl;
+                    const shouldOpenReader = window.location.hash.includes('reader') ||
+                                             urlParams.has('page') ||
+                                             urlParams.has('pdf') ||
+                                             urlParams.has('doc_id');
+                    if (shouldOpenReader) {
+                        setTimeout(() => {
+                            openPdfAtPage(targetPdf, pageParam, RICH_BOOKS[idx].title);
+                        }, 300);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
