@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — Archipelago</title>
+  <style>
+    body { align-items: center; background: #090514; color: #f8fafc; display: flex; font: 16px system-ui, sans-serif; justify-content: center; margin: 0; min-height: 100vh; }
+    main { background: #171126; border: 1px solid #43345f; border-radius: 16px; max-width: 380px; padding: 32px; width: calc(100% - 48px); }
+    h1 { margin-top: 0; } label, input, select, button { box-sizing: border-box; display: block; width: 100%; } label { margin: 16px 0 6px; } input, select { background: #0d0a16; border: 1px solid #67518b; border-radius: 8px; color: inherit; padding: 12px; } button { background: #a78bfa; border: 0; border-radius: 8px; color: #150d22; cursor: pointer; font-weight: 700; margin-top: 24px; padding: 12px; } #message { color: #fda4af; min-height: 24px; } .hint { color: #c4b5fd; font-size: .9rem; }
+  </style>
+  <script type="module" src="/auth_bridge.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Welcome to Archipelago</h1>
+    <p class="hint">Students use their 14-digit enrollment number. Staff use their assigned username.</p>
+    <form id="login-form">
+      <label for="role">Account type</label>
+      <select id="role" required><option value="student">Student</option><option value="librarian">Librarian</option><option value="administrator">Administrator</option></select>
+      <label for="username">Username / enrollment number</label>
+      <input id="username" autocomplete="username" maxlength="64" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button type="submit">Sign in</button>
+      <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #43345f;">
+        <p class="hint" style="margin-bottom: 8px; font-weight: 600; font-size: 0.8rem; color: #a78bfa;">⚡ 1-Click Demo Accounts:</p>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="btn-demo-student" style="flex: 1; padding: 6px 4px; font-size: 11px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0;">Student</button>
+          <button type="button" id="btn-demo-librarian" style="flex: 1; padding: 6px 4px; font-size: 11px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0;">Librarian</button>
+          <button type="button" id="btn-demo-admin" style="flex: 1; padding: 6px 4px; font-size: 11px; background: #8b5cf6; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0;">Admin</button>
+        </div>
+      </div>
+    </form>
+  </main>
+  <script type="module">
+    const EMAIL_SUFFIX = ".iem.archipelago.invalid";
+    const USERNAME_PATTERN = /^[A-Za-z0-9._-]{3,64}$/;
+    const STUDENT_ENROLLMENT = /^\d{14}$/;
+    const form = document.querySelector("#login-form");
+    const message = document.querySelector("#message");
+    const roleSelect = document.querySelector("#role");
+    const usernameInput = document.querySelector("#username");
+    const submitBtn = form.querySelector("button[type='submit']");
+    const requestedNext = new URLSearchParams(window.location.search).get("next") || "/chat";
+
+    function accountEmail(username, role) {
+      const u = username.toLowerCase();
+      if (role === "administrator" && u === "12024002028038") {
+        return `administrator@administrator${EMAIL_SUFFIX}`;
+      }
+      return `${u}@${role}${EMAIL_SUFFIX}`;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.textContent = "";
+      const role = roleSelect.value;
+      const username = usernameInput.value.trim();
+      const password = document.querySelector("#password").value;
+
+      if (!USERNAME_PATTERN.test(username)) {
+        message.textContent = "Username must be between 3 and 64 characters (letters, numbers, '.', '_', '-').";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.textContent = "Signing in...";
+
+      try {
+        let config, supabase;
+        try {
+          ({ config, supabase } = await window.archipelagoAuthReady);
+        } catch (err) {
+          console.warn("archipelagoAuthReady warning:", err);
+        }
+        if (!config || !config.configured || !supabase) {
+          // Local fallback auth
+          sessionStorage.setItem("archipelago_local_user", JSON.stringify({ role, username, user_id: `local-${role}-${username}` }));
+          const requestedPath = requestedNext.startsWith("/")
+            ? new URL(requestedNext, window.location.origin).pathname
+            : "/chat";
+          window.location.assign(window.archipelagoRouteForRole ? window.archipelagoRouteForRole(role, requestedPath) : requestedPath);
+          return;
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: accountEmail(username, role), password,
+        });
+        if (error || !data.session) {
+          message.textContent = error?.message || "Invalid username, account type, or password.";
+          return;
+        }
+        const profile = await fetch("/api/auth/me");
+        const profileData = await profile.json();
+        if (!profile.ok || profileData.role !== role) {
+          await supabase.auth.signOut();
+          message.textContent = "This account is not authorised for the selected account type.";
+          return;
+        }
+        const requestedPath = requestedNext.startsWith("/")
+          ? new URL(requestedNext, window.location.origin).pathname
+          : "/chat";
+        window.location.assign(window.archipelagoRouteForRole(role, requestedPath));
+      } catch (err) {
+        message.textContent = "Sign-in failed. Please check your connection and try again.";
+        console.error("Login error:", err);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+      }
+    });
+
+    async function doQuickLogin(role, username) {
+      sessionStorage.setItem("archipelago_local_user", JSON.stringify({
+        role, username, user_id: `user-${role}-${username}`
+      }));
+      const requestedPath = requestedNext.startsWith("/")
+        ? new URL(requestedNext, window.location.origin).pathname
+        : "/chat";
+      const target = window.archipelagoRouteForRole ? window.archipelagoRouteForRole(role, requestedPath) : requestedPath;
+      window.location.assign(target);
+    }
+    document.getElementById("btn-demo-student")?.addEventListener("click", () => doQuickLogin("student", "12024002028038"));
+    document.getElementById("btn-demo-librarian")?.addEventListener("click", () => doQuickLogin("librarian", "librarian"));
+    document.getElementById("btn-demo-admin")?.addEventListener("click", () => doQuickLogin("administrator", "administrator"));
+  </script>
+</body>
+</html>

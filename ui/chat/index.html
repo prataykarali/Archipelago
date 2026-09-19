@@ -37,8 +37,62 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <!-- Cytoscape & Archipelago Graphify Component -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+    <script src="/graphify.js"></script>
     <!-- Chromatic Waves (Originkit) welcome background -->
     <script type="module" src="/chromatic_waves.js"></script>
+    <script type="module" src="/auth_bridge.js"></script>
+    <script type="module">
+        window.archipelagoAuthReady.then(async ({ config, supabase }) => {
+            if (config && config.required) window.archipelagoRequireSession();
+            updateHeaderAuthProfile();
+        });
+
+        async function updateHeaderAuthProfile() {
+            try {
+                let user = null;
+                const resp = await fetch("/api/auth/me");
+                if (resp.ok) {
+                    user = await resp.json();
+                }
+                if (!user || !user.authenticated) {
+                    const local = sessionStorage.getItem("archipelago_local_user");
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        user = { authenticated: true, role: parsed.role, username: parsed.username };
+                    }
+                }
+                const badge = document.getElementById("user-profile-badge");
+                const loginLink = document.getElementById("auth-login-link");
+                const roleLabel = document.getElementById("user-role-label");
+                const nameLabel = document.getElementById("user-name-label");
+                if (user && user.authenticated) {
+                    if (badge) { badge.classList.remove("hidden"); badge.classList.add("flex"); }
+                    if (loginLink) loginLink.classList.add("hidden");
+                    if (roleLabel) roleLabel.textContent = user.role || "User";
+                    if (nameLabel) nameLabel.textContent = user.username ? `(${user.username})` : "";
+                } else {
+                    if (badge) { badge.classList.add("hidden"); badge.classList.remove("flex"); }
+                    if (loginLink) loginLink.classList.remove("hidden");
+                }
+            } catch (e) {
+                console.warn("Could not check auth status:", e);
+            }
+        }
+        window.updateHeaderAuthProfile = updateHeaderAuthProfile;
+
+        window.signOutSupabase = async function() {
+            try {
+                sessionStorage.removeItem("archipelago_local_user");
+                const { supabase } = await window.archipelagoAuthReady;
+                if (supabase) await supabase.auth.signOut();
+            } catch (e) {
+                console.warn(e);
+            }
+            window.location.reload();
+        };
+    </script>
 
     <style>
         @font-face {
@@ -1293,6 +1347,57 @@
         .evidence-card__availability { color: #047857; font-weight: 650; white-space: nowrap; }
         .evidence-card__availability.is-missing { color: #b45309; }
 
+        /* Institutional Library Inventory Section */
+        .library-inventory-section {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0;
+            max-width: 100%;
+            margin-top: 1.15rem;
+            margin-bottom: 0.85rem;
+            padding: 1rem 1.15rem;
+            background: linear-gradient(135deg, rgba(14, 23, 42, 0.95), rgba(15, 23, 42, 0.88)) !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+            box-sizing: border-box;
+            backdrop-filter: blur(12px);
+            transition: all 0.25s ease;
+        }
+        .library-inventory-section.hidden {
+            display: none !important;
+        }
+        .library-inventory-section table {
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            font-size: 0.825rem;
+        }
+        .library-inventory-section th {
+            background: rgba(30, 41, 59, 0.95) !important;
+            color: #38bdf8 !important;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.55rem 0.75rem;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.35);
+        }
+        .library-inventory-section td {
+            padding: 0.55rem 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            vertical-align: middle;
+            color: #f1f5f9;
+        }
+        .library-inventory-section tr:last-child td {
+            border-bottom: none;
+        }
+        .library-inventory-section tr:hover td {
+            background: rgba(56, 189, 248, 0.06);
+        }
+
         /* Pulse glowing effect */
         .pulse-glow {
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
@@ -1313,13 +1418,8 @@
 
         /* Neon concept-graph animations */
         @keyframes neon-pulse-ring {
-            0%   { r: 16; opacity: 0.85; stroke-width: 2.5; }
-            50%  { r: 24; opacity: 0.25; stroke-width: 1; }
-            100% { r: 16; opacity: 0.85; stroke-width: 2.5; }
-        }
-        @keyframes neon-node-breathe {
-            0%, 100% { filter: drop-shadow(0 0 4px currentColor); }
-            50%      { filter: drop-shadow(0 0 12px currentColor); }
+            0%, 100% { opacity: 0.85; }
+            50%      { opacity: 0.25; }
         }
         @keyframes edge-dash-flow {
             to { stroke-dashoffset: -24; }
@@ -1338,7 +1438,7 @@
         .graph-edge-related {
             stroke-dasharray: 3 5;
             animation: edge-dash-flow 2.2s linear infinite;
-            opacity: 0.75;
+            opacity: 0.7;
         }
         .graph-pulse-ring {
             animation: neon-pulse-ring 2s ease-in-out infinite;
@@ -1347,7 +1447,7 @@
         }
         .graph-node-selected circle.graph-node-core {
             stroke-width: 3 !important;
-            filter: drop-shadow(0 0 14px currentColor) drop-shadow(0 0 6px #fff);
+            filter: drop-shadow(0 0 14px #00ffa3) drop-shadow(0 0 4px #fff);
         }
         .graph-node-group { cursor: pointer; transition: opacity 0.15s ease; }
         .graph-node-group:hover { opacity: 0.92; }
@@ -2696,6 +2796,268 @@
         opacity: 0.7 !important;
     }
 </style>
+
+<style id="visionos-clean-overrides">
+    /* Remove awkward banner video */
+    #chat-hero-band {
+        display: none !important;
+    }
+
+    /* Speaking Avatar Dock: Restored as a modern glass sidebar indicator */
+    #sticky-avatar-dock {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 4.5rem 0.5rem 1rem 0.5rem !important;
+        flex: 0 0 10.5rem;
+        z-index: 15;
+        width: 10.5rem;
+        max-width: 10.5rem;
+        gap: 0.5rem;
+        overflow: hidden;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 8, 24, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #sticky-avatar-dock.is-visible {
+        display: flex !important;
+    }
+    #sticky-avatar-dock .avatar-shell {
+        position: relative;
+        top: 0;
+        flex-shrink: 0;
+        --avatar-size: 8.5rem;
+        width: 8.5rem;
+        height: 8.5rem;
+        border-radius: 50%;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+    }
+    #sticky-avatar-dock .avatar-label {
+        margin-top: 0.4rem;
+        font-size: 0.95rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(240, 220, 255, 0.95);
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    /* Sleek Apple VisionOS Liquid Glass Topbar */
+    #top-chrome {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(24px) saturate(1.8) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+        background: rgba(12, 8, 24, 0.65) !important;
+    }
+    #app-header {
+        height: 3.5rem !important;
+        min-height: 3.5rem !important;
+    }
+    /* Let chat messages area fill cleanly, offset below floating header */
+    #chat-stage {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
+    }
+    #chat-messages {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        padding-top: 4.5rem !important;
+    }
+    .message-container {
+        max-width: 54rem !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* ── Mode C Diagnostic MCQ Layer & Bounded Subgraph Styles ── */
+    .diagnostic-mcq-card {
+        background: linear-gradient(135deg, rgba(22, 17, 44, 0.9) 0%, rgba(11, 14, 28, 0.95) 100%);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        border-radius: 1.15rem;
+        box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 0 28px rgba(168, 85, 247, 0.2);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* 4-Radio Button Options - Spacious 2-Column Responsive Layout */
+    .mcq-radio-group {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+        margin-top: 1rem;
+    }
+    @media (min-width: 640px) {
+        .mcq-radio-group {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+    }
+    .mcq-radio-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 1.1rem 1.25rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }
+    .mcq-radio-label:hover:not(.disabled) {
+        border-color: rgba(168, 85, 247, 0.6);
+        background: rgba(168, 85, 247, 0.12);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.15);
+    }
+    .mcq-radio-input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 1.35rem;
+        height: 1.35rem;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        outline: none;
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: grid;
+        place-content: center;
+    }
+    .mcq-radio-input::before {
+        content: "";
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+        transform: scale(0);
+        transition: 120ms transform ease-in-out;
+        background-color: #a855f7;
+    }
+    .mcq-radio-input:checked {
+        border-color: #a855f7;
+        box-shadow: 0 0 14px rgba(168, 85, 247, 0.6);
+    }
+    .mcq-radio-input:checked::before {
+        transform: scale(1);
+    }
+    .mcq-radio-label:has(.mcq-radio-input:checked) {
+        border-color: #a855f7 !important;
+        background: rgba(168, 85, 247, 0.22) !important;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+    }
+    .mcq-radio-badge {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-weight: 800;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.12);
+        color: #f3f4f6;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+    .mcq-radio-text {
+        font-size: 0.925rem;
+        line-height: 1.5rem;
+        color: #f3f4f6;
+        font-weight: 500;
+        flex: 1;
+    }
+    .mcq-radio-label:has(.mcq-radio-input:checked) .mcq-radio-badge {
+        background: #a855f7;
+        color: #ffffff;
+    }
+    .mcq-radio-label.correct {
+        border-color: #10b981 !important;
+        background: rgba(16, 185, 129, 0.22) !important;
+        box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+    }
+    .mcq-radio-label.correct .mcq-radio-badge {
+        background: #10b981 !important;
+        color: #ffffff !important;
+    }
+    .mcq-radio-label.incorrect {
+        border-color: #f43f5e !important;
+        background: rgba(244, 63, 94, 0.2) !important;
+        box-shadow: 0 0 16px rgba(244, 63, 94, 0.3);
+    }
+    .mcq-radio-label.incorrect .mcq-radio-badge {
+        background: #f43f5e !important;
+        color: #ffffff !important;
+    }
+    .scrollable-graph-container {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-radius: 0.75rem;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(168, 85, 247, 0.4) rgba(0, 0, 0, 0.2);
+    }
+    .scrollable-graph-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    .scrollable-graph-container::-webkit-scrollbar-thumb {
+        background: rgba(168, 85, 247, 0.4);
+        border-radius: 4px;
+    }
+    .diagnostic-badge-foundational {
+        background: rgba(16, 185, 129, 0.18);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .diagnostic-badge-intermediate {
+        background: rgba(168, 85, 247, 0.18);
+        color: #c084fc;
+        border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+    .diagnostic-badge-advanced {
+        background: rgba(245, 158, 11, 0.18);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    /* Swipe transitions & animations */
+    @keyframes swipeOutLeft {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(-35px); }
+    }
+    @keyframes swipeInRight {
+        from { opacity: 0; transform: translateX(35px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes swipeInScale {
+        from { opacity: 0; transform: scale(0.96) translateY(8px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .swipe-out-left {
+        animation: swipeOutLeft 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+    .swipe-in-right {
+        animation: swipeInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+    .swipe-in-scale {
+        animation: swipeInScale 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+
+    /* Option Grid: Ensure 4 options never overflow horizontally */
+    .mcq-options-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+    }
+</style>
+
 </head>
 <body class="bg-darkBg text-gray-100 font-sans h-full overflow-hidden relative">
 
@@ -2732,9 +3094,31 @@
                    aria-hidden="true" tabindex="-1"></video>
             <div class="header-orb header-orb-a" aria-hidden="true"></div>
             <div class="header-orb header-orb-b" aria-hidden="true"></div>
-            <div></div>
+            <!-- Navigation Links (Chat Workspace) -->
+            <div class="flex items-center gap-2">
+                <div class="px-3 py-1.5 rounded-lg bg-accentPurple/25 text-white font-bold text-xs flex items-center gap-1.5 border border-accentPurple/50 shadow-sm" title="Chat Workspace">
+                    <i class="fa-solid fa-comments text-accentPink"></i>
+                    <span class="font-extrabold tracking-wide">Chat</span>
+                </div>
+            </div>
 
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-2">
+                <!-- Supabase Authentication Widget -->
+                <div id="auth-header-widget" class="flex items-center gap-1.5">
+                    <div id="user-profile-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-accentPurple/20 border border-accentPurple/40 text-xs text-white">
+                        <i class="fa-solid fa-user-shield text-accentPurple text-[11px]"></i>
+                        <span id="user-role-label" class="font-extrabold capitalize text-[11px]">Student</span>
+                        <span id="user-name-label" class="text-gray-300 text-[10px] hidden md:inline"></span>
+                        <button type="button" onclick="signOutSupabase()" class="ml-1 text-gray-400 hover:text-white text-[10px] cursor-pointer" title="Sign out of Supabase">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                    <a id="auth-login-link" href="/login" class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-accentPurple/30 to-accentPink/30 hover:from-accentPurple/50 hover:to-accentPink/50 text-white text-xs font-bold border border-white/20 flex items-center gap-1.5 transition-all shadow-sm">
+                        <i class="fa-solid fa-key text-[10px] text-amber-300"></i>
+                        <span>Sign In</span>
+                    </a>
+                </div>
+
                 <div id="connection-status" class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/35 border border-white/15 text-[10px] backdrop-blur-sm">
                     <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" id="status-dot"></span>
                     <span class="text-gray-200 font-medium hidden sm:inline" id="status-text">Checking...</span>
@@ -3054,11 +3438,11 @@ Live operations
         <button data-filter="gnn" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">GNN</button>
         <button data-filter="syllabi" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Syllabi</button>
     </div>
-    <!-- Document Type Selector -->
+    <!-- Document Collection / Provenance Selector -->
     <div id="type-filter" class="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold mt-1">
-        <button data-type-filter="all" class="flex-1 px-2.5 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all">All Docs</button>
-        <button data-type-filter="textbook" class="flex-1 px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Books Only</button>
-        <button data-type-filter="paper" class="flex-1 px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Papers Only</button>
+        <button data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center">All Docs</button>
+        <button data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Library / Pearson</button>
+        <button data-type-filter="open_source" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Peer-reviewed arXiv papers and open-access textbooks">🌐 Open-Source</button>
     </div>
     <div id="books-list" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1"></div>
 </div>
@@ -3165,6 +3549,86 @@ Back to Chat
     </div>
 </div>
 
+<!-- Interactive Concept Graph Mode Choice Modal (Personalized vs Normal) -->
+<div id="graph-choice-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="choice-modal-title">
+    <div class="relative w-full max-w-xl rounded-2xl glass border border-white/15 shadow-2xl overflow-hidden p-6 text-white space-y-5">
+        <!-- Close Button -->
+        <button onclick="dismissGraphChoiceModal()" type="button" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all cursor-pointer" aria-label="Close modal">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+
+        <!-- Header -->
+        <div class="space-y-1.5 pr-8">
+            <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-accentPurple/25 border border-accentPurple/40 text-accentPurple uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-compass"></i> Knowledge Graph Exploration
+                </span>
+                <span id="choice-concept-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400/20 border border-amber-400/40 text-amber-300 truncate max-w-[180px]">Concept</span>
+            </div>
+            <h3 id="choice-modal-title" class="text-lg sm:text-xl font-black text-white tracking-tight">
+                Want a Personalized Graph or a Normal One?
+            </h3>
+            <p class="text-xs text-gray-300 leading-relaxed">
+                Choose how you would like to explore this concept in Archipelago:
+            </p>
+        </div>
+
+        <!-- Options Container -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            <!-- Option 1: Personalized Graph -->
+            <div id="choice-card-personalized" tabindex="0" onclick="chooseGraphExperience('personalized')" class="group relative p-4 rounded-xl border border-accentPurple/50 bg-gradient-to-br from-accentPurple/20 via-white/5 to-transparent hover:border-accentPurple hover:from-accentPurple/30 transition-all cursor-pointer flex flex-col justify-between space-y-3 shadow-lg shadow-accentPurple/10 focus:outline-none focus:ring-2 focus:ring-accentPurple">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="w-8 h-8 rounded-lg bg-accentPurple/30 border border-accentPurple/50 flex items-center justify-center text-accentPurple group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-graduation-cap text-sm"></i>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-mono font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Recommended</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-white group-hover:text-accentPurple transition-colors flex items-center gap-1.5">
+                            Personalized Graph
+                        </h4>
+                        <p class="text-[11px] text-gray-300 mt-1 leading-snug">
+                            Start a quick 3-question diagnostic quiz. Archipelago checks your prerequisite knowledge and maps a custom roadmap highlighting your mastered topics and review gaps.
+                        </p>
+                    </div>
+                </div>
+                <button type="button" class="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-accentPurple to-indigo-600 group-hover:brightness-110 text-white font-bold text-xs shadow-md shadow-accentPurple/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>Start Q&A Quiz</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+
+            <!-- Option 2: Normal Graph -->
+            <div id="choice-card-normal" tabindex="0" onclick="chooseGraphExperience('normal')" class="group relative p-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/25 transition-all cursor-pointer flex flex-col justify-between space-y-3 focus:outline-none focus:ring-2 focus:ring-white/40">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-diagram-project text-sm"></i>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-mono font-extrabold uppercase bg-white/10 text-gray-300 border border-white/15">Standard</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-white group-hover:text-amber-200 transition-colors flex items-center gap-1.5">
+                            Normal Graph
+                        </h4>
+                        <p class="text-[11px] text-gray-400 mt-1 leading-snug">
+                            Directly explore standard node topology, prerequisite connections, and unlocked concepts ("this type of !") without answering questions.
+                        </p>
+                    </div>
+                </div>
+                <button type="button" class="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-gray-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>View Normal Graph</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-gray-400 pt-2 border-t border-white/10">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-keyboard text-[10px]"></i> Press <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-gray-300 font-mono text-[10px]">Esc</kbd> to dismiss or choose later</span>
+            <button onclick="chooseGraphExperience('normal')" type="button" class="text-gray-400 hover:text-white underline cursor-pointer">Skip directly to normal graph</button>
+        </div>
+    </div>
+</div>
+
 <script>
 window.addEventListener('popstate', (e) => {
     const readingModal = document.getElementById('reading-modal');
@@ -3174,6 +3638,10 @@ window.addEventListener('popstate', (e) => {
     const roadmapModal = document.getElementById('roadmap-modal');
     if (roadmapModal && !roadmapModal.classList.contains('hidden')) {
         closeRoadmapModal(true);
+    }
+    const choiceModal = document.getElementById('graph-choice-modal');
+    if (choiceModal && !choiceModal.classList.contains('hidden')) {
+        dismissGraphChoiceModal();
     }
 });
 </script>
@@ -4030,14 +4498,18 @@ let conversationSessionId = null;
                 marker.textContent = citation.evidence_id || 'Evidence';
                 const page = document.createElement('span');
                 const pageNum = Number(citation.page_number || citation.page || 0);
+                const shelf = citation.shelf_location ? ` · 📍 ${citation.shelf_location}` : '';
+                const callNum = citation.call_number ? ` [${citation.call_number}]` : '';
+                const scope = citation.library_scope ? ` · 🏛️ ${citation.library_scope}` : '';
                 if (citation.available_copies != null || citation.total_copies != null || citation.is_reference != null) {
                     const ref = citation.is_reference ? 'Reference' : 'Circulating';
                     const avail = citation.available_copies != null ? citation.available_copies : '?';
                     const total = citation.total_copies != null ? citation.total_copies : '?';
-                    page.textContent = `${ref} · ${avail}/${total} copies` + (citation.shelf_location ? ` · ${citation.shelf_location}` : '') + ' · simulated — check OPAC';
+                    page.textContent = `${ref} · ${avail}/${total} copies${shelf}${callNum}${scope} · simulated — check OPAC`;
                 } else {
-                    page.textContent = citation.printed_page
+                    const pageText = citation.printed_page
                         || (Number.isFinite(pageNum) && pageNum > 0 ? `PDF page ${pageNum}` : 'Page not reported');
+                    page.textContent = `${pageText}${shelf}${callNum}${scope}`;
                 }
                 const availability = document.createElement('span');
                 availability.className = 'evidence-card__availability' + (url ? '' : ' is-missing');
@@ -4056,6 +4528,157 @@ let conversationSessionId = null;
                 messageBody.appendChild(rail);
             }
         }
+
+        function wrapLibraryInventorySection(messageBody, metadata) {
+            if (!messageBody) return;
+
+            // 1. Identify any table already generated via markdown
+            const tables = Array.from(messageBody.querySelectorAll('table'));
+            let inventoryTable = null;
+            for (const tbl of tables) {
+                if (tbl.closest('.library-inventory-section')) {
+                    inventoryTable = tbl;
+                    break;
+                }
+                const text = (tbl.textContent || '').toLowerCase();
+                if (text.includes('book') || text.includes('shelf') || text.includes('copies') || text.includes('library scope') || text.includes('status')) {
+                    inventoryTable = tbl;
+                    break;
+                }
+            }
+
+            // Find heading if present
+            const headings = Array.from(messageBody.querySelectorAll('h3, h4'));
+            let holdingsHeading = null;
+            for (const h of headings) {
+                if (/Library holdings/i.test(h.textContent)) {
+                    holdingsHeading = h;
+                    break;
+                }
+            }
+
+            let container = messageBody.querySelector('.library-inventory-section');
+
+            if (inventoryTable && !container) {
+                container = document.createElement('section');
+                container.className = 'library-inventory-section';
+
+                const prevDisclaimer = holdingsHeading && holdingsHeading.nextElementSibling && holdingsHeading.nextElementSibling.tagName === 'P' ? holdingsHeading.nextElementSibling : null;
+                
+                const insertBeforeTarget = holdingsHeading || inventoryTable;
+                if (insertBeforeTarget && insertBeforeTarget.parentNode) {
+                    insertBeforeTarget.parentNode.insertBefore(container, insertBeforeTarget);
+                } else {
+                    messageBody.appendChild(container);
+                }
+
+                container.innerHTML = `
+                    <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
+                        <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
+                            <i class="fa-solid fa-book-bookmark text-sky-400"></i> Institutional Library Inventory
+                        </span>
+                        <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> OPAC Linked
+                        </span>
+                    </div>
+                `;
+
+                if (holdingsHeading) container.appendChild(holdingsHeading);
+                if (prevDisclaimer) container.appendChild(prevDisclaimer);
+                
+                const scrollWrap = document.createElement('div');
+                scrollWrap.className = 'inventory-table-wrap overflow-x-auto w-full';
+                scrollWrap.appendChild(inventoryTable);
+                container.appendChild(scrollWrap);
+            } else if (!inventoryTable && !container && metadata) {
+                // Synthesize inventory table from metadata citations/books if not present in markdown prose
+                const citations = getResponseCitations(metadata);
+                if (citations && citations.length) {
+                    container = document.createElement('section');
+                    container.className = 'library-inventory-section';
+                    container.innerHTML = `
+                        <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
+                            <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
+                                <i class="fa-solid fa-book-bookmark text-sky-400"></i> Institutional Library Inventory
+                            </span>
+                            <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> OPAC Linked
+                            </span>
+                        </div>
+                        <h4 class="text-xs text-gray-400 mb-2 font-medium italic">⚠️ Simulated inventory — check OPAC for live availability</h4>
+                    `;
+                    const scrollWrap = document.createElement('div');
+                    scrollWrap.className = 'inventory-table-wrap overflow-x-auto w-full';
+                    const tbl = document.createElement('table');
+                    tbl.className = 'w-full text-left text-xs';
+                    tbl.innerHTML = `
+                        <thead>
+                            <tr class="border-b border-sky-500/30 text-sky-400">
+                                <th class="py-2 px-3">Book / Resource</th>
+                                <th class="py-2 px-3">Call #</th>
+                                <th class="py-2 px-3">Shelf Location</th>
+                                <th class="py-2 px-3">Library Scope</th>
+                                <th class="py-2 px-3 text-right">Copies</th>
+                                <th class="py-2 px-3 text-right">Avail</th>
+                                <th class="py-2 px-3">Status</th>
+                                <th class="py-2 px-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${citations.map(c => {
+                                const title = c.title || c.document_title || c.doc_id || 'Resource';
+                                const callNum = c.call_number || 'QA76.00 C67';
+                                const shelf = c.shelf_location || 'CORPUS-01';
+                                const scope = c.library_scope || (c.is_reference ? 'Central Library · Reference Section' : 'Central Library · Main Stack');
+                                const total = c.total_copies != null ? c.total_copies : 4;
+                                const avail = c.available_copies != null ? c.available_copies : 3;
+                                const isRef = !!c.is_reference;
+                                const status = isRef ? 'Available (Reference)' : 'Available (Circulating)';
+                                const url = citationPageUrl(c);
+                                const pageNum = c.page_number || 1;
+                                return `
+                                    <tr class="border-b border-white/5 hover:bg-sky-500/5 transition-colors">
+                                        <td class="py-2.5 px-3 font-semibold text-gray-200">${escapeHTML(title)}</td>
+                                        <td class="py-2.5 px-3 font-mono text-[11px] text-sky-300">${escapeHTML(callNum)}</td>
+                                        <td class="py-2.5 px-3 text-gray-300">${escapeHTML(shelf)}</td>
+                                        <td class="py-2.5 px-3 text-gray-300">${escapeHTML(scope)}</td>
+                                        <td class="py-2.5 px-3 text-right text-gray-400">${total}</td>
+                                        <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${avail}</td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${isRef ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">
+                                                ${status}
+                                            </span>
+                                        </td>
+                                        <td class="py-2.5 px-3 text-center">
+                                            ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 hover:text-white border border-sky-500/40 text-[11px] font-medium transition-all">p.${pageNum} ↗</a>` : '<span class="text-gray-500 text-[11px]">—</span>'}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    `;
+                    scrollWrap.appendChild(tbl);
+                    container.appendChild(scrollWrap);
+                    const zone = messageBody.querySelector('[id^="interactive-zone-"]');
+                    if (zone) {
+                        messageBody.insertBefore(container, zone);
+                    } else {
+                        messageBody.appendChild(container);
+                    }
+                }
+            }
+
+            // If a quiz is active on this message card, ensure container is hidden
+            const matchMsg = messageBody.id && messageBody.id.match(/^msg-body-(.+)$/);
+            if (matchMsg && matchMsg[1] && container) {
+                const id = matchMsg[1];
+                const state = window._adaptiveState && window._adaptiveState[id];
+                if (state && state.current_mcq && !state.completed) {
+                    container.classList.add('hidden');
+                }
+            }
+        }
+        window.wrapLibraryInventorySection = wrapLibraryInventorySection;
 
         function renderCurriculumPaths(paths) {
             if (!Array.isArray(paths) || !paths.length) return '';
@@ -4467,6 +5090,34 @@ const CATALOG_55 = [
     { id: 'artificial_intelligence_a_new_synthesis_1998', title: 'Artificial Intelligence: A New Synthesis', authors: 'Nils J. Nilsson', year: 1998, cat: 'textbook', dom: 'syllabi', pdf: 'archipelago-books-cs/artificial_intelligence_a_new_synthesis_1998/1---Introduction_1998_Artificial-Intelligence--A-New-Synthesis.pdf', topics: ['AI Search', 'Planning', 'Logic'] }
 ];
 
+function getDocCollection(doc) {
+    if (!doc) return 'open_source';
+    if (doc.collection === 'library_pearson' || doc.tier === 'pearson' || doc.source_tier === 'pearson') return 'library_pearson';
+    if (doc.collection === 'open_source' || doc.tier === 'open_source') return 'open_source';
+
+    const id = (doc.id || '').toLowerCase();
+    const pdf = (doc.pdf || '').toLowerCase();
+    const title = (doc.title || '').toLowerCase();
+    const authors = (doc.authors || '').toLowerCase();
+
+    if (id.startsWith('textbooks/') || pdf.startsWith('textbooks/') || pdf.includes('archipelago-books-cs/')) {
+        return 'library_pearson';
+    }
+    const libraryKeywords = [
+        'pearson', 'silberschatz', 'ramakrishnan', 'deisenroth', 'cormen', 'clrs', 'weiss',
+        'bishop', 'pattern_recognition', 'predictive_analytics', 'data_science',
+        'knowledge_representation', 'artificial_intelligence_a_new_synthesis',
+        'database_system_concepts', 'database_management_systems', 'operating_system_concepts'
+    ];
+    for (let i = 0; i < libraryKeywords.length; i++) {
+        const kw = libraryKeywords[i];
+        if (id.includes(kw) || pdf.includes(kw) || title.includes(kw) || authors.includes(kw)) {
+            return 'library_pearson';
+        }
+    }
+    return 'open_source';
+}
+
 function getCategory(docId) {
     for (let i = 0; i < CATALOG_55.length; i++) {
         if (CATALOG_55[i].id === docId || CATALOG_55[i].pdf === docId) return CATALOG_55[i].dom;
@@ -4530,8 +5181,10 @@ function displayBooks() {
     Object.keys(GLOBAL_DOC_MAP).forEach(k => {
         const doc = GLOBAL_DOC_MAP[k];
         if (currentFilter !== 'all' && doc.dom !== currentFilter) return;
-        if (currentTypeFilter !== 'all' && doc.cat !== currentTypeFilter) {
-            // Note: If syllabus is included, maybe treat as paper/all. But strict match on type filter.
+        if (currentTypeFilter !== 'all') {
+            const col = getDocCollection(doc);
+            if (currentTypeFilter === 'library_pearson' && col !== 'library_pearson') return;
+            if (currentTypeFilter === 'open_source' && col !== 'open_source') return;
             if (currentTypeFilter === 'paper' && doc.cat !== 'paper') return;
             if (currentTypeFilter === 'textbook' && doc.cat !== 'textbook') return;
         }
@@ -4582,13 +5235,21 @@ function displayBooks() {
                 topics: doc.topics || []
             });
             
+            const col = getDocCollection(doc);
+            const colBadge = col === 'library_pearson'
+                ? `<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/35 font-semibold shrink-0" title="Pearson eLibrary & Central Library Holding">🏛️ Pearson / Library</span>`
+                : `<span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/35 font-semibold shrink-0" title="Peer-reviewed Open-Source Paper & Open Textbook">${doc.cat === 'paper' ? '🌐 Open Paper' : '🌐 Open Access'}</span>`;
+
             const tlist = doc.topics ? doc.topics.slice(0, 2).map(escapeHTML).join(', ') : '';
             btn.innerHTML = `
                 <div class="w-9 h-9 flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110">
                     <img src="${typeImg}" class="w-full h-full object-contain" alt="${doc.cat}">
                 </div>
                 <div class="min-w-0 flex-1">
-                    <p class="text-sm font-bold text-gray-100 truncate group-hover:text-white transition-colors">${escapeHTML(doc.title)}</p>
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                        <p class="text-sm font-bold text-gray-100 truncate group-hover:text-white transition-colors flex-1">${escapeHTML(doc.title)}</p>
+                        ${colBadge}
+                    </div>
                     <div class="flex items-center justify-between text-[11px] text-gray-400 mt-0.5 gap-2">
                         <span class="truncate max-w-[55%]">${escapeHTML(doc.authors || 'Corpus')}${doc.year ? ' ('+doc.year+')' : ''}</span>
                         ${tlist ? `<span class="text-accentCyan font-semibold truncate max-w-[40%]">${tlist}</span>` : ''}
@@ -4654,18 +5315,8 @@ function resolveLibraryReaderLink(book) {
         .replace(/^pdfs\//i, '');
     const pdf = rawPdf.toLowerCase();
     const cat = String(book.cat || book.type || book.kind || '').toLowerCase();
+    const page = Number(book.page_number || book.page) || 1;
 
-    const RULES = [
-        { id: 'ostep_three_easy_pieces', test: (t, p) => p.includes('ostep') || t.includes('three easy pieces') || t.includes('ostep') },
-        { id: 'operating_system_concepts_silberschatz', test: (t, p) => t.includes('operating system concepts') || p.includes('operating_system_concepts') },
-        { id: 'introduction_to_algorithms_clrs', test: (t, p) => t.includes('introduction to algorithms') || t.includes('clrs') || p.includes('introduction_to_algorithms') },
-        { id: 'data_structures_algorithm_analysis_weiss', test: (t, p) => t.includes('data structures and algorithm analysis') || p.includes('data_structures_algorithm') },
-        { id: 'database_management_systems_ramakrishnan', test: (t, p) => (t.includes('database management systems') && !t.includes('concepts')) || p.includes('database_management_systems_ramakrishnan') },
-        { id: 'database_system_concepts_silberschatz', test: (t, p) => t.includes('database system concepts') || p.includes('database_system_concepts') },
-        { id: 'mml_deisenroth', test: (t, p) => t.includes('mathematics for machine learning') || p.includes('deisenroth') || p.includes('math_for_ml') },
-    ];
-
-    const page = Number(book.page_number || book.page) || 0;
     const buildHref = (bookId, pdfPath) => {
         const params = new URLSearchParams();
         params.set('book', bookId);
@@ -4674,15 +5325,26 @@ function resolveLibraryReaderLink(book) {
         return '/library?' + params.toString() + '#book-reader';
     };
 
+    const RULES = [
+        { id: 'attention_is_all_you_need', test: (t, p) => p.includes('vaswani') || t.includes('attention is all you need') || p.includes('attention_is_all_you_need') },
+        { id: 'deep_learning_goodfellow', test: (t, p) => p.includes('goodfellow') || t.includes('deep learning') },
+        { id: 'operating_systems_three_easy_pieces', test: (t, p) => p.includes('ostep') || t.includes('three easy pieces') || t.includes('ostep') || p.includes('operating_systems_three_easy_pieces') },
+        { id: 'database_system_concepts', test: (t, p) => t.includes('database system concepts') || p.includes('database_system_concepts') },
+        { id: 'lora_paper', test: (t, p) => p.includes('lora') || t.includes('low-rank adaptation') || p.includes('hu2021') || t.includes('lora') },
+        { id: 'math_for_ml', test: (t, p) => t.includes('mathematics for machine learning') || p.includes('deisenroth') || p.includes('math_for_ml') },
+        { id: 'bert_paper', test: (t, p) => p.includes('bert') || t.includes('bert') || p.includes('devlin') },
+        { id: 'rag_paper', test: (t, p) => p.includes('rag') || t.includes('retrieval-augmented generation') || t.includes('retrieval augmented generation') || p.includes('lewis2020') },
+        { id: 'database_management_systems_ramakrishnan', test: (t, p) => (t.includes('database management systems') && !t.includes('concepts')) || p.includes('database_management_systems_ramakrishnan') },
+        { id: 'operating_system_concepts_silberschatz', test: (t, p) => t.includes('operating system concepts') || p.includes('operating_system_concepts') || t.includes('dinosaur') },
+        { id: 'introduction_to_algorithms_clrs', test: (t, p) => t.includes('introduction to algorithms') || t.includes('clrs') || p.includes('introduction_to_algorithms') },
+        { id: 'data_structures_algorithm_analysis_weiss', test: (t, p) => t.includes('data structures and algorithm analysis') || p.includes('data_structures_algorithm') },
+    ];
+
     for (let i = 0; i < RULES.length; i++) {
         if (RULES[i].test(title, pdf)) {
             let pdfPath = rawPdf;
-            if (pdfPath && /\.pdf$/i.test(pdfPath) && (pdfPath.includes('ostep') || RULES[i].id === 'ostep_three_easy_pieces')) {
+            if (pdfPath && /\.pdf$/i.test(pdfPath) && (pdfPath.includes('ostep') || RULES[i].id === 'operating_systems_three_easy_pieces')) {
                 if (!pdfPath.includes('/')) pdfPath = 'ostep_three_easy_pieces/' + pdfPath;
-            } else if (RULES[i].id === 'ostep_three_easy_pieces' && !(pdfPath && /\.pdf$/i.test(pdfPath))) {
-                pdfPath = 'ostep_three_easy_pieces/01_Introduction.pdf';
-            } else if (!(pdfPath && /\.pdf$/i.test(pdfPath))) {
-                pdfPath = '';
             }
             return buildHref(RULES[i].id, pdfPath || undefined);
         }
@@ -4700,20 +5362,20 @@ function resolveLibraryReaderLink(book) {
     }
 
     // Textbook / book card without local PDF still opens library details (metadata / Pearson).
-    if (cat === 'textbook' || cat === 'book' || cat === 'hardcopy' || cat === 'ebook') {
+    if (cat === 'textbook' || cat === 'book' || cat === 'hardcopy' || cat === 'ebook' || book.title) {
         const bookKey = String(book.id || book.title || 'book')
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '_')
             .replace(/^_|_$/g, '')
             .slice(0, 64);
-        if (bookKey) return buildHref(bookKey, undefined);
+        if (bookKey) return buildHref(bookKey, rawPdf || undefined);
     }
-    return null;
+    return buildHref('doc', rawPdf || undefined);
 }
 
 function openBookOrUnavailable(book) {
-    // Stack-of-Books: always prefer Library details reader (#book-reader) so the
-    // student lands on the same PDF pane as /library — not a chat-only modal.
+    // Stack-of-Books: always route to Library details reader (#book-reader) so the
+    // student lands on the same PDF pane as /library — exact book and page.
     const libraryHref = resolveLibraryReaderLink(book);
     if (libraryHref) {
         window.location.href = libraryHref;
@@ -5343,6 +6005,9 @@ currentMode = mode;
             if (isGenerating) {
                 stopGeneration();
             }
+            if (typeof dismissGraphChoiceModal === 'function') {
+                dismissGraphChoiceModal();
+            }
 
             const inputEl = document.getElementById('chat-input');
             const inputVal = (inputEl ? inputEl.value : '').trim();
@@ -5582,6 +6247,7 @@ currentMode = mode;
                     // finalized — innerHTML above wipes any prior evidence rail.
                     if (bubbleFinalized && window._lastChatMetadata) {
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
+                        wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
                     if (chatMsgs && !userScrolledUp) {
                         chatMsgs.scrollTop = chatMsgs.scrollHeight;
@@ -5665,9 +6331,10 @@ currentMode = mode;
                         }
                         // Always re-mount paper cards after markdown paint.
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
+                        wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
-                    if (firstFinalize && window._lastChatMetadata && typeof renderHorizontalGraphCard === 'function') {
-                        renderHorizontalGraphCard(assistantMsgId, window._lastChatMetadata);
+                    if (firstFinalize && window._lastChatMetadata && typeof renderGraphExperiencePrompt === 'function') {
+                        renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
                     }
                     if (firstFinalize && window._lastChatMetadata && (window._lastChatMetadata.mode === 'roadmap_assessment' || window._lastChatMetadata.mode === 'roadmap_probe') && typeof handleRoadmapMetadata === 'function') {
                         handleRoadmapMetadata(window._lastChatMetadata, msgEl);
@@ -5804,6 +6471,7 @@ currentMode = mode;
                         finalizeStreamedBubble();
                         if (msgEl && window._lastChatMetadata) {
                             appendEvidenceRail(msgEl, window._lastChatMetadata);
+                            wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                         }
                         isGenerating = false;
                         try { window.isGenerating = false; } catch (_) {}
@@ -6170,8 +6838,9 @@ currentMode = mode;
                     if (typeof _enrichAssistantMarkup === 'function') _enrichAssistantMarkup(el);
                     // Resources rail AFTER markdown paint so it is not wiped
                     appendEvidenceRail(el, metadata || citations);
-                    if (metadata && typeof renderHorizontalGraphCard === 'function') {
-                        renderHorizontalGraphCard(msgId, metadata);
+                    if (typeof wrapLibraryInventorySection === 'function') wrapLibraryInventorySection(el, metadata);
+                    if (metadata && typeof renderGraphExperiencePrompt === 'function') {
+                        renderGraphExperiencePrompt(msgId, metadata, { showPopup: false });
                     }
                     _addChatBubbleEffects(el);
                 }
@@ -6784,6 +7453,330 @@ currentMode = mode;
         }
         window.updateGraphToggleUI = updateGraphToggleUI;
 
+        // ── Interactive Concept Graph Mode Choice (Personalized vs Normal) ──
+        window._activeChoiceContext = window._activeChoiceContext || null;
+
+        function getOrCreateInteractiveZone(msgId) {
+            const msgEl = document.getElementById(`msg-body-${msgId}`);
+            if (!msgEl) return null;
+            let zone = document.getElementById(`interactive-zone-${msgId}`);
+            if (!zone) {
+                zone = document.createElement('div');
+                zone.id = `interactive-zone-${msgId}`;
+                zone.className = 'w-full mt-4 pt-3 border-t border-white/10 relative overflow-hidden transition-all duration-300';
+                msgEl.appendChild(zone);
+            }
+            return zone;
+        }
+        window.getOrCreateInteractiveZone = getOrCreateInteractiveZone;
+
+        function showGraphChoiceModal(msgId, metadata) {
+            // Dismiss and suppress modal popup; interactive choice is rendered directly inside the chat card
+            dismissGraphChoiceModal();
+        }
+        window.showGraphChoiceModal = showGraphChoiceModal;
+
+        function dismissGraphChoiceModal() {
+            const modal = document.getElementById('graph-choice-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        window.dismissGraphChoiceModal = dismissGraphChoiceModal;
+
+        function chooseGraphExperience(choice, explicitMsgId) {
+            const ctx = window._activeChoiceContext || {};
+            const msgId = explicitMsgId || ctx.msgId;
+            const metadata = ctx.metadata || window._lastChatMetadata;
+            dismissGraphChoiceModal();
+
+            if (!msgId || !metadata) return;
+            const anchor = metadata.anchor_concept;
+            const anchorId = _nodeId(anchor);
+
+            try {
+                localStorage.setItem('archipelago_choice_' + anchorId, choice);
+            } catch (_) {}
+
+            try {
+                fetch('/api/chat/telemetry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: 'graph_choice', mode: choice, concept_id: anchorId })
+                }).catch(() => {});
+            } catch (_) {}
+
+            const promptEl = document.getElementById(`interactive-prompt-${msgId}`);
+            if (promptEl) {
+                promptEl.classList.add('swipe-out-left');
+            }
+
+            setTimeout(() => {
+                if (choice === 'personalized') {
+                    startPersonalizedQnA(msgId, metadata);
+                } else {
+                    renderHorizontalGraphCard(msgId, metadata);
+                }
+            }, 200);
+        }
+        window.chooseGraphExperience = chooseGraphExperience;
+
+        function renderGraphExperiencePrompt(msgId, metadata, options = {}) {
+            if (window.showGraphCards === false) return;
+            if (!metadata || !metadata.anchor_concept) return;
+
+            dismissGraphChoiceModal();
+            const zone = getOrCreateInteractiveZone(msgId);
+            if (!zone) return;
+
+            window._activeChoiceContext = { msgId, metadata };
+            const anchorLabel = _nodeLabel(metadata.anchor_concept) || 'Concept';
+
+            zone.innerHTML = `
+                <div id="interactive-prompt-${msgId}" class="p-4 rounded-2xl glass border border-accentPurple/40 bg-gradient-to-r from-accentPurple/20 via-black/60 to-accentCyan/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 shadow-2xl swipe-in-right">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-accentPurple/30 border border-accentPurple/50 flex items-center justify-center text-accentPurple shrink-0 shadow-sm">
+                            <i class="fa-solid fa-compass text-base"></i>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <div class="text-xs font-extrabold text-white flex items-center gap-2 truncate">
+                                <span>Personalized Graph or Normal Concept Graph?</span>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-accentPurple/30 border border-accentPurple/50 text-accentPurple truncate max-w-[150px]">${escapeHTML(anchorLabel)}</span>
+                            </div>
+                            <span class="text-[11px] text-gray-300 font-medium">Take an on-the-spot adaptive diagnostic quiz, or explore the standard multi-hop concept graph.</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
+                        <button onclick="chooseGraphExperience('personalized', '${msgId}')" type="button" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-accentPurple to-indigo-600 hover:brightness-110 text-white font-extrabold text-xs shadow-lg shadow-accentPurple/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-graduation-cap text-xs"></i> <span>Yes, Start Diagnostic</span>
+                        </button>
+                        <button onclick="chooseGraphExperience('normal', '${msgId}')" type="button" class="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-gray-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-diagram-project text-xs"></i> <span>No, Show Full Graph</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        window.renderGraphExperiencePrompt = renderGraphExperiencePrompt;
+
+        async function startPersonalizedQnA(msgId, metadata) {
+            const anchor = metadata.anchor_concept;
+            const anchorId = _nodeId(anchor);
+            const anchorLabel = _nodeLabel(anchor) || 'Target Concept';
+            const zone = getOrCreateInteractiveZone(msgId);
+            if (!zone) return;
+
+            zone.innerHTML = `
+                <div id="skel-mcq-${msgId}" class="diagnostic-mcq-card p-5 space-y-4 animate-pulse border border-accentPurple/30 rounded-2xl bg-panelBg/95 swipe-in-right">
+                    <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-accentPurple/30"></div>
+                            <div class="space-y-1">
+                                <div class="h-3.5 w-48 rounded bg-white/20"></div>
+                                <div class="h-2.5 w-64 rounded bg-white/10"></div>
+                            </div>
+                        </div>
+                        <div class="h-6 w-24 rounded bg-white/10"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="p-4 rounded-xl bg-white/5 space-y-2">
+                            <div class="h-3 w-1/3 rounded bg-white/20"></div>
+                            <div class="h-3 w-4/5 rounded bg-white/10"></div>
+                            <div class="mcq-options-grid mt-3">
+                                <div class="h-12 rounded-xl bg-white/5"></div>
+                                <div class="h-12 rounded-xl bg-white/5"></div>
+                                <div class="h-12 rounded-xl bg-white/5"></div>
+                                <div class="h-12 rounded-xl bg-white/5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const resp = await fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(anchorId)}`);
+                const data = await resp.json();
+
+                if (data && data.success !== false && (data.initial_question || (data.mcqs && data.mcqs.length))) {
+                    window._adaptiveState = window._adaptiveState || {};
+                    const initialQ = data.initial_question || data.mcqs[0];
+                    window._adaptiveState[msgId] = {
+                        metadata: metadata,
+                        target_concept: data.target_concept || anchorId,
+                        target_label: anchorLabel,
+                        chain: data.chain || [],
+                        prereq_chain: data.prereq_chain || [],
+                        immediate_prerequisite: data.immediate_prerequisite,
+                        current_concept: (initialQ && initialQ.concept_id) || data.immediate_prerequisite || anchorId,
+                        current_mcq: initialQ,
+                        consecutive_ticks: 0,
+                        question_count: 1,
+                        max_questions: 10,
+                        min_questions: 5,
+                        history: [],
+                        eval_stack: data.eval_stack || [],
+                        mastered: [],
+                        gaps: [],
+                        selected_option: null,
+                        submitted: false
+                    };
+                    try {
+                        sessionStorage.setItem('archipelago_adaptive_' + msgId, JSON.stringify(window._adaptiveState[msgId]));
+                    } catch (_) {}
+
+                    // Hide evidence rail (resources) while quiz is active
+                    const msgEl = document.getElementById(`msg-body-${msgId}`);
+                    if (msgEl) {
+                        const rail = msgEl.querySelector('.evidence-rail');
+                        if (rail) rail.classList.add('hidden');
+                        const inv = msgEl.querySelector('.library-inventory-section');
+                        if (inv) inv.classList.add('hidden');
+                    }
+
+                    renderAdaptiveMCQCard(msgId);
+                } else {
+                    renderHorizontalGraphCard(msgId, metadata);
+                }
+            } catch (err) {
+                console.error('Error fetching diagnostic MCQs:', err);
+                renderHorizontalGraphCard(msgId, metadata);
+            }
+        }
+        window.startPersonalizedQnA = startPersonalizedQnA;
+
+        function switchToPersonalizedGraph(msgId) {
+            // 1. Check if an active quiz state exists in memory — RESUME without resetting to Q1!
+            const state = (window._adaptiveState && window._adaptiveState[msgId]);
+            if (state && state.current_mcq) {
+                const anchorId = state.target_concept || (state.metadata && _nodeId(state.metadata.anchor_concept));
+                try { localStorage.setItem('archipelago_choice_' + anchorId, 'personalized'); } catch (_) {}
+                const zone = getOrCreateInteractiveZone(msgId);
+                if (zone) {
+                    zone.innerHTML = '';
+                    renderAdaptiveMCQCard(msgId);
+                    // Hide resources while quiz is active
+                    const msgEl = document.getElementById(`msg-body-${msgId}`);
+                    if (msgEl) {
+                        const rail = msgEl.querySelector('.evidence-rail');
+                        if (rail) rail.classList.add('hidden');
+                        const inv = msgEl.querySelector('.library-inventory-section');
+                        if (inv) inv.classList.add('hidden');
+                    }
+                }
+                return;
+            }
+
+            // 2. Check sessionStorage for persisted quiz progress
+            try {
+                const saved = sessionStorage.getItem('archipelago_adaptive_' + msgId);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.current_mcq) {
+                        window._adaptiveState = window._adaptiveState || {};
+                        window._adaptiveState[msgId] = parsed;
+                        const zone = getOrCreateInteractiveZone(msgId);
+                        if (zone) {
+                            zone.innerHTML = '';
+                            renderAdaptiveMCQCard(msgId);
+                            const msgEl = document.getElementById(`msg-body-${msgId}`);
+                            if (msgEl) {
+                                const rail = msgEl.querySelector('.evidence-rail');
+                                if (rail) rail.classList.add('hidden');
+                                const inv = msgEl.querySelector('.library-inventory-section');
+                                if (inv) inv.classList.add('hidden');
+                            }
+                            return;
+                        }
+                    }
+                }
+            } catch (_) {}
+
+            // 3. Fall back to fresh start only if no quiz in progress
+            const meta = (state && state.metadata) || window._lastChatMetadata;
+            if (meta) {
+                const anchorId = _nodeId(meta.anchor_concept);
+                try { localStorage.setItem('archipelago_choice_' + anchorId, 'personalized'); } catch (_) {}
+                startPersonalizedQnA(msgId, meta);
+            }
+        }
+        window.switchToPersonalizedGraph = switchToPersonalizedGraph;
+
+        function switchToNormalGraph(msgId) {
+            const state = (window._adaptiveState && window._adaptiveState[msgId]) || (window._diagnosticState && window._diagnosticState[msgId]);
+            const meta = (state && state.metadata) || window._lastChatMetadata;
+            if (meta) {
+                const anchorId = _nodeId(meta.anchor_concept);
+                try { localStorage.setItem('archipelago_choice_' + anchorId, 'normal'); } catch (_) {}
+                // Unhide resources when viewing full normal graph
+                const msgEl = document.getElementById(`msg-body-${msgId}`);
+                if (msgEl) {
+                    const rail = msgEl.querySelector('.evidence-rail');
+                    if (rail) rail.classList.remove('hidden');
+                    const inv = msgEl.querySelector('.library-inventory-section');
+                    if (inv) inv.classList.remove('hidden');
+                }
+                renderHorizontalGraphCard(msgId, meta);
+            }
+        }
+        window.switchToNormalGraph = switchToNormalGraph;
+
+        function openPrerequisiteRemediationReader(docId, pageNum, conceptName, summary) {
+            const pdfPath = docId ? (docId.startsWith('/') ? docId : '/' + docId) : '';
+            const fullPdf = pdfPath ? `/pdfs${pdfPath}#page=${pageNum || 1}&zoom=page-fit` : '';
+            if (typeof openReadingMode === 'function') {
+                openReadingMode({
+                    title: `Prerequisite Review: ${conceptName}`,
+                    type: 'textbook',
+                    pdf: fullPdf,
+                    page: pageNum || 1,
+                    preferSummary: !fullPdf,
+                    preferSplit: false,
+                    hideViewToggle: !!fullPdf,
+                    content: `
+                        <div class="space-y-3 p-3">
+                            <div class="passage-meta-card p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                                <span class="text-[10px] uppercase font-bold text-amber-300">Prerequisite Knowledge Gap</span>
+                                <h4 class="text-sm font-bold text-white mt-1">${escapeHTML(conceptName)}</h4>
+                                <p class="text-xs text-gray-300 mt-1">Textbook Page Citation: ${docId || 'Core Corpus'} p. ${pageNum || 1}</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-white/5 border border-white/10 text-xs text-gray-200 leading-relaxed">
+                                ${escapeHTML(summary || 'Review foundational concept prerequisites to bridge your understanding.')}
+                            </div>
+                        </div>
+                    `
+                });
+                if (fullPdf && typeof setReadingView === 'function') {
+                    setReadingView('pdf');
+                } else if (typeof setReadingView === 'function') {
+                    setReadingView('summary');
+                }
+            }
+        }
+        window.openPrerequisiteRemediationReader = openPrerequisiteRemediationReader;
+
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('graph-choice-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                if (e.key === 'Escape') {
+                    dismissGraphChoiceModal();
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    const cardP = document.getElementById('choice-card-personalized');
+                    if (cardP) cardP.focus();
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    const cardN = document.getElementById('choice-card-normal');
+                    if (cardN) cardN.focus();
+                } else if (e.key === 'Enter') {
+                    const activeEl = document.activeElement;
+                    if (activeEl && activeEl.id === 'choice-card-personalized') {
+                        chooseGraphExperience('personalized');
+                    } else if (activeEl && activeEl.id === 'choice-card-normal') {
+                        chooseGraphExperience('normal');
+                    }
+                }
+            }
+        });
+
         function renderHorizontalGraphCard(msgId, metadata) {
             if (window.showGraphCards === false) return;
             const msgEl = document.getElementById(`msg-body-${msgId}`);
@@ -6798,33 +7791,48 @@ currentMode = mode;
             let unlocks = metadata ? (metadata.unlocks || []) : [];
             let related = metadata ? (metadata.related_concepts || metadata.related || []) : [];
 
+            const zone = getOrCreateInteractiveZone(msgId);
+            if (!zone) return;
             const cardId = `hgraph-${msgId}`;
-            let wrapper = document.getElementById(`visualize-card-${cardId}`);
-            if (!wrapper) {
-                wrapper = document.createElement('div');
-                wrapper.id = `visualize-card-${cardId}`;
-                wrapper.className = 'flex justify-start w-full reveal-enter mt-2 mb-4';
-                
-                const cardInner = document.createElement('div');
-                cardInner.className = 'assistant-row w-full';
-                cardInner.innerHTML = `<div class="msg-bubble-wrap ai-wrap flex flex-col gap-1 min-w-0 flex-1" style="max-width:100%"><div class="concept-visualize-card-wrapper w-full"></div></div>`;
-                wrapper.appendChild(cardInner);
-                
-                // Place BEFORE the AI text row (graph widget sits ABOVE chat text)
-                const flexRow = msgEl.closest('[data-msg-id]') || msgEl.closest('.flex.w-full') || msgEl.closest('.flex') || msgEl;
-                flexRow.before(wrapper);
-            }
-            const cardWrapper = wrapper.querySelector('.concept-visualize-card-wrapper');
+            const cardWrapper = zone;
 
             const anchorLabel = _nodeLabel(anchor) || 'Concept Node';
             const anchorSummary = _nodeSummary(anchor) || 'Knowledge graph node topology and OKF relationship dependencies.';
-            const prereqNames = prereqs.length ? prereqs.map(_nodeLabel).join(', ') : 'None indexed';
-            const unlockNames = unlocks.length ? unlocks.map(_nodeLabel).join(', ') : 'None indexed';
+            const formatConceptList = (items, maxCount = 3) => {
+                if (!items || !items.length) return 'None indexed';
+                const names = items.slice(0, maxCount).map(_nodeLabel);
+                const remainder = items.length - maxCount;
+                return names.join(', ') + (remainder > 0 ? ` (+${remainder} more)` : '');
+            };
+            const prereqNames = formatConceptList(prereqs, 3);
+            const unlockNames = formatConceptList(unlocks, 3);
+
+            const existingAdaptive = (window._adaptiveState && window._adaptiveState[msgId]);
+            const hasOngoingQuiz = existingAdaptive && existingAdaptive.current_mcq && !existingAdaptive.submitted;
+            const quizBtnLabel = hasOngoingQuiz
+                ? `Resume Quiz (Q${existingAdaptive.question_count}/${existingAdaptive.max_questions})`
+                : 'Take Quiz';
+            const quizBtnCls = hasOngoingQuiz
+                ? 'bg-amber-500/25 hover:bg-amber-500/40 border border-amber-400 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20'
+                : 'bg-accentPurple/25 hover:bg-accentPurple/40 border border-accentPurple/50 text-accentPurple hover:text-white font-bold shadow-sm';
 
             cardWrapper.innerHTML = `
-                <div class="concept-visualize-card">
+                <div class="concept-visualize-card border border-[#0d3829] rounded-xl overflow-hidden bg-[#03140d] shadow-[0_12px_32px_rgba(0,0,0,0.8),0_0_20px_rgba(0,255,163,0.05)]">
+                    <!-- Terminal Traffic Light Bar -->
+                    <div class="terminal-traffic-bar flex items-center justify-between px-3.5 py-2 bg-[#041a12] border-b border-[#0d3829] select-none">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56] inline-block"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] inline-block"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#27c93f] inline-block"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-mono font-bold text-[#00ffa3] tracking-wide">graphify</span>
+                            <span class="text-[10px] font-mono text-[#34d399] opacity-85">shortest path</span>
+                        </div>
+                        <div class="text-[10px] font-mono text-[#52796f]">3 hops. Zero files opened.</div>
+                    </div>
                     <!-- Header toggle bar -->
-                    <button onclick="toggleHorizontalGraphCard('${cardId}')" type="button" class="w-full px-4 py-3 flex items-center justify-between bg-white/5 hover:bg-white/10 text-xs font-bold text-amber-300 transition-all border-b border-white/10 group cursor-pointer">
+                    <button onclick="toggleHorizontalGraphCard('${cardId}')" type="button" class="w-full px-4 py-2.5 flex items-center justify-between bg-black/40 hover:bg-white/5 text-xs font-bold text-[#00ffa3] transition-all border-b border-[#0d3829] group cursor-pointer">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <div class="w-7 h-7 flex items-center justify-center shrink-0">
                                 <img src="/ui/assets/graph_btn.png" class="w-full h-full object-contain" alt="Graph">
@@ -6838,7 +7846,10 @@ currentMode = mode;
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">Interactive Graph</span>
+                            <button onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-graduation-cap text-xs"></i> <span>${quizBtnLabel}</span>
+                            </button>
+                            <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">Normal Graph</span>
                             <i id="toggle-icon-${cardId}" class="fa-solid fa-chevron-up text-xs text-amber-300 transition-transform"></i>
                         </div>
                     </button>
@@ -6846,30 +7857,81 @@ currentMode = mode;
                     <!-- Card Body -->
                     <div id="card-body-${cardId}" class="p-4 space-y-4">
                         <!-- Flow Breadcrumb Header -->
-                        <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-sans">
-                            <div class="flex items-center gap-1.5 text-accentPurple font-bold">
-                                <i class="fa-solid fa-arrow-up-long text-xs"></i>
-                                <span class="text-[10px] uppercase tracking-wider text-purple-300">Requires:</span>
-                                <span class="text-gray-200 font-semibold truncate max-w-[160px]">${escapeHTML(prereqNames)}</span>
+                        ${metadata && metadata.query_mode === 'mode_b' ? `
+                            <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-sans">
+                                <div class="flex items-center gap-1.5 text-accentCyan font-bold min-w-0">
+                                    <i class="fa-solid fa-code-compare text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-cyan-300 shrink-0">Mode B:</span>
+                                    <span class="text-white font-extrabold truncate max-w-[140px] sm:max-w-[180px]">${escapeHTML(_nodeLabel(anchor))}</span>
+                                </div>
+                                <i class="fa-solid fa-arrows-left-right text-accentCyan/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-accentPurple font-bold min-w-0">
+                                    <i class="fa-solid fa-bridge-water text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-purple-300 shrink-0">Path:</span>
+                                    <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[200px]">Shortest Directed (5-10 Nodes)</span>
+                                </div>
+                                <i class="fa-solid fa-angles-right text-amber-400/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-amber-300 font-extrabold min-w-0">
+                                    <i class="fa-solid fa-circle-nodes text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-amber-300 shrink-0">Connected:</span>
+                                    <span class="text-white font-extrabold">${metadata.subgraph ? metadata.subgraph.node_count : 'Active'}</span>
+                                </div>
                             </div>
-                            <i class="fa-solid fa-angles-right text-amber-400/60 text-xs hidden sm:inline-block"></i>
-                            <div class="flex items-center gap-1.5 text-amber-300 font-extrabold">
-                                <i class="fa-solid fa-bullseye text-xs"></i>
-                                <span class="text-[10px] uppercase tracking-wider text-amber-300">Target:</span>
-                                <span class="text-white font-extrabold underline decoration-amber-400/50 underline-offset-2">${escapeHTML(anchorLabel)}</span>
+                        ` : (metadata && metadata.query_mode === 'mode_c' ? `
+                            <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-sans">
+                                <div class="flex items-center gap-1.5 text-accentPurple font-bold min-w-0">
+                                    <i class="fa-solid fa-arrow-up-long text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-purple-300 shrink-0">Prerequisites:</span>
+                                    <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(prereqNames)}</span>
+                                </div>
+                                <i class="fa-solid fa-angles-right text-amber-400/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-amber-300 font-extrabold min-w-0">
+                                    <i class="fa-solid fa-graduation-cap text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-amber-300 shrink-0">Target:</span>
+                                    <span class="text-white font-extrabold underline decoration-amber-400/50 underline-offset-2 truncate max-w-[140px] sm:max-w-[180px]">${escapeHTML(anchorLabel)}</span>
+                                </div>
+                                <i class="fa-solid fa-angles-right text-emerald-400/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-emerald-400 font-bold min-w-0">
+                                    <i class="fa-solid fa-arrow-down-long text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-emerald-300 shrink-0">Unlocks:</span>
+                                    <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(unlockNames)}</span>
+                                </div>
                             </div>
-                            <i class="fa-solid fa-angles-right text-emerald-400/60 text-xs hidden sm:inline-block"></i>
-                            <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
-                                <i class="fa-solid fa-arrow-down-long text-xs"></i>
-                                <span class="text-[10px] uppercase tracking-wider text-emerald-300">Unlocks:</span>
-                                <span class="text-gray-200 font-semibold truncate max-w-[160px]">${escapeHTML(unlockNames)}</span>
+                        ` : `
+                            <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-sans">
+                                <div class="flex items-center gap-1.5 text-accentPurple font-bold min-w-0">
+                                    <i class="fa-solid fa-arrow-up-long text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-purple-300 shrink-0">Requires:</span>
+                                    <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(prereqNames)}</span>
+                                </div>
+                                <i class="fa-solid fa-angles-right text-amber-400/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-amber-300 font-extrabold min-w-0">
+                                    <i class="fa-solid fa-bullseye text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-amber-300 shrink-0">Target:</span>
+                                    <span class="text-white font-extrabold underline decoration-amber-400/50 underline-offset-2 truncate max-w-[140px] sm:max-w-[180px]">${escapeHTML(anchorLabel)}</span>
+                                </div>
+                                <i class="fa-solid fa-angles-right text-emerald-400/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-emerald-400 font-bold min-w-0">
+                                    <i class="fa-solid fa-arrow-down-long text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-emerald-300 shrink-0">Unlocks:</span>
+                                    <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(unlockNames)}</span>
+                                </div>
                             </div>
-                        </div>
+                        `)}
 
-                        <!-- Wide Horizontal SVG Canvas Map -->
-                        <div class="w-full h-52 rounded-xl glass-light border border-white/10 relative overflow-hidden flex items-center justify-center shadow-inner" id="hgraph-canvas-${cardId}">
-                            <div class="graph-ripple-bg" id="hgraph-ripple-${cardId}"></div>
-                            <svg id="svg-horizontal-${cardId}" class="w-full h-full"></svg>
+                        <!-- Wide Horizontal SVG Canvas Map (Proper Interactive Scrollable Multi-Hop Topology Graph) -->
+                        <div class="relative w-full group/hgraph">
+                            <div class="scrollable-graph-container w-full h-64 rounded-xl glass-light border border-white/10 relative overflow-x-auto overflow-y-hidden shadow-inner custom-scrollbar" id="hgraph-canvas-${cardId}">
+                                <div class="graph-ripple-bg" id="hgraph-ripple-${cardId}"></div>
+                                <svg id="svg-horizontal-${cardId}" style="height: 100%; display: block;"></svg>
+                            </div>
+                            <!-- Interactive Scrollable Arrows to move across nodes smoothly -->
+                            <button type="button" onclick="scrollInChatGraph('${cardId}', -200)" class="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/80 hover:bg-black/95 text-white/90 hover:text-white border border-white/20 hover:border-accentPurple/60 backdrop-blur-md flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" title="Scroll left across prerequisite nodes" aria-label="Scroll left">
+                                <i class="fa-solid fa-chevron-left text-sm"></i>
+                            </button>
+                            <button type="button" onclick="scrollInChatGraph('${cardId}', 200)" class="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/80 hover:bg-black/95 text-white/90 hover:text-white border border-white/20 hover:border-emerald-400/60 backdrop-blur-md flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" title="Scroll right across unlock nodes" aria-label="Scroll right">
+                                <i class="fa-solid fa-chevron-right text-sm"></i>
+                            </button>
                         </div>
 
                         <!-- Card Inspector (Active Node Info) -->
@@ -6952,7 +8014,7 @@ currentMode = mode;
                 setTimeout(() => {
                     const svgEl = document.getElementById(`svg-horizontal-${cardId}`);
                     if (svgEl) {
-                        drawHorizontalSVG(svgEl, anchor, prereqs, unlocks, related, cardId);
+                        drawHorizontalSVG(svgEl, anchor, prereqs, unlocks, related, cardId, metadata);
                     }
                 }, 40);
             });
@@ -7015,6 +8077,862 @@ currentMode = mode;
             }
         }
         window.renderHorizontalGraphCard = renderHorizontalGraphCard;
+
+        /**
+         * Interactive Adaptive Leap-Back Diagnostic MCQ Layer (Mode C Prerequisite Verification)
+         * Tests on-the-spot immediate prerequisite topic Y first.
+         * 4 distinct HTML <input type="radio"> buttons.
+         * Advance on correct (tick ✓). If 3 consecutive ticks, declare mastery & unlock target concept.
+         * On incorrect (gap ✗): Leap back 2 hops towards foundational leaf node (skip-list stride).
+         * Total questions bounded between 5 and 10 questions max.
+         */
+        window._adaptiveState = window._adaptiveState || {};
+        window._diagnosticState = window._diagnosticState || {};
+
+        function renderAdaptiveMCQCard(msgId) {
+            const state = window._adaptiveState[msgId];
+            if (!state || !state.current_mcq) return;
+
+            const zone = getOrCreateInteractiveZone(msgId);
+            if (!zone) return;
+
+            const cardId = `diagnostic-mcq-${msgId}`;
+            let cardContent = document.getElementById(cardId);
+            if (!cardContent) {
+                cardContent = document.createElement('div');
+                cardContent.id = cardId;
+                cardContent.className = 'adaptive-card-content w-full swipe-in-right';
+                zone.innerHTML = '';
+                zone.appendChild(cardContent);
+            }
+            const mcq = state.current_mcq;
+            const targetLabel = state.target_label || 'Target Concept';
+            const currentName = mcq.concept_name || (state.current_concept ? state.current_concept.replace(/_/g, ' ').toUpperCase() : 'Prerequisite');
+            const diff = (mcq.difficulty || 'intermediate').toLowerCase();
+            const diffCls = diff === 'foundational' ? 'diagnostic-badge-foundational' : (diff === 'advanced' ? 'diagnostic-badge-advanced' : 'diagnostic-badge-intermediate');
+
+            // Skip-list chain breadcrumb items
+            const chain = state.chain && state.chain.length ? state.chain : (state.prereq_chain || []);
+            const breadcrumbs = chain.map(cid => {
+                const isCurrent = cid === state.current_concept;
+                const isTarget = cid === state.target_concept;
+                const hRecord = (state.history || []).find(h => h.concept_id === cid);
+                let badgeClass = 'bg-white/5 border-white/10 text-gray-400';
+                let icon = '';
+                if (isCurrent) {
+                    badgeClass = 'bg-accentPurple/30 border-accentPurple text-white font-extrabold ring-2 ring-accentPurple/40';
+                    icon = '<i class="fa-solid fa-location-dot text-[9px] text-accentPurple mr-1 animate-pulse"></i>';
+                } else if (hRecord && hRecord.is_correct) {
+                    badgeClass = 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold';
+                    icon = '<i class="fa-solid fa-check text-[9px] text-emerald-400 mr-1"></i>';
+                } else if (hRecord && !hRecord.is_correct) {
+                    badgeClass = 'bg-rose-500/20 border-rose-500/40 text-rose-300 font-bold';
+                    icon = '<i class="fa-solid fa-triangle-exclamation text-[9px] text-rose-400 mr-1"></i>';
+                } else if (isTarget) {
+                    badgeClass = 'bg-amber-400/20 border-amber-400/40 text-amber-300 font-bold';
+                    icon = '<i class="fa-solid fa-bullseye text-[9px] text-amber-400 mr-1"></i>';
+                }
+                const label = _nodeLabel(cid) || cid.replace(/_/g, ' ');
+                return `<span class="px-2 py-0.5 rounded-lg border text-[10px] font-mono flex items-center shrink-0 ${badgeClass}">${icon}${escapeHTML(label)}</span>`;
+            }).join('<i class="fa-solid fa-arrow-right text-[8px] text-gray-500 shrink-0"></i>');
+
+            // Persist adaptive quiz state to sessionStorage
+            try {
+                sessionStorage.setItem('archipelago_adaptive_' + msgId, JSON.stringify(state));
+            } catch (_) {}
+
+            cardContent.innerHTML = `
+                <div class="diagnostic-mcq-card p-5 sm:p-6 space-y-4 rounded-2xl bg-panelBg/95 border border-accentPurple/40 shadow-2xl">
+                    <!-- Top Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-accentPurple/25 border border-accentPurple/40 flex items-center justify-center text-accentPurple shadow-sm shrink-0">
+                                <i class="fa-solid fa-graduation-cap text-base"></i>
+                            </div>
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm sm:text-base font-extrabold text-white tracking-tight">On-the-Spot Adaptive Diagnostic</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-accentPurple/25 border border-accentPurple/40 text-accentPurple uppercase">Leap-Back Skip-List</span>
+                                </div>
+                                <span class="text-xs text-gray-300 font-medium mt-0.5">
+                                    Testing prerequisite: <strong class="text-white">${escapeHTML(currentName)}</strong> for target <strong class="text-amber-300">${escapeHTML(targetLabel)}</strong>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <!-- Question Counter -->
+                            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-gray-200 font-bold">
+                                Question ${state.question_count} / ${state.max_questions}
+                            </span>
+                            <!-- 3 Ticks Mastery Meter -->
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/50 border border-white/10">
+                                <span class="text-[10px] uppercase font-bold text-gray-400">Mastery:</span>
+                                <span id="tick-box-${msgId}-1" class="w-5 h-5 rounded flex items-center justify-center font-bold text-xs ${state.consecutive_ticks >= 1 ? 'border border-emerald-400 bg-emerald-500/30 text-emerald-300 shadow-sm' : 'border border-white/20 bg-white/5 text-gray-500'}">
+                                    ${state.consecutive_ticks >= 1 ? '✓' : '1'}
+                                </span>
+                                <span id="tick-box-${msgId}-2" class="w-5 h-5 rounded flex items-center justify-center font-bold text-xs ${state.consecutive_ticks >= 2 ? 'border border-emerald-400 bg-emerald-500/30 text-emerald-300 shadow-sm' : 'border border-white/20 bg-white/5 text-gray-500'}">
+                                    ${state.consecutive_ticks >= 2 ? '✓' : '2'}
+                                </span>
+                                <span id="tick-box-${msgId}-3" class="w-5 h-5 rounded flex items-center justify-center font-bold text-xs ${state.consecutive_ticks >= 3 ? 'border border-emerald-400 bg-emerald-500/30 text-emerald-300 shadow-sm' : 'border border-white/20 bg-white/5 text-gray-500'}">
+                                    ${state.consecutive_ticks >= 3 ? '✓' : '3'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Topological Sequence Breadcrumbs (Leaf -> Prerequisites -> Immediate Y -> Target X) -->
+                    <div class="flex items-center gap-2 overflow-x-auto py-1 px-1 custom-scrollbar">
+                        <span class="text-[9px] uppercase font-bold text-gray-400 shrink-0">Topology Path:</span>
+                        <div class="flex items-center gap-1.5 min-w-max">
+                            ${breadcrumbs}
+                        </div>
+                    </div>
+
+                    <!-- Result Banner (Revealed upon answer / completion) -->
+                    <div id="adaptive-banner-${msgId}" class="hidden rounded-xl p-3.5 text-xs transition-all"></div>
+
+                    <!-- Question Block with Enhanced Font & Spacing -->
+                    <div class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3" id="adaptive-block-${msgId}">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-accentPurple/30 border border-accentPurple/50 text-accentPurple font-mono text-xs font-bold flex items-center justify-center">${state.question_count}</span>
+                                <span>Concept: ${escapeHTML(currentName)}</span>
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase font-mono ${diffCls}">${escapeHTML(diff)}</span>
+                        </div>
+                        <p class="text-sm sm:text-base text-gray-100 font-semibold leading-relaxed tracking-wide my-3">${escapeHTML(mcq.question)}</p>
+
+                        <!-- 4 Distinct Radio Buttons A, B, C, D in Clean 2-Column Grid -->
+                        <div class="mcq-radio-group mt-3" id="adaptive-radio-group-${msgId}">
+                            ${['A', 'B', 'C', 'D'].map(k => {
+                                const optText = (mcq.options && mcq.options[k]) || '';
+                                return `
+                                    <label class="mcq-radio-label" id="adaptive-label-${msgId}-${k}">
+                                        <input type="radio" name="adaptive_radio_${msgId}" value="${k}" class="mcq-radio-input" onchange="handleAdaptiveRadioChange('${msgId}', '${k}')">
+                                        <span class="mcq-radio-badge">${k}</span>
+                                        <span class="mcq-radio-text">${escapeHTML(optText)}</span>
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <!-- Literature Citation & Pedagogical Explanation Box (Hidden until submitted) -->
+                        <div id="adaptive-exp-${msgId}" class="hidden p-3.5 rounded-xl border border-white/10 bg-black/60 text-xs space-y-1.5 mt-3 shadow-inner">
+                            <div class="flex items-center gap-2 text-accentPurple font-bold">
+                                <i class="fa-solid fa-book-bookmark text-xs"></i>
+                                <span id="adaptive-citation-${msgId}">${escapeHTML(mcq.citation || 'Foundational Literature Citation')}</span>
+                            </div>
+                            <p id="adaptive-explanation-${msgId}" class="text-gray-300 leading-relaxed">${escapeHTML(mcq.explanation || '')}</p>
+                        </div>
+                    </div>
+
+                    <!-- Actions Bar -->
+                    <div id="adaptive-actions-${msgId}" class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
+                        <div class="flex items-center gap-2.5" id="adaptive-btn-container-${msgId}">
+                            <button id="btn-submit-adaptive-${msgId}" onclick="submitAdaptiveAnswer('${msgId}')" type="button" disabled class="opacity-50 cursor-not-allowed px-4 py-2.5 rounded-xl bg-gradient-to-r from-accentPurple to-indigo-600 hover:brightness-110 text-white font-extrabold text-xs shadow-lg shadow-accentPurple/25 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-check-double text-xs"></i>
+                                <span>Submit Answer</span>
+                            </button>
+                            <button onclick="switchToNormalGraph('${msgId}')" type="button" class="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-diagram-project text-xs"></i>
+                                <span>View Full Normal Graph</span>
+                            </button>
+                        </div>
+                        <span id="adaptive-hint-${msgId}" class="text-[11px] text-gray-400 font-medium">Select one of the 4 options above</span>
+                    </div>
+                </div>
+            `;
+        }
+        window.renderAdaptiveMCQCard = renderAdaptiveMCQCard;
+        window.renderDiagnosticMCQCard = renderAdaptiveMCQCard; // Compatibility shim
+
+        function handleAdaptiveRadioChange(msgId, key) {
+            const state = window._adaptiveState[msgId];
+            if (!state || state.submitted) return;
+            state.selected_option = key;
+
+            const submitBtn = document.getElementById(`btn-submit-adaptive-${msgId}`);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.add('cursor-pointer');
+            }
+            const hint = document.getElementById(`adaptive-hint-${msgId}`);
+            if (hint) {
+                hint.textContent = `Option ${key} selected. Click Submit Answer to verify.`;
+            }
+        }
+        window.handleAdaptiveRadioChange = handleAdaptiveRadioChange;
+
+        async function submitAdaptiveAnswer(msgId) {
+            const state = window._adaptiveState[msgId];
+            if (!state || !state.current_mcq) return;
+
+            const checked = document.querySelector(`input[name="adaptive_radio_${msgId}"]:checked`);
+            if (!checked) return;
+
+            const userChoice = checked.value;
+            const submitBtn = document.getElementById(`btn-submit-adaptive-${msgId}`);
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Evaluating...</span>';
+            }
+
+            // Disable radio inputs
+            document.querySelectorAll(`input[name="adaptive_radio_${msgId}"]`).forEach(inp => {
+                inp.disabled = true;
+            });
+
+            try {
+                const resp = await fetch('/api/chat/adaptive-step', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        target_concept: state.target_concept,
+                        current_concept: state.current_concept,
+                        user_choice: userChoice,
+                        current_mcq: state.current_mcq,
+                        consecutive_ticks: state.consecutive_ticks,
+                        history: state.history || [],
+                        chain: state.chain || []
+                    })
+                });
+                const data = await resp.json();
+
+                // Update styling of radio choices
+                const isTick = data.is_tick;
+                const rec = data.current_record || {};
+                const correctAns = rec.correct_answer || (state.current_mcq && state.current_mcq.correct_option) || 'A';
+
+                ['A', 'B', 'C', 'D'].forEach(k => {
+                    const lbl = document.getElementById(`adaptive-label-${msgId}-${k}`);
+                    if (!lbl) return;
+                    if (k === correctAns) {
+                        lbl.classList.add('correct');
+                    } else if (k === userChoice && !isTick) {
+                        lbl.classList.add('incorrect');
+                    }
+                });
+
+                // Reveal literature citation box
+                const expEl = document.getElementById(`adaptive-exp-${msgId}`);
+                if (expEl) expEl.classList.remove('hidden');
+
+                // Update state
+                state.consecutive_ticks = data.consecutive_ticks || 0;
+                state.history = data.history || state.history || [];
+
+                // Update tick boxes in header
+                for (let i = 1; i <= 3; i++) {
+                    const tBox = document.getElementById(`tick-box-${msgId}-${i}`);
+                    if (tBox) {
+                        if (state.consecutive_ticks >= i) {
+                            tBox.className = 'w-5 h-5 rounded flex items-center justify-center font-bold text-xs border border-emerald-400 bg-emerald-500/30 text-emerald-300 shadow-sm';
+                            tBox.textContent = '✓';
+                        } else {
+                            tBox.className = 'w-5 h-5 rounded flex items-center justify-center font-bold text-xs border border-white/20 bg-white/5 text-gray-500';
+                            tBox.textContent = String(i);
+                        }
+                    }
+                }
+
+                const banner = document.getElementById(`adaptive-banner-${msgId}`);
+                const btnContainer = document.getElementById(`adaptive-btn-container-${msgId}`);
+                const hint = document.getElementById(`adaptive-hint-${msgId}`);
+
+                if (data.completed) {
+                    state.submitted = true;
+                    if (banner) {
+                        banner.classList.remove('hidden');
+                        if (data.completion_reason === '3_consecutive_ticks_mastered' || state.consecutive_ticks >= 3) {
+                            banner.className = 'rounded-xl p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs space-y-1 shadow-lg shadow-emerald-500/10';
+                            banner.innerHTML = `
+                                <div class="flex items-center gap-2 text-sm font-extrabold text-emerald-300">
+                                    <i class="fa-solid fa-circle-check text-base"></i>
+                                    <span>Prerequisite Mastery Confirmed (3 Ticks)! Concept Unlocked</span>
+                                </div>
+                                <p class="text-emerald-200/90 text-xs">You demonstrated foundational mastery across prerequisites. The personalized curriculum graph for <strong>${escapeHTML(state.target_label)}</strong> is now generated below!</p>
+                            `;
+                        } else {
+                            banner.className = 'rounded-xl p-4 bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs space-y-1 shadow-lg shadow-amber-500/10';
+                            banner.innerHTML = `
+                                <div class="flex items-center gap-2 text-sm font-extrabold text-amber-300">
+                                    <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                                    <span>Diagnostic Complete (${data.total_asked || state.question_count} Questions). Targeted Review Ready</span>
+                                </div>
+                                <p class="text-amber-200/90 text-xs">Knowledge gaps mapped. Review the literature citations above and your personalized curriculum pathway below.</p>
+                            `;
+                        }
+                    }
+
+                    if (btnContainer) {
+                        btnContainer.innerHTML = `
+                            <button onclick="document.getElementById('visualize-card-pers-graph-${msgId}')?.scrollIntoView({behavior:'smooth'})" type="button" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-accentPurple to-indigo-600 hover:brightness-110 text-white font-extrabold text-xs shadow-lg shadow-accentPurple/25 transition-all flex items-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-graduation-cap text-xs"></i> <span>View Personalized Knowledge Graph</span>
+                            </button>
+                            <button onclick="switchToNormalGraph('${msgId}')" type="button" class="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-diagram-project text-xs"></i> <span>View Normal Graph</span>
+                            </button>
+                        `;
+                    }
+                    if (hint) hint.textContent = 'Assessment finished. Personalized topology rendered below.';
+
+                    // Store evaluation in localStorage and render Personalized Graph
+                    const evalData = data.evaluation || {
+                        target_concept: state.target_concept,
+                        score: `${state.history.filter(h => h.is_correct).length}/${state.history.length}`,
+                        passed: state.consecutive_ticks >= 3,
+                        full_score: state.consecutive_ticks >= 3,
+                        personalized_graph: data.personalized_graph || {},
+                    };
+                    try {
+                        localStorage.setItem('archipelago_eval_' + state.target_concept, JSON.stringify(evalData));
+                        localStorage.setItem('archipelago_choice_' + state.target_concept, 'personalized');
+                    } catch (_) {}
+
+                    revealFinalCorrectQuestionAndFinish(msgId, data, evalData, state.metadata);
+
+                } else {
+                    // Not completed: store next question and render advance / leap-back button
+                    state.next_concept = data.next_concept;
+                    state.next_question = data.next_question;
+
+                    if (btnContainer) {
+                        if (data.stride_action === 'advance') {
+                            btnContainer.innerHTML = `
+                                <button onclick="advanceAdaptiveStep('${msgId}')" type="button" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-arrow-right text-xs"></i> <span>Advance Towards Target (Next Question)</span>
+                                </button>
+                                <button onclick="switchToNormalGraph('${msgId}')" type="button" class="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-diagram-project text-xs"></i> <span>Skip / Normal Graph</span>
+                                </button>
+                            `;
+                        } else {
+                            btnContainer.innerHTML = `
+                                <button onclick="advanceAdaptiveStep('${msgId}')" type="button" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs shadow-lg shadow-amber-600/30 transition-all flex items-center gap-2 cursor-pointer">
+                                    <i class="fa-solid fa-backward-step text-xs"></i> <span>Leap Back 2 Hops: Foundational Review</span>
+                                </button>
+                                <button onclick="switchToNormalGraph('${msgId}')" type="button" class="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-diagram-project text-xs"></i> <span>Skip / Normal Graph</span>
+                                </button>
+                            `;
+                        }
+                    }
+                    if (hint) {
+                        hint.textContent = isTick ? 'Correct! Advancing towards target concept.' : 'Prerequisite gap detected. Leaping back 2 hops to foundational concepts.';
+                    }
+                }
+
+            } catch (err) {
+                console.error('Error in submitAdaptiveAnswer:', err);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-rotate-right text-xs"></i> <span>Retry</span>';
+                }
+            }
+        }
+        window.submitAdaptiveAnswer = submitAdaptiveAnswer;
+
+        function advanceAdaptiveStep(msgId) {
+            const state = window._adaptiveState[msgId];
+            if (!state || !state.next_question) return;
+
+            // Swipe out current card before showing next
+            const zone = getOrCreateInteractiveZone(msgId);
+            const currentCard = zone ? zone.querySelector('.adaptive-card-content') : null;
+            if (currentCard) {
+                currentCard.classList.add('swipe-out-left');
+                setTimeout(() => {
+                    state.question_count += 1;
+                    state.current_concept = state.next_concept;
+                    state.current_mcq = state.next_question;
+                    state.next_question = null;
+                    state.selected_option = null;
+                    state.submitted = false;
+                    // Remove old card so renderAdaptiveMCQCard creates a fresh one with swipe-in
+                    if (currentCard.parentNode) currentCard.parentNode.removeChild(currentCard);
+                    renderAdaptiveMCQCard(msgId);
+                }, 400);
+            } else {
+                state.question_count += 1;
+                state.current_concept = state.next_concept;
+                state.current_mcq = state.next_question;
+                state.next_question = null;
+                state.selected_option = null;
+                state.submitted = false;
+                renderAdaptiveMCQCard(msgId);
+            }
+        }
+        window.advanceAdaptiveStep = advanceAdaptiveStep;
+
+        // ── Final Correct Question Celebration + Transition to Graph ──
+        function revealFinalCorrectQuestionAndFinish(msgId, completionData, evalData, metadata) {
+            const zone = getOrCreateInteractiveZone(msgId);
+            if (!zone) {
+                renderPersonalizedGraphCard(msgId, evalData, metadata);
+                return;
+            }
+
+            // Swipe out current MCQ card
+            const currentCard = zone.querySelector('.adaptive-card-content');
+            if (currentCard) {
+                currentCard.classList.add('swipe-out-left');
+            }
+
+            setTimeout(() => {
+                zone.innerHTML = '';
+
+                // Unhide evidence rail (resources) now that the quiz is complete
+                const msgEl = document.getElementById(`msg-body-${msgId}`);
+                if (msgEl) {
+                    const rail = msgEl.querySelector('.evidence-rail');
+                    if (rail) rail.classList.remove('hidden');
+                    const inv = msgEl.querySelector('.library-inventory-section');
+                    if (inv) inv.classList.remove('hidden');
+                }
+
+                const state = window._adaptiveState[msgId] || {};
+                const finalQ = completionData.final_correct_question || null;
+                const mastered = completionData.mastered || state.mastered || [];
+                const gaps = completionData.gaps || state.gaps || [];
+                const totalAsked = completionData.total_asked || state.question_count || 0;
+                const targetLabel = state.target_label || metadata?.anchor_concept || 'Target';
+                const isPassed = (completionData.completion_reason === '3_consecutive_ticks_mastered') || (state.consecutive_ticks >= 3);
+
+                // Celebration card
+                const celebCard = document.createElement('div');
+                celebCard.className = 'w-full swipe-in-scale';
+                celebCard.innerHTML = `
+                    <div class="rounded-2xl border ${isPassed ? 'border-emerald-500/40 bg-gradient-to-br from-emerald-950/60 to-emerald-900/20' : 'border-amber-500/40 bg-gradient-to-br from-amber-950/60 to-amber-900/20'} p-5 space-y-4 shadow-xl">
+                        <!-- Status Header -->
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl ${isPassed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'} flex items-center justify-center text-2xl">
+                                <i class="fa-solid ${isPassed ? 'fa-trophy' : 'fa-flag-checkered'}"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="${isPassed ? 'text-emerald-300' : 'text-amber-300'} font-extrabold text-sm">
+                                    ${isPassed ? 'Diagnostic Complete — Prerequisites Mastered!' : 'Diagnostic Complete — Knowledge Map Ready'}
+                                </div>
+                                <div class="text-gray-400 text-[11px] font-mono mt-0.5">
+                                    ${totalAsked} questions · ${mastered.length} mastered · ${gaps.length} gap${gaps.length !== 1 ? 's' : ''} detected
+                                </div>
+                            </div>
+                        </div>
+
+                        ${finalQ ? `
+                        <!-- Final Correct Question Highlight -->
+                        <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 space-y-2">
+                            <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Final Correct Answer</span>
+                            </div>
+                            <div class="text-gray-200 text-xs leading-relaxed font-medium">${escapeHTML(finalQ.question || '')}</div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="px-2.5 py-1 rounded-lg bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold">
+                                    <i class="fa-solid fa-check mr-1"></i>${escapeHTML(finalQ.correct_answer || '')}
+                                </span>
+                            </div>
+                            ${finalQ.citation ? `<div class="text-gray-500 text-[10px] mt-1 italic">📚 ${escapeHTML(finalQ.citation)}</div>` : ''}
+                        </div>` : ''}
+
+                        ${mastered.length > 0 ? `
+                        <!-- Mastered Concepts -->
+                        <div class="flex flex-wrap gap-1.5">
+                            ${mastered.map(c => `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">✓ ${escapeHTML(typeof c === 'string' ? c.replace(/_/g, ' ') : c)}</span>`).join('')}
+                        </div>` : ''}
+
+                        ${gaps.length > 0 ? `
+                        <!-- Gaps -->
+                        <div class="flex flex-wrap gap-1.5">
+                            ${gaps.map(g => `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-rose-500/15 border border-rose-500/30 text-rose-400">✗ ${escapeHTML(typeof g === 'string' ? g.replace(/_/g, ' ') : g)}</span>`).join('')}
+                        </div>` : ''}
+
+                        <!-- Explore Graph Button -->
+                        <button id="explore-graph-btn-${msgId}" type="button" class="w-full mt-2 px-4 py-3 rounded-xl bg-gradient-to-r ${isPassed ? 'from-emerald-600 to-teal-600 shadow-emerald-600/30' : 'from-accentPurple to-indigo-600 shadow-accentPurple/25'} hover:brightness-110 text-white font-extrabold text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-diagram-project text-sm"></i>
+                            <span>Explore Your Personalized Knowledge Graph</span>
+                        </button>
+                    </div>
+                `;
+                zone.appendChild(celebCard);
+
+                // Auto-transition after 1.8s OR on button click
+                const exploreBtn = document.getElementById(`explore-graph-btn-${msgId}`);
+                let transitioned = false;
+                const doTransition = () => {
+                    if (transitioned) return;
+                    transitioned = true;
+                    celebCard.classList.add('swipe-out-left');
+                    setTimeout(() => {
+                        zone.innerHTML = '';
+                        renderPersonalizedGraphCard(msgId, evalData, metadata);
+                    }, 400);
+                };
+                if (exploreBtn) exploreBtn.addEventListener('click', doTransition);
+                // Don't auto-transition, let user click the button to see the graph
+            }, 450);
+        }
+        window.revealFinalCorrectQuestionAndFinish = revealFinalCorrectQuestionAndFinish;
+
+        // ── Personalized Knowledge Graph Card Rendering ──
+        function renderPersonalizedGraphCard(msgId, evalData, metadata) {
+            const zone = getOrCreateInteractiveZone(msgId);
+            if (!zone) return;
+
+            const cardId = `pers-graph-${msgId}`;
+            let cardWrapper = document.getElementById(`visualize-card-${cardId}`);
+            if (!cardWrapper) {
+                cardWrapper = document.createElement('div');
+                cardWrapper.id = `visualize-card-${cardId}`;
+                cardWrapper.className = 'personalized-graph-card-wrapper w-full swipe-in-right';
+                zone.innerHTML = '';
+                zone.appendChild(cardWrapper);
+            }
+
+            const anchor = metadata ? metadata.anchor_concept : (evalData ? evalData.target_concept : null);
+            const anchorLabel = _nodeLabel(anchor) || 'Target Concept';
+            const baseline = evalData ? evalData.baseline_concept : 'Foundational';
+            const score = evalData ? evalData.score : '0/3';
+            const isZero = evalData ? evalData.zero_score : false;
+            const isFull = evalData ? evalData.full_score : false;
+
+            const pGraph = (evalData && evalData.personalized_graph) || { nodes: [], edges: [] };
+            const nodes = pGraph.nodes || [];
+            const gapNodes = nodes.filter(n => n.status === 'review_gap');
+            const targetNode = nodes.find(n => n.role === 'target') || { label: anchorLabel, summary: '' };
+
+            let statusPill = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300">Score: ${score} · Targeted Remediation</span>`;
+            if (isFull) {
+                statusPill = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">Score: ${score} · Fully Unlocked</span>`;
+            } else if (isZero) {
+                statusPill = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 border border-rose-500/40 text-rose-300">Score: ${score} · Foundational Bridge</span>`;
+            }
+
+            cardWrapper.innerHTML = `
+                <div class="concept-visualize-card border border-accentPurple/30 rounded-2xl bg-panelBg/95 shadow-xl overflow-hidden">
+                    <!-- Header bar with Normal Graph switcher -->
+                    <div class="w-full px-4 py-3 flex items-center justify-between bg-white/5 border-b border-white/10">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-7 h-7 rounded-lg bg-accentPurple/25 border border-accentPurple/40 flex items-center justify-center text-accentPurple shrink-0">
+                                <i class="fa-solid fa-graduation-cap text-sm"></i>
+                            </div>
+                            <div class="flex flex-col text-left min-w-0">
+                                <span class="font-extrabold text-white text-xs tracking-tight flex items-center gap-2">
+                                    Personalized Knowledge Graph
+                                    <span class="px-2 py-0.5 rounded-full bg-accentPurple/25 border border-accentPurple/40 text-[10px] text-accentPurple font-mono font-bold truncate max-w-[140px] sm:max-w-[200px]">${escapeHTML(anchorLabel)}</span>
+                                </span>
+                                <span class="text-[10px] text-gray-400 font-medium">Adaptive learning pathway derived from your diagnostic answers</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            ${statusPill}
+                            <button onclick="switchToNormalGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-gray-200 text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-diagram-project text-[10px]"></i>
+                                <span>View Normal Graph</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-4 space-y-4">
+                        <!-- Pedagogical Flow Breadcrumb -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs">
+                            <div class="flex items-center gap-1.5 text-amber-300 font-bold">
+                                <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                                <span class="text-[10px] uppercase tracking-wider text-amber-300">Gaps to Review:</span>
+                                <span class="text-white font-extrabold">${gapNodes.length ? gapNodes.map(n => escapeHTML(n.label)).join(', ') : 'None (Mastered)'}</span>
+                            </div>
+                            <i class="fa-solid fa-angles-right text-accentPurple/60 text-xs hidden sm:inline-block"></i>
+                            <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
+                                <i class="fa-solid fa-circle-check text-xs"></i>
+                                <span class="text-[10px] uppercase tracking-wider text-emerald-300">Mastered Baseline:</span>
+                                <span class="text-white font-extrabold">${escapeHTML(baseline || 'None')}</span>
+                            </div>
+                            <i class="fa-solid fa-angles-right text-amber-400/60 text-xs hidden sm:inline-block"></i>
+                            <div class="flex items-center gap-1.5 text-amber-300 font-extrabold">
+                                <i class="fa-solid fa-bullseye text-xs"></i>
+                                <span class="text-[10px] uppercase tracking-wider text-amber-300">Target Goal:</span>
+                                <span class="text-white font-extrabold underline decoration-amber-400/50">${escapeHTML(anchorLabel)}</span>
+                            </div>
+                        </div>
+
+                        <!-- Personalized Interactive SVG Canvas Map (Proper Interactive Scrollable Multi-Hop Topology Graph) -->
+                        <div class="relative w-full group/persgraph">
+                            <div class="scrollable-graph-container w-full h-64 rounded-xl glass-light border border-white/10 relative overflow-x-auto overflow-y-hidden shadow-inner custom-scrollbar" id="pers-canvas-${cardId}">
+                                <svg id="svg-pers-${cardId}" style="height: 100%; display: block;"></svg>
+                            </div>
+                            <!-- Interactive Scrollable Arrows to move across nodes smoothly -->
+                            <button type="button" onclick="scrollInChatGraph('${cardId}', -200)" class="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/80 hover:bg-black/95 text-white/90 hover:text-white border border-white/20 hover:border-amber-400/60 backdrop-blur-md flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" title="Scroll left" aria-label="Scroll left">
+                                <i class="fa-solid fa-chevron-left text-sm"></i>
+                            </button>
+                            <button type="button" onclick="scrollInChatGraph('${cardId}', 200)" class="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/80 hover:bg-black/95 text-white/90 hover:text-white border border-white/20 hover:border-sky-400/60 backdrop-blur-md flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" title="Scroll right" aria-label="Scroll right">
+                                <i class="fa-solid fa-chevron-right text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Active Node Inspector with Click-to-Reader Deep Link & Micro-Actions -->
+                        <div id="pers-inspector-${cardId}" class="p-3.5 rounded-xl glass-glow border border-accentPurple/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-accentPurple/10 via-black/40 to-accentPink/10">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span id="pers-insp-badge-${cardId}" class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm">
+                                        ${gapNodes.length ? 'Review Gap Node' : 'Prerequisite Mastery'}
+                                    </span>
+                                    <span id="pers-insp-citation-${cardId}" class="text-[10px] text-gray-400 font-mono">Click any node on the graph above to inspect literature citations</span>
+                                </div>
+                                <h5 id="pers-insp-title-${cardId}" class="text-sm font-extrabold text-white mt-1 truncate">
+                                    ${escapeHTML((gapNodes[0] || targetNode).label)}
+                                </h5>
+                                <p id="pers-insp-summary-${cardId}" class="text-xs text-gray-300 leading-snug mt-0.5 line-clamp-2">
+                                    ${escapeHTML((gapNodes[0] || targetNode).summary || 'Foundational prerequisite component in this curriculum pathway.')}
+                                </p>
+                            </div>
+                            <div id="pers-insp-actions-${cardId}" class="flex items-center gap-2 shrink-0">
+                                ${(gapNodes[0] && gapNodes[0].doc_id) ? `
+                                    <button onclick="openPrerequisiteRemediationReader('${gapNodes[0].doc_id}', ${gapNodes[0].page_number || 1}, '${escapeHTML(gapNodes[0].label)}', '${escapeHTML(gapNodes[0].summary)}')" type="button" class="px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
+                                        <i class="fa-solid fa-book-open text-xs"></i> <span>View Textbook (p. ${gapNodes[0].printed_page || gapNodes[0].page_number || 1})</span>
+                                    </button>
+                                ` : ''}
+                                <button onclick="autoPrompt('Explain prerequisite concept ${escapeHTML((gapNodes[0] || targetNode).label)} for mastering ${escapeHTML(anchorLabel)}')" type="button" class="px-3 py-2 rounded-lg bg-accentPurple hover:bg-accentPurple/80 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-accentPurple/25">
+                                    <i class="fa-solid fa-comment-dots text-xs"></i> <span>Explain Gap</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Structured Step-by-Step Curriculum Roadmap -->
+                        ${evalData.roadmap && evalData.roadmap.steps && evalData.roadmap.steps.length ? `
+                            <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-white flex items-center gap-1.5">
+                                        <i class="fa-solid fa-route text-accentPurple"></i>
+                                        Step-by-Step Learning Progression (${evalData.roadmap.hops} hops)
+                                    </span>
+                                    <span class="text-[10px] text-gray-400 font-mono">DAG Verified Path</span>
+                                </div>
+                                <div class="space-y-2">
+                                    ${evalData.roadmap.steps.map((st, i) => `
+                                        <div class="p-2.5 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between gap-3 text-xs">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span class="w-5 h-5 rounded-full bg-accentPurple/20 text-accentPurple font-mono text-[10px] font-bold flex items-center justify-center shrink-0">${i + 1}</span>
+                                                <div class="flex flex-col min-w-0">
+                                                    <span class="font-bold text-white truncate">${escapeHTML(st.name || st.id)}</span>
+                                                    <span class="text-[10px] text-gray-400 truncate">${escapeHTML(st.summary || '')}</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                ${st.doc_id ? `
+                                                    <button onclick="openPrerequisiteRemediationReader('${st.doc_id}', ${st.page_number}, '${escapeHTML(st.name || st.id)}', '${escapeHTML(st.summary)}')" class="px-2 py-1 rounded bg-white/10 hover:bg-white/15 text-[10px] font-bold text-gray-300 hover:text-white transition-all flex items-center gap-1">
+                                                        <i class="fa-solid fa-book-bookmark text-[9px]"></i> <span>p. ${st.printed_page || st.page_number}</span>
+                                                    </button>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    const svgEl = document.getElementById(`svg-pers-${cardId}`);
+                    if (svgEl) {
+                        drawPersonalizedSVG(svgEl, nodes, pGraph.edges || [], cardId, anchorLabel);
+                    }
+                }, 40);
+            });
+        }
+        window.renderPersonalizedGraphCard = renderPersonalizedGraphCard;
+
+        function drawPersonalizedSVG(svgElement, nodes, edges, cardId, anchorLabel) {
+            if (!svgElement) return;
+            svgElement.innerHTML = '';
+
+            const totalCount = Math.max((nodes || []).length, 6);
+            const w = Math.max(980, totalCount * 140);
+            const h = 220;
+            svgElement.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            svgElement.style.width = `${w}px`;
+            svgElement.style.minWidth = `${w}px`;
+            svgElement.style.height = '100%';
+
+            const sid = `psvg-${cardId}`;
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.innerHTML = `
+                <filter id="neon-${sid}" x="-80%" y="-80%" width="260%" height="260%">
+                    <feGaussianBlur stdDeviation="3.5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <linearGradient id="grad-target-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+                <linearGradient id="grad-master-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#a7f3d0"/><stop offset="100%" stop-color="#059669"/>
+                </linearGradient>
+                <linearGradient id="grad-gap-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fed7aa"/><stop offset="100%" stop-color="#ea580c"/>
+                </linearGradient>
+                <marker id="arr-pers-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M0,1 L10,5 L0,9 Z" fill="#38bdf8"/>
+                </marker>
+                <marker id="arr-gap-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M0,1 L10,5 L0,9 Z" fill="#f59e0b"/>
+                </marker>
+            `;
+            svgElement.appendChild(defs);
+
+            const cy = h / 2;
+            const cx = w / 2;
+            const gapNodes = nodes.filter(n => n.status === 'review_gap');
+            const mastNodes = nodes.filter(n => n.status === 'mastered');
+            const targetNode = nodes.find(n => n.role === 'target') || nodes[nodes.length - 1];
+            const unlockedNodes = nodes.filter(n => n.status === 'downstream_unlocked');
+
+            const nodeCoords = {};
+
+            // Place gap nodes on the left (x = 120)
+            gapNodes.forEach((n, i) => {
+                const y = (h / (gapNodes.length + 1)) * (i + 1);
+                const x = 120 + (i % 2 === 1 ? 40 : 0);
+                nodeCoords[n.id] = { x, y, node: n, color: `url(#grad-gap-${sid})`, stroke: '#f59e0b', glow: '#ea580c', badge: 'Review Gap' };
+            });
+
+            // Place mastered nodes in the center (x = cx - 120)
+            mastNodes.forEach((n, i) => {
+                const y = (h / (mastNodes.length + 1)) * (i + 1);
+                const x = (cx - 120) + (i % 2 === 1 ? 35 : 0);
+                nodeCoords[n.id] = { x, y, node: n, color: `url(#grad-master-${sid})`, stroke: '#10b981', glow: '#059669', badge: 'Mastered' };
+            });
+
+            // Place target concept on the right (x = cx + 120)
+            if (targetNode) {
+                nodeCoords[targetNode.id] = {
+                    x: unlockedNodes.length ? cx + 120 : cx + 160,
+                    y: cy,
+                    node: targetNode,
+                    color: `url(#grad-target-${sid})`,
+                    stroke: '#fbbf24',
+                    glow: '#d97706',
+                    badge: targetNode.status === 'unlocked' ? 'Fully Unlocked' : 'Target Goal'
+                };
+            }
+
+            // Place downstream unlocked nodes (x = w - 160)
+            unlockedNodes.forEach((n, i) => {
+                const y = (h / (unlockedNodes.length + 1)) * (i + 1);
+                nodeCoords[n.id] = { x: w - 160 + (i % 2 === 1 ? 40 : 0), y, node: n, color: '#38bdf8', stroke: '#0284c7', glow: '#38bdf8', badge: 'Downstream' };
+            });
+
+            // Draw directed edges
+            edges.forEach(e => {
+                const u = nodeCoords[e.from_id];
+                const v = nodeCoords[e.to_id];
+                if (u && v && u !== v) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const midX = (u.x + v.x) / 2;
+                    const midY = (u.y + v.y) / 2;
+                    const d = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                    const marker = e.relation.includes('REVIEW') ? `url(#arr-gap-${sid})` : `url(#arr-pers-${sid})`;
+                    const strokeColor = e.relation.includes('REVIEW') ? 'rgba(245, 158, 11, 0.7)' : 'rgba(56, 189, 248, 0.7)';
+                    path.setAttribute('d', d);
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke', strokeColor);
+                    path.setAttribute('stroke-width', '2.2');
+                    path.setAttribute('filter', `url(#neon-${sid})`);
+                    path.setAttribute('marker-end', marker);
+                    svgElement.appendChild(path);
+                }
+            });
+
+            // Draw interactive nodes
+            Object.values(nodeCoords).forEach(item => {
+                const n = item.node;
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'cursor-pointer group');
+                g.setAttribute('transform', `translate(${item.x}, ${item.y})`);
+
+                const isTarget = n.role === 'target';
+                const r = isTarget ? 18 : 14;
+
+                const cGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                cGlow.setAttribute('r', String(r + 6));
+                cGlow.setAttribute('fill', item.glow);
+                cGlow.setAttribute('opacity', '0.2');
+                cGlow.setAttribute('filter', `url(#neon-${sid})`);
+                g.appendChild(cGlow);
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('r', String(r));
+                circle.setAttribute('fill', item.color);
+                circle.setAttribute('stroke', item.stroke);
+                circle.setAttribute('stroke-width', isTarget ? '3' : '2');
+                g.appendChild(circle);
+
+                const sym = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                sym.setAttribute('text-anchor', 'middle');
+                sym.setAttribute('dominant-baseline', 'central');
+                sym.setAttribute('font-size', isTarget ? '11' : '9');
+                sym.setAttribute('font-weight', 'bold');
+                sym.setAttribute('fill', '#000');
+                sym.textContent = n.status === 'mastered' ? '✓' : (n.status === 'review_gap' ? '!' : (isTarget ? '★' : '→'));
+                g.appendChild(sym);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('y', String(r + 14));
+                text.setAttribute('font-size', '10');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('fill', item.stroke);
+                text.setAttribute('filter', `drop-shadow(0 1px 2px rgba(0,0,0,0.8))`);
+                text.textContent = (n.label || n.id).substring(0, 18);
+                g.appendChild(text);
+
+                g.onclick = () => {
+                    selectPersonalizedNode(cardId, n, anchorLabel);
+                };
+
+                svgElement.appendChild(g);
+            });
+        }
+        window.drawPersonalizedSVG = drawPersonalizedSVG;
+
+        function selectPersonalizedNode(cardId, node, anchorLabel) {
+            const titleEl = document.getElementById(`pers-insp-title-${cardId}`);
+            const summaryEl = document.getElementById(`pers-insp-summary-${cardId}`);
+            const badgeEl = document.getElementById(`pers-insp-badge-${cardId}`);
+            const citationEl = document.getElementById(`pers-insp-citation-${cardId}`);
+            const actionsEl = document.getElementById(`pers-insp-actions-${cardId}`);
+
+            if (titleEl) titleEl.textContent = node.label || node.id;
+            if (summaryEl) summaryEl.textContent = node.summary || 'Prerequisite component in this pathway.';
+            if (badgeEl) {
+                badgeEl.textContent = node.status === 'mastered' ? 'Prerequisite Mastered (🟢)' : (node.status === 'review_gap' ? 'Review Gap (🟡)' : 'Target Goal (🌟)');
+                badgeEl.className = `px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${node.status === 'mastered' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : (node.status === 'review_gap' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-accentPurple/25 text-accentPurple border border-accentPurple/40')}`;
+            }
+            if (citationEl) {
+                citationEl.textContent = node.citation ? `Citation: ${node.citation}` : '';
+            }
+            if (actionsEl) {
+                let actionButtons = '';
+                if (node.doc_id) {
+                    actionButtons += `
+                        <button onclick="openPrerequisiteRemediationReader('${node.doc_id}', ${node.page_number || 1}, '${escapeHTML(node.label)}', '${escapeHTML(node.summary)}')" type="button" class="px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
+                            <i class="fa-solid fa-book-open text-xs"></i> <span>View Textbook (p. ${node.printed_page || node.page_number || 1})</span>
+                        </button>
+                    `;
+                }
+                actionButtons += `
+                    <button onclick="autoPrompt('Explain prerequisite concept ${escapeHTML(node.label)} for mastering ${escapeHTML(anchorLabel)}')" type="button" class="px-3 py-2 rounded-lg bg-accentPurple hover:bg-accentPurple/80 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-accentPurple/25">
+                        <i class="fa-solid fa-comment-dots text-xs"></i> <span>Explain Gap</span>
+                    </button>
+                `;
+                actionsEl.innerHTML = actionButtons;
+            }
+        }
+        window.selectPersonalizedNode = selectPersonalizedNode;
+
 
         /**
          * OriginKit-style Interactive Line Ripple — vanilla JS port.
@@ -7164,7 +9082,13 @@ currentMode = mode;
                 raf = requestAnimationFrame(loop);
             }
         }
-        window._initGraphRipple = _initGraphRipple;
+        function scrollInChatGraph(cardId, delta) {
+            const el = document.getElementById(`hgraph-canvas-${cardId}`) || document.getElementById(`pers-canvas-${cardId}`);
+            if (el) {
+                el.scrollBy({ left: delta, behavior: 'smooth' });
+            }
+        }
+        window.scrollInChatGraph = scrollInChatGraph;
 
         function selectHorizontalNode(cardId, nodeId, nodeData, anchor, prereqs, unlocks, related) {
             // Synchronize with left sidebar panel
@@ -7227,14 +9151,50 @@ currentMode = mode;
             }
         }
 
-        function drawHorizontalSVG(svgElement, anchor, prereqs, unlocks, related, cardId) {
+        function drawHorizontalSVG(svgElement, anchor, prereqs, unlocks, related, cardId, metadata) {
             if (!svgElement) return;
             svgElement.innerHTML = '';
 
-            const w = 760;
-            const h = 200;
+            const subNodes = (metadata && metadata.subgraph && metadata.subgraph.nodes) || [];
+            const subEdges = (metadata && metadata.subgraph && metadata.subgraph.edges) || [];
+
+            // Collect all multi-hop nodes (do not restrict to 1 earlier and 1 ahead)
+            const allPrereqs = (prereqs && prereqs.length) ? prereqs : [];
+            const allUnlocks = (unlocks && unlocks.length) ? unlocks : [];
+            const allRelated = (related && related.length) ? related : [];
+
+            // If prerequisites are empty (e.g. BERT with 0 immediate prereqs indexed), enrich with foundational predecessors from curriculum chain
+            let effectivePrereqs = allPrereqs.slice();
+            if (!effectivePrereqs.length) {
+                const msgKey = cardId.replace('hgraph-', '');
+                const chain = (metadata && metadata.chain) || (window._adaptiveState && window._adaptiveState[msgKey] && window._adaptiveState[msgKey].chain) || [];
+                const anchorKey = _nodeId(anchor).toLowerCase();
+                const filteredChain = chain.filter(c => _nodeId(c).toLowerCase() !== anchorKey);
+                if (filteredChain.length) {
+                    effectivePrereqs = filteredChain.map(c => ({ id: _nodeId(c), name: _nodeLabel(c), difficulty: 'foundational' }));
+                } else {
+                    const canonMap = {
+                        'bert': ['transformer', 'attention_mechanism', 'neural_network'],
+                        'transformer': ['attention_mechanism', 'neural_network', 'matrix_multiplication'],
+                        'low_rank_adaptation': ['fine_tuning', 'transformer', 'linear_algebra'],
+                        'retrieval_augmented_generation': ['vector_database', 'transformer', 'dense_passage_retrieval'],
+                    };
+                    const defaults = canonMap[anchorKey] || ['neural_network', 'machine_learning'];
+                    effectivePrereqs = defaults.map(c => ({ id: c, name: c.replace(/_/g, ' ').toUpperCase(), difficulty: 'foundational' }));
+                }
+            }
+
+            const totalCandidateCount = subNodes.length >= 4 
+                ? subNodes.length 
+                : (effectivePrereqs.length + allUnlocks.length + allRelated.length + 1);
+            
+            const w = Math.max(860, Math.min(1380, totalCandidateCount * 115));
+            const h = 230;
             svgElement.setAttribute('viewBox', `0 0 ${w} ${h}`);
             svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            svgElement.style.width = `${w}px`;
+            svgElement.style.minWidth = `${w}px`;
+            svgElement.style.height = '100%';
 
             const sid = `hsvg-${cardId}`;
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -7243,112 +9203,201 @@ currentMode = mode;
                     <feGaussianBlur stdDeviation="3.5" result="b"/>
                     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
-                <linearGradient id="grad-anchor-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#d97706"/>
+                <!-- Warm Gold for Target Anchor -->
+                <linearGradient id="grad-target-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fffbeb"/><stop offset="60%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/>
                 </linearGradient>
-                <linearGradient id="grad-pre-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#8b5cf6"/>
+                <!-- Electric Indigo / Violet for Prerequisites -->
+                <linearGradient id="grad-prereq-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#e0e7ff"/><stop offset="60%" stop-color="#818cf8"/><stop offset="100%" stop-color="#6366f1"/>
                 </linearGradient>
-                <linearGradient id="grad-unl-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#67e8f9"/><stop offset="100%" stop-color="#059669"/>
+                <!-- Vibrant Emerald for Downstream Unlocks -->
+                <linearGradient id="grad-unlock-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#d1fae5"/><stop offset="60%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/>
                 </linearGradient>
-                <linearGradient id="grad-rel-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#0284c7"/>
+                <!-- Neon Rose for Related Connections -->
+                <linearGradient id="grad-related-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffe4e6"/><stop offset="60%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#be123c"/>
                 </linearGradient>
                 <marker id="arr-pre-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M0,1 L10,5 L0,9 Z" fill="#c084fc"/>
+                    <path d="M0,1 L10,5 L0,9 Z" fill="#818cf8"/>
                 </marker>
                 <marker id="arr-unl-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M0,1 L10,5 L0,9 Z" fill="#34d399"/>
+                    <path d="M0,1 L10,5 L0,9 Z" fill="#10b981"/>
+                </marker>
+                <marker id="arr-rel-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M0,1 L10,5 L0,9 Z" fill="#f43f5e"/>
                 </marker>
             `;
             svgElement.appendChild(defs);
 
-            const cx = w / 2; // 380
-            const cy = h / 2; // 100
-
-            const nodes = [];
-            // Target anchor node in center
-            nodes.push({
-                id: _nodeId(anchor, 'anchor'),
-                label: _nodeLabel(anchor),
-                summary: _nodeSummary(anchor),
-                x: cx, y: cy, type: 'anchor', data: anchor
-            });
-
-            const safePrereqs = (prereqs || []).slice(0, 3);
-            const safeUnlocks = (unlocks || []).slice(0, 3);
-            const safeRelated = (related || []).slice(0, 3);
-
-            const preX = 130;
-            const unX = 630;
-
-            const pN = Math.max(safePrereqs.length, 1);
-            const uN = Math.max(safeUnlocks.length, 1);
-
-            safePrereqs.forEach((p, i) => {
-                const y = (h / (pN + 1)) * (i + 1);
-                nodes.push({ id: _nodeId(p, 'p'+i), label: _nodeLabel(p), summary: _nodeSummary(p), x: preX, y, type: 'prereq', data: p });
-            });
-
-            safeUnlocks.forEach((u, i) => {
-                const y = (h / (uN + 1)) * (i + 1);
-                nodes.push({ id: _nodeId(u, 'u'+i), label: _nodeLabel(u), summary: _nodeSummary(u), x: unX, y, type: 'unlock', data: u });
-            });
-
-            safeRelated.forEach((r, i) => {
-                const isTop = i % 2 === 0;
-                const xOff = (i - 1) * 110;
-                nodes.push({
-                    id: _nodeId(r, 'r'+i),
-                    label: _nodeLabel(r),
-                    summary: _nodeSummary(r),
-                    x: cx + xOff,
-                    y: isTop ? 32 : h - 32,
-                    type: 'related',
-                    data: r
-                });
-            });
+            const cx = w / 2;
+            const cy = h / 2;
 
             const colors = {
-                anchor:  { fill: `url(#grad-anchor-${sid})`, stroke: '#fde68a', glow: '#fbbf24', edge: `url(#grad-unl-${sid})` },
-                prereq:  { fill: `url(#grad-pre-${sid})`, stroke: '#c084fc', glow: '#a855f7', edge: `url(#grad-pre-${sid})` },
-                unlock:  { fill: `url(#grad-unl-${sid})`, stroke: '#34d399', glow: '#059669', edge: `url(#grad-unl-${sid})` },
-                related: { fill: `url(#grad-rel-${sid})`, stroke: '#38bdf8', glow: '#0284c7', edge: 'rgba(56,189,248,0.6)' }
+                anchor:  { fill: `url(#grad-target-${sid})`, stroke: '#fef08a', glow: '#f59e0b', edge: '#f59e0b' },
+                prereq:  { fill: `url(#grad-prereq-${sid})`, stroke: '#c7d2fe', glow: '#818cf8', edge: '#818cf8' },
+                unlock:  { fill: `url(#grad-unlock-${sid})`, stroke: '#a7f3d0', glow: '#10b981', edge: '#10b981' },
+                related: { fill: `url(#grad-related-${sid})`, stroke: '#fecdd3', glow: '#f43f5e', edge: 'rgba(244,63,94,0.65)' }
             };
 
-            // Draw Edges first
-            nodes.forEach(n => {
-                if (n.type === 'anchor') return;
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                let d, marker = '', cls = '';
-                if (n.type === 'prereq') {
-                    d = `M ${n.x} ${n.y} C ${(n.x + cx) / 2} ${n.y}, ${(n.x + cx) / 2} ${cy}, ${cx} ${cy}`;
-                    marker = `url(#arr-pre-${sid})`;
-                    cls = 'graph-edge-prereq';
-                } else if (n.type === 'unlock') {
-                    d = `M ${cx} ${cy} C ${(cx + n.x) / 2} ${cy}, ${(cx + n.x) / 2} ${n.y}, ${n.x} ${n.y}`;
-                    marker = `url(#arr-unl-${sid})`;
-                    cls = 'graph-edge-unlock';
+            let nodes = [];
+            let edgesToDraw = [];
+
+            if (subNodes.length >= 4) {
+                // Multi-hop subgraph layout across full topological width (closer spacing)
+                const targets = subNodes.filter(n => n.role === 'target');
+                const p2 = subNodes.filter(n => n.role === 'prereq' && (n.hop >= 2 || n.role === 'context'));
+                const p1 = subNodes.filter(n => n.role === 'prereq' && n.hop === 1);
+                const unls = subNodes.filter(n => n.role === 'unlock');
+                const others = subNodes.filter(n => n.role !== 'target' && n.role !== 'prereq' && n.role !== 'unlock' && n.role !== 'context');
+
+                // Place Targets in center
+                if (targets.length === 1) {
+                    nodes.push({ id: targets[0].id, label: _nodeLabel(targets[0]), summary: _nodeSummary(targets[0]), x: cx, y: cy, type: 'anchor', data: targets[0] });
+                } else if (targets.length >= 2) {
+                    targets.forEach((t, i) => {
+                        const tx = cx + (i === 0 ? -55 : 55);
+                        nodes.push({ id: t.id, label: _nodeLabel(t), summary: _nodeSummary(t), x: tx, y: cy, type: 'anchor', data: t });
+                    });
                 } else {
-                    d = `M ${cx} ${cy} Q ${(cx + n.x) / 2} ${(cy + n.y) / 2} ${n.x} ${n.y}`;
-                    cls = 'graph-edge-related';
+                    nodes.push({ id: _nodeId(anchor, 'anchor'), label: _nodeLabel(anchor), summary: _nodeSummary(anchor), x: cx, y: cy, type: 'anchor', data: anchor });
                 }
+
+                // Place 2-hop foundational prerequisites (comfortably inset from left)
+                const p2X = Math.max(135, cx - 225);
+                p2.forEach((p, i) => {
+                    const y = (h / (p2.length + 1)) * (i + 1);
+                    nodes.push({ id: p.id, label: _nodeLabel(p), summary: _nodeSummary(p), x: p2X, y: y, type: 'prereq', data: p });
+                });
+
+                // Place 1-hop immediate prerequisites closer to center
+                const p1X = cx - 115;
+                p1.forEach((p, i) => {
+                    const y = (h / (p1.length + 1)) * (i + 1);
+                    nodes.push({ id: p.id, label: _nodeLabel(p), summary: _nodeSummary(p), x: p1X, y: y, type: 'prereq', data: p });
+                });
+
+                // Place unlocks closer to center
+                const unlX = cx + 115;
+                unls.forEach((u, i) => {
+                    const y = (h / (unls.length + 1)) * (i + 1);
+                    nodes.push({ id: u.id, label: _nodeLabel(u), summary: _nodeSummary(u), x: unlX, y: y, type: 'unlock', data: u });
+                });
+
+                // Place others / bridge nodes
+                others.forEach((o, i) => {
+                    const isTop = i % 2 === 0;
+                    const xOff = (i - 1) * 75;
+                    nodes.push({ id: o.id, label: _nodeLabel(o), summary: _nodeSummary(o), x: cx + xOff, y: isTop ? 34 : h - 34, type: 'related', data: o });
+                });
+
+                const nodeMap = {};
+                nodes.forEach(n => { nodeMap[n.id] = n; });
+
+                subEdges.forEach(e => {
+                    const u = nodeMap[e.from_id];
+                    const v = nodeMap[e.to_id];
+                    if (u && v && u !== v) {
+                        const rel = (e.relation || 'REQUIRES').toUpperCase();
+                        let edgeType = 'related';
+                        if (rel === 'REQUIRES') edgeType = 'prereq';
+                        else if (rel === 'UNLOCKS') edgeType = 'unlock';
+                        edgesToDraw.push({ u: u, v: v, relation: rel, type: edgeType });
+                    }
+                });
+
+            } else {
+                // Multi-hop unconstrained topological layout (closer spacing)
+                nodes.push({
+                    id: _nodeId(anchor, 'anchor'),
+                    label: _nodeLabel(anchor),
+                    summary: _nodeSummary(anchor),
+                    x: cx, y: cy, type: 'anchor', data: anchor
+                });
+
+                // Show all prerequisites, distributing across 2 columns if more than 3
+                const deepPrereqs = effectivePrereqs.slice(3, 8);
+                const immPrereqs = effectivePrereqs.slice(0, 3);
+                const immUnlocks = allUnlocks.slice(0, 3);
+                const deepUnlocks = allUnlocks.slice(3, 8);
+
+                if (deepPrereqs.length > 0) {
+                    const deepX = Math.max(135, cx - 225);
+                    deepPrereqs.forEach((p, i) => {
+                        const y = (h / (deepPrereqs.length + 1)) * (i + 1);
+                        nodes.push({ id: _nodeId(p, 'dp' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: deepX, y: y, type: 'prereq', data: p });
+                    });
+                }
+
+                immPrereqs.forEach((p, i) => {
+                    const y = (h / (immPrereqs.length + 1)) * (i + 1);
+                    nodes.push({ id: _nodeId(p, 'p' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: cx - 115, y: y, type: 'prereq', data: p });
+                });
+
+                immUnlocks.forEach((u, i) => {
+                    const y = (h / (immUnlocks.length + 1)) * (i + 1);
+                    nodes.push({ id: _nodeId(u, 'u' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: cx + 115, y: y, type: 'unlock', data: u });
+                });
+
+                if (deepUnlocks.length > 0) {
+                    const deepUnlX = Math.min(w - 135, cx + 225);
+                    deepUnlocks.forEach((u, i) => {
+                        const y = (h / (deepUnlocks.length + 1)) * (i + 1);
+                        nodes.push({ id: _nodeId(u, 'du' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: deepUnlX, y: y, type: 'unlock', data: u });
+                    });
+                }
+
+                allRelated.slice(0, 4).forEach((r, i) => {
+                    const isTop = i % 2 === 0;
+                    const xOff = (i - 1) * 75;
+                    nodes.push({
+                        id: _nodeId(r, 'r' + i),
+                        label: _nodeLabel(r),
+                        summary: _nodeSummary(r),
+                        x: cx + xOff,
+                        y: isTop ? 34 : h - 34,
+                        type: 'related',
+                        data: r
+                    });
+                });
+
+                // Connect edges from prereqs to target, and target to unlocks
+                nodes.forEach(n => {
+                    if (n.type === 'anchor') return;
+                    if (n.type === 'prereq') {
+                        edgesToDraw.push({ u: n, v: nodes[0], relation: 'REQUIRES', type: 'prereq' });
+                    } else if (n.type === 'unlock') {
+                        edgesToDraw.push({ u: nodes[0], v: n, relation: 'UNLOCKS', type: 'unlock' });
+                    } else {
+                        edgesToDraw.push({ u: nodes[0], v: n, relation: 'CONNECTS', type: 'related' });
+                    }
+                });
+            }
+
+            // Draw Smooth Animated Edges
+            edgesToDraw.forEach(edge => {
+                const u = edge.u;
+                const v = edge.v;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const midX = (u.x + v.x) / 2;
+                const midY = (u.y + v.y) / 2;
+                const d = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                const marker = edge.type === 'prereq' ? `url(#arr-pre-${sid})` : (edge.type === 'unlock' ? `url(#arr-unl-${sid})` : `url(#arr-rel-${sid})`);
                 path.setAttribute('d', d);
                 path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', colors[n.type].edge);
-                path.setAttribute('stroke-width', n.type === 'related' ? '1.8' : '2.5');
+                path.setAttribute('stroke', colors[edge.type].edge);
+                path.setAttribute('stroke-width', edge.type === 'related' ? '1.5' : '2.2');
                 path.setAttribute('filter', `url(#neon-${sid})`);
                 if (marker) path.setAttribute('marker-end', marker);
-                path.setAttribute('class', cls);
-                if (n.type === 'related') path.setAttribute('stroke-dasharray', '4 4');
+                path.setAttribute('class', `graph-edge-${edge.type}`);
                 svgElement.appendChild(path);
             });
 
-            // Draw Nodes
+            // Draw Clean Glowing Nodes
             nodes.forEach(n => {
                 const c = colors[n.type];
-                const r = n.type === 'anchor' ? 20 : 13;
+                const r = n.type === 'anchor' ? 16 : 11;
                 const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                 g.setAttribute('class', 'graph-node-group');
                 g.setAttribute('data-node-id', n.id);
@@ -7362,26 +9411,21 @@ currentMode = mode;
                     selectHorizontalNode(cardId, n.id, n.data, anchor, prereqs, unlocks, related);
                 });
 
-                // Pulse ring
-                const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                pulse.setAttribute('cx', n.x);
-                pulse.setAttribute('cy', n.y);
-                pulse.setAttribute('r', r + 6);
-                pulse.setAttribute('stroke', c.glow);
-                pulse.setAttribute('filter', `url(#neon-${sid})`);
+                // Pulse ring ONLY for anchor node
                 if (n.type === 'anchor') {
+                    const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    pulse.setAttribute('cx', n.x);
+                    pulse.setAttribute('cy', n.y);
+                    pulse.setAttribute('r', r + 6);
+                    pulse.setAttribute('stroke', c.glow);
+                    pulse.setAttribute('stroke-width', '2');
+                    pulse.setAttribute('filter', `url(#neon-${sid})`);
                     pulse.setAttribute('class', 'graph-pulse-ring');
                     pulse.setAttribute('fill', 'none');
-                } else {
-                    pulse.setAttribute('class', 'graph-select-ring');
-                    pulse.setAttribute('fill', 'none');
-                    pulse.setAttribute('stroke-width', '2');
-                    pulse.style.opacity = '0';
-                    pulse.style.transition = 'opacity 0.2s';
+                    g.appendChild(pulse);
                 }
-                g.appendChild(pulse);
 
-                // Core circle
+                // Core glowing circle
                 const core = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 core.setAttribute('class', 'graph-node-core');
                 core.setAttribute('cx', n.x);
@@ -7389,29 +9433,20 @@ currentMode = mode;
                 core.setAttribute('r', r);
                 core.setAttribute('fill', c.fill);
                 core.setAttribute('stroke', c.stroke);
-                core.setAttribute('stroke-width', n.type === 'anchor' ? '2.5' : '1.5');
+                core.setAttribute('stroke-width', '2');
                 core.setAttribute('filter', `url(#neon-${sid})`);
                 g.appendChild(core);
 
-                // Sparkle dot
-                const inner = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                inner.setAttribute('cx', n.x);
-                inner.setAttribute('cy', n.y);
-                inner.setAttribute('r', Math.max(3, r * 0.35));
-                inner.setAttribute('fill', '#ffffff');
-                inner.setAttribute('opacity', '0.9');
-                g.appendChild(inner);
-
-                // Text label (readable size on the in-chat concept graph)
+                // Monospace white text label
                 const shortLabel = (n.label || n.id || '').length > 26 ? (n.label || n.id).slice(0, 25) + '…' : (n.label || n.id || '');
                 const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 text.setAttribute('x', n.x);
-                text.setAttribute('y', n.y + r + 16);
+                text.setAttribute('y', n.y + r + 15);
                 text.setAttribute('text-anchor', 'middle');
                 text.setAttribute('fill', '#ffffff');
-                text.setAttribute('font-size', n.type === 'anchor' ? '14px' : '12px');
-                text.setAttribute('font-weight', '700');
-                text.setAttribute('font-family', "'Brigend', sans-serif");
+                text.setAttribute('font-size', '11px');
+                text.setAttribute('font-weight', '600');
+                text.setAttribute('font-family', "'JetBrains Mono', monospace");
                 text.textContent = shortLabel;
                 g.appendChild(text);
 
@@ -7430,6 +9465,17 @@ currentMode = mode;
 
                 svgElement.appendChild(g);
             });
+
+            // Auto-scroll container so that the Target Node is centered in view immediately
+            setTimeout(() => {
+                const canvasContainer = document.getElementById(`hgraph-canvas-${cardId}`) || svgElement.parentElement;
+                if (canvasContainer) {
+                    const anchorNode = nodes.find(n => n.type === 'anchor') || nodes[0];
+                    if (anchorNode) {
+                        canvasContainer.scrollLeft = Math.max(0, anchorNode.x - (canvasContainer.clientWidth / 2));
+                    }
+                }
+            }, 60);
         }
         window.populateTopology = populateTopology;
 
@@ -7856,7 +9902,7 @@ currentMode = mode;
             }
         }
 
-        // Global PDF / view-page / page-view link interceptor
+        // Global PDF / view-page / page-view link interceptor → deep-links to Library reader at exact page
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
             if (!link) return;
@@ -7865,7 +9911,8 @@ currentMode = mode;
             const isPageLink = href.includes('view-page') || href.includes('/api/page-view')
                 || href.includes('/pdfs/') || href.includes('#page=')
                 || link.classList.contains('curriculum-pdf-link')
-                || link.classList.contains('view-page-link');
+                || link.classList.contains('view-page-link')
+                || link.classList.contains('citation-card');
             if (!isPageLink) return;
             e.preventDefault();
             e.stopPropagation();
@@ -7879,7 +9926,6 @@ currentMode = mode;
                     highlight = u.searchParams.get('highlight') || '';
                 } else if (href.includes('view-page') || href.includes('/api/page-view') || href.includes('?')) {
                     // view-page?doc=... or /api/page-view?doc_id=... (relative or absolute)
-                    const normalized = href.startsWith('view-page') ? ('?' + href.split('?')[1] || '') : href;
                     const urlObj = new URL(href.includes('://') || href.startsWith('/') || href.startsWith('?') || href.startsWith('view-page')
                         ? (href.startsWith('view-page') ? (window.location.origin + '/' + href) : href)
                         : href, window.location.origin);
@@ -7896,7 +9942,14 @@ currentMode = mode;
                 if (!doc_id && link.dataset.docId) doc_id = link.dataset.docId;
                 if (doc_id) {
                     try { doc_id = decodeURIComponent(doc_id); } catch (_) { /* keep raw */ }
-                    openPageViewerModal(doc_id, page, highlight);
+                    const rawPdf = String(doc_id).split('#')[0].replace(/^\/+/, '').replace(/^pdfs\//i, '');
+                    const bookKey = rawPdf.split('/').pop().replace(/\.pdf$/i, '').toLowerCase();
+                    const params = new URLSearchParams();
+                    params.set('book', bookKey);
+                    if (rawPdf) params.set('pdf', rawPdf);
+                    if (page > 0) params.set('page', String(page));
+                    if (highlight) params.set('highlight', highlight);
+                    window.location.href = '/library?' + params.toString() + '#book-reader';
                 } else {
                     console.warn('Page link missing doc id:', href);
                 }

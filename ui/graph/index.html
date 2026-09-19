@@ -371,6 +371,27 @@ svg#graph-svg.locked{cursor:default;pointer-events:none}
 </style>
 </head>
 <body>
+<!-- RBAC Access Restriction Gate for Port 5150 (Staff Only) -->
+<div id="staff-auth-gate" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(10,8,20,0.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);align-items:center;justify-content:center;padding:24px;font-family:'Outfit','Inter',sans-serif;color:#ffffff;">
+  <div style="background:#15102a;border:1px solid rgba(255,255,255,0.18);border-radius:24px;max-width:520px;width:100%;padding:40px 36px;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.8);">
+    <div style="width:64px;height:64px;border-radius:20px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px;">🔒</div>
+    <div style="font-size:11px;font-family:monospace;letter-spacing:0.2em;text-transform:uppercase;color:#a78bfa;font-weight:700;margin-bottom:8px;">STAFF RESTRICTED ACCESS</div>
+    <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.5px;color:#ffffff;margin-bottom:12px;">Staff Knowledge Graph</h2>
+    <p style="font-size:14px;line-height:1.6;color:rgba(255,255,255,0.75);margin-bottom:28px;">
+      Port 5150 and the topological knowledge graph are restricted strictly to campus <strong>Administrators</strong> and <strong>Librarians</strong>.<br><br>
+      Students and unauthenticated guests are not permitted to inspect raw graph topology.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <a href="http://127.0.0.1:5152/login?next=http://127.0.0.1:5150/" style="display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#ea580c);color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 4px 18px rgba(124,58,237,0.35);">
+        Staff Sign In (Admin / Librarian) &rarr;
+      </a>
+      <a href="http://127.0.0.1:5152/chat" style="display:inline-flex;align-items:center;justify-content:center;padding:11px 24px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;text-decoration:none;">
+        Return to Student Chat
+      </a>
+    </div>
+  </div>
+</div>
+
 <canvas id="stars"></canvas>
 <div id="loader"><div class="spin"></div><div class="ltxt">Loading knowledge graph…</div><div class="lsub">Fetching from /api/graph</div></div>
 
@@ -625,7 +646,61 @@ if (highlightParam) {
 let currentBook=null;
 let simulation=null,svgZoom=null;
 let nSel=null,eSel=null;
-let flashcardOpen=false;
+// Staff RBAC verification for Port 5150
+async function checkGraphStaffAccess() {
+  const gate = document.getElementById('staff-auth-gate');
+  let principal = null;
+
+  try {
+    const stored = sessionStorage.getItem('archipelago_local_user');
+    if (stored) principal = JSON.parse(stored);
+  } catch (_) {}
+
+  if (!principal || !principal.role) {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
+          const raw = JSON.parse(localStorage.getItem(k));
+          if (raw && raw.user) {
+            const r = raw.user.user_metadata?.role || raw.user.app_metadata?.role;
+            if (r) {
+              principal = { authenticated: true, role: r, username: raw.user.email || raw.user.id };
+            }
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (!principal || !principal.role) {
+    try {
+      const resp = await fetch('http://127.0.0.1:5152/api/auth/me', { credentials: 'include' });
+      if (resp.ok) {
+        principal = await resp.json();
+      }
+    } catch (_) {}
+  }
+
+  const allowedRoles = ['administrator', 'librarian', 'admin'];
+  const userRole = (principal?.role || '').toLowerCase();
+  const isAuth = principal && (principal.authenticated !== false);
+  if (!isAuth || !allowedRoles.includes(userRole)) {
+    if (gate) gate.style.display = 'flex';
+    return false;
+  } else {
+    if (gate) gate.style.display = 'none';
+    const hdr = document.getElementById('hdr');
+    if (hdr && !document.getElementById('staff-pill')) {
+      const pill = document.createElement('div');
+      pill.id = 'staff-pill';
+      pill.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);font-size:11px;font-weight:700;color:#7c3aed;';
+      pill.innerHTML = `<span>🛡️ ${principal.role.toUpperCase()}: ${principal.username || ''}</span><a href="http://127.0.0.1:5152/chat" style="color:#7c3aed;text-decoration:none;margin-left:6px;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(124,58,237,0.1);">Chat &rarr;</a>`;
+      hdr.appendChild(pill);
+    }
+    return true;
+  }
+}
 
 // Starfield
 (()=>{const c=document.getElementById('stars'),ctx=c.getContext('2d');let st=[],raf;
@@ -687,8 +762,16 @@ fetch('/api/graph')
       }
       showConcepts(null);
     } else {
-      showBooks();
+      const urlTab = new URLSearchParams(window.location.search).get('tab');
+      if (urlTab === 'books') {
+        showBooks();
+      } else if (urlTab === 'concepts') {
+        showConcepts(null);
+      } else {
+        showCrossBook();
+      }
     }
+    checkGraphStaffAccess();
   })
   .catch(e => {
     document.querySelector('.ltxt').textContent = 'Error: ' + e.message;
@@ -948,13 +1031,23 @@ function buildConceptGraph(nodes,edges,nm,bookId){
   let st=setTimeout(()=>sim.stop(),isLarge?5000:7000);
   function wake(){sim.alpha(.25).restart();clearTimeout(st);st=setTimeout(()=>sim.stop(),5000);}
 
-  // Edges — straight lines, NO markers/triangles
+  // Edges — curvy quadratic bezier curves (proper curvy graph)
+  function linkArc(d) {
+    const sx = d.source.x, sy = d.source.y;
+    const tx = d.target.x, ty = d.target.y;
+    const dx = tx - sx, dy = ty - sy;
+    const midX = (sx + tx) / 2 - dy * 0.12;
+    const midY = (sy + ty) / 2 + dx * 0.12;
+    return `M${sx},${sy} Q${midX},${midY} ${tx},${ty}`;
+  }
+
   const eG=root.append('g');
-  const eS=eG.selectAll('.edge-line').data(edges).join('line')
-    .attr('class',d=>`edge-line e-${d.relation}${d._external?' external':''}`)
+  const eS=eG.selectAll('.edge-path').data(edges).join('path')
+    .attr('class',d=>`edge-path e-${d.relation}${d._external?' external':''}`)
+    .attr('fill','none')
     .attr('stroke',d=>EC[d.relation]||'#666')
-    .attr('stroke-width',d=>d._external?(EW[d.relation]||1)*.7:(EW[d.relation]||1))
-    .attr('stroke-opacity',d=>d._external?.15:.4);
+    .attr('stroke-width',d=>d._external?(EW[d.relation]||1)*.7:(EW[d.relation]||1.2))
+    .attr('stroke-opacity',d=>d._external?.18:.42);
   eSel=eS;
 
   // Nodes
@@ -992,7 +1085,7 @@ function buildConceptGraph(nodes,edges,nm,bookId){
   svg.on('click',()=>{closeFlashcard();clearHL();});
 
   sim.on('tick',()=>{
-    eS.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    eS.attr('d',linkArc);
     nS.attr('transform',d=>`translate(${d.x},${d.y})`);
   });
 

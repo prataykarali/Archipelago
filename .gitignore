@@ -95,3 +95,4 @@ scratch/
 # Node (library showcase build only)
 node_modules/
 ui/library-showcase/node_modules/
+okf_graph_staging.db
