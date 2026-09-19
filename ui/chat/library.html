@@ -26,6 +26,66 @@
             font-family: 'Instrument Serif', serif !important;
         }
 
+        /* Octagonal clip-path button classes (VortxLab aesthetic) */
+        .btn-cut {
+            clip-path: polygon(
+                12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+                calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+            );
+        }
+
+        .btn-cut-border {
+            position: relative;
+            background: white;
+            clip-path: polygon(
+                12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+                calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+            );
+            padding: 1px;
+        }
+
+        .btn-cut-border::before {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            background: black;
+            z-index: 0;
+            clip-path: polygon(
+                11px 0%, calc(100% - 11px) 0%, 100% 11px, 100% calc(100% - 11px),
+                calc(100% - 11px) 100%, 11px 100%, 0% calc(100% - 11px), 0% 11px
+            );
+        }
+
+        .btn-cut-border > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-cut-sm {
+            clip-path: polygon(
+                8px 0%, calc(100% - 8px) 0%, 100% 8px, 100% calc(100% - 8px),
+                calc(100% - 8px) 100%, 8px 100%, 0% calc(100% - 8px), 0% 8px
+            );
+        }
+
+        /* Staggered Entrance Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .anim-stagger {
+            opacity: 0;
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .anim-fade {
+            opacity: 0;
+            animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         /* Glassmorphism containers */
         .glass-panel {
             background: rgba(18, 18, 24, 0.72);
@@ -85,16 +145,114 @@
     <!-- FULL PAGE LIVING 3D COSMIC BACKGROUND -->
     <canvas id="library-fullpage-3d-canvas"></canvas>
 
-    <!-- Top Navigation Bar -->
-    <header class="fixed top-0 left-0 right-0 z-40 bg-black/60 backdrop-blur-md border-b border-white/10">
+    <!-- FULL SCREEN IMMERSIVE VORTXLAB CREATIONS HERO WITH BUTTERFLY VORTEX -->
+    <div class="h-screen w-full bg-black p-3 md:p-4 font-inter relative z-20">
+        <div class="w-full h-full rounded-2xl flex flex-col justify-between overflow-hidden relative bg-black shadow-2xl border border-white/10">
+            <!-- Butterfly Vortex Background Video -->
+            <video
+                class="absolute inset-0 w-full h-full object-cover anim-fade pointer-events-none"
+                style="animation-delay: 0.2s;"
+                src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260717_120352_eb988725-1351-43b3-8095-16e4a1005e3d.mp4"
+                autoplay
+                loop
+                muted
+                playsinline
+            ></video>
+
+            <!-- Navbar -->
+            <nav class="relative z-10 flex items-center justify-between px-6 md:px-10 pt-6 md:pt-8">
+                <a href="/" class="flex flex-col items-start anim-stagger group cursor-pointer text-decoration-none" style="animation-delay: 0.1s;">
+                    <svg class="w-14 h-14 md:w-16 md:h-16 text-white group-hover:scale-105 transition-transform" viewBox="0 0 256 256" fill="currentColor">
+                        <path d="M120 32C71.4 32 32 71.4 32 120h88V32zM136 32v88h88C224 71.4 184.6 32 136 32zM32 136c0 48.6 39.4 88 88 88v-88H32zM136 136v88c48.6 0 88-39.4 88-88h-88z" opacity="0.9"/>
+                    </svg>
+                    <span class="text-white text-[10px] md:text-xs tracking-[0.4em] mt-1 font-light">V O R T X</span>
+                </a>
+
+                <div class="anim-stagger flex items-center gap-3" style="animation-delay: 0.2s;">
+                    <a href="/chat" class="hidden md:block px-5 py-2.5 text-white text-sm hover:bg-white/10 btn-cut-border transition-colors">
+                        <span>Neural Synergy</span>
+                    </a>
+                    <button onclick="document.getElementById('library-content').scrollIntoView({behavior: 'smooth'})" class="hidden md:block px-5 py-2.5 bg-white text-black text-sm hover:bg-white/90 btn-cut font-medium transition-colors cursor-pointer">
+                        Cyber Synthesis
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <div class="relative z-10 flex-1 flex flex-col justify-between px-6 md:px-10 pb-8 md:pb-10">
+                <div class="flex-1 flex items-center relative">
+                    <!-- Left column -->
+                    <div class="anim-stagger hidden lg:flex flex-col gap-6 absolute left-0 top-[18%]" style="animation-delay: 0.4s;">
+                        <p class="text-white/80 text-base leading-relaxed max-w-[220px]">
+                            Come with us<br>exploring the<br>horizon
+                        </p>
+                        <div class="flex flex-col gap-2 mt-4">
+                            <div class="flex items-center gap-1">
+                                <span class="w-4 h-4 rounded-full border border-white/40 block"></span>
+                                <span class="w-4 h-4 rounded-full border border-white/40 block"></span>
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-white/70 text-xs">Perpetual<br>Immersion</span>
+                                <span class="text-white/50 text-xs">01</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center heading -->
+                    <div class="anim-stagger w-full text-center" style="animation-delay: 0.5s;">
+                        <h1 class="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-normal leading-[1.1] tracking-[-0.04em]" style="text-shadow: 0 2px 12px rgba(0,0,0,0.25);">
+                            Forging Tomorrow<br>
+                            Virtual Horizon<br>
+                            VortxLab Creations
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Bottom row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mt-8">
+                    <!-- Col 1 -->
+                    <div class="anim-stagger flex items-center justify-center md:justify-end" style="animation-delay: 0.7s;">
+                        <p class="text-white text-sm leading-relaxed max-w-[260px] text-center md:text-left md:ml-auto">
+                            We push past conventions, reshaping the virtual terrain with next-level technologies.
+                        </p>
+                    </div>
+
+                    <!-- Col 2 -->
+                    <div class="anim-stagger flex flex-col items-center gap-8 md:gap-24" style="animation-delay: 0.85s;">
+                        <span class="text-white text-2xl md:text-3xl font-medium">Net Dynamics</span>
+                        <button onclick="document.getElementById('library-content').scrollIntoView({behavior: 'smooth'})" class="w-full max-w-[280px] py-3.5 bg-white flex items-center justify-center gap-2 text-black hover:bg-white/90 transition-colors group btn-cut cursor-pointer shadow-xl">
+                            <span class="text-sm font-medium">Discover Now</span>
+                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Col 3 -->
+                    <div class="anim-stagger flex items-center justify-center md:justify-end gap-3" style="animation-delay: 1s;">
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-colors btn-cut-sm">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-colors btn-cut-sm">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                        </a>
+                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-colors btn-cut-sm">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Sub-Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="/" class="flex items-center gap-2 text-white hover:text-emerald-400 transition-colors">
+                <a href="/" class="flex items-center gap-2 text-white hover:text-cyan-400 transition-colors">
                     <span class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center font-bold text-sm">A</span>
                     <span class="font-bold tracking-tight text-base">Archipelago</span>
                 </a>
                 <span class="text-white/20 text-xs">/</span>
-                <span class="text-xs font-mono tracking-widest text-emerald-400 uppercase">Library Explorer</span>
+                <span class="text-xs font-mono tracking-widest text-cyan-400 uppercase">Library Explorer</span>
             </div>
 
             <div class="flex items-center gap-3">
@@ -121,71 +279,6 @@
             </div>
         </div>
     </header>
-
-    <!-- HERO SECTION -->
-    <div class="relative z-10 pt-28 pb-12 px-6 md:px-12 max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs font-mono text-emerald-300 tracking-wider uppercase mb-4">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Central Library & Knowledge Ops · UEM Kolkata
-                </div>
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight font-serif-title text-white leading-[1.08] mb-4">
-                    Architectures,<br>Theorems & Texts
-                </h1>
-                <p class="text-white/70 text-base md:text-lg leading-relaxed max-w-xl mb-6">
-                    Full-fidelity 3D book inspection, deep chapter navigation, direct PDF streaming, and seamless Pearson eLibrary access for university students and faculty.
-                </p>
-                <div class="flex flex-wrap items-center gap-3">
-                    <button onclick="document.getElementById('3d-shelf').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 bg-white text-black font-semibold text-xs tracking-wide rounded-lg hover:bg-white/90 transition-all flex items-center gap-2 cursor-pointer">
-                        <span>Explore 3D Books</span>
-                        <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
-                    </button>
-                    <button onclick="document.getElementById('toc-index').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 bg-white/10 text-white font-medium text-xs rounded-lg hover:bg-white/20 transition-all flex items-center gap-2 cursor-pointer border border-white/10">
-                        <i data-lucide="compass" class="w-3.5 h-3.5 text-emerald-400"></i>
-                        <span>Chapter Navigator</span>
-                    </button>
-                    <button onclick="openPearsonModal('Pearson eBook Library', 'Full Institutional Collection', 1)" class="px-5 py-2.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 text-xs font-medium rounded-lg transition-all flex items-center gap-2 cursor-pointer">
-                        <i data-lucide="key" class="w-3.5 h-3.5 text-indigo-300"></i>
-                        <span>Pearson Credentials</span>
-                    </button>
-                    <button onclick="document.getElementById('campus-inventory').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-500/30 text-xs font-medium rounded-lg transition-all flex items-center gap-2 cursor-pointer">
-                        <i data-lucide="database" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span>Campus Inventory (2,883)</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Hero Stats Box -->
-            <div class="glass-panel rounded-2xl p-6 md:p-8 border border-white/15">
-                <div class="text-[11px] font-mono tracking-[0.25em] text-white/50 uppercase mb-2">
-                    &mdash; INSTITUTIONAL REPOSITORY OVERVIEW
-                </div>
-                <div class="grid grid-cols-2 gap-4 my-4">
-                    <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-                        <div class="text-3xl font-bold text-white">2,883</div>
-                        <div class="text-xs font-mono uppercase text-white/60 mt-1">Cataloged Volumes</div>
-                    </div>
-                    <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-                        <div class="text-3xl font-bold text-cyan-400">1,213</div>
-                        <div class="text-xs font-mono uppercase text-white/60 mt-1">Bound Journal Issues</div>
-                    </div>
-                    <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-                        <div class="text-3xl font-bold text-indigo-400">15+</div>
-                        <div class="text-xs font-mono uppercase text-white/60 mt-1">Campus Departments</div>
-                    </div>
-                    <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-                        <div class="text-3xl font-bold text-emerald-400">100%</div>
-                        <div class="text-xs font-mono uppercase text-white/60 mt-1">Online / Deep Jump</div>
-                    </div>
-                </div>
-                <div class="text-xs text-white/50 flex items-center justify-between border-t border-white/10 pt-4">
-                    <span>Active Koha Ingestion: CS (194), ECE (109), Mgmt (83), EE (78), Phys (69), Math (60)</span>
-                    <span class="font-mono text-cyan-400">Live & Synced</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- SECTION 01: Scope Note & Overview -->
     <div id="library-content" class="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-4 pb-6">
