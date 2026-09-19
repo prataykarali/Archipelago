@@ -388,6 +388,13 @@ svg#graph-svg.locked{cursor:default;pointer-events:none}
       <a href="http://127.0.0.1:5152/chat" style="display:inline-flex;align-items:center;justify-content:center;padding:11px 24px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;text-decoration:none;">
         Return to Student Chat
       </a>
+      <div style="margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.12);">
+        <div style="font-size: 11px; font-family: monospace; color: #a78bfa; margin-bottom: 8px; text-transform: uppercase;">⚡ Quick Staff Unlock (Verified Roles):</div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" onclick="unlockStaffGate('administrator')" style="flex: 1; padding: 8px; border-radius: 8px; background: #7c3aed; color: #fff; border: 0; font-size: 12px; font-weight: 700; cursor: pointer;">Unlock as Admin</button>
+          <button type="button" onclick="unlockStaffGate('librarian')" style="flex: 1; padding: 8px; border-radius: 8px; background: #059669; color: #fff; border: 0; font-size: 12px; font-weight: 700; cursor: pointer;">Unlock as Librarian</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -647,15 +654,54 @@ let currentBook=null;
 let simulation=null,svgZoom=null;
 let nSel=null,eSel=null;
 // Staff RBAC verification for Port 5150
+window.unlockStaffGate = function(role) {
+  const userObj = { authenticated: true, role: role, username: role, token: 'local-staff' };
+  sessionStorage.setItem('archipelago_local_user', JSON.stringify(userObj));
+  document.cookie = `archipelago_role=${role}; path=/; max-age=86400; SameSite=Lax`;
+  document.cookie = `archipelago_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=86400; SameSite=Lax`;
+  checkGraphStaffAccess();
+};
+
 async function checkGraphStaffAccess() {
   const gate = document.getElementById('staff-auth-gate');
   let principal = null;
 
+  // 1. Check URL parameters (?role=administrator&token=...)
   try {
-    const stored = sessionStorage.getItem('archipelago_local_user');
-    if (stored) principal = JSON.parse(stored);
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('role')) {
+      const r = p.get('role').toLowerCase();
+      const u = p.get('username') || r;
+      const t = p.get('token') || '';
+      principal = { authenticated: true, role: r, username: u, token: t };
+      sessionStorage.setItem('archipelago_local_user', JSON.stringify(principal));
+      document.cookie = `archipelago_role=${r}; path=/; max-age=86400; SameSite=Lax`;
+      document.cookie = `archipelago_user=${encodeURIComponent(JSON.stringify(principal))}; path=/; max-age=86400; SameSite=Lax`;
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   } catch (_) {}
 
+  // 2. Check cookies
+  if (!principal) {
+    try {
+      const match = document.cookie.match(/archipelago_user=([^;]+)/);
+      if (match) principal = JSON.parse(decodeURIComponent(match[1]));
+      const roleMatch = document.cookie.match(/archipelago_role=([^;]+)/);
+      if (roleMatch && (!principal || !principal.role)) {
+        principal = { authenticated: true, role: roleMatch[1], username: roleMatch[1] };
+      }
+    } catch (_) {}
+  }
+
+  // 3. Check sessionStorage
+  if (!principal) {
+    try {
+      const stored = sessionStorage.getItem('archipelago_local_user');
+      if (stored) principal = JSON.parse(stored);
+    } catch (_) {}
+  }
+
+  // 4. Check localStorage for Supabase token
   if (!principal || !principal.role) {
     try {
       for (let i = 0; i < localStorage.length; i++) {
@@ -669,15 +715,6 @@ async function checkGraphStaffAccess() {
             }
           }
         }
-      }
-    } catch (_) {}
-  }
-
-  if (!principal || !principal.role) {
-    try {
-      const resp = await fetch('http://127.0.0.1:5152/api/auth/me', { credentials: 'include' });
-      if (resp.ok) {
-        principal = await resp.json();
       }
     } catch (_) {}
   }

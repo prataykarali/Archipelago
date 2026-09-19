@@ -1,399 +1,451 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-black">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Archipelago</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VortxLab Creations — Archipelago Knowledge Operations</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" src="/auth_bridge.js"></script>
+
   <style>
     @font-face {
-      font-family: "Aurellis";
-      src: url("/ui/aurellis/Aurellis.ttf") format("truetype"),
-           url("/ui/aurellis/Aurellis.otf") format("opentype");
-      font-weight: 100 900;
+      font-family: 'Aurellis';
+      src: url('/ui/aurellis/AurellisADFStyle-Regular.otf') format('opentype');
+      font-weight: normal;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
-      font-family: "Brigend";
-      src: url("/ui/brigend/Brigend%20Font.ttf") format("truetype"),
-           url("/ui/brigend/Brigend Font.ttf") format("truetype");
-      font-weight: 100 900;
+      font-family: 'Brigend';
+      src: url('/ui/brigend/BrigendExpanded.otf') format('opentype');
+      font-weight: normal;
       font-style: normal;
       font-display: swap;
     }
 
-    :root {
-      --bg: #000000;
-      --text: #ffffff;
-      --muted: #a3a3a3;
-      --accent: #a78bfa;
-      --glass: rgba(255, 255, 255, 0.08);
-      --glass-border: rgba(255, 255, 255, 0.18);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%;
-      height: 100%;
-      background: #040208;
-      color: var(--text);
-      font-family: "Inter", system-ui, -apple-system, sans-serif;
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #000000;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
       overflow-x: hidden;
-      overflow-y: auto;
     }
 
-    /* Ambient Cosmos Glow */
-    .space-bg {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
+    .font-serif-title {
+      font-family: 'Instrument Serif', serif !important;
+    }
+
+    /* Octagonal clip-path button classes (VortxLab aesthetic) */
+    .btn-cut {
+      clip-path: polygon(
+        12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+        calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+      );
+    }
+
+    .btn-cut-border {
+      position: relative;
+      background: white;
+      clip-path: polygon(
+        12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+        calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+      );
+      padding: 1px;
+    }
+
+    .btn-cut-border::before {
+      content: '';
+      position: absolute;
+      inset: 1px;
+      background: #000000;
+      clip-path: polygon(
+        11px 0%, calc(100% - 11px) 0%, 100% 11px, 100% calc(100% - 11px),
+        calc(100% - 11px) 100%, 11px 100%, 0% calc(100% - 11px), 0% 11px
+      );
       z-index: 0;
-      background:
-        radial-gradient(ellipse 90% 60% at 50% 45%, rgba(20, 14, 45, 0.95), transparent 70%),
-        radial-gradient(circle 500px at 50% 65%, rgba(67, 34, 115, 0.4), transparent 60%),
-        #040208;
     }
 
-    .wrapper {
+    .btn-cut-border > * {
       position: relative;
       z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 24px 36px 36px;
-      max-width: 1380px;
-      margin: 0 auto;
     }
 
-    /* Header matching Image #1 */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 0;
+    .btn-cut-sm {
+      clip-path: polygon(
+        8px 0%, calc(100% - 8px) 0%, 100% 8px, 100% calc(100% - 8px),
+        calc(100% - 8px) 100%, 8px 100%, 0% calc(100% - 8px), 0% 8px
+      );
     }
 
-    .brand-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      color: #ffffff;
-    }
-
-    .brand-mark {
-      font-family: "Aurellis", serif;
-      font-size: 16px;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.85);
-      letter-spacing: 0.05em;
-    }
-
-    .brand-title {
-      font-family: "Aurellis", "Outfit", serif;
-      font-size: 16px;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      color: #ffffff;
-    }
-
-    .header-tagline {
-      font-size: 11px;
-      font-weight: 400;
-      color: rgba(216, 206, 240, 0.65);
-      letter-spacing: 0.04em;
-      display: flex;
-      gap: 8px;
-    }
-
-    .header-tagline span {
-      opacity: 0.85;
-    }
-
-    /* Main Hero Area */
-    .hero-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      margin-top: 10px;
-      flex: 1;
-      justify-content: center;
-    }
-
-    .kicker {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.36em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.8);
-      margin-bottom: 12px;
-    }
-
-    .main-title {
-      font-family: "Inter", "Outfit", sans-serif;
-      font-size: clamp(38px, 6vw, 68px);
-      font-weight: 900;
-      letter-spacing: 0.38em;
-      text-indent: 0.38em;
-      line-height: 1.1;
-      color: #ffffff;
-      text-transform: uppercase;
-      text-shadow: 0 0 40px rgba(255, 255, 255, 0.35);
-      margin-bottom: 16px;
-    }
-
-    .subtitle {
-      font-size: 13.5px;
-      font-weight: 400;
-      color: rgba(255, 255, 255, 0.72);
-      letter-spacing: 0.02em;
-      max-width: 680px;
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-
-    /* 3D Motion Centerpiece Card matching Image #1 */
-    .motion-card-container {
+    /* Liquid Glass CSS */
+    .liquid-glass {
+      background: rgba(255, 255, 255, 0.02);
+      background-blend-mode: luminosity;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: none;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
       position: relative;
-      width: 100%;
-      max-width: 860px;
-      height: 440px;
-      border-radius: 28px;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 24px 70px rgba(0, 0, 0, 0.7),
-        0 0 60px rgba(124, 58, 237, 0.15);
-      margin-bottom: 16px;
-      background: #0d091a;
     }
 
-    /* 3D Visual Artwork / Motion Canvas */
-    .motion-visual {
+    .liquid-glass::before {
+      content: '';
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 40%;
-      z-index: 1;
-      transform: scale(1.02);
-      transition: transform 0.8s ease;
-    }
-    .motion-card-container:hover .motion-visual {
-      transform: scale(1.05);
-    }
-
-    /* Swirling Glowing Ring Effect & Canvas Overlay */
-    .canvas-overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
+      border-radius: inherit;
+      padding: 1.4px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.15) 20%,
+        rgba(255, 255, 255, 0) 40%,
+        rgba(255, 255, 255, 0) 60%,
+        rgba(255, 255, 255, 0.15) 80%,
+        rgba(255, 255, 255, 0.45) 100%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
       pointer-events: none;
     }
 
-    .motion-vignette {
-      position: absolute;
-      inset: 0;
-      z-index: 3;
-      background:
-        radial-gradient(circle 380px at 50% 50%, transparent 40%, rgba(4, 2, 8, 0.6) 80%, rgba(4, 2, 8, 0.95) 100%),
-        linear-gradient(to top, rgba(4,2,8,0.92) 0%, transparent 45%, rgba(4,2,8,0.5) 100%);
-      pointer-events: none;
+    /* Staggered entrance animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
 
-    /* Overlay Text matching Image #1 */
-    .motion-content {
-      position: relative;
-      z-index: 4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 0 32px;
-      margin-top: 150px;
+    .anim-stagger {
+      opacity: 0;
+      animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .curious-title {
-      font-family: "Playfair Display", "Aurellis", serif;
-      font-size: clamp(34px, 4.8vw, 54px);
-      font-weight: 500;
-      font-style: italic;
-      color: #ffffff;
-      letter-spacing: -0.01em;
-      line-height: 1.15;
-      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 255, 255, 0.4);
-      margin-bottom: 12px;
+    .anim-fade {
+      opacity: 0;
+      animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .curious-subtitle {
-      font-size: 13.5px;
-      font-weight: 400;
-      color: rgba(255, 255, 255, 0.88);
-      max-width: 580px;
-      line-height: 1.5;
-      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
-      margin-bottom: 26px;
+    /* Typewriter Cursor */
+    .typewriter-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background-color: #34d399;
+      margin-left: 4px;
+      vertical-align: middle;
+      animation: blink 0.8s infinite;
     }
-
-    /* Dual Action Buttons matching Image #1 */
-    .hero-btn-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .pill-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 11px 26px;
-      border-radius: 9999px;
-      font-size: 13px;
-      font-weight: 500;
-      text-decoration: none;
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      cursor: pointer;
-    }
-
-    .pill-btn:hover {
-      background: rgba(255, 255, 255, 0.24);
-      border-color: rgba(255, 255, 255, 0.65);
-      transform: translateY(-2px);
-      box-shadow:
-        0 12px 32px rgba(124, 58, 237, 0.35),
-        0 0 20px rgba(255, 255, 255, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
-    }
-
-    .pill-btn:active {
-      transform: translateY(0);
-    }
-
-    @media (max-width: 768px) {
-      .wrapper { padding: 16px 20px 24px; }
-      .header-tagline { display: none; }
-      .motion-card-container { height: 380px; }
-      .motion-content { margin-top: 100px; }
-      .curious-title { font-size: 32px; }
-      .main-title { font-size: 36px; letter-spacing: 0.22em; text-indent: 0.22em; }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
   </style>
 </head>
-<body>
-  <div class="space-bg"></div>
+<body class="bg-black text-white selection:bg-white selection:text-black">
 
-  <div class="wrapper">
-    <!-- Header -->
-    <header>
-      <a href="/" class="brand-left">
-        <span class="brand-mark">A</span>
-        <span class="brand-title">Archipelago</span>
-      </a>
-      <div class="header-tagline">
-        <span>AI/ML study assistant</span>
-        <span>·</span>
-        <span>grounded answers</span>
-        <span>·</span>
-        <span>library</span>
-        <span>·</span>
-        <span>knowledge</span>
-      </div>
-    </header>
+  <!-- ROOT CONTAINER -->
+  <div class="min-h-screen w-full bg-black p-3 md:p-4 flex flex-col justify-between relative overflow-hidden">
+    <!-- LIQUID-GLASS CONTAINER WITH ROUNDED CORNERS -->
+    <div class="w-full flex-1 rounded-3xl flex flex-col justify-between overflow-hidden relative bg-black border border-white/10 shadow-2xl">
 
-    <!-- Main Hero -->
-    <main class="hero-container">
-      <div class="kicker">KNOWLEDGE OPERATIONS</div>
-      <h1 class="main-title">KNOWLEDGE</h1>
-      <p class="subtitle">Islands of insight, connected — ask the corpus, follow citations, explore the graph.</p>
+      <!-- FULLSCREEN LOOPING BACKGROUND VIDEO WITH CUSTOM JS FADE SYSTEM -->
+      <video
+        id="hero-bg-video"
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_115001_bcdaa3b4-03de-47e7-ad63-ae3e392c32d4.mp4"
+        autoplay
+        loop
+        muted
+        playsinline
+        class="absolute inset-0 w-full h-full object-cover anim-fade translate-y-[17%] pointer-events-none opacity-0"
+        style="animation-delay: 0.2s;"
+      ></video>
 
-      <!-- Center Motion Visual Container -->
-      <div class="motion-card-container">
-        <!-- Background Artwork / Motion Scene -->
-        <canvas id="cosmic-canvas" class="canvas-overlay"></canvas>
-        <img class="motion-visual" id="hero-img" src="/ui/assets/landing_hero_curious.jpg" onerror="this.src='/ui/assets/library_fly.jpeg'" alt="Built for the curious">
-        <div class="motion-vignette"></div>
+      <!-- DARK OVERLAY GRADIENT TO ENSURE PERFECT TEXT READABILITY -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/75 via-black/40 to-black/85 pointer-events-none z-[1]"></div>
 
-        <!-- Overlaid Content -->
-        <div class="motion-content">
-          <h2 class="curious-title">Built for the curious</h2>
-          <p class="curious-subtitle">Your campus AI/ML co-pilot for deep questions, sharp sources, and quiet focus.</p>
+      <!-- NAVBAR -->
+      <nav class="relative z-20 flex items-center justify-between px-6 md:px-10 pt-6 md:pt-8">
+        <!-- Logo Block -->
+        <a href="/" class="anim-stagger flex flex-col items-start group" style="animation-delay: 0.1s;">
+          <div class="flex items-center gap-3">
+            <!-- Custom Vortex SVG Logo (256x256 viewBox, 4 quarter circles forming vortex) -->
+            <svg class="w-12 h-12 md:w-14 md:h-14 fill-white transition-transform duration-700 group-hover:rotate-90" viewBox="0 0 256 256">
+              <path d="M128 0 C128 70.69 70.69 128 0 128 L0 0 Z" opacity="0.95"/>
+              <path d="M256 128 C185.31 128 128 70.69 128 0 L256 0 Z" opacity="0.8"/>
+              <path d="M128 256 C128 185.31 185.31 128 256 128 L256 256 Z" opacity="0.95"/>
+              <path d="M0 128 C70.69 128 128 185.31 128 256 L0 256 Z" opacity="0.8"/>
+            </svg>
+            <div>
+              <div class="text-white font-bold tracking-tight text-lg leading-tight">Archipelago</div>
+              <div class="text-white/50 text-[10px] tracking-[0.3em] font-mono uppercase">V O R T X · LABS</div>
+            </div>
+          </div>
+        </a>
 
-          <div class="hero-btn-row">
-            <a href="/chat" class="pill-btn">Enter the chat</a>
-            <a href="/library" class="pill-btn">Library details</a>
+        <!-- Center Nav Links (Hidden on mobile) -->
+        <div class="anim-stagger hidden md:flex items-center gap-8 liquid-glass rounded-full px-6 py-2.5 border border-white/10" style="animation-delay: 0.2s;">
+          <a href="/chat" class="text-white/80 hover:text-white transition-colors text-xs font-medium uppercase tracking-wider">Chat Assistant</a>
+          <a href="/library" class="text-white/80 hover:text-white transition-colors text-xs font-medium uppercase tracking-wider">Library Details</a>
+          <a href="http://127.0.0.1:5150/" class="text-white/80 hover:text-purple-300 transition-colors text-xs font-medium uppercase tracking-wider">5150 Graph</a>
+          <a href="https://elibrary.in.pearson.com/" target="_blank" class="text-white/80 hover:text-indigo-300 transition-colors text-xs font-medium uppercase tracking-wider">Pearson eLibrary</a>
+        </div>
+
+        <!-- Nav Action Buttons -->
+        <div class="anim-stagger flex items-center gap-3" style="animation-delay: 0.2s;">
+          <a href="/library" class="hidden md:block px-5 py-2.5 text-white text-xs font-medium hover:bg-white/10 btn-cut-border transition-colors">
+            <span>Library Details</span>
+          </a>
+          <a href="/chat" class="px-5 py-2.5 bg-white text-black text-xs font-bold hover:bg-white/90 btn-cut transition-all flex items-center gap-1.5 shadow-lg">
+            <span>Chat UI</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+      </nav>
+
+      <!-- MAIN CONTENT HERO AREA -->
+      <div class="relative z-10 flex-1 flex flex-col justify-between px-6 md:px-10 pt-10 pb-8 md:pb-10">
+
+        <!-- Center Hero Stage -->
+        <div class="flex-1 flex flex-col items-center justify-center relative py-6">
+
+          <!-- Left column decorative badge (hidden below lg) -->
+          <div class="anim-stagger hidden lg:flex flex-col gap-5 absolute left-2 top-[20%]" style="animation-delay: 0.4s;">
+            <p class="text-white/80 text-sm leading-relaxed max-w-[200px] font-mono">
+              Come with us<br>exploring the<br>horizon.
+            </p>
+            <div class="flex flex-col gap-2 mt-2">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full border border-emerald-400 block bg-emerald-400/20"></span>
+                <span class="w-3 h-3 rounded-full border border-white/40 block"></span>
+              </div>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-white/70 text-xs font-mono">Perpetual<br>Immersion</span>
+                <span class="text-white/40 text-xs font-mono">01</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Heading -->
+          <div class="anim-stagger w-full text-center max-w-4xl mx-auto" style="animation-delay: 0.5s;">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 liquid-glass rounded-full text-xs font-mono text-emerald-300 tracking-wider uppercase mb-6 border border-white/15">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              VortxLab Creations · Archipelago Edition
+            </div>
+
+            <!-- Instrument Serif Heading -->
+            <h1 class="text-white text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal leading-[1.05] tracking-tight font-serif-title mb-6" style="text-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+              Built for the curious
+            </h1>
+
+            <!-- Animated Typewriter Text for Archipelago -->
+            <div class="min-h-[2.4rem] flex items-center justify-center mb-8">
+              <span id="typewriter-text" class="text-emerald-400 font-mono text-sm sm:text-base md:text-lg tracking-wide"></span>
+              <span class="typewriter-cursor"></span>
+            </div>
+
+            <!-- Email & Direct Query Input Bar (liquid-glass) -->
+            <div class="max-w-xl w-full mx-auto space-y-4">
+              <form id="hero-search-form" onsubmit="handleHeroSubmit(event)" class="liquid-glass rounded-full pl-6 pr-2 py-2 flex items-center gap-3 border border-white/20 shadow-2xl">
+                <i data-lucide="sparkles" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+                <input
+                  type="text"
+                  id="hero-input"
+                  placeholder="Ask a research query or enter email..."
+                  class="w-full bg-transparent text-white placeholder:text-white/45 text-sm md:text-base outline-none"
+                  required
+                />
+                <button
+                  type="submit"
+                  aria-label="Submit"
+                  class="bg-white hover:bg-white/90 rounded-full p-3 text-black transition-transform hover:scale-105 active:scale-95 shrink-0 cursor-pointer shadow-lg"
+                >
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+              </form>
+
+              <!-- Dual Action Buttons -->
+              <div class="flex items-center justify-center gap-4 pt-2">
+                <a href="/chat" class="px-6 py-3 bg-white text-black text-xs font-bold hover:bg-white/90 btn-cut transition-all flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95">
+                  <span>INITIALIZE ARCHIPELAGO</span>
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+                <a href="/library" class="px-6 py-3 text-white text-xs font-medium hover:bg-white/10 btn-cut-border transition-all flex items-center gap-2">
+                  <span>EXPLORE LIBRARY ARCHIVES</span>
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-emerald-400"></i>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
 
-    <div></div>
+        <!-- BOTTOM ROW (3 columns: Mobile center-aligned, md+ outer right-aligned) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mt-6 pt-6 border-t border-white/10">
+          <!-- Col 1: Description text -->
+          <div class="anim-stagger flex items-center justify-center md:justify-start" style="animation-delay: 0.7s;">
+            <p class="text-white/70 text-xs md:text-sm leading-relaxed max-w-[280px] text-center md:text-left">
+              We push past conventions, reshaping knowledge operations and literature discovery with living 3D dynamics.
+            </p>
+          </div>
+
+          <!-- Col 2: Net Dynamics CTA -->
+          <div class="anim-stagger flex flex-col items-center gap-4" style="animation-delay: 0.85s;">
+            <span class="text-white text-xl md:text-2xl font-medium tracking-tight">Net Dynamics</span>
+            <a href="/library" class="w-full max-w-[240px] py-3 bg-white flex items-center justify-center gap-2 text-black hover:bg-white/90 transition-all group btn-cut cursor-pointer shadow-lg">
+              <span class="text-xs font-bold tracking-wide uppercase">Discover Now</span>
+              <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+
+          <!-- Col 3: Social & Gate buttons -->
+          <div class="anim-stagger flex items-center justify-center md:justify-end gap-3" style="animation-delay: 1s;">
+            <!-- Twitter / X -->
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-all btn-cut-sm hover:scale-105 active:scale-95">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <!-- LinkedIn -->
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-all btn-cut-sm hover:scale-105 active:scale-95">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+            </a>
+            <!-- Facebook -->
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="w-10 h-10 bg-white flex items-center justify-center text-black hover:bg-white/90 transition-all btn-cut-sm hover:scale-105 active:scale-95">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <!-- Staff Portal -->
+            <a href="/login?next=http://127.0.0.1:5150/" aria-label="Staff Login" class="w-10 h-10 bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300 hover:bg-purple-600/50 transition-all btn-cut-sm hover:scale-105 active:scale-95" title="Staff Portal">
+              <i data-lucide="shield" class="w-4 h-4"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <script>
-    // Particle Swirl Generator for glowing aura on canvas
-    const canvas = document.getElementById("cosmic-canvas");
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      let w, h;
-      function resize() {
-        w = canvas.width = canvas.parentElement.offsetWidth;
-        h = canvas.height = canvas.parentElement.offsetHeight;
-      }
-      window.addEventListener("resize", resize);
-      resize();
+    lucide.createIcons();
 
-      const particles = [];
-      const count = 75;
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          angle: Math.random() * Math.PI * 2,
-          radius: 120 + Math.random() * 160,
-          speed: 0.005 + Math.random() * 0.01,
-          size: 1 + Math.random() * 2.5,
-          hue: 180 + Math.random() * 100,
-          opacity: 0.2 + Math.random() * 0.7
-        });
-      }
+    // ── SEAMLESS JAVASCRIPT VIDEO FADE LOOP SYSTEM ─────────────────────────
+    const video = document.getElementById('hero-bg-video');
+    let fadingOut = false;
+    let animFrameId = null;
 
-      function draw() {
-        ctx.clearRect(0, 0, w, h);
-        const cx = w / 2;
-        const cy = h / 2 - 20;
+    function fadeVideo(targetOpacity, durationMs, onComplete) {
+      if (!video) return;
+      if (animFrameId) cancelAnimationFrame(animFrameId);
 
-        for (let p of particles) {
-          p.angle += p.speed;
-          const x = cx + Math.cos(p.angle) * p.radius;
-          const y = cy + Math.sin(p.angle) * (p.radius * 0.55);
+      const startOpacity = parseFloat(window.getComputedStyle(video).opacity) || 0;
+      const startTime = performance.now();
 
-          ctx.beginPath();
-          ctx.arc(x, y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${p.hue}, 90%, 75%, ${p.opacity})`;
-          ctx.shadowColor = `hsla(${p.hue}, 90%, 65%, 0.9)`;
-          ctx.shadowBlur = 10;
-          ctx.fill();
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / durationMs, 1);
+        const current = startOpacity + (targetOpacity - startOpacity) * progress;
+        video.style.opacity = current;
+
+        if (progress < 1) {
+          animFrameId = requestAnimationFrame(step);
+        } else {
+          if (onComplete) onComplete();
         }
-        requestAnimationFrame(draw);
       }
-      draw();
+      animFrameId = requestAnimationFrame(step);
+    }
+
+    if (video) {
+      video.addEventListener('loadeddata', () => {
+        fadeVideo(0.85, 500);
+      });
+
+      video.addEventListener('timeupdate', () => {
+        if (!video.duration) return;
+        const remaining = video.duration - video.currentTime;
+        if (remaining <= 0.55 && !fadingOut) {
+          fadingOut = true;
+          fadeVideo(0, 500);
+        }
+      });
+
+      video.addEventListener('ended', () => {
+        video.style.opacity = '0';
+        setTimeout(() => {
+          video.currentTime = 0;
+          fadingOut = false;
+          video.play().catch(() => {});
+          fadeVideo(0.85, 500);
+        }, 100);
+      });
+
+      // Start play attempt
+      video.play().then(() => {
+        fadeVideo(0.85, 500);
+      }).catch(() => {
+        // Fallback if autoplay policy restricted
+        video.style.opacity = '0.7';
+      });
+    }
+
+    // ── ANIMATED TYPEWRITER TEXT ENGINE ──────────────────────────────────
+    const phrases = [
+      "Intelligent Knowledge Graph & Research Synthesis",
+      "High-Fidelity 3D Corpus & Deep Topological Ingestion",
+      "Curated Institutional Repository & Semantic Exploration",
+      "Forging Tomorrow · Virtual Horizon · VortxLab Creations"
+    ];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    const typewriterEl = document.getElementById('typewriter-text');
+
+    function typeWriterLoop() {
+      const currentPhrase = phrases[phraseIndex];
+      if (isDeleting) {
+        charIndex--;
+        typewriterEl.textContent = currentPhrase.substring(0, charIndex);
+      } else {
+        charIndex++;
+        typewriterEl.textContent = currentPhrase.substring(0, charIndex);
+      }
+
+      let speed = isDeleting ? 30 : 65;
+
+      if (!isDeleting && charIndex === currentPhrase.length) {
+        speed = 2200; // Pause at end of phrase
+        isDeleting = true;
+      } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        speed = 400; // Pause before new phrase
+      }
+
+      setTimeout(typeWriterLoop, speed);
+    }
+    setTimeout(typeWriterLoop, 600);
+
+    // ── SEARCH / EMAIL SUBMIT HANDLER ────────────────────────────────────
+    function handleHeroSubmit(e) {
+      e.preventDefault();
+      const val = (document.getElementById('hero-input')?.value || '').trim();
+      if (!val) return;
+      if (val.includes('@')) {
+        // Email subscription
+        alert('Thank you! You have been subscribed to Archipelago Knowledge Operations.');
+        document.getElementById('hero-input').value = '';
+      } else {
+        // Research query -> jump straight to Chat UI
+        window.location.href = '/chat?query=' + encodeURIComponent(val);
+      }
     }
   </script>
 </body>
 </html>
-
