@@ -66,6 +66,41 @@ def _resolve_printed_page(evidence):
     return None
 
 
+def build_citation_link(chunk: dict, doc: dict) -> str:
+    """Build a page-anchored citation URL for a chunk.
+
+    For Pearson eLibrary books, produces a reader URL with #book/{uuid}/page/{page} fragment.
+    For standard PDFs, produces /api/page-view?doc_id=...&page=...#page=... URL.
+    """
+    from urllib.parse import quote
+    page = chunk.get("page_number", 1)
+    if not isinstance(page, int) or page < 1:
+        page = 1
+    doc_id = chunk.get("doc_id") or doc.get("doc_id") or doc.get("id") or ""
+    title = doc.get("title") or chunk.get("title") or ""
+
+    try:
+        from archipelago.resolver.pearson import resolve as pearson_resolve
+        pearson_url = pearson_resolve(doc_id, page=page)
+        if not pearson_url and title:
+            pearson_url = pearson_resolve(title, page=page)
+        if pearson_url:
+            return pearson_url
+    except Exception:
+        pass
+
+    reader_url = doc.get("reader_base_url") or doc.get("reader_url") or ""
+    if reader_url and "pearson" in reader_url.lower():
+        try:
+            from archipelago.resolver.pearson import build_reader_url
+            return build_reader_url(doc, page=page)
+        except Exception:
+            pass
+
+    url = f"/read/{quote(doc_id, safe='')}?page={page}#page={page}"
+    return url
+
+
 def _page_display(evidence):
     """Render 'p. <printed>' only when a label map resolves; else 'PDF page <n>'."""
     printed = _resolve_printed_page(evidence)
@@ -223,7 +258,7 @@ def citation_payload(evidence, topic, evidence_id=None):
         evidence_id = evidence.get("evidence_id")
     doc_id = evidence.get("doc_id") or ""
     page_number = evidence.get("page_number")
-    url = f"{st.PDF_BASE_URL}/api/page-view?doc_id={quote(doc_id, safe='')}"
+    url = f"/api/page-view?doc_id={quote(doc_id, safe='')}"
     if isinstance(page_number, int) and page_number > 0:
         url += f"&page={page_number}#page={page_number}"
     text = evidence.get("text") or ""
@@ -238,7 +273,32 @@ def citation_payload(evidence, topic, evidence_id=None):
     if not title and doc_id:
         from archipelago.inference.synthesis import prettify_doc_title
         title = prettify_doc_title(doc_id)
-    return {
+
+    # Check for Pearson textbook match
+    is_pearson = False
+    reader_url = ""
+    book_id = ""
+    subscription_id = ""
+    isbn = ""
+    try:
+        from archipelago.resolver.pearson import resolve as pearson_resolve, resolve_pearson_url
+        p_res = resolve_pearson_url(book_id=doc_id, title=title)
+        if p_res.get("working") and p_res.get("book_id"):
+            is_pearson = True
+            book_id = p_res.get("book_id", "")
+            subscription_id = p_res.get("subscription_id", "")
+            isbn = p_res.get("isbn", "")
+            p_page = page_number if isinstance(page_number, int) and page_number > 0 else 1
+            p_url = pearson_resolve(book_id, page=p_page)
+            if p_url:
+                reader_url = p_url
+                url = p_url
+            if not title and p_res.get("title"):
+                title = p_res["title"]
+    except Exception:
+        pass
+
+    payload = {
         "evidence_id": evidence_id,
         "topic": topic,
         "doc_id": doc_id,
@@ -247,8 +307,23 @@ def citation_payload(evidence, topic, evidence_id=None):
         "printed_page": _resolve_printed_page(evidence),
         "section_title": evidence.get("section_title") or "",
         "url": url,
+        "reader_url": reader_url or url,
         "text_span": text_span,
+        "is_pearson": is_pearson,
+        "book_id": book_id,
+        "subscription_id": subscription_id,
+        "isbn": isbn,
     }
+    # Circulation fields are emitted only for an exact match to Koha ODS.
+    from archipelago.inference.corpus_inventory import inventory_for_books
+    inventory = inventory_for_books([{"book_title": title, "doc_id": doc_id}])[0]
+    if inventory.get("koha_record_verified"):
+        payload.update({
+            key: inventory[key]
+            for key in ("koha_record_verified", "total_copies", "available_copies", "availability", "accession", "publisher")
+            if key in inventory
+        })
+    return payload
 
 
 def build_library_source_payloads(books, topic):
@@ -302,6 +377,7 @@ def _cite_with_link(name, evidence_list):
     if not evidence_list:
         return ""
     parts = []
+    from archipelago.inference.aliases import page_view_markdown_link
     for ev in evidence_list:
         evidence_id = ev.get("evidence_id") or "S?"
         document = ev.get("doc_id") or "Unknown document"
@@ -310,10 +386,9 @@ def _cite_with_link(name, evidence_list):
         label = f"[{evidence_id}: {name} | {document}{page_suffix}]"
         doc_id = ev.get("doc_id")
         page = ev.get("page_number")
-        url = pdf_page_url(doc_id, page if isinstance(page, int) else None)
-        if url:
+        if doc_id:
             link_text = page_disp_text or "source"
-            link = markdown_pdf_link(link_text, doc_id, page if isinstance(page, int) else None)
+            link = page_view_markdown_link(link_text, doc_id, page if isinstance(page, int) else None, highlight=name)
             parts.append(f"{label} ({link})")
         else:
             parts.append(label)
@@ -346,9 +421,9 @@ def render_citation_from_payload(payload):
     printed = payload.get("printed_page")
     page_number = payload.get("page_number")
     if printed is not None:
-        page_disp = f"p. {printed}"
+        page_disp = f"p.{printed}"
     elif isinstance(page_number, int) and page_number > 0:
-        page_disp = f"PDF page {page_number}"
+        page_disp = f"PDF p.{page_number}"
     else:
         page_disp = ""
     page_suffix = f", {page_disp}" if page_disp else ""
@@ -356,9 +431,13 @@ def render_citation_from_payload(payload):
     url = payload.get("url")
     if not url and doc_id:
         from urllib.parse import quote
-        url = f"{st.PDF_BASE_URL}/api/page-view?doc_id={quote(doc_id, safe='')}"
+        url = f"/api/page-view?doc_id={quote(doc_id, safe='')}"
         if isinstance(page_number, int) and page_number > 0:
-            url += f"&page={page_number}#page={page_number}"
+            url += f"&page={page_number}"
+        if topic:
+            url += f"&highlight={quote(topic, safe='')}"
+        if isinstance(page_number, int) and page_number > 0:
+            url += f"#page={page_number}"
 
     if url and page_disp:
         return f"{base} ([{page_disp}]({url}))"
@@ -435,5 +514,3 @@ def cleanse_model_citations(text, citation_payloads):
             lines.append(f"- {render_citation_from_payload(p)}")
         cleansed = cleansed.rstrip() + "\n" + "\n".join(lines)
     return cleansed
-
-

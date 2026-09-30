@@ -1,4 +1,24 @@
 import pytest
+
+
+@pytest.fixture
+def verified_student_auth(monkeypatch):
+    """Install a verified Supabase-style test principal for protected routes."""
+    from src.archipelago import supabase_auth
+
+    principal = supabase_auth.AuthPrincipal(
+        user_id="unit-test-user",
+        username="unit-test-student",
+        role="student",
+        access_token="unit-test-session-token",
+    )
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
+    monkeypatch.setattr(
+        supabase_auth,
+        "authenticate_request",
+        lambda _request: (principal, None),
+    )
+    return principal
 import kuzu
 import shutil
 import os
@@ -297,7 +317,8 @@ def mock_ollama():
 @pytest.fixture
 def flask_test_client(tmp_kuzu_db, sample_concepts):
     """Initializes concepts data and returns flask client, overriding the db with the temporary one."""
-    import inference_server
+    import archipelago.inference.state as inference_server
+    from archipelago.inference.bootstrap import app
     
     # Save original values to restore later
     old_db = inference_server.db
@@ -322,7 +343,7 @@ def flask_test_client(tmp_kuzu_db, sample_concepts):
         }
     inference_server.CONCEPTS_DATA = concepts_dict
     
-    with inference_server.app.test_client() as client:
+    with app.test_client() as client:
         yield client
         
     # Restore original values

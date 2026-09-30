@@ -34,6 +34,8 @@ from archipelago.inference.citations import citation_payload
 from archipelago.inference.routes_page_view import _is_known_catalog_path, _resolve_pdf_url
 from archipelago.inference.ranking_seeds import SEED_BOOKS, SEED_PAPERS, detect_subject_key
 
+pytestmark = pytest.mark.usefixtures("verified_student_auth")
+
 # ── Category 1: New Chat & Server-Side Session Context Switching (1–5) ─────────────
 
 def test_01_new_chat_context_reset_endpoint():

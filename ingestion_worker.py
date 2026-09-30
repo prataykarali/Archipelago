@@ -64,8 +64,8 @@ class GraphLock:
                 self._cond.notify_all()
 
 
-# Module-level singleton lock
-graph_lock = GraphLock()
+# Share one process lock between inference readers and the ingestion swap.
+from archipelago.inference.graph_lock import graph_lock
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +95,124 @@ class IngestionWorker(threading.Thread):
         self._stop_event.set()
         with self._cond:
             self._cond.notify()
+
+    def _process_index_job(self, job_id: str, payload: dict) -> None:
+        """Create schema-valid document/chunk/concept provenance for a submitted TOC."""
+        import kuzu
+        from ingestion_jobs import JobStatus
+        from okf.graph.common import _create_schema, _kuzu_escape, _migrate_schema
+        from okf.graph.ingest import ensure_concept
+        from okf.util import create_concept_id
+
+        doc_id = str(payload.get("doc_id") or "").strip()
+        title = str(payload.get("title") or doc_id).strip()
+        chapters = payload.get("chapters") or []
+        if not doc_id or not isinstance(chapters, list) or not chapters:
+            self.job_store.update_status(job_id, JobStatus.FAILED, error="doc_id and at least one chapter are required")
+            return
+
+        db = None
+        conn = None
+        try:
+            from archipelago.graph.engine import KuzuGraphEngine
+            from src.archipelago.graph.engine import _close_colocated_kuzu_handles
+
+            with (self.graph_lock or graph_lock).write_lock():
+                KuzuGraphEngine.close_all_for_path(self.live_db_path)
+                _close_colocated_kuzu_handles()
+                db = kuzu.Database(self.live_db_path)
+                conn = kuzu.Connection(db)
+                _create_schema(conn)
+                _migrate_schema(conn)
+                safe_doc_id = _kuzu_escape(doc_id)
+                safe_title = _kuzu_escape(title)
+                conn.execute(
+                    f"MERGE (d:Document {{id: '{safe_doc_id}'}}) "
+                    f"ON CREATE SET d.title = '{safe_title}' "
+                    f"ON MATCH SET d.title = '{safe_title}'"
+                )
+                for index, chapter in enumerate(chapters, start=1):
+                    chapter_title = str(
+                        chapter.get("title", f"Chapter {index}") if isinstance(chapter, dict) else chapter
+                    ).strip()[:300]
+                    if not chapter_title:
+                        continue
+                    page_number = index
+                    if isinstance(chapter, dict):
+                        try:
+                            page_number = max(1, int(chapter.get("page", chapter.get("page_number", index))))
+                        except (TypeError, ValueError):
+                            page_number = index
+                    concept_id = create_concept_id(chapter_title)
+                    ensure_concept(
+                        conn,
+                        concept_id,
+                        chapter_title,
+                        concept_type="topic",
+                        difficulty="intermediate",
+                        summary=f"Chapter topic from {title}",
+                    )
+                    chunk_id = f"{doc_id}_toc_{index}"
+                    safe_chunk_id = _kuzu_escape(chunk_id)
+                    safe_section = _kuzu_escape(chapter_title)
+                    conn.execute(
+                        f"MERGE (ch:Chunk {{id: '{safe_chunk_id}'}}) "
+                        f"ON CREATE SET ch.chunk_id = '{safe_chunk_id}', ch.page_number = {page_number}, "
+                        f"ch.section_title = '{safe_section}', ch.text_passage = '{safe_section}'"
+                    )
+                    conn.execute(
+                        f"MATCH (d:Document {{id: '{safe_doc_id}'}}), (ch:Chunk {{id: '{safe_chunk_id}'}}) "
+                        "MERGE (d)-[:HAS_CHUNK]->(ch)"
+                    )
+                    conn.execute(
+                        f"MATCH (ch:Chunk {{id: '{safe_chunk_id}'}}), (c:Concept {{id: '{_kuzu_escape(concept_id)}'}}) "
+                        "MERGE (ch)-[:MENTIONS]->(c)"
+                    )
+
+            from okf.graph.export import export_graph
+            from okf.exports import build_graph_rag_index, build_visual_graph, write_all_artifacts
+
+            graph_export = export_graph(conn)
+            graph_export["visualization"] = build_visual_graph([], graph_export)
+            graph_export["graph_rag_index"] = build_graph_rag_index([], graph_export)
+            write_all_artifacts(graph_export, [], db, base_dir=BASE_DIR)
+
+            if conn is not None:
+                conn.close()
+                conn = None
+            if db is not None:
+                db.close()
+                db = None
+
+            try:
+                from archipelago.inference.state import reload_db
+                reload_db()
+            except Exception as reload_error:
+                self.job_store.update_status(
+                    job_id,
+                    JobStatus.COMPLETE,
+                    result={"doc_id": doc_id, "chapters": len(chapters), "mode": "toc_only", "reload_warning": str(reload_error)},
+                )
+                return
+            self.job_store.update_status(
+                job_id,
+                JobStatus.COMPLETE,
+                result={"doc_id": doc_id, "chapters": len(chapters), "mode": "toc_only"},
+            )
+        except Exception as exc:
+            self.job_store.update_status(job_id, JobStatus.FAILED, error=str(exc))
+            raise
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+            if db is not None:
+                try:
+                    db.close()
+                except Exception:
+                    pass
 
     def run(self):
         while not self._stop_event.is_set():
@@ -341,8 +459,8 @@ class IngestionWorker(threading.Thread):
                         os.remove(backup_path)
 
                 try:
-                    import inference_server
-                    inference_server.reload_db()
+                    from archipelago.inference.state import reload_db
+                    reload_db()
                 except ImportError:
                     pass
                 except Exception as reload_err:
@@ -373,8 +491,8 @@ class IngestionWorker(threading.Thread):
                     print(f"Warning: catalog auto_link failed: {link_err}")
 
                 try:
-                    import inference_server
-                    inference_server.build_concept_embeddings()
+                    from archipelago.inference.embeddings import build_concept_embeddings
+                    build_concept_embeddings()
                 except (ImportError, AttributeError):
                     pass
 

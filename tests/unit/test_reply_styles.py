@@ -55,6 +55,6 @@ def test_styles_cover_multiple_structural_patterns():
     blob = " ".join(REPLY_STYLES).lower()
     # Structural variety the product asked for
     assert "---" in blob or "divider" in blob
-    assert "bullet" in blob or "•" in blob
+    assert "bullet" in blob or "dash-led lists" in blob or "•" in blob
     assert "numbered" in blob or "1." in blob or "step" in blob
     assert "----------" in blob or "dashes" in blob

@@ -88,8 +88,10 @@ def merge_duplicate_results(okf_results: list) -> tuple[list, int]:
                     if isinstance(rel, dict) and rel.get("concept"):
                         r_prov.setdefault(
                             f"related:{str(rel['concept']).lower()}", r_src)
-            merged_prov = r_prov
-            merged_prov.update(existing.get("relation_provenance") or {})
+            merged_prov = dict(existing.get("relation_provenance") or {})
+            for relation, provenance in r_prov.items():
+                if relation not in merged_prov:
+                    merged_prov[relation] = provenance
             if merged_prov:
                 existing["relation_provenance"] = merged_prov
         else:
@@ -98,6 +100,18 @@ def merge_duplicate_results(okf_results: list) -> tuple[list, int]:
             # deduplicated provenance list from the outset.
             r["sources"] = _dedupe_dicts(_record_sources(r))
             r["source_count"] = len(r["sources"])
+            source = f"{r.get('doc_id', '')}:{r.get('chunk_id', '')}"
+            if source != ":":
+                provenance = dict(r.get("relation_provenance") or {})
+                for prereq in r.get("prerequisites", []):
+                    provenance.setdefault(f"prereq:{str(prereq).lower()}", source)
+                for unlock in r.get("unlocks", []):
+                    provenance.setdefault(f"unlock:{str(unlock).lower()}", source)
+                for rel in r.get("related_to", []):
+                    if isinstance(rel, dict) and rel.get("concept"):
+                        provenance.setdefault(f"related:{str(rel['concept']).lower()}", source)
+                if provenance:
+                    r["relation_provenance"] = provenance
             merged_results.append(r)
     return merged_results, len(okf_results) - len(merged_results)
 

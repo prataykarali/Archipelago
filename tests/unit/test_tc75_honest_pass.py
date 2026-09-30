@@ -95,6 +95,8 @@ def _build_ctx(case) -> dict[str, Any]:
         render_catalog_stats,
         render_library_info,
     )
+    from archipelago.inference.library_resource_access import render_resource_access
+    from archipelago.inference.library_queries import get_library_hours_response
     from archipelago.inference import state as st
 
     ctx: dict[str, Any] = {
@@ -285,7 +287,14 @@ def _build_ctx(case) -> dict[str, Any]:
 
     # Body from grounded templates (not free LLM)
     route = ctx["route"]
-    if route == "library_info":
+    if route == "library_resources":
+        ctx["body"] = render_resource_access(
+            case.query,
+            resource_key=(routing.get("slots") or {}).get("resource_key", ""),
+        )
+    elif route == "library_hours":
+        ctx["body"] = get_library_hours_response()
+    elif route == "library_info":
         ctx["body"] = render_library_info(case.query)
     elif route == "library_catalog_stats":
         ctx["body"] = render_catalog_stats(case.query)

@@ -75,7 +75,8 @@ _SCHEMA_DDL = [
         name STRING,
         concept_type STRING,
         difficulty STRING,
-        summary STRING
+        summary STRING,
+        tags STRING
     )
     """,
     """
@@ -127,6 +128,7 @@ _MIGRATION_COLUMNS = [
     ("Document", "title", "STRING"),
     ("Document", "edition", "STRING"),
     ("Document", "page_label_map", "STRING"),
+    ("Concept", "tags", "STRING"),
 ]
 
 

@@ -1,0 +1,78 @@
+services:
+  archipelago-inference:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["gunicorn", "--bind", "0.0.0.0:5151", "--workers", "1", "--threads", "8", "--timeout", "300", "--access-logfile", "-", "--error-logfile", "-", "archipelago.apps.inference_app:create_app()"]
+    ports:
+      - "5151:5151"
+    env_file:
+      - .env
+    environment:
+      PORT: "5151"
+      ARCHIPELAGO_INFERENCE_PORT: "5151"
+      ARCHIPELAGO_INFERENCE_URL: http://archipelago-inference:5151
+      ARCHIPELAGO_INFERENCE_RELOAD_URL: http://127.0.0.1:5151/api/internal/reload-graph
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./okf_graph.json:/app/okf_graph.json
+      - ./okf_graph.db:/app/okf_graph.db
+      - ./pdfs:/app/pdfs
+      - ./jobs:/app/jobs
+      - ./data/uploads:/app/data/uploads
+      - ./models:/models:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5151/api/readiness"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    restart: unless-stopped
+
+  archipelago-graph:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["gunicorn", "--bind", "0.0.0.0:5150", "--workers", "1", "--threads", "8", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "graph_server:app"]
+    ports:
+      - "5150:5150"
+    env_file:
+      - .env
+    environment:
+      PORT: "5150"
+      ARCHIPELAGO_GRAPH_PORT: "5150"
+      ARCHIPELAGO_INFERENCE_URL: http://archipelago-inference:5151
+    volumes:
+      - ./okf_graph.json:/app/okf_graph.json:ro
+      - ./ui:/app/ui:ro
+      - ./buttons:/app/buttons:ro
+    depends_on:
+      archipelago-inference:
+        condition: service_healthy
+    restart: unless-stopped
+
+  archipelago-chat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["gunicorn", "--bind", "0.0.0.0:5152", "--workers", "1", "--threads", "8", "--timeout", "300", "--access-logfile", "-", "--error-logfile", "-", "chat_server:app"]
+    ports:
+      - "5152:5152"
+    env_file:
+      - .env
+    environment:
+      PORT: "5152"
+      ARCHIPELAGO_CHAT_PORT: "5152"
+      ARCHIPELAGO_INFERENCE_URL: http://archipelago-inference:5151
+    volumes:
+      - ./okf_graph.json:/app/okf_graph.json:ro
+      - ./pdfs:/app/pdfs:ro
+      - ./ui:/app/ui:ro
+      - ./buttons:/app/buttons:ro
+      - ./data/catalogs:/app/data/catalogs:ro
+    depends_on:
+      archipelago-inference:
+        condition: service_healthy
+    restart: unless-stopped

@@ -67,12 +67,12 @@ class TestCatalogIntentDetection:
         assert _intent("what is a covariance matrix?") is None
 
     def test_eresource_login_intent(self):
-        assert _intent("what is the sciencedirect login password?") == "library_info"
-        assert _intent("ieee xplore login credentials") == "library_info"
-        assert _intent("how do I access e-resources?") == "library_info"
+        assert _intent("what is the sciencedirect login password?") == "library_resources"
+        assert _intent("ieee xplore login credentials") == "library_resources"
+        assert _intent("how do I access e-resources?") == "library_resources"
 
     def test_library_times_variants(self):
-        # "times"/"timings" (not only "timing") must hit library_info
+        # Hours and timing questions use the dedicated library-hours renderer.
         for q in (
             "tell me about library times",
             "tell me about library time",
@@ -82,7 +82,7 @@ class TestCatalogIntentDetection:
             "library times please",
             "when is the library open",
         ):
-            assert _intent(q) == "library_info", q
+            assert _intent(q) == "library_hours", q
 
 
 class TestQueryCleaning:

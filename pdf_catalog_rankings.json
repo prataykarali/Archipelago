@@ -1,0 +1,864 @@
+[
+  {
+    "doc_id": "Bahdanau2014_Attention.pdf",
+    "title": "Neural Machine Translation by Jointly Learning to Align and Translate",
+    "authors": "Bahdanau et al.",
+    "composite_score": 9.8,
+    "review_score": 9.5,
+    "author_authority": 9.9,
+    "topic_density_score": 8.8,
+    "topics": [
+      "attention",
+      "nlp",
+      "seq2seq"
+    ]
+  },
+  {
+    "doc_id": "Devlin2018_BERT.pdf",
+    "title": "BERT: Pre-training of Deep Bidirectional Transformers",
+    "authors": "Devlin et al.",
+    "composite_score": 9.65,
+    "review_score": 9.4,
+    "author_authority": 9.78,
+    "topic_density_score": 9.0,
+    "topics": [
+      "bert",
+      "nlp",
+      "transformers",
+      "llm"
+    ]
+  },
+  {
+    "doc_id": "Hu2021_LoRA.pdf",
+    "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+    "authors": "Hu et al.",
+    "composite_score": 9.5,
+    "review_score": 9.3,
+    "author_authority": 9.66,
+    "topic_density_score": 9.2,
+    "topics": [
+      "lora",
+      "peft",
+      "llm",
+      "fine-tuning"
+    ]
+  },
+  {
+    "doc_id": "Lewis2020_RAG.pdf",
+    "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+    "authors": "Lewis et al.",
+    "composite_score": 9.35,
+    "review_score": 9.2,
+    "author_authority": 9.54,
+    "topic_density_score": 9.4,
+    "topics": [
+      "rag",
+      "retrieval",
+      "nlp",
+      "search"
+    ]
+  },
+  {
+    "doc_id": "Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "title": "Attention Is All You Need",
+    "authors": "Vaswani et al.",
+    "composite_score": 9.2,
+    "review_score": 9.1,
+    "author_authority": 9.42,
+    "topic_density_score": 9.6,
+    "topics": [
+      "attention",
+      "transformer",
+      "deep learning"
+    ]
+  },
+  {
+    "doc_id": "Edge2024_GraphRAG.pdf",
+    "title": "From Local to Global: A Graph RAG Approach",
+    "authors": "Edge et al.",
+    "composite_score": 9.05,
+    "review_score": 9.0,
+    "author_authority": 9.3,
+    "topic_density_score": 8.8,
+    "topics": [
+      "graphrag",
+      "rag",
+      "graph",
+      "summarization"
+    ]
+  },
+  {
+    "doc_id": "Kwon2023_vLLM.pdf",
+    "title": "Efficient Memory Management for LLM Serving with PagedAttention",
+    "authors": "Kwon et al.",
+    "composite_score": 8.9,
+    "review_score": 8.9,
+    "author_authority": 9.18,
+    "topic_density_score": 9.0,
+    "topics": [
+      "vllm",
+      "pagedattention",
+      "serving",
+      "os",
+      "paging"
+    ]
+  },
+  {
+    "doc_id": "ostep_three_easy_pieces",
+    "title": "Operating Systems: Three Easy Pieces (OSTEP)",
+    "authors": "Remzi & Andrea Arpaci-Dusseau",
+    "composite_score": 8.75,
+    "review_score": 8.8,
+    "author_authority": 9.06,
+    "topic_density_score": 9.2,
+    "topics": [
+      "os",
+      "operating systems",
+      "paging",
+      "concurrency"
+    ]
+  },
+  {
+    "doc_id": "operating_system_concepts_silberschatz",
+    "title": "Operating System Concepts",
+    "authors": "Silberschatz et al.",
+    "composite_score": 8.6,
+    "review_score": 8.7,
+    "author_authority": 8.94,
+    "topic_density_score": 9.4,
+    "topics": [
+      "os",
+      "operating systems",
+      "paging",
+      "memory"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_009.pdf",
+    "title": "Academic Research Document 009",
+    "authors": "Author Group 9",
+    "composite_score": 6.28,
+    "review_score": 6.08,
+    "author_authority": 6.48,
+    "topic_density_score": 7.7,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_010.pdf",
+    "title": "Academic Research Document 010",
+    "authors": "Author Group 10",
+    "composite_score": 6.2,
+    "review_score": 6.0,
+    "author_authority": 6.4,
+    "topic_density_score": 5.0,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_011.pdf",
+    "title": "Academic Research Document 011",
+    "authors": "Author Group 11",
+    "composite_score": 6.12,
+    "review_score": 5.92,
+    "author_authority": 6.32,
+    "topic_density_score": 5.3,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_012.pdf",
+    "title": "Academic Research Document 012",
+    "authors": "Author Group 12",
+    "composite_score": 6.04,
+    "review_score": 5.84,
+    "author_authority": 6.24,
+    "topic_density_score": 5.6,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_013.pdf",
+    "title": "Academic Research Document 013",
+    "authors": "Author Group 13",
+    "composite_score": 5.96,
+    "review_score": 5.76,
+    "author_authority": 6.16,
+    "topic_density_score": 5.9,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_014.pdf",
+    "title": "Academic Research Document 014",
+    "authors": "Author Group 14",
+    "composite_score": 5.88,
+    "review_score": 5.68,
+    "author_authority": 6.08,
+    "topic_density_score": 6.2,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_015.pdf",
+    "title": "Academic Research Document 015",
+    "authors": "Author Group 15",
+    "composite_score": 5.8,
+    "review_score": 5.6,
+    "author_authority": 6.0,
+    "topic_density_score": 6.5,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_016.pdf",
+    "title": "Academic Research Document 016",
+    "authors": "Author Group 16",
+    "composite_score": 5.72,
+    "review_score": 5.52,
+    "author_authority": 5.92,
+    "topic_density_score": 6.8,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_017.pdf",
+    "title": "Academic Research Document 017",
+    "authors": "Author Group 17",
+    "composite_score": 5.64,
+    "review_score": 5.44,
+    "author_authority": 5.84,
+    "topic_density_score": 7.1,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_018.pdf",
+    "title": "Academic Research Document 018",
+    "authors": "Author Group 18",
+    "composite_score": 5.56,
+    "review_score": 5.36,
+    "author_authority": 5.76,
+    "topic_density_score": 7.4,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_019.pdf",
+    "title": "Academic Research Document 019",
+    "authors": "Author Group 19",
+    "composite_score": 5.48,
+    "review_score": 5.28,
+    "author_authority": 5.68,
+    "topic_density_score": 7.7,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_020.pdf",
+    "title": "Academic Research Document 020",
+    "authors": "Author Group 20",
+    "composite_score": 5.4,
+    "review_score": 5.2,
+    "author_authority": 5.6,
+    "topic_density_score": 5.0,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_021.pdf",
+    "title": "Academic Research Document 021",
+    "authors": "Author Group 21",
+    "composite_score": 5.32,
+    "review_score": 5.12,
+    "author_authority": 5.52,
+    "topic_density_score": 5.3,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_022.pdf",
+    "title": "Academic Research Document 022",
+    "authors": "Author Group 22",
+    "composite_score": 5.24,
+    "review_score": 5.04,
+    "author_authority": 5.44,
+    "topic_density_score": 5.6,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_023.pdf",
+    "title": "Academic Research Document 023",
+    "authors": "Author Group 23",
+    "composite_score": 5.16,
+    "review_score": 4.96,
+    "author_authority": 5.36,
+    "topic_density_score": 5.9,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_024.pdf",
+    "title": "Academic Research Document 024",
+    "authors": "Author Group 24",
+    "composite_score": 5.08,
+    "review_score": 4.88,
+    "author_authority": 5.28,
+    "topic_density_score": 6.2,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_025.pdf",
+    "title": "Academic Research Document 025",
+    "authors": "Author Group 25",
+    "composite_score": 5.0,
+    "review_score": 4.8,
+    "author_authority": 5.2,
+    "topic_density_score": 6.5,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_026.pdf",
+    "title": "Academic Research Document 026",
+    "authors": "Author Group 26",
+    "composite_score": 4.92,
+    "review_score": 4.72,
+    "author_authority": 5.12,
+    "topic_density_score": 6.8,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_027.pdf",
+    "title": "Academic Research Document 027",
+    "authors": "Author Group 27",
+    "composite_score": 4.84,
+    "review_score": 4.64,
+    "author_authority": 5.04,
+    "topic_density_score": 7.1,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_028.pdf",
+    "title": "Academic Research Document 028",
+    "authors": "Author Group 28",
+    "composite_score": 4.76,
+    "review_score": 4.56,
+    "author_authority": 4.96,
+    "topic_density_score": 7.4,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_029.pdf",
+    "title": "Academic Research Document 029",
+    "authors": "Author Group 29",
+    "composite_score": 4.68,
+    "review_score": 4.48,
+    "author_authority": 4.88,
+    "topic_density_score": 7.7,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_030.pdf",
+    "title": "Academic Research Document 030",
+    "authors": "Author Group 30",
+    "composite_score": 4.6,
+    "review_score": 4.4,
+    "author_authority": 4.8,
+    "topic_density_score": 5.0,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_031.pdf",
+    "title": "Academic Research Document 031",
+    "authors": "Author Group 31",
+    "composite_score": 4.52,
+    "review_score": 4.32,
+    "author_authority": 4.72,
+    "topic_density_score": 5.3,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_032.pdf",
+    "title": "Academic Research Document 032",
+    "authors": "Author Group 32",
+    "composite_score": 4.44,
+    "review_score": 4.24,
+    "author_authority": 4.64,
+    "topic_density_score": 5.6,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_033.pdf",
+    "title": "Academic Research Document 033",
+    "authors": "Author Group 33",
+    "composite_score": 4.36,
+    "review_score": 4.16,
+    "author_authority": 4.56,
+    "topic_density_score": 5.9,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_034.pdf",
+    "title": "Academic Research Document 034",
+    "authors": "Author Group 34",
+    "composite_score": 4.28,
+    "review_score": 4.08,
+    "author_authority": 4.48,
+    "topic_density_score": 6.2,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_035.pdf",
+    "title": "Academic Research Document 035",
+    "authors": "Author Group 35",
+    "composite_score": 4.2,
+    "review_score": 4.0,
+    "author_authority": 4.4,
+    "topic_density_score": 6.5,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_036.pdf",
+    "title": "Academic Research Document 036",
+    "authors": "Author Group 36",
+    "composite_score": 4.12,
+    "review_score": 3.92,
+    "author_authority": 4.32,
+    "topic_density_score": 6.8,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_037.pdf",
+    "title": "Academic Research Document 037",
+    "authors": "Author Group 37",
+    "composite_score": 4.04,
+    "review_score": 3.84,
+    "author_authority": 4.24,
+    "topic_density_score": 7.1,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_038.pdf",
+    "title": "Academic Research Document 038",
+    "authors": "Author Group 38",
+    "composite_score": 3.96,
+    "review_score": 3.76,
+    "author_authority": 4.16,
+    "topic_density_score": 7.4,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_039.pdf",
+    "title": "Academic Research Document 039",
+    "authors": "Author Group 39",
+    "composite_score": 3.88,
+    "review_score": 3.68,
+    "author_authority": 4.08,
+    "topic_density_score": 7.7,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_040.pdf",
+    "title": "Academic Research Document 040",
+    "authors": "Author Group 40",
+    "composite_score": 3.8,
+    "review_score": 3.6,
+    "author_authority": 4.0,
+    "topic_density_score": 5.0,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_041.pdf",
+    "title": "Academic Research Document 041",
+    "authors": "Author Group 41",
+    "composite_score": 3.72,
+    "review_score": 3.52,
+    "author_authority": 3.92,
+    "topic_density_score": 5.3,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_042.pdf",
+    "title": "Academic Research Document 042",
+    "authors": "Author Group 42",
+    "composite_score": 3.64,
+    "review_score": 3.44,
+    "author_authority": 3.84,
+    "topic_density_score": 5.6,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_043.pdf",
+    "title": "Academic Research Document 043",
+    "authors": "Author Group 43",
+    "composite_score": 3.56,
+    "review_score": 3.36,
+    "author_authority": 3.76,
+    "topic_density_score": 5.9,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_044.pdf",
+    "title": "Academic Research Document 044",
+    "authors": "Author Group 44",
+    "composite_score": 3.48,
+    "review_score": 3.28,
+    "author_authority": 3.68,
+    "topic_density_score": 6.2,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_045.pdf",
+    "title": "Academic Research Document 045",
+    "authors": "Author Group 45",
+    "composite_score": 3.4,
+    "review_score": 3.2,
+    "author_authority": 3.6,
+    "topic_density_score": 6.5,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_046.pdf",
+    "title": "Academic Research Document 046",
+    "authors": "Author Group 46",
+    "composite_score": 3.32,
+    "review_score": 3.12,
+    "author_authority": 3.52,
+    "topic_density_score": 6.8,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_047.pdf",
+    "title": "Academic Research Document 047",
+    "authors": "Author Group 47",
+    "composite_score": 3.24,
+    "review_score": 3.04,
+    "author_authority": 3.44,
+    "topic_density_score": 7.1,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_048.pdf",
+    "title": "Academic Research Document 048",
+    "authors": "Author Group 48",
+    "composite_score": 3.16,
+    "review_score": 2.96,
+    "author_authority": 3.36,
+    "topic_density_score": 7.4,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_049.pdf",
+    "title": "Academic Research Document 049",
+    "authors": "Author Group 49",
+    "composite_score": 3.08,
+    "review_score": 2.88,
+    "author_authority": 3.28,
+    "topic_density_score": 7.7,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_050.pdf",
+    "title": "Academic Research Document 050",
+    "authors": "Author Group 50",
+    "composite_score": 3.0,
+    "review_score": 2.8,
+    "author_authority": 3.2,
+    "topic_density_score": 5.0,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_051.pdf",
+    "title": "Academic Research Document 051",
+    "authors": "Author Group 51",
+    "composite_score": 2.92,
+    "review_score": 2.72,
+    "author_authority": 3.12,
+    "topic_density_score": 5.3,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_052.pdf",
+    "title": "Academic Research Document 052",
+    "authors": "Author Group 52",
+    "composite_score": 2.84,
+    "review_score": 2.64,
+    "author_authority": 3.04,
+    "topic_density_score": 5.6,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_053.pdf",
+    "title": "Academic Research Document 053",
+    "authors": "Author Group 53",
+    "composite_score": 2.76,
+    "review_score": 2.56,
+    "author_authority": 2.96,
+    "topic_density_score": 5.9,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_054.pdf",
+    "title": "Academic Research Document 054",
+    "authors": "Author Group 54",
+    "composite_score": 2.68,
+    "review_score": 2.48,
+    "author_authority": 2.88,
+    "topic_density_score": 6.2,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_055.pdf",
+    "title": "Academic Research Document 055",
+    "authors": "Author Group 55",
+    "composite_score": 2.6,
+    "review_score": 2.4,
+    "author_authority": 2.8,
+    "topic_density_score": 6.5,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_056.pdf",
+    "title": "Academic Research Document 056",
+    "authors": "Author Group 56",
+    "composite_score": 2.52,
+    "review_score": 2.32,
+    "author_authority": 2.72,
+    "topic_density_score": 6.8,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_057.pdf",
+    "title": "Academic Research Document 057",
+    "authors": "Author Group 57",
+    "composite_score": 2.44,
+    "review_score": 2.24,
+    "author_authority": 2.64,
+    "topic_density_score": 7.1,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_058.pdf",
+    "title": "Academic Research Document 058",
+    "authors": "Author Group 58",
+    "composite_score": 2.36,
+    "review_score": 2.16,
+    "author_authority": 2.56,
+    "topic_density_score": 7.4,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_059.pdf",
+    "title": "Academic Research Document 059",
+    "authors": "Author Group 59",
+    "composite_score": 2.28,
+    "review_score": 2.08,
+    "author_authority": 2.48,
+    "topic_density_score": 7.7,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_060.pdf",
+    "title": "Academic Research Document 060",
+    "authors": "Author Group 60",
+    "composite_score": 2.2,
+    "review_score": 2.0,
+    "author_authority": 2.4,
+    "topic_density_score": 5.0,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_061.pdf",
+    "title": "Academic Research Document 061",
+    "authors": "Author Group 61",
+    "composite_score": 2.12,
+    "review_score": 1.92,
+    "author_authority": 2.32,
+    "topic_density_score": 5.3,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_062.pdf",
+    "title": "Academic Research Document 062",
+    "authors": "Author Group 62",
+    "composite_score": 2.04,
+    "review_score": 1.84,
+    "author_authority": 2.24,
+    "topic_density_score": 5.6,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_063.pdf",
+    "title": "Academic Research Document 063",
+    "authors": "Author Group 63",
+    "composite_score": 1.96,
+    "review_score": 1.76,
+    "author_authority": 2.16,
+    "topic_density_score": 5.9,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  },
+  {
+    "doc_id": "catalog_doc_064.pdf",
+    "title": "Academic Research Document 064",
+    "authors": "Author Group 64",
+    "composite_score": 1.88,
+    "review_score": 1.68,
+    "author_authority": 2.08,
+    "topic_density_score": 6.2,
+    "topics": [
+      "general_cs",
+      "ai"
+    ]
+  }
+]

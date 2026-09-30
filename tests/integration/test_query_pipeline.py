@@ -1,7 +1,7 @@
 import json
 import pytest
 import kuzu
-import inference_server
+import archipelago.inference.state as inference_server
 
 pytestmark = pytest.mark.integration
 

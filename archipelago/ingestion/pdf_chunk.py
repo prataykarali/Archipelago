@@ -9,6 +9,40 @@ from archipelago.ingestion.pdf_utils import (
     _compute_doc_hash, _extract_title_from_pdf, _extract_edition_from_pdf,
 )
 from archipelago.ingestion.pdf_utils import *  # noqa: F403
+from archipelago.ingestion.pdf_formats import chunk_markdown, chunk_text, chunk_docx  # noqa: F401
+
+SKIP_SECTION_PATTERNS = frozenset({
+    "table of contents", "contents", "toc",
+    "index", "subject index", "author index", "name index",
+    "bibliography", "references", "works cited", "further reading",
+    "exercises", "problems", "review questions", "practice problems",
+    "copyright", "copyright page", "legal notices",
+    "acknowledgements", "acknowledgments",
+    "about the author", "about the authors",
+    "preface", "foreword",
+    "appendix", "appendices",
+    "glossary",
+    "list of figures", "list of tables",
+})
+
+
+def should_skip_section(section_title: str) -> bool:
+    """Return True if a section should be skipped during chunking.
+
+    Filters out TOC, index, bibliography, exercises, copyright, and other
+    non-content sections that add noise to the knowledge graph.
+    """
+    if not section_title:
+        return False
+    normalized = section_title.strip().lower()
+
+    if normalized in SKIP_SECTION_PATTERNS:
+        return True
+
+    for pattern in SKIP_SECTION_PATTERNS:
+        if normalized.startswith(pattern):
+            return True
+    return False
 
 def chunk_pdf(pdf_path: str, max_chunk_chars: int = 1600,
               min_chunk_chars: int = 200, max_pages: int = None) -> list:

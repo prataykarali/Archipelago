@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import urllib.parse
 
 from archipelago.inference import state as st
 
@@ -86,7 +87,9 @@ def pdf_page_url(doc_id, page_number=None):
     """Deep-link into a served PDF: /pdfs/{doc_id}#page=N."""
     if not doc_id:
         return ""
-    url = f"{st.PDF_BASE_URL}/pdfs/{doc_id}"
+    clean_doc = str(doc_id).lstrip("/")
+    quoted_doc = urllib.parse.quote(clean_doc, safe="/")
+    url = f"{st.PDF_BASE_URL}/pdfs/{quoted_doc}"
     if isinstance(page_number, int) and page_number > 0:
         url += f"#page={page_number}"
     return url
@@ -101,24 +104,44 @@ def markdown_pdf_link(label, doc_id, page_number=None):
     return f"[{safe_label}]({url})"
 
 
-def page_view_markdown_link(doc_id: str, page: int | None = None, section: str = "") -> str:
-    """Markdown deep-link into the library page reader.
-
-    Generates a link like [Open "Title" in the library reader](/library?book=<id>#book-reader)
-    that lands the user on the library page with the book pre-selected.
-    """
-    if not doc_id:
+def page_view_markdown_link(label_or_doc: str, doc_id_or_page: Any = None, page_number: Any = None, highlight: str = "") -> str:
+    """Markdown deep-link for /api/page-view with encoded doc_id and page parameters."""
+    if not label_or_doc:
         return ""
-    # Build the library page deep-link URL
-    safe_id = doc_id.replace("/", "_").replace("\\", "_")
-    url = f"/library?book={safe_id}#book-reader"
-    label = doc_id
+    if isinstance(doc_id_or_page, str) and any(c in doc_id_or_page for c in ("/","\\","."," ")):
+        label = label_or_doc
+        doc_id = doc_id_or_page
+        page = page_number
+    else:
+        doc_id = label_or_doc
+        page = doc_id_or_page
+        label = f"{doc_id} (p. {page})" if page else doc_id
+
+    # Check Pearson direct reader URL
+    try:
+        from archipelago.resolver.pearson import resolve as pearson_resolve
+        p_page = page if isinstance(page, int) and page > 0 else 1
+        p_url = pearson_resolve(str(doc_id), page=p_page)
+        if not p_url and label:
+            p_url = pearson_resolve(str(label), page=p_page)
+        if p_url:
+            safe_label = (str(label) or str(doc_id)).replace("]", "\\]")
+            return f"[{safe_label}]({p_url})"
+    except Exception:
+        pass
+
+    quoted_doc = urllib.parse.quote(str(doc_id).lstrip("/"), safe="/")
+    query = f"doc_id={quoted_doc}"
     if page:
-        label += f" (p. {page})"
-    if section:
-        label += f" \u2014 {section}"
-    safe_label = label.replace("]", "\\]")
-    return f"[Open {safe_label} in the library reader]({url})"
+        query += f"&page={page}"
+    if highlight:
+        query += f"&highlight={urllib.parse.quote(highlight)}"
+
+    url = f"/api/page-view?{query}"
+    if page:
+        url += f"#page={page}"
+    safe_label = (str(label) or str(doc_id)).replace("]", "\\]")
+    return f"[{safe_label}]({url})"
 
 
 # Explicit core concept mappings: query alias → expected core concept_id substring

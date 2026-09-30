@@ -96,3 +96,17 @@ scratch/
 node_modules/
 ui/library-showcase/node_modules/
 okf_graph_staging.db
+
+# Pearson auth state and session cache (sensitive session data)
+data/catalogs/pearson_auth_state.json
+data/catalogs/pearson_session_cache.json
+*pearson_auth_state*.json
+
+# Local identity, uploads, and generated library caches
+/data/local_users.json
+/data/uploads/
+/data/catalogs/pearson_bookshelf.json
+/data/catalogs/batch*_ingestion_summary.json
+/data/datasets/
+/host_inference/.env
+/host_inference/cache/

@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.usefixtures("verified_student_auth")]
 
 # ── Shared fixtures ──────────────────────────────────────────────────────────
 
@@ -221,20 +221,20 @@ def test_category1_multihop_cypher_shape_with_mock_conn(monkeypatch):
 # ═══════════════════════════════════════════════════════════════════════════
 
 CATEGORY_2_INTENTS = [
-    ("TC-16", "How can I access Scopus or ScienceDirect through the institutional portal?", "library_info"),
-    ("TC-17", "What is the passkey for the National Digital Library of India (NDLI) Club?", "library_info"),
-    ("TC-18", "Does the library provide access to IEEE Xplore? What are the credentials?", "library_info"),
+    ("TC-16", "How can I access Scopus or ScienceDirect through the institutional portal?", "library_resources"),
+    ("TC-17", "What is the passkey for the National Digital Library of India (NDLI) Club?", "library_resources"),
+    ("TC-18", "Does the library provide access to IEEE Xplore? What are the credentials?", "library_resources"),
     ("TC-19", "Which academic subject has the highest title count in our central library catalog?", "library_catalog_stats"),
     ("TC-20", "How many journal titles and total issue counts are registered in the library database?", "library_catalog_stats"),
     ("TC-21", "Search the library catalog for all available titles containing the keyword 'Data Mining'.", "library_catalog_stats"),
-    ("TC-22", "What are the working hours and operating schedule of the central library on weekdays and weekends?", "library_info"),
+    ("TC-22", "What are the working hours and operating schedule of the central library on weekdays and weekends?", "library_hours"),
     ("TC-23", "I need a physical book on '3NF Database Normalization'. Where can I find it in the library?", "library_resource_lookup"),
     ("TC-24", "List all journal issues available under the subject 'Computer Networks'.", "library_journal_status"),
-    ("TC-26", "Where can I access legal databases like Lexis Advance India or Manupatra?", "library_info"),
+    ("TC-26", "Where can I access legal databases like Lexis Advance India or Manupatra?", "library_resources"),
     ("TC-27", "Which requested AI/ML books currently have zero physical available copies on the shelf?", "library_catalog_stats"),
-    ("TC-28", "How many British Council and American Library access cards are available for issue?", "library_info"),
-    ("TC-29", "What is the URL and default login format for the library OPAC catalog?", "library_info"),
-    ("TC-30", "How do I access the digital ezine for Electronics For You?", "library_info"),
+    ("TC-28", "How many British Council and American Library access cards are available for issue?", "library_resources"),
+    ("TC-29", "What is the URL and default login format for the library OPAC catalog?", "library_resources"),
+    ("TC-30", "How do I access the digital ezine for Electronics For You?", "library_resources"),
 ]
 
 
@@ -316,11 +316,11 @@ def test_tc16_to_tc30_library_routes_bypass_aiml_scope():
     from archipelago.inference.routing import resolve_query_routing
 
     cases = [
-        ("TC-16", "How can I access Scopus or ScienceDirect through the institutional portal?", "library_info"),
-        ("TC-17", "What is the passkey for the National Digital Library of India (NDLI) Club?", "library_info"),
-        ("TC-22", "What are the working hours of the central library?", "library_info"),
+        ("TC-16", "How can I access Scopus or ScienceDirect through the institutional portal?", "library_resources"),
+        ("TC-17", "What is the passkey for the National Digital Library of India (NDLI) Club?", "library_resources"),
+        ("TC-22", "What are the working hours of the central library?", "library_hours"),
         ("TC-23", "I need a physical book on 3NF. Where can I find it?", "library_resource_lookup"),
-        ("TC-29", "What is the URL and default login format for the library OPAC catalog?", "library_info"),
+        ("TC-29", "What is the URL and default login format for the library OPAC catalog?", "library_resources"),
     ]
     for tc_id, prompt, expected in cases:
         result = resolve_query_routing(prompt)

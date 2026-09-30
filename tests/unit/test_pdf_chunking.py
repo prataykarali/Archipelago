@@ -1,13 +1,8 @@
 import os
 import fitz
 import pytest
-from pdf_ingestion import (
-    chunk_pdf,
-    classify_chunk_kind,
-    sanitize_section_title,
-    chunk_markdown,
-    chunk_text
-)
+from archipelago.ingestion.pdf_chunk import chunk_pdf, chunk_markdown, chunk_text
+from archipelago.ingestion.pdf_utils import classify_chunk_kind, sanitize_section_title
 
 @pytest.mark.unit
 def test_chunk_pdf_preserves_short_sections(tmp_path):

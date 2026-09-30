@@ -72,8 +72,14 @@ db = _LazyDB()
 def reload_db():
     """Re-open the database after a write swap and refresh concept cache."""
     global _db, _db_read_only
+    old = _db
     _db = None
     _db_read_only = False
+    if old is not None:
+        try:
+            old.close()
+        except Exception:
+            pass
     get_db(read_only=False)
     try:
         from archipelago.inference.routes_chat import init_concepts_data
@@ -106,6 +112,13 @@ KILL_SWITCH_THRESHOLD = float(os.getenv("ARCHIPELAGO_KILL_SWITCH", "0.75"))
 DOMAIN_SOFT_THRESHOLD = float(os.getenv("ARCHIPELAGO_DOMAIN_SOFT_THRESHOLD", "0.28"))
 LEXICAL_ANCHOR_THRESHOLD = int(os.getenv("ARCHIPELAGO_LEXICAL_THRESHOLD", "80"))
 DEFAULT_OLLAMA_MODEL = os.getenv("ARCHIPELAGO_OLLAMA_MODEL", "qwen3.5:0.8b")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("ARCHIPELAGO_GEMINI_MODEL", "gemini-2.0-flash")
+XKIRO_BASE_URL = os.getenv("XKIRO_BASE_URL", "https://api.xkiro.com/v1")
+XKIRO_API_KEY = os.getenv("XKIRO_API_KEY", "")
+XKIRO_MODEL = os.getenv("XKIRO_MODEL", "qwen/qwen3.8-max:free")
+LLM_PROVIDER = os.getenv("ARCHIPELAGO_LLM_PROVIDER", "xkiro")
+DEFAULT_INFERENCE_MODEL = XKIRO_MODEL if LLM_PROVIDER == "xkiro" else GEMINI_MODEL
 TOP_K_RELATED = int(os.getenv("ARCHIPELAGO_TOP_K_RELATED", "5"))
 PDF_BASE_URL = os.getenv("ARCHIPELAGO_PDF_BASE_URL", "http://127.0.0.1:5151")
 MAX_PREREQS_SHOWN = 3
@@ -130,7 +143,15 @@ _DOMAIN_TERMS = (
     "langchain", "llamaindex", "openai", "anthropic", "diffusion", "stable diffusion",
     "classification", "regression", "clustering", "generative", "foundation model",
     "representation", "representations", "latent space", "manifold", "generalization",
-    "gru", "lstm"
+    "gru", "lstm",
+    # Broader computer-science shelves represented in the graph.
+    "computer science", "algorithm", "algorithms", "data structure", "data structures",
+    "database", "databases", "dbms", "sql", "index", "indexing", "b-tree", "hashing",
+    "operating system", "operating systems", "os", "kernel", "process", "memory", "paging",
+    "computer network", "computer networks", "networking", "tcp", "ip", "routing", "congestion",
+    "dijkstra", "shortest path", "graph algorithm", "compiler", "compilers", "programming language",
+    "software engineering", "distributed system", "distributed systems", "security", "cryptography",
+    "linear algebra", "calculus", "probability", "statistics", "mathematics", "optimization",
 )
 
 _LEARNING_INTENT = (

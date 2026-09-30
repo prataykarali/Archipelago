@@ -35,10 +35,9 @@ DOC_ID_ALIASES: dict[str, str] = {
     "ostep_three_easy_pieces": "ostep_three_easy_pieces/08_Paging.pdf",
     "ostep_paging": "ostep_three_easy_pieces/08_Paging.pdf",
     "operating_system_concepts_silberschatz": "ostep_three_easy_pieces/08_Paging.pdf",
-    # No full Silberschatz DBMS PDF in pilot — use OSTEP I/O chapter as related systems text
-    # only when no better file exists; prefer summary-only for pure DBMS rows.
-    "database_system_concepts_silberschatz": "",
-    "database_management_systems_ramakrishnan": "",
+    # Map DBMS textbook aliases to Pearson eLibrary Fundamentals of Database System, 7e
+    "database_system_concepts_silberschatz": "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae",
+    "database_management_systems_ramakrishnan": "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae",
 }
 
 from archipelago.inference.demo_query_books_data import DEMO_BOOK_ROWS
@@ -91,8 +90,15 @@ def _coerce_row(raw: dict[str, str]) -> dict[str, Any]:
 
 
 def _load_rows() -> list[dict[str, Any]]:
-    # Prefer in-module DEMO_BOOK_ROWS (authoritative for booth); CSV is export.
-    return [dict(r) for r in DEMO_BOOK_ROWS]
+    # Keep curated source/page metadata; circulation must come from Koha ODS.
+    inventory_fields = {
+        "total_copies", "available_copies", "availability", "is_reference",
+        "shelf_location", "call_number", "library_scope",
+    }
+    return [
+        {k: v for k, v in r.items() if k not in inventory_fields}
+        for r in DEMO_BOOK_ROWS
+    ]
 
 
 _ROWS: list[dict[str, Any]] = _load_rows()
@@ -131,14 +137,24 @@ def page_view_href(book: dict[str, Any]) -> str:
     """Open-page URL for the named doc — empty string when the file is absent
     so the caller can fall back to a Pearson/OPAC CTA instead of a 404 link."""
     doc = resolve_doc_id(str(book.get("doc_id") or book.get("book_id") or ""))
+    page = int(book.get("page_number") or 1) or 1
+
+    # Check for direct Pearson textbook match
+    reader_url = str(book.get("reader_url") or book.get("url") or "")
+    if "pearson.com" in reader_url:
+        return reader_url
+    try:
+        from archipelago.resolver.pearson import resolve as pearson_resolve
+        p_url = pearson_resolve(doc or str(book.get("book_id") or ""), page=page)
+        if not p_url and book.get("book_title"):
+            p_url = pearson_resolve(str(book["book_title"]), page=page)
+        if p_url:
+            return p_url
+    except Exception:
+        pass
+
     if not doc:
         return ""
-    # Guard: only emit a page-view URL when the underlying file actually exists.
-    # doc_id may be a Pearson alias or a metadata-only id for a title we don't
-    # have on disk — producing a /page-view URL then would send users to a 404.
-    if not (_PDF_ROOT / doc).is_file():
-        return ""
-    page = int(book.get("page_number") or 1) or 1
     topic = str(book.get("topic") or "").strip()
     q = f"/api/page-view?doc_id={quote(doc, safe='')}&page={page}"
     if topic:
@@ -159,8 +175,9 @@ def format_availability_table(books: list[dict[str, Any]]) -> str:
     except Exception:
         rows = books
         INVENTORY_DISCLAIMER = (
-            "⚠️ Simulated inventory — check OPAC for live availability"
+            "Koha export unavailable — check the OPAC for current catalogue data."
         )
+    rows = [row for row in rows if row.get("koha_record_verified")]
     if not rows:
         return ""
     try:
@@ -171,28 +188,22 @@ def format_availability_table(books: list[dict[str, Any]]) -> str:
 
     lines = [
         "",
-        "### Library holdings for this topic",
+        "### Koha catalogue matches",
         "",
         f"_{INVENTORY_DISCLAIMER}_",
         "",
-        "| Book | Type | Page | Copies | Available | Reference? | Status | Shelf | Open |",
-        "| --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |",
+        "| Catalogue title | Accession | Copies | Available | Open |",
+        "| --- | --- | ---: | ---: | --- |",
     ]
     for b in rows:
-        ref = "Yes (library use only)" if b.get("is_reference") else "No (circulating)"
         href = page_view_href(b)
         open_cell = f"[p.{int(b.get('page_number') or 1)} ↗]({href})" if href else "Passage only"
-        kind_label = format_resource_kind_label(b).replace("|", "/")
         lines.append(
-            "| {title} | {kind} | {page} | {total} | {avail} | {ref} | {status} | {shelf} | {open} |".format(
+            "| {title} | {accession} | {total} | {avail} | {open} |".format(
                 title=str(b.get("book_title") or "—").replace("|", "/"),
-                kind=kind_label,
-                page=int(b.get("page_number") or 1),
+                accession=str(b.get("accession") or "—").replace("|", "/"),
                 total=int(b.get("total_copies") or 0),
                 avail=int(b.get("available_copies") or 0),
-                ref=ref,
-                status=str(b.get("availability") or "—").replace("|", "/"),
-                shelf=str(b.get("shelf_location") or "—").replace("|", "/"),
                 open=open_cell,
             )
         )
@@ -216,7 +227,7 @@ def format_inline_page_links(books: list[dict[str, Any]]) -> str:
     return "\n\n**Open source pages:** " + " · ".join(chips) + "\n"
 
 
-_HOLDINGS_MARKER = "Library holdings for this topic"
+_HOLDINGS_MARKER = "Koha catalogue matches"
 
 
 def enrich_reply_with_books(
@@ -227,7 +238,7 @@ def enrich_reply_with_books(
     """Append source ranking, inline page links, and holdings table.
 
     Prefer explicit ``books`` (graph citations / library_books results), then
-    demo-query rows, then corpus inventory enrichment of whatever was found.
+    demo-query rows. Circulation details are shown only for a Koha title match.
     """
     body = (reply or "").rstrip()
     if _HOLDINGS_MARKER in body:
@@ -249,8 +260,7 @@ def enrich_reply_with_books(
     mention = ""
     if phrase:
         mention = (
-            f"\n\n**Sources on the shelf:** This answer draws on **{phrase}** "
-            f"from the library stack for this topic."
+            f"\n\n**Sources referenced:** **{phrase}**"
         )
     return (
         body
@@ -261,6 +271,8 @@ def enrich_reply_with_books(
 
 
 def citation_overlays_for_query(query: str) -> list[dict[str, Any]]:
+    from archipelago.inference.corpus_inventory import inventory_for_books
+
     out: list[dict[str, Any]] = []
     for i, b in enumerate(books_for_query(query), start=1):
         doc = resolve_doc_id(str(b.get("doc_id") or b.get("book_id") or ""))
@@ -284,13 +296,15 @@ def citation_overlays_for_query(query: str) -> list[dict[str, Any]]:
                 "page_url": href,
                 "url": href,
                 "pdf": f"{doc}#page={page}" if doc else "",
-                "is_reference": bool(b.get("is_reference")),
-                "availability": b.get("availability") or "",
-                "total_copies": int(b.get("total_copies") or 0),
-                "available_copies": int(b.get("available_copies") or 0),
-                "shelf_location": b.get("shelf_location") or "",
             }
         )
+        inventory = inventory_for_books([b])[0]
+        if inventory.get("koha_record_verified"):
+            out[-1].update({
+                key: inventory[key]
+                for key in ("koha_record_verified", "total_copies", "available_copies", "availability", "accession", "publisher")
+                if key in inventory
+            })
     return out
 
 
@@ -317,6 +331,9 @@ def merge_demo_citations(
                     c["page_url"] = o["page_url"]
                 if o.get("summary") and not c.get("summary"):
                     c["summary"] = o["summary"]
+                for field in ("koha_record_verified", "total_copies", "available_copies", "availability", "accession", "publisher"):
+                    if field in o:
+                        c[field] = o[field]
                 break
     seen = {
         str(c.get("title") or c.get("document_title") or "").strip().lower()

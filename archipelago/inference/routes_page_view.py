@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from urllib.parse import quote
 
-from flask import jsonify, request
+from flask import jsonify, redirect, request
 
 from archipelago.inference.state import app
 
@@ -32,12 +32,18 @@ _KNOWN_PREFIXES = (
 )
 
 
-@app.route("/api/page-view")
+@app.route("/api/page-view", methods=["GET", "POST"])
 def page_view():  # type: ignore[return]
     """Return page-view contract JSON (doc_id, passage, spans, pdf_url)."""
-    doc_id_raw = request.args.get("doc_id", "").strip()
-    page_raw = request.args.get("page", "1")
-    highlight = request.args.get("highlight", "").strip()
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        doc_id_raw = (data.get("doc_id") or data.get("doc") or data.get("id") or "").strip()
+        page_raw = str(data.get("page", "1"))
+        highlight = (data.get("highlight") or "").strip()
+    else:
+        doc_id_raw = (request.args.get("doc_id") or request.args.get("doc") or request.args.get("id") or "").strip()
+        page_raw = request.args.get("page", "1")
+        highlight = request.args.get("highlight", "").strip()
 
     if not doc_id_raw:
         return jsonify({"error": "doc_id is required"}), 400
@@ -117,6 +123,56 @@ def page_view():  # type: ignore[return]
 
     pdf_url, avail = _resolve_pdf_url(doc_id)
 
+    pearson_url = None
+    try:
+        from archipelago.resolver.pearson import resolve as pearson_resolve
+        pearson_url = pearson_resolve(doc_id, page=page)
+        if not pearson_url and doc_id_raw:
+            pearson_url = pearson_resolve(doc_id_raw, page=page)
+        if pearson_url:
+            pdf_url = pearson_url
+            avail = True
+    except Exception:
+        pass
+
+    wants_json = (
+        bool(highlight)
+        or request.is_json
+        or request.args.get("format") == "json"
+        or (
+            "application/json" in request.headers.get("Accept", "")
+            and "text/html" not in request.headers.get("Accept", "")
+        )
+    )
+
+    if pearson_url:
+        if request.method == "GET" and not wants_json:
+            return redirect(pearson_url, code=302)
+        return jsonify({
+            "doc_id": doc_id,
+            "page": page,
+            "start_page": page,
+            "end_page": page,
+            "highlight": highlight,
+            "passage": passage or f"Pearson eLibrary digital textbook: {title or doc_id} (Page {page}). Institutional access via Pearson reader.",
+            "text": passage or f"Pearson eLibrary digital textbook: {title or doc_id} (Page {page}).",
+            "title": title or doc_id,
+            "authors": authors,
+            "section_title": section_title,
+            "cited_spans": [],
+            "pdf_url": pearson_url,
+            "pdf_available": True,
+            "url": pearson_url,
+            "reader_url": pearson_url,
+            "is_pearson": True,
+        }), 200
+
+    if request.method == "GET" and not wants_json:
+        if pearson_url:
+            return redirect(pearson_url, code=302)
+        target = f"/read/{quote(doc_id, safe='')}?page={page}#page={page}"
+        return redirect(target, code=302)
+
     if not found_chunk and not passage:
         # Explicit miss — never invent a first-chunk fallback for random docs
         return jsonify({
@@ -154,6 +210,8 @@ def page_view():  # type: ignore[return]
     return jsonify({
         "doc_id": doc_id,
         "page": page,
+        "start_page": page,
+        "end_page": page,
         "highlight": highlight,
         "passage": passage,
         "text": passage,

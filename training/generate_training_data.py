@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 from collections import defaultdict, Counter
 
-from pdf_ingestion import ingest_folder
+from archipelago.ingestion.pdf_io import ingest_folder
 
 # ─── Config ──────────────────────────────────────────────────────
 PDF_DIR = Path(__file__).resolve().parent / "pdfs"

@@ -212,7 +212,7 @@ def finalize_and_build(okf_results: list, total_chunks: int,
 # ---------------------------------------------------------------------------
 def run_pipeline(input_path: str = None, resume: bool = False, local: bool = False, evaluate_gold_path: str = None):
     """Run the full Archipelago pipeline."""
-    from pdf_ingestion import ingest_folder, ingest_document
+    from archipelago.ingestion.pdf_io import ingest_document, ingest_folder
 
     print("=" * 70)
     print("ARCHIPELAGO PIPELINE - PDF -> OKF v1.5 -> KuzuDB Graph RAG")
@@ -327,7 +327,7 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
 
     limit: optional cap on prose chunks processed (fast testing on CPU).
     """
-    from pdf_ingestion import ingest_document
+    from archipelago.ingestion.pdf_io import ingest_document
 
     print("=" * 70)
     print("ARCHIPELAGO PIPELINE - INCREMENTAL ADD (single document)")

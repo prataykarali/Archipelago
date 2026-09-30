@@ -21,7 +21,7 @@ def curriculum_graph(flask_test_client, tmp_kuzu_db):
 
     Depends on flask_test_client so CONCEPTS_DATA / db overrides win during the test.
     """
-    import inference_server
+    import archipelago.inference.state as inference_server
     import okf.graph_db as graph_db
 
     conn = tmp_kuzu_db
@@ -141,7 +141,7 @@ def curriculum_graph(flask_test_client, tmp_kuzu_db):
 
 
 def test_find_curriculum_chains_multihop(curriculum_graph):
-    import inference_server as s
+    import archipelago.inference.state as s
     paths = s.find_curriculum_chains("low_rank_adaptation", max_hops=3, max_paths=6)
     assert paths, "expected at least one curriculum path"
     # Some path should mention matrix_decomposition (2-hop) or transformer

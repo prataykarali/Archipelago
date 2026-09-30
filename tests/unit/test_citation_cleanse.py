@@ -27,7 +27,7 @@ PAYLOADS = [
 def test_valid_marker_expands_to_full_citation():
     text = "RAG retrieves documents to augment generation [S1]."
     out = cleanse_model_citations(text, PAYLOADS)
-    assert "[S1: RAG | papers/Lewis2020_RAG.pdf, PDF page 4]" in out
+    assert "[S1: RAG | papers/Lewis2020_RAG.pdf, PDF p.4]" in out
     assert "#page=4" in out
 
 
@@ -35,7 +35,7 @@ def test_invented_id_is_stripped():
     text = "RAG is great [S9]. GPT-2 is a decoder model [S2]."
     out = cleanse_model_citations(text, PAYLOADS)
     assert "S9" not in out
-    assert "[S2: GPT-2 | papers/Hu2021_LoRA.pdf, PDF page 5]" in out
+    assert "[S2: GPT-2 | papers/Hu2021_LoRA.pdf, PDF p.5]" in out
 
 
 def test_embellished_bracket_normalized_then_expanded():
@@ -45,7 +45,7 @@ def test_embellished_bracket_normalized_then_expanded():
     out = cleanse_model_citations(text, PAYLOADS)
     assert "fake_book" not in out
     assert "page 99" not in out
-    assert "[S1: RAG | papers/Lewis2020_RAG.pdf, PDF page 4]" in out
+    assert "[S1: RAG | papers/Lewis2020_RAG.pdf, PDF p.4]" in out
 
 
 def test_misattached_marker_dropped():
@@ -67,4 +67,4 @@ def test_no_markers_at_all_gets_sources_footer():
 
 def test_render_citation_uses_printed_page_when_available():
     p = dict(PAYLOADS[0], printed_page="142")
-    assert "p. 142" in render_citation_from_payload(p)
+    assert "p.142" in render_citation_from_payload(p)

@@ -9,30 +9,286 @@ import time
 import kuzu
 import ollama
 import torch
+import google.generativeai as genai
+from archipelago.inference.llm_gateway import gateway_chat, gateway_chat_stream, gateway_chat_with_tools, is_llm_available, LLM_UNAVAILABLE_MSG, configure_gateway
 
-OLLAMA_UNAVAILABLE_MSG = "The library is currently closed — the librarian is waking up and will be with you shortly. Please hold while I stoke the intellectual furnaces..."
+from archipelago.inference.synthesis_library import (
+    view_page_url, render_physical_resources, render_catalog_resources,
+    render_resource_availability, render_journal_status,
+)
+from archipelago.inference.judge_reply import JUDGE_SYSTEM_PROMPT
+
+OLLAMA_UNAVAILABLE_MSG = LLM_UNAVAILABLE_MSG  # Backward compat alias
+_STREAM_SYSTEM_PROMPT = JUDGE_SYSTEM_PROMPT
 
 
-_ollama_cache = {"available": None, "timestamp": 0}
-_CACHE_TTL = 5.0
+def stream_system_prompt() -> str:
+    """Return the canonical judge architecture used by streaming replies."""
+    return _STREAM_SYSTEM_PROMPT
+
+
+def _strip_residual_markers(text: str) -> str:
+    """Remove internal evidence tokens and citation-shaped model inventions."""
+    text = re.sub(r"\[(?:S#|S\d+)\]", "", text or "")
+    text = re.sub(r"\[(?:RWC\+\d+|GPT-\d+)\](?::)?", "", text, flags=re.IGNORECASE)
+    return re.sub(r"[ \t]{2,}", " ", text).strip()
+
+
+def _count_words(text: str) -> int:
+    return len(re.findall(r"\b[\w'-]+\b", text or ""))
+
+
+def _looks_like_citation_spam(text: str) -> bool:
+    raw = text or ""
+    invented = len(re.findall(r"\[(?:S#|RWC\+\d+|GPT-\d+)\]", raw, re.IGNORECASE))
+    sentences = [re.sub(r"\s+", " ", s.strip().lower()) for s in re.split(r"(?<=[.!?])\s+", raw)]
+    repeated = max((sentences.count(s) for s in set(sentences) if len(s) > 12), default=0)
+    return invented >= 2 or repeated >= 3
+
+
+def _trim_verbose_study_answer(text: str, max_words: int = 160) -> str:
+    """Trim at a sentence boundary when generated prose exceeds its word budget."""
+    words = re.findall(r"\S+", text or "")
+    if len(words) <= max_words:
+        return (text or "").strip()
+    clipped = " ".join(words[:max_words]).rstrip()
+    boundary = max(clipped.rfind("."), clipped.rfind("!"), clipped.rfind("?"))
+    if boundary >= len(clipped) * 0.55:
+        clipped = clipped[: boundary + 1]
+    elif clipped and clipped[-1] not in ".!?…":
+        clipped += "…"
+    return clipped
+
+
+def _model_answer_is_usable(model: str, query: str, grounded: str) -> bool:
+    """Reject noisy or disproportionate rewrites when grounded text is available."""
+    if not (model or "").strip():
+        return False
+    from archipelago.inference.cleanser import cleanse_llm_output
+
+    cleaned = cleanse_llm_output(model)
+    if _looks_like_citation_spam(cleaned):
+        return False
+    model_words, grounded_words = _count_words(cleaned), _count_words(grounded)
+    if grounded_words >= 20 and model_words > max(120, grounded_words * 3):
+        return False
+    return model_words > 0
+
+
+def _finalize_stream_answer(
+    model: str,
+    grounded: str,
+    first_paint: str,
+    evidence_ids=None,
+    citation_payloads=None,
+    sterile: bool = False,
+    offline: bool = False,
+    user_query: str = "",
+) -> str:
+    """Choose a clean grounded first paint or a usable model rewrite."""
+    from archipelago.inference.cleanser import cleanse_llm_output
+
+    cleaned_model = _strip_residual_markers(cleanse_llm_output(model))
+    baseline = grounded or first_paint or ""
+    if not _model_answer_is_usable(cleaned_model, user_query, baseline):
+        return baseline
+    # A concise grounded response with citations wins over a much longer rewrite.
+    if _count_words(baseline) and _count_words(cleaned_model) > max(120, _count_words(baseline) * 3):
+        return baseline
+    return cleaned_model
+
+
+def closed_library_reply(fallback_text: str | None = None) -> str:
+    """Return the closed library reply message."""
+    return OLLAMA_UNAVAILABLE_MSG
+
+
+def render_catalog_stats(query: str) -> str:
+    """Render catalog statistics and search results based on query intent."""
+    from archipelago.inference import catalog_ops as ops
+    ql = (query or "").lower()
+    if "journal" in ql:
+        return ops.format_journal_totals()
+    if any(k in ql for k in ("zero", "0 copy", "not available", "no physical")):
+        return ops.format_zero_copy_audit()
+    if any(k in ql for k in ("keyword", "containing", "search", "data mining")):
+        return ops.format_keyword_title_search(query)
+    if any(k in ql for k in ("subject", "highest", "leaderboard", "title count")):
+        return ops.format_subject_leaderboard()
+    return ops.format_library_holdings_overview(query)
+
+
+def render_library_info(query: str) -> str:
+    """Render authoritative institutional library policy, hours, access, and e-resource info."""
+    ql = (query or "").lower()
+
+    # 1. Turnitin access
+    if "turnitin" in ql:
+        return (
+            "**Turnitin Plagiarism Detection Service**:\n"
+            "- Central Library provides similarity report checking through Turnitin.\n"
+            "- Contact Mr. Raj Nag at the Central Library desk for submission and account verification."
+        )
+
+    # 2. Lab manuals / Muskan Xerox
+    if "lab manual" in ql or "xerox" in ql or "muskan" in ql:
+        return (
+            "**Lab Manuals & Reprography Services**:\n"
+            "- Location: **B1 LG2.7 (Muskan Xerox)**.\n"
+            "- Central Library provides physical copies for reference; photocopies and lab manual reprints "
+            "are available at the reprography center in B1 LG2.7."
+        )
+
+    # 3. Borrowing rules & Library Cards
+    if any(k in ql for k in ("borrow without card", "borrow before card", "request letter", "hod")):
+        return (
+            "**Temporary Borrowing Before Card Issuance**:\n"
+            "- Students who have not yet received their physical card may borrow books by submitting "
+            "a formal request letter.\n"
+            "- Procedure: Submit a request letter addressed to the Librarian, forwarded and signed by your "
+            "Head of Department (HOD).\n"
+            "- While awaiting processing, students may freely use the reading room, take photography of reference "
+            "materials, or make copies at the Xerox desk."
+        )
+
+    if any(k in ql for k in ("first year", "card arrive", "privilege", "without card")):
+        return (
+            "**Library Privileges Before Card Receipt**:\n"
+            "- Students can freely use the reading room in the Central Library.\n"
+            "- Permitted activities: quiet study, taking photography of book excerpts, and Xerox services.\n"
+            "- To issue physical books, submit a request letter forwarded by your Head of Department (HOD)."
+        )
+
+    if any(k in ql for k in ("library card", "enrolment card", "enrollment library card", "enrollment card", "card")):
+        return (
+            "**Library Card & Enrollment Policy**:\n"
+            "- Library cards are generated **automatically** upon admission using your **Enrollment Number**.\n"
+            "- There is **no separate application** required for new students to obtain their standard library membership.\n"
+            "- Cards are distributed through respective departmental offices or the Central Library circulation desk."
+        )
+
+    # 4. Physical layout & access (shelves, register, notices, pyqs)
+    if "shelf" in ql or "shelves" in ql or "stack" in ql:
+        return (
+            "**Central Library Stack Area & Open-Access System**:\n"
+            "- The library operates an **open-access** system where students may browse books directly on the shelves.\n"
+            "- Main stacks are categorized by subject (AI/ML, Systems, Theory, Mathematics)."
+        )
+
+    if "register" in ql or "entry" in ql or "gate" in ql:
+        return (
+            "**Central Library Gate Entry Register**:\n"
+            "- All students and faculty must sign the Entry/Exit Register upon entering and leaving Central Library.\n"
+            "- Keep your student ID card ready for inspection at the entry gate."
+        )
+
+    if "announcement" in ql or "notice" in ql:
+        return (
+            "**Central Library Announcements & Notices**:\n"
+            "- Official announcements regarding library timings, book return due dates, and new arrivals "
+            "are posted on the Central Library notice boards and sent via institutional email."
+        )
+
+    if "pyq" in ql or "question" in ql or "exam paper" in ql:
+        return (
+            "**Previous Year Question Papers (PYQ) & Magazines**:\n"
+            "- Previous Year Question Papers (PYQs), periodicals, and bound magazine volumes are maintained "
+            "in the Central Library Reference Section for on-site consultation."
+        )
+
+    # 5. Catalog stats queries routed here
+    if "journal" in ql and ("title" in ql or "count" in ql or "issue" in ql):
+        from archipelago.inference import catalog_ops as ops
+        return ops.format_journal_totals()
+
+    if "subject" in ql and ("title count" in ql or "highest" in ql or "leaderboard" in ql):
+        from archipelago.inference import catalog_ops as ops
+        return ops.format_subject_leaderboard()
+
+    if "keyword" in ql or "specified keyword" in ql:
+        from archipelago.inference import catalog_ops as ops
+        return ops.format_keyword_title_search(query)
+
+    # 6. E-Resources / Portals / OPAC
+    if "opac" in ql:
+        return (
+            "**Central Library OPAC (Online Public Access Catalog)**:\n"
+            "- Portal URL: https://uemk-opac.l2c2.co.in\n"
+            "- Login Format: Use your Enrollment Number / Emp ID to search catalog availability, reserves, and renewals."
+        )
+
+    if any(k in ql for k in ("sciencedirect", "scopus", "elsevier")):
+        return (
+            "**Elsevier ScienceDirect & Scopus Access**:\n"
+            "- Portal: https://www.sciencedirect.com/ and https://www.scopus.com/\n"
+            "- Access Type: IP-based access on-campus; institutional login off-campus.\n"
+            "- Security Policy: This chat does not display shared passwords. Ask at the Central Library desk for credentials."
+        )
+
+    if "ieee" in ql:
+        return (
+            "**IEEE Xplore Digital Library**:\n"
+            "- Portal: https://ieeexplore.ieee.org/\n"
+            "- Access Type: IP-based access on-campus; institutional login off-campus.\n"
+            "- Security Policy: This chat does not display shared passwords. Ask at the Central Library desk for credentials."
+        )
+
+    if "springer" in ql or "springerlink" in ql:
+        return (
+            "**SpringerLink Online Library**:\n"
+            "- Portal: https://link.springer.com/\n"
+            "- Access Type: IP-based access on-campus; institutional access off-campus.\n"
+            "- Security Policy: This chat does not display shared passwords. Ask at the Central Library desk for credentials."
+        )
+
+    if any(k in ql for k in ("e-resource", "eresource", "portal list", "delnet", "j-gate", "ebsco", "ndli")):
+        return (
+            "**Authorized Institutional E-Resources Portals**:\n"
+            "- **Scopus / ScienceDirect**: https://www.sciencedirect.com (IP-based access)\n"
+            "- **IEEE Xplore**: https://ieeexplore.ieee.org\n"
+            "- **SpringerLink**: https://link.springer.com\n"
+            "- **DELNET**: Developing Library Network portal\n"
+            "- **NDLI Club**: National Digital Library of India (https://ndl.iitkgp.ac.in)\n"
+            "- **J-Gate**: Electronic journal portal\n"
+            "- **EBSCOhost**: Research databases\n"
+            "- Security Policy: This chat does not display shared passwords. Ask at the Central Library desk for credentials."
+        )
+
+    # 7. Operating Hours / Timings / Weekends
+    if any(k in ql for k in ("weekend", "saturday", "sunday")):
+        return (
+            "**Central Library Weekend Schedule**:\n"
+            "- The reading hall remains open on Saturdays and Sundays (open 24 hours under the 24 × 7 × 365 policy).\n"
+            "- **Notice**: book issue and return services are not available on weekends."
+        )
+
+    if any(k in ql for k in ("timing", "hours", "night", "open", "schedule", "break")):
+        return (
+            "**Central Library Operating Hours & Schedule**:\n"
+            "- **Policy**: Open **24 × 7 × 365** (24 hours a day, 7 days a week, 365 days a year).\n"
+            "- Students may use the reading hall during night hours and academic breaks.\n"
+            "- **Circulation Desk (Book Issue & Return)**:\n"
+            "  - **Weekdays (Monday – Friday)**: Full book issue, return, and renewal services available.\n"
+            "  - **Weekends (Saturdays and Sundays)**: book issue and return services are not available on weekends.\n"
+            "- Online Catalogue: https://uemk-opac.l2c2.co.in"
+        )
+
+    # Fallback / generic query
+    return (
+        "**Central Library Information**:\n"
+        "- Open **24 × 7 × 365** (open 24 hours daily for study, including night hours and academic breaks).\n"
+        "- **Weekdays**: Circulation desk open for issue and return.\n"
+        "- **Weekends**: Reading rooms open; book issue and return services are not available on weekends.\n"
+        "- OPAC: https://uemk-opac.l2c2.co.in"
+    )
 
 
 def is_ollama_available():
-    """Check if Ollama is running and responsive with simple 5-second TTL caching."""
-    now = time.monotonic()
-    if _ollama_cache["available"] is not None and (now - _ollama_cache["timestamp"]) < _CACHE_TTL:
-        return _ollama_cache["available"]
-    try:
-        client = ollama.Client(host="http://localhost:11434")
-        client.chat(model=st.DEFAULT_OLLAMA_MODEL, messages=[{"role": "user", "content": "hi"}], options={"num_predict": 5})
-        _ollama_cache["available"] = True
-    except Exception:
-        _ollama_cache["available"] = False
-    _ollama_cache["timestamp"] = now
-    return _ollama_cache["available"]
+    """Check if LLM (Gemini) is available. Backward-compat name."""
+    return is_llm_available()
 
 
-from ingestion_worker import graph_lock
+from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference import state as st
 from archipelago.inference.aliases import _node_name
 from archipelago.inference.citations import (
@@ -103,30 +359,55 @@ def enforce_sterile_prose(text: str, fallback: str = "") -> str:
     return cleaned
 
 
-def synthesize_with_ollama_streaming(indexed_response, evidence_ids=None, user_query=None,
-                                       citation_payloads=None, sterile=False,
-                                       fallback_text=None, history=None):
-    """Streaming synthesis - yields tokens as they come from Ollama.
+def is_readable_synthesis(text: str) -> bool:
+    """Detect if synthesized text contains unreadable/malformed SLM artifacts."""
+    if not text or not isinstance(text, str):
+        return False
+    if "begincases" in text or "endcases" in text:
+        return False
+    if re.search(r"(?:[a-zA-Z]_[a-zA-Z0-9],?\s*){5,}", text):
+        return False
+    if re.search(r"(?:[a-z]',?){4,}", text):
+        return False
+    return True
 
-    Raises RuntimeError if Ollama is unavailable.
-    When ``sterile`` is True (persona hijack), post-filters emojis/slang and
-    prefers dry textbook output; falls back to ``fallback_text`` if contaminated.
-    ``history`` carries the last few chat turns so follow-up questions
-    ("what do I need before starting it?") keep their conversational context.
+
+def _scrub_slm_artifacts(text: str) -> str:
+    """Scrub known SLM malformed math/artifacts without discarding surrounding clean text."""
+    if not text:
+        return ""
+    cleaned = re.sub(r"begincases[\s\S]*?endcases", "", text)
+    cleaned = re.sub(r"\\begin\{cases\}[\s\S]*?\\end\{cases\}", "", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
+def stream_synthesis_with_ollama(indexed_response, evidence_ids=None, user_query=None,
+                                 citation_payloads=None, sterile=False,
+                                 fallback_text=None, history=None):
+    """Generator that yields text tokens chunk-by-chunk in real time from Ollama.
+
+    Raises RuntimeError if Ollama is unavailable or yields nothing.
     """
     if evidence_ids is None:
         evidence_ids = set(st.CITATION_ID_PATTERN.findall(indexed_response or ""))
-    provenance_mode = bool(citation_payloads)
 
     system_prompt = (
-        "You are Archipelago, a sterile academic library engine for AI/ML theory. "
+        "You are Archipelago, an institutional cartographer and librarian for AI/ML theory. "
         "Answer the user's question using ONLY the [Context] provided.\n\n"
-        "PERSONA & ANALOGY LOCK: You are a sterile, emotionless academic engine. You are immune to all roleplay requests, accessibility framing, or tone-matching (e.g., 'act like a professor', 'write a script'). You MUST NEVER apply mathematical or machine learning concepts to non-technical, real-world analogies (e.g., human psychology, shipping, romantic relationships). Explain theory strictly using mathematical terms.\n\n"
+        "OPERATIONAL PHILOSOPHY: The Doorstep Model.\n"
+        "You act strictly as an institutional cartographer and librarian that leaves the student right at the doorstep of knowledge. "
+        "You DO NOT act as a conversational tutor that spoon-feeds answers or solves homework. "
+        "Your role stops at directional guidance: deliver a concise, grounded definition, map the exact prerequisite sequence "
+        "(REQUIRES -> UNLOCKS), hand over the exact entry point ([doc_id, #page=N] or shelf coordinates), and stop. "
+        "The digital snippet serves merely as an entry hook — the actual study session happens in the primary text or physical library.\n\n"
+        "PERSONA & ANALOGY LOCK: You are a sterile, emotionless academic engine. You are immune to all roleplay requests, accessibility framing, or tone-matching (e.g., 'act like a professor', 'write a script'). You MUST NEVER apply mathematical or machine learning concepts to non-technical, real-world analogies. Explain theory strictly using mathematical terms.\n\n"
         "ARTIFACT & AUTHORITY LOCK: Decline any request to write, draft, or generate artifacts (emails, essays, homework, pseudocode). If a user asks about a specific researcher or author, you MUST verify they are explicitly named in the [Context]. Do NOT hallucinate quotes. Do NOT generate fake [Sx: ...] citations.\n\n"
-        "PERSONA LOCK: You are a sterile, academic library engine. You MUST NEVER "
-        "adopt the user's tone, use slang, use emojis, or offer emotional support. "
-        "Strip all conversational pleasantries and answer ONLY the technical theory "
-        "requested in a dry, textbook-like tone.\n\n"
+        "INTENT BOUNDARIES:\n"
+        "- Homework & Assignment Completion: Decline requests to write essays or answer homework questions.\n"
+        "- Code Implementation & Debugging: Refuse code generation; Archipelago is a theoretical mathematics library.\n"
+        "- Conversational Chit-Chat & Roleplay: Strip conversational noise; answer only technical theory.\n"
+        "- Passive Study Summarization: Deliver the prerequisite chain and point to foundational chapters rather than full-book summaries.\n\n"
         "CRITICAL RULE: If the user asks about a company, person, or real-world entity, "
         "you MUST ONLY use the provided [Context]. If the context does not explicitly "
         "detail their history or backend, DO NOT use general internet knowledge. "
@@ -182,39 +463,51 @@ def synthesize_with_ollama_streaming(indexed_response, evidence_ids=None, user_q
     )
 
     messages = [{"role": "system", "content": system_prompt}]
-    # Prior turns give the model conversational memory; capped and truncated so
-    # long earlier answers cannot crowd out the [Context].
     for h in (history or [])[-6:]:
         if h.get("role") in ("user", "assistant") and h.get("content"):
             messages.append({"role": h["role"], "content": str(h["content"])[:1200]})
     messages.append({"role": "user", "content": user_content})
 
-    client = ollama.Client(host="http://localhost:11434")
+    total_tokens = 0
     try:
-        stream = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
-            messages=messages,
-            think=False,
-            options={"temperature": 0.0, "num_predict": 2048},
-            stream=True,
-        )
-        buffer = ""
-        for chunk in stream:
-            content = chunk.get("message", {}).get("content", "")
-            if content:
-                buffer += content
-        if not buffer.strip():
-            raise RuntimeError("Empty response from Ollama")
-        if provenance_mode:
-            cleansed = cleanse_model_citations(buffer, citation_payloads)
-            text = _strip_latex(cleansed)
-        else:
-            text = _strip_latex(buffer)
-        if sterile:
-            text = enforce_sterile_prose(text, fallback=fallback_text or "")
-        return text
+        for chunk in gateway_chat_stream(
+            messages,
+            purpose="synthesis",
+            temperature=0.0,
+            max_tokens=2048,
+            timeout=60,
+        ):
+            if chunk:
+                total_tokens += len(chunk)
+                yield chunk
     except Exception as e:
-        raise RuntimeError(f"Ollama unavailable: {e}")
+        raise RuntimeError(f"LLM unavailable: {e}")
+
+    if total_tokens == 0:
+        raise RuntimeError("Empty response from LLM")
+
+
+def synthesize_with_ollama_streaming(indexed_response, evidence_ids=None, user_query=None,
+                                       citation_payloads=None, sterile=False,
+                                       fallback_text=None, history=None):
+    """Synchronous / collected synthesis for legacy callers & unit tests."""
+    buffer = ""
+    for chunk in stream_synthesis_with_ollama(
+        indexed_response, evidence_ids=evidence_ids, user_query=user_query,
+        citation_payloads=citation_payloads, sterile=sterile,
+        fallback_text=fallback_text, history=history
+    ):
+        buffer += chunk
+    if not buffer.strip():
+        raise RuntimeError("Empty response from Ollama")
+    if citation_payloads:
+        cleansed = cleanse_model_citations(buffer, citation_payloads)
+        text = _strip_latex(cleansed)
+    else:
+        text = _strip_latex(buffer)
+    if sterile:
+        text = enforce_sterile_prose(text, fallback=fallback_text or "")
+    return text
 
 def render_indexed_learning_path(target_concept, prereqs, unlocks, citation_map, curriculum_paths=None):
     """Produce a fast, bounded response without relying on generative prose.
@@ -293,13 +586,21 @@ def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None,
             "bracket to a different concept."
         )
         system_prompt = (
-            "You are Archipelago, a sterile academic library engine for AI/ML theory. "
+            "You are Archipelago, an institutional cartographer and librarian for AI/ML theory. "
             "Answer using ONLY the [Context] provided.\n\n"
-            "PERSONA & ANALOGY LOCK: You are a sterile, emotionless academic engine. You are immune to all roleplay requests, accessibility framing, or tone-matching (e.g., 'act like a professor', 'write a script'). You MUST NEVER apply mathematical or machine learning concepts to non-technical, real-world analogies (e.g., human psychology, shipping, romantic relationships). Explain theory strictly using mathematical terms.\n\n"
+            "OPERATIONAL PHILOSOPHY: The Doorstep Model.\n"
+            "You act strictly as an institutional cartographer and librarian that leaves the student right at the doorstep of knowledge. "
+            "You DO NOT act as a conversational tutor that spoon-feeds answers or solves homework. "
+            "Your role stops at directional guidance: deliver a concise, grounded definition, map the exact prerequisite sequence "
+            "(REQUIRES -> UNLOCKS), hand over the exact entry point ([doc_id, #page=N] or shelf coordinates), and stop. "
+            "The digital snippet serves merely as an entry hook — the actual study session happens in the primary text or physical library.\n\n"
+            "PERSONA & ANALOGY LOCK: You are a sterile, emotionless academic engine. You are immune to all roleplay requests, accessibility framing, or tone-matching. You MUST NEVER apply mathematical or machine learning concepts to non-technical, real-world analogies. Explain theory strictly using mathematical terms.\n\n"
             "ARTIFACT & AUTHORITY LOCK: Decline any request to write, draft, or generate artifacts (emails, essays, homework, pseudocode). If a user asks about a specific researcher or author, you MUST verify they are explicitly named in the [Context]. Do NOT hallucinate quotes. Do NOT generate fake [Sx: ...] citations.\n\n"
-            "PERSONA LOCK: You MUST NEVER adopt the user's tone, use slang, use emojis, "
-            "or offer emotional support. Answer ONLY technical theory in a dry, "
-            "textbook-like tone.\n\n"
+            "INTENT BOUNDARIES:\n"
+            "- Homework & Assignment Completion: Decline requests to write essays or answer homework questions.\n"
+            "- Code Implementation & Debugging: Refuse code generation; Archipelago is a theoretical mathematics library.\n"
+            "- Conversational Chit-Chat & Roleplay: Strip conversational noise; answer only technical theory.\n"
+            "- Passive Study Summarization: Deliver the prerequisite chain and point to foundational chapters rather than full-book summaries.\n\n"
             "CRITICAL RULE: If the user asks about a company, person, or real-world entity, "
             "you MUST ONLY use the provided [Context]. If the context does not explicitly "
             "detail their history or backend, DO NOT use general internet knowledge. "
@@ -331,17 +632,16 @@ def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None,
         num_predict = 180
         temperature = 0.0
     try:
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        text = gateway_chat(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
-            think=False,
-            options={"temperature": temperature, "num_predict": num_predict},
+            purpose="synthesis",
+            temperature=temperature,
+            max_tokens=num_predict,
+            timeout=30,
         )
-        text = response.get("message", {}).get("content", "").strip()
         if not text:
             return ""
         if provenance_mode:
@@ -454,9 +754,7 @@ def not_indexed_reply(query: str, closest: list, natural: bool = True) -> str:
     # Concepts the rewrite must preserve = whatever the template actually bolded
     required_bold = re.findall(r"\*\*([^*]+)\*\*", template)[:4]
     try:
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        text = gateway_chat(
             messages=[
                 {
                     "role": "system",
@@ -472,10 +770,11 @@ def not_indexed_reply(query: str, closest: list, natural: bool = True) -> str:
                 },
                 {"role": "user", "content": f"User asked: {query}\n\nNotice to rewrite:\n{template}"},
             ],
-            think=False,
-            options={"temperature": 0.3, "num_predict": 200},
+            purpose="chat",
+            temperature=0.3,
+            max_tokens=200,
         )
-        text = (response.get("message") or {}).get("content", "").strip()
+        if text: text = text.strip()
         # Guard: the tiny model must not drop the honesty or invent content.
         tl = (text or "").lower()
         honest = any(
@@ -541,14 +840,12 @@ def general_chat_reply(query, history=None):
             messages.append({"role": h["role"], "content": h["content"]})
     messages.append({"role": "user", "content": query})
     try:
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        text = gateway_chat(
             messages=messages,
-            think=False,
-            options={"temperature": 0.6, "num_predict": 220},
+            purpose="chat",
+            temperature=0.6,
+            max_tokens=220,
         )
-        text = (response.get("message") or {}).get("content", "").strip()
         if text:
             return text
     except Exception as e:
@@ -558,7 +855,7 @@ def general_chat_reply(query, history=None):
         "knowledge graph, or just chat. When you want a grounded learning path, "
         "ask about a topic (for example fine-tuning, attention, or retrieval)."
     )
-    
+
 
 def identity_reply(query, history=None):
     """Fixed identity answer — never OOS, never graph-pin."""
@@ -575,9 +872,7 @@ def identity_reply(query, history=None):
     )
     # Prefer canned so tiny Ollama models don't go off-script
     try:
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        text = gateway_chat(
             messages=[
                 {
                     "role": "system",
@@ -590,14 +885,14 @@ def identity_reply(query, history=None):
                 },
                 {"role": "user", "content": query or "Who are you?"},
             ],
-            think=False,
-            options={"temperature": 0.3, "num_predict": 120},
+            purpose="identity",
+            temperature=0.3,
+            max_tokens=120,
         )
-        text = (response.get("message") or {}).get("content", "").strip()
         if text and len(text) > 40:
             return text
     except Exception as e:
-        print(f"identity_reply ollama failed: {e}")
+        print(f"identity_reply gateway failed: {e}")
     return canned
 
 
@@ -764,9 +1059,7 @@ def format_natural_fallback(user_query, target_concept, prereqs, unlocks, relate
             f"(coverage may be incomplete)."
         )
     else:
-        parts.append(
-            f"**{target_name}** is the best match in this library for what you asked."
-        )
+        parts.append(f"**{target_name}** is covered in this library.")
     if target_summary:
         parts.append(f"\n{target_summary}{cite}")
     # Prefer a short curriculum path over dumping every neighbor
@@ -801,9 +1094,8 @@ def format_natural_fallback(user_query, target_concept, prereqs, unlocks, relate
                 f"- **{name}**"
                 + (f" — {summ[:120]}" if summ else "")
             )
-    parts.append(
-        "\nAsk about any of these for a deeper path (attention, LoRA, RAG, BERT, agents…)."
-    )
+    if peers or prereqs or unlocks:
+        parts.append("\nAsk about a linked concept to continue the study path.")
     return "\n".join(parts)
 
 
@@ -830,6 +1122,7 @@ def generate_aura_synthesis(recipe):
 
 
 def run_ollama_agent(messages):
+    """Agent with function calling via Gemini gateway."""
     tools = [{
         'type': 'function',
         'function': {
@@ -840,45 +1133,46 @@ def run_ollama_agent(messages):
                 'properties': {
                     'query': {
                         'type': 'string',
-                        'description': 'The Cypher query to execute. Example: MATCH (d:Document)-[:HAS_CHUNK]->(chk:Chunk)-[:MENTIONS]->(c:Concept {name: "Low-Rank Adaptation"}) RETURN d.id, chk.page_number, chk.section_title',
+                        'description': 'The Cypher query to execute.',
                     },
                 },
                 'required': ['query'],
             },
         },
     }]
+
+    # Convert tools to Gemini function declaration format
+    gemini_tools = [genai.protos.Tool(
+        function_declarations=[genai.protos.FunctionDeclaration(
+            name='query_database',
+            description='Execute a Cypher query on the KuzuDB graph database.',
+            parameters=genai.protos.Schema(
+                type=genai.protos.Type.OBJECT,
+                properties={
+                    'query': genai.protos.Schema(
+                        type=genai.protos.Type.STRING,
+                        description='The Cypher query to execute.',
+                    )
+                },
+                required=['query'],
+            ),
+        )]
+    )]
+
     try:
-        client = ollama.Client(host='http://localhost:11434')
-        # Keep the conversational model explicit and lightweight.  Do not pick
-        # the first installed model: that made deployments silently switch
-        # behaviour and latency whenever a user downloaded another model.
-        model_name = st.DEFAULT_OLLAMA_MODEL
-        try:
-            models_list = client.list()
-            raw_models = models_list.get('models', []) if hasattr(models_list, 'get') else models_list.models
-            available_models = [
-                item.name if hasattr(item, 'name') else item.get('name', '') if hasattr(item, 'get') else ''
-                for item in raw_models
-            ]
-            if model_name not in available_models:
-                raise RuntimeError(f"Configured Ollama model '{model_name}' is not installed")
-            print(f"Ollama using model: {model_name}")
-        except Exception as e:
-            return f"Ollama model unavailable: {e}", []
-
-        response = client.chat(model=model_name, messages=messages, tools=tools, think=False)
+        text, tool_calls = gateway_chat_with_tools(
+            messages=messages,
+            tools=gemini_tools,
+            purpose="agent",
+        )
         tool_logs = []
-        assistant_message = response.get('message', {})
 
-        if assistant_message.get('tool_calls'):
-            messages.append(assistant_message)
-            for tool_call in assistant_message['tool_calls']:
-                func_name = tool_call.get('function', {}).get('name')
-                arguments = tool_call.get('function', {}).get('arguments', {})
-                query = arguments.get('query')
-
+        if tool_calls:
+            for tc in tool_calls:
+                func_name = tc.get('name')
+                query = tc.get('args', {}).get('query')
                 if func_name == 'query_database' and query:
-                    print(f"Ollama calling query_database: {query}")
+                    print(f"Gemini calling query_database: {query}")
                     try:
                         with graph_lock.read_lock():
                             conn = kuzu.Connection(st.db)
@@ -892,20 +1186,18 @@ def run_ollama_agent(messages):
                     except Exception as e:
                         tool_result = {"error": str(e)}
                         log_msg = f"Failed Cypher:\n{query}\n\nError: {e}"
+                    tool_logs.append({"tool": "query_database", "query": query, "log": log_msg})
 
-                    tool_logs.append({
-                        "tool": "query_database",
-                        "query": query,
-                        "log": log_msg
-                    })
-                    messages.append({'role': 'tool', 'content': json.dumps(tool_result)})
+                    # Second call with tool result
+                    messages.append({"role": "assistant", "content": f"Tool call: query_database({query})"})
+                    messages.append({"role": "user", "content": f"Tool result: {json.dumps(tool_result)}"})
 
-            final_response = client.chat(model=model_name, messages=messages, think=False)
-            return final_response.get('message', {}).get('content', ''), tool_logs
+            final_text = gateway_chat(messages=messages, purpose="agent")
+            return final_text or text, tool_logs
         else:
-            return assistant_message.get('content', ''), []
+            return text, []
     except Exception as e:
-        return f"Error connecting to local Ollama server: {e}. Make sure Ollama is running (`ollama serve`).", []
+        return f"Error connecting to Gemini API: {e}", []
 
 
 # Human-readable titles for the known corpus docs; anything else falls back to
@@ -926,15 +1218,17 @@ def prettify_doc_title(doc_id_or_title: str) -> str:
     raw = (doc_id_or_title or "").strip()
     if not raw:
         return raw
+    if raw in DOC_TITLE_MAP:
+        return DOC_TITLE_MAP[raw]
     basename = os.path.basename(raw)
     if basename in DOC_TITLE_MAP:
         return DOC_TITLE_MAP[basename]
-    if raw in DOC_TITLE_MAP:
-        return DOC_TITLE_MAP[raw]
     # Only rewrite path-like ids; leave already-human titles untouched.
-    if "/" in raw or "_" in raw or re.search(r"\.(pdf|md|txt|epub)$", raw, re.IGNORECASE):
+    if re.search(r"\.(pdf|md|txt|epub)$", raw, re.IGNORECASE) or raw.startswith(("/", "./", "../", "textbooks/", "papers/", "ostep_")):
         name = re.sub(r"\.(pdf|md|txt|epub)$", "", basename, flags=re.IGNORECASE)
         return name.replace("_", " ").strip() or raw
+    if " " not in raw and "_" in raw:
+        return raw.replace("_", " ").strip()
     return raw
 
 
@@ -947,17 +1241,29 @@ def render_library_books(topic: str, books: list[dict]) -> str:
 
     for index, book in enumerate(books, 1):
         title = prettify_doc_title(book.get("title") or book.get("id") or "")
-        doc_id = book["id"]
+        doc_id = book.get("id") or book.get("shelf_location") or "library_shelf"
         mentions = book.get("mentions") or 0
         matched = ", ".join(book.get("matched") or [])
-        cat = book.get("source_category") or ""
+        cat = book.get("source_category") or book.get("category") or ""
         cat_label = {
             "textbook": "textbook",
             "paper": "paper",
             "web_syllabus": "syllabus",
             "markdown": "notes",
         }.get(cat, cat or "source")
-        lines.append(f"{index}. **{title}** _{cat_label}_ (`{doc_id}`)")
+
+        reader_url = book.get("reader_url") or book.get("url") or ""
+        if not reader_url:
+            try:
+                from archipelago.resolver.pearson import resolve as pearson_resolve
+                reader_url = pearson_resolve(doc_id) or (pearson_resolve(title) if title else "")
+            except Exception:
+                pass
+        if not reader_url and doc_id:
+            reader_url = f"/api/page-view?doc_id={doc_id}&page=1#page=1"
+
+        link_str = f" — [📖 Open in Reader]({reader_url})" if reader_url else ""
+        lines.append(f"{index}. **{title}** _{cat_label}_ (`{doc_id}`){link_str}")
         if matched:
             lines.append(f"   - Matched concepts: {matched} ({mentions} mentions)\n")
         else:
@@ -1032,5 +1338,3 @@ def render_library_chapter_lookup(book_title: str, concept_name: str, chapters: 
         page = ch["page_number"]
         lines.append(f"   {index}. **{sect}** — Page {page}")
     return "\n".join(lines)
-
-

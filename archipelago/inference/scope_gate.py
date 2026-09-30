@@ -11,10 +11,15 @@ from collections import OrderedDict
 from archipelago.inference import state as st
 
 # Three generic refusals only — intent_gate chooses which bucket, not keywords.
+# Contract pins (test_grounded_fallback, test_inference_75_cases,
+# test_session3_memory_scope, test_scope_gate, test_defense_gauntlet):
+#   - contains "outside the current scope" + pilot domains RAG / database
+#   - contains "library" or "AI"
+#   - soft tone: never "I am designed" / "I decline"
 OUT_OF_SCOPE_MESSAGE = (
-    "That one's a bit outside what this library covers — my shelves hold AI/ML "
-    "theory and the mathematics behind it (deep learning, neural networks, "
-    "transformers, optimization, and friends). "
+    "That topic falls outside the current scope of this library assistant. "
+    "My shelves hold AI/ML theory and the mathematics behind it — deep learning, "
+    "neural networks, transformers, optimization, RAG, and databases. "
     "Ask me about any of those and I'll open a grounded path with real sources!"
 )
 NOT_IN_CORPUS_MESSAGE = (
@@ -31,6 +36,12 @@ IMPLEMENTATION_REFUSAL_MESSAGE = (
 
 _SCOPE_SYSTEM = (
     "Is the query about artificial intelligence, machine learning, deep learning, or machine learning mathematics? "
+    "Answer YES or NO."
+)
+
+_LIBRARY_SCOPE_SYSTEM = (
+    "Is the query related to computer science, computing, software engineering, operating systems, "
+    "networking, databases, algorithms, artificial intelligence, machine learning, or mathematics? "
     "Answer YES or NO."
 )
 
@@ -66,7 +77,7 @@ def parse_scope_answer(text: str) -> bool | None:
 
 
 def check_aiml_scope_via_llm(query: str) -> bool | None:
-    """Ask Ollama yes/no. Returns None on transport/parse failure."""
+    """Ask LLM Gateway yes/no. Returns None on transport/parse failure."""
     key = _normalize_query(query)
     if not key:
         return True
@@ -75,20 +86,18 @@ def check_aiml_scope_via_llm(query: str) -> bool | None:
         return _CACHE[key]
 
     try:
-        import ollama
+        from archipelago.inference.llm_gateway import gateway_chat
 
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        ans = gateway_chat(
             messages=[
                 {"role": "system", "content": _SCOPE_SYSTEM},
                 {"role": "user", "content": query},
             ],
-            think=False,
-            keep_alive="30m",
-            options={"temperature": 0.0, "num_predict": 8, "num_ctx": 2048},
-        )
-        ans = (response.get("message") or {}).get("content", "")
+            purpose="routing",
+            temperature=0.0,
+            max_tokens=8,
+            timeout=8,
+        ) or ""
         parsed = parse_scope_answer(ans)
         if parsed is None:
             return None
@@ -97,7 +106,41 @@ def check_aiml_scope_via_llm(query: str) -> bool | None:
             _CACHE.popitem(last=False)
         return parsed
     except Exception as e:
-        print(f"Ollama scope check failed: {e}")
+        print(f"LLM scope check failed: {e}")
+        return None
+
+
+def check_library_scope_via_llm(query: str) -> bool | None:
+    """Ask LLM Gateway if query is within the academic library CS/AI scope."""
+    key = "lib:" + _normalize_query(query)
+    if not key:
+        return True
+    if key in _CACHE:
+        _CACHE.move_to_end(key)
+        return _CACHE[key]
+
+    try:
+        from archipelago.inference.llm_gateway import gateway_chat
+
+        ans = gateway_chat(
+            messages=[
+                {"role": "system", "content": _LIBRARY_SCOPE_SYSTEM},
+                {"role": "user", "content": query},
+            ],
+            purpose="routing",
+            temperature=0.0,
+            max_tokens=8,
+            timeout=8,
+        ) or ""
+        parsed = parse_scope_answer(ans)
+        if parsed is None:
+            return None
+        _CACHE[key] = parsed
+        while len(_CACHE) > _CACHE_MAX:
+            _CACHE.popitem(last=False)
+        return parsed
+    except Exception as e:
+        print(f"LLM library scope check failed: {e}")
         return None
 
 

@@ -18,7 +18,7 @@ def run_pipeline_staged(
     """
     Staged pipeline execution for the safe live ingestion worker.
     """
-    from pdf_ingestion import ingest_document
+    from archipelago.ingestion.pdf_io import ingest_document
     from okf.cleanup import clean_pipeline, cleanup_and_canonicalize
     from okf.evaluate import structural_audit
 

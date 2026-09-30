@@ -5,8 +5,10 @@ import json
 import os
 import re
 import secrets
+import threading
 import time
 from pathlib import Path
+from urllib.parse import quote
 
 from flask import jsonify, send_from_directory, request, redirect
 
@@ -16,12 +18,13 @@ from ingestion_jobs import JobStatus
 from ingestion_worker import job_store, get_worker, graph_lock
 from archipelago.auth import require_librarian, librarian_token_expected
 from archipelago.inference import state as st
+from src.archipelago import supabase_auth
 import torch
 
 @st.app.after_request
 def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Archipelago-Token,X-Librarian-Token,X-API-Token")
     response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
     return response
 
@@ -30,30 +33,67 @@ def add_cors_headers(response):
 def serve_pdf(filename):
     """Serve local papers/textbooks from the pdfs folder.
 
-    When the file is not on disk (slim deployments that don't ship the corpus
-    PDFs), redirect to the canonical public source (arXiv / mml-book) so the
-    reading pane can still stream the full document.
+    Searches recursively under pdfs/ and falls back to remote arXiv/publisher URLs.
     """
-    local = Path(st.PDF_DIR) / filename
-    if local.is_file():
-        return send_from_directory(str(st.PDF_DIR), filename)
-    remote = REMOTE_PDF_SOURCES.get(Path(filename).name)
+    pdf_dir = Path(st.PDF_DIR)
+    target_name = Path(filename).name
+
+    # 1. Check exact path
+    candidate = pdf_dir / filename
+    if candidate.is_file():
+        return send_from_directory(str(candidate.parent), candidate.name)
+
+    # 2. Check direct stem under pdf_dir or subfolders (papers/, textbooks/, etc.)
+    for match in pdf_dir.glob(f"**/{target_name}"):
+        if match.is_file():
+            return send_from_directory(str(match.parent), match.name)
+
+    # 3. Check arXiv regex pattern (e.g. 1706.03762v7.pdf)
+    arxiv_match = re.search(r"(\d{4}\.\d{4,5})", target_name)
+    if arxiv_match:
+        return redirect(f"https://arxiv.org/pdf/{arxiv_match.group(1)}", code=302)
+
+    # 4. Check remote URL fallback registry
+    remote = REMOTE_PDF_SOURCES.get(target_name)
     if remote:
         return redirect(remote, code=302)
-    return jsonify({"error": f"PDF not found: {filename}"}), 404
+
+    # 4.5 Check Pearson eLibrary Catalog resolution
+    try:
+        from archipelago.resolver.pearson import resolve as pearson_resolve
+        pearson_url = pearson_resolve(filename)
+        if not pearson_url and target_name != filename:
+            pearson_url = pearson_resolve(target_name)
+        if pearson_url:
+            return redirect(pearson_url, code=302)
+    except Exception:
+        pass
+
+    # 5. Hugging Face Cloud Gateway fallback for non-Pearson books & papers
+    hf_cloud_url = f"https://huggingface.co/datasets/Prataykarali/Library_books/resolve/main/{quote(target_name, safe='')}"
+    return redirect(hf_cloud_url, code=302)
 
 
-# Canonical public URLs for the corpus documents (all openly licensed/hosted:
-# arXiv preprints and the officially-free MML book). Used as a streaming
-# fallback so full texts never need to live on this machine.
+
 REMOTE_PDF_SOURCES = {
     "Vaswani2017_Attention_Is_All_You_Need.pdf": "https://arxiv.org/pdf/1706.03762",
     "Hu2021_LoRA.pdf": "https://arxiv.org/pdf/2106.09685",
+    "Dettmers2023_QLoRA.pdf": "https://arxiv.org/pdf/2305.14314",
     "Lewis2020_RAG.pdf": "https://arxiv.org/pdf/2005.11401",
     "Devlin2018_BERT.pdf": "https://arxiv.org/pdf/1810.04805",
     "Edge2024_GraphRAG.pdf": "https://arxiv.org/pdf/2404.16130",
+    "Bahdanau2014_Attention.pdf": "https://arxiv.org/pdf/1409.0473",
+    "Kwon2023_vLLM.pdf": "https://arxiv.org/pdf/2309.06180",
+    "Brown2020_GPT3.pdf": "https://arxiv.org/pdf/2005.14165",
+    "Wei2022_ChainOfThought.pdf": "https://arxiv.org/pdf/2201.11903",
+    "Yao2022_ReAct.pdf": "https://arxiv.org/pdf/2210.03629",
+    "Rafailov2023_DPO.pdf": "https://arxiv.org/pdf/2305.18290",
+    "Karpukhin2020_DPR.pdf": "https://arxiv.org/pdf/2004.04906",
+    "Willard2023_Outlines.pdf": "https://arxiv.org/pdf/2307.09702",
+    "Ouyang2022_InstructGPT.pdf": "https://arxiv.org/pdf/2203.02155",
     "Deisenroth_Math_For_ML.pdf": "https://mml-book.github.io/book/mml-book.pdf",
 }
+
 
 
 # ── Shared chats: tiny file-backed store (no DB, no auth beyond size caps) ──
@@ -162,6 +202,60 @@ def readiness():
     return jsonify(payload), (200 if payload["ready"] else 503)
 
 
+@st.app.route("/api/internal/close-graph", methods=["POST", "OPTIONS"])
+def close_graph_internal():
+    """Localhost-only: drop the live Kùzu handle so another process can os.replace the file."""
+    if request.method == "OPTIONS":
+        return ("", 204)
+    remote = request.remote_addr or ""
+    if remote not in ("127.0.0.1", "::1"):
+        return jsonify({"error": "localhost only"}), 403
+    try:
+        import archipelago.inference.state as _st
+        old = getattr(_st, "_db", None)
+        _st._db = None
+        if old is not None:
+            try:
+                old.close()
+            except Exception:
+                pass
+        return jsonify({"ok": True, "closed": old is not None}), 200
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@st.app.route("/api/internal/reload-graph", methods=["POST", "OPTIONS"])
+def reload_graph_internal():
+    """Localhost-only: reopen Kùzu after an atomic swap and rebuild concept embeddings."""
+    if request.method == "OPTIONS":
+        return ("", 204)
+    remote = request.remote_addr or ""
+    if remote not in ("127.0.0.1", "::1"):
+        return jsonify({"error": "localhost only"}), 403
+    embeddings_only = str(request.args.get("embeddings_only") or "").lower() in (
+        "1", "true", "yes",
+    )
+    if not embeddings_only:
+        try:
+            st.reload_db()
+        except Exception as exc:
+            return jsonify({"error": f"reload_db failed: {exc}"}), 500
+    embeddings_rebuilt = False
+    embed_warning = None
+    try:
+        from archipelago.inference.embeddings import build_concept_embeddings
+        build_concept_embeddings()
+        embeddings_rebuilt = True
+    except Exception as exc:
+        embed_warning = str(exc)
+    return jsonify({
+        "ok": True,
+        "concepts": len(getattr(st, "CONCEPTS_DATA", {}) or {}),
+        "embeddings_rebuilt": embeddings_rebuilt,
+        "embed_warning": embed_warning,
+    }), 200
+
+
 @st.app.route("/api/ingest/capabilities", methods=["GET"])
 def ingestion_capabilities():
     """Advertise upload API capabilities (librarian-only mutations)."""
@@ -170,7 +264,7 @@ def ingestion_capabilities():
         "delete_api_enabled": True,
         "librarian_only": True,
         "student_upload_enabled": False,
-        "auth_required": bool(librarian_token_expected()),
+        "auth_required": bool(librarian_token_expected()) or supabase_auth.is_auth_required(),
         "list_documents_api": "/api/documents",
         "delete_document_api": "DELETE /api/documents/<doc_id>",
         "max_file_size_mb": 50,
@@ -186,7 +280,6 @@ def ingestion_capabilities():
 @require_librarian
 def ingest_upload():
     """Librarian-only: accept a document upload (PDF/MD/TXT), create a job and enqueue it."""
-    import time
     from werkzeug.utils import secure_filename
 
     if "file" not in request.files:
@@ -210,22 +303,17 @@ def ingest_upload():
     if size_bytes > 50 * 1024 * 1024:
         return jsonify({"error": "File exceeds 50 MB limit"}), 413
 
-    # Create job and quarantine the upload (preserve extension for pipeline)
+    file_bytes = f.read()
+
+    # Use the production staged worker used by the integration tests. The old
+    # librarian worker had a separate schema, a 15-chunk cap, and reported a
+    # successful staged job even when extraction returned zero concepts.
     job = job_store.create_job(filename)
-    job_dir = job_store.job_dir(job.job_id)
-    job_dir.mkdir(parents=True, exist_ok=True)
+    upload_path = job_store.job_dir(job.job_id) / f"upload{Path(filename).suffix.lower()}"
+    upload_path.write_bytes(file_bytes)
+    get_worker().enqueue(job.job_id)
+
     ext = Path(filename).suffix.lower().replace(".markdown", ".md") or ".pdf"
-    if ext not in (".pdf", ".md", ".txt"):
-        ext = ".pdf"
-    upload_path = job_dir / f"upload{ext}"
-    f.save(str(upload_path))
-    # Marker so the worker always finds the quarantined source
-    (job_dir / "upload_source_name.txt").write_text(filename, encoding="utf-8")
-
-    # Enqueue and start worker
-    worker = get_worker()
-    worker.enqueue(job.job_id)
-
     return jsonify({
         "job_id": job.job_id,
         "status": "queued",
@@ -236,8 +324,7 @@ def ingest_upload():
 
 @st.app.route("/api/ingest/<job_id>", methods=["GET"])
 def ingest_status(job_id):
-    """Return job status, progress per stage, elapsed time, and result."""
-    import time
+    """Return only the canonical ingestion job status and result."""
     from datetime import datetime, timezone
 
     record = job_store.get_job(job_id)
@@ -253,7 +340,7 @@ def ingest_status(job_id):
 
     return jsonify({
         "job_id":          record.job_id,
-        "status":          record.status.value,
+        "status":          record.status.value.lower(),
         "source_filename": record.source_filename,
         "created_at":      record.created_at,
         "updated_at":      record.updated_at,
@@ -283,6 +370,58 @@ def ingest_cancel(job_id):
 def ingest_list():
     """List all ingestion jobs."""
     return jsonify({"jobs": job_store.list_jobs()}), 200
+
+
+class SlidingWindowLimiter:
+    """Simple in-memory sliding window rate limiter."""
+    def __init__(self):
+        self._windows: dict = {}
+        self._lock = threading.Lock()
+
+    def check(self, key: str, per_min: int = 10, burst: int = 5) -> tuple:
+        import time as _time
+        now = _time.time()
+        with self._lock:
+            window = self._windows.setdefault(key, [])
+            window[:] = [t for t in window if now - t < 60]
+            if len(window) >= per_min:
+                return False, {"remaining": 0, "retry_after": int(60 - (now - window[0]))}
+            window.append(now)
+            return True, {"remaining": per_min - len(window)}
+
+_ingest_limiter = SlidingWindowLimiter()
+
+
+@st.app.route("/api/ingest/index", methods=["POST"])
+@require_librarian
+def ingest_index():
+    """TOC-only ingestion: create Document + Concept stubs without a physical PDF."""
+    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "127.0.0.1").split(",")[0].strip()
+    allowed, meta = _ingest_limiter.check(f"ingest:{client_ip}", per_min=10, burst=5)
+    if not allowed:
+        return jsonify({"error": "rate_limit_exceeded", "detail": "Too many ingestion requests", **meta}), 429
+
+    data = request.get_json(silent=True) or {}
+    doc_id = data.get("doc_id") or data.get("book_id") or ""
+    title = data.get("title") or doc_id
+    chapters = data.get("chapters") or []
+    if not doc_id:
+        return jsonify({"error": "doc_id is required"}), 400
+
+    if not isinstance(chapters, list) or not chapters or len(chapters) > 1000:
+        return jsonify({"error": "chapters must contain 1–1000 entries"}), 400
+
+    try:
+        job = job_store.create_job(source_filename=f"index:{doc_id}")
+        from ingestion_worker import get_worker
+        worker = get_worker()
+        worker._process_index_job(job.job_id, {"doc_id": doc_id, "title": title, "chapters": chapters})
+        current = job_store.get_job(job.job_id)
+        if current is None or current.status != JobStatus.COMPLETE:
+            return jsonify({"job_id": job.job_id, "status": "failed", "error": current.error if current else "Index ingestion failed"}), 500
+        return jsonify({"job_id": job.job_id, "status": "complete", "doc_id": doc_id, "result": current.result}), 201
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
 
 
 @st.app.route("/api/documents", methods=["GET"])
@@ -800,5 +939,186 @@ def server_root():
     </html>
     """
     return html
+
+
+@st.app.route("/api/roadmap/quiz", methods=["GET", "POST"])
+def api_roadmap_quiz():
+    """Generate 5-6 diagnostic MCQs to test baseline knowledge for a target concept."""
+    from archipelago.inference.curriculum import generate_diagnostic_quiz
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        target = data.get("target") or data.get("target_concept_id") or "low_rank_adaptation"
+        num_q = int(data.get("num_questions") or 5)
+    else:
+        target = request.args.get("target") or request.args.get("target_concept_id") or "low_rank_adaptation"
+        num_q = int(request.args.get("num_questions") or 5)
+
+    quiz = generate_diagnostic_quiz(target, num_questions=num_q)
+    return jsonify(quiz)
+
+
+@st.app.route("/api/roadmap/plan", methods=["POST"])
+def api_roadmap_plan():
+    """Evaluate diagnostic quiz responses and compute personalized 1-6 hop roadmap."""
+    from archipelago.inference.curriculum import evaluate_quiz_and_route_roadmap
+    data = request.get_json(silent=True) or {}
+    target = data.get("target") or data.get("target_concept_id") or "low_rank_adaptation"
+    responses = data.get("responses") or data.get("answers") or {}
+    quiz_data = data.get("quiz_data")
+    max_hops = int(data.get("max_hops") or 6)
+
+    result = evaluate_quiz_and_route_roadmap(
+        quiz_responses=responses,
+        target_concept_id=target,
+        quiz_data=quiz_data,
+        max_hops=max_hops,
+    )
+    return jsonify(result)
+
+
+@st.app.route("/api/roadmap/between", methods=["GET", "POST"])
+def api_roadmap_between():
+    """Directly compute a 1-6 hop roadmap between start_concept_id and target_concept_id."""
+    from archipelago.inference.curriculum import find_roadmap_between
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        start = data.get("start") or data.get("start_concept_id") or ""
+        target = data.get("target") or data.get("target_concept_id") or ""
+        max_hops = int(data.get("max_hops") or 6)
+    else:
+        start = request.args.get("start") or request.args.get("start_concept_id") or ""
+        target = request.args.get("target") or request.args.get("target_concept_id") or ""
+        max_hops = int(request.args.get("max_hops") or 6)
+
+    roadmap = find_roadmap_between(start, target, max_hops=max_hops)
+    return jsonify(roadmap)
+
+
+def resolve_pdf_file(filename: str) -> Path | None:
+    """Resolve a PDF filename to a local path or None."""
+    p = Path(filename)
+    if p.is_file():
+        return p
+    pdf_dir = Path(getattr(st, "PDF_DIR", "pdfs"))
+    candidate = pdf_dir / filename
+    if candidate.is_file():
+        return candidate
+    candidate = pdf_dir / "papers" / filename
+    if candidate.is_file():
+        return candidate
+    candidate = pdf_dir / "textbooks" / filename
+    if candidate.is_file():
+        return candidate
+    for match in pdf_dir.rglob(p.name):
+        if match.is_file():
+            return match
+    return None
+
+
+def pdf_available(doc_id: str) -> bool:
+    """Return True if the PDF exists locally or has a remote fallback."""
+    if not doc_id:
+        return False
+    if resolve_pdf_file(doc_id) is not None:
+        return True
+    fname = Path(doc_id).name
+    return fname in REMOTE_PDF_SOURCES
+
+
+def estimate_ingestion_time(file_size_bytes: int, filename: str) -> dict[str, Any]:
+    """Estimate ingestion time based on file size and extension."""
+    ext = Path(filename).suffix.lower()
+    size_mb = file_size_bytes / (1024 * 1024)
+    if ext == ".pdf":
+        secs = int(max(15, 10 + size_mb * 22))
+    elif ext in (".md", ".markdown", ".txt"):
+        secs = int(max(5, size_mb * 12))
+    else:
+        secs = int(max(10, size_mb * 15))
+
+    if secs < 60:
+        fmt = f"{secs} seconds"
+    else:
+        fmt = f"{secs // 60}m {secs % 60}s"
+
+    return {
+        "estimated_seconds": secs,
+        "estimated_time_formatted": fmt,
+    }
+
+
+@st.app.route("/api/auth/config", methods=["GET"])
+def api_auth_config():
+    """Return browser-safe Supabase configuration."""
+    try:
+        from src.archipelago import supabase_auth
+        return jsonify(supabase_auth.public_config())
+    except Exception as exc:
+        return jsonify({"configured": False, "error": str(exc)}), 500
+
+
+@st.app.route("/api/auth/me", methods=["GET"])
+def api_auth_me():
+    """Return the authenticated user's Archipelago role."""
+    try:
+        from src.archipelago import supabase_auth
+        if not supabase_auth.is_auth_required():
+            return jsonify({"authenticated": False, "auth_required": False})
+        principal, error = supabase_auth.authenticate_request(request)
+        if principal is None:
+            return jsonify({"error": "unauthorized", "detail": error}), 401
+        return jsonify({
+            "authenticated": True,
+            "user_id": principal.user_id,
+            "username": principal.username,
+            "role": principal.role,
+        })
+    except Exception as exc:
+        return jsonify({"error": "unauthorized", "detail": str(exc)}), 500
+
+
+@st.app.route("/api/users", methods=["GET", "POST", "OPTIONS"])
+@st.app.route("/api/users/<user_id>", methods=["PUT", "DELETE", "OPTIONS"])
+def manage_users_api_backend(user_id=None):
+    """User management endpoints for librarian and administrator."""
+    if request.method == "OPTIONS":
+        return ("", 204)
+
+    from src.archipelago import supabase_auth
+    principal, auth_err = supabase_auth.authenticate_request(request)
+    if principal is None:
+        return jsonify({"error": "unauthorized", "detail": auth_err or "Authentication required"}), 401
+
+    if request.method == "GET":
+        users, err = supabase_auth.list_managed_users(principal)
+        if err:
+            return jsonify({"error": "forbidden", "detail": err}), 403
+        return jsonify({"users": users, "requester": {"role": principal.role, "user_id": principal.user_id}})
+
+    elif request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        user, err = supabase_auth.create_managed_user(principal, data)
+        if err:
+            return jsonify({"error": "bad_request", "detail": err}), 400
+        return jsonify({"success": True, "user": user}), 201
+
+    elif request.method == "PUT":
+        if not user_id:
+            return jsonify({"error": "missing_user_id"}), 400
+        data = request.get_json(silent=True) or {}
+        user, err = supabase_auth.update_managed_user(principal, user_id, data)
+        if err:
+            return jsonify({"error": "update_failed", "detail": err}), 400
+        return jsonify({"success": True, "user": user})
+
+    elif request.method == "DELETE":
+        if not user_id:
+            return jsonify({"error": "missing_user_id"}), 400
+        ok, err = supabase_auth.delete_managed_user(principal, user_id)
+        if err:
+            return jsonify({"error": "delete_failed", "detail": err}), 400
+        return jsonify({"success": True})
+
+    return jsonify({"error": "method_not_allowed"}), 405
 
 

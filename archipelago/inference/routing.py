@@ -31,6 +31,19 @@ from archipelago.inference.intent_gate import (
 from archipelago.inference import state as st
 from archipelago.inference.aliases import generate_aliases, _clean_query_words
 
+_SUGGESTED_QUERY_ANCHORS = {
+    "lora": "low_rank_adaptation",
+    "lora_vs_bert": "low_rank_adaptation",
+    "rag": "rag",
+    "bert": "bert",
+    "attention": "attention_mechanism",
+    "dbms_buffer": "retrieval",
+    "ostep_paging": "paging",
+    "graphrag": "graph_rag",
+    "peft_rank": "rag",
+    "multi_rag_dbms": "rag",
+}
+
 # Patterns for pure conversational small talk — no technical/computational content
 _PURE_SMALL_TALK_PATTERNS = re.compile(
     r"^\s*(hi|hello|hey|yo|sup|howdy|greetings|good\s+(?:morning|afternoon|evening)|"
@@ -144,10 +157,9 @@ def _run_dual_pass_guard(query: str) -> bool:
     if "pytest" in sys.modules or os.environ.get("PYTEST_CURRENT_TEST"):
         return False
     try:
-        import ollama
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        from archipelago.inference.llm_gateway import gateway_chat
+
+        ans = gateway_chat(
             messages=[
                 {
                     "role": "system",
@@ -159,11 +171,12 @@ def _run_dual_pass_guard(query: str) -> bool:
                 },
                 {"role": "user", "content": query},
             ],
-            think=False,
-            options={"temperature": 0.0, "num_predict": 8},
-        )
-        ans = ((response.get("message") or {}).get("content") or "").strip().upper()
-        return "YES" in ans
+            purpose="routing",
+            temperature=0.0,
+            max_tokens=8,
+            timeout=8,
+        ) or ""
+        return "YES" in ans.strip().upper()
     except Exception:
         return False
 
@@ -204,6 +217,25 @@ def _get_active_concept_from_history(history: list) -> str | None:
     return None
 
 
+def _extract_quiz_answers(text: str) -> dict[str, str]:
+    """Extract student quiz responses like {'1': 'A', '2': 'B', ...} from natural text."""
+    answers = {}
+    if not text:
+        return answers
+    # Pattern 1: Numbered answers e.g. "1-A, 2-B, 3-C, 4-D, 5-A", "1. A 2. B", "Q1: C", "1A 2B"
+    for m in re.finditer(r"(?:q(?:uestion)?\s*)?([1-9])\s*[-:.)]?\s*([A-Da-d])\b", text):
+        answers[str(m.group(1))] = m.group(2).upper()
+    if answers:
+        return answers
+    # Pattern 2: Comma or space separated letters e.g. "A, B, C, D, A" or "A B C D A"
+    letters = re.findall(r"\b([A-Da-d])\b", text)
+    if len(letters) >= 3:
+        for idx, letter in enumerate(letters[:6], 1):
+            answers[str(idx)] = letter.upper()
+        return answers
+    return answers
+
+
 # Non-domain filler/academic vocabulary — tokens here are never "foreign"
 _SANITY_FILLER = frozenset({
     "the", "and", "for", "with", "this", "that", "these", "those", "does",
@@ -230,6 +262,10 @@ _SANITY_FILLER = frozenset({
     # graph-navigation vocabulary (curriculum questions, not foreign content)
     "inaccessible", "accessible", "unlock", "unlocks", "unlocked", "reach",
     "reachable", "unreachable", "skipping", "hop", "hops", "multi", "degree",
+    # student curriculum & pedagogical progression terms
+    "before", "after", "start", "starting", "started", "master", "mastering",
+    "mastered", "train", "training", "trained", "once", "model", "models",
+    "build", "building", "built", "test", "testing", "solve", "solving",
 })
 
 _sanity_vocab_cache: dict = {"key": None, "vocab": frozenset()}
@@ -290,10 +326,9 @@ def _run_sanity_guard(query: str) -> bool:
     if "pytest" in sys.modules or os.environ.get("PYTEST_CURRENT_TEST"):
         return False
     try:
-        import ollama
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        from archipelago.inference.llm_gateway import gateway_chat
+
+        ans = gateway_chat(
             messages=[
                 {
                     "role": "system",
@@ -318,10 +353,12 @@ def _run_sanity_guard(query: str) -> bool:
                 },
                 {"role": "user", "content": query},
             ],
-            think=False,
-            options={"temperature": 0.0, "num_predict": 8},
-        )
-        ans = ((response.get("message") or {}).get("content") or "").strip().upper()
+            purpose="routing",
+            temperature=0.0,
+            max_tokens=8,
+            timeout=8,
+        ) or ""
+        ans = ans.strip().upper()
         return not ans.startswith("YES")
     except Exception:
         return False
@@ -409,7 +446,7 @@ def resolve_query_routing(query: str, history: list | None = None) -> dict:
         # Sanity-guard / dual-pass verdicts are deliberate rejections of
         # absurd or trivia asks — never soften those back into suggestions.
         guarded = (res.get("slots") or {}).get("intent_method") in (
-            "sanity_guard", "dual_pass_guard", "offtopic_mix",
+            "sanity_guard", "dual_pass_guard", "offtopic_mix", "emotional_homework_ood",
         )
         if (
             res.get("route") == "out_of_scope"
@@ -438,6 +475,9 @@ def resolve_query_routing(query: str, history: list | None = None) -> dict:
                     "query": q_raw,
                 }
                 res["block_reason"] = None
+
+        from archipelago.inference.query_classifier import classify_query_mode
+        res["query_mode"] = classify_query_mode(query, routing_result=res).value
     return res
 
 def _resolve_query_routing(query: str, history: list | None = None) -> dict:
@@ -464,6 +504,49 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
     q_raw = (query or "").strip()
 
     library = _detect_library_intent(q_raw)
+    if library:
+        lib_intent = library["intent"]
+        lib_route = lib_intent
+        return {
+            "anchor_id": None,
+            "score": 1.0,
+            "related": [],
+            "slots": {key: value for key, value in library.items() if key != "raw"},
+            "scope": "yes",
+            "route": lib_route,
+            "reason": lib_intent,
+        }
+
+    from archipelago.inference.demo_query_books import match_demo_query_key
+    suggested_key = match_demo_query_key(q_raw)
+    suggested_anchor = _SUGGESTED_QUERY_ANCHORS.get(suggested_key or "")
+    if suggested_anchor:
+        from archipelago.inference.intent_gate import classify_intent as classify_suggested_intent
+        suggested_intent = classify_suggested_intent(q_raw)
+        suggested_block = intent_to_block_reason(suggested_intent["intent"], suggested_intent["score"])
+        if suggested_block:
+            return {
+                "anchor_id": None,
+                "score": suggested_intent["score"],
+                "related": [],
+                "slots": {
+                    "intent": suggested_intent["intent"],
+                    "intent_method": suggested_intent["method"],
+                    "suggested_query": suggested_key,
+                },
+                "scope": "no",
+                "route": "out_of_scope",
+                "reason": suggested_block,
+            }
+        return {
+            "anchor_id": suggested_anchor,
+            "score": 1.0,
+            "related": [],
+            "slots": {"suggested_query": suggested_key},
+            "scope": "yes",
+            "route": "graph_strong",
+            "reason": "suggested_query_grounded_route",
+        }
 
     if "my dataset" in q_raw.lower() or "my data" in q_raw.lower():
         return {
@@ -499,11 +582,101 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
             "reason": "chitchat",
         }
 
+    # Identity short-circuit BEFORE the intent gate: "who are you" style asks
+    # are self-introduction requests, never entity trivia about a person — the
+    # embedder cannot tell them apart, so we route on the deterministic matcher.
+    if _is_identity(q_raw) and not _TECHNICAL_MARKERS.search(search_q or q_raw):
+        return {
+            "anchor_id": None,
+            "score": 1.0,
+            "related": [],
+            "slots": {"intent": INTENT_SOCIAL, "intent_method": "identity_short_circuit"},
+            "scope": "yes",
+            "route": "identity",
+            "reason": "identity",
+        }
+
     ranked = rank_concepts(search_q, top_k=max(st.TOP_K_RELATED, 10))
     best = ranked[0] if ranked else None
     best_cos = float(best["cos"]) if best else 0.0
     best_lex = float(best.get("lexical") or 0.0) if best else 0.0
     learning = _is_learning_intent(q)
+
+    # Check if user is replying to a diagnostic quiz with answers
+    quiz_answers = _extract_quiz_answers(q_raw)
+    is_quiz_response = False
+    if len(quiz_answers) >= 3:
+        is_quiz_response = True
+    elif history and len(quiz_answers) >= 1:
+        last_asst = next((h.get("content", "") for h in reversed(history) if h.get("role") == "assistant"), "")
+        if "Knowledge Assessment" in last_asst or "diagnostic question" in last_asst.lower() or "Question 1:" in last_asst:
+            is_quiz_response = True
+
+    if is_quiz_response:
+        target_concept = _get_active_concept_from_history(history) or "low_rank_adaptation"
+        return {
+            "anchor_id": target_concept,
+            "score": 1.0,
+            "related": ranked,
+            "slots": {
+                "intent": "roadmap_quiz_eval",
+                "target_concept": target_concept,
+                "answers": quiz_answers,
+            },
+            "scope": "yes",
+            "route": "roadmap_quiz_eval",
+            "reason": "diagnostic_evaluation",
+        }
+
+    # Diagnostic knowledge assessment check (Context-Aware)
+    if re.search(r"\b(quiz\s+me|diagnostic\s+quiz|test\s+my\s+knowledge|assess\s+my\s+knowledge|evaluate\s+my\s+knowledge)\b", q_raw, re.I):
+        # 1. Check if user explicitly named a specific concept in this query
+        clean_quiz_q = re.sub(
+            r"\b(can\s+you\s+)?(quiz\s+me|diagnostic\s+quiz|test\s+my\s+knowledge|assess\s+my\s+knowledge|evaluate\s+my\s+knowledge)\b",
+            " ", q_raw, flags=re.I
+        )
+        clean_quiz_q = re.sub(r"\b(on|about|for|to|prerequisites|prereqs|baseline|this|it|that|topic|concept|what\s+we\s+discussed|please)\b", " ", clean_quiz_q, flags=re.I).strip()
+        target_concept = None
+        if clean_quiz_q and len(clean_quiz_q) >= 3:
+            specific_ranked = rank_concepts(clean_quiz_q, top_k=1)
+            if specific_ranked and (float(specific_ranked[0].get("cos", 0)) >= 0.48 or float(specific_ranked[0].get("lexical", 0)) >= 0.70):
+                target_concept = specific_ranked[0]["id"]
+
+        # 2. If no explicit concept named, or query leans on context ("this", "it"), check history!
+        if not target_concept and history:
+            target_concept = _get_active_concept_from_history(history)
+
+        if not target_concept:
+            target_concept = best["id"] if (best and best["id"] != "knowledge_graph") else "low_rank_adaptation"
+
+        return {
+            "anchor_id": target_concept,
+            "score": best_cos,
+            "related": ranked,
+            "slots": {"intent": "roadmap_quiz", "target_concept": target_concept},
+            "scope": "yes",
+            "route": "roadmap_quiz",
+            "reason": "diagnostic_assessment",
+        }
+
+    # Roadmap between two concepts check (e.g. roadmap from X to Y)
+    roadmap_match = re.search(r"\broadmap\s+(?:from|between)\s+(.+?)\s+(?:to|and)\s+(.+)", q_raw, re.I)
+    if roadmap_match:
+        from_term = roadmap_match.group(1).strip()
+        to_term = roadmap_match.group(2).strip()
+        from_ranked = rank_concepts(from_term, top_k=1)
+        to_ranked = rank_concepts(to_term, top_k=1)
+        start_id = from_ranked[0]["id"] if from_ranked else from_term.lower().replace(" ", "_")
+        target_id = to_ranked[0]["id"] if to_ranked else to_term.lower().replace(" ", "_")
+        return {
+            "anchor_id": target_id,
+            "score": 1.0,
+            "related": ranked,
+            "slots": {"intent": "roadmap_between", "start_id": start_id, "target_id": target_id},
+            "scope": "yes",
+            "route": "roadmap_between",
+            "reason": "personalized_roadmap",
+        }
 
     # Conversational memory/pronoun expansion — fires whenever the query leans
     # on a prior turn (pronouns / deictic follow-ups) and the graph shows no
@@ -583,7 +756,8 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
     if is_creative and has_theory_terms:
         has_suspicious_terms = False
     if intent in (INTENT_IMPLEMENTATION, INTENT_OUT_OF_DOMAIN, INTENT_ENTITY_TRIVIA, INTENT_META) or has_suspicious_terms:
-        if _run_dual_pass_guard(q_raw):
+        guard_input = search_q if (history and search_q and search_q != q_raw) else q_raw
+        if _run_dual_pass_guard(guard_input):
             # Artifact/procedural request confirmed → implementation refusal
             # (never the generic OOS reason: the safety net must not soften it).
             if intent == INTENT_IMPLEMENTATION or re.search(
@@ -804,7 +978,8 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
         has_domain or _has_strong_graph_evidence(ranked)
         or _has_surface_concept_hit(ranked, search_q or q)
     ):
-        if offtopic or _run_sanity_guard(q_raw):
+        guard_input = search_q if (history and search_q and search_q != q_raw) else q_raw
+        if offtopic or _run_sanity_guard(guard_input):
             return {
                 **base,
                 "route": "out_of_scope",
@@ -1015,14 +1190,86 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
 
 
 def _detect_library_intent(query: str) -> dict | None:
-    """Cheap pattern detectors for library-style questions. Returns slots or None."""
+    """Detect all library, book, journal, inventory, hours, and holdings intents."""
     q = (query or "").strip()
     ql = q.lower()
     if not ql:
         return None
 
-    concept_verbs = r"\b(discuss(?:es|ed)?|mention(?:s|ed)?|contain(?:s|ed)?|cover(?:s|ed)?)\b"
+    from archipelago.inference.library_credentials import detect_credentials_query
 
+    catalog_stats = (
+        ("subject" in ql and any(term in ql for term in ("highest", "leaderboard", "title count")))
+        or ("journal" in ql and any(term in ql for term in ("title count", "issue count", "total issues")))
+        or ("keyword" in ql and any(term in ql for term in ("catalog", "titles", "search")))
+        or ("zero" in ql and "copies" in ql)
+    )
+    if catalog_stats:
+        return {"intent": "library_catalog_stats", "raw": q}
+
+    journal_status = re.search(r"\b(journals?|periodicals?|magazines?)\b", ql) and re.search(r"\b(late|issues?|subscription|status|latest|available)\b", ql)
+    if journal_status:
+        return {"intent": "library_journal_status", "raw": q}
+
+    circulation_request = re.search(r"\b(borrow|check\s*out|checkout|reserve|physical\s+cop(?:y|ies)|copies?\s+of)\b|\bphysical\s+book\b", ql)
+    if circulation_request:
+        return {"intent": "library_resource_lookup", "raw": q}
+
+    if re.search(r"\bworking\s+hours\b|\boperating\s+schedule\b|\blibrary\s+(?:hours?|times?|timings?|schedule)\b|\b(?:hours?|times?|timings?)\s+(?:of|for)\s+(?:the\s+)?library\b|\bwhen\s+is\s+(?:the\s+)?library\s+open\b|\btell\s+timing\s+of\s+library\b", ql):
+        return {"intent": "library_hours", "raw": q}
+
+    credential_request = detect_credentials_query(q)
+    if credential_request:
+        return {
+            "intent": "library_resources",
+            "resource_key": credential_request.get("resource_key", ""),
+            "raw": q,
+            "slots": {**credential_request.get("slots", {}), "resource_access": True},
+        }
+
+    if re.search(
+        r"\b(e[- ]?resources?|e[- ]?resource\s+portals?|library\s+portals?|"
+        r"research\s+databases?|digital\s+library\s+portals?|pearson\s+e[- ]?library|"
+        r"sciencedirect|science\s+direct|ieee\s*xplore|springer(?:\s+link)?)\b",
+        ql,
+    ):
+        return {"intent": "library_resources", "raw": q, "resource_access": True}
+
+    # 1. Book Details / Specific Book Summary
+    book_detail_patterns = (
+        r"\b(tell\s+me\s+about\s+(?:this\s+|the\s+)?(?:book|paper|textbook))\b",
+        r"\b(details?\s+(?:of|for|about)\s+(?:this\s+|the\s+)?(?:book|paper|textbook))\b",
+        r"\b(what\s+is\s+(?:this|the)?\s*(?:book|paper|textbook))\b",
+        r"\b(about\s+this\s+book:?)\b",
+        r"\b(book\s+details:?)\b",
+        r"\b(details\s+(?:on|about)\s+(?:book|paper|textbook))\b",
+    )
+    if any(re.search(p, ql) for p in book_detail_patterns):
+        return {"intent": "library_book_details", "raw": q}
+
+    # 2. Journal & Inventory & Holdings
+    holdings_patterns = (
+        r"\b(journal|journals|inventory|holdings|copies|accession|periodicals?)\b",
+        r"\b(how\s+many\s+copies|available\s+copies|total\s+copies|stock|shelf\s+location)\b",
+        r"\b(show\s+(?:me\s+)?(?:all\s+)?(?:the\s+)?(?:book|journal|library)?\s*(?:inventory|holdings|details|status|records))\b",
+        r"\b(what\s+(?:books|journals|holdings)\s+(?:do\s+you\s+have|are\s+available|exist))\b",
+        r"\b(is\s+.+\s+available\s+in\s+(?:the\s+)?library)\b",
+        r"\b(library\s+catalog|library\s+database|library\s+records)\b",
+    )
+    if any(re.search(p, ql) for p in holdings_patterns):
+        return {"intent": "library_holdings", "raw": q}
+
+    # 3. Hours & Services
+    hours_patterns = (
+        r"\b(library\s+hours|hours\s+of\s+library|when\s+is\s+(?:the\s+)?library\s+open|library\s+timings?|library\s+schedule)\b",
+        r"\b(is\s+(?:the\s+)?library\s+open\b)",
+        r"\b(open\s+on\s+(?:saturdays?|sundays?|weekends?))\b",
+    )
+    if any(re.search(p, ql) for p in hours_patterns):
+        return {"intent": "library_hours", "raw": q}
+
+    # 4. Chapter lookup (must run before generic book-recommendation patterns)
+    concept_verbs = r"\b(discuss(?:es|ed)?|mention(?:s|ed)?|contain(?:s|ed)?|cover(?:s|ed)?)\b"
     if (
         re.search(r"\b(which|what)\s+(chapters?|sections?)\b", ql)
         and (re.search(concept_verbs, ql) or re.search(r"\babout\b", ql))
@@ -1050,6 +1297,7 @@ def _detect_library_intent(query: str) -> dict | None:
     ):
         return {"intent": "library_chapters", "raw": q}
 
+    # 5. Book recommendations / suggested readings
     book_patterns = (
         r"\b(suggest|recommend)\b.+\b(books?|papers?|readings?|textbooks?)\b",
         r"\b(top|best)\s+\d*\s*(books?|papers?|readings?)\b",
@@ -1061,13 +1309,68 @@ def _detect_library_intent(query: str) -> dict | None:
         r"\b(suggest|recommend)\b.+\b(reading|resources?|materials?)\b",
     )
     if any(re.search(p, ql) for p in book_patterns):
-        limit = 5
+        # Recommendation cards cap at 4 (chat UI shelf grid) — test-pinned.
+        limit = 4
         m = re.search(r"\btop\s+(\d+)\b", ql) or re.search(r"\b(\d+)\s+(books?|papers?)\b", ql)
         if m:
             try:
-                limit = max(1, min(20, int(m.group(1))))
+                limit = max(1, min(4, int(m.group(1))))
             except ValueError:
-                limit = 5
-        return {"intent": "library_books", "raw": q, "limit": limit}
+                limit = 4
+        # The topic must sit inside the library's shelf ("suggest books about
+        # stars" is out of scope even though the intent is book-shaped).
+        if not _is_learning_or_domain_query(q):
+            return None
+        from archipelago.inference.ranking_seeds import detect_subject_key
+        subject = detect_subject_key(q)
+        return {
+            "intent": "library_books",
+            "raw": q,
+            "limit": limit,
+            **({"seed_subject": subject} if subject else {}),
+        }
 
     return None
+
+
+def parse_multi_topic_query(query: str) -> list[str]:
+    """Parse a compound query into multiple topic phrases or return single topic.
+
+    Handles '+', 'vs', 'versus', 'differ from', commas, and 'and' conjunctions,
+    while treating subordinate explanatory clauses (e.g. 'and how it reduces...')
+    as a single unified topic.
+    """
+    if not query or not query.strip():
+        return []
+
+    q = query.strip()
+    # Strip common leading question / imperative phrasing
+    prefix_match = re.match(
+        r"^(?:explain|compare|describe|analyze|discuss|what\s+(?:is|are)|how\s+does|how\s+do)\s+",
+        q,
+        re.I,
+    )
+    cleaned = q[prefix_match.end():] if prefix_match else q
+    cleaned = cleaned.rstrip("?.! ")
+
+    # Check for dependent explanatory clauses with 'and' (e.g. 'and how', 'and why', 'and what', 'and its')
+    # If the conjunction is explanatory, do not split on 'and'
+    if re.search(r"\band\s+(?:how|why|what|where|when|which|who|its|their|the\s+way)\b", cleaned, re.I):
+        if not re.search(r"\+|\bvs\.?\b|\bversus\b", cleaned, re.I):
+            return [cleaned]
+
+    # Delimiters: '+', 'vs', 'versus', 'differ from', or ',' / 'and'
+    if "+" in cleaned:
+        parts = [p.strip() for p in cleaned.split("+") if p.strip()]
+        return parts
+
+    vs_match = re.split(r"\s+(?:vs\.?|versus|differ(?:s)?\s+from)\s+", cleaned, flags=re.I)
+    if len(vs_match) > 1:
+        return [p.strip() for p in vs_match if p.strip()]
+
+    # Otherwise split on commas and conjunction 'and'
+    split_parts = re.split(r",\s*(?:and\s+)?|\s+and\s+", cleaned, flags=re.I)
+    parts = [p.strip() for p in split_parts if p.strip()]
+    if parts:
+        return parts[:4]
+    return [cleaned]

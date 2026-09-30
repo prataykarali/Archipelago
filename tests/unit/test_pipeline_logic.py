@@ -6,14 +6,8 @@ from pathlib import Path
 # Add parent directory to path so we can import from libraryAI
 sys.path.append(str(Path(__file__).resolve().parent))
 
-from okf_pipeline import (
-    break_global_cycles,
-    prune_unresolved_references,
-    merge_duplicate_results,
-    canonicalize_name,
-    build_canonical_map,
-    apply_canonicalization
-)
+from okf.canonicalize import canonicalize_name, build_canonical_map, apply_canonicalization
+from okf.cleanup import break_global_cycles, prune_unresolved_references, merge_duplicate_results
 
 @pytest.mark.unit
 class TestPipelineLogic(unittest.TestCase):

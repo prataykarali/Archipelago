@@ -31,11 +31,36 @@ _SID_RE = re.compile(r"^S\d+$")
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def _import_inference_server():
+    """Import a namespace that exposes both state attributes and citation functions.
+
+    The old inference_server shim re-exported everything; after deletion we
+    compose the required symbols from their canonical modules.
+    """
     try:
-        import inference_server
-    except Exception as exc:  # pragma: no cover - guard for concurrent edits
+        import types
+        import archipelago.inference.state as _st
+        import archipelago.inference.citations as _cit
+
+        ns = types.SimpleNamespace(**{
+            k: getattr(_st, k) for k in dir(_st) if not k.startswith("_")
+        })
+        # Overlay citation functions that tests depend on
+        for name in (
+            "build_concept_citation_map", "validate_citations",
+            "citation_payload", "build_citation_payloads",
+            "_resolve_printed_page", "_page_display", "_citation_label",
+            "_normalize_legacy_citation", "_evidence_for_concept",
+            "_evidence_for_prerequisite", "compile_narrative_recipe",
+            "_cite_with_link", "build_citation_link",
+        ):
+            fn = getattr(_cit, name, None)
+            if fn is not None:
+                setattr(ns, name, fn)
+        ns.__name__ = "archipelago.inference (merged)"
+        return ns
+    except Exception as exc:  # pragma: no cover
         pytest.fail(f"inference_server failed to import: {exc}")
-    return inference_server
+    return None
 
 
 def _require(module, name):

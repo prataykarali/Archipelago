@@ -11,6 +11,7 @@ from archipelago.inference.demo_query_books import (
     resolve_doc_id,
 )
 from archipelago.inference.math_text import fix_math_expressions
+from archipelago.inference.corpus_inventory import inventory_for_books
 
 QUERIES = [
     "What is Low-Rank Adaptation (LoRA)?",
@@ -35,9 +36,23 @@ def test_all_ten_demo_queries_match() -> None:
 def test_enrich_appends_table_links_and_book_name() -> None:
     text = enrich_reply_with_books("What is Low-Rank Adaptation (LoRA)?", "LoRA freezes W0.")
     assert "LoRA: Low-Rank Adaptation" in text
-    assert "Library holdings for this topic" in text
+    # The Koha export has no LoRA holding, so do not invent physical copies.
+    assert "Koha catalogue matches" not in text
+    assert "Simulated inventory" not in text
     assert "/api/page-view?doc_id=" in text
     assert "Open source pages" in text
+
+
+def test_chat_inventory_only_reports_verified_koha_rows() -> None:
+    matched = inventory_for_books([{"book_title": "Journal of human resource management"}])[0]
+    assert matched["koha_record_verified"] is True
+    assert matched["total_copies"] >= matched["available_copies"] >= 0
+    assert "accession" in matched
+    assert "shelf_location" not in matched
+    unmatched = inventory_for_books([{"book_title": "A title absent from the Koha export"}])[0]
+    assert not unmatched.get("koha_record_verified")
+    assert "total_copies" not in unmatched
+    assert "available_copies" not in unmatched
 
 
 def test_lewis_resolves_to_real_pdf() -> None:

@@ -40,6 +40,14 @@ def test_embedder_stays_unavailable_until_concept_precompute_finishes(monkeypatc
         def eval(self):
             return None
 
+    class _Loader:
+        @staticmethod
+        def from_pretrained(*_args, **_kwargs):
+            return object()
+
+    monkeypatch.setattr(embeddings, "AutoTokenizer", _Loader)
+    monkeypatch.setattr(embeddings, "AutoModel", _Loader)
+
     monkeypatch.setattr(
         embeddings.AutoTokenizer,
         "from_pretrained",

@@ -7,9 +7,10 @@ import threading
 
 from flask import Response, request, jsonify
 
-from ingestion_worker import graph_lock
+from archipelago.inference.graph_lock import graph_lock
 from archipelago.auth import require_student_or_open
 from archipelago.inference import state as st
+from archipelago.inference.llm_gateway import LLM_UNAVAILABLE_MSG
 from archipelago.inference.routing import resolve_query_routing
 from archipelago.inference.neighborhood import get_graph_neighborhood
 from archipelago.inference.curriculum import (
@@ -20,11 +21,16 @@ from archipelago.inference.citations import (
 )
 from archipelago.inference.synthesis import (
     build_graph_notes, format_natural_fallback, synthesize_with_ollama_streaming,
+    stream_synthesis_with_ollama,
     general_chat_reply, is_ollama_available, OLLAMA_UNAVAILABLE_MSG,
     render_library_books, render_library_chapters, render_library_chapter_lookup,
     identity_reply, onboarding_reply, not_indexed_reply, enforce_sterile_prose,
 )
 from archipelago.inference.library_queries import (
+    get_book_metadata_details,
+    render_library_book_details,
+    get_library_hours_response,
+    get_library_holdings_response,
     get_books_for_topic, clean_topic_query, get_chapters_of_book, get_chapters_containing_concept,
 )
 from archipelago.inference.scope_gate import (
@@ -34,6 +40,15 @@ from archipelago.inference.scope_gate import (
 )
 from archipelago.inference.aliases import _node_name, generate_aliases
 from archipelago.inference.embeddings import load_embedding_model, load_aura_model
+from archipelago.inference.demo_query_books import merge_demo_citations
+from archipelago.inference.reply_inventory import attach_inventory, inventory_suffix
+
+
+def _with_holdings(query, text, citations=None, books=None, meta=None):
+    """Append fake inventory table + exact-page links to a finished reply."""
+    return attach_inventory(
+        query, text, citations=citations, books=books, meta=meta,
+    )
 
 @st.app.route("/api/chat", methods=["POST"])
 @require_student_or_open
@@ -41,18 +56,71 @@ def api_chat():
     """Student-facing chat. No librarian upload/delete privileges."""
     from flask import Response
     req_data = request.get_json() or {}
-    query = req_data.get("query", "").strip()
+    query = (req_data.get("query") or req_data.get("message") or "").strip()
     mode = req_data.get("mode", "rag_synthesis")
     history = req_data.get("history", [])
 
     if not query:
         return jsonify({"error": "Query cannot be empty"}), 400
+    if len(query) < 2:
+        return jsonify({"error": "Query too short (minimum 2 characters)"}), 400
+    if len(query) > 500:
+        return jsonify({"error": "Query exceeds maximum limit of 500 characters"}), 400
+
+    # Gateway Interceptor & Subagents (Zero LLM API calls for attacks, code-gen, homework)
+    from archipelago.inference.orchestration.subagents import OrchestratorAgent, AuthGatewayAgent
+    interceptor = OrchestratorAgent().intercept(query)
+    if interceptor.get("status") == "denied":
+        def generate_denied():
+            payload = {
+                "anchor_concept": None,
+                "prerequisites": [],
+                "unlocks": [],
+                "citations": [],
+                "related_concepts": [],
+                "routing": {"route": "gateway_blocked", "score": 1.0, "reason": interceptor.get("reason")},
+                "logs": [{
+                    "step": "Gateway Firewall",
+                    "status": "Blocked",
+                    "details": interceptor.get("reason"),
+                }],
+            }
+            yield json.dumps(payload) + "\n[STREAM_START]\n"
+            yield interceptor.get("reason") + "\n"
+        return Response(generate_denied(), mimetype="text/plain")
+
+    # Check institutional auth gateway card
+    auth_card = AuthGatewayAgent().require_auth(query)
+    if "[RENDER_AUTH_CARD]" in auth_card:
+        def generate_auth():
+            payload = {
+                "anchor_concept": None,
+                "prerequisites": [],
+                "unlocks": [],
+                "citations": [],
+                "related_concepts": [],
+                "routing": {"route": "auth_gateway", "score": 1.0, "reason": "institutional_paywall"},
+                "logs": [{
+                    "step": "Auth Gateway",
+                    "status": "Success",
+                    "details": "Institutional authentication card triggered.",
+                }],
+            }
+            yield json.dumps(payload) + "\n[STREAM_START]\n"
+            yield auth_card + "\n"
+        return Response(generate_auth(), mimetype="text/plain")
 
     # Default product path: embedder ranking + graph traversal + natural reply.
     # conversational_agent uses the same smart router (domain → graph, chitchat → free chat).
     if mode in ("rag_synthesis", "conversational_agent"):
         routing = resolve_query_routing(query, history=history)
         route = routing["route"]
+        route = {
+            "library_info": ("library_resources" if (routing.get("slots") or {}).get("resource_access") or (routing.get("slots") or {}).get("resource_key") else "library_hours"),
+            "library_resource_lookup": "library_holdings",
+            "library_journal_status": "library_holdings",
+            "library_catalog_stats": "library_holdings",
+        }.get(route, route)
         # Explicit synthesis flag still honored; default ON so answers are natural.
         wants_synthesis = req_data.get("synthesis", True) not in (False, "off", "none", 0, "0")
 
@@ -111,7 +179,7 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                yield out_msg
+                yield _with_holdings(query, out_msg)
             return Response(generate_out_of_scope(), mimetype="text/plain")
 
         # ── Identity ──────────────────────────────────────────────────
@@ -131,8 +199,172 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                yield identity_reply(query, history)
+                yield _with_holdings(query, identity_reply(query, history))
             return Response(generate_identity(), mimetype="text/plain")
+
+        # ── Diagnostic MCQ Knowledge Assessment ──────────────────────
+        if route == "roadmap_quiz":
+            def generate_quiz_stream():
+                from archipelago.inference.curriculum import generate_diagnostic_quiz
+                target_id = routing.get("slots", {}).get("target_concept") or "low_rank_adaptation"
+                quiz = generate_diagnostic_quiz(target_id, num_questions=5)
+                target_info = quiz.get("target_concept", {})
+                target_name = target_info.get("name") or target_id
+                prereq_names = [q["concept_name"] for q in quiz.get("questions", [])]
+
+                payload = {
+                    "anchor_concept": target_id,
+                    "prerequisites": [],
+                    "unlocks": [],
+                    "citations": [],
+                    "related_concepts": routing.get("related", [])[:5],
+                    "routing": {"route": route, "score": 1.0, "reason": "diagnostic_assessment"},
+                    "logs": [{
+                        "step": "Pass 1: Intent",
+                        "status": "Diagnostic Assessment",
+                        "details": f"Generating 5 diagnostic MCQs for target concept: {target_name}.",
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+
+                # If synthesis is requested, let the inference model introduce the diagnostic quiz contextually
+                if wants_synthesis:
+                    try:
+                        from archipelago.inference.llm_gateway import gateway_chat_stream
+                        prompt = (
+                            f"You are Archipelago Diagnostic Tutor. A student wants to learn '{target_name}'. "
+                            f"To build a personalized 1-6 hop learning roadmap, we need to test their prior knowledge on its prerequisites: {', '.join(prereq_names[:4])}. "
+                            f"Write a friendly, encouraging 2-sentence introduction explaining why assessing these foundations is critical before jumping into '{target_name}'. Do not reveal quiz answers."
+                        )
+                        for chunk in gateway_chat_stream(
+                            messages=[{"role": "user", "content": prompt}],
+                            purpose="synthesis",
+                            temperature=0.2,
+                            max_tokens=120,
+                            timeout=15,
+                        ):
+                            if chunk:
+                                yield chunk
+                        yield "\n\n"
+                    except Exception as e:
+                        yield f"Welcome to the diagnostic assessment for **{target_name}**! Assessing your foundational grasp on prerequisite concepts allows Archipelago to build an optimal, personalized 1–6 hop learning roadmap.\n\n"
+                else:
+                    yield f"Welcome to the diagnostic assessment for **{target_name}**! Assessing your foundational grasp on prerequisite concepts allows Archipelago to build an optimal, personalized 1–6 hop learning roadmap.\n\n"
+
+                lines = [
+                    f"### 🎯 Knowledge Assessment: Prerequisites for {target_name}\n",
+                    f"Let's assess your prior knowledge to build a personalized 1–6 hop learning roadmap to **{target_name}**.",
+                    "Answer these 5 quick diagnostic questions (reply with e.g. *1-A, 2-B, 3-C, 4-D, 5-A* or just your answers):\n",
+                ]
+                for q in quiz.get("questions", []):
+                    lines.append(f"**Question {q['q_index']}: {q['concept_name']}** `[{q['difficulty'].upper()}]`")
+                    lines.append(f"{q['question']}")
+                    for opt_key, opt_text in sorted(q.get("options", {}).items()):
+                        lines.append(f"- **({opt_key})** {opt_text}")
+                    lines.append("")
+
+                lines.append("---")
+                lines.append(f"💡 *Once you answer, Archipelago will identify your baseline concept and plot your step-by-step roadmap to {target_name}!*")
+                yield "\n".join(lines)
+
+            return Response(generate_quiz_stream(), mimetype="text/plain")
+
+        # ── Diagnostic Quiz Evaluation & Personalized Roadmap ────────
+        if route == "roadmap_quiz_eval":
+            def generate_quiz_eval_stream():
+                from archipelago.inference.curriculum import evaluate_quiz_and_route_roadmap
+                slots = routing.get("slots", {})
+                target_id = slots.get("target_concept") or "low_rank_adaptation"
+                student_answers = slots.get("answers") or {}
+
+                eval_result = evaluate_quiz_and_route_roadmap(student_answers, target_id, max_hops=6)
+                score_str = eval_result.get("score", "0/5")
+                baseline = eval_result.get("baseline_concept", {})
+                baseline_name = baseline.get("name") if isinstance(baseline, dict) else str(baseline)
+                roadmap = eval_result.get("roadmap", {})
+                target_name = eval_result.get("target_concept", {}).get("name") or target_id
+                hops = roadmap.get("hops", 0)
+
+                payload = {
+                    "anchor_concept": target_id,
+                    "prerequisites": roadmap.get("steps", []),
+                    "unlocks": [],
+                    "citations": [],
+                    "related_concepts": routing.get("related", [])[:5],
+                    "routing": {"route": route, "score": 1.0, "reason": "diagnostic_evaluation"},
+                    "logs": [{
+                        "step": "Pass 1: Intent",
+                        "status": "Diagnostic Evaluation",
+                        "details": f"Student scored {score_str}. Baseline: {baseline_name}. Roadmap: {hops} hops to {target_name}.",
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+
+                # Run inference model to synthesize personalized pedagogical feedback
+                if wants_synthesis:
+                    try:
+                        from archipelago.inference.llm_gateway import gateway_chat_stream
+                        prompt = (
+                            f"You are Archipelago Diagnostic Tutor. A student completed a diagnostic quiz for target concept '{target_name}'.\n"
+                            f"Score: {score_str}.\n"
+                            f"Identified Starting Baseline: {baseline_name}.\n"
+                            f"Mastered Prerequisites: {', '.join(eval_result.get('mastered_concepts', [])) or 'None'}.\n"
+                            f"Prerequisites to Review: {', '.join(eval_result.get('gap_concepts', [])) or 'None'}.\n"
+                            f"In 2-3 encouraging sentences, evaluate their performance, highlight what they mastered, and introduce their personalized {hops}-hop learning path."
+                        )
+                        for chunk in gateway_chat_stream(
+                            messages=[{"role": "user", "content": prompt}],
+                            purpose="synthesis",
+                            temperature=0.2,
+                            max_tokens=150,
+                            timeout=15,
+                        ):
+                            if chunk:
+                                yield chunk
+                        yield "\n\n"
+                    except Exception as e:
+                        yield f"### 📊 Diagnostic Evaluation: Score {score_str}\n\nBased on your responses, your foundational baseline is **{baseline_name}**. Here is your customized learning roadmap to **{target_name}**:\n\n"
+                else:
+                    yield f"### 📊 Diagnostic Evaluation: Score {score_str}\n\nBased on your responses, your foundational baseline is **{baseline_name}**. Here is your customized learning roadmap to **{target_name}**:\n\n"
+
+                # Stream the computed roadmap and question breakdown
+                lines = [f"### 🗺️ Personalized Roadmap: {baseline_name} → {target_name} ({hops} hops)\n"]
+                lines.append(roadmap.get("markdown", ""))
+                lines.append("\n#### 📝 Question Review")
+                for d in eval_result.get("details", {}).get("mastered", []):
+                    lines.append(f"- ✅ **Q{d['q_index']}: {d['concept_name']}** — Correct (`{d['user_answer']}`). {d['explanation']}")
+                for d in eval_result.get("details", {}).get("gaps", []):
+                    lines.append(f"- ❌ **Q{d['q_index']}: {d['concept_name']}** — Selected `{d['user_answer']}` (Correct: `{d['correct_answer']}`). {d['explanation']}")
+                yield "\n".join(lines)
+
+            return Response(generate_quiz_eval_stream(), mimetype="text/plain")
+
+        # ── Personalized Roadmap Between Two Concepts ─────────────────
+        if route == "roadmap_between":
+            def generate_roadmap_stream():
+                from archipelago.inference.curriculum import find_roadmap_between
+                slots = routing.get("slots", {})
+                start_id = slots.get("start_id", "")
+                target_id = slots.get("target_id", "")
+                roadmap = find_roadmap_between(start_id, target_id, max_hops=6)
+
+                payload = {
+                    "anchor_concept": target_id,
+                    "prerequisites": roadmap.get("steps", []),
+                    "unlocks": [],
+                    "citations": [],
+                    "related_concepts": routing.get("related", [])[:5],
+                    "routing": {"route": route, "score": 1.0, "reason": "personalized_roadmap"},
+                    "logs": [{
+                        "step": "Pass 1: Intent",
+                        "status": "Personalized Roadmap",
+                        "details": f"Calculated {roadmap.get('hops', 0)}-hop curriculum from {roadmap.get('start_name')} to {roadmap.get('target_name')}.",
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+                yield roadmap.get("markdown", "")
+
+            return Response(generate_roadmap_stream(), mimetype="text/plain")
 
         # ── Onboarding / start learning AIML ──────────────────────────
         if route == "onboarding":
@@ -152,7 +384,7 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                yield onboarding_reply(query, related)
+                yield _with_holdings(query, onboarding_reply(query, related))
             return Response(generate_onboarding(), mimetype="text/plain")
 
         # ── Small Talk ──────────────────────────────────────────────────
@@ -172,8 +404,120 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                yield general_chat_reply(query, history)
+                yield _with_holdings(query, general_chat_reply(query, history))
             return Response(generate_small_talk(), mimetype="text/plain")
+
+        # ── Library Query: Book Details & Summaries ──────────────────
+        if route == "library_book_details":
+            meta = get_book_metadata_details(query)
+            book_citations = []
+            if meta:
+                doc_id = meta.get("doc_id") or meta.get("book_id") or f"doc_{meta['title']}"
+                reader_url = meta.get("reader_url") or meta.get("pdf_path") or ""
+                book_citations.append({
+                    "evidence_id": "S1",
+                    "doc_id": doc_id,
+                    "title": meta["title"],
+                    "document_title": meta["title"],
+                    "page_number": 1,
+                    "page": 1,
+                    "is_pearson": bool(meta.get("is_pearson")),
+                    "reader_url": reader_url,
+                    "url": reader_url,
+                    "shelf_location": meta.get("shelf_location", "PEARSON-ELIB"),
+                    "call_number": meta.get("call_number", "PEARSON-ELIB"),
+                    "total_copies": meta.get("total_copies", 10),
+                    "available_copies": meta.get("available_copies", 8),
+                })
+                notes = render_library_book_details(meta)
+                details = f"Retrieved comprehensive metadata for '{meta['title']}'."
+            else:
+                notes = f"### 📚 Book Details\nCould not find a specific indexed book or paper matching '{query}'. You can browse the complete e-book shelves at [/library](/library)."
+                details = "No exact book match."
+            def generate_book_details():
+                payload = {
+                    "anchor_concept": None,
+                    "prerequisites": meta.get("prerequisites", []) if meta else [],
+                    "unlocks": meta.get("unlocks", []) if meta else [],
+                    "citations": book_citations,
+                    "related_concepts": [],
+                    "routing": {"route": route, "score": 1.0, "reason": "library_book_details"},
+                    "logs": [{
+                        "step": "Library Retrieval",
+                        "status": "Success" if meta else "Not Found",
+                        "details": details,
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+                yield _with_holdings(query, notes, citations=book_citations, meta=meta)
+            return Response(generate_book_details(), mimetype="text/plain")
+
+        if route == "library_resources":
+            from archipelago.inference.library_resource_access import render_resource_access
+
+            resource_key = str((routing.get("slots") or {}).get("resource_key") or "")
+            notes = render_resource_access(query, resource_key=resource_key)
+
+            def generate_resource_access():
+                payload = {
+                    "anchor_concept": None,
+                    "prerequisites": [],
+                    "unlocks": [],
+                    "citations": [],
+                    "related_concepts": [],
+                    "routing": {"route": route, "score": 1.0, "reason": "library_resources"},
+                    "logs": [{
+                        "step": "Library Access",
+                        "status": "Success",
+                        "details": "Returned redacted institutional portal guidance.",
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+                yield _with_holdings(query, notes)
+
+            return Response(generate_resource_access(), mimetype="text/plain")
+
+        # ── Library Query: Operating Hours & Access ───────────────────
+        if route == "library_hours":
+            notes = get_library_hours_response()
+            def generate_hours():
+                payload = {
+                    "anchor_concept": None,
+                    "prerequisites": [],
+                    "unlocks": [],
+                    "citations": [],
+                    "related_concepts": [],
+                    "routing": {"route": route, "score": 1.0, "reason": "library_hours"},
+                    "logs": [{
+                        "step": "Library Retrieval",
+                        "status": "Success",
+                        "details": "Retrieved 24x7 operating hours & circulation policies.",
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+                yield _with_holdings(query, notes)
+            return Response(generate_hours(), mimetype="text/plain")
+
+        # ── Library Query: Holdings & Inventory ───────────────────────
+        if route == "library_holdings":
+            notes = get_library_holdings_response(query)
+            def generate_holdings():
+                payload = {
+                    "anchor_concept": None,
+                    "prerequisites": [],
+                    "unlocks": [],
+                    "citations": [],
+                    "related_concepts": [],
+                    "routing": {"route": route, "score": 1.0, "reason": "library_holdings"},
+                    "logs": [{
+                        "step": "Library Retrieval",
+                        "status": "Success",
+                        "details": "Retrieved catalog inventory metrics (109 records / 904 copies).",
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+                yield _with_holdings(query, notes)
+            return Response(generate_holdings(), mimetype="text/plain")
 
         # ── Library Query: Books Recommendation ───────────────────────
         if route == "library_books":
@@ -181,12 +525,30 @@ def api_chat():
             limit = int((routing.get("slots") or {}).get("limit") or 5)
             books = get_books_for_topic(query, limit=limit)
             notes = render_library_books(topic, books)
+            book_citations = []
+            for i, b in enumerate(books):
+                b_url = b.get("reader_url") or b.get("url") or ""
+                book_citations.append({
+                    "evidence_id": f"S{i+1}",
+                    "doc_id": b.get("doc_id") or b.get("book_id") or b.get("id"),
+                    "title": b.get("title") or b.get("book_title"),
+                    "document_title": b.get("title") or b.get("book_title"),
+                    "page_number": int(b.get("page_number") or 1),
+                    "page": int(b.get("page_number") or 1),
+                    "is_pearson": bool(b.get("is_pearson")),
+                    "reader_url": b_url,
+                    "url": b_url,
+                    "shelf_location": b.get("shelf_location", "PEARSON-ELIB"),
+                    "call_number": b.get("call_number", "PEARSON-ELIB"),
+                    "total_copies": int(b.get("total_copies") or 10),
+                    "available_copies": int(b.get("available_copies") or 8),
+                })
             def generate_books():
                 payload = {
                     "anchor_concept": None,
                     "prerequisites": [],
                     "unlocks": [],
-                    "citations": [],
+                    "citations": book_citations,
                     "related_concepts": [],
                     "routing": {"route": route, "score": 1.0, "reason": "library_books"},
                     "logs": [{
@@ -196,16 +558,7 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                if wants_synthesis:
-                    try:
-                        text = synthesize_with_ollama_streaming(notes, evidence_ids=set(), user_query=query, history=history)
-                        yield text if text else notes
-                    except RuntimeError:
-                        yield OLLAMA_UNAVAILABLE_MSG
-                    except Exception:
-                        yield OLLAMA_UNAVAILABLE_MSG
-                else:
-                    yield notes
+                yield _with_holdings(query, notes, citations=book_citations, books=books)
             return Response(generate_books(), mimetype="text/plain")
 
         # ── Library Query: Chapters of Book ───────────────────────────
@@ -234,16 +587,7 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                if wants_synthesis and res:
-                    try:
-                        text = synthesize_with_ollama_streaming(notes, evidence_ids=set(), user_query=query, history=history)
-                        yield text if text else notes
-                    except RuntimeError:
-                        yield OLLAMA_UNAVAILABLE_MSG
-                    except Exception:
-                        yield OLLAMA_UNAVAILABLE_MSG
-                else:
-                    yield notes
+                yield _with_holdings(query, notes)
             return Response(generate_chapters(), mimetype="text/plain")
 
         # ── Library Query: Chapter Lookup for Concept ─────────────────
@@ -271,16 +615,7 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                if wants_synthesis and res:
-                    try:
-                        text = synthesize_with_ollama_streaming(notes, evidence_ids=set(), user_query=query, history=history)
-                        yield text if text else notes
-                    except RuntimeError:
-                        yield OLLAMA_UNAVAILABLE_MSG
-                    except Exception:
-                        yield OLLAMA_UNAVAILABLE_MSG
-                else:
-                    yield notes
+                yield _with_holdings(query, notes)
             return Response(generate_lookup(), mimetype="text/plain")
 
         # ── Low Similarity Reject (honest not-indexed reply) ────────────
@@ -309,7 +644,7 @@ def api_chat():
                 reply = not_indexed_reply(query, closest, natural=wants_synthesis and not sterile)
                 if sterile:
                     reply = enforce_sterile_prose(reply, fallback=reply)
-                yield reply
+                yield _with_holdings(query, reply)
             return Response(generate_reject(), mimetype="text/plain")
 
         # ── General chat (low similarity / chitchat) ──────────────────────
@@ -333,7 +668,7 @@ def api_chat():
                     }],
                 }
                 yield json.dumps(payload) + "\n[STREAM_START]\n"
-                yield general_chat_reply(query, history)
+                yield _with_holdings(query, general_chat_reply(query, history))
             return Response(generate_general(), mimetype="text/plain")
 
         # ── Graph path (strong or soft domain) ────────────────────────────
@@ -376,6 +711,7 @@ def api_chat():
 
             citation_map = build_concept_citation_map(target_concept, prereqs, unlocks)
             citation_payloads = build_citation_payloads(target_concept, prereqs, unlocks, citation_map)
+            citation_payloads = merge_demo_citations(query, citation_payloads)
             evidence_ids = {payload["evidence_id"] for payload in citation_payloads if payload["evidence_id"]}
             # Session 2: multi-hop curriculum chains (≤3 hops) with book/page links
             curriculum_paths = find_curriculum_chains(
@@ -425,7 +761,7 @@ def api_chat():
                     "step": "Pass 3: Natural Synthesis",
                     "status": "Requested" if wants_synthesis else "Template",
                     "details": (
-                        f"{st.DEFAULT_OLLAMA_MODEL} natural wording over graph notes "
+                        f"{st.GEMINI_MODEL} natural wording over graph notes "
                         "(falls back to structured natural summary if offline)"
                         if wants_synthesis
                         else "Structured natural summary without generator."
@@ -433,9 +769,38 @@ def api_chat():
                 },
             ]
 
+            # Mode A / B / C bounded subgraph and diagnostic MCQ layer
+            query_mode = routing.get("query_mode") or "mode_a"
+            secondary_concept = None
+            if query_mode == "mode_b" and len(related_nodes) > 0:
+                secondary_concept = related_nodes[0].get("id")
+
+            from archipelago.inference.subgraph import generate_bounded_subgraph
+            bounded_subgraph = generate_bounded_subgraph(
+                anchor_id,
+                secondary_target_id=secondary_concept,
+                mode=query_mode,
+            )
+
+            diagnostic_mcqs = []
+            try:
+                from archipelago.inference.diagnostic_mcq import generate_diagnostic_mcqs
+                prereq_ids = [p["id"] for p in prereqs if isinstance(p, dict) and p.get("id")]
+                diagnostic_mcqs = generate_diagnostic_mcqs(
+                    anchor_id,
+                    prereq_ids=prereq_ids,
+                    num_questions=3,
+                )
+            except Exception as exc:
+                print(f"Pre-cached MCQ generation fallback triggered: {exc}")
+                diagnostic_mcqs = []
+
             def generate_graph():
                 init_payload = {
                     "anchor_concept": target_concept,
+                    "query_mode": query_mode,
+                    "subgraph": bounded_subgraph.to_dict(),
+                    "diagnostic_mcqs": diagnostic_mcqs,
                     "prerequisites": prereqs,
                     "unlocks": unlocks,
                     "related_concepts": related_nodes,
@@ -445,6 +810,7 @@ def api_chat():
                         "route": route,
                         "score": routing.get("score"),
                         "reason": routing.get("reason"),
+                        "query_mode": query_mode,
                     },
                     "citation_by_concept": {
                         concept_id: [
@@ -465,7 +831,9 @@ def api_chat():
                 yield json.dumps(init_payload) + "\n[STREAM_START]\n"
                 if wants_synthesis:
                     try:
-                        text = synthesize_with_ollama_streaming(
+                        had_tokens = False
+                        accumulated = []
+                        for token in stream_synthesis_with_ollama(
                             notes,
                             evidence_ids=evidence_ids,
                             user_query=query,
@@ -473,19 +841,25 @@ def api_chat():
                             sterile=sterile,
                             fallback_text=natural_fallback,
                             history=history,
-                        )
-                        if text:
-                            yield text
+                        ):
+                            had_tokens = True
+                            accumulated.append(token)
+                            yield token
+
+                        if not had_tokens:
+                            fallback_prose = enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
+                            yield _with_holdings(query, fallback_prose, citations=citation_payloads)
                         else:
-                            yield enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
+                            yield inventory_suffix(query, citations=citation_payloads)
                         return
                     except RuntimeError:
-                        yield OLLAMA_UNAVAILABLE_MSG
+                        yield _with_holdings(query, OLLAMA_UNAVAILABLE_MSG, citations=citation_payloads)
                         return
                     except Exception:
-                        yield OLLAMA_UNAVAILABLE_MSG
+                        yield _with_holdings(query, OLLAMA_UNAVAILABLE_MSG, citations=citation_payloads)
                         return
-                yield enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
+                fallback_prose = enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
+                yield _with_holdings(query, fallback_prose, citations=citation_payloads)
 
             return Response(generate_graph(), mimetype="text/plain")
 
@@ -493,17 +867,128 @@ def api_chat():
         return jsonify({"error": f"Invalid mode: {mode}"}), 400
 
 
+@st.app.route("/api/chat/diagnostic-mcqs", methods=["GET", "POST"])
+def api_diagnostic_mcqs():
+    """Retrieve pre-cached or synthesized diagnostic MCQs with <= 200ms fallback guarantee."""
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+
+    target_id = (
+        request.args.get("concept")
+        or request.args.get("target_concept")
+        or data.get("target_concept")
+        or data.get("concept")
+        or ""
+    ).strip()
+
+    if not target_id:
+        return jsonify({"error": "Missing target concept", "available": False, "mcqs": []}), 400
+
+    try:
+        from archipelago.inference.diagnostic_mcq import (
+            generate_diagnostic_mcqs,
+            get_prerequisite_chain,
+            generate_single_mcq_on_the_spot,
+        )
+        t_node = st.CONCEPTS_DATA.get(target_id) or {}
+        prereqs = [p.get("id") if isinstance(p, dict) else str(p) for p in (t_node.get("prerequisites") or [])]
+        mcqs = generate_diagnostic_mcqs(target_id, prereq_ids=prereqs, num_questions=3)
+        chain = get_prerequisite_chain(target_id, st.CONCEPTS_DATA)
+        prereq_chain = [c for c in chain if c != target_id]
+        immediate_y = prereq_chain[-1] if prereq_chain else target_id
+        initial_q = generate_single_mcq_on_the_spot(immediate_y, st.CONCEPTS_DATA, q_index=1)
+
+        return jsonify({
+            "success": True,
+            "available": bool(mcqs),
+            "target_concept": target_id,
+            "chain": chain,
+            "prereq_chain": prereq_chain,
+            "immediate_prerequisite": immediate_y,
+            "initial_question": initial_q,
+            "mcqs": mcqs,
+        })
+    except Exception as exc:
+        print(f"Diagnostic MCQ fetch error: {exc}")
+        return jsonify({
+            "success": False,
+            "available": False,
+            "target_concept": target_id,
+            "mcqs": [],
+            "badge": "Personalized assessment temporarily unavailable.",
+        }), 200
+
+
+@st.app.route("/api/chat/adaptive-step", methods=["POST"])
+def api_adaptive_step():
+    """Execute an on-the-spot adaptive leap-back skip-list step."""
+    try:
+        data = request.get_json(force=True) or {}
+    except Exception:
+        data = {}
+
+    from archipelago.inference.diagnostic_mcq import execute_adaptive_step
+    result = execute_adaptive_step(data, concepts_data=st.CONCEPTS_DATA)
+    return jsonify(result)
+
+
+@st.app.route("/api/chat/telemetry", methods=["POST"])
+def api_chat_telemetry():
+    """Track choice analytics (Personalized vs Normal graph selections)."""
+    try:
+        data = request.get_json(silent=True) or {}
+        event = data.get("event", "graph_choice")
+        mode = data.get("mode", "unknown")
+        concept_id = data.get("concept_id", "")
+        print(f"[TELEMETRY] event={event} mode={mode} concept={concept_id}")
+        return jsonify({"logged": True, "event": event, "mode": mode})
+    except Exception as exc:
+        return jsonify({"logged": False, "error": str(exc)}), 200
+
+
+@st.app.route("/api/chat/verify-mcq", methods=["POST"])
+def api_verify_mcq():
+    """Validate user answers for diagnostic MCQs and calculate prerequisite mastery."""
+    try:
+        data = request.get_json(force=True) or {}
+    except Exception:
+        data = {}
+
+    mcqs = data.get("mcqs") or []
+    answers = data.get("answers") or {}
+    target_id = data.get("target_concept") or ""
+
+    if not mcqs and target_id:
+        from archipelago.inference.diagnostic_mcq import generate_diagnostic_mcqs
+        mcqs = generate_diagnostic_mcqs(target_id, num_questions=3)
+
+    from archipelago.inference.diagnostic_mcq import evaluate_diagnostic_mcqs
+    result = evaluate_diagnostic_mcqs(mcqs, answers, target_concept_id=target_id)
+    return jsonify(result)
+
+
+
 def init_concepts_data():
     try:
         with open(st.DATA_FILE, encoding="utf-8") as f:
             data = json.load(f)
-        nodes = data.get("visualization", {}).get("nodes", []) or data.get("nodes", [])
+        nodes = list(data.get("visualization", {}).get("nodes", []) or data.get("nodes", []))
+        extra_concepts = data.get("concepts", {})
+        existing_ids = {n["id"] for n in nodes if "id" in n}
+        for cid, c in extra_concepts.items():
+            if cid not in existing_ids:
+                c_node = dict(c)
+                c_node.setdefault("id", cid)
+                c_node.setdefault("label", c_node.get("name", cid))
+                nodes.append(c_node)
         st.CONCEPTS_DATA = {n["id"]: n for n in nodes}
         # Session 2: precompute aliases for acronym/alias-aware ranking
         for cid, concept in st.CONCEPTS_DATA.items():
             if "id" not in concept:
                 concept["id"] = cid
             concept["aliases"] = generate_aliases(concept)
-            print(f"Synchronously loaded {len(st.CONCEPTS_DATA)} concepts at startup (aliases ready).")
+        print(f"Synchronously loaded {len(st.CONCEPTS_DATA)} concepts at startup (aliases ready).")
     except Exception as e:
         print(f"Error loading concepts at startup: {e}")

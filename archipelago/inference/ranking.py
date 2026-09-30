@@ -351,8 +351,7 @@ def find_anchor_concept(query):
         return None, 0.0
 
     try:
-        import ollama
-        client = ollama.Client(host="http://localhost:11434")
+        from archipelago.inference.llm_gateway import gateway_chat
         
         candidate_lines = []
         for cand in ranked:
@@ -372,16 +371,16 @@ def find_anchor_concept(query):
         )
         user_content = f"User Query: {query}\n\nCandidate Concepts:\n{candidates_str}\n\nAnswer:"
 
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        llm_response = gateway_chat(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
-            think=False,
-            options={"temperature": 0.0, "num_predict": 30},
-        )
-        llm_response = response.get("message", {}).get("content", "").strip()
+            purpose="routing",
+            temperature=0.0,
+            max_tokens=30,
+            timeout=10,
+        ) or ""
         cleaned_response = llm_response.strip().strip("'\"`").strip()
         
         if cleaned_response.lower() == "none":

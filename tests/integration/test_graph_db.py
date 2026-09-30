@@ -4,7 +4,7 @@ import re
 import pytest
 from unittest.mock import patch
 
-import okf_extraction
+import okf.extraction as okf_extraction
 from mock_data import MOCK_TEXT_CHUNKS
 
 # Mark all tests in this file as integration tests

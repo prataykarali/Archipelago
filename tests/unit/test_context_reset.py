@@ -6,6 +6,9 @@ from archipelago.inference.state import app
 # inference bootstrap module.
 import archipelago.inference.routes_context  # noqa: F401
 
+import pytest
+pytestmark = pytest.mark.usefixtures("verified_student_auth")
+
 
 def test_context_reset_removes_the_discarded_session():
     session_id = "test-discarded-session"

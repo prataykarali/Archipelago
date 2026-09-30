@@ -45,32 +45,32 @@
     <script type="module" src="/auth_bridge.js"></script>
     <script type="module">
         window.archipelagoAuthReady.then(async ({ config, supabase }) => {
-            if (config && config.required) window.archipelagoRequireSession();
-            updateHeaderAuthProfile();
+            if (config && config.required) {
+                const session = await window.archipelagoRequireSession();
+                if (!session) return; // redirected to login
+            }
+            await updateHeaderAuthProfile();
         });
 
         async function updateHeaderAuthProfile() {
             try {
                 let user = null;
-                const resp = await fetch("/api/auth/me");
-                if (resp.ok) {
-                    user = await resp.json();
-                }
-                if (!user || !user.authenticated) {
-                    const local = sessionStorage.getItem("archipelago_local_user");
-                    if (local) {
-                        const parsed = JSON.parse(local);
-                        user = { authenticated: true, role: parsed.role, username: parsed.username };
+                try {
+                    const resp = await fetch("/api/auth/me", { cache: "no-store" });
+                    if (resp.ok) {
+                        const serverUser = await resp.json();
+                        if (serverUser?.authenticated === true && serverUser.role) user = serverUser;
                     }
-                }
+                } catch (_) {}
+
                 const badge = document.getElementById("user-profile-badge");
                 const loginLink = document.getElementById("auth-login-link");
                 const roleLabel = document.getElementById("user-role-label");
                 const nameLabel = document.getElementById("user-name-label");
-                if (user && user.authenticated) {
+                if (user?.authenticated === true && user.role) {
                     if (badge) { badge.classList.remove("hidden"); badge.classList.add("flex"); }
                     if (loginLink) loginLink.classList.add("hidden");
-                    if (roleLabel) roleLabel.textContent = user.role || "User";
+                    if (roleLabel) roleLabel.textContent = user.role || "Student";
                     if (nameLabel) nameLabel.textContent = user.username ? `(${user.username})` : "";
                 } else {
                     if (badge) { badge.classList.add("hidden"); badge.classList.remove("flex"); }
@@ -82,15 +82,23 @@
         }
         window.updateHeaderAuthProfile = updateHeaderAuthProfile;
 
+        // Run immediately as early as possible
+        updateHeaderAuthProfile();
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", updateHeaderAuthProfile);
+        }
+
         window.signOutSupabase = async function() {
             try {
                 sessionStorage.removeItem("archipelago_local_user");
+                localStorage.removeItem("archipelago_local_user");
+                await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
                 const { supabase } = await window.archipelagoAuthReady;
                 if (supabase) await supabase.auth.signOut();
             } catch (e) {
                 console.warn(e);
             }
-            window.location.reload();
+            window.location.replace("/login");
         };
     </script>
 
@@ -3281,7 +3289,7 @@
                         <video data-avatar-clip="goit" class="avatar-clip is-hidden" src="/ui/assets/library_goit.mp4" muted playsinline webkit-playsinline preload="auto"></video>
                         <video data-avatar-clip="success" class="avatar-clip is-hidden" src="/ui/assets/library_sucess%20(1).mp4" muted playsinline webkit-playsinline preload="auto"></video>
                     </div>
-                    <span class="avatar-label">Librarian</span>
+                    <span class="avatar-label">AI Librarian</span>
                     <div id="bottom-svg-map-container" class="hidden" title="Concept neighborhood">
                         <svg id="bottom-svg-map" class="w-full h-full"></svg>
                     </div>
@@ -4280,15 +4288,14 @@ let conversationSessionId = null;
                 }
             });
 
-            // Expand [S1] and bare S1 markers into clickable page-view links
+            // Expand [S1] and bare S1 markers into clickable direct page links (Pearson / HuggingFace only)
             const linkForCitation = (id) => {
                 const cit = citationMap[id];
                 if (!cit) return null;
-                const docId = cit.doc_id || '';
-                const pageNum = cit.page_number || 1;
-                const topic = cit.topic || '';
+                const pageNum = cit.page_number || cit.page || 1;
+                const targetUrl = citationPageUrl(cit);
                 const label = `(p.${pageNum} ↗)`;
-                return `[${label}](/api/page-view?doc_id=${encodeURIComponent(docId)}&page=${pageNum}${topic ? '&highlight=' + encodeURIComponent(topic) : ''}#page=${pageNum})`;
+                return targetUrl ? `[${label}](${targetUrl})` : `[${label}]`;
             };
             processedText = processedText.replace(/\[(S\d+)(?:\s*:[^\]]*)?\]/g, (match, id) => {
                 const res = linkForCitation(id);
@@ -4440,94 +4447,203 @@ let conversationSessionId = null;
             });
         }
 
-        function citationPageUrl(citation) {
-            if (!citation || typeof citation !== 'object') return '';
-            const suppliedUrl = String(citation.page_url || citation.url || '').trim();
-            if (/^(https?:\/\/|\/)/i.test(suppliedUrl)) return suppliedUrl;
-            const docId = citation.doc_id || citation.document_id || citation.source_id;
-            if (!docId) return '';
-            // Default missing/invalid pages to 1 so cards still spawn when the
-            // backend sent doc_id but omitted page_number (common race payload).
-            let page = Number(citation.page_number || citation.page);
-            if (!Number.isFinite(page) || page < 1) page = 1;
-            const highlight = citation.topic || citation.section_title || '';
-            return `${API_HOST}/api/page-view?doc_id=${encodeURIComponent(docId)}&page=${Math.floor(page)}${highlight ? '&highlight=' + encodeURIComponent(highlight) : ''}#page=${Math.floor(page)}`;
+        function showPearsonCredentialToast() {
+            let t = document.getElementById('archipelago-pearson-toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'archipelago-pearson-toast';
+                t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:999999;background:rgba(15,23,42,0.96);color:#f8fafc;padding:12px 18px;border-radius:14px;border:1px solid rgba(245,158,11,0.6);box-shadow:0 12px 36px rgba(0,0,0,0.8);backdrop-filter:blur(16px);font-size:12px;display:flex;align-items:center;gap:10px;pointer-events:auto;transition:all 0.3s ease;';
+                document.body.appendChild(t);
+            }
+            t.innerHTML = `
+                <span style="color:#fbbf24;font-weight:700;display:flex;align-items:center;gap:4px">🔑 Pearson access:</span>
+                <span>Continue in the Pearson reader and sign in through the library portal when prompted.</span>
+            `;
+            t.style.opacity = '1';
+            t.style.transform = 'translateX(-50%) translateY(0)';
+            clearTimeout(window._pearsonToastTimeout);
+            window._pearsonToastTimeout = setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translateX(-50%) translateY(10px)';
+            }, 12000);
         }
 
+        function copyPearsonCreds() {
+            showPearsonCredentialToast();
+        }
+        let PEARSON_BOOK_CATALOG = {"0911f00b-bb44-4092-a534-d9250d2578ba": {"id": "0911f00b-bb44-4092-a534-d9250d2578ba", "type": "pdf", "sub": "35f75a06-07b5-4be6-93c9-d6449a30d88a", "isbn": "9789332526532", "title": "Digital Signal Processing, 4e"}, "9789332526532": {"id": "0911f00b-bb44-4092-a534-d9250d2578ba", "type": "pdf", "sub": "35f75a06-07b5-4be6-93c9-d6449a30d88a", "isbn": "9789332526532", "title": "Digital Signal Processing, 4e"}, "0fcd531f-3ba1-495e-9c9e-b43b034b88d9": {"id": "0fcd531f-3ba1-495e-9c9e-b43b034b88d9", "type": "reflowable", "sub": "debf3e10-c27c-469a-a2aa-8a30c919db91", "isbn": "9789356063259", "title": "Computer Networks, 6/e"}, "9789356063259": {"id": "0fcd531f-3ba1-495e-9c9e-b43b034b88d9", "type": "reflowable", "sub": "debf3e10-c27c-469a-a2aa-8a30c919db91", "isbn": "9789356063259", "title": "Computer Networks, 6/e"}, "13ddfc73-f7ee-4ab8-8cf3-e5c4a4bcfdbf": {"id": "13ddfc73-f7ee-4ab8-8cf3-e5c4a4bcfdbf", "type": "pdf", "sub": "10b6426b-3f9a-46ac-9758-678f65277e8b", "isbn": "9789354496622", "title": "PIC Microcontroller and Embedded Systems Using Assembly and C for PIC18, 2e"}, "9789354496622": {"id": "13ddfc73-f7ee-4ab8-8cf3-e5c4a4bcfdbf", "type": "pdf", "sub": "10b6426b-3f9a-46ac-9758-678f65277e8b", "isbn": "9789354496622", "title": "PIC Microcontroller and Embedded Systems Using Assembly and C for PIC18, 2e"}, "1be5d3be-5808-4768-b4bf-03664c75c6c3": {"id": "1be5d3be-5808-4768-b4bf-03664c75c6c3", "type": "pdf", "sub": "befed181-7700-4fe5-b232-0c441b88951a", "isbn": "9789332576216", "title": "Compilers Principles, Techniques, and Tools, 2e"}, "9789332576216": {"id": "1be5d3be-5808-4768-b4bf-03664c75c6c3", "type": "pdf", "sub": "befed181-7700-4fe5-b232-0c441b88951a", "isbn": "9789332576216", "title": "Compilers Principles, Techniques, and Tools, 2e"}, "1f233760-bb8f-4deb-9f39-8214567ba561": {"id": "1f233760-bb8f-4deb-9f39-8214567ba561", "type": "pdf", "sub": "ae2e49f7-5db4-4798-ac25-baeceb5223eb", "isbn": "9789332520158", "title": "Design and Analysis of Algorithms 2/e"}, "9789332520158": {"id": "1f233760-bb8f-4deb-9f39-8214567ba561", "type": "pdf", "sub": "ae2e49f7-5db4-4798-ac25-baeceb5223eb", "isbn": "9789332520158", "title": "Design and Analysis of Algorithms 2/e"}, "26da4b16-2e36-43e4-b7b2-c3955149d1f2": {"id": "26da4b16-2e36-43e4-b7b2-c3955149d1f2", "type": "reflowable", "sub": "329c7c4b-4a31-4815-9372-659b74388126", "isbn": "9789367136539", "title": "Objective English for Competitive Examinations, Eighth Edition"}, "9789367136539": {"id": "26da4b16-2e36-43e4-b7b2-c3955149d1f2", "type": "reflowable", "sub": "329c7c4b-4a31-4815-9372-659b74388126", "isbn": "9789367136539", "title": "Objective English for Competitive Examinations, Eighth Edition"}, "2be79d29-39cc-41a0-a068-e2a8821c309e": {"id": "2be79d29-39cc-41a0-a068-e2a8821c309e", "type": "reflowable", "sub": "7bb3b997-7c55-4754-a1d6-dac05113cbeb", "isbn": "9789356063488", "title": "Artificial Intelligence: A Modern Approach, 4/e"}, "9789356063488": {"id": "2be79d29-39cc-41a0-a068-e2a8821c309e", "type": "reflowable", "sub": "7bb3b997-7c55-4754-a1d6-dac05113cbeb", "isbn": "9789356063488", "title": "Artificial Intelligence: A Modern Approach, 4/e"}, "3997a85b-296c-4f53-97f1-70a429979ad6": {"id": "3997a85b-296c-4f53-97f1-70a429979ad6", "type": "pdf", "sub": "f66c9085-f81d-4623-95ac-2121fd26d815", "isbn": "9781322144320", "title": "Data and Computer Communications"}, "9781322144320": {"id": "3997a85b-296c-4f53-97f1-70a429979ad6", "type": "pdf", "sub": "f66c9085-f81d-4623-95ac-2121fd26d815", "isbn": "9781322144320", "title": "Data and Computer Communications"}, "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae": {"id": "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae", "type": "pdf", "sub": "ad955d8b-5c87-4468-b4c4-946765d5bbe2", "isbn": "9789354490934", "title": "Fundamentals of Database System, 7e"}, "9789354490934": {"id": "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae", "type": "pdf", "sub": "ad955d8b-5c87-4468-b4c4-946765d5bbe2", "isbn": "9789354490934", "title": "Fundamentals of Database System, 7e"}, "45fcc161-f4de-49ee-b013-2159cdcd8794": {"id": "45fcc161-f4de-49ee-b013-2159cdcd8794", "type": "reflowable", "sub": "abb983c2-a78c-48e7-ac56-65b1004d0285", "isbn": "9789367132708", "title": "General Knowledge Manual 2026"}, "9789367132708": {"id": "45fcc161-f4de-49ee-b013-2159cdcd8794", "type": "reflowable", "sub": "abb983c2-a78c-48e7-ac56-65b1004d0285", "isbn": "9789367132708", "title": "General Knowledge Manual 2026"}, "4ef86901-06ce-4cd0-b84d-0c50e6e6549c": {"id": "4ef86901-06ce-4cd0-b84d-0c50e6e6549c", "type": "pdf", "sub": "d2df915e-dcba-4f20-9ff5-7baac02977a3", "isbn": "9789332576148", "title": "8051 Microcontroller and Embedded Systems"}, "9789332576148": {"id": "4ef86901-06ce-4cd0-b84d-0c50e6e6549c", "type": "pdf", "sub": "d2df915e-dcba-4f20-9ff5-7baac02977a3", "isbn": "9789332576148", "title": "8051 Microcontroller and Embedded Systems"}, "5677f045-1362-484e-b5dc-115faa7b12b0": {"id": "5677f045-1362-484e-b5dc-115faa7b12b0", "type": "reflowable", "sub": "c6bbcf3b-83d2-4617-abe8-2070d023bd2b", "isbn": "9789361590559", "title": "Quantitative Aptitube"}, "9789361590559": {"id": "5677f045-1362-484e-b5dc-115faa7b12b0", "type": "reflowable", "sub": "c6bbcf3b-83d2-4617-abe8-2070d023bd2b", "isbn": "9789361590559", "title": "Quantitative Aptitube"}, "5767b069-1d41-4787-9e33-f64895d2538b": {"id": "5767b069-1d41-4787-9e33-f64895d2538b", "type": "pdf", "sub": "b8120225-31de-4eb0-b820-ae17b02307f7", "isbn": "9789332586048", "title": "Digital Logic and Computer Design"}, "9789332586048": {"id": "5767b069-1d41-4787-9e33-f64895d2538b", "type": "pdf", "sub": "b8120225-31de-4eb0-b820-ae17b02307f7", "isbn": "9789332586048", "title": "Digital Logic and Computer Design"}, "5c175398-00ee-42ed-8c84-790432275047": {"id": "5c175398-00ee-42ed-8c84-790432275047", "type": "pdf", "sub": "632b8c5d-7693-4591-8a1f-71b97bdf6c38", "isbn": "9789390325849", "title": "Digital Design: With an Introduction to the Verilog HDL, VHDL, and System Verilog, 6e"}, "9789390325849": {"id": "5c175398-00ee-42ed-8c84-790432275047", "type": "pdf", "sub": "632b8c5d-7693-4591-8a1f-71b97bdf6c38", "isbn": "9789390325849", "title": "Digital Design: With an Introduction to the Verilog HDL, VHDL, and System Verilog, 6e"}, "638eacd4-6ca0-450c-ba19-2122a321d2a9": {"id": "638eacd4-6ca0-450c-ba19-2122a321d2a9", "type": "pdf", "sub": "e44f40d1-f356-40f7-b773-3ee797f6aa7a", "isbn": "9789332576223", "title": "Computer Networks 5/e"}, "9789332576223": {"id": "638eacd4-6ca0-450c-ba19-2122a321d2a9", "type": "pdf", "sub": "e44f40d1-f356-40f7-b773-3ee797f6aa7a", "isbn": "9789332576223", "title": "Computer Networks 5/e"}, "6ffb6563-c2ae-45cd-b1ae-ad486437bf4e": {"id": "6ffb6563-c2ae-45cd-b1ae-ad486437bf4e", "type": "pdf", "sub": "706644ce-1360-4063-8b14-a167d3cd5de0", "isbn": "9789353940508", "title": "Basic Electrical Engineering, 1e"}, "9789353940508": {"id": "6ffb6563-c2ae-45cd-b1ae-ad486437bf4e", "type": "pdf", "sub": "706644ce-1360-4063-8b14-a167d3cd5de0", "isbn": "9789353940508", "title": "Basic Electrical Engineering, 1e"}, "747cb926-c317-4041-9bdd-3ea98e246607": {"id": "747cb926-c317-4041-9bdd-3ea98e246607", "type": "pdf", "sub": "2353022e-d18e-4de8-940d-deadb34e8dc8", "isbn": "9789332576131", "title": "Computer System Architecture, Revised 3/e"}, "9789332576131": {"id": "747cb926-c317-4041-9bdd-3ea98e246607", "type": "pdf", "sub": "2353022e-d18e-4de8-940d-deadb34e8dc8", "isbn": "9789332576131", "title": "Computer System Architecture, Revised 3/e"}, "782e3b61-d275-48ce-bf1f-9a2ea7cec315": {"id": "782e3b61-d275-48ce-bf1f-9a2ea7cec315", "type": "pdf", "sub": "bb81288d-4863-4a2f-903e-742ecb66974c", "isbn": "9789353948603", "title": "Digital Image Processing, 4e"}, "9789353948603": {"id": "782e3b61-d275-48ce-bf1f-9a2ea7cec315", "type": "pdf", "sub": "bb81288d-4863-4a2f-903e-742ecb66974c", "isbn": "9789353948603", "title": "Digital Image Processing, 4e"}, "7dd5eea6-ffa5-405f-b588-9f9f2d6f5446": {"id": "7dd5eea6-ffa5-405f-b588-9f9f2d6f5446", "type": "pdf", "sub": "05b7d254-0cf4-4d35-b8c3-9f21cb0fe876", "isbn": "9780134307060", "title": "IoT Fundamentals, 1e"}, "9780134307060": {"id": "7dd5eea6-ffa5-405f-b588-9f9f2d6f5446", "type": "pdf", "sub": "05b7d254-0cf4-4d35-b8c3-9f21cb0fe876", "isbn": "9780134307060", "title": "IoT Fundamentals, 1e"}, "83b29de5-69ca-4ccc-9aee-c7f481a1010d": {"id": "83b29de5-69ca-4ccc-9aee-c7f481a1010d", "type": "pdf", "sub": "2e8cbec6-12ad-4b0b-8583-d6d857cbead1", "isbn": "9781282645820", "title": "Neural Networks and Learning Machines"}, "9781282645820": {"id": "83b29de5-69ca-4ccc-9aee-c7f481a1010d", "type": "pdf", "sub": "2e8cbec6-12ad-4b0b-8583-d6d857cbead1", "isbn": "9781282645820", "title": "Neural Networks and Learning Machines"}, "85de7936-636b-47f2-bf7d-76978fa71b2b": {"id": "85de7936-636b-47f2-bf7d-76978fa71b2b", "type": "reflowable", "sub": "0ac0d96e-ab7e-4cdb-8bbb-b0c1b77f5ebe", "isbn": "9789352861569", "title": "Software Engineering"}, "9789352861569": {"id": "85de7936-636b-47f2-bf7d-76978fa71b2b", "type": "reflowable", "sub": "0ac0d96e-ab7e-4cdb-8bbb-b0c1b77f5ebe", "isbn": "9789352861569", "title": "Software Engineering"}, "8d874a41-09e6-4b2a-9f52-06b53fbe398e": {"id": "8d874a41-09e6-4b2a-9f52-06b53fbe398e", "type": "reflowable", "sub": "f3dc4242-fcc6-4616-9281-8bfa9196004a", "isbn": "9789361591457", "title": "Machine Learning, 2/e"}, "9789361591457": {"id": "8d874a41-09e6-4b2a-9f52-06b53fbe398e", "type": "reflowable", "sub": "f3dc4242-fcc6-4616-9281-8bfa9196004a", "isbn": "9789361591457", "title": "Machine Learning, 2/e"}, "a506f2c2-94b2-42d5-aa27-fe1592bd55f6": {"id": "a506f2c2-94b2-42d5-aa27-fe1592bd55f6", "type": "pdf", "sub": "d4b2c13e-97e0-4354-88b8-372e176460ee", "isbn": "9789353948078", "title": "Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics and Speech Recognition 2/e"}, "9789353948078": {"id": "a506f2c2-94b2-42d5-aa27-fe1592bd55f6", "type": "pdf", "sub": "d4b2c13e-97e0-4354-88b8-372e176460ee", "isbn": "9789353948078", "title": "Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics and Speech Recognition 2/e"}, "a7092059-a110-4714-b276-4aa16971e888": {"id": "a7092059-a110-4714-b276-4aa16971e888", "type": "reflowable", "sub": "c71cebbc-164a-4296-8c3c-473b3d76a952", "isbn": "9789390325443", "title": "Op-amps and Linear Integrated Circuits"}, "9789390325443": {"id": "a7092059-a110-4714-b276-4aa16971e888", "type": "reflowable", "sub": "c71cebbc-164a-4296-8c3c-473b3d76a952", "isbn": "9789390325443", "title": "Op-amps and Linear Integrated Circuits"}, "ab263763-17dc-4e28-8735-44fced3ebbe5": {"id": "ab263763-17dc-4e28-8735-44fced3ebbe5", "type": "pdf", "sub": "4914b990-efda-4ed6-af53-f1fb931b1ce0", "isbn": "9781292214306", "title": "Operating Systems: Internals and Design Principles, Global Edition"}, "9781292214306": {"id": "ab263763-17dc-4e28-8735-44fced3ebbe5", "type": "pdf", "sub": "4914b990-efda-4ed6-af53-f1fb931b1ce0", "isbn": "9781292214306", "title": "Operating Systems: Internals and Design Principles, Global Edition"}, "abd2bed3-ed87-49ea-8569-9d98e0fe3b04": {"id": "abd2bed3-ed87-49ea-8569-9d98e0fe3b04", "type": "reflowable", "sub": "4de91e2a-9363-41a0-8ebe-912a483e466e", "isbn": "9789367131381", "title": "Problem Solving and Programming in C: A Computational Thinking Approach"}, "9789367131381": {"id": "abd2bed3-ed87-49ea-8569-9d98e0fe3b04", "type": "reflowable", "sub": "4de91e2a-9363-41a0-8ebe-912a483e466e", "isbn": "9789367131381", "title": "Problem Solving and Programming in C: A Computational Thinking Approach"}, "b796b179-69d3-4ade-a723-ce3a450a882d": {"id": "b796b179-69d3-4ade-a723-ce3a450a882d", "type": "reflowable", "sub": "e4d9b1cf-e5e8-45ce-b6db-f1967ba625c2", "isbn": "9788131770948", "title": "Computer Fundamentals"}, "9788131770948": {"id": "b796b179-69d3-4ade-a723-ce3a450a882d", "type": "reflowable", "sub": "e4d9b1cf-e5e8-45ce-b6db-f1967ba625c2", "isbn": "9788131770948", "title": "Computer Fundamentals"}, "c593a3a4-553d-440c-ac6c-53faf9a2ae79": {"id": "c593a3a4-553d-440c-ac6c-53faf9a2ae79", "type": "pdf", "sub": "75d4ad50-148c-488a-89d6-9393e7289a1a", "isbn": "9789353948740", "title": "Wireless Communications & Networks"}, "9789353948740": {"id": "c593a3a4-553d-440c-ac6c-53faf9a2ae79", "type": "pdf", "sub": "75d4ad50-148c-488a-89d6-9393e7289a1a", "isbn": "9789353948740", "title": "Wireless Communications & Networks"}, "c992b5c9-2b18-42eb-a5b3-f89742314258": {"id": "c992b5c9-2b18-42eb-a5b3-f89742314258", "type": "pdf", "sub": "3263861c-43ac-4072-903b-5230223a3e8c", "isbn": "9789353948009", "title": "A First Course in Probability, 9e"}, "9789353948009": {"id": "c992b5c9-2b18-42eb-a5b3-f89742314258", "type": "pdf", "sub": "3263861c-43ac-4072-903b-5230223a3e8c", "isbn": "9789353948009", "title": "A First Course in Probability, 9e"}, "cb4705fc-92b4-4e73-8ec0-54387a47b666": {"id": "cb4705fc-92b4-4e73-8ec0-54387a47b666", "type": "pdf", "sub": "85b2e2a8-995f-4a05-9c3a-92f87529aa73", "isbn": "9781299445697", "title": "Web Technology"}, "9781299445697": {"id": "cb4705fc-92b4-4e73-8ec0-54387a47b666", "type": "pdf", "sub": "85b2e2a8-995f-4a05-9c3a-92f87529aa73", "isbn": "9781299445697", "title": "Web Technology"}, "cd11c0a0-5e5f-43ca-b555-f6155505a1e5": {"id": "cd11c0a0-5e5f-43ca-b555-f6155505a1e5", "type": "pdf", "sub": "c36282d8-f040-4ee1-a6ad-bec5f7df7732", "isbn": "9789353948849", "title": "Data Structures Using C, 1e"}, "9789353948849": {"id": "cd11c0a0-5e5f-43ca-b555-f6155505a1e5", "type": "pdf", "sub": "c36282d8-f040-4ee1-a6ad-bec5f7df7732", "isbn": "9789353948849", "title": "Data Structures Using C, 1e"}, "d85d2a24-da6c-48af-84d8-aa1782607117": {"id": "d85d2a24-da6c-48af-84d8-aa1782607117", "type": "reflowable", "sub": "9da2fc14-8bdc-465f-98ba-6e955fe3e433", "isbn": "9789357054911", "title": "Cryptography and Network Security: Principles and Practice, 8/e"}, "9789357054911": {"id": "d85d2a24-da6c-48af-84d8-aa1782607117", "type": "reflowable", "sub": "9da2fc14-8bdc-465f-98ba-6e955fe3e433", "isbn": "9789357054911", "title": "Cryptography and Network Security: Principles and Practice, 8/e"}, "da64c6fd-8644-47a8-9b98-a08abcffc9cf": {"id": "da64c6fd-8644-47a8-9b98-a08abcffc9cf", "type": "pdf", "sub": "8538c39b-edcf-4ae0-91b1-eba9c09bf6c2", "isbn": "9780137348244", "title": "Digital Signal Processing, 5e"}, "9780137348244": {"id": "da64c6fd-8644-47a8-9b98-a08abcffc9cf", "type": "pdf", "sub": "8538c39b-edcf-4ae0-91b1-eba9c09bf6c2", "isbn": "9780137348244", "title": "Digital Signal Processing, 5e"}, "e0d7caaf-3aed-4c24-baec-891a83e9dfbe": {"id": "e0d7caaf-3aed-4c24-baec-891a83e9dfbe", "type": "pdf", "sub": "b0e43b51-ee1e-4454-89b9-7ecd60555166", "isbn": "9789332559059", "title": "Electronic Devices and Circuit Theory, 11e"}, "9789332559059": {"id": "e0d7caaf-3aed-4c24-baec-891a83e9dfbe", "type": "pdf", "sub": "b0e43b51-ee1e-4454-89b9-7ecd60555166", "isbn": "9789332559059", "title": "Electronic Devices and Circuit Theory, 11e"}, "ec1d5891-6a07-414b-9804-f638d3494e05": {"id": "ec1d5891-6a07-414b-9804-f638d3494e05", "type": "pdf", "sub": "0ea63e9c-3cf8-445c-b580-d3ebd7da8ebb", "isbn": "9781292075556", "title": "Fundamentals of Web Development, Global Edition"}, "9781292075556": {"id": "ec1d5891-6a07-414b-9804-f638d3494e05", "type": "pdf", "sub": "0ea63e9c-3cf8-445c-b580-d3ebd7da8ebb", "isbn": "9781292075556", "title": "Fundamentals of Web Development, Global Edition"}, "ec779511-814a-4ccf-a599-40b15b1b1427": {"id": "ec779511-814a-4ccf-a599-40b15b1b1427", "type": "pdf", "sub": "9d8c8231-74c2-472d-ab03-a93b34c781c4", "isbn": "9781292014081", "title": "Computer Vision"}, "9781292014081": {"id": "ec779511-814a-4ccf-a599-40b15b1b1427", "type": "pdf", "sub": "9d8c8231-74c2-472d-ab03-a93b34c781c4", "isbn": "9781292014081", "title": "Computer Vision"}, "eeada5f0-c6ed-439f-a942-34cca419c913": {"id": "eeada5f0-c6ed-439f-a942-34cca419c913", "type": "reflowable", "sub": "61c41fd0-541e-46a3-b285-fa666df27e4a", "isbn": "9789356062931", "title": "COMPUTER ORGANIZATION AND ARCHITECTURE"}, "9789356062931": {"id": "eeada5f0-c6ed-439f-a942-34cca419c913", "type": "reflowable", "sub": "61c41fd0-541e-46a3-b285-fa666df27e4a", "isbn": "9789356062931", "title": "COMPUTER ORGANIZATION AND ARCHITECTURE"}, "f47c71e0-034c-4b91-9b53-1ff0d76cbd14": {"id": "f47c71e0-034c-4b91-9b53-1ff0d76cbd14", "type": "pdf", "sub": "bf8df51b-1b25-4972-ab37-3eb32d99bb80", "isbn": "9781292014111", "title": "Introduction to the Design and Analysis of Algorithms"}, "9781292014111": {"id": "f47c71e0-034c-4b91-9b53-1ff0d76cbd14", "type": "pdf", "sub": "bf8df51b-1b25-4972-ab37-3eb32d99bb80", "isbn": "9781292014111", "title": "Introduction to the Design and Analysis of Algorithms"}, "f4906ccb-3c80-4577-8170-05f7a5eb93c3": {"id": "f4906ccb-3c80-4577-8170-05f7a5eb93c3", "type": "pdf", "sub": "11628582-775a-4784-a3b0-417760aa16de", "isbn": "9781292164083", "title": "Web Development and Design Foundations with HTML5, Global Edition"}, "9781292164083": {"id": "f4906ccb-3c80-4577-8170-05f7a5eb93c3", "type": "pdf", "sub": "11628582-775a-4784-a3b0-417760aa16de", "isbn": "9781292164083", "title": "Web Development and Design Foundations with HTML5, Global Edition"}, "fed697ea-19ea-4f02-bce1-a0bac6bb66ec": {"id": "fed697ea-19ea-4f02-bce1-a0bac6bb66ec", "type": "pdf", "sub": "ebb53370-6dc5-446b-a4aa-7bda250b66af", "isbn": "9781292060767", "title": "Solid State Electronic Devices, Global Edition"}, "9781292060767": {"id": "fed697ea-19ea-4f02-bce1-a0bac6bb66ec", "type": "pdf", "sub": "ebb53370-6dc5-446b-a4aa-7bda250b66af", "isbn": "9781292060767", "title": "Solid State Electronic Devices, Global Edition"}};
+        // Dynamically load full Pearson manifest with all slugs and doc_ ids
+        fetch('/data/catalogs/pearson_bookshelf.json').then(r => r.json()).then(data => {
+            if (data && data.books) {
+                for (const b of data.books) {
+                    const item = {
+                        id: b.id,
+                        slug: b.slug || '',
+                        type: b.book_type || 'pdf',
+                        sub: b.subscription_id || 'debf3e10-c27c-469a-a2aa-8a30c919db91',
+                        isbn: b.isbn || '',
+                        title: b.title,
+                        author: b.author || ''
+                    };
+                    PEARSON_BOOK_CATALOG[b.id] = item;
+                    if (b.isbn) PEARSON_BOOK_CATALOG[b.isbn] = item;
+                    if (b.slug) PEARSON_BOOK_CATALOG[b.slug] = item;
+                    const cleanT = b.title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+                    PEARSON_BOOK_CATALOG[`doc_${cleanT}`] = item;
+                }
+            }
+        }).catch(() => {});
+        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/Library_books/blob/main';
+        const HF_CANONICAL_DOCS = {
+            'deisenroth_math_for_ml.pdf': 'textbooks/Deisenroth_Math_For_ML.pdf',
+            'deisenroth_math_for_ml': 'textbooks/Deisenroth_Math_For_ML.pdf',
+            'book_math_for_machine_learning_2020': 'textbooks/Deisenroth_Math_For_ML.pdf',
+            'math_for_ml': 'textbooks/Deisenroth_Math_For_ML.pdf',
+            'attention_is_all_you_need': 'papers/Vaswani2017_Attention_Is_All_You_Need.pdf',
+            'vaswani2017_attention_is_all_you_need.pdf': 'papers/Vaswani2017_Attention_Is_All_You_Need.pdf',
+            'paper_attention_is_all_you_need_2017': 'papers/Vaswani2017_Attention_Is_All_You_Need.pdf',
+            'bert_paper': 'papers/Devlin2018_BERT.pdf',
+            'devlin2018_bert.pdf': 'papers/Devlin2018_BERT.pdf',
+            'hu2021_lora.pdf': 'papers/Hu2021_LoRA.pdf',
+            'lora_paper': 'papers/Hu2021_LoRA.pdf',
+            'dettmers2023_qlora.pdf': 'papers/Dettmers2023_QLoRA.pdf',
+            'lewis2020_rag.pdf': 'papers/Lewis2020_RAG.pdf',
+            'rag_paper': 'papers/Lewis2020_RAG.pdf',
+            'edge2024_graphrag.pdf': 'papers/Edge2024_GraphRAG.pdf',
+            'graphrag_ms': 'papers/Edge2024_GraphRAG.pdf',
+            'goodfellow2014_gan.pdf': 'papers/Goodfellow2014_GAN.pdf',
+            'deep_learning_goodfellow': 'papers/Goodfellow2014_GAN.pdf',
+            'book_deep_learning_goodfellow_2016': 'papers/Goodfellow2014_GAN.pdf',
+            'kwon2023_vllm.pdf': 'papers/Kwon2023_vLLM.pdf',
+            'brown2020_gpt3.pdf': 'papers/Brown2020_GPT3.pdf',
+            'bahdanau2014_attention.pdf': 'papers/Bahdanau2014_Attention.pdf',
+            'hochreiter1997_lstm.pdf': 'papers/Hochreiter1997_LSTM.pdf',
+        };
+
+        function getPearsonBookEntry(identifier) {
+            if (!identifier) return null;
+            const raw = String(identifier).trim();
+            if (PEARSON_BOOK_CATALOG[raw]) return PEARSON_BOOK_CATALOG[raw];
+
+            const norm = raw.toLowerCase().replace(/^(doc|pearson|book)_+/, '').replace(/\.pdf$/, '').replace(/[^a-z0-9]/g, '');
+            if (!norm) return null;
+
+            for (const [key, book] of Object.entries(PEARSON_BOOK_CATALOG)) {
+                if (key === norm) return book;
+                const bNormTitle = (book.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                const bNormSlug = (book.slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                const bNormId = (book.id || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (norm === bNormTitle || (bNormSlug && norm === bNormSlug) || norm === bNormId) {
+                    return book;
+                }
+                if (norm.length >= 6 && (bNormTitle.includes(norm) || norm.includes(bNormTitle))) {
+                    return book;
+                }
+            }
+            return null;
+        }
+
+        function citationPageUrl(citation) {
+            if (!citation || typeof citation !== 'object') return '';
+            let page = Number(citation.page_number || citation.page);
+            if (!Number.isFinite(page) || page < 1) page = 1;
+            page = Math.floor(page);
+
+            const directUrl = citation.reader_url || citation.url || citation.pdf_url || '';
+
+            if (typeof directUrl === 'string' && (directUrl.startsWith('/open/') || directUrl.startsWith('/read?'))) {
+                return directUrl;
+            }
+            if (typeof directUrl === 'string' && (directUrl.startsWith('/papers/') || directUrl.includes('/papers/'))) {
+                const clean = directUrl.split('#')[0];
+                return `${clean}#page=${page}`;
+            }
+
+            // 1. Direct Pearson URL already present
+            if (typeof directUrl === 'string' && directUrl.includes('pearson.com')) {
+                let u = directUrl;
+                if (!u.includes('version=')) {
+                    u = u.replace(/\.html\?/, '.html?version=1.0.317.1&');
+                    if (!u.includes('version=')) {
+                        u = u.replace(/\.html/, '.html?version=1.0.317.1');
+                    }
+                }
+                if (u.includes('/page/')) {
+                    return u.replace(/\/page\/\d+/, `/page/${page || 1}`);
+                }
+                return `${u}/page/${page || 1}`;
+            }
+
+            // 2. Identify Pearson book from catalog using any candidate ID or title
+            const candidates = [
+                citation.book_id,
+                citation.doc_id,
+                citation.document_id,
+                citation.source_id,
+                citation.title,
+                citation.doc_title,
+                citation.isbn
+            ].filter(Boolean);
+
+            let pEntry = null;
+            for (const cand of candidates) {
+                pEntry = getPearsonBookEntry(cand);
+                if (pEntry) break;
+            }
+
+            const isPearson = Boolean(pEntry || citation.is_pearson || citation.subscription_id || citation.source === 'pearson');
+
+            if (isPearson) {
+                const subId = (pEntry && pEntry.sub) || citation.subscription_id || 'debf3e10-c27c-469a-a2aa-8a30c919db91';
+                const bId = (pEntry && pEntry.id) || citation.book_id || citation.doc_id || '0fcd531f-3ba1-495e-9c9e-b43b034b88d9';
+                const bType = (pEntry && pEntry.type) || citation.book_type || 'pdf';
+                const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
+                const pagePart = `/page/${page || 1}`;
+                return `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
+            }
+
+            // 3. Direct external URL (Hugging Face, arXiv, etc.)
+            if (typeof directUrl === 'string' && (directUrl.startsWith('https://huggingface.co') || directUrl.startsWith('https://arxiv.org'))) {
+                return directUrl.includes('#page=') ? directUrl : `${directUrl}#page=${page}`;
+            }
+
+            // 4. Hugging Face dataset mapping
+            const docId = citation.doc_id || citation.document_id || citation.source_id || citation.pdf || '';
+            const raw = String(docId || directUrl || '').trim();
+            const cleanDoc = raw.replace(/^https?:\/\/[^\/]+\//, '').replace(/^pdfs\//, '').replace(/^datasets\/[^\/]+\/[^\/]+\/blob\/[^\/]+\//, '');
+            const baseName = cleanDoc.split('/').pop().toLowerCase();
+
+            let canonicalDoc = cleanDoc;
+            if (HF_CANONICAL_DOCS[baseName]) {
+                canonicalDoc = HF_CANONICAL_DOCS[baseName];
+            } else if (HF_CANONICAL_DOCS[cleanDoc.toLowerCase()]) {
+                canonicalDoc = HF_CANONICAL_DOCS[cleanDoc.toLowerCase()];
+            } else if (raw.toLowerCase().includes('attention') || raw.toLowerCase().includes('vaswani')) {
+                canonicalDoc = 'papers/Vaswani2017_Attention_Is_All_You_Need.pdf';
+            } else if (!canonicalDoc.startsWith('papers/') && !canonicalDoc.startsWith('textbooks/') && !canonicalDoc.startsWith('archipelago-books-cs/') && canonicalDoc.endsWith('.pdf')) {
+                canonicalDoc = `papers/${canonicalDoc}`;
+            }
+
+            if (canonicalDoc) {
+                return `/read?doc=${encodeURIComponent(canonicalDoc)}&page=${page}`;
+            }
+
+            return `/api/page-view?doc_id=${encodeURIComponent(raw)}&page=${page}#page=${page}`;
+        }
+
+
         function appendEvidenceRail(messageBody, metadata) {
-            // Always re-mount: renderMarkdownSafely replaces innerHTML and wipes
-            // any prior rail. The old early-return on `.evidence-rail` made
-            // paper cards disappear ~50% of the time when flush() re-painted
-            // after finalizeStreamedBubble had already run.
             if (!messageBody) return;
             const prior = messageBody.querySelector('.evidence-rail');
             if (prior) {
                 try { prior.remove(); } catch (_) { /* ignore */ }
             }
-            const citations = getResponseCitations(metadata);
-            if (!citations.length) return;
-            const rail = document.createElement('section');
-            rail.className = 'evidence-rail';
-            rail.setAttribute('data-evidence-count', String(citations.length));
-            const heading = document.createElement('h4');
-            heading.className = 'evidence-heading';
-            heading.innerHTML = '<i class="fa-solid fa-book-open mr-1.5"></i>Resources';
-            rail.appendChild(heading);
-
-            citations.forEach(citation => {
-                if (!citation || typeof citation !== 'object') return;
-                const url = citationPageUrl(citation);
-                const card = url ? document.createElement('a') : document.createElement('div');
-                card.className = 'evidence-card citation-card' + (url ? '' : ' is-unavailable');
-                if (url) {
-                    card.href = url;
-                    card.target = '_blank';
-                    card.rel = 'noopener noreferrer';
-                    card.dataset.pageUrl = url;
-                    card.dataset.docId = String(citation.doc_id || citation.document_id || citation.source_id || '');
-                }
-                const title = document.createElement('span');
-                title.className = 'evidence-card__title';
-                const bookName = citation.title || citation.document_title || citation.document || citation.source_title || String(citation.doc_id || citation.document_id || citation.source_id || 'Unspecified source').replace(/^.*[\\/]/, '');
-                title.textContent = bookName;
-                title.title = bookName;
-                const meta = document.createElement('span');
-                meta.className = 'evidence-card__meta';
-                const marker = document.createElement('span');
-                marker.className = 'evidence-card__badge';
-                marker.textContent = citation.evidence_id || 'Evidence';
-                const page = document.createElement('span');
-                const pageNum = Number(citation.page_number || citation.page || 0);
-                const shelf = citation.shelf_location ? ` · 📍 ${citation.shelf_location}` : '';
-                const callNum = citation.call_number ? ` [${citation.call_number}]` : '';
-                const scope = citation.library_scope ? ` · 🏛️ ${citation.library_scope}` : '';
-                if (citation.available_copies != null || citation.total_copies != null || citation.is_reference != null) {
-                    const ref = citation.is_reference ? 'Reference' : 'Circulating';
-                    const avail = citation.available_copies != null ? citation.available_copies : '?';
-                    const total = citation.total_copies != null ? citation.total_copies : '?';
-                    page.textContent = `${ref} · ${avail}/${total} copies${shelf}${callNum}${scope} · simulated — check OPAC`;
-                } else {
-                    const pageText = citation.printed_page
-                        || (Number.isFinite(pageNum) && pageNum > 0 ? `PDF page ${pageNum}` : 'Page not reported');
-                    page.textContent = `${pageText}${shelf}${callNum}${scope}`;
-                }
-                const availability = document.createElement('span');
-                availability.className = 'evidence-card__availability' + (url ? '' : ' is-missing');
-                const hold = citation.availability ? String(citation.availability) : '';
-                if (hold) {
-                    availability.innerHTML = '<i class="fa-solid fa-book mr-1"></i>' + hold;
-                } else {
-                    availability.innerHTML = url ? '<i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>Page available' : '<i class="fa-solid fa-circle-minus mr-1"></i>Page link unavailable';
-                }
-                meta.append(marker, page, availability);
-                card.append(title, meta);
-                rail.appendChild(card);
-            });
-            // Only mount when at least one card was built (skip empty shells).
-            if (rail.querySelector('.evidence-card')) {
-                messageBody.appendChild(rail);
-            }
+            const citations = Array.isArray(metadata && metadata.citations) ? metadata.citations : [];
+            messageBody.setAttribute("data-evidence-count", String(citations.length));
+            // Standalone RESOURCES card removed — details shown directly in Inventory Table!
+            return;
         }
+
 
         function wrapLibraryInventorySection(messageBody, metadata) {
             if (!messageBody) return;
@@ -4541,7 +4657,9 @@ let conversationSessionId = null;
                     break;
                 }
                 const text = (tbl.textContent || '').toLowerCase();
-                if (text.includes('book') || text.includes('shelf') || text.includes('copies') || text.includes('library scope') || text.includes('status')) {
+                const contextText = [tbl.previousElementSibling, tbl.previousElementSibling && tbl.previousElementSibling.previousElementSibling]
+                    .filter(Boolean).map(el => (el.textContent || '').toLowerCase()).join(' ');
+                if (contextText.includes('koha catalogue matches') && text.includes('copies')) {
                     inventoryTable = tbl;
                     break;
                 }
@@ -4551,7 +4669,7 @@ let conversationSessionId = null;
             const headings = Array.from(messageBody.querySelectorAll('h3, h4'));
             let holdingsHeading = null;
             for (const h of headings) {
-                if (/Library holdings/i.test(h.textContent)) {
+                if (/Koha catalogue matches/i.test(h.textContent)) {
                     holdingsHeading = h;
                     break;
                 }
@@ -4575,10 +4693,10 @@ let conversationSessionId = null;
                 container.innerHTML = `
                     <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
                         <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
-                            <i class="fa-solid fa-book-bookmark text-sky-400"></i> Institutional Library Inventory
+                            <i class="fa-solid fa-book-bookmark text-sky-400"></i> Koha Catalogue Matches
                         </span>
                         <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> OPAC Linked
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Export snapshot
                         </span>
                     </div>
                 `;
@@ -4593,19 +4711,20 @@ let conversationSessionId = null;
             } else if (!inventoryTable && !container && metadata) {
                 // Synthesize inventory table from metadata citations/books if not present in markdown prose
                 const citations = getResponseCitations(metadata);
-                if (citations && citations.length) {
+                const verifiedHoldings = (citations || []).filter(c => c.koha_record_verified === true && c.total_copies != null && c.available_copies != null);
+                if (verifiedHoldings.length) {
                     container = document.createElement('section');
                     container.className = 'library-inventory-section';
                     container.innerHTML = `
                         <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
                             <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
-                                <i class="fa-solid fa-book-bookmark text-sky-400"></i> Institutional Library Inventory
+                            <i class="fa-solid fa-book-bookmark text-sky-400"></i> Koha Catalogue Matches
                             </span>
                             <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> OPAC Linked
-                            </span>
-                        </div>
-                        <h4 class="text-xs text-gray-400 mb-2 font-medium italic">⚠️ Simulated inventory — check OPAC for live availability</h4>
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Export snapshot
+                        </span>
+                    </div>
+                        <h4 class="text-xs text-gray-400 mb-2 font-medium italic">Koha export snapshot — check the OPAC for live circulation status.</h4>
                     `;
                     const scrollWrap = document.createElement('div');
                     scrollWrap.className = 'inventory-table-wrap overflow-x-auto w-full';
@@ -4615,47 +4734,38 @@ let conversationSessionId = null;
                         <thead>
                             <tr class="border-b border-sky-500/30 text-sky-400">
                                 <th class="py-2 px-3">Book / Resource</th>
-                                <th class="py-2 px-3">Call #</th>
-                                <th class="py-2 px-3">Shelf Location</th>
-                                <th class="py-2 px-3">Library Scope</th>
+                                <th class="py-2 px-3">Accession</th>
                                 <th class="py-2 px-3 text-right">Copies</th>
                                 <th class="py-2 px-3 text-right">Avail</th>
-                                <th class="py-2 px-3">Status</th>
                                 <th class="py-2 px-3 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${citations.map(c => {
+                            ${verifiedHoldings.map((c, i) => {
                                 const title = c.title || c.document_title || c.doc_id || 'Resource';
-                                const callNum = c.call_number || 'QA76.00 C67';
-                                const shelf = c.shelf_location || 'CORPUS-01';
-                                const scope = c.library_scope || (c.is_reference ? 'Central Library · Reference Section' : 'Central Library · Main Stack');
-                                const total = c.total_copies != null ? c.total_copies : 4;
-                                const avail = c.available_copies != null ? c.available_copies : 3;
-                                const isRef = !!c.is_reference;
-                                const status = isRef ? 'Available (Reference)' : 'Available (Circulating)';
+                                const accession = c.accession || '—';
+                                const total = c.total_copies;
+                                const avail = c.available_copies;
                                 const url = citationPageUrl(c);
-                                const pageNum = c.page_number || 1;
+                                const pageNum = c.page_number || c.page || 1;
+                                const badgeStr = c.evidence_id || `S${i+1}`;
                                 return `
-                                    <tr class="border-b border-white/5 hover:bg-sky-500/5 transition-colors">
-                                        <td class="py-2.5 px-3 font-semibold text-gray-200">${escapeHTML(title)}</td>
-                                        <td class="py-2.5 px-3 font-mono text-[11px] text-sky-300">${escapeHTML(callNum)}</td>
-                                        <td class="py-2.5 px-3 text-gray-300">${escapeHTML(shelf)}</td>
-                                        <td class="py-2.5 px-3 text-gray-300">${escapeHTML(scope)}</td>
+                                    <tr class="glass-card hover:border-sky-400/50 hover:scale-[1.01] transition-all duration-200 border border-white/10 rounded-xl my-1.5 p-3 flex flex-col md:table-row gap-2">
+                                        <td class="py-2.5 px-3 font-semibold text-gray-200">
+                                            <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 mr-1.5">${escapeHTML(badgeStr)}</span>
+                                            ${escapeHTML(title)}
+                                        </td>
+                                        <td class="py-2.5 px-3 font-mono text-[11px] text-sky-300">${escapeHTML(accession)}</td>
                                         <td class="py-2.5 px-3 text-right text-gray-400">${total}</td>
                                         <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${avail}</td>
-                                        <td class="py-2.5 px-3">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${isRef ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">
-                                                ${status}
-                                            </span>
-                                        </td>
                                         <td class="py-2.5 px-3 text-center">
-                                            ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 hover:text-white border border-sky-500/40 text-[11px] font-medium transition-all">p.${pageNum} ↗</a>` : '<span class="text-gray-500 text-[11px]">—</span>'}
+                                            ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/30 text-indigo-200 hover:bg-indigo-600 hover:text-white border border-indigo-500/40 text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95">p. ${pageNum} ↗</a>` : '<span class="text-gray-500 text-[11px]">—</span>'}
                                         </td>
                                     </tr>
                                 `;
                             }).join('')}
                         </tbody>
+
                     `;
                     scrollWrap.appendChild(tbl);
                     container.appendChild(scrollWrap);
@@ -5227,6 +5337,9 @@ function displayBooks() {
             // Only attach a PDF path when it looks like a real file (avoids broken iframe for empty catalog stubs)
             const hasPdf = !!(doc.pdf && /\.(pdf|md)$/i.test(doc.pdf));
             btn.onclick = () => openBookOrUnavailable({
+                id: doc.id,
+                book_id: doc.id,
+                isbn: doc.isbn,
                 title: doc.title,
                 authors: doc.authors || 'Corpus Document',
                 type: doc.cat || 'paper',
@@ -5374,8 +5487,13 @@ function resolveLibraryReaderLink(book) {
 }
 
 function openBookOrUnavailable(book) {
-    // Stack-of-Books: always route to Library details reader (#book-reader) so the
-    // student lands on the same PDF pane as /library — exact book and page.
+    // Direct launch to external Pearson or HuggingFace dataset PDF (NOWHERE ELSE!)
+    const directUrl = citationPageUrl(book);
+    if (directUrl) {
+        if (directUrl.includes('pearson.com')) copyPearsonCreds();
+        window.open(directUrl, '_blank', 'noopener,noreferrer');
+        return;
+    }
     const libraryHref = resolveLibraryReaderLink(book);
     if (libraryHref) {
         window.location.href = libraryHref;
@@ -6435,18 +6553,25 @@ currentMode = mode;
                             continue;
                         }
 
-                        // STREAM_DONE / CLEAN — final cleansed frame follows.
-                        awaitingFinalFrame = false;
+                        // STREAM_DONE / CLEAN announces the authoritative final frame.
+                        awaitingFinalFrame = true;
                         liveRewriteMode = false;
                         if (rest && rest.trim()) {
-                            // Full replacement: STREAM_DONE payload is authoritative.
-                            staticStreamBuffer = rest;
-                            rewriteBuffer = '';
-                            assistantText = rest;
-                            typewriter.update(rest, { instant: true });
+                            const currentDraft = staticStreamBuffer || rewriteBuffer || assistantText;
+                            if (_shouldReplaceFinal(rest, currentDraft) || !currentDraft) {
+                                staticStreamBuffer = rest;
+                                rewriteBuffer = "";
+                                assistantText = rest;
+                                typewriter.update(rest, { instant: true });
+                            }
+                            awaitingFinalFrame = false;
+                            rest = "";
+                            _finishStreamUi();
+                            break;
                         }
-                        rest = '';
-                        _finishStreamUi();
+                        // The final payload may arrive in the next network chunk.
+                        rest = "";
+                        break;
                     }
                 };
 
@@ -6924,9 +7049,9 @@ currentMode = mode;
             const pageNum = cit.page_number || 1;
             const section = cit.section_title || '';
             const topic = cit.topic || '';
-            const viewUrl = `${API_HOST}/api/page-view?doc_id=${encodeURIComponent(docId)}&page=${pageNum}${topic ? '&highlight=' + encodeURIComponent(topic) : ''}`;
+            const viewUrl = citationPageUrl(cit);
             const citationEl = document.createElement('a');
-            citationEl.href = viewUrl;
+            citationEl.href = viewUrl || '#';
             citationEl.target = '_blank';
             citationEl.rel = 'noopener noreferrer';
             citationEl.className = "flex flex-col p-3 rounded-lg bg-white/5 border border-white/5 hover:glass-glow hover:scale-[1.02] text-left transition-all duration-300 group";
@@ -7978,10 +8103,36 @@ currentMode = mode;
                 </div>
             `;
 
-            // Populate OKF Card Badges
+            // Compute effective prerequisites (do not leave empty if curriculum chain or defaults exist)
+            let effectivePrereqs = (prereqs && prereqs.length) ? prereqs.slice() : [];
+            if (!effectivePrereqs.length) {
+                const msgKey = cardId.replace('hgraph-', '');
+                const chain = (metadata && metadata.chain) || (window._adaptiveState && window._adaptiveState[msgKey] && window._adaptiveState[msgKey].chain) || [];
+                const anchorKey = _nodeId(anchor).toLowerCase();
+                const filteredChain = chain.filter(c => _nodeId(c).toLowerCase() !== anchorKey);
+                if (filteredChain.length) {
+                    effectivePrereqs = filteredChain.map(c => ({ id: _nodeId(c), name: _nodeLabel(c), difficulty: 'foundational' }));
+                } else {
+                    const canonMap = {
+                        'bert': ['transformer', 'attention_mechanism', 'neural_network'],
+                        'transformer': ['attention_mechanism', 'neural_network', 'matrix_multiplication'],
+                        'low_rank_adaptation': ['fine_tuning', 'transformer', 'linear_algebra'],
+                        'retrieval_augmented_generation': ['vector_database', 'transformer', 'dense_passage_retrieval'],
+                    };
+                    const defaults = canonMap[anchorKey] || ['neural_network', 'machine_learning'];
+                    effectivePrereqs = defaults.map(c => ({ id: c, name: c.replace(/_/g, ' ').toUpperCase(), difficulty: 'foundational' }));
+                }
+            }
+            prereqs = effectivePrereqs;
+
+            // Show ALL graph nodes (not restricted to slice(0, 3))
             const reqDiv = document.getElementById(`okf-card-req-${cardId}`);
             const unlDiv = document.getElementById(`okf-card-unl-${cardId}`);
             const conDiv = document.getElementById(`okf-card-con-${cardId}`);
+
+            const activePrereqs = (prereqs || []);
+            const activeUnlocks = (unlocks || []);
+            const activeRelated = (related || []);
 
             const makeCardBadge = (item, colorCls) => {
                 const span = document.createElement('span');
@@ -7995,19 +8146,20 @@ currentMode = mode;
 
             if (reqDiv) {
                 reqDiv.innerHTML = '';
-                if (prereqs.length) prereqs.forEach(p => reqDiv.appendChild(makeCardBadge(p, 'text-accentPurple border-accentPurple/40 bg-accentPurple/15 hover:bg-accentPurple/25')));
+                if (activePrereqs.length) activePrereqs.forEach(p => reqDiv.appendChild(makeCardBadge(p, 'text-accentPurple border-accentPurple/40 bg-accentPurple/15 hover:bg-accentPurple/25')));
                 else reqDiv.appendChild(emptyBadge());
             }
             if (unlDiv) {
                 unlDiv.innerHTML = '';
-                if (unlocks.length) unlocks.forEach(u => unlDiv.appendChild(makeCardBadge(u, 'text-emerald-300 border-emerald-400/40 bg-emerald-400/15 hover:bg-emerald-400/25')));
+                if (activeUnlocks.length) activeUnlocks.forEach(u => unlDiv.appendChild(makeCardBadge(u, 'text-emerald-300 border-emerald-400/40 bg-emerald-400/15 hover:bg-emerald-400/25')));
                 else unlDiv.appendChild(emptyBadge());
             }
             if (conDiv) {
                 conDiv.innerHTML = '';
-                if (related.length) related.forEach(r => conDiv.appendChild(makeCardBadge(r, 'text-cyan-300 border-cyan-400/40 bg-cyan-400/15 hover:bg-cyan-400/25')));
+                if (activeRelated.length) activeRelated.forEach(r => conDiv.appendChild(makeCardBadge(r, 'text-cyan-300 border-cyan-400/40 bg-cyan-400/15 hover:bg-cyan-400/25')));
                 else conDiv.appendChild(emptyBadge());
             }
+
 
             // Draw horizontal SVG map
             requestAnimationFrame(() => {
@@ -8895,6 +9047,43 @@ currentMode = mode;
 
                 svgElement.appendChild(g);
             });
+
+            // Synchronize OKF Key Relationship badges with ALL nodes displayed in the in-chat graph
+            const reqDiv = document.getElementById(`okf-card-req-${cardId}`);
+            const unlDiv = document.getElementById(`okf-card-unl-${cardId}`);
+            const conDiv = document.getElementById(`okf-card-con-${cardId}`);
+
+            const syncGraphBadges = (container, nodeList, colorCls) => {
+                if (!container) return;
+                container.innerHTML = '';
+                if (!nodeList.length) {
+                    const empty = document.createElement('span');
+                    empty.className = 'text-[10px] text-gray-500 italic';
+                    empty.textContent = 'None indexed';
+                    container.appendChild(empty);
+                    return;
+                }
+                const seen = new Set();
+                nodeList.forEach(n => {
+                    const label = n.label || _nodeLabel(n.data || n);
+                    if (!label || seen.has(label.toLowerCase())) return;
+                    seen.add(label.toLowerCase());
+                    const span = document.createElement('span');
+                    span.className = `px-2 py-1 rounded-lg border cursor-pointer hover:scale-105 transition-all text-[10px] font-bold ${colorCls}`;
+                    span.textContent = label;
+                    span.title = n.summary || _nodeSummary(n.data || n) || label;
+                    span.onclick = () => selectHorizontalNode(cardId, n.id, n.data || n, anchor, prereqs, unlocks, related);
+                    container.appendChild(span);
+                });
+            };
+
+            const graphPrereqs = nodes.filter(n => n.type === 'prereq');
+            const graphUnlocks = nodes.filter(n => n.type === 'unlock');
+            const graphRelated = nodes.filter(n => n.type === 'related');
+
+            syncGraphBadges(reqDiv, graphPrereqs, 'text-accentPurple border-accentPurple/40 bg-accentPurple/15 hover:bg-accentPurple/25');
+            syncGraphBadges(unlDiv, graphUnlocks, 'text-emerald-300 border-emerald-400/40 bg-emerald-400/15 hover:bg-emerald-400/25');
+            syncGraphBadges(conDiv, graphRelated, 'text-cyan-300 border-cyan-400/40 bg-cyan-400/15 hover:bg-cyan-400/25');
         }
         window.drawPersonalizedSVG = drawPersonalizedSVG;
 
@@ -9113,13 +9302,17 @@ currentMode = mode;
 
             let typeStr = 'Concept Node';
             let typeClass = 'bg-accentPurple/25 text-accentPurple border-accentPurple/40';
-            if (_nodeId(nodeData) === _nodeId(anchor) || label === _nodeLabel(anchor)) {
+            const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const targetNorm = norm(_nodeLabel(anchor) || _nodeId(anchor));
+            const curNorm = norm(label || nodeId);
+
+            if (curNorm === targetNorm || (nodeData && (nodeData.type === 'anchor' || nodeData.role === 'target'))) {
                 typeStr = 'Target Concept';
                 typeClass = 'bg-amber-400/25 text-amber-300 border-amber-400/40';
-            } else if (prereqs.some(p => _nodeId(p) === _nodeId(nodeData))) {
+            } else if ((nodeData && (nodeData.type === 'prereq' || nodeData.role === 'prereq' || nodeData.role === 'context')) || (prereqs && prereqs.some(p => norm(_nodeLabel(p) || _nodeId(p)) === curNorm))) {
                 typeStr = 'Prerequisite (Requires)';
                 typeClass = 'bg-accentPurple/25 text-accentPurple border-accentPurple/40';
-            } else if (unlocks.some(u => _nodeId(u) === _nodeId(nodeData))) {
+            } else if ((nodeData && (nodeData.type === 'unlock' || nodeData.role === 'unlock')) || (unlocks && unlocks.some(u => norm(_nodeLabel(u) || _nodeId(u)) === curNorm))) {
                 typeStr = 'Unlocks (Enables)';
                 typeClass = 'bg-emerald-400/25 text-emerald-300 border-emerald-400/40';
             } else {
@@ -9466,6 +9659,43 @@ currentMode = mode;
                 svgElement.appendChild(g);
             });
 
+            // Synchronize OKF Key Relationship badges with ALL nodes displayed in the in-chat graph
+            const reqDiv = document.getElementById(`okf-card-req-${cardId}`);
+            const unlDiv = document.getElementById(`okf-card-unl-${cardId}`);
+            const conDiv = document.getElementById(`okf-card-con-${cardId}`);
+
+            const syncGraphBadges = (container, nodeList, colorCls) => {
+                if (!container) return;
+                container.innerHTML = '';
+                if (!nodeList.length) {
+                    const empty = document.createElement('span');
+                    empty.className = 'text-[10px] text-gray-500 italic';
+                    empty.textContent = 'None indexed';
+                    container.appendChild(empty);
+                    return;
+                }
+                const seen = new Set();
+                nodeList.forEach(n => {
+                    const label = n.label || _nodeLabel(n.data || n);
+                    if (!label || seen.has(label.toLowerCase())) return;
+                    seen.add(label.toLowerCase());
+                    const span = document.createElement('span');
+                    span.className = `px-2 py-1 rounded-lg border cursor-pointer hover:scale-105 transition-all text-[10px] font-bold ${colorCls}`;
+                    span.textContent = label;
+                    span.title = n.summary || _nodeSummary(n.data || n) || label;
+                    span.onclick = () => selectHorizontalNode(cardId, n.id, n.data || n, anchor, effectivePrereqs, allUnlocks, allRelated);
+                    container.appendChild(span);
+                });
+            };
+
+            const graphPrereqs = nodes.filter(n => n.type === 'prereq');
+            const graphUnlocks = nodes.filter(n => n.type === 'unlock');
+            const graphRelated = nodes.filter(n => n.type === 'related');
+
+            syncGraphBadges(reqDiv, graphPrereqs, 'text-accentPurple border-accentPurple/40 bg-accentPurple/15 hover:bg-accentPurple/25');
+            syncGraphBadges(unlDiv, graphUnlocks, 'text-emerald-300 border-emerald-400/40 bg-emerald-400/15 hover:bg-emerald-400/25');
+            syncGraphBadges(conDiv, graphRelated, 'text-cyan-300 border-cyan-400/40 bg-cyan-400/15 hover:bg-cyan-400/25');
+
             // Auto-scroll container so that the Target Node is centered in view immediately
             setTimeout(() => {
                 const canvasContainer = document.getElementById(`hgraph-canvas-${cardId}`) || svgElement.parentElement;
@@ -9482,14 +9712,19 @@ currentMode = mode;
 
         // LocalStorage Chat History Management
         function _compactHistory(history) {
-            // Drop bulky citation/metadata payloads; keep role + short content only.
+            // Keep role, content, citations, and graph metadata so restored chats display concept graph
             const MAX_TURNS = 40;
             const MAX_CONTENT = 4000;
             const src = Array.isArray(history) ? history : [];
-            return src.slice(-MAX_TURNS).map((m) => ({
-                role: m.role,
-                content: String(m.content || '').slice(0, MAX_CONTENT),
-            }));
+            return src.slice(-MAX_TURNS).map((m) => {
+                const item = {
+                    role: m.role,
+                    content: String(m.content || '').slice(0, MAX_CONTENT),
+                };
+                if (m.citations) item.citations = m.citations;
+                if (m.metadata) item.metadata = m.metadata;
+                return item;
+            });
         }
 
         function _writeSessions(sessions) {
@@ -9630,7 +9865,13 @@ currentMode = mode;
             chatMsgs.innerHTML = '';
             
             chatHistory.forEach(msg => {
-                appendMessage(msg.role, msg.content, false, msg.citations || [], msg.metadata || null);
+                const msgId = appendMessage(msg.role, msg.content, false, msg.citations || [], msg.metadata || null);
+                if (msg.role === 'assistant') {
+                    const meta = msg.metadata || window._lastChatMetadata;
+                    if (meta && typeof renderGraphExperiencePrompt === 'function') {
+                        renderGraphExperiencePrompt(msgId, meta, { showPopup: false });
+                    }
+                }
             });
             document.querySelectorAll('.model-reply-status').forEach(el => {
                 el.classList.remove('is-visible');
@@ -9648,6 +9889,7 @@ currentMode = mode;
             
             renderChatHistory();
         }
+
 
         function deleteSession(id) {
             let sessions = [];
@@ -9902,36 +10144,73 @@ currentMode = mode;
             }
         }
 
-        // Global PDF / view-page / page-view link interceptor → deep-links to Library reader at exact page
+        // Global PDF / Pearson / HuggingFace link interceptor (Redirects exact pages ONLY to Pearson or HuggingFace)
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
             if (!link) return;
-            const href = (link.getAttribute('href') || '').trim();
+            let href = (link.getAttribute('href') || '').trim();
             if (!href) return;
+
+            // 1. Direct Pearson reader navigation with page
+            if (href.includes('pearson.com')) {
+                e.preventDefault();
+                e.stopPropagation();
+                copyPearsonCreds();
+                let targetUrl = href;
+                if (!targetUrl.includes('version=')) {
+                    targetUrl = targetUrl.replace(/\.html\?/, '.html?version=1.0.317.1&');
+                    if (!targetUrl.includes('version=')) {
+                        targetUrl = targetUrl.replace(/\.html/, '.html?version=1.0.317.1');
+                    }
+                }
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                return;
+            }
+
+            // 1b. Direct /open/ Pearson gateway navigation
+            if (href.startsWith('/open/') || href.includes('/open/')) {
+                e.preventDefault();
+                e.stopPropagation();
+                copyPearsonCreds();
+                window.open(href, '_blank', 'noopener,noreferrer');
+                return;
+            }
+
+            // 2. Direct HuggingFace PDF navigation with page
+            if (href.includes('huggingface.co')) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(href, '_blank', 'noopener,noreferrer');
+                return;
+            }
+
+            // 3. Any page-view / view-page link
             const isPageLink = href.includes('view-page') || href.includes('/api/page-view')
                 || href.includes('/pdfs/') || href.includes('#page=')
                 || link.classList.contains('curriculum-pdf-link')
                 || link.classList.contains('view-page-link')
                 || link.classList.contains('citation-card');
             if (!isPageLink) return;
+
+            if (link.dataset.openMode === 'library' || href.includes('open-in-library')) {
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
+
+            let doc_id = '', page = 1;
             try {
-                let doc_id = '', page = 1, highlight = '';
-                // Prefer data attributes when present
                 if (link.dataset.pageUrl) {
                     const u = new URL(link.dataset.pageUrl, window.location.origin);
                     doc_id = u.searchParams.get('doc_id') || u.searchParams.get('doc') || '';
                     page = parseInt(u.searchParams.get('page') || '1', 10);
-                    highlight = u.searchParams.get('highlight') || '';
                 } else if (href.includes('view-page') || href.includes('/api/page-view') || href.includes('?')) {
-                    // view-page?doc=... or /api/page-view?doc_id=... (relative or absolute)
                     const urlObj = new URL(href.includes('://') || href.startsWith('/') || href.startsWith('?') || href.startsWith('view-page')
                         ? (href.startsWith('view-page') ? (window.location.origin + '/' + href) : href)
                         : href, window.location.origin);
                     doc_id = urlObj.searchParams.get('doc_id') || urlObj.searchParams.get('doc') || '';
                     page = parseInt(urlObj.searchParams.get('page') || '1', 10);
-                    highlight = urlObj.searchParams.get('highlight') || '';
                 } else if (href.includes('#page=')) {
                     const parts = href.split('#page=');
                     doc_id = parts[0].replace(/.*\/pdfs\//, '').replace(/^\//, '');
@@ -9939,22 +10218,29 @@ currentMode = mode;
                 } else if (href.includes('/pdfs/')) {
                     doc_id = href.replace(/.*\/pdfs\//, '').split('#')[0].split('?')[0];
                 }
-                if (!doc_id && link.dataset.docId) doc_id = link.dataset.docId;
-                if (doc_id) {
-                    try { doc_id = decodeURIComponent(doc_id); } catch (_) { /* keep raw */ }
-                    const rawPdf = String(doc_id).split('#')[0].replace(/^\/+/, '').replace(/^pdfs\//i, '');
-                    const bookKey = rawPdf.split('/').pop().replace(/\.pdf$/i, '').toLowerCase();
-                    const params = new URLSearchParams();
-                    params.set('book', bookKey);
-                    if (rawPdf) params.set('pdf', rawPdf);
-                    if (page > 0) params.set('page', String(page));
-                    if (highlight) params.set('highlight', highlight);
-                    window.location.href = '/library?' + params.toString() + '#book-reader';
-                } else {
-                    console.warn('Page link missing doc id:', href);
-                }
-            } catch (err) {
-                console.error('PDF link intercept error:', err);
+            } catch (_) {}
+            if (!doc_id && link.dataset.docId) doc_id = link.dataset.docId;
+
+            // Direct Pearson match
+            const pEntry = typeof getPearsonBookEntry === 'function' ? getPearsonBookEntry(doc_id) : null;
+            if (pEntry) {
+                copyPearsonCreds();
+                const subId = pEntry.sub || 'debf3e10-c27c-469a-a2aa-8a30c919db91';
+                const bId = pEntry.id || '0fcd531f-3ba1-495e-9c9e-b43b034b88d9';
+                const bType = pEntry.type || 'pdf';
+                const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
+                const pagePart = `/page/${page || 1}`;
+                const pUrl = `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
+                window.open(pUrl, '_blank', 'noopener,noreferrer');
+                return;
+            }
+
+            const targetUrl = citationPageUrl({ doc_id: doc_id, page_number: page });
+            if (targetUrl) {
+                if (targetUrl.includes('pearson.com') || targetUrl.startsWith('/open/')) copyPearsonCreds();
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            } else {
+                window.open(href, '_blank', 'noopener,noreferrer');
             }
         });
 
@@ -10006,5 +10292,33 @@ currentMode = mode;
         })();
     </script>
     <script src="roadmap_quiz.js"></script>
+<script>
+/* Global click handler: badges → Pearson direct or internal reader */
+document.addEventListener('click', async (e) => {
+    const badge = e.target.closest('[data-doc-id][data-page]');
+    if (!badge) return;
+    e.preventDefault();
+    const doc_id = badge.dataset.docId;
+    const page = parseInt(badge.dataset.page, 10) || 1;
+
+    // Fast path: direct Pearson match
+    const pEntry = typeof getPearsonBookEntry === 'function' ? getPearsonBookEntry(doc_id) : null;
+    if (pEntry) {
+        copyPearsonCreds();
+        const subId = pEntry.sub || 'debf3e10-c27c-469a-a2aa-8a30c919db91';
+        const bId = pEntry.id || '0fcd531f-3ba1-495e-9c9e-b43b034b88d9';
+        const bType = pEntry.type || 'pdf';
+        const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
+        const pagePart = `/page/${page || 1}`;
+        const url = `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+    }
+
+    // Direct jump to internal PDF.js reader at exact page
+    const readerUrl = `/read?doc=${encodeURIComponent(doc_id)}&page=${page}`;
+    window.open(readerUrl, '_blank', 'noopener,noreferrer');
+});
+</script>
 </body>
 </html>

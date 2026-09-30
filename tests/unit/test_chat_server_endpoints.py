@@ -4,6 +4,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 from chat_server import ASSETS_DIR, _STREAM_CHUNK_BYTES, app
 
+pytestmark = pytest.mark.usefixtures("verified_student_auth")
+
 
 @pytest.mark.unit
 def test_chat_server_assets_exist():

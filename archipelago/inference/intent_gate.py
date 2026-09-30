@@ -17,6 +17,7 @@ INTENT_THEORY = "theory"                 # pedagogy / math / architecture in cor
 INTENT_IMPLEMENTATION = "implementation"  # code, deploy, install, tutorials, scripts
 INTENT_OUT_OF_DOMAIN = "out_of_domain"    # pop culture, recipes, politics, therapy
 INTENT_ENTITY_TRIVIA = "entity_trivia"    # company backends, costs, bios, awards
+INTENT_LIABILITY = "liability"            # emotional distress, personal advice, medical/legal/therapy
 INTENT_META = "meta"                      # system prompts, jailbreaks, token limits
 INTENT_SOCIAL = "social"                  # pure greetings / small talk
 
@@ -45,6 +46,9 @@ _PROTOTYPES: dict[str, list[str]] = {
         "Trace the learning path required to understand LoRA low-rank adaptation.", "According to the paper how is the rank decomposition matrix defined?",
         "What foundational math must I learn before studying transformers?", "What upstream math concepts are required before studying GraphRAG?",
         "How does the BERT paper theoretically describe the purpose of the CLS token?", "What is the mathematical definition of a Gaussian distribution in the textbook?",
+        "Explain database indexing and B-tree search theoretically.", "What is the role of an operating system kernel?",
+        "Explain TCP congestion control and network layers.", "What is Dijkstra's shortest path algorithm?",
+        "Explain probability theory and linear algebra for computer science.", "What is a compiler parsing algorithm?",
     ],
     INTENT_IMPLEMENTATION: [
         "Write a Python script to compute a Jacobian with PyTorch.", "Give me bash code to download pretrained model weights.",
@@ -55,6 +59,7 @@ _PROTOTYPES: dict[str, list[str]] = {
         "How do I configure and install dependencies for this project?", "Generate a shell script that downloads checkpoints and runs training.",
         "Write some pseudocode for the algorithm.", "Draft an academic email to the professor.",
         "Output the JSON configurations for the setup.", "Generate a SQL schema for the database.",
+        "hi i wanna build a sql table", "create table students in SQL", "build a sql table",
     ],
     INTENT_OUT_OF_DOMAIN: [
         "Summarize the plot of the movie The Matrix.", "What are the side effects of taking too much aspirin?",
@@ -102,15 +107,19 @@ def _ensure_proto_embeddings() -> dict[str, torch.Tensor] | None:
         return None
     from archipelago.inference.embeddings import get_snowflake_embedding
 
+    labels = list(_PROTOTYPES)
+    all_texts = [text for texts in _PROTOTYPES.values() for text in texts]
+    embedded = get_snowflake_embedding(all_texts)
+    if embedded is None or len(embedded) != len(all_texts):
+        return None
     out: dict[str, torch.Tensor] = {}
-    for label, texts in _PROTOTYPES.items():
-        vecs = []
-        for t in texts:
-            e = get_snowflake_embedding(t)
-            if e is None:
-                return None
-            vecs.append(e if isinstance(e, torch.Tensor) else torch.tensor(e))
-        stacked = torch.stack(vecs)
+    offset = 0
+    for label in labels:
+        count = len(_PROTOTYPES[label])
+        stacked = embedded[offset:offset + count]
+        offset += count
+        if not isinstance(stacked, torch.Tensor):
+            stacked = torch.as_tensor(stacked)
         stacked = F.normalize(stacked.float(), p=2, dim=1)
         out[label] = stacked
     _PROTO_EMB = out
@@ -183,13 +192,11 @@ def _score_lexical(query: str) -> dict[str, float]:
 
 
 def _llm_classify(query: str) -> str | None:
-    """Cheap multi-class zero-shot via Ollama. One token answer."""
+    """Cheap multi-class zero-shot via LLM Gateway. One token answer."""
     try:
-        import ollama
+        from archipelago.inference.llm_gateway import gateway_chat
 
-        client = ollama.Client(host="http://localhost:11434")
-        response = client.chat(
-            model=st.DEFAULT_OLLAMA_MODEL,
+        ans = gateway_chat(
             messages=[
                 {
                     "role": "system",
@@ -207,11 +214,12 @@ def _llm_classify(query: str) -> str | None:
                 },
                 {"role": "user", "content": query},
             ],
-            think=False,
-            keep_alive="30m",
-            options={"temperature": 0.0, "num_predict": 8, "num_ctx": 2048},
+            purpose="routing",
+            temperature=0.0,
+            max_tokens=8,
+            timeout=10,
         )
-        ans = ((response.get("message") or {}).get("content") or "").strip().lower()
+        ans = (ans or "").strip().lower()
         token = re.split(r"[\s,.\n!?;:]+", ans, maxsplit=1)[0] if ans else ""
         aliases = {
             "theory": INTENT_THEORY,
@@ -259,7 +267,8 @@ _PEDAGOGY_RE = re.compile(
     r"rank\s+decomposition|self-?attention|masked\s+language|"
     r"covariance\s+matrix|orthonormal|gaussian\s+distribution|"
     r"marginal\s+probability|maximum\s+likelihood|"
-    r"queries?,?\s+keys?,?\s+and\s+values?"
+    r"queries?,?\s+keys?,?\s+and\s+values?|"
+    r"implement\s+(?:lora|graphrag|transformer|attention)\b"
     r")\b"
     r")",
     re.I,
@@ -268,9 +277,10 @@ _PEDAGOGY_RE = re.compile(
 # Hard implementation surface signals (code/deploy) — scalable structure, not entity names
 _HARD_IMPL_RE = re.compile(
     r"(?:"
-    r"\b(?:write|generate|provide|give\s+me|draft|compose|outline|create)\b.{0,50}\b(?:script|code|dockerfile|scraper|"
-    r"function|program|query|pseudocode|pseudo-code|email|essay|letter|homework|draft|schema|config|tutorial|commands?)\b|"
-    r"\b(?:bash|shell|python|cypher|git)\s+(?:script|code|commands?)\b|"
+    r"\b(?:write|generate|provide|give\s+me|draft|compose|outline|create|build)\b.{0,50}\b(?:script|code|dockerfile|scraper|"
+    r"table|sql|database|function|program|query|pseudocode|pseudo-code|email|essay|letter|homework|draft|schema|config|tutorial|commands?)\b|"
+    r"\b(?:create|build)\s+(?:a\s+)?(?:sql\s+)?table\b|"
+    r"\b(?:bash|shell|python|cypher|git|sql)\s+(?:script|code|commands?|table)\b|"
     r"\bci/?cd\b|"
     r"\bcommands?\s+to\s+(?:start|run|launch|deploy|train)\b|"
     r"\b(?:dockerfile|docker\s+compose|docker\s+container|pip\s+install|apt-get)\b|"
@@ -352,7 +362,10 @@ def classify_intent(query: str, *, force_llm: bool = False) -> dict[str, Any]:
     celebrity_trivia = bool(re.search(
         r"\b(?:awards?\s+did|taylor\s+swift|personal\s+biograph|biographies?\s+of|"
         r"how\s+much\s+(?:money|did\s+it\s+cost)|corporate\s+role|"
-        r"engineering\s+team|ec2\s+instances?|leaderboard)\b",
+        r"engineering\s+team|ec2\s+instances?|leaderboard|"
+        r"internal\s+infrastructure|infrastructure\s+does\s+[A-Z]|"
+    r"specific\s+engineering\s+team|api.{0,30}(?:implement|backend)|"
+    r"(?:backend|infrastructure).{0,30}(?:company|organization))\b",
         q_raw, re.I,
     ))
 
@@ -370,10 +383,36 @@ def classify_intent(query: str, *, force_llm: bool = False) -> dict[str, Any]:
         method = f"{method}+celebrity_trivia"
 
     # Hard code/deploy surface → implementation even if embed is mushy
-    if hard_impl and not pedagogy:
+    if hard_impl:
         intent = INTENT_IMPLEMENTATION
         score = max(score, 0.6)
         method = f"{method}+hard_impl"
+
+    # ── Emotional / homework-distress short-circuit (before blend) ─────────
+    # Therapy-adjacent distress plus a study/homework cue → out_of_domain even
+    # when pedagogy surface form otherwise rescues it. "Why is calculus so hard?"
+    # and similar study-pain questions are counselor territory, not graphe theory.
+    _EMOTIONAL_HOMEWORK_OOD_RE = re.compile(
+        r"\b(?:"
+        r"crying|sob|bawl|bawling|weep|weeping|tears?|break.?down|break.?ing\s+down|"
+        r"frustrat(e|ed|ion|\s+and.*cry)\b|"
+        r"anxiety|anxious|panic|overwhelm|exhaust(ed|e)?d\s+by\s+study|"
+        r"help\s+me\s+.{0,20}(?:homework|assignment|exam|test|quiz|grade|study|math)\b|"
+        r"why\s+is\s+(?:this|calculus|math|algebra|statistics|physics|chemistry|biology|organic|gen)\b|"
+        r"i\s+(?:can'?t?|can'?t|unable\s+to|cannot)\s+(?:get|understand|do|finish|study)\b|"
+        r"i\s+don'?t\s+(?:get|understand|get\s+it|cope|do)\b|"
+        r"please\s+comfort|please\s+help|please\s+tell\s+me\s+what\s+to\s+do|"
+        r"i'?m\s+so\s+(?:sad|stressed|overwhelmed|scared|frustrat|anxious|hurt)\b"
+        r")\b"
+    )
+    if _EMOTIONAL_HOMEWORK_OOD_RE.search(q_raw):
+        return {
+            "intent": INTENT_OUT_OF_DOMAIN,
+            "score": 0.9,
+            "margin": 0.5,
+            "method": "emotional_homework_ood",
+            "scores": {k: float(v) for k, v in scores.items()},
+        }
 
     # Short pure greetings: trust social prototype, never LLM-override to theory
     if (
@@ -482,11 +521,14 @@ def intent_to_block_reason(intent: str, score: float) -> str | None:
         INTENT_META,
         INTENT_ENTITY_TRIVIA,
         INTENT_OUT_OF_DOMAIN,
+        INTENT_LIABILITY,
     ):
         return None
     if intent == INTENT_IMPLEMENTATION:
         return REASON_IMPLEMENTATION
     if intent == INTENT_ENTITY_TRIVIA:
+        return REASON_NOT_IN_CORPUS
+    if intent == INTENT_LIABILITY:
         return REASON_NOT_IN_CORPUS
     if intent == INTENT_OUT_OF_DOMAIN:
         return REASON_OUT_OF_SCOPE

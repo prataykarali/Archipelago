@@ -71,9 +71,14 @@ def test_llm_scope_with_mock(monkeypatch):
             ans = "no" if "star" in content or "astron" in content else "yes"
             return {"message": {"content": ans}}
 
-    import ollama
-
-    monkeypatch.setattr(ollama, "Client", MockClient)
+    from archipelago.inference import llm_gateway
+    monkeypatch.setattr(
+        llm_gateway,
+        "gateway_chat",
+        lambda messages, **_kwargs: MockClient().chat(
+            "", messages
+        )["message"]["content"],
+    )
     assert check_aiml_scope_via_llm("suggest books about stars") is False
     assert check_aiml_scope_via_llm("suggest books about fine-tuning") is True
     # cache hit
@@ -115,9 +120,14 @@ def test_routing_library_and_oos(monkeypatch):
             ans = "no" if any(x in content for x in ("star", "astron", "weather")) else "yes"
             return {"message": {"content": ans}}
 
-    import ollama
-
-    monkeypatch.setattr(ollama, "Client", MockClient)
+    from archipelago.inference import llm_gateway
+    monkeypatch.setattr(
+        llm_gateway,
+        "gateway_chat",
+        lambda messages, **_kwargs: MockClient().chat(
+            "", messages
+        )["message"]["content"],
+    )
 
     r = resolve_query_routing("suggest me top 5 books for the topic: fine-tuning")
     assert r["route"] == "library_books"

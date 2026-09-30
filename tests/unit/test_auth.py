@@ -29,19 +29,20 @@ def client(monkeypatch):
     return app.test_client()
 
 
-def test_no_token_env_open_access(client, monkeypatch):
+def test_no_token_env_still_requires_supabase_session(client, monkeypatch):
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.delenv("ARCHIPELAGO_TOKEN", raising=False)
     monkeypatch.delenv("ARCHIPELAGO_LIBRARIAN_TOKEN", raising=False)
     resp = client.post("/protected")
-    assert resp.status_code == 200
-    assert resp.get_json() == {"ok": True}
+    assert resp.status_code == 401
 
 
-def test_empty_token_env_open_access(client, monkeypatch):
+def test_empty_token_env_still_requires_supabase_session(client, monkeypatch):
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.setenv("ARCHIPELAGO_TOKEN", "")
     monkeypatch.delenv("ARCHIPELAGO_LIBRARIAN_TOKEN", raising=False)
     resp = client.post("/protected")
-    assert resp.status_code == 200
+    assert resp.status_code == 401
 
 
 def test_token_set_missing_header_401(client, monkeypatch):
@@ -86,12 +87,12 @@ def test_librarian_token_preferred(client, monkeypatch):
     assert resp3.status_code == 200
 
 
-def test_student_chat_open_even_with_librarian_token(client, monkeypatch):
+def test_chat_requires_verified_session_even_with_librarian_token(client, monkeypatch):
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.setenv("ARCHIPELAGO_LIBRARIAN_TOKEN", "lib-secret")
-    # Chat must never require librarian credentials
+    # A staff service token is not a substitute for a verified user session.
     resp = client.post("/chat")
-    assert resp.status_code == 200
-    assert resp.get_json()["role"] == "student"
+    assert resp.status_code == 401
 
 
 def test_wraps_preserves_function_name():

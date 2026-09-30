@@ -60,8 +60,8 @@ def test_ollama_unavailable_raises_runtime_error(monkeypatch):
     def _fail(*_a, **_k):
         raise RuntimeError("Ollama unavailable: connection refused")
 
-    monkeypatch.setattr(synth.ollama.Client, "chat", _fail)
-    with pytest.raises(RuntimeError, match="Ollama unavailable"):
+    monkeypatch.setattr(synth, "gateway_chat_stream", _fail)
+    with pytest.raises(RuntimeError, match="LLM unavailable"):
         synth.synthesize_with_ollama_streaming(
             "LoRA notes [S1]",
             fallback_text="LoRA freezes base weights.",
@@ -72,16 +72,10 @@ def test_empty_model_output_raises_runtime_error(monkeypatch):
     """Empty Ollama output raises RuntimeError (caller handles fallback)."""
     import archipelago.inference.synthesis as synth
 
-    class _FakeMsg:
-        content = ""
-
-    class _FakeChunk:
-        message = _FakeMsg()
-
     def _empty_stream(*_a, **_k):
-        return iter([_FakeChunk()])
+        return iter([""])
 
-    monkeypatch.setattr(synth.ollama.Client, "chat", _empty_stream)
+    monkeypatch.setattr(synth, "gateway_chat_stream", _empty_stream)
     with pytest.raises(RuntimeError, match="Empty response"):
         synth.synthesize_with_ollama_streaming("LoRA notes [S1]")
 

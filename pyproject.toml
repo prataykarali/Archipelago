@@ -66,6 +66,7 @@ mypy_path = "."
 
 [[tool.mypy.overrides]]
 module = [
+    "google.generativeai.*",
     "kuzu.*",
     "ollama.*",
     "fitz.*",

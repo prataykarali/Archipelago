@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — Archipelago</title>
+  <style>
+    body { align-items: center; background: #090514; color: #f8fafc; display: flex; font: 15px system-ui, -apple-system, sans-serif; justify-content: center; margin: 0; min-height: 100vh; }
+    main { background: #171126; border: 1px solid #43345f; border-radius: 20px; max-width: 400px; padding: 32px; width: calc(100% - 40px); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+    h1 { margin: 0 0 6px; font-size: 24px; font-weight: 700; }
+    label, input, select, button { box-sizing: border-box; display: block; width: 100%; }
+    label { margin: 14px 0 6px; font-size: 13px; font-weight: 500; color: #cbd5e1; }
+    input, select { background: #0d0a16; border: 1px solid #67518b; border-radius: 10px; color: inherit; padding: 11px 14px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus { border-color: #a78bfa; }
+    button.submit-btn { background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: 0; border-radius: 10px; color: #fff; cursor: pointer; font-weight: 700; margin-top: 20px; padding: 12px; font-size: 14px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35); transition: opacity 0.2s, transform 0.1s; }
+    button.submit-btn:hover { opacity: 0.95; }
+    button.submit-btn:active { transform: scale(0.99); }
+    button.submit-btn:disabled { cursor: wait; opacity: 0.65; }
+    #message { color: #fda4af; font-size: 13px; min-height: 20px; margin-top: 10px; text-align: center; line-height: 1.4; }
+    .hint { color: #94a3b8; font-size: 0.85rem; line-height: 1.4; margin-bottom: 8px; }
+  </style>
+  <script type="module" src="/auth_bridge.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Welcome to Archipelago</h1>
+    <p class="hint">Sign in with the username and password assigned to your account.</p>
+    <form id="login-form">
+      <label for="role">Account type</label>
+      <select id="role" required>
+        <option value="student" selected>Student</option>
+        <option value="faculty">Faculty</option>
+        <option value="librarian">Librarian</option>
+        <option value="administrator">Administrator</option>
+      </select>
+      <label for="username">Username / enrollment number</label>
+      <input id="username" autocomplete="username" maxlength="64" placeholder="Username or enrollment number" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+      <div id="message" role="status" aria-live="polite"></div>
+      <button type="submit" class="submit-btn">Sign in</button>
+    </form>
+  </main>
+
+  <script type="module">
+    const EMAIL_DOMAIN = ".iem.archipelago.invalid";
+    const USERNAME_PATTERN = /^[A-Za-z0-9._-]{3,64}$/;
+    const form = document.querySelector("#login-form");
+    const message = document.querySelector("#message");
+    const roleSelect = document.querySelector("#role");
+    const usernameInput = document.querySelector("#username");
+    const passwordInput = document.querySelector("#password");
+    const submitBtn = form.querySelector("button[type='submit']");
+    const requestedNext = new URLSearchParams(window.location.search).get("next") || "/chat";
+
+    function accountEmail(username, role) {
+      return `${username.trim().toLowerCase()}@${role}${EMAIL_DOMAIN}`;
+    }
+
+    function destinationForRole(role, config) {
+      const fallback = new URL("/chat", window.location.origin);
+      let target;
+      try {
+        target = new URL(requestedNext, window.location.origin);
+      } catch (_) {
+        return fallback.href;
+      }
+
+      const graphUrl = config.graphUrl ? new URL(config.graphUrl) : null;
+      if (graphUrl && target.origin === graphUrl.origin) {
+        return ["librarian", "administrator"].includes(role) ? target.href : fallback.href;
+      }
+      if (target.origin !== window.location.origin || target.pathname.startsWith("/login")) {
+        return fallback.href;
+      }
+
+      const allowedPrefixes = ["/chat", "/library", "/read", "/open", "/reader.html"];
+      const isAllowed = allowedPrefixes.some(prefix => target.pathname.startsWith(prefix));
+      if (!isAllowed) {
+        return fallback.href;
+      }
+      return target.href;
+    }
+
+    async function establishBrowserSession(session) {
+      const response = await fetch("/api/auth/session", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload.authenticated !== true) {
+        throw new Error(payload.detail || "Could not establish a verified session.");
+      }
+      return payload;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.textContent = "";
+      const role = roleSelect.value;
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+      if (!USERNAME_PATTERN.test(username)) {
+        message.textContent = "Username must be between 3 and 64 characters.";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = "Signing in…";
+      try {
+        const { config, supabase } = await window.archipelagoAuthReady;
+        if (!config?.configured || !supabase) {
+          throw new Error("Sign-in is unavailable: configure Supabase Auth for this deployment.");
+        }
+        const rolesToTry = [role, "student", "faculty", "librarian", "administrator"]
+          .filter((candidate, index, roles) => roles.indexOf(candidate) === index);
+        let session = null;
+        let authError = null;
+        for (const candidateRole of rolesToTry) {
+          const result = await supabase.auth.signInWithPassword({
+            email: accountEmail(username, candidateRole),
+            password,
+          });
+          if (result.data?.session) {
+            session = result.data.session;
+            break;
+          }
+          authError = result.error;
+        }
+        if (!session) {
+          throw new Error(authError?.message || "Invalid username or password.");
+        }
+
+        const verified = await establishBrowserSession(session);
+        window.location.replace(destinationForRole(verified.role, config));
+      } catch (error) {
+        message.textContent = error?.message || "Sign-in failed. Please try again.";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  </script>
+</body>
+</html>

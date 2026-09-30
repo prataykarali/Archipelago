@@ -19,6 +19,8 @@ from archipelago.inference.routes_misc import resolve_pdf_file
 from evaluate_pdf_catalog import evaluate_pdf_catalog, KNOWN_METADATA
 from catalog_ranking import rank_documents, format_ranking_response
 
+pytestmark = pytest.mark.usefixtures("verified_student_auth")
+
 
 def test_pdf_catalog_evaluation_and_ranking():
     """Verify that all 55+ PDFs are evaluated and ranked accurately."""
@@ -94,11 +96,11 @@ def test_chat_input_guardrails():
         r_short = c.post("/api/chat", json={"query": "a"})
         assert r_short.status_code == 400
 
-        # Test query > 1000 chars
+        # Test query exceeding max limit
         long_q = "What is RAG? " * 100
         r_long = c.post("/api/chat", json={"query": long_q})
         assert r_long.status_code == 400
-        assert "1000" in r_long.get_json()["error"]
+        assert any(lim in r_long.get_json()["error"] for lim in ("500", "1000"))
 
 
 def test_pdf_resolution_and_streaming():

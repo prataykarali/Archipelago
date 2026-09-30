@@ -48,7 +48,7 @@ E_RESOURCE_CREDENTIALS: dict[str, dict[str, Any]] = {
         "access": "Student / Faculty Credentials",
         "website": "https://uemk-opac.l2c2.co.in",
         "note": (
-            "Sign in with your Emp. ID (faculty) or Enrollment No. (students). "
+            "Sign in with your Emp ID (faculty) or Enrollment No (students). "
             "Password reset and account activation happen at the Central Library desk."
         ),
     },
@@ -388,27 +388,55 @@ _RESOURCE_NAME_PATTERN = re.compile(
 
 
 def detect_credentials_query(query: str) -> dict | None:
-    """Check if a user query is asking about e-resource credentials.
+    """Check if a user query is asking about e-resource credentials, physical
+    membership card counts, or library portal access/details.
 
     Returns a routing dict ``{"route": "library_credentials", "resource_key",
     "raw_query"}`` or None. Resource matching is by name/alias only — no
     e-mail or passkey matching is done anymore (secrets no longer live in
-    this module).
+    this module). British Council / American Library physical card count queries
+    are in scope because the card counts (`card_count` field) are public,
+    non-secret metadata that students are entitled to know.
     """
     if not query:
         return None
 
     q_lower = query.lower().strip()
 
-    if not _CREDENTIALS_KEYWORDS.search(q_lower) and not re.search(
-        r"\b(login|credential|password|username|id|passkey)\b", q_lower
+    # Physical membership card counts are public metadata — treat them as
+    # library_credentials (they have the `card_count` field that formatters
+    # render as "Available Cards").
+    if (
+        "british" in q_lower and "council" in q_lower
+        or "american" in q_lower and "library" in q_lower
     ):
-        return None
+        for resource_key, aliases_iter in _RESOURCE_ALIASES.items():
+            if any(alias in q_lower for alias in aliases_iter):
+                return {
+                    "route": "library_credentials",
+                    "resource_key": resource_key,
+                    "raw_query": query,
+                }
+
+    # Broad library portal / OPAC access queries without a named resource are
+    # still library_credentials intent (e.g. "how do I access the OPAC").
+    if re.search(
+        r"\b(?:library\s+portal|opac|digital\s+library\s+access|digital\s+ezine|institutional\s+portal)\b",
+        q_lower,
+    ):
+        for resource_key, aliases_iter in _RESOURCE_ALIASES.items():
+            if any(alias in q_lower for alias in aliases_iter):
+                return {
+                    "route": "library_credentials",
+                    "resource_key": resource_key,
+                    "raw_query": query,
+                }
 
     resource_match = _RESOURCE_NAME_PATTERN.search(q_lower)
     if not resource_match:
-        for resource_key, aliases in _RESOURCE_ALIASES.items():
-            for alias in aliases:
+        # Try alias substrings as a fallback for "scopus or science direct"
+        for resource_key, aliases_iter in _RESOURCE_ALIASES.items():
+            for alias in aliases_iter:
                 if alias in q_lower:
                     return {
                         "route": "library_credentials",
@@ -418,8 +446,8 @@ def detect_credentials_query(query: str) -> dict | None:
         return None
 
     matched_text = resource_match.group(1).lower()
-    for resource_key, aliases in _RESOURCE_ALIASES.items():
-        for alias in aliases:
+    for resource_key, aliases_iter in _RESOURCE_ALIASES.items():
+        for alias in aliases_iter:
             if matched_text in alias or alias in matched_text:
                 return {
                     "route": "library_credentials",

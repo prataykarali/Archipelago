@@ -7,11 +7,11 @@ _MIN_INLINE_CITATIONS_REQUESTED: int = 3
 
 REPLY_STYLES: list[str] = [
     "Be concise and precise.",
-    "Use bullet points where helpful.",
+    "Separate major sections with a divider.",
     "Start with the most important fact.",
     "Explain like the student is new to the topic.",
     "Give a one-sentence summary first, then details.",
-    "Use numbered steps for procedural answers.",
+    "Use bullet points formed with dashes to group related details.",
     "Highlight key terms in bold.",
     "Prefer short paragraphs over long walls of text.",
     "Use analogies to clarify abstract ideas.",
@@ -60,7 +60,7 @@ REPLY_STYLES: list[str] = [
     "Distinguish between theory and practice.",
     "Keep technical depth proportional to the question.",
     "Use 'in other words' to rephrase complex points.",
-    "Mention at least one authoritative source.",
+    "Use evidence from the provided context.",
     "Adapt vocabulary to an undergraduate CS level.",
     "Explain the intuition, then the mechanics.",
     "Flag any prerequisites the student should review.",
@@ -102,7 +102,7 @@ REPLY_STYLES: list[str] = [
     "Organise from general to specific.",
     "Use hedging language for uncertain claims.",
     "Provide a brief sanity check or intuition pump.",
-    "Flag when two sources disagree.",
+    "Flag conflicting evidence.",
     "Recommend a hands-on exercise if appropriate.",
     "Use progressive disclosure: basics first, depth on request.",
     "Adapt detail level to whether the student is exploring or revising.",
@@ -143,6 +143,6 @@ def style_instruction(query: str) -> str:
         f"Be CONCISE (about 90–220 words). "
         f"Cite sources using bare [S#] markers — at least {_MIN_INLINE_CITATIONS_REQUESTED}, "
         f"at most {_MAX_INLINE_CITATIONS_REQUESTED} inline markers from different [S#] evidence IDs. "
-        f"Never invent pages or a Sources dump. "
+        f"Never add a Sources section or invent pages. "
         f"Never print style labels or control tokens."
     )

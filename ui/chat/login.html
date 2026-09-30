@@ -5,64 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sign in — Archipelago</title>
   <style>
-    body {
-      align-items: center;
-      background: #090514;
-      color: #f8fafc;
-      display: flex;
-      font: 15px system-ui, -apple-system, sans-serif;
-      justify-content: center;
-      margin: 0;
-      min-height: 100vh;
-    }
-    main {
-      background: #171126;
-      border: 1px solid #43345f;
-      border-radius: 20px;
-      max-width: 400px;
-      padding: 32px;
-      width: calc(100% - 40px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-    }
-    h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 700; }
+    body { align-items: center; background: #090514; color: #f8fafc; display: flex; font: 15px system-ui, -apple-system, sans-serif; justify-content: center; margin: 0; min-height: 100vh; }
+    main { background: #171126; border: 1px solid #43345f; border-radius: 20px; max-width: 400px; padding: 32px; width: calc(100% - 40px); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+    h1 { margin: 0 0 6px; font-size: 24px; font-weight: 700; }
     label, input, select, button { box-sizing: border-box; display: block; width: 100%; }
     label { margin: 14px 0 6px; font-size: 13px; font-weight: 500; color: #cbd5e1; }
-    input, select {
-      background: #0d0a16;
-      border: 1px solid #67518b;
-      border-radius: 10px;
-      color: inherit;
-      padding: 11px 14px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input:focus, select:focus {
-      border-color: #a78bfa;
-    }
-    button.submit-btn {
-      background: linear-gradient(135deg, #a78bfa, #8b5cf6);
-      border: 0;
-      border-radius: 10px;
-      color: #ffffff;
-      cursor: pointer;
-      font-weight: 700;
-      margin-top: 20px;
-      padding: 12px;
-      font-size: 14px;
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35);
-      transition: opacity 0.2s, transform 0.1s;
-    }
+    input, select { background: #0d0a16; border: 1px solid #67518b; border-radius: 10px; color: inherit; padding: 11px 14px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus { border-color: #a78bfa; }
+    button.submit-btn { background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: 0; border-radius: 10px; color: #fff; cursor: pointer; font-weight: 700; margin-top: 20px; padding: 12px; font-size: 14px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35); transition: opacity 0.2s, transform 0.1s; }
     button.submit-btn:hover { opacity: 0.95; }
     button.submit-btn:active { transform: scale(0.99); }
-    #message {
-      color: #fda4af;
-      font-size: 13px;
-      min-height: 20px;
-      margin-top: 10px;
-      text-align: center;
-      line-height: 1.4;
-    }
+    button.submit-btn:disabled { cursor: wait; opacity: 0.65; }
+    #message { color: #fda4af; font-size: 13px; min-height: 20px; margin-top: 10px; text-align: center; line-height: 1.4; }
     .hint { color: #94a3b8; font-size: 0.85rem; line-height: 1.4; margin-bottom: 8px; }
   </style>
   <script type="module" src="/auth_bridge.js"></script>
@@ -70,40 +24,26 @@
 <body>
   <main>
     <h1>Welcome to Archipelago</h1>
-    <p class="hint">Students use their enrollment number. Staff use assigned username.</p>
-
+    <p class="hint">Sign in with the username and password assigned to your account.</p>
     <form id="login-form">
       <label for="role">Account type</label>
       <select id="role" required>
-        <option value="student">Student</option>
+        <option value="student" selected>Student</option>
+        <option value="faculty">Faculty</option>
         <option value="librarian">Librarian</option>
         <option value="administrator">Administrator</option>
       </select>
-
       <label for="username">Username / enrollment number</label>
-      <input id="username" autocomplete="username" maxlength="64" placeholder="e.g. 12024002028038 or librarian" required>
-
+      <input id="username" autocomplete="username" maxlength="64" placeholder="Username or enrollment number" required>
       <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password" placeholder="••••••••••••" required>
-
-      <div id="message"></div>
-
+      <input id="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+      <div id="message" role="status" aria-live="polite"></div>
       <button type="submit" class="submit-btn">Sign in</button>
-
-      <!-- 1-Click Demo Accounts -->
-      <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-        <p class="hint" style="margin-bottom: 8px; font-weight: 600; font-size: 0.8rem; color: #a78bfa;">⚡ 1-Click Verified Demo Sign In:</p>
-        <div style="display: flex; gap: 8px;">
-          <button type="button" id="btn-demo-student" style="flex: 1; padding: 7px 4px; font-size: 11px; font-weight: 600; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer;">Student</button>
-          <button type="button" id="btn-demo-librarian" style="flex: 1; padding: 7px 4px; font-size: 11px; font-weight: 600; background: #059669; color: white; border: none; border-radius: 8px; cursor: pointer;">Librarian</button>
-          <button type="button" id="btn-demo-admin" style="flex: 1; padding: 7px 4px; font-size: 11px; font-weight: 600; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer;">Admin</button>
-        </div>
-      </div>
     </form>
   </main>
 
   <script type="module">
-    const EMAIL_SUFFIX = ".iem.archipelago.invalid";
+    const EMAIL_DOMAIN = ".iem.archipelago.invalid";
     const USERNAME_PATTERN = /^[A-Za-z0-9._-]{3,64}$/;
     const form = document.querySelector("#login-form");
     const message = document.querySelector("#message");
@@ -114,130 +54,89 @@
     const requestedNext = new URLSearchParams(window.location.search).get("next") || "/chat";
 
     function accountEmail(username, role) {
-      const u = username.toLowerCase();
-      if (role === "administrator" && u === "12024002028038") {
-        return `administrator@administrator${EMAIL_SUFFIX}`;
-      }
-      return `${u}@${role}${EMAIL_SUFFIX}`;
+      return `${username.trim().toLowerCase()}@${role}${EMAIL_DOMAIN}`;
     }
 
-    function saveUserSession(user) {
-      sessionStorage.setItem("archipelago_local_user", JSON.stringify(user));
-      // Store cross-port cookie accessible by Port 5150
-      document.cookie = `archipelago_user=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=86400; SameSite=Lax`;
-      document.cookie = `archipelago_role=${encodeURIComponent(user.role)}; path=/; max-age=86400; SameSite=Lax`;
+    function destinationForRole(role, config) {
+      const fallback = new URL("/chat", window.location.origin);
+      let target;
+      try {
+        target = new URL(requestedNext, window.location.origin);
+      } catch (_) {
+        return fallback.href;
+      }
+
+      const graphUrl = config.graphUrl ? new URL(config.graphUrl) : null;
+      if (graphUrl && target.origin === graphUrl.origin) {
+        return ["librarian", "administrator"].includes(role) ? target.href : fallback.href;
+      }
+      if (target.origin !== window.location.origin || target.pathname.startsWith("/login")) {
+        return fallback.href;
+      }
+
+      const allowedPrefixes = ["/chat", "/library", "/read", "/open", "/reader.html"];
+      const isAllowed = allowedPrefixes.some(prefix => target.pathname.startsWith(prefix));
+      if (!isAllowed) {
+        return fallback.href;
+      }
+      return target.href;
     }
 
-    function handleRedirect(role, username, token) {
-      if (requestedNext.includes("5150")) {
-        if (role === "administrator" || role === "librarian") {
-          window.location.assign(`http://127.0.0.1:5150/?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}&token=${encodeURIComponent(token || '')}`);
-          return;
-        } else {
-          window.location.assign("/chat");
-          return;
-        }
+    async function establishBrowserSession(session) {
+      const response = await fetch("/api/auth/session", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload.authenticated !== true) {
+        throw new Error(payload.detail || "Could not establish a verified session.");
       }
-      const requestedPath = requestedNext.startsWith("/")
-        ? new URL(requestedNext, window.location.origin).pathname
-        : "/chat";
-      window.location.assign(window.archipelagoRouteForRole ? window.archipelagoRouteForRole(role, requestedPath) : requestedPath);
+      return payload;
     }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (message) message.textContent = "";
+      message.textContent = "";
       const role = roleSelect.value;
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
-
       if (!USERNAME_PATTERN.test(username)) {
-        if (message) message.textContent = "Username must be between 3 and 64 characters.";
+        message.textContent = "Username must be between 3 and 64 characters.";
         return;
       }
 
       submitBtn.disabled = true;
-      const originalBtnText = submitBtn.textContent;
-      submitBtn.textContent = "Signing in...";
-
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = "Signing in…";
       try {
-        let config, supabase;
-        try {
-          ({ config, supabase } = await window.archipelagoAuthReady);
-        } catch (err) {
-          console.warn("archipelagoAuthReady warning:", err);
+        const { config, supabase } = await window.archipelagoAuthReady;
+        if (!config?.configured || !supabase) {
+          throw new Error("Sign-in is unavailable: configure Supabase Auth for this deployment.");
         }
-
-        if (!config || !config.configured || !supabase) {
-          const userObj = { role, username, user_id: `local-${role}-${username}`, authenticated: true };
-          saveUserSession(userObj);
-          handleRedirect(role, username, "local-token");
-          return;
-        }
-
-        const email = accountEmail(username, role);
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: accountEmail(username, role),
+          password,
+        });
         if (error || !data?.session) {
-          if (message) message.textContent = error?.message || "Invalid username, account type, or password.";
-          return;
+          throw new Error(error?.message || "Invalid username, account type, or password.");
         }
 
-        const token = data.session.access_token;
-        const userObj = {
-          role,
-          username,
-          user_id: data.user.id,
-          token,
-          authenticated: true
-        };
-        saveUserSession(userObj);
-        handleRedirect(role, username, token);
-      } catch (err) {
-        if (message) message.textContent = "Sign-in error. Falling back to local session...";
-        console.error("Login error:", err);
-        const userObj = { role, username, user_id: `local-${role}-${username}`, authenticated: true };
-        saveUserSession(userObj);
-        setTimeout(() => handleRedirect(role, username, "fallback"), 500);
+        const verified = await establishBrowserSession(data.session);
+        if (verified.role !== role) {
+          await supabase.auth.signOut();
+          await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
+          throw new Error("The selected account type does not match your assigned role.");
+        }
+        window.location.replace(destinationForRole(verified.role, config));
+      } catch (error) {
+        message.textContent = error?.message || "Sign-in failed. Please try again.";
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
+        submitBtn.textContent = originalText;
       }
     });
-
-    async function doQuickLogin(role, username, defaultPass) {
-      if (message) message.textContent = `Signing in as ${role}...`;
-      roleSelect.value = role;
-      usernameInput.value = username;
-      passwordInput.value = defaultPass;
-
-      try {
-        let config, supabase;
-        try {
-          ({ config, supabase } = await window.archipelagoAuthReady);
-        } catch (_) {}
-
-        if (supabase) {
-          const { data } = await supabase.auth.signInWithPassword({
-            email: accountEmail(username, role),
-            password: defaultPass
-          });
-          const token = data?.session?.access_token || "demo-token";
-          const userObj = { role, username, user_id: data?.user?.id || `user-${role}-${username}`, token, authenticated: true };
-          saveUserSession(userObj);
-          handleRedirect(role, username, token);
-          return;
-        }
-      } catch (_) {}
-
-      const userObj = { role, username, user_id: `user-${role}-${username}`, token: "demo-token", authenticated: true };
-      saveUserSession(userObj);
-      handleRedirect(role, username, "demo-token");
-    }
-
-    document.getElementById("btn-demo-student")?.addEventListener("click", () => doQuickLogin("student", "12024002028038", "Archipelago2026!"));
-    document.getElementById("btn-demo-librarian")?.addEventListener("click", () => doQuickLogin("librarian", "librarian", "Archipelago2026!"));
-    document.getElementById("btn-demo-admin")?.addEventListener("click", () => doQuickLogin("administrator", "administrator", "Archipelago2026!"));
   </script>
 </body>
 </html>

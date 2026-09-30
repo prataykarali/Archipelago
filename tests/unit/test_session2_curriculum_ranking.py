@@ -12,7 +12,7 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def server_module():
-    import inference_server as s
+    import archipelago.inference as s
     return s
 
 

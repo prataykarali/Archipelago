@@ -14,8 +14,9 @@ import re
 from pathlib import Path
 from collections import defaultdict, Counter
 
-from pdf_ingestion import ingest_folder, _numeric_token_fraction
-from okf_pipeline import VALID_TYPES, VALID_DIFFICULTIES, VALID_RELATIONS
+from archipelago.ingestion.pdf_io import ingest_folder
+from archipelago.ingestion.pdf_utils import _numeric_token_fraction
+from okf.config import VALID_TYPES, VALID_DIFFICULTIES, VALID_RELATIONS
 
 BASE_DIR = Path(__file__).resolve().parent
 PDF_DIR = BASE_DIR / "pdfs"

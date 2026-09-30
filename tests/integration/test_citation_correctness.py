@@ -322,7 +322,7 @@ def citation_graph(tmp_path):
 def patched_inference_server(citation_graph, monkeypatch):
     """inference_server pointed at the tmp db, with any LLM path neutralized."""
     try:
-        import inference_server
+        import archipelago.inference.state as inference_server
     except Exception as exc:
         pytest.fail(f"inference_server failed to import: {exc}")
 

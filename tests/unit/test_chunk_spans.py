@@ -1,7 +1,7 @@
 import os
 import fitz
 import pytest
-from pdf_ingestion import chunk_pdf
+from archipelago.ingestion.pdf_chunk import chunk_pdf
 
 @pytest.mark.unit
 def test_multipage_chunk_preserves_correct_spans(tmp_path):

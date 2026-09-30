@@ -281,3 +281,15 @@ def get_graph_neighborhood(concept_id, k=2):
     return prereqs, unlocks, citations
 
 
+def get_bounded_subgraph(concept_id: str, secondary_id: str | None = None, mode: str = "mode_c", max_nodes: int = 10, min_nodes: int = 5):
+    """Retrieve a strictly bounded subgraph for the given concept and query mode."""
+    from archipelago.inference.subgraph import generate_bounded_subgraph
+    return generate_bounded_subgraph(
+        target_id=concept_id,
+        secondary_target_id=secondary_id,
+        mode=mode,
+        max_nodes=max_nodes,
+        min_nodes=min_nodes,
+    )
+
+
