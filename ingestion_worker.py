@@ -115,7 +115,7 @@ class IngestionWorker(threading.Thread):
         conn = None
         try:
             from archipelago.graph.engine import KuzuGraphEngine
-            from src.archipelago.graph.engine import _close_colocated_kuzu_handles
+            from archipelago.graph.engine import _close_colocated_kuzu_handles
 
             with (self.graph_lock or graph_lock).write_lock():
                 KuzuGraphEngine.close_all_for_path(self.live_db_path)

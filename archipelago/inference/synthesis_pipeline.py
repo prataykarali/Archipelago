@@ -95,7 +95,7 @@ def _stage4_build_payload(
     target_concept: str, prerequisites: list[Any], unlocks: list[Any], query: str, chunks: list[Any] | None = None
 ) -> dict[str, Any]:
     """Stage 4: Build topological context payload for the synthesizer using PromptPayloadAssembler."""
-    from src.core.prompt_assembly import PromptPayloadAssembler
+    from archipelago.core.prompt_assembly import PromptPayloadAssembler
     assembler = PromptPayloadAssembler()
     return assembler.assemble_payload(
         query=query,
@@ -108,7 +108,7 @@ def _stage4_build_payload(
 
 def _stage5_ollama_synthesis(payload: dict[str, Any]) -> str:
     """Stage 5: Synthesis with local Ollama qwen3.5:0.8b model."""
-    from src.core.synthesis_service import SynthesisService
+    from archipelago.core.synthesis_service import SynthesisService
     synth = SynthesisService()
     res = synth.synthesize_response(payload, stream=False)
     if isinstance(res, dict):
@@ -150,7 +150,7 @@ def run_archipelago_inference(query: str, history: list[Any] | None = None) -> d
     graph_ctx = _stage3_graph_traversal(anchor_id)
 
     # Retrieve attached verified text chunks
-    from src.core.retrieval import TwoPassHybridRetriever
+    from archipelago.core.retrieval import TwoPassHybridRetriever
     retriever = TwoPassHybridRetriever(concepts_data=getattr(st, "CONCEPTS_DATA", {}))
     chunks = graph_ctx.get("chunks") or retriever.get_evidence_chunks(anchor_id, max_chunks=3)
 

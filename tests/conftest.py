@@ -4,7 +4,7 @@ import pytest
 @pytest.fixture
 def verified_student_auth(monkeypatch):
     """Install a verified Supabase-style test principal for protected routes."""
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
 
     principal = supabase_auth.AuthPrincipal(
         user_id="unit-test-user",

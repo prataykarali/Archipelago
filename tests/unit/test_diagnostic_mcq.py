@@ -109,7 +109,7 @@ def test_verify_mcq_flask_endpoint():
 
 def test_chat_server_verify_mcq_proxy(monkeypatch):
     import chat_server
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     principal = supabase_auth.AuthPrincipal("test-user", "student", "student", "test-token")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _request: (principal, None))
@@ -243,7 +243,7 @@ def test_telemetry_endpoint():
 def test_chat_server_telemetry_and_mcq_proxies(monkeypatch):
     """Verify chat_server forwards telemetry and diagnostic-mcqs endpoints."""
     import chat_server
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     principal = supabase_auth.AuthPrincipal("test-user", "student", "student", "test-token")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _request: (principal, None))

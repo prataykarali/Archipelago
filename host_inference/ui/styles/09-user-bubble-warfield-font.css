@@ -1,0 +1,326 @@
+
+    /* User bubble — Warfield font */
+    .user-bubble,
+    #chat-messages .user-message p,
+    #chat-messages .user-message span {
+        font-family: 'Warfield', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 1.05rem !important;
+        letter-spacing: 0.01em !important;
+        color: #ffffff !important;
+        -webkit-text-stroke: 0 !important;
+        /* Guard user bubble digits too */
+        font-feature-settings: normal !important;
+        font-variant-numeric: normal !important;
+    }
+
+    /* Headings inside chat responses — slightly larger than body, not huge */
+    #chat-messages h1, #chat-messages h2, #chat-messages h3,
+    #chat-messages h4, #chat-messages h5, #chat-messages h6,
+    .chat-bubble h1, .chat-bubble h2, .chat-bubble h3, .chat-bubble h4 {
+        font-family: 'Aurellis', serif !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.02em !important;
+        margin-top: 0.75em !important;
+        -webkit-text-stroke: 0 !important;
+    }
+    .chat-bubble h1, #chat-messages h1 { font-size: 1.10rem !important; }
+    .chat-bubble h2, #chat-messages h2 { font-size: 1.02rem !important; }
+    .chat-bubble h3, #chat-messages h3 { font-size: 0.96rem !important; }
+    .chat-bubble h4, #chat-messages h4 { font-size: 1.0rem !important; }
+
+    /* Code blocks stay Brigend (monospace feel) */
+    #chat-messages code,
+    #chat-messages pre {
+        font-family: 'Brigend', monospace !important;
+        font-size: 1.0rem !important;
+        letter-spacing: 0.02em !important;
+        -webkit-text-stroke: 0.2px rgba(200,190,255,0.5) !important;
+    }
+
+    /* ── Global clarity upgrades: wider tracking for Brigend & Aurellis ── */
+    body, p, span, div, li, label, a, td, th, button, input, textarea, select {
+        letter-spacing: 0.03em !important;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    .brand-logo, .brand-text, .logo, #pname, .font-display {
+        letter-spacing: 0.06em !important;
+        word-spacing: 0.08em !important;
+    }
+    /* Keep hero wordmark + welcome title tracking (don't collapse to 0.06em) */
+    #hero-title-overlay h2 {
+        letter-spacing: 0.22em !important;
+        word-spacing: 0.08em !important;
+    }
+    .welcome-title {
+        letter-spacing: 0.04em !important;
+        word-spacing: 0.06em !important;
+    }
+    #welcome-subtitle {
+        letter-spacing: 0.025em !important;
+        -webkit-text-stroke: 0 !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }
+
+    /* Sidebar history & concept card text — wider tracking */
+    .chat-history-item, .history-item, #sidebar-history li,
+    .concept-card, .lib-card-title, .book-label, .edge-toggle {
+        font-size: 0.95rem !important;
+        letter-spacing: 0.04em !important;
+        font-weight: 600 !important;
+    }
+
+    /* Prompt suggestion cards */
+    .concept-visualize-card, .prompt-card, .glass-card {
+        font-size: 0.97rem !important;
+        letter-spacing: 0.04em !important;
+        font-weight: 600 !important;
+    }
+
+    /* Hover cards / suggestion cards font family override */
+    .hover-3d-card,
+    .hover-3d-card *,
+    .depth-word-target,
+    .depth-word-target *,
+    .depth-word {
+        font-family: 'Brigend', sans-serif !important;
+        font-feature-settings: "calt" 0, "liga" 0, "dlig" 0 !important;
+        font-variant-numeric: normal !important;
+    }
+
+    /* Input placeholder */
+    #chat-input::placeholder {
+        font-family: 'Brigend', sans-serif !important;
+        letter-spacing: 0.05em !important;
+        opacity: 0.7 !important;
+    }
+    /* Remove awkward banner video */
+    #chat-hero-band {
+        display: none !important;
+    }
+
+    /* Speaking Avatar Dock: Restored as a modern glass sidebar indicator */
+    #sticky-avatar-dock {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 4.5rem 0.5rem 1rem 0.5rem !important;
+        flex: 0 0 10.5rem;
+        z-index: 15;
+        width: 10.5rem;
+        max-width: 10.5rem;
+        gap: 0.5rem;
+        overflow: hidden;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(12, 8, 24, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #sticky-avatar-dock.is-visible {
+        display: flex !important;
+    }
+    #sticky-avatar-dock .avatar-shell {
+        position: relative;
+        top: 0;
+        flex-shrink: 0;
+        --avatar-size: 8.5rem;
+        width: 8.5rem;
+        height: 8.5rem;
+        border-radius: 50%;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+    }
+    #sticky-avatar-dock .avatar-label {
+        margin-top: 0.4rem;
+        font-size: 0.95rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(240, 220, 255, 0.95);
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    /* Sleek Apple VisionOS Liquid Glass Topbar */
+    #top-chrome {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(24px) saturate(1.8) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+        background: rgba(12, 8, 24, 0.65) !important;
+    }
+    #app-header {
+        height: 3.5rem !important;
+        min-height: 3.5rem !important;
+    }
+    /* Let chat messages area fill cleanly, offset below floating header */
+    #chat-stage {
+        display: flex !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
+    }
+    #chat-messages {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        padding-top: 4.5rem !important;
+    }
+    .message-container {
+        max-width: 54rem !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* ── Mode C Diagnostic MCQ Layer & Bounded Subgraph Styles ── */
+    .diagnostic-mcq-card {
+        background: linear-gradient(135deg, rgba(22, 17, 44, 0.9) 0%, rgba(11, 14, 28, 0.95) 100%);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        border-radius: 1.15rem;
+        box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 0 28px rgba(168, 85, 247, 0.2);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* 4-Radio Button Options - Spacious 2-Column Responsive Layout */
+    .mcq-radio-group {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+        margin-top: 1rem;
+    }
+    @media (min-width: 640px) {
+        .mcq-radio-group {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+    }
+    .mcq-radio-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 1.1rem 1.25rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }
+    .mcq-radio-label:hover:not(.disabled) {
+        border-color: rgba(168, 85, 247, 0.6);
+        background: rgba(168, 85, 247, 0.12);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.15);
+    }
+    .mcq-radio-input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 1.35rem;
+        height: 1.35rem;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        outline: none;
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: grid;
+        place-content: center;
+    }
+    .mcq-radio-input::before {
+        content: "";
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+        transform: scale(0);
+        transition: 120ms transform ease-in-out;
+        background-color: #a855f7;
+    }
+    .mcq-radio-input:checked {
+        border-color: #a855f7;
+        box-shadow: 0 0 14px rgba(168, 85, 247, 0.6);
+    }
+    .mcq-radio-input:checked::before {
+        transform: scale(1);
+    }
+    .mcq-radio-label:has(.mcq-radio-input:checked) {
+        border-color: #a855f7 !important;
+        background: rgba(168, 85, 247, 0.22) !important;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+    }
+    .mcq-radio-badge {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-weight: 800;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.12);
+        color: #f3f4f6;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+    .mcq-radio-text {
+        font-size: 0.925rem;
+        line-height: 1.5rem;
+        color: #f3f4f6;
+        font-weight: 500;
+        flex: 1;
+    }
+    .mcq-radio-label:has(.mcq-radio-input:checked) .mcq-radio-badge {
+        background: #a855f7;
+        color: #ffffff;
+    }
+    .mcq-radio-label.correct {
+        border-color: #10b981 !important;
+        background: rgba(16, 185, 129, 0.22) !important;
+        box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+    }
+    .mcq-radio-label.correct .mcq-radio-badge {
+        background: #10b981 !important;
+        color: #ffffff !important;
+    }
+    .mcq-radio-label.incorrect {
+        border-color: #f43f5e !important;
+        background: rgba(244, 63, 94, 0.2) !important;
+        box-shadow: 0 0 16px rgba(244, 63, 94, 0.3);
+    }
+    .mcq-radio-label.incorrect .mcq-radio-badge {
+        background: #f43f5e !important;
+        color: #ffffff !important;
+    }
+    .scrollable-graph-container {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-radius: 0.75rem;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(168, 85, 247, 0.4) rgba(0, 0, 0, 0.2);
+    }
+    .scrollable-graph-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    .scrollable-graph-container::-webkit-scrollbar-thumb {
+        background: rgba(168, 85, 247, 0.4);
+        border-radius: 4px;
+    }
+    .diagnostic-badge-foundational {
+        background: rgba(16, 185, 129, 0.18);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .diagnostic-badge-intermediate {
+        background: rgba(168, 85, 247, 0.18);
+        color: #c084fc;
+        border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+    .diagnostic-badge-advanced {
+        background: rgba(245, 158, 11, 0.18);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+    }

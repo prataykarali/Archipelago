@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" class="h-full bg-[#050b0a]">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Graph — Archipelago</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+  <script type="module" src="/auth_bridge.js"></script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    #graph { min-height: 440px; height: min(68vh, 760px); }
+  </style>
+</head>
+<body class="min-h-full bg-[#050b0a] text-slate-100">
+  <header class="border-b border-emerald-300/10 bg-black/40">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <a href="/chat" class="font-semibold tracking-wide text-emerald-200">Archipelago <span class="text-white/50">/ Knowledge Graph</span></a>
+      <nav class="flex gap-4 text-sm text-white/70"><a href="/chat" class="hover:text-white">Chat</a><a href="/library" class="hover:text-white">Library</a></nav>
+    </div>
+  </header>
+  <main class="mx-auto max-w-7xl px-5 py-8">
+    <div class="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div><h1 class="text-3xl font-semibold">Explore connected concepts</h1><p class="mt-2 max-w-2xl text-sm text-white/60">Search the indexed library graph. Select any node to expand its neighborhood; edges show the stored relationship direction.</p></div>
+      <form id="search-form" class="flex w-full gap-2 md:max-w-xl">
+        <label for="query" class="sr-only">Search a concept</label>
+        <input id="query" required minlength="2" maxlength="160" placeholder="Try: graph retrieval, attention, or databases" class="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none focus:border-emerald-300/60">
+        <button class="rounded-xl bg-emerald-300 px-5 py-3 font-semibold text-black hover:bg-emerald-200">Explore</button>
+      </form>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-[1fr_18rem]">
+      <section class="overflow-hidden rounded-2xl border border-emerald-300/15 bg-[#06110e] shadow-2xl"><div id="graph" aria-label="Interactive library knowledge graph"></div></section>
+      <aside class="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <p id="graph-status" role="status" class="text-sm text-white/60">Loading graph…</p>
+        <h2 id="node-title" class="mt-4 text-lg font-semibold text-emerald-200">Select a node</h2>
+        <p id="node-summary" class="mt-2 text-sm leading-6 text-white/70">Node descriptions appear here. Double click or select a node to recenter the graph.</p>
+        <p class="mt-6 text-xs leading-5 text-white/45">Graph data comes from the deployed library inventory. This explorer is read-only; catalog and graph updates are handled by the librarian ingestion workflow.</p>
+      </aside>
+    </div>
+  </main>
+  <script>
+    let cy;
+    const status = document.getElementById('graph-status');
+    const title = document.getElementById('node-title');
+    const summary = document.getElementById('node-summary');
+    const queryInput = document.getElementById('query');
+
+    function showNode(node) {
+      title.textContent = node.name || node.id;
+      summary.textContent = node.summary || 'No summary is available for this graph node.';
+    }
+
+    async function loadGraph(params) {
+      status.textContent = 'Loading graph…';
+      const response = await fetch('/api/graph/subgraph?' + new URLSearchParams(params), { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || 'Could not load this graph neighborhood.');
+      if (cy) cy.destroy();
+      cy = cytoscape({
+        container: document.getElementById('graph'),
+        elements: [
+          ...data.nodes.map(item => item.data.id === data.target_id ? { ...item, classes: 'target-node' } : item),
+          ...data.edges
+        ],
+        layout: { name: 'cose', animate: false, fit: true, padding: 36, nodeRepulsion: 5000 },
+        minZoom: 0.2,
+        maxZoom: 2.5,
+        style: [
+          { selector: 'node', style: { 'background-color': '#0dd99a', 'border-width': 2, 'border-color': '#9fffe0', 'label': 'data(name)', 'color': '#ecfff8', 'font-size': 10, 'text-wrap': 'wrap', 'text-max-width': 120, 'width': 30, 'height': 30 } },
+          { selector: 'node.target-node', style: { 'background-color': '#f4c95d', 'border-color': '#fff0b2', 'width': 46, 'height': 46, 'font-weight': 700 } },
+          { selector: 'edge', style: { 'width': 1.5, 'line-color': '#328d70', 'target-arrow-color': '#75dcb9', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'label': 'data(rel_label)', 'font-size': 8, 'color': '#a3b8b0', 'text-rotation': 'autorotate', 'text-background-color': '#06110e', 'text-background-opacity': 0.8 } },
+          { selector: ':selected', style: { 'border-color': '#ffffff', 'border-width': 4 } }
+        ]
+      });
+      cy.on('tap', 'node', event => showNode(event.target.data()));
+      cy.on('dbltap', 'node', event => loadGraph({ target_id: event.target.id(), max_nodes: '36' }).catch(showError));
+      const anchor = data.nodes.find(item => item.data.id === data.target_id)?.data;
+      if (anchor) showNode(anchor);
+      status.textContent = `${data.nodes.length} concepts · ${data.edges.length} relationships · select a node to inspect, double click to expand`;
+    }
+
+    function showError(error) { status.textContent = error.message || 'Graph request failed.'; }
+    document.getElementById('search-form').addEventListener('submit', event => {
+      event.preventDefault();
+      loadGraph({ q: queryInput.value.trim(), max_nodes: '36' }).catch(showError);
+    });
+    window.addEventListener('load', async () => {
+      const { config } = await window.archipelagoAuthReady;
+      if (config?.required) {
+        const principal = await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']);
+        if (!principal) return;
+      }
+      const initial = new URLSearchParams(location.search).get('q') || 'graph retrieval';
+      queryInput.value = initial;
+      loadGraph({ q: initial, max_nodes: '36' }).catch(showError);
+    });
+  </script>
+</body>
+</html>

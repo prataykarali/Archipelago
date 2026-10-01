@@ -1,0 +1,323 @@
+        #reading-modal #reading-content mark.page-hl {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            background: #fde047 !important;
+            border-bottom: 2px solid #ca8a04 !important;
+        }
+        /* info note under summary — was amber-200 (pale yellow) on white = invisible */
+        #reading-modal #reading-content .reader-info-note {
+            color: #6b7280 !important;
+            -webkit-text-fill-color: #6b7280 !important;
+            font-size: 0.78rem !important;
+        }
+        #reading-modal .reader-unavailable {
+            background: #f8fafc !important;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
+        #reading-modal .reader-unavailable h3,
+        #reading-modal .reader-unavailable h4 {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            font-size: 1.1rem !important;
+        }
+        #reading-modal .reader-unavailable p,
+        #reading-modal .reader-unavailable span {
+            color: #374151 !important;
+            -webkit-text-fill-color: #374151 !important;
+        }
+        #reading-modal .reader-ref-card {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+        }
+        #reading-modal .reader-ref-topics .ref-topic-badge {
+            background: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
+            -webkit-text-fill-color: #334155 !important;
+            font-size: 0.72rem !important;
+            font-weight: 600 !important;
+            padding: 3px 8px !important;
+            border-radius: 999px !important;
+        }
+        #reading-modal .reader-ref-prompt {
+            background: #eff6ff !important;
+            border: 1px solid #bfdbfe !important;
+            border-radius: 10px !important;
+            color: #1e40af !important;
+            -webkit-text-fill-color: #1e40af !important;
+            font-size: 0.82rem !important;
+        }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: rgba(15, 10, 25, 0.35);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .glass-light {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .glass-glow {
+            background: rgba(30, 20, 45, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.25), inset 0 0 15px rgba(236, 72, 153, 0.15);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes blob-bounce {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+        .animate-blob {
+            animation: blob-bounce 15s infinite alternate ease-in-out;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+
+        /* Typing indicator styling */
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: typing 1.4s infinite both;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: .2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: .4s;
+        }
+        @keyframes typing {
+            0%, 100% { transform: translateY(0px); opacity: 0.4; }
+            28% { transform: translateY(-4px); opacity: 0.4; }
+            44% { transform: translateY(0px); opacity: 1; }
+        }
+
+        /* Side-panel slider: collapsed by default, accordion open */
+        .side-panel {
+            overflow: hidden;
+            flex-shrink: 0;
+            opacity: 1;
+            transition:
+                width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                min-width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                max-width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.32s ease,
+                border-color 0.32s ease,
+                padding 0.32s ease;
+        }
+        #left-sidebar.side-panel {
+            width: 20rem;
+            min-width: 20rem;
+            max-width: 20rem;
+        }
+        #pipeline-panel.side-panel {
+            width: 380px;
+            min-width: 380px;
+            max-width: 380px;
+        }
+        .side-panel.panel-closed {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            opacity: 0;
+            border-color: transparent !important;
+            pointer-events: none;
+        }
+        .side-panel-inner {
+            width: 20rem;
+            min-width: 20rem;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        #pipeline-panel .side-panel-inner {
+            width: 380px;
+            min-width: 380px;
+        }
+
+        /* Floating edge toggles for slider feel */
+        .edge-toggle {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 30;
+            width: 2.25rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem;
+            backdrop-filter: blur(12px);
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .edge-toggle-left {
+            left: 0.5rem;
+            background: rgba(251, 191, 36, 0.12);
+            border: 1px solid rgba(251, 191, 36, 0.35);
+            color: #fcd34d;
+        }
+        .edge-toggle-left:hover, .edge-toggle-left.is-active {
+            background: rgba(251, 191, 36, 0.28);
+            border-color: rgba(251, 191, 36, 0.65);
+            box-shadow: 0 0 18px rgba(251, 191, 36, 0.25);
+            color: #fde68a;
+        }
+        .edge-toggle-right {
+            right: 0.5rem;
+            background: rgba(139, 92, 246, 0.14);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #c4b5fd;
+        }
+        .edge-toggle-right:hover, .edge-toggle-right.is-active {
+            background: rgba(139, 92, 246, 0.32);
+            border-color: rgba(139, 92, 246, 0.7);
+            box-shadow: 0 0 18px rgba(139, 92, 246, 0.3);
+            color: #ede9fe;
+        }
+
+        /*
+         * Circular video avatar.
+         * Most clips: 1280×720 with character already in a mid-frame circle.
+         * success clip: 1920×1080 with a TINY centered subject on white —
+         * needs a much higher zoom so it fills the shell like the others.
+         * Story: hi → think → type → goit → success → (loop).
+         */
+        .avatar-shell {
+            --avatar-size: 9.5rem;
+            /* Fill the purple ring — character shoulders/face, not empty studio */
+            --avatar-zoom: 1.62;
+            --avatar-pos-x: 50%;
+            --avatar-pos-y: 42%;
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #140a22;
+            border: 3px solid rgba(196, 160, 255, 0.9);
+            box-shadow:
+                0 0 0 2px rgba(139, 92, 246, 0.35),
+                0 0 18px rgba(168, 85, 247, 0.55),
+                0 0 36px rgba(139, 92, 246, 0.35),
+                inset 0 0 12px rgba(0, 0, 0, 0.35);
+            position: relative;
+        }
+        .avatar-shell video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            transform: translate(-50%, -50%) scale(var(--avatar-zoom));
+            object-fit: cover;
+            object-position: var(--avatar-pos-x) var(--avatar-pos-y);
+            border-radius: 50%;
+            opacity: 1;
+            filter: none;
+            mix-blend-mode: normal;
+            transition: opacity 0.35s ease;
+            background: #140a22;
+            pointer-events: none;
+        }
+        /* success: tiny circular subject on large white plate — zoom hard to fill shell */
+        .avatar-shell video[data-avatar-clip="success"] {
+            --avatar-zoom: 3.05;
+            transform: translate(-50%, -50%) scale(3.05);
+            object-position: 50% 48%;
+        }
+        /* goit also has a bit more outer padding than hi/think */
+        .avatar-shell video[data-avatar-clip="goit"] {
+            transform: translate(-50%, -50%) scale(1.72);
+            object-position: 50% 45%;
+        }
+        .avatar-shell video.is-hidden {
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .avatar-shell video:not(.is-hidden) {
+            z-index: 1;
+        }
+        .avatar-shell.is-thinking {
+            border-color: rgba(244, 114, 182, 0.95);
+            box-shadow:
+                0 0 0 2px rgba(236, 72, 153, 0.4),
+                0 0 22px rgba(236, 72, 153, 0.55),
+                0 0 40px rgba(236, 72, 153, 0.3),
+                inset 0 0 12px rgba(0, 0, 0, 0.35);
+        }
+        .welcome-avatar {
+            --avatar-size: 10rem;
+        }
+        /* Single sticky librarian on the left; concept graph sits under her (never over chat) */
+        #chat-stage {
+            display: flex;
+            flex: 1 1 auto;
+            min-height: 0;
+            min-width: 0;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        #chat-messages {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            width: 100%;
+            max-width: 100%;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            scroll-behavior: smooth;
+        }
+        /* Main column must pass height down so messages can scroll */
+        main.flex-1 {
+            min-height: 0 !important;
+            overflow: hidden;
+        }
+        #app-body {
+            min-height: 0;
+        }
+        #sticky-avatar-dock {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 1.25rem 0.65rem 1rem 0.75rem;
+            flex: 0 0 11.5rem;
+            z-index: 15;
+            width: 11.5rem;
+            max-width: 11.5rem;
+            gap: 0.55rem;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }

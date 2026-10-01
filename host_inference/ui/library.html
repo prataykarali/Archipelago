@@ -66,7 +66,7 @@
       border-left: 3px solid #3b82f6;
     }
   </style>
-<style>#librarian-panel,#sec-ods-reports{display:none !important}</style></head>
+<style>#sec-ods-reports{display:none !important}</style></head>
 <body class="bg-black text-white min-h-screen relative">
 
   <!-- Fullscreen Cinematic Butterfly Video Background (Fully Visible) -->
@@ -375,17 +375,28 @@
         <!-- Holdings Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="p-5 rounded-xl bg-black/40 border border-white/10">
-            <div class="text-3xl md:text-4xl font-black text-white" id="stat-records-num">109</div>
+            <div class="text-3xl md:text-4xl font-black text-white" id="stat-records-num">—</div>
             <div class="text-xs font-mono text-white/50 tracking-widest uppercase mt-1">HOLDING RECORDS</div>
           </div>
           <div class="p-5 rounded-xl bg-black/40 border border-white/10">
-            <div class="text-3xl md:text-4xl font-black text-white" id="stat-copies-num">904</div>
+            <div class="text-3xl md:text-4xl font-black text-white" id="stat-copies-num">—</div>
             <div class="text-xs font-mono text-white/50 tracking-widest uppercase mt-1">TOTAL COPIES</div>
           </div>
           <div class="p-5 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
-            <div class="text-3xl md:text-4xl font-black text-emerald-400" id="stat-avail-num">901</div>
+            <div class="text-3xl md:text-4xl font-black text-emerald-400" id="stat-avail-num">—</div>
             <div class="text-xs font-mono text-emerald-300/70 tracking-widest uppercase mt-1">AVAILABLE NOW</div>
           </div>
+        </div>
+
+        <div id="holdings-import-panel" class="hidden rounded-xl border border-emerald-400/20 bg-emerald-950/20 p-4">
+          <p class="text-sm font-semibold text-emerald-200">Librarian inventory update</p>
+          <p class="mt-1 text-xs leading-5 text-white/60">Upload a UTF-8 CSV export with book_id, title, total_copies, and available_copies. This replaces the holdings snapshot stored in the private library cache.</p>
+          <form id="holdings-import-form" class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label for="holdings-import-file" class="sr-only">Inventory CSV file</label>
+            <input id="holdings-import-file" type="file" accept=".csv,text/csv" required class="min-w-0 flex-1 text-xs text-white/70 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white">
+            <button type="submit" class="rounded-lg bg-emerald-300 px-4 py-2 text-xs font-bold text-black hover:bg-emerald-200">Import CSV</button>
+          </form>
+          <p id="holdings-import-status" role="status" class="mt-2 text-xs text-white/60"></p>
         </div>
 
         <!-- Holdings Table -->
@@ -397,6 +408,7 @@
                   <th class="p-3.5">TITLE</th>
                   <th class="p-3.5">AUTHOR</th>
                   <th class="p-3.5">PUBLISHER</th>
+                  <th class="p-3.5">LOCATION</th>
                   <th class="p-3.5">ACCESSION</th>
                   <th class="p-3.5 text-right">AVAILABLE / TOTAL</th>
                 </tr>
@@ -754,16 +766,18 @@
     function renderHoldingsTable(items) {
       const tbody = document.getElementById('holdings-table-body');
       if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-white/40">No matching holdings records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-white/40">No holdings snapshot is available. Ask a librarian to import the latest CSV.</td></tr>`;
         return;
       }
+      const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
       tbody.innerHTML = items.map((h, i) => `
         <tr class="hover:bg-white/5 transition-colors">
-          <td class="p-3.5 font-medium text-white max-w-xs truncate">${i + 1}. ${h.title}</td>
-          <td class="p-3.5 text-white/70">${h.author || 'Unknown'}</td>
-          <td class="p-3.5 text-white/60">${h.publisher || 'Unknown'}</td>
-          <td class="p-3.5 font-mono text-blue-300 text-[11px]">${h.accession || 'N/A'}</td>
-          <td class="p-3.5 text-right font-bold ${h.available_copies > 0 ? 'text-emerald-400' : 'text-rose-400'}">${h.available_ratio || `${h.available_copies} / ${h.no_of_copies}`}</td>
+          <td class="p-3.5 font-medium text-white max-w-xs truncate">${i + 1}. ${esc(h.title)}</td>
+          <td class="p-3.5 text-white/70">${esc(h.authors || h.author || 'Unknown')}</td>
+          <td class="p-3.5 text-white/60">${esc(h.publisher || 'Unknown')}</td>
+          <td class="p-3.5 text-white/60">${esc(h.location || '—')}</td>
+          <td class="p-3.5 font-mono text-blue-300 text-[11px]">${esc(h.accession || h.book_id || 'N/A')}</td>
+          <td class="p-3.5 text-right font-bold ${Number(h.available_copies) > 0 ? 'text-emerald-400' : 'text-rose-400'}">${esc(h.available_ratio || `${h.available_copies} / ${h.total_copies ?? h.no_of_copies ?? 0}`)}</td>
         </tr>
       `).join('');
     }
@@ -906,21 +920,12 @@
         }
 
         // Holdings
-        if (d.holdings && d.holdings.length > 0) {
-          holdingsData = d.holdings;
-        } else {
-          holdingsData = [
-            { title: 'Journal of human resource management', author: 'Unknown', publisher: 'Unknown', accession: 'J297, J621', no_of_copies: 2, available_copies: 2, available_ratio: '2 / 2' },
-            { title: 'Academy of Management Journal', author: 'Unknown', publisher: 'Unknown', accession: 'J280, J323, J397, J453, J543, J675', no_of_copies: 6, available_copies: 6, available_ratio: '6 / 6' },
-            { title: 'AIMS journal of management', author: 'Unknown', publisher: 'Association of Indian Management Schools', accession: 'J1544', no_of_copies: 1, available_copies: 1, available_ratio: '1 / 1' },
-            { title: 'All India Reporter', author: 'Unknown', publisher: 'All India Reporter', accession: 'LWJ906', no_of_copies: 1, available_copies: 1, available_ratio: '1 / 1' }
-          ];
-        }
+        holdingsData = Array.isArray(d.holdings) ? d.holdings : [];
 
         if (d.holdings_stats) {
-          document.getElementById('stat-records-num').innerText = d.holdings_stats.total_records || 109;
-          document.getElementById('stat-copies-num').innerText = d.holdings_stats.total_copies || 904;
-          document.getElementById('stat-avail-num').innerText = d.holdings_stats.available_copies || 901;
+          document.getElementById('stat-records-num').innerText = d.holdings_stats.total_records ?? '—';
+          document.getElementById('stat-copies-num').innerText = d.holdings_stats.total_copies ?? '—';
+          document.getElementById('stat-avail-num').innerText = d.holdings_stats.available_copies ?? '—';
         }
 
         renderHoldingsTable(holdingsData);
@@ -946,119 +951,42 @@
 
     window.addEventListener('DOMContentLoaded', loadData);
   </script>
-  <!-- Librarian Management Panel -->
-  <div id="librarian-panel" style="display:none; margin: 2rem auto; max-width: 900px; padding: 1.5rem; background: rgba(30,41,59,0.95); border: 1px solid rgba(139,92,246,0.3); border-radius: 1rem;">
-    <h2 style="color: #a78bfa; font-size: 1.3rem; margin-bottom: 1rem;">📚 Librarian Management Console</h2>
-
-    <!-- Upload Card -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Upload Document (PDF/MD/TXT)</h3>
-      <form id="upload-form" enctype="multipart/form-data" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-        <input type="file" id="upload-file" accept=".pdf,.md,.txt,.markdown" style="flex: 1; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-        <button type="submit" style="padding: 0.5rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Upload & Ingest</button>
-      </form>
-      <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
-    </div>
-
-    <!-- Chapter Index Card -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Submit Chapter Index (TOC-only Ingestion)</h3>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <input id="index-book-id" placeholder="Book ID or slug" style="flex: 1; min-width: 150px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-        <input id="index-title" placeholder="Book title" style="flex: 2; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-      </div>
-      <textarea id="index-chapters" placeholder='Chapter titles (one per line)' rows="4" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0; resize: vertical;"></textarea>
-      <button id="submit-index" style="margin-top: 0.5rem; padding: 0.5rem 1.5rem; background: #059669; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Submit Index</button>
-      <div id="index-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
-    </div>
-
-    <!-- Active Jobs -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Active Ingestion Jobs</h3>
-      <div id="jobs-list" style="font-size: 0.85rem; color: #94a3b8;">Loading...</div>
-      <button id="refresh-jobs" style="margin-top: 0.5rem; padding: 0.4rem 1rem; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); border-radius: 0.4rem; cursor: pointer; font-size: 0.8rem;">Refresh</button>
-    </div>
-  </div>
-
   <script>
-  (function() {
-    async function showStaffIngestionPanel() {
+  (() => {
+    const panel = document.getElementById('holdings-import-panel');
+    const form = document.getElementById('holdings-import-form');
+    const status = document.getElementById('holdings-import-status');
+    window.addEventListener('DOMContentLoaded', async () => {
       try {
         const response = await fetch('/api/auth/me', { cache: 'no-store' });
         if (!response.ok) return;
         const principal = await response.json();
         if (principal.authenticated && ['librarian', 'administrator'].includes(principal.role)) {
-          document.getElementById('librarian-panel').style.display = 'block';
+          panel?.classList.remove('hidden');
         }
       } catch (_) {}
-    }
-    showStaffIngestionPanel();
-
-    function getAuthHeaders() { return {}; }
-
-    // Upload form
-    const uploadForm = document.getElementById('upload-form');
-    if (uploadForm) uploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fileInput = document.getElementById('upload-file');
-      if (!fileInput.files.length) return;
-      const fd = new FormData();
-      fd.append('file', fileInput.files[0]);
-      document.getElementById('upload-status').textContent = 'Uploading...';
+    });
+    form?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const file = document.getElementById('holdings-import-file')?.files?.[0];
+      if (!file) return;
+      const body = new FormData();
+      body.append('file', file);
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      status.textContent = 'Validating and saving the inventory…';
       try {
-        const resp = await fetch('/api/ingest', { method: 'POST', body: fd, headers: getAuthHeaders() });
-        const data = await resp.json();
-        document.getElementById('upload-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id} created (${data.status})`;
-      } catch (err) {
-        document.getElementById('upload-status').textContent = 'Upload failed: ' + err.message;
+        const response = await fetch('/api/library/import', { method: 'POST', body });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'Import failed.');
+        status.textContent = `Saved ${data.holdings_stats.total_records} records · ${data.holdings_stats.total_copies} copies · ${data.holdings_stats.available_copies} available.`;
+        if (typeof loadData === 'function') await loadData();
+      } catch (error) {
+        status.textContent = error.message || 'Inventory import failed.';
+      } finally {
+        button.disabled = false;
       }
     });
-
-    // Index submit
-    const indexBtn = document.getElementById('submit-index');
-    if (indexBtn) indexBtn.addEventListener('click', async () => {
-      const bookId = document.getElementById('index-book-id').value.trim();
-      const title = document.getElementById('index-title').value.trim();
-      const chaptersRaw = document.getElementById('index-chapters').value.trim();
-      if (!bookId) { document.getElementById('index-status').textContent = 'Book ID required'; return; }
-      const chapters = chaptersRaw.split('\n').map(l => l.trim()).filter(Boolean);
-      document.getElementById('index-status').textContent = 'Submitting...';
-      try {
-        const resp = await fetch('/api/ingest/index', {
-          method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-          body: JSON.stringify({ doc_id: bookId, title: title || bookId, chapters })
-        });
-        const data = await resp.json();
-        document.getElementById('index-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id}: ${data.status}`;
-      } catch (err) {
-        document.getElementById('index-status').textContent = 'Submit failed: ' + err.message;
-      }
-    });
-
-    // Refresh jobs
-    async function loadJobs() {
-      try {
-        const resp = await fetch('/api/ingest', { headers: getAuthHeaders() });
-        const data = await resp.json();
-        const jobs = data.jobs || [];
-        if (!jobs.length) {
-          document.getElementById('jobs-list').textContent = 'No active jobs.';
-          return;
-        }
-        document.getElementById('jobs-list').innerHTML = jobs.slice(0, 10).map(j =>
-          `<div style="padding: 0.3rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <span style="color: #a78bfa;">${j.job_id?.slice(0,8) || '?'}</span> —
-            <span>${j.source_filename || '?'}</span> —
-            <span style="color: ${j.status === 'complete' ? '#10b981' : j.status === 'failed' ? '#ef4444' : '#f59e0b'};">${j.status || '?'}</span>
-          </div>`
-        ).join('');
-      } catch (err) {
-        document.getElementById('jobs-list').textContent = 'Failed to load jobs.';
-      }
-    }
-    const refreshBtn = document.getElementById('refresh-jobs');
-    if (refreshBtn) refreshBtn.addEventListener('click', loadJobs);
-    if (role === 'librarian' || role === 'administrator') loadJobs();
   })();
   </script>
 </body>

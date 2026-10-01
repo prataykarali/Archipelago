@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.api.app import app
+from archipelago.api.app import app
 
 
 @pytest.fixture

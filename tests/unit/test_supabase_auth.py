@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.api import app as api_module
-from src.archipelago.supabase_auth import AuthPrincipal
+from archipelago.api import app as api_module
+from archipelago.supabase_auth import AuthPrincipal
 
 
 @pytest.fixture()
@@ -117,14 +117,14 @@ def test_librarian_cannot_create_administrator(monkeypatch: pytest.MonkeyPatch):
         role="librarian",
         access_token="test-token",
     )
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     result, err = supabase_auth.create_managed_user(principal, {"username": "new_admin", "password": "password123", "role": "administrator"})
     assert result is None
     assert "Librarians may only create student accounts" in err
 
 
 def test_user_updates_fail_closed_without_supabase_service_key(monkeypatch: pytest.MonkeyPatch, tmp_path):
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     monkeypatch.setattr(supabase_auth, "get_service_role_key", lambda: "")
     monkeypatch.setattr(supabase_auth, "_LOCAL_USERS_FILE", tmp_path / "users.json")
     
@@ -155,7 +155,7 @@ def test_user_updates_fail_closed_without_supabase_service_key(monkeypatch: pyte
 
 
 def test_librarian_can_delete_student_but_not_admin(monkeypatch: pytest.MonkeyPatch, tmp_path):
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     monkeypatch.setattr(supabase_auth, "get_service_role_key", lambda: "")
     monkeypatch.setattr(supabase_auth, "_LOCAL_USERS_FILE", tmp_path / "users.json")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
@@ -196,7 +196,7 @@ def test_librarian_can_delete_student_but_not_admin(monkeypatch: pytest.MonkeyPa
 
 
 def test_administrator_full_crud_permissions(monkeypatch: pytest.MonkeyPatch, tmp_path):
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     monkeypatch.setattr(supabase_auth, "get_service_role_key", lambda: "")
     monkeypatch.setattr(supabase_auth, "_LOCAL_USERS_FILE", tmp_path / "users.json")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")

@@ -1,0 +1,324 @@
+        .chat-bubble p {
+            margin-bottom: 0.75rem;
+        }
+        .chat-bubble p:last-child {
+            margin-bottom: 0;
+        }
+        .chat-bubble h1, .chat-bubble h2, .chat-bubble h3, .chat-bubble h4 {
+            color: #f8fafc !important;
+            font-weight: 750;
+            margin-top: 1.1rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0;
+            display: block;
+            line-height: 1.35;
+        }
+        .chat-bubble h1:first-child,
+        .chat-bubble h2:first-child,
+        .chat-bubble h3:first-child { margin-top: 0; }
+        .chat-bubble h1 { font-size: 1.12rem; }
+        .chat-bubble h2 { font-size: 1.05rem; }
+        .chat-bubble h3 { font-size: 0.98rem; color: #c4b5fd !important; }
+        .chat-bubble h4 { font-size: 0.92rem; color: #a5b4fc !important; }
+        /* Never clip long markdown / code — but never vertical character stacks */
+        .chat-bubble pre,
+        .chat-bubble table,
+        .chat-bubble p,
+        .chat-bubble li,
+        .chat-bubble a,
+        .chat-bubble span {
+            overflow-wrap: break-word;
+            word-break: normal;
+            writing-mode: horizontal-tb !important;
+            white-space: normal;
+        }
+        .chat-bubble pre {
+            max-width: 100%;
+            white-space: pre-wrap;
+        }
+
+        .chat-bubble ul, .chat-bubble ol {
+            margin-left: 1.35rem;
+            margin-bottom: 0.85rem;
+            margin-top: 0.35rem;
+        }
+        .chat-bubble ul { list-style-type: disc; }
+        .chat-bubble ol { list-style-type: decimal; }
+        .chat-bubble li {
+            margin-bottom: 0.4rem;
+            padding-left: 0.15rem;
+        }
+        .chat-bubble blockquote {
+            border-left: 3px solid #8b5cf6 !important;
+            background: rgba(139, 92, 246, 0.15) !important;
+            padding: 0.65rem 0.95rem;
+            border-radius: 0 0.75rem 0.75rem 0;
+            margin-top: 0.6rem;
+            margin-bottom: 0.8rem;
+            color: #f1f5f9 !important;
+            -webkit-text-fill-color: #f1f5f9 !important;
+            font-style: italic;
+        }
+        .chat-bubble hr {
+            border: 0;
+            height: 1px;
+            background: rgba(148, 163, 184, 0.35);
+            margin: 1.1rem 0;
+        }
+        .chat-bubble table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.75rem;
+            margin-bottom: 0.85rem;
+            font-size: 0.875rem;
+        }
+        .chat-bubble th, .chat-bubble td {
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            padding: 0.45rem 0.75rem;
+            text-align: left;
+            color: #e5e7eb !important;
+        }
+        .chat-bubble th {
+            background: rgba(30, 27, 55, 0.9);
+            font-weight: 700;
+        }
+        .chat-bubble code {
+            font-family: 'Brigend', sans-serif;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 0.125rem 0.25rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            color: #e2e8f0 !important;
+        }
+        .chat-bubble pre code {
+            background: transparent;
+            padding: 0;
+            color: #e2e8f0 !important;
+        }
+        .chat-bubble pre {
+            background: #0b1020 !important;
+            border: 1px solid rgba(96, 165, 250, 0.22);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            overflow-x: auto;
+        }
+        /* Links: bright blue underline on black layer (body text stays light/near-black contrast) */
+        .chat-bubble a {
+            color: #60a5fa !important;
+            font-weight: 600;
+            font-size: 0.965rem !important;
+            text-decoration: underline;
+            text-decoration-color: #60a5fa;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+            overflow-wrap: anywhere;
+            transition: color .18s ease, text-decoration-color .18s ease,
+                        background .18s ease, text-shadow .18s ease;
+            border-radius: 4px;
+        }
+        .chat-bubble a:hover, .chat-bubble a:focus-visible {
+            color: #93c5fd !important;
+            text-decoration-color: #93c5fd;
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.45);
+            background: rgba(96, 165, 250, 0.12);
+        }
+        /* Citation/page-view links get a subtle chip style so they stand out */
+        .chat-bubble a.curriculum-pdf-link,
+        .chat-bubble a.view-page-link {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            padding: .05rem .4rem;
+            color: #60a5fa !important;
+            background: rgba(37, 99, 235, 0.18);
+            border: 1px solid rgba(96, 165, 250, 0.45);
+            border-radius: .4rem;
+            text-decoration: underline;
+            text-decoration-color: #60a5fa;
+        }
+        .chat-bubble a.curriculum-pdf-link::before,
+        .chat-bubble a.view-page-link::before {
+            content: "\f1c1";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: .8em;
+            opacity: .9;
+        }
+        .chat-bubble a.curriculum-pdf-link:hover,
+        .chat-bubble a.view-page-link:hover {
+            background: rgba(96, 165, 250, 0.28);
+            border-color: #60a5fa;
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.4);
+        }
+
+        /* Keyword highlighting: model concepts auto-wrapped in <mark.kw> */
+        .chat-bubble mark.kw {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            background: #fde047 !important;
+            padding: .04rem .35rem;
+            border-radius: .35rem;
+            font-weight: 700;
+            border: 1px solid #eab308;
+            box-shadow: inset 0 -2px 0 #ca8a04, 0 0 12px rgba(250, 204, 21, 0.3);
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        .chat-bubble mark.kw:hover {
+            transform: translateY(-1px) scale(1.05);
+            background: #facc15 !important;
+            box-shadow: inset 0 -2px 0 #ca8a04, 0 0 18px rgba(250, 204, 21, 0.5);
+        }
+        /* Page-passage highlight: crisp dark text on yellow fill */
+        .chat-bubble mark.page-hl, #reading-content mark.page-hl {
+            background: #fde047 !important;
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            padding: .02rem .25rem;
+            border-radius: .25rem;
+            font-weight: 700;
+            border-bottom: 2px solid #ca8a04;
+        }
+        /* Strong/bold tokens pop on black layer */
+        .chat-bubble strong, .chat-bubble b {
+            color: #f8fafc !important;
+            text-shadow: 0 0 12px rgba(196, 181, 253, 0.25);
+        }
+        /* Inline code chips */
+        .chat-bubble :not(pre) > code {
+            color: #67e8f9 !important;
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(34, 211, 238, 0.35);
+        }
+        /* Headings get a neon accent underline */
+        .chat-bubble h1, .chat-bubble h2, .chat-bubble h3 {
+            border-bottom: 1px solid rgba(139, 92, 246, 0.35);
+            padding-bottom: .2rem;
+        }
+        .evidence-rail {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0;
+            max-width: 100%;
+            margin-top: 1.15rem;
+            padding: 0.85rem 0 0 0.85rem;
+            box-sizing: border-box;
+            writing-mode: horizontal-tb !important;
+        }
+        .evidence-heading {
+            display: block;
+            color: #fbbf24 !important;
+            -webkit-text-fill-color: #fbbf24 !important;
+            font-size: .85rem;
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .evidence-card {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+            margin-top: .65rem;
+            padding: .85rem 1rem;
+            color: #f8fafc !important;
+            -webkit-text-fill-color: #f8fafc !important;
+            background: linear-gradient(135deg, rgba(26, 16, 48, 0.92), rgba(12, 8, 28, 0.95)) !important;
+            border: 1px solid rgba(139, 92, 246, 0.4) !important;
+            border-radius: .75rem;
+            text-decoration: none !important;
+            transition: background .18s ease, border-color .18s ease, transform .18s ease;
+            writing-mode: horizontal-tb !important;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        .evidence-card:hover, .evidence-card:focus-visible {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            background: linear-gradient(135deg, rgba(38, 24, 68, 0.95), rgba(18, 12, 40, 0.98)) !important;
+            border-color: rgba(139, 92, 246, 0.7) !important;
+            transform: translateX(2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.25);
+        }
+        .evidence-card.is-unavailable { cursor: default; opacity: .82; }
+        .evidence-card.is-unavailable:hover { transform: none; border-color: #fcd34d; background: #fffbeb; }
+        .evidence-card__title {
+            display: block;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            font-weight: 700;
+            color: #111827;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+        .evidence-card__meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .45rem;
+            margin-top: .45rem;
+            font-size: .85rem;
+            line-height: 1.4;
+            color: #4b5563;
+            white-space: normal;
+        }
+        .evidence-card__badge {
+            display: inline-block;
+            padding: .14rem .42rem;
+            border-radius: .25rem;
+            color: #92400e;
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .evidence-card__availability { color: #047857; font-weight: 650; white-space: nowrap; }
+        .evidence-card__availability.is-missing { color: #b45309; }
+
+        /* Institutional Library Inventory Section */
+        .library-inventory-section {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0;
+            max-width: 100%;
+            margin-top: 1.15rem;
+            margin-bottom: 0.85rem;
+            padding: 1rem 1.15rem;
+            background: linear-gradient(135deg, rgba(14, 23, 42, 0.95), rgba(15, 23, 42, 0.88)) !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+            box-sizing: border-box;
+            backdrop-filter: blur(12px);
+            transition: all 0.25s ease;
+        }
+        .library-inventory-section.hidden {
+            display: none !important;
+        }
+        .library-inventory-section table {
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            font-size: 0.825rem;
+        }
+        .library-inventory-section th {
+            background: rgba(30, 41, 59, 0.95) !important;
+            color: #38bdf8 !important;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.55rem 0.75rem;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.35);
+        }
+        .library-inventory-section td {
+            padding: 0.55rem 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            vertical-align: middle;
+            color: #f1f5f9;
+        }

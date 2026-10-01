@@ -6,7 +6,7 @@ import os
 
 from flask import g, jsonify, request
 
-from src.archipelago import supabase_auth
+from archipelago import supabase_auth
 
 
 def _extract_bearer_token() -> str | None:

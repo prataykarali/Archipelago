@@ -5,7 +5,7 @@ import re
 from typing import Optional, Tuple
 import numpy as np
 
-from src.core.router import QueryRouter, RoutingTier, SECURITY_BOUNDARY_MESSAGE, OUT_OF_SCOPE_MESSAGE, MAX_QUERY_LENGTH
+from archipelago.core.router import QueryRouter, RoutingTier, SECURITY_BOUNDARY_MESSAGE, OUT_OF_SCOPE_MESSAGE, MAX_QUERY_LENGTH
 
 
 class Stage1Firewall:

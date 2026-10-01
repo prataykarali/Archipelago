@@ -155,7 +155,7 @@ def redact_for_model(text: str) -> str:
     """Drop links, ids, and addresses before a prompt leaves the library."""
     kept = []
     for line in text.splitlines():
-        if any(mark in line for mark in ("**Paper page.**", "**Pearson page.**", "**Pearson book.**")):
+        if any(mark in line for mark in ("**Paper page.**", "**Hugging Face page.**", "**Pearson page.**", "**Pearson book.**")):
             continue
         kept.append(line)
     raw = "\n".join(kept)

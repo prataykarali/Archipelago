@@ -1,0 +1,326 @@
+            /* Keep hero/welcome readable without the sweep animation */
+            #hero-title-overlay h2 {
+                animation: none !important;
+                color: #ffffff !important;
+                -webkit-text-fill-color: #ffffff !important;
+                background: none !important;
+                -webkit-background-clip: border-box !important;
+                background-clip: border-box !important;
+                text-shadow:
+                    0 2px 4px rgba(0, 0, 0, 0.9),
+                    0 0 18px rgba(0, 0, 0, 0.65),
+                    0 0 2px rgba(255, 255, 255, 0.35) !important;
+            }
+            #welcome-container .welcome-title,
+            .welcome-title.shine-text {
+                animation: none !important;
+                color: #ede9fe !important;
+                -webkit-text-fill-color: #ede9fe !important;
+                background: none !important;
+                -webkit-background-clip: border-box !important;
+                background-clip: border-box !important;
+            }
+        }
+
+        /* ── 3. TypewriterText cursor ── */
+        .typewriter-cursor::after {
+            content: '|';
+            opacity: 1;
+            animation: tw-blink 0.8s step-end infinite;
+            margin-left: 2px;
+            color: #e9d5ff;
+            text-shadow: 0 0 8px rgba(192, 132, 252, 0.9);
+            font-weight: 400;
+        }
+        /* Keep cursor while looping (only hide for reduced-motion static text) */
+        .typewriter-cursor.is-static.done::after { display: none; }
+        @keyframes tw-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* ── 4. DepthParallaxWords ── */
+        .depth-word {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(18px) scale(0.93);
+            filter: blur(3px);
+            transition:
+                opacity   0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                filter    0.65s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: opacity, transform, filter;
+        }
+        .depth-word.visible {
+            opacity: 1;
+            transform: none;
+            filter: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .depth-word { opacity: 1; transform: none; filter: none; transition: none; }
+        }
+
+        /* ── 5. SwitchboardCard lightgrid (hero strip stays hidden) ── */
+        #switchboard-lights {
+            display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+        /* Thinking / graph lightgrids still use .sw-bulb styles below */
+        #switchboard-lights.is-enabled {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 28rem;
+            height: 56px;
+            gap: 0;
+        }
+        #switchboard-lights .sw-grid {
+            display: grid;
+            gap: 1.5px;
+            width: 100%;
+            height: 100%;
+        }
+        .sw-bulb {
+            border-radius: 50%;
+            width: 2px; height: 2px;
+            background: rgba(255,255,255,0.25);
+            transition: background 200ms ease-out, box-shadow 200ms ease-out, width 200ms ease-out, height 200ms ease-out;
+            justify-self: center;
+            align-self: center;
+        }
+        .sw-bulb.medium {
+            background: #8b5cf6;
+            box-shadow: 0 0 2px 1px rgba(139,92,246,0.4), 0 0 4px 1.5px rgba(139,92,246,0.25);
+        }
+        .sw-bulb.high {
+            width: 3px; height: 3px;
+            background: #c4b5fd;
+            box-shadow: 0 0 2px 1px rgba(196,181,253,0.5), 0 0 5px 2px rgba(139,92,246,0.35), 0 0 8px 3px rgba(139,92,246,0.2);
+        }
+
+        /* ── 6. GlowBorderCard — chat input wrapper ── */
+        @property --glow-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+        @keyframes glow-spin { to { --glow-angle: 360deg; } }
+
+        .glow-border-wrap {
+            position: relative;
+            border-radius: 0.75rem;
+            isolation: isolate;
+        }
+        .glow-border-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(
+                from var(--glow-angle),
+                #00ff87 0%,
+                #60efff 25%,
+                #bb99ff 50%,
+                #ff68f0 75%,
+                #00ff87 100%
+            );
+            animation: glow-spin 4s linear infinite;
+            filter: blur(6px);
+            z-index: -1;
+            opacity: 0.75;
+            transition: opacity 0.4s ease;
+        }
+        /* Fallback for browsers without @property */
+        @supports not (background: conic-gradient(from 1deg, red, blue)) {
+            .glow-border-wrap::before {
+                background: linear-gradient(45deg, #00ff87, #60efff, #bb99ff, #ff68f0);
+                animation: none;
+            }
+        }
+        .glow-border-wrap.glow-paused::before {
+            opacity: 0.3;
+            animation-play-state: paused;
+        }
+
+        /* ── 7. DaisyUI hover-3d (suggestion cards only — never message text) ── */
+        .hover-3d-wrap {
+            --perspective: 800px;
+            --rot-x: 0deg;
+            --rot-y: 0deg;
+            transform-style: preserve-3d;
+            transform: perspective(var(--perspective)) rotateX(var(--rot-x)) rotateY(var(--rot-y));
+            transition: transform 0.15s ease-out;
+            border-radius: inherit;
+        }
+        .hover-3d-card {
+            position: relative;
+            background: linear-gradient(155deg, rgba(255,255,255,0.07), rgba(20,12,40,0.45)) !important;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            will-change: transform;
+            transform-style: preserve-3d;
+        }
+        .hover-3d-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(196,160,255,0.18), transparent 55%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+        .hover-3d-card:hover::after { opacity: 1; }
+        .hover-3d-card:hover {
+            border-color: rgba(139, 92, 246, 0.45) !important;
+            box-shadow: 0 14px 36px rgba(139, 92, 246, 0.22), inset 0 1px 0 rgba(255,255,255,0.14);
+        }
+
+        /* ── 8. ShaderReveal push transition ── */
+        @keyframes reveal-push-exit {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 0; transform: translateY(-32px) scale(0.98); }
+        }
+        @keyframes reveal-push-enter {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .reveal-exit {
+            animation: reveal-push-exit 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            pointer-events: none;
+        }
+        .reveal-enter {
+            animation: reveal-push-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Ensure assistant markdown never gets clipped by parents */
+        .assistant-row {
+            overflow: visible !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        .assistant-row .msg-bubble-wrap,
+        .assistant-row .chat-bubble {
+            max-width: 100%;
+            width: 100%;
+            overflow: visible !important;
+        }
+        @media (max-width: 767px) {
+            #chat-hero-band { padding: 0; }
+            #hero-video-card { height: clamp(5.5rem, 11vh, 7.5rem); }
+            .sidebar-hero-art { height: 5.5rem; }
+            #sticky-avatar-dock {
+                flex-basis: 8rem;
+                width: 8rem;
+                max-width: 8rem;
+            }
+            #sticky-avatar-dock .avatar-shell {
+                --avatar-size: 7rem;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .chat-bubble, .user-bubble, .hover-3d-card,
+            #hero-video-card, .header-orb, .sidebar-ambient,
+            .logo-icon-spin, .logo-icon-glow::before {
+                animation: none !important;
+            }
+            .reveal-exit, .reveal-enter, .msg-bubble-wrap {
+                animation: none !important;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           PREMIUM EFFECTS ON AI CHAT + GRAPH CARD OUTPUT
+           ═══════════════════════════════════════════════════════ */
+
+        /* Completed responses use a brief border settle, not a content overlay. */
+        .chat-bubble-ripple-bg {
+            display: none !important;
+        }
+
+        /* Semantic headings on the dark answer surface — light + readable */
+        .chat-bubble h1,
+        .chat-bubble h2,
+        .chat-bubble h3 {
+            background-image: none !important;
+            color: #f8fafc !important;
+            -webkit-text-fill-color: #f8fafc !important;
+            animation: none !important;
+        }
+
+        /* Emphasis remains readable on black-layer bubbles */
+        .chat-bubble strong {
+            color: #fafafa !important;
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(196, 181, 253, 0.28);
+        }
+        .chat-bubble em {
+            color: #c4b5fd !important;
+            font-style: italic;
+            font-weight: 600;
+            text-shadow: none;
+        }
+        .chat-bubble code:not(pre code) {
+            color: #67e8f9 !important;
+            background: rgba(6, 182, 212, 0.14) !important;
+            border: 1px solid rgba(34, 211, 238, 0.35) !important;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+        }
+        /* Force body copy light — highest-priority readable text on dark bubble */
+        .chat-bubble,
+        .chat-bubble :where(p, li, div, span, td, th, h1, h2, h3, h4, strong, b, em) {
+            color: #f3f4f6 !important;
+            -webkit-text-fill-color: #f3f4f6 !important;
+            opacity: 1 !important;
+        }
+        .chat-bubble :where(h1, h2, h3, h4, strong, b) {
+            color: #fafafa !important;
+            -webkit-text-fill-color: #fafafa !important;
+        }
+        .chat-bubble em {
+            color: #ddd6fe !important;
+            -webkit-text-fill-color: #ddd6fe !important;
+        }
+        .chat-bubble a,
+        .chat-bubble a :where(span, i, strong) {
+            color: #60a5fa !important;
+            -webkit-text-fill-color: #60a5fa !important;
+        }
+        .chat-bubble blockquote,
+        .chat-bubble blockquote * {
+            color: #f1f5f9 !important;
+            -webkit-text-fill-color: #f1f5f9 !important;
+        }
+        .chat-bubble mark.kw {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
+        .chat-bubble mark.page-hl,
+        #reading-content mark.page-hl {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            background: #fde047 !important;
+        }
+        /* Evidence cards keep their own dark-glass / amber palette */
+        .chat-bubble .evidence-rail :where(.evidence-card, .evidence-card *),
+        .chat-bubble .evidence-card,
+        .chat-bubble .evidence-card * {
+            -webkit-text-fill-color: initial;
+        }
+        .chat-bubble .evidence-heading {
+            color: #fbbf24 !important;
+            -webkit-text-fill-color: #fbbf24 !important;
+        }
+        .chat-bubble .evidence-card__title {
+            color: #fbbf24 !important;
+            -webkit-text-fill-color: #fbbf24 !important;
+        }
+        .chat-bubble .evidence-card__meta,
+        .chat-bubble .evidence-card__meta * {
+            color: #cbd5e1 !important;
+            -webkit-text-fill-color: #cbd5e1 !important;
+        }

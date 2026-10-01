@@ -1,9 +1,9 @@
-"""Archipelago — feature packages (inference, ingestion, okf, core, graph)."""
-import pkgutil
-from pathlib import Path
+"""Archipelago — feature packages (inference, ingestion, okf, core, graph).
 
-__path__ = pkgutil.extend_path(__path__, __name__)
+This is the single canonical package.  It previously extended ``__path__`` to
+also load modules from a parallel ``src/archipelago`` tree; that duplicate has
+been removed and every module now lives here.
+"""
+from __future__ import annotations
 
-_src_archipelago = Path(__file__).resolve().parent.parent / "src" / "archipelago"
-if _src_archipelago.is_dir() and str(_src_archipelago) not in __path__:
-    __path__.append(str(_src_archipelago))
+__all__: list[str] = []

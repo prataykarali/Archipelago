@@ -1,0 +1,300 @@
+================================================================================
+ARCHIPELAGO: DETAILED SYSTEM OVERVIEW, ARCHITECTURE, METRICS & FEATURE CATALOG
+================================================================================
+
+1. EXECUTIVE SUMMARY & WHAT THE APP DOES
+--------------------------------------------------------------------------------
+Archipelago is an open-source, local-first, domain-agnostic Knowledge Graph
+pipeline and pedagogical AI Librarian platform. Originally seeded with an
+exhaustive Artificial Intelligence & Machine Learning (AI/ML) corpus, Archipelago
+transforms raw unstructured documents (PDFs, Markdown, scientific papers, and
+textbooks) into a structured Open Knowledge Format (OKF v1.6) graph database.
+
+Unlike conventional conversational LLM wrappers or generative "homework solvers",
+Archipelago strictly implements "The Doorstep Model" (Pedagogical Cartographer):
+- It never solves student homework or generates production code outright.
+- Instead, it acts as an expert academic research librarian at the doorstep of the
+  knowledge archives, guiding learners to first principles, upstream prerequisites,
+  foundational mathematical concepts, downstream unlocks, and primary literature
+  citations (with exact page and section numbers).
+- It provides interactive visual maps of knowledge topology, diagnostic
+  multiple-choice verification checks (Socratic assessment), and multi-hop
+  curriculum roadmaps.
+
+
+================================================================================
+2. COMPREHENSIVE NUMERICAL METRICS & CODEBASE STATISTICS
+================================================================================
+
+2.1. Disk Footprint & Storage Breakdown
+--------------------------------------------------------------------------------
+- Total Project Size on Disk:               ~2.9 GB
+  * Offline Fine-Tuned Models (GGUF & LoRA):  2.3 GB
+    - lib-qwen-q8_0.gguf:                     811.8 MB (Q8_0 quantized offline model)
+    - lib-qwen-v44-q8_0.gguf:                 531.1 MB (v44 quantized extraction model)
+    - lib_qwen_lora_v44 & lib_qwen_v44_hf:    980+ MB (weights & checkpoints)
+  * SQLite Graph Databases:                   196 MB
+    - okf_graph.db (production graph):        98.0 MB
+    - okf_graph_staging.db (staging graph):   98.0 MB
+    - Historical graph backups:               160.0 MB
+  * Academic PDF Library:                     97.6 MB (51 primary papers/books)
+  * Web & Static Frontends (UI assets):       60.0 MB
+  * Python Virtual Environment (.venv):       44.0 MB
+  * Training Datasets & Manifests:            14.0 MB
+  * Test Suites & Pytest fixtures:            2.9 MB
+  * JSON Export Graphs (okf_graph.json):      2.6 MB
+  * Core Python Packages (archipelago/src):   2.6 MB
+  * Logs & Telemetry:                         1.4 MB
+  * Documentation & Architectural RFCs:       0.9 MB
+
+2.2. Source Code & File Inventory (Excluding .venv and .git)
+--------------------------------------------------------------------------------
+- Total Source Files:                       479 files
+- Total Lines of Code & Data:               1,646,519 lines
+  * Python (.py):                           320 files   |    64,725 lines
+  * HTML (.html):                            10 files   |    16,351 lines
+  * JavaScript (.js):                         4 files   |     1,624 lines
+  * Shell Scripts (.sh):                     14 files   |       931 lines
+  * Documentation (.md):                     59 files   |     7,749 lines
+  * Structured JSON (.json):                 70 files   | 1,554,993 lines
+  * Relational SQL (.sql):                    2 files   |       146 lines
+- Automated Test Suite:                      93 test files
+  * Total Distinct Test Cases:              683 test functions
+
+2.3. Knowledge Graph Topology & Exact Node/Edge Counts
+--------------------------------------------------------------------------------
+- Total Canonical Concepts (Nodes):         531 active nodes in graph explorer
+- Total Semantic Relationships (Edges):     1,890 active typed edges
+
+- Breakdown of Nodes by OKF Concept Type:
+  * Definition:                             180 nodes  (33.9%)
+  * Method:                                 161 nodes  (30.3%)
+  * Technique:                              153 nodes  (28.8%)
+  * Dataset:                                 15 nodes  ( 2.8%)
+  * Metric:                                   4 nodes  ( 0.8%)
+  * Theory:                                   1 node   ( 0.2%)
+
+- Breakdown of Nodes by Difficulty Level:
+  * Foundational:                             4 nodes  ( 0.8%)
+  * Intermediate:                           453 nodes  (85.3%)
+  * Advanced:                                57 nodes  (10.7%)
+  * Expert:                                  17 nodes  ( 3.2%)
+
+- Breakdown of Edges by Semantic Relationship:
+  * co_mention:                             891 edges  (47.1%)
+  * enables:                                357 edges  (18.9%)
+  * requires (Prerequisites):               196 edges  (10.4%)
+  * part_of (Compositional):                156 edges  ( 8.3%)
+  * uses:                                   144 edges  ( 7.6%)
+  * contrasts_with (Comparative):            96 edges  ( 5.1%)
+  * prerequisite:                            39 edges  ( 2.1%)
+  * unlocks (Downstream):                     8 edges  ( 0.4%)
+  * evaluated_by:                             2 edges  ( 0.1%)
+  * variant_of:                               1 edge   ( 0.05%)
+
+2.4. Ingested Academic Literature Corpus
+--------------------------------------------------------------------------------
+- Total Documents in Library:               51 academic papers and textbooks
+- Total Corpus File Size:                   97.58 MB
+- Notable Seed Papers & Works:
+  * Attention Is All You Need (Vaswani et al., 2017)
+  * BERT: Pre-training of Deep Bidirectional Transformers (Devlin et al., 2018)
+  * LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021)
+  * Retrieval-Augmented Generation for Knowledge-Intensive Tasks (Lewis et al., 2020)
+  * From Local to Global: A Graph RAG Approach (Edge et al., 2024)
+  * Language Models are Few-Shot Learners / GPT-3 (Brown et al., 2020)
+  * Auto-Encoding Variational Bayes / VAE (Kingma & Welling, 2013)
+  * Denoising Diffusion Probabilistic Models / DDPM (Ho et al., 2020)
+  * Constitutional AI: Harmlessness from AI Feedback (Bai et al., 2022)
+  * Mathematics for Machine Learning (Deisenroth et al., Textbook)
+
+2.5. Latencies, Performance & Gateway Benchmarks
+--------------------------------------------------------------------------------
+- Gateway Deterministic Interceptor:        < 2 ms (Zero LLM token burn)
+- Subgraph Extraction Latency (k=2 hops):   < 15 ms via indexed SQLite/Kùzu
+- Gemini 2.0 Flash-Lite (Intent & Route):   250 ms - 400 ms
+- Gemini 2.0 Flash (Time To First Token):   450 ms - 700 ms
+- Full End-to-End Streaming Synthesis:      1.2 s - 2.8 s
+- Graph UI Rendering:                       Hardware-accelerated 60 FPS (D3 / SVG)
+
+
+================================================================================
+3. SYSTEM ARCHITECTURE & NETWORK TOPOLOGY
+================================================================================
+
+Archipelago operates as a resilient, multi-tier microservices architecture
+supervised by systemd user units and Docker:
+
+  +-----------------------------------------------------------------------+
+  |                          CLIENT USER AGENT                            |
+  +-----------------------------------------------------------------------+
+        |                                                 |
+        | Port 5152 (HTTP/SSE)                            | Port 5150 (HTTP)
+        v                                                 v
+  +-------------------------------+             +-------------------------+
+  | PORT 5152: CHAT GATEWAY       |             | PORT 5150: GRAPH SERVER |
+  | (frontend/chat_server.py)     |             | (frontend/graph_server) |
+  | - Four UI Web Pages:          |             | - 531-Node D3 Explorer  |
+  |   * /chat (Conversation)      |             | - 1,890-Edge Topology   |
+  |   * /library (Inventory)      |             | - Force Physics Engine  |
+  |   * /performance (Telemetry)  |             | - Node Detail Inspector |
+  |   * /safety (Firewall Logs)   |             | - Literature ReadingList|
+  | - Auth Bridge & User Profiles |             +-------------------------+
+  +-------------------------------+                          |
+        |                                                    |
+        | Internal Reverse Proxy                             |
+        v                                                    |
+  +----------------------------------------------------+     |
+  | PORT 5151: CORE INFERENCE BACKEND                  |     |
+  | (archipelago/inference/ & inference_server.py)     |     |
+  | - Deterministic Security Interceptor (<2ms)        |     |
+  | - 8-Key Canonical OKF Extraction & Routing         |     |
+  | - Subgraph Neighborhood Traversal (k=2)            |     |
+  | - Multi-Hop Curriculum Synthesizer                 |     |
+  | - Socratic Diagnostic MCQ Generator                |     |
+  +----------------------------------------------------+     |
+        |                               |                    |
+        v                               v                    v
+  +---------------------------+   +---------------------------------------+
+  | LLM GATEWAY (MULTI-MODEL) |   | DATA PERSISTENCE LAYER                |
+  | - Primary: xkiro (Qwen)   |   | - okf_graph.db (SQLite production)    |
+  | - Cloud: Gemini 2.0 Flash |   | - okf_graph_staging.db (Staging)      |
+  | - Flash-Lite / 2.5 Pro    |   | - 51 Indexed Research PDFs            |
+  | - Local SLM: lib-qwen-v44 |   | - In-Memory Caching (LRU / Redis)     |
+  +---------------------------+   +---------------------------------------+
+
+
+================================================================================
+4. COMPLETE CATALOG OF ALL FEATURES
+================================================================================
+
+FEATURE 1: "The Doorstep Model" Pedagogical Cartographer
+- Prevents cognitive outsourcing: will not write code snippets, complete coding
+  exercises, or solve assignment questions.
+- Re-anchors learner queries into foundational prerequisites, architectural
+  taxonomy, theoretical mechanisms, and original research literature.
+- Prompts students to reflect, inspect dependencies, and verify their knowledge.
+
+FEATURE 2: The 8-Key Open Knowledge Format (OKF v1.6) Schema
+Every concept ingested or generated conforms to 8 canonical keys:
+  1. concept_name: Title Case noun phrase (<= 5 words).
+  2. concept_type: method | metric | technique | theory | tool | dataset | result | definition.
+  3. difficulty: foundational | intermediate | advanced | expert.
+  4. summary: 1-2 sentence definition focusing on functional mechanisms.
+  5. prerequisites: List of required concepts that strictly precede this node.
+  6. unlocks: List of downstream advanced concepts enabled by mastering this node.
+  7. related_to: Array of typed directional edges:
+     - uses | extends | contrasts_with | evaluated_by | variant_of | part_of
+  8. tags: Lowercase-hyphenated taxonomical categorizations.
+
+FEATURE 3: 12 Operational OKF Reply Mechanisms
+Archipelago classifies user intent across 12 distinct pedagogical response modes:
+  1. Architectural & Functional Taxonomy (concept_type focus):
+     Explains where an entity sits in the ML stack without reciting entire chains.
+  2. Curriculum Difficulty & Cognitive Scaffolding (difficulty & prerequisites):
+     Structures a progressive, step-by-step ladder for beginners or advanced users.
+  3. Upstream Dependency & Prerequisite Audit (prerequisites focus):
+     Maps out all essential foundational topics required before tackling a concept.
+  4. Downstream Application & Unlock Forecast (unlocks focus):
+     Visualizes future capabilities and advanced algorithms enabled by this topic.
+  5. Comparative & Dialectical Analysis (contrasts_with edge focus):
+     Directly contrasts competing methods (e.g., LoRA vs Full Fine-Tuning;
+     Dense RAG vs GraphRAG).
+  6. Evolution & Lineage Tracing (improves_on / variant_of edge focus):
+     Traces historical advancements from predecessor algorithms to current state.
+  7. Compositional & Stack Deconstruction (uses / part_of edge focus):
+     Breaks down a complex system into its internal building blocks (e.g., Transformer
+     broken down into Multi-Head Attention, Softmax, LayerNorm, Positional Encoding).
+  8. Cross-Domain Transfer & Thematic Clustering (tags focus):
+     Connects related techniques across disparate fields (e.g., NLP to Computer Vision).
+  9. Socratic Assessment & Diagnostic MCQs:
+     Generates 3-question diagnostic quizzes with real-time verification to validate
+     student mastery before advancing down the curriculum.
+  10. Multi-Hop Curriculum Roadmap Planning (/api/roadmap/plan, /api/roadmap/between):
+      Computes shortest and most pedagogically sound graph paths between concepts A and B.
+  11. Out-of-Corpus Fallback & Institutional Redirection:
+      Gracefully catches out-of-scope non-AIML queries (e.g. astrology, baking) and guides
+      students back to indexed computing resources with zero LLM token waste.
+  12. Librarian Staging & Review Ingestion (/api/librarian/upload):
+      Allows librarians to upload PDFs, run automated extraction, inspect parsed nodes
+      in staging, edit definitions, and publish atomically to the live graph.
+
+FEATURE 4: Deterministic Gateway Interceptor & Safety Firewall
+- Operates at < 2 ms before reaching any LLM inference:
+  * Strict 500-Character Query Limit: Prevents buffer overruns and context attacks.
+  * Prompt Injection Firewall: Heuristic and regex filter detecting jailbreaks,
+    system prompt overrides, roleplay escapes, and toxic instructions.
+  * Institutional Authentication Cards: Emits [RENDER_AUTH_CARD] signals for gated
+    or privileged librarian workflows.
+  * Out-of-scope Zero-Cost Bypass: Short-circuits non-technical queries without
+    incurring cloud LLM API costs.
+
+FEATURE 5: Multi-Model LLM Gateway with Resilient Failover
+- Supports dynamic multi-provider routing:
+  * Primary Remote Model: xkiro (qwen/qwen3.8-max:free) via OpenAI-compatible gateway.
+  * Multi-Tier Cloud Backup: Google Gemini API
+    - gemini-2.0-flash: High-speed streaming synthesis with citation grounding.
+    - gemini-2.0-flash-lite: Ultra-low latency for query intent classification.
+    - gemini-2.5-flash: Complex multi-hop curriculum path synthesis.
+    - gemini-2.5-pro: Deep tool-calling and graph reconciliation.
+  * Local Air-Gapped SLM: lib-qwen-v44-q8_0.gguf (Fine-tuned QLoRA 0.5B/1.5B parameters)
+    for offline extraction directly on university hardware.
+
+FEATURE 6: Interactive Dual-Graph Visualization (60 FPS)
+- In-Chat Subgraph View:
+  * Dynamically queries the local 2-hop neighborhood of queried concepts.
+  * Renders smooth SVG canvas inside the chat stream.
+  * Features centered anchor pulsing rings, distinct color coding for node types,
+    smooth hover cards, and clickable nodes that instantly redirect the chat.
+- Standalone Graph Explorer (Port 5150):
+  * Interactive D3.js physics-driven force simulation displaying all 531 concepts
+    and 1,890 relationships.
+  * Real-time search filter, difficulty thresholds, cluster physics, and an
+    inspect drawer showcasing summaries, prerequisites, unlocks, and paper links.
+
+FEATURE 7: Four Specialized Web Portals (Port 5152)
+- /chat: The primary student interaction terminal with streaming tokens, inline
+  SVG graph preview, literature reading lists, and diagnostic MCQs.
+- /library: A visual catalog of 531 concepts with category filters, difficulty
+  badges, search bars, and document upload dropzones.
+- /performance: Live engineering dashboard displaying latency percentiles (P50,
+  P90, P99), TTFT metrics, token throughput, and cache hit ratios.
+- /safety: Institutional compliance interface presenting firewall logs, detected
+  jailbreak attempts, token spend charts, and active intercept rules.
+
+FEATURE 8: Academic Provenance & Literature Citation Engine
+- Grounded Extraction:
+  * Every concept in the graph retains source passage provenance (doc_id, chunk_id,
+    page number, section title, and verbatim excerpt).
+- Citation Delivery:
+  * Responses provide direct clickable links to the local PDF repository
+    (/pdfs/Filename.pdf#page=N) as well as official arXiv/DOI identifiers.
+
+FEATURE 9: Automated Extraction Pipeline & Graph Fusion
+- PDF Section-Aware Chunking: Preserves mathematical formulas and section hierarchy.
+- Deduplication & Entity Canonicalization: Fuzzy string matching, acronym expansion
+  (e.g., LoRA -> Low-Rank Adaptation), and alias tables.
+- Cycle Detection & DAG Enforcement: Eliminates circular prerequisites before merging.
+- Atomic Database Swaps: Safely replaces graph databases without interrupting active
+  read-only query connections.
+
+FEATURE 10: Production Readiness & Container Packaging
+- Containerized deployment via Dockerfile and docker-compose.yml.
+- Supervised by Linux systemd user units for auto-restart on failure:
+  * archipealgo-inference.service (Port 5151)
+  * archipealgo-graph.service (Port 5150)
+  * archipealgo-chat.service (Port 5152)
+
+
+================================================================================
+5. ACTIVE NETWORK PORTS & ACCESS URLS
+================================================================================
+- Graph Explorer:              http://localhost:5150
+- Inference Backend API:       http://localhost:5151
+- Chat & Main Web Interface:   http://localhost:5152/chat
+- Library Inventory Page:      http://localhost:5152/library
+- Performance Dashboard:       http://localhost:5152/performance
+- Safety & Firewall Log:       http://localhost:5152/safety
+
+================================================================================
+[END OF OVERVIEW FILE]

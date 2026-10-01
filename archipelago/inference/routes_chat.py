@@ -67,6 +67,38 @@ def api_chat():
     if len(query) > 500:
         return jsonify({"error": "Query exceeds maximum limit of 500 characters"}), 400
 
+    # Supabase Cache Lookup & Metrics (Zero LLM calls on cache hit)
+    try:
+        from archipelago.inference.cache_service import CacheService
+        from archipelago.inference.cache_metrics import metrics as cache_metrics
+        cache_metrics.inc_total_requests()
+        cached_entry = CacheService().get_cached_response(query)
+        if cached_entry:
+            cache_metrics.inc_cache_hit(tokens_saved=300)
+            def generate_cached():
+                payload = {
+                    "anchor_concept": None,
+                    "prerequisites": [],
+                    "unlocks": [],
+                    "citations": cached_entry.get("sources") or [],
+                    "related_concepts": [],
+                    "routing": {"route": "cached_response", "score": 1.0, "reason": "cache_hit"},
+                    "graph_data": cached_entry.get("graph_data"),
+                    "roadmap": cached_entry.get("roadmap_data"),
+                    "logs": [{
+                        "step": "Supabase Cache",
+                        "status": "Hit",
+                        "details": f"Cached response returned (hit #{cached_entry.get('hit_count', 1)}). Zero LLM tokens consumed.",
+                    }],
+                }
+                yield json.dumps(payload) + "\n[STREAM_START]\n"
+                yield str(cached_entry.get("response") or "") + "\n"
+            return Response(generate_cached(), mimetype="text/plain")
+        else:
+            cache_metrics.inc_cache_miss()
+    except Exception:
+        pass
+
     # Gateway Interceptor & Subagents (Zero LLM API calls for attacks, code-gen, homework)
     from archipelago.inference.orchestration.subagents import OrchestratorAgent, AuthGatewayAgent
     interceptor = OrchestratorAgent().intercept(query)

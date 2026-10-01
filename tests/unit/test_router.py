@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from src.core.router import (
+from archipelago.core.router import (
     MAX_QUERY_LENGTH,
     OUT_OF_SCOPE_MESSAGE,
     SECURITY_BOUNDARY_MESSAGE,

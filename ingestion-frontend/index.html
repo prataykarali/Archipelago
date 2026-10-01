@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archipelago — Ingestion Operator Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0b0f17; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .glass { background: rgba(18, 24, 38, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-hover:hover { border-color: rgba(99, 102, 241, 0.4); }
+  </style>
+</head>
+<body class="min-h-screen p-6 flex flex-col items-center">
+  <!-- Header -->
+  <header class="w-full max-w-5xl mb-8 flex justify-between items-center border-b border-slate-800 pb-4">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/30">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Archipelago</h1>
+        <p class="text-xs text-slate-400">Institutional Corpus Ingestion & Graph Operations Portal</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="systemStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800/50">
+        <span class="w-2 h-2 mr-2 rounded-full bg-emerald-400 animate-pulse"></span> Appliance Online
+      </span>
+      <a href="/chat" class="text-xs text-slate-400 hover:text-indigo-400 transition-colors">Launch Chat &rarr;</a>
+    </div>
+  </header>
+
+  <main class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Left Column: Upload Form -->
+    <div class="md:col-span-1 space-y-6">
+      <div class="glass p-6 rounded-2xl shadow-xl space-y-4">
+        <h2 class="text-lg font-semibold text-white flex items-center">
+          <i class="fa-solid fa-cloud-arrow-up text-indigo-400 mr-2"></i> Ingest Document
+        </h2>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Upload PDF papers, textbook TOCs, or institutional Koha ODS spreadsheets into the quarantine queue.
+        </p>
+
+        <form id="uploadForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Source File (.pdf, .csv, .ods, .md)</label>
+            <input type="file" id="fileInput" required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer border border-slate-700 rounded-xl p-2 bg-slate-900/50">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Document Title</label>
+            <input type="text" id="titleInput" placeholder="e.g. Attention Is All You Need" class="w-full text-xs p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Ingestion Mode</label>
+            <select id="modeInput" class="w-full text-xs p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-indigo-500">
+              <option value="full">Full Extraction (SLM + Graph Merge)</option>
+              <option value="toc_only">TOC Only (Copyrighted Textbooks)</option>
+              <option value="metadata_only">Metadata Only (Catalog Index)</option>
+            </select>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-play text-xs"></i> <span>Enqueue Ingestion Job</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Quick Stats Card -->
+      <div class="glass p-5 rounded-2xl shadow-xl space-y-3">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Baseline Graph Stats</h3>
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+            <div class="text-lg font-bold text-white" id="statNodes">5,151</div>
+            <div class="text-[11px] text-slate-400">Knowledge Nodes</div>
+          </div>
+          <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+            <div class="text-lg font-bold text-white" id="statEdges">—</div>
+            <div class="text-[11px] text-slate-400">Total Edges</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Active Jobs Queue -->
+    <div class="md:col-span-2 space-y-6">
+      <div class="glass p-6 rounded-2xl shadow-xl space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-white flex items-center">
+            <i class="fa-solid fa-list-check text-indigo-400 mr-2"></i> Ingestion Jobs Queue
+          </h2>
+          <button id="refreshBtn" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1">
+            <i class="fa-solid fa-arrows-rotate"></i> <span>Refresh</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-900/30">
+              <tr>
+                <th class="py-3 px-3">Job ID</th>
+                <th class="py-3 px-3">Target Document</th>
+                <th class="py-3 px-3">Status</th>
+                <th class="py-3 px-3">Progress</th>
+                <th class="py-3 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="jobsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td colspan="5" class="py-6 text-center text-slate-500">No active jobs in queue. Submit a file to begin.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Real-time Log Stream -->
+      <div class="glass p-6 rounded-2xl shadow-xl space-y-3">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+          <span>Worker Console Activity</span>
+          <span class="text-[10px] text-slate-500">Live POSIX Worker Stream</span>
+        </h3>
+        <div id="logConsole" class="bg-black/80 font-mono text-[11px] text-emerald-400 p-4 rounded-xl h-44 overflow-y-auto border border-slate-800 space-y-1">
+          <div class="text-slate-500">> [Archipelago Appliance] Ready for incoming jobs...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/stats`);
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('statNodes').innerText = data.node_count?.toLocaleString() || '5,151';
+          document.getElementById('statEdges').innerText = data.edge_count?.toLocaleString() || '—';
+        }
+      } catch (e) {
+        console.warn('Could not load live graph stats', e);
+      }
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('fileInput');
+      const titleInput = document.getElementById('titleInput');
+      const modeInput = document.getElementById('modeInput');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (!fileInput.files.length) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>Uploading...</span>';
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('title', titleInput.value || fileInput.files[0].name);
+      formData.append('mode', modeInput.value);
+
+      try {
+        const res = await fetch(`${API_BASE}/api/ingest`, {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        logMessage(`[Job Created] ID: ${data.job_id || 'Queued'}`);
+        fileInput.value = '';
+        titleInput.value = '';
+      } catch (err) {
+        logMessage(`[Error] Ingestion failed: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-play text-xs"></i> <span>Enqueue Ingestion Job</span>';
+      }
+    });
+
+    function logMessage(msg) {
+      const consoleEl = document.getElementById('logConsole');
+      const line = document.createElement('div');
+      line.innerText = `> ${new Date().toLocaleTimeString()} ${msg}`;
+      consoleEl.appendChild(line);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

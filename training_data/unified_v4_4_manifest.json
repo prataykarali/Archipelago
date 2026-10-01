@@ -1,0 +1,14 @@
+{
+  "train_count": 780,
+  "test_count": 212,
+  "train_composition": {
+    "okf_v4_4": 700,
+    "pearson_v4_4": 80
+  },
+  "tasks": {
+    "okf_extraction": 716,
+    "pedagogical_explanation": 17,
+    "prerequisite_reasoning": 33,
+    "diagnostic_mcq": 14
+  }
+}

@@ -465,8 +465,23 @@ def build_library_data_payload(base_dir: str | Path) -> dict:
 
     ebook_shelf = _deduplicate_shelf(ebook_shelf)
 
+    graph_stats = {"nodes": 0, "edges": 0, "clusters": 0}
+    graph_file = repo_root / "okf_graph.json"
+    if graph_file.is_file():
+        try:
+            with open(graph_file, "r", encoding="utf-8") as gf:
+                gdata = json.load(gf)
+                graph_stats = {
+                    "nodes": len(gdata.get("nodes", [])),
+                    "edges": len(gdata.get("edges", [])),
+                    "clusters": len(gdata.get("clusters", [])),
+                }
+        except Exception:
+            pass
+
     return {
         "success": True,
+        "graph_stats": graph_stats,
         "pearson_books": pearson_books,
         "total_pearson_books": len(pearson_books),
         "research_papers": papers,

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from src.core.synthesis_service import SynthesisService
+from archipelago.core.synthesis_service import SynthesisService
 
 
 @pytest.fixture

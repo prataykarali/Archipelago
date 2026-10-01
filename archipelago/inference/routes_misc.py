@@ -18,7 +18,7 @@ from ingestion_jobs import JobStatus
 from ingestion_worker import job_store, get_worker, graph_lock
 from archipelago.auth import require_librarian, librarian_token_expected
 from archipelago.inference import state as st
-from src.archipelago import supabase_auth
+from archipelago import supabase_auth
 import torch
 
 @st.app.after_request
@@ -1051,7 +1051,7 @@ def estimate_ingestion_time(file_size_bytes: int, filename: str) -> dict[str, An
 def api_auth_config():
     """Return browser-safe Supabase configuration."""
     try:
-        from src.archipelago import supabase_auth
+        from archipelago import supabase_auth
         return jsonify(supabase_auth.public_config())
     except Exception as exc:
         return jsonify({"configured": False, "error": str(exc)}), 500
@@ -1061,7 +1061,7 @@ def api_auth_config():
 def api_auth_me():
     """Return the authenticated user's Archipelago role."""
     try:
-        from src.archipelago import supabase_auth
+        from archipelago import supabase_auth
         if not supabase_auth.is_auth_required():
             return jsonify({"authenticated": False, "auth_required": False})
         principal, error = supabase_auth.authenticate_request(request)
@@ -1084,7 +1084,7 @@ def manage_users_api_backend(user_id=None):
     if request.method == "OPTIONS":
         return ("", 204)
 
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     principal, auth_err = supabase_auth.authenticate_request(request)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": auth_err or "Authentication required"}), 401

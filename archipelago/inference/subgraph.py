@@ -8,8 +8,8 @@ prerequisites, and weak connectivity guarantees.
 
 from __future__ import annotations
 
-# Re-export from src.archipelago.graph.subgraph
-from src.archipelago.graph.subgraph import (
+# Re-export from archipelago.graph.subgraph
+from archipelago.graph.subgraph import (
     BoundedSubgraph,
     SubgraphEdge,
     SubgraphNode,

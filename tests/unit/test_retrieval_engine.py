@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from src.core.retrieval import (
+from archipelago.core.retrieval import (
     MAX_CHUNKS,
     MAX_PREREQS,
     MAX_UNLOCKS,

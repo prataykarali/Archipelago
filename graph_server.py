@@ -10,7 +10,7 @@ from urllib.parse import quote
 import requests
 from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
 
-from src.archipelago import supabase_auth
+from archipelago import supabase_auth
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "okf_graph.json"

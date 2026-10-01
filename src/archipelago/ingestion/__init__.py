@@ -1,1 +1,0 @@
-"""Archipelago ingestion package."""

@@ -9,7 +9,7 @@ Dockerized, production-grade backend powered by two local Ollama models:
 from __future__ import annotations
 
 import os
-from src.api.app import app
+from archipelago.api.app import app
 
 __all__ = ["app"]
 

@@ -1,0 +1,4 @@
+title,author,year,publisher
+"Malformed Row 1",Author A,2021,Pub A,"Unclosed quote string
+"Row 2",Author B,2022
+Row 3,Author C,YearString,Pub C,extra,fields,not,matching,header

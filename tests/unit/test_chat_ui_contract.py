@@ -5,17 +5,22 @@ from __future__ import annotations
 from html.parser import HTMLParser
 from pathlib import Path
 import re
+import sys
 
 import pytest
 
 pytestmark = pytest.mark.unit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _ui_source import chat_ui_source  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 CHAT_UI_PATH = ROOT / "ui" / "chat" / "index.html"
 
 
 def _chat_ui_source() -> str:
-    return CHAT_UI_PATH.read_text(encoding="utf-8")
+    # CSS/JS now live in linked files; inline them so assertions stay meaningful.
+    return chat_ui_source()
 
 
 def _section(source: str, start: str, end: str) -> str:

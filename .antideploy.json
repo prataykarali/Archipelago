@@ -1,0 +1,12 @@
+{
+  "name": "archipelago",
+  "build_command": "pip install -r requirements.txt",
+  "start_command": "gunicorn --chdir host_inference --bind 0.0.0.0:5151 'hostapp.factory:create_app()'",
+  "health_check": "/api/readiness",
+  "env": {
+    "DB_PATH": "okf_graph.db",
+    "JSON_PATH": "okf_graph.json",
+    "FLASK_ENV": "production"
+  },
+  "port": 5151
+}

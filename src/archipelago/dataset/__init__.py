@@ -1,1 +1,0 @@
-"""Archipelago dataset synthesis package."""

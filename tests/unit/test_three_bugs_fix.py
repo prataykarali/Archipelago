@@ -8,8 +8,12 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+import sys
 
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _ui_source import chat_ui_source  # noqa: E402
 
 from archipelago.inference import stream_budget as sb
 from archipelago.inference.citations import (
@@ -176,7 +180,7 @@ def test_citation_payload_emits_spawnable_doc_url_for_valid_page() -> None:
 
 def test_chat_ui_remounts_evidence_rail_after_flush_race() -> None:
     """Paper cards must re-attach after innerHTML paints (STREAM_DONE race)."""
-    src = CHAT_UI.read_text(encoding="utf-8")
+    src = chat_ui_source()
     assert "function appendEvidenceRail" in src
     # Must remove prior rail before re-add (no sticky early-return).
     assert "prior.remove()" in src or "prior) prior.remove()" in src or "existing.remove()" in src or ".evidence-rail')" in src

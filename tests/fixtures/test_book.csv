@@ -1,0 +1,3 @@
+title,author,year,publisher,isbn,subject,source_url
+"Test Book on Neural Networks","Test Author",2024,"Test Publisher","978-0-00-000000-0","Computer Science","https://example.com/test-book"
+"Test Paper on Attention Mechanisms","Test Researcher",2023,"Test Journal","978-0-00-000000-1","Artificial Intelligence","https://example.com/test-paper"

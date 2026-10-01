@@ -7,7 +7,7 @@ from archipelago.inference import routes_page_view  # noqa: F401
 from archipelago.inference.state import app
 from archipelago.inference.routes_chat import init_concepts_data
 from archipelago.auth import load_user
-from src.archipelago import supabase_auth
+from archipelago import supabase_auth
 
 app.before_request(load_user)
 

@@ -100,7 +100,7 @@ def require_verified_api_session():
         or request.path in _AUTH_SESSION_PATHS
     ):
         return None
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     if not supabase_auth.is_auth_required():
         return None
     principal, error = supabase_auth.authenticate_request(request)
@@ -119,14 +119,14 @@ def _inference_auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {principal.access_token}"}
 
 def _is_auth_enforced() -> bool:
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     return supabase_auth.is_auth_required()
 
 def _has_valid_auth_session() -> bool:
     """Verify the Supabase identity before serving protected browser pages."""
     if not _is_auth_enforced():
         return True
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
 
     principal, _error = supabase_auth.authenticate_request(request)
     return principal is not None
@@ -149,7 +149,7 @@ def auth_session_cookie():
         response.delete_cookie("archipelago_token", **cookie_args)
         return response
 
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     principal, error = supabase_auth.authenticate_request(request)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": error}), 401
@@ -1048,7 +1048,7 @@ def roadmap_proxy() -> ResponseReturnValue:
 @app.route("/api/auth/me", methods=["GET"])
 def auth_proxy_or_local():
     """Return browser-safe auth configuration or the verified current principal."""
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     if request.path == "/api/auth/config":
         return jsonify(supabase_auth.public_config())
 
@@ -1077,7 +1077,7 @@ def manage_users_api(user_id=None):
         resp.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization,X-User-Role,X-User-Name,X-User-Id"
         return resp
 
-    from src.archipelago import supabase_auth
+    from archipelago import supabase_auth
     principal, auth_err = supabase_auth.authenticate_request(request)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": auth_err or "Authentication required"}), 401
@@ -1161,7 +1161,7 @@ def graph_subgraph():
     max_nodes = int(request.args.get("max_nodes", 10))
     min_nodes = int(request.args.get("min_nodes", 5))
 
-    from src.archipelago.graph.subgraph import generate_bounded_subgraph
+    from archipelago.graph.subgraph import generate_bounded_subgraph
     from archipelago.graph.engine import KuzuGraphEngine
 
     db_path = BASE_DIR / "okf_graph.db"

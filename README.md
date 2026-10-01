@@ -214,3 +214,81 @@ Primary constants live in `okf/config.py` (re-exported via `okf_pipeline`):
 - `MODEL_NAME` — Ollama model name
 - `MAX_RETRIES` — retry count for failed extractions
 - `ALIAS_MAP` — concept aliases (keep empty for domain-agnostic mode)
+
+---
+
+## Production Deployment & Institutional Engineering
+
+Archipelago is designed as a three-part institutional knowledge architecture:
+
+```
+                   STUDENTS / WEB
+                         │
+                         ▼
+                 ┌───────────────┐
+                 │   AntDeploy   │
+                 │ API + Chat    │
+                 │ Rate Limiting │
+                 │ Supabase Auth │
+                 └───────┬───────┘
+                         │
+                    Secure API
+                         │
+                         ▼
+        ┌────────────────────────────────┐
+        │  Library / IEDC PC (Appliance) │
+        │  Docker Compose                │
+        │  ├─ Ingestion Worker           │
+        │  ├─ KùzuDB Graph Engine        │
+        │  ├─ Library Index              │
+        │  └─ Sync / Health Service      │
+        │                                │
+        │  Downloaded Local Model        │
+        │  (Hugging Face: lib-qwen)      │
+        └────────────────────────────────┘
+```
+
+### 1. Central Inference & Serving (AntDeploy)
+The public-facing chat and retrieval API is deployed using AntDeploy with:
+- Specification in [`.antideploy.json`](.antideploy.json).
+- Multi-tier sliding window rate limiter (`archipelago/middleware/rate_limiter.py`).
+- Supabase JWT authentication and Row Level Security (`supabase/migrations/`).
+- Three-tier AI caching layer saving up to 70%+ of inference calls (`archipelago/inference/cache_service.py`).
+- Request deduplication for simultaneous in-flight queries (`archipelago/inference/request_dedup.py`).
+
+### 2. Institutional Library Computer (Docker Appliance)
+The institution's library computer runs a self-contained Docker appliance holding institutional data locally:
+```bash
+cd deploy/library-computer
+cp .env.example .env
+docker compose up -d
+```
+See [`deploy/library-computer/README.md`](deploy/library-computer/README.md) for full instructions.
+
+### 3. Archipelago CLI
+```bash
+# Ingest local documents into quarantine
+python -m archipelago ingest --source syllabus.pdf
+
+# Run structural graph integrity checks (5,151-node baseline)
+python -m archipelago graph validate
+
+# Inspect live graph statistics
+python -m archipelago graph stats
+
+# Compare current graph against a versioned baseline
+python -m archipelago graph diff --baseline okf_graph_baseline.json
+
+# Download a pinned extraction model from Hugging Face
+python -m archipelago model download --repo Prataykarali/lib-qwen --revision v5
+```
+
+### 4. CI/CD Pipeline
+Continuous integration enforces:
+- **Pass 1:** Lint & format with `ruff`
+- **Pass 2:** Strict type checks with `mypy`
+- **Pass 3:** 5-Pass review and banned security patterns (`scripts/quality_gate.py`)
+- **Pass 4:** Unit, integration, and E2E test suites with `pytest`
+- **Pass 5:** Graph regression audit against 5,151 baseline (`scripts/validate_graph.py`)
+- **Pass 6:** Production Docker buildx verification
+

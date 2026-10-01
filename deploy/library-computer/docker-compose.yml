@@ -1,0 +1,103 @@
+# Archipelago Library Computer — Self-Contained Docker Stack
+#
+# This stack runs on the institution's library/IEDC computer and owns
+# the institutional knowledge state: ingestion, graph, library index.
+#
+# Usage:
+#   docker compose pull
+#   docker compose up -d
+#
+# The library computer should NOT send the entire corpus to AntDeploy.
+# It caches and indexes institutional knowledge locally, sending only
+# minimal retrieval context to the inference API.
+
+services:
+  # ─── Ingestion Worker ──────────────────────────
+  archipelago-ingestion:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    command: >
+      python -c "
+      import sys; sys.path.insert(0, '.');
+      from ingestion_worker import IngestionWorker;
+      from ingestion_jobs import JobStore;
+      store = JobStore('jobs');
+      worker = IngestionWorker(store);
+      worker.start();
+      import time;
+      try:
+        while True: time.sleep(3600)
+      except KeyboardInterrupt:
+        worker.stop()
+      "
+    volumes:
+      - graph-data:/app/okf_graph.db
+      - graph-json:/app/okf_graph.json
+      - pdfs:/app/pdfs
+      - jobs:/app/jobs
+      - uploads:/app/data/uploads
+      - models:/app/models:ro
+    env_file:
+      - .env
+    environment:
+      ARCHIPELAGO_ENV: "library"
+      OKF_LOCAL_MODEL: "/app/models/lib-qwen"
+    restart: unless-stopped
+
+  # ─── Graph Server ──────────────────────────────
+  archipelago-graph:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    command: >
+      gunicorn --bind 0.0.0.0:5150 --workers 1 --threads 4
+      --timeout 120 --access-logfile - graph_server:app
+    ports:
+      - "5150:5150"
+    volumes:
+      - graph-json:/app/okf_graph.json:ro
+      - ../../ui:/app/ui:ro
+      - ../../buttons:/app/buttons:ro
+    env_file:
+      - .env
+    environment:
+      PORT: "5150"
+      ARCHIPELAGO_GRAPH_PORT: "5150"
+    depends_on:
+      - archipelago-ingestion
+    restart: unless-stopped
+
+  # ─── Sync Service ──────────────────────────────
+  archipelago-sync:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    command: >
+      python -c "
+      import time, json, os, requests;
+      API = os.environ.get('ARCHIPELAGO_INFERENCE_URL', 'http://localhost:5151');
+      while True:
+        try:
+          with open('okf_graph.json') as f:
+            stats = json.load(f).get('stats', {});
+          print(f'Graph: {stats.get(\"node_count\", \"?\")} nodes, {stats.get(\"edge_count\", \"?\")} edges');
+        except Exception as e:
+          print(f'Sync check error: {e}');
+        time.sleep(300)
+      "
+    volumes:
+      - graph-json:/app/okf_graph.json:ro
+    env_file:
+      - .env
+    depends_on:
+      - archipelago-ingestion
+    restart: unless-stopped
+
+volumes:
+  graph-data:
+  graph-json:
+  pdfs:
+  jobs:
+  uploads:
+  models:

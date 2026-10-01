@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 from chat_server import app, _build_redirect_shell
-from src.archipelago import supabase_auth
+from archipelago import supabase_auth
 
 
 def _fake_student_principal(request):  # noqa: ANN001, ARG001

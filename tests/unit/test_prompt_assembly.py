@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from src.core.prompt_assembly import (
+from archipelago.core.prompt_assembly import (
     MAX_CHUNKS,
     MAX_GRAPH_NODES,
     PromptPayloadAssembler,
