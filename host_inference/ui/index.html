@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archipelago — Live Knowledge Operations</title>
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#090514',
+                        panelBg: 'rgba(15, 10, 25, 0.6)',
+                        accentPurple: '#8b5cf6',
+                        accentPink: '#ec4899',
+                        accentCyan: '#06b6d4',
+                    },
+                    fontFamily: {
+                        sans: ['Brigend', 'sans-serif'],
+                        display: ['Aurellis', 'sans-serif'],
+                        body: ['Brigend', 'sans-serif'],
+                        mono: ['Brigend', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Marked.js (Markdown renderer) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Prism.js (Syntax highlighting) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <!-- Cytoscape & Archipelago Graphify Component -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+    <script src="/graphify.js"></script>
+    <!-- Chromatic Waves (Originkit) welcome background -->
+    <script type="module" src="/chromatic_waves.js"></script>
+    <script type="module" src="/auth_bridge.js"></script>
+    <script type="module">
+        window.archipelagoAuthReady.then(async ({ config, supabase }) => {
+            if (config && config.required) {
+                const session = await window.archipelagoRequireSession();
+                if (!session) return; // redirected to login
+            }
+            await updateHeaderAuthProfile();
+        });
+
+        async function updateHeaderAuthProfile() {
+            try {
+                let user = null;
+                try {
+                    const resp = await fetch("/api/auth/me", { cache: "no-store" });
+                    if (resp.ok) {
+                        const serverUser = await resp.json();
+                        if (serverUser?.authenticated === true && serverUser.role) user = serverUser;
+                    }
+                } catch (_) {}
+
+                const badge = document.getElementById("user-profile-badge");
+                const loginLink = document.getElementById("auth-login-link");
+                const roleLabel = document.getElementById("user-role-label");
+                const nameLabel = document.getElementById("user-name-label");
+                if (user?.authenticated === true && user.role) {
+                    if (badge) { badge.classList.remove("hidden"); badge.classList.add("flex"); }
+                    if (loginLink) loginLink.classList.add("hidden");
+                    if (roleLabel) roleLabel.textContent = user.role || "Student";
+                    if (nameLabel) nameLabel.textContent = user.username ? `(${user.username})` : "";
+                } else {
+                    if (badge) { badge.classList.add("hidden"); badge.classList.remove("flex"); }
+                    if (loginLink) loginLink.classList.remove("hidden");
+                }
+            } catch (e) {
+                console.warn("Could not check auth status:", e);
+            }
+        }
+        window.updateHeaderAuthProfile = updateHeaderAuthProfile;
+
+        // Run immediately as early as possible
+        updateHeaderAuthProfile();
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", updateHeaderAuthProfile);
+        }
+
+        window.signOutSupabase = async function() {
+            try {
+                sessionStorage.removeItem("archipelago_local_user");
+                localStorage.removeItem("archipelago_local_user");
+                await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
+                const { supabase } = await window.archipelagoAuthReady;
+                if (supabase) await supabase.auth.signOut();
+            } catch (e) {
+                console.warn(e);
+            }
+            window.location.replace("/login");
+        };
+    </script>
+
+    <link rel="stylesheet" href="/styles/01-custom-scrollbar-styling.css">
+    <link rel="stylesheet" href="/styles/02-info-note-under-summary.css">
+    <link rel="stylesheet" href="/styles/03-mini-concept-graph-under.css">
+    <link rel="stylesheet" href="/styles/04-never-clip-long-markdown.css">
+    <link rel="stylesheet" href="/styles/05-pulse-glowing-effect.css">
+    <link rel="stylesheet" href="/styles/06-header-video-layer-disabled.css">
+    <link rel="stylesheet" href="/styles/07-keep-hero-welcome-readable.css">
+    <link rel="stylesheet" href="/styles/08-d-switchboardcard-lightgrid-below.css">
+    <link rel="stylesheet" href="/styles/09-user-bubble-warfield-font.css">
+    <link rel="stylesheet" href="/styles/10-swipe-transitions-animations.css">
+
+<!-- MASTER FONT OVERRIDE FOR AURELLIS AND BRIGEND ONLY -->
+<!-- WARFIELD CHAT MESSAGE FONT -->
+
+
+</head>
+<body class="bg-darkBg text-gray-100 font-sans h-full overflow-hidden relative">
+
+    <!-- Glowing cosmic background blobs -->
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accentPurple opacity-20 filter blur-[120px] animate-blob -z-10"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accentPink opacity-20 filter blur-[120px] animate-blob animation-delay-2000 -z-10"></div>
+    <div class="absolute top-[30%] right-[20%] w-[40%] h-[40%] rounded-full bg-accentCyan opacity-10 filter blur-[120px] animate-blob animation-delay-4000 -z-10"></div>
+
+    <!-- Main Layout Container -->
+    <div class="flex flex-col h-full">
+
+        <!-- Top chrome: video covers the full band; header floats on top (no solid bars) -->
+        <div id="top-chrome">
+        <section id="chat-hero-band" aria-label="Archipelago hero">
+            <div id="hero-video-card">
+                <video id="hero-video"
+                       src="/ui/assets/final_archi.mp4"
+                       autoplay muted loop playsinline webkit-playsinline
+                       preload="auto"
+                       poster="/ui/assets/final_archi_poster.jpg">
+                    Your browser does not support the video tag.
+                </video>
+                <!-- Title overlay removed — final_archi plays full-bleed -->
+
+            </div>
+            <!-- switchboard strip removed — video owns this region -->
+            <div id="switchboard-lights" class="hidden" aria-hidden="true" hidden>
+                <div class="sw-grid" id="sw-grid"></div>
+            </div>
+        </section>
+
+        <header id="app-header" class="flex items-center justify-between px-4 md:px-6 z-10 gap-3">
+            <video id="header-bg-video" muted playsinline preload="none"
+                   aria-hidden="true" tabindex="-1"></video>
+            <div class="header-orb header-orb-a" aria-hidden="true"></div>
+            <div class="header-orb header-orb-b" aria-hidden="true"></div>
+            <!-- Navigation Links (Chat Workspace) -->
+            <div class="flex items-center gap-2">
+                <div class="px-3 py-1.5 rounded-lg bg-accentPurple/25 text-white font-bold text-xs flex items-center gap-1.5 border border-accentPurple/50 shadow-sm" title="Chat Workspace">
+                    <i class="fa-solid fa-comments text-accentPink"></i>
+                    <span class="font-extrabold tracking-wide">Chat</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Role badge only: reading and asking are open to everyone, so
+                     there is deliberately no sign-in button in the chat header. -->
+                <div id="auth-header-widget" class="flex items-center gap-1.5">
+                    <div id="user-profile-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-accentPurple/20 border border-accentPurple/40 text-xs text-white">
+                        <i class="fa-solid fa-user-shield text-accentPurple text-[11px]"></i>
+                        <span id="user-role-label" class="font-extrabold capitalize text-[11px]">Student</span>
+                        <span id="user-name-label" class="text-gray-300 text-[10px] hidden md:inline"></span>
+                        <button type="button" onclick="signOutSupabase()" class="ml-1 text-gray-400 hover:text-white text-[10px] cursor-pointer" title="Sign out of Supabase">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="connection-status" class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/35 border border-white/15 text-[10px] backdrop-blur-sm">
+                    <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" id="status-dot"></span>
+                    <span class="text-gray-200 font-medium hidden sm:inline" id="status-text">Checking...</span>
+                </div>
+                <button type="button" id="toggle-graph-card-btn" onclick="toggleGraphCardsSetting()" class="w-10 h-10 flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer relative" title="Toggle concept graph cards in chat on or off" aria-label="Toggle Graph Cards">
+                    <img id="header-graph-btn-img" src="/ui/assets/graph_btn.png" class="w-full h-full object-contain transition-all duration-200" alt="Graph toggle">
+                    <span id="graph-toggle-label" class="sr-only">Graph: ON</span>
+                </button>
+                <button type="button" id="toggle-left-sidebar-btn" onclick="toggleLeftSidebar()" class="w-10 h-10 flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer" title="Library menu" aria-label="Toggle library menu">
+                    <img src="/ui/assets/library_btn.png" class="w-full h-full object-contain" alt="Library menu">
+                </button>
+                <button type="button" id="toggle-pipeline-btn" onclick="togglePipeline()" class="w-10 h-10 flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer" title="Pipeline breakdown" aria-label="Toggle pipeline breakdown">
+                    <img src="/ui/assets/brain_btn.png" class="w-full h-full object-contain" alt="Pipeline breakdown">
+                </button>
+            </div>
+        </header>
+        </div><!-- /#top-chrome -->
+
+        <!-- Dynamic Body Area (Sidebar | Chat | Pipeline) — sits under the hero video -->
+        <div id="app-body" class="flex flex-1 overflow-hidden">
+
+            <!-- Left Panel: Settings & Current Concept (starts open) -->
+            <aside id="left-sidebar" class="side-panel border-r border-white/10 glass flex flex-col shrink-0" aria-hidden="false">
+            <div class="side-panel-inner flex flex-col p-5 overflow-y-auto gap-5 h-full">
+                <div class="sidebar-ambient sidebar-ambient-a" aria-hidden="true"></div>
+                <div class="sidebar-ambient sidebar-ambient-b" aria-hidden="true"></div>
+
+
+<section class="glass-neon-card p-3 flex flex-col gap-2.5" aria-labelledby="corpus-heading">
+<!-- Concept Graph ON/OFF Card above New Chat button -->
+<div class="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10 shadow-inner">
+    <span class="text-xs font-extrabold text-gray-200 flex items-center gap-2">
+        <img src="/ui/assets/graph_btn.png" class="w-5 h-5 object-contain" alt="Graph">
+        <span>Concept Graph</span>
+    </span>
+    <button type="button" id="sidebar-graph-toggle-btn" onclick="toggleGraphCardsSetting()" class="w-10 h-10 flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer relative" title="Toggle Concept Graph Cards on or off">
+        <img id="sidebar-graph-btn-img" src="/ui/assets/graph_btn.png" class="w-full h-full object-contain transition-all duration-200" alt="Graph toggle">
+        <span id="sidebar-graph-toggle-label" class="sr-only">ON</span>
+    </button>
+</div>
+
+<button id="new-chat-btn" onclick="startNewChat()" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-accentPink/25 to-accentPurple/25 border border-accentPink/50 text-white text-xs font-bold hover:border-accentPink/80 hover:shadow-[0_0_24px_rgba(236,72,153,0.35)] transition-all flex items-center justify-center gap-2 group">
+<img src="/ui/assets/note_btn2.png" class="w-5 h-5 object-contain group-hover:rotate-6 transition-transform duration-300" alt="New Chat">
+<span>New Chat</span>
+</button>
+<div class="flex items-center justify-between">
+                    </div>
+                    <div id="new-document-evidence" class="hidden space-y-2"></div>
+                    <p id="selected-document-label" class="hidden"></p>
+                    <h2 id="corpus-heading" class="hidden">Ask the library</h2>
+
+                </section>
+
+                <!-- Chat History / Saved Sessions (GlassCard list) -->
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-accentPurple text-[11px]"></i>
+                            Chat History
+                        </h3>
+                        <button type="button" id="clear-saved-history-btn" onclick="clearAllSessions()"
+                            class="text-[10px] text-gray-500 hover:text-rose-300 transition-colors shrink-0"
+                            title="Clear all saved chats from this browser">
+                            Clear saved history
+                        </button>
+                    </div>
+                    <div id="chat-history-list" class="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
+                        <p class="text-[10px] text-gray-500 italic px-1">No saved chats.</p>
+                    </div>
+                </div>
+
+                <!-- Concept Graph & OKF Key Relationships Inspector (ConceptCard) -->
+                <div class="flex-1 flex flex-col gap-3 min-h-[240px]">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                            <img src="/ui/assets/graph_btn.png" class="w-5 h-5 object-contain" alt="Graph">
+                            Concept Graph & OKF Keys
+                        </h3>
+                    </div>
+                    
+                    <div id="topology-placeholder" class="glass-neon-card flex-1 flex flex-col items-center justify-center p-5 text-center text-gray-400 bg-black/30 border border-dashed border-white/15">
+                        <div class="w-12 h-12 flex items-center justify-center mb-3">
+                            <img src="/ui/assets/graph_btn.png" class="w-full h-full object-contain" alt="Graph">
+                        </div>
+                        <p class="text-[11px] leading-relaxed text-gray-300 max-w-[200px]">Ask a question or tap a book to view the concept graph & OKF relationships.</p>
+                    </div>
+
+                    <div id="topology-view" class="hidden glass-neon-card flex flex-col gap-3 overflow-y-auto max-h-[420px] p-3">
+                        <!-- Left Sidebar SVG Map -->
+                        <div id="sidebar-svg-map-container" class="w-full h-44 rounded-2xl glass-light border border-amber-400/30 relative overflow-hidden flex items-center justify-center shadow-inner">
+                            <div class="graph-ripple-bg" id="sidebar-ripple-bg"></div>
+                            <svg id="sidebar-svg-map" class="w-full h-full"></svg>
+                        </div>
+
+                        <!-- Active Node Header -->
+                        <div class="p-3.5 rounded-2xl glass-glow border border-accentPurple/40 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span id="graph-node-type" class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-accentPurple/25 text-accentPurple border border-accentPurple/40 shadow-[0_0_10px_rgba(139,92,246,0.2)]">Concept Node</span>
+                                <span id="graph-node-diff" class="text-[9px] text-amber-300 font-mono">Foundational</span>
+                            </div>
+                            <h4 id="graph-node-title" class="text-sm font-bold text-white truncate">Concept Name</h4>
+                            <p id="graph-node-summary" class="text-xs text-gray-300 line-clamp-2 leading-snug">Summary text...</p>
+                        </div>
+
+                        <!-- OKF Key Relationships Section -->
+                        <div class="space-y-2">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+                                <i class="fa-solid fa-key text-accentPink text-[10px]"></i> OKF Key Relationships
+                            </span>
+
+                            <div class="space-y-1.5 text-xs">
+                                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-accentPurple uppercase">↑ REQUIRES (Prerequisites)</span>
+                                    <div id="okf-rel-requires" class="flex flex-wrap gap-1">
+                                        <span class="text-[10px] text-gray-500 italic">None indexed</span>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-emerald-400 uppercase">↓ UNLOCKS (Enables)</span>
+                                    <div id="okf-rel-unlocks" class="flex flex-wrap gap-1">
+                                        <span class="text-[10px] text-gray-500 italic">None indexed</span>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1">
+                                    <span class="text-[9px] font-bold text-accentCyan uppercase">◈ CONNECTS (Uses / Part Of)</span>
+                                    <div id="okf-rel-connects" class="flex flex-wrap gap-1">
+                                        <span class="text-[10px] text-gray-500 italic">None indexed</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            </aside>
+
+            <!-- Center Panel: Chat Interface (zoomed when side panels closed) -->
+            <main id="chat-main" class="flex-1 flex flex-col min-w-0 bg-black/10 relative">
+
+                <!-- Edge slider toggles -->
+                <button type="button" id="edge-toggle-left" class="edge-toggle edge-toggle-left" onclick="toggleLeftSidebar()" title="Open library menu" aria-label="Toggle left panel">
+                    <i class="fa-solid fa-chevron-right text-sm" id="edge-toggle-left-icon"></i>
+                </button>
+                <button type="button" id="edge-toggle-right" class="edge-toggle edge-toggle-right" onclick="togglePipeline()" title="Open pipeline" aria-label="Toggle right panel">
+                    <i class="fa-solid fa-chevron-left text-sm" id="edge-toggle-right-icon"></i>
+                </button>
+
+                <!-- Chat stage: ONE sticky avatar (left) + scrolling messages
+                     (Hero video lives full-width above #app-body so sidebars never cover it) -->
+                <div id="chat-stage" class="flex-1 min-h-0">
+                <!-- Fixed librarian + concept graph under her (never covers chat bubbles) -->
+                <aside id="sticky-avatar-dock" aria-hidden="true">
+                    <div class="avatar-shell" id="sticky-avatar" data-avatar>
+                        <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="type" class="avatar-clip is-hidden" src="/ui/assets/library_type.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="goit" class="avatar-clip is-hidden" src="/ui/assets/library_goit.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="success" class="avatar-clip is-hidden" src="/ui/assets/library_sucess%20(1).mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                    </div>
+                    <span class="avatar-label">AI Librarian</span>
+                    <div id="bottom-svg-map-container" class="hidden" title="Concept neighborhood">
+                        <svg id="bottom-svg-map" class="w-full h-full"></svg>
+                    </div>
+                </aside>
+
+                <!-- Message Window -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto px-5 py-5 md:pl-4 md:pr-8 md:py-6 space-y-5">
+                    
+                    <!-- Welcome State (hero lives outside — never removed with messages) -->
+                    <div id="welcome-container" class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center text-center py-3 md:py-5 gap-4">
+
+                        <div class="avatar-shell welcome-avatar" id="welcome-avatar" data-avatar>
+                            <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="type" class="avatar-clip is-hidden" src="/ui/assets/library_type.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="goit" class="avatar-clip is-hidden" src="/ui/assets/library_goit.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="success" class="avatar-clip is-hidden" src="/ui/assets/library_sucess%20(1).mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                        </div>
+
+                        <!-- 2+3. ShineText + TypewriterText -->
+                        <div>
+                            <h2 class="welcome-title shine-text font-extrabold tracking-tight">Welcome to Archipelago</h2>
+                            <p id="welcome-subtitle" class="typewriter-cursor mt-2.5 mx-auto leading-relaxed"></p>
+                        </div>
+
+                        <!-- 4+7. DepthParallaxWords + hover-3d — Suggested Prompts -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 w-full max-w-4xl text-left mt-1" id="suggest-grid">
+
+                            <button onclick="autoPrompt('What is Low-Rank Adaptation (LoRA)?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentPurple/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/brain_btn2.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Brain">
+                                <span class="depth-word-target">What is Low-Rank Adaptation (LoRA)?</span>
+                            </button>
+
+                            <button onclick="autoPrompt('Explain the main components of retrieval augmented generation (RAG)')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentPink/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Search">
+                                <span class="depth-word-target">Explain the main components of RAG</span>
+                            </button>
+
+                            <button onclick="autoPrompt('What are the prerequisites for BERT model training?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentCyan/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/network_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Network">
+                                <span class="depth-word-target">What are the prerequisites for BERT?</span>
+                            </button>
+
+                            <button onclick="autoPrompt('How does the Attention mechanism handle sequence alignment?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/brain_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Attention">
+                                <span class="depth-word-target">How does the Attention mechanism work?</span>
+                            </button>
+
+                            <button onclick="autoPrompt('How do DBMS buffer pools optimize query retrieval in Silberschatz?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Book">
+                                <span class="depth-word-target">DBMS buffer pools in Silberschatz</span>
+                            </button>
+
+                            <button onclick="autoPrompt('Explain virtual memory paging vs segmentation in OSTEP.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Note">
+                                <span class="depth-word-target">Virtual memory paging vs segmentation</span>
+                            </button>
+
+                            <button onclick="autoPrompt('How does GraphRAG combine graph databases with RAG synthesis?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/graph_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Graph">
+                                <span class="depth-word-target">GraphRAG: graph + RAG synthesis</span>
+                            </button>
+
+                            <button onclick="autoPrompt('Rank the most critical PEFT and RAG papers in the corpus by contribution.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/flash_card_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Flashcard">
+                                <span class="depth-word-target">Rank top PEFT &amp; RAG papers</span>
+                            </button>
+
+
+                            <button onclick="autoPrompt('What are the library hours and weekend issue rules?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Hours">
+                                <span class="depth-word-target">Library hours &amp; weekend rules</span>
+                            </button>
+
+                            <button onclick="autoPrompt('What e-resource portals does the central library provide?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="E-resources">
+                                <span class="depth-word-target">E-resource portals (IEEE, Pearson…)</span>
+                            </button>
+
+                            <button onclick="autoPrompt('How do I access Pearson eLibrary textbooks?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Pearson">
+                                <span class="depth-word-target">Pearson eLibrary — read from library</span>
+                            </button>
+
+                            <button onclick="autoPrompt('Suggest books on operating systems')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Books">
+                                <span class="depth-word-target">Suggest books on operating systems</span>
+                            </button>
+
+                            <button onclick="autoPrompt('RAG + DBMS')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Library">
+                                <span class="depth-word-target">Multi-topic: RAG + DBMS</span>
+                            </button>
+
+                            <button onclick="autoPrompt('LoRA vs BERT')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                                <img src="/ui/assets/settings_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Compare">
+                                <span class="depth-word-target">Compare LoRA vs BERT</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+                </div><!-- /#chat-stage -->
+
+                <!-- Input area -->
+                <div class="px-4 py-4 md:px-8 md:py-6 border-t border-white/10 glass-light">
+                    <!-- 6. GlowBorderCard wrapping the input -->
+                    <div class="max-w-4xl mx-auto glow-border-wrap">
+                        <div class="relative flex items-center bg-black/40 rounded-xl">
+                            <textarea id="chat-input" placeholder="Ask AIML, books, library hours, e-resources…" rows="1" class="w-full py-3 pl-4 pr-16 bg-transparent text-gray-200 text-sm rounded-xl border border-white/10 outline-none focus:border-accentPurple/50 focus:ring-1 focus:ring-accentPurple/20 transition-all duration-200 resize-none" onkeydown="handleKey(event)"></textarea>
+                            <div class="absolute right-3 flex items-center gap-2">
+                                <button type="button" id="send-btn" onclick="handleSendBtnClick(event)" class="w-10 h-10 rounded-lg bg-accentPurple text-white hover:bg-accentPurple/80 flex items-center justify-center transition-all duration-200 shadow-md shadow-accentPurple/20 z-20 cursor-pointer pointer-events-auto" aria-label="Send or stop message" title="Send message">
+                                    <i id="send-btn-icon" class="fa-solid fa-arrow-up text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="chat-availability" class="max-w-3xl mx-auto mt-2 text-[11px] text-gray-500">Student mode: query only. Librarians manage PDFs in the Graph UI → Librarian tab.</p>
+                </div>
+            </main>
+
+            <!-- Right Panel: Ingestion operations + retrieval trace (starts closed) -->
+            <aside id="pipeline-panel" class="side-panel panel-closed border-l border-white/10 glass flex flex-col shrink-0" aria-hidden="true">
+            <div class="side-panel-inner flex flex-col p-5 overflow-y-auto gap-6 h-full">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+<i class="fa-solid fa-route text-accentPurple"></i>
+Live operations
+</h3>
+<button type="button" onclick="togglePipeline()" class="text-gray-400 hover:text-white transition-colors" aria-label="Close pipeline panel">
+<i class="fa-solid fa-xmark text-base"></i>
+</button>
+</div>
+
+<hr class="border-white/10">
+
+<!-- 📚 Stack of Books -->
+<div class="flex flex-col gap-3">
+    <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
+            Stack of Books
+        </span>
+        <span id="books-count" class="text-xs text-gray-400 font-mono"></span>
+    </div>
+    <!-- Category Filter Selector -->
+    <div id="books-filter" class="flex flex-wrap gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold">
+        <button data-filter="all" class="px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all">All</button>
+        <button data-filter="dbms" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DBMS</button>
+        <button data-filter="os" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">OS</button>
+        <button data-filter="dl" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DL</button>
+        <button data-filter="math" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Math</button>
+        <button data-filter="peft" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">RAG/FT</button>
+        <button data-filter="gnn" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">GNN</button>
+        <button data-filter="syllabi" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Syllabi</button>
+    </div>
+    <!-- Document Collection / Provenance Selector -->
+    <div id="type-filter" class="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold mt-1">
+        <button data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center">All Docs</button>
+        <button data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Library / Pearson</button>
+        <button data-type-filter="open_source" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Peer-reviewed arXiv papers and open-access textbooks">🌐 Open-Source</button>
+    </div>
+    <div id="books-list" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1"></div>
+</div>
+
+<hr class="border-white/10">
+
+
+                    <!-- KuzuDB Source Citations -->
+                    <div class="flex flex-col gap-3">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-file-invoice text-accentPink"></i>
+                            KuzuDB Source Citations
+                        </span>
+                        
+                        <div id="citations-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
+                            No citations retrieved yet.
+                        </div>
+
+                        <div id="citations-list" class="hidden flex flex-col gap-2"></div>
+                    </div>
+
+                    <!-- Step Execution Logs -->
+                    <div class="flex flex-col gap-3">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-accentCyan"></i>
+                            Execution Trace
+                        </span>
+                        
+                        <div id="logs-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
+                            No logs captured yet.
+                        </div>
+
+                        <div id="logs-list" class="hidden flex flex-col gap-2.5"></div>
+                    </div>
+                </div>
+            </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <!-- Reading Mode Modal — page-first: PDF fills the viewport by default -->
+<div id="reading-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-[2px] p-2 md:p-4" role="dialog" aria-modal="true" aria-labelledby="reading-title">
+<div class="w-full max-w-[96vw] h-[96vh] flex flex-col rounded-2xl glass border border-white/10 shadow-2xl">
+<div class="reader-header flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+<div class="flex items-center gap-3 min-w-0">
+<span id="reading-type-badge" class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide bg-accentCyan/15 text-accentCyan border border-accentCyan/20">Paper</span>
+<h3 id="reading-title" class="text-base font-bold text-white truncate max-w-xl" tabindex="-1">Book Title</h3>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button type="button" id="reading-copy-bibtex" onclick="copyBibtex()" class="hidden items-center gap-2 px-3 py-1.5 rounded-lg bg-accentPink/15 border border-accentPink/30 hover:bg-accentPink/25 hover:border-accentPink/50 text-accentPink text-[10px] font-bold transition-all shadow-[0_0_10px_rgba(236,72,153,0.15)] hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+<img src="/ui/assets/cite_btn.png" class="w-5 h-5 object-contain shrink-0" alt="Cite">
+Copy BibTeX
+</button>
+<div id="reading-view-toggle" class="hidden items-center gap-1 rounded-lg bg-slate-800 border border-slate-700 p-1" role="tablist" aria-label="Reader view">
+<button type="button" id="reading-tab-pdf" onclick="setReadingView('pdf')" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-slate-300 hover:text-white" title="Page only" role="tab" aria-selected="true">Page</button>
+<button type="button" id="reading-tab-split" onclick="setReadingView('split')" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-slate-300 hover:text-white" title="Page and indexed passage" role="tab" aria-selected="false">Split</button>
+<button type="button" id="reading-tab-summary" onclick="setReadingView('summary')" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-slate-300 hover:text-white" title="Indexed passage only" role="tab" aria-selected="false">Passage</button>
+</div>
+<a id="reading-open-tab" href="#" target="_blank" rel="noopener" class="hidden w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 transition-all" title="Open this page in a new tab" aria-label="Open this PDF page in a new tab">
+<i class="fa-solid fa-up-right-from-square text-xs"></i>
+</a>
+<button type="button" onclick="closeReadingMode()" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white hover:bg-red-600 hover:border-red-500 transition-all" aria-label="Close document reader">
+<i class="fa-solid fa-xmark text-sm"></i>
+</button>
+</div>
+</div>
+<div id="reading-body-container" class="flex-1 min-h-0 flex overflow-hidden">
+<div id="reading-content" class="hidden overflow-y-auto p-5 text-base text-gray-200 leading-relaxed space-y-4 passage-transition"></div>
+<div id="reading-pdf-wrap" class="w-full h-full min-h-0 flex-1 bg-slate-100">
+<iframe id="reading-pdf-frame" class="w-full h-full min-h-0 border-0 bg-slate-100" title="PDF document page" style="min-height:100%;height:100%;"></iframe>
+</div>
+</div>
+<div class="reader-footer p-4 border-t border-white/10 shrink-0">
+<button type="button" onclick="closeReadingMode()" class="w-full py-2.5 px-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold hover:bg-blue-100 transition-all flex items-center justify-center gap-2">
+<i class="fa-solid fa-arrow-left"></i>
+Back to Chat
+</button>
+</div>
+</div>
+</div>
+
+<!-- Visual Learning Roadmap Modal -->
+<div id="roadmap-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4 md:p-8">
+    <div class="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl glass border border-white/10 shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between p-5 border-b border-white/10 bg-panelBg shrink-0">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-map-location-dot text-accentPurple text-xl"></i>
+                <h3 id="roadmap-title" class="text-lg font-bold text-white">Learning Roadmap</h3>
+            </div>
+            <button onclick="closeRoadmapModal()" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 bg-black/40">
+            <div id="roadmap-loading" class="hidden flex-col items-center justify-center h-40 text-gray-400 gap-3">
+                <i class="fa-solid fa-spinner fa-spin text-2xl text-accentPurple"></i>
+                <span class="text-sm font-medium">Generating optimal learning path...</span>
+            </div>
+            <div id="roadmap-content" class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/20 before:to-transparent">
+                <!-- Stages will be rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Concept Graph Mode Choice Modal (Personalized vs Normal) -->
+<div id="graph-choice-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="choice-modal-title">
+    <div class="relative w-full max-w-xl rounded-2xl glass border border-white/15 shadow-2xl overflow-hidden p-6 text-white space-y-5">
+        <!-- Close Button -->
+        <button onclick="dismissGraphChoiceModal()" type="button" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all cursor-pointer" aria-label="Close modal">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+
+        <!-- Header -->
+        <div class="space-y-1.5 pr-8">
+            <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-accentPurple/25 border border-accentPurple/40 text-accentPurple uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-compass"></i> Knowledge Graph Exploration
+                </span>
+                <span id="choice-concept-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400/20 border border-amber-400/40 text-amber-300 truncate max-w-[180px]">Concept</span>
+            </div>
+            <h3 id="choice-modal-title" class="text-lg sm:text-xl font-black text-white tracking-tight">
+                Want a Personalized Graph or a Normal One?
+            </h3>
+            <p class="text-xs text-gray-300 leading-relaxed">
+                Choose how you would like to explore this concept in Archipelago:
+            </p>
+        </div>
+
+        <!-- Options Container -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            <!-- Option 1: Personalized Graph -->
+            <div id="choice-card-personalized" tabindex="0" onclick="chooseGraphExperience('personalized')" class="group relative p-4 rounded-xl border border-accentPurple/50 bg-gradient-to-br from-accentPurple/20 via-white/5 to-transparent hover:border-accentPurple hover:from-accentPurple/30 transition-all cursor-pointer flex flex-col justify-between space-y-3 shadow-lg shadow-accentPurple/10 focus:outline-none focus:ring-2 focus:ring-accentPurple">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="w-8 h-8 rounded-lg bg-accentPurple/30 border border-accentPurple/50 flex items-center justify-center text-accentPurple group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-graduation-cap text-sm"></i>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-mono font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Recommended</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-white group-hover:text-accentPurple transition-colors flex items-center gap-1.5">
+                            Personalized Graph
+                        </h4>
+                        <p class="text-[11px] text-gray-300 mt-1 leading-snug">
+                            Start a quick 3-question diagnostic quiz. Archipelago checks your prerequisite knowledge and maps a custom roadmap highlighting your mastered topics and review gaps.
+                        </p>
+                    </div>
+                </div>
+                <button type="button" class="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-accentPurple to-indigo-600 group-hover:brightness-110 text-white font-bold text-xs shadow-md shadow-accentPurple/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>Start Q&A Quiz</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+
+            <!-- Option 2: Normal Graph -->
+            <div id="choice-card-normal" tabindex="0" onclick="chooseGraphExperience('normal')" class="group relative p-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/25 transition-all cursor-pointer flex flex-col justify-between space-y-3 focus:outline-none focus:ring-2 focus:ring-white/40">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-diagram-project text-sm"></i>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-mono font-extrabold uppercase bg-white/10 text-gray-300 border border-white/15">Standard</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-white group-hover:text-amber-200 transition-colors flex items-center gap-1.5">
+                            Normal Graph
+                        </h4>
+                        <p class="text-[11px] text-gray-400 mt-1 leading-snug">
+                            Directly explore standard node topology, prerequisite connections, and unlocked concepts ("this type of !") without answering questions.
+                        </p>
+                    </div>
+                </div>
+                <button type="button" class="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-gray-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>View Normal Graph</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-gray-400 pt-2 border-t border-white/10">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-keyboard text-[10px]"></i> Press <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-gray-300 font-mono text-[10px]">Esc</kbd> to dismiss or choose later</span>
+            <button onclick="chooseGraphExperience('normal')" type="button" class="text-gray-400 hover:text-white underline cursor-pointer">Skip directly to normal graph</button>
+        </div>
+    </div>
+</div>
+
+<script>
+window.addEventListener('popstate', (e) => {
+    const readingModal = document.getElementById('reading-modal');
+    if (readingModal && !readingModal.classList.contains('hidden')) {
+        closeReadingMode(true);
+    }
+    const roadmapModal = document.getElementById('roadmap-modal');
+    if (roadmapModal && !roadmapModal.classList.contains('hidden')) {
+        closeRoadmapModal(true);
+    }
+    const choiceModal = document.getElementById('graph-choice-modal');
+    if (choiceModal && !choiceModal.classList.contains('hidden')) {
+        dismissGraphChoiceModal();
+    }
+});
+</script>
+
+<!-- JS Logic -->
+    <script type="module" src="/js/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-black">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archipelago — Knowledge Operations</title>
+  <meta name="description" content="Islands of insight, connected — ask the corpus, follow citations, explore the graph.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="/auth_bridge.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #000000;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .font-serif-title {
+      font-family: 'Instrument Serif', serif !important;
+    }
+
+    /* Liquid Glass CSS */
+    .liquid-glass {
+      background: rgba(255, 255, 255, 0.01);
+      background-blend-mode: luminosity;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: none;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .liquid-glass::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.4px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white flex flex-col overflow-x-hidden">
+
+  <!-- Header: wordmark left, product tagline right. No sign-in here —
+       /chat and /library are gated server-side when auth is required. -->
+  <header class="relative z-20 flex items-start justify-between px-6 py-5 md:px-10 md:py-6">
+    <a href="/" class="flex items-center gap-2 text-white no-underline" aria-label="Archipelago home">
+      <span class="text-xl leading-none" aria-hidden="true">△</span>
+      <span class="text-base font-semibold tracking-wide md:text-lg">Archipelago</span>
+    </a>
+    <p class="max-w-[220px] text-right text-[11px] leading-relaxed text-white/60 md:max-w-none md:text-xs">
+      AI/ML study assistant&nbsp;·&nbsp;grounded answers&nbsp;·&nbsp;library knowledge
+    </p>
+  </header>
+
+  <main class="relative z-10 flex min-h-[calc(100vh-120px)] flex-col items-center justify-center px-6 pb-16 pt-6">
+
+    <!-- Hero copy: eyebrow → wordmark-scale title → promise → CTAs -->
+    <section class="flex w-full flex-col items-center text-center">
+      <p class="text-[10px] uppercase tracking-[0.45em] text-white/60 md:text-xs">Knowledge Operations</p>
+      <h1
+        class="mt-4 font-semibold text-white"
+        style="font-size: clamp(2rem, 8.5vw, 6.5rem); letter-spacing: 0.26em; margin-right: -0.26em;"
+      >
+        KNOWLEDGE
+      </h1>
+      <p class="mx-auto mt-5 max-w-md text-sm leading-relaxed text-white/65 md:text-base">
+        Islands of insight, connected — ask the corpus, follow citations, explore the graph.
+      </p>
+    </section>
+
+    <!-- Serif promise + primary actions -->
+    <section class="relative mt-10 flex w-full max-w-6xl flex-col items-center md:mt-14" aria-label="Archipelago introduction">
+      <h2 class="font-serif-title text-center text-4xl text-white sm:text-5xl md:text-6xl">Built for the curious</h2>
+      <p class="mx-auto mt-4 max-w-md text-center text-xs leading-relaxed text-white/85 md:text-sm">
+        Your campus AI/ML co-pilot for deep questions, sharp sources, and quiet focus.
+      </p>
+      <div class="mt-7 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+        <a
+          id="enter-chat-link"
+          href="/chat"
+          class="rounded-full bg-black/60 px-7 py-3 text-sm font-semibold text-white no-underline ring-1 ring-white/25 backdrop-blur-sm transition-colors hover:bg-black/80"
+        >
+          Enter the chat
+        </a>
+        <a
+          id="library-details-link"
+          href="/library"
+          class="rounded-full bg-amber-300 px-7 py-3 text-sm font-semibold text-black no-underline transition-colors hover:bg-amber-200"
+        >
+          Library details
+        </a>
+      </div>
+    </section>
+
+    <!-- Institutional research links -->
+    <section aria-labelledby="institution-links-title" class="mx-auto mt-14 w-full max-w-5xl px-2 md:mt-20">
+      <h2 id="institution-links-title" class="mb-4 text-center text-xs uppercase tracking-[0.22em] text-white/60">
+        Institutional research links
+      </h2>
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <a href="https://iemcrp.com/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
+          <span class="block text-sm font-semibold text-white">IEMCRP</span><span class="mt-1 block text-xs text-white/55">Research portal ↗</span>
+        </a>
+        <a href="https://uemk-opac.l2c2.co.in/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
+          <span class="block text-sm font-semibold text-white">UEMK OPAC</span><span class="mt-1 block text-xs text-white/55">Library catalogue ↗</span>
+        </a>
+        <a href="https://ieeexplore.ieee.org/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
+          <span class="block text-sm font-semibold text-white">IEEE Xplore</span><span class="mt-1 block text-xs text-white/55">Research papers ↗</span>
+        </a>
+        <a href="https://ebooks.elibrary.in.pearson.com/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
+          <span class="block text-sm font-semibold text-white">Pearson eLibrary</span><span class="mt-1 block text-xs text-white/55">Institutional e-books ↗</span>
+        </a>
+        <a href="https://indianjournals.com/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
+          <span class="block text-sm font-semibold text-white">Indian Journals</span><span class="mt-1 block text-xs text-white/55">Journal collection ↗</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 pb-8 pt-4 text-center">
+    <p class="text-xs text-white/40"><span aria-hidden="true">△</span> Archipelago — Islands of insight, connected.</p>
+  </footer>
+
+  <script>
+    // Mount the in-app navigation when the visitor already has a verified session.
+    async function hasActiveSession() {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!response.ok) return false;
+        const principal = await response.json();
+        return principal.authenticated === true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    window.archipelagoAuthReady?.then(async () => {
+      if (window.archipelagoMountNavigation && await hasActiveSession()) {
+        window.archipelagoMountNavigation();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archipelago Document Reader</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090514;
+      color: #f8fafc;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .liquid-glass {
+      background: rgba(23, 17, 38, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    #viewer-container {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      background: radial-gradient(circle at 50% 10%, #150f28 0%, #090514 100%);
+      scroll-behavior: smooth;
+    }
+    #pdf-canvas {
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      background: #ffffff;
+      transition: transform 0.15s ease-out;
+      max-width: 100%;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(167, 139, 250, 0.2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="select-none">
+
+  <!-- Top Navigation & Control Toolbar -->
+  <header class="liquid-glass z-20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0">
+    <!-- Left: Back & Document Metadata -->
+    <div class="flex items-center gap-3 min-w-0">
+      <button id="btn-back" onclick="handleBack()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/90 text-xs font-medium border border-white/10 transition-colors cursor-pointer shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <span>Back</span>
+      </button>
+
+      <div class="min-w-0 flex flex-col">
+        <div class="flex items-center gap-2">
+          <h1 id="doc-title" class="text-xs sm:text-sm font-semibold text-white truncate max-w-[200px] sm:max-w-md" title="Loading Document...">Loading Document...</h1>
+          <span id="doc-badge" class="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">PDF</span>
+        </div>
+        <span id="doc-author" class="text-[11px] text-white/50 truncate max-w-[250px] sm:max-w-xs">Archipelago Reader Gateway</span>
+      </div>
+    </div>
+
+    <!-- Center: Page Navigation -->
+    <div class="flex items-center gap-1.5 bg-black/40 px-2.5 py-1 rounded-lg border border-white/10 shrink-0">
+      <button id="btn-prev" onclick="goToPrevPage()" class="p-1 rounded hover:bg-white/10 text-white/80 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer" title="Previous Page (Left Arrow)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-1 text-xs text-white/70 font-mono">
+        <span>Page</span>
+        <input id="page-num-input" type="number" min="1" value="1" onchange="handlePageInputChange(event)" class="w-12 px-1.5 py-0.5 text-center bg-white/10 border border-white/20 rounded text-white font-mono text-xs focus:outline-none focus:border-purple-400">
+        <span>/</span>
+        <span id="page-count" class="text-white/50">--</span>
+      </div>
+
+      <button id="btn-next" onclick="goToNextPage()" class="p-1 rounded hover:bg-white/10 text-white/80 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer" title="Next Page (Right Arrow / Space)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </div>
+
+    <!-- Right: Zoom & External Actions -->
+    <div class="flex items-center gap-1.5 shrink-0">
+      <!-- Zoom Out -->
+      <button onclick="zoomOut()" class="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer" title="Zoom Out (-)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+      </button>
+      <span id="zoom-label" class="text-[11px] font-mono text-white/60 w-10 text-center">100%</span>
+      <!-- Zoom In -->
+      <button onclick="zoomIn()" class="p-1.5 rounded hover:bg-white/10 text-white/80 hover:text-white transition-colors cursor-pointer" title="Zoom In (+)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+      </button>
+
+      <!-- Fit Width -->
+      <button onclick="fitWidth()" class="hidden md:inline-flex px-2 py-1 rounded hover:bg-white/10 text-[11px] text-white/70 hover:text-white transition-colors cursor-pointer" title="Fit to Page Width">
+        Fit Width
+      </button>
+
+      <!-- Open Raw PDF Link -->
+      <a id="btn-raw-pdf" href="#" target="_blank" rel="noopener noreferrer" class="ml-2 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 text-xs font-medium border border-purple-500/40 transition-colors" title="Open Raw PDF in New Tab">
+        <span>Open Raw</span>
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Document Viewport -->
+  <main id="viewer-container">
+    <!-- Loading State -->
+    <div id="loading-spinner" class="flex flex-col items-center justify-center gap-3 my-auto py-16">
+      <div class="spinner"></div>
+      <p id="loading-text" class="text-sm text-white/60 font-mono">Fetching document from repository...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-message" class="hidden flex flex-col items-center justify-center gap-3 my-auto max-w-md text-center py-16 px-6 bg-red-950/40 border border-red-500/30 rounded-2xl">
+      <svg class="w-10 h-10 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <h3 class="text-base font-semibold text-white">Could not load document</h3>
+      <p id="error-detail" class="text-xs text-white/60 font-mono">The requested file could not be found or streamed.</p>
+      <div class="flex gap-2 mt-2">
+        <button onclick="location.reload()" class="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-xs font-medium">Retry</button>
+        <a id="error-fallback-link" href="#" target="_blank" class="px-3 py-1.5 rounded bg-purple-600 text-white text-xs font-medium">Open in External Viewer</a>
+      </div>
+    </div>
+
+    <!-- PDF Canvas -->
+    <canvas id="pdf-canvas" class="hidden"></canvas>
+  </main>
+
+  <script>
+    // Configure PDF.js Worker
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    let pdfDoc = null;
+    let pageNum = 1;
+    let pageRendering = false;
+    let pageNumPending = null;
+    let scale = 1.35;
+    let rawPdfUrl = '';
+    let currentDocId = '';
+
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    const pageNumInput = document.getElementById('page-num-input');
+    const pageCountSpan = document.getElementById('page-count');
+    const zoomLabel = document.getElementById('zoom-label');
+    const loadingEl = document.getElementById('loading-spinner');
+    const loadingText = document.getElementById('loading-text');
+    const errorEl = document.getElementById('error-message');
+    const errorDetail = document.getElementById('error-detail');
+    const errorFallbackLink = document.getElementById('error-fallback-link');
+
+    // Parse URL parameters and route
+    function parseRouteParams() {
+      const path = window.location.pathname;
+      const urlParams = new URLSearchParams(window.location.search);
+      const hash = window.location.hash;
+
+      // Extract resource ID from /read/<id> or ?id= or ?src=
+      let resourceId = '';
+      if (path.includes('/read/')) {
+        resourceId = path.split('/read/')[1].replace(/^\/+/, '');
+        if (resourceId.startsWith('book/')) {
+          resourceId = resourceId.substring(5);
+        }
+      }
+      if (!resourceId) {
+        resourceId = urlParams.get('doc') || urlParams.get('id') || urlParams.get('doc_id') || urlParams.get('src') || urlParams.get('book') || '';
+      }
+
+      // Extract target page from ?page=N or #page=N
+      let targetPage = 1;
+      const qPage = urlParams.get('page');
+      if (qPage) {
+        targetPage = parseInt(qPage, 10) || 1;
+      } else if (hash && hash.includes('page=')) {
+        const match = hash.match(/page=(\d+)/);
+        if (match) targetPage = parseInt(match[1], 10) || 1;
+      }
+
+      return { resourceId: decodeURIComponent(resourceId), targetPage };
+    }
+
+    async function loadDocument() {
+      const { resourceId, targetPage } = parseRouteParams();
+      currentDocId = resourceId;
+      pageNum = Math.max(1, targetPage);
+
+      if (!resourceId) {
+        showError("No document specified in the URL route.");
+        return;
+      }
+
+      loadingText.textContent = `Resolving ${resourceId}...`;
+
+      try {
+        // Fetch document metadata from backend reader info route
+        const infoResp = await fetch(`/api/reader/info/${encodeURIComponent(resourceId)}?page=${pageNum}`);
+        let docInfo = {};
+        if (infoResp.ok) {
+          docInfo = await infoResp.json();
+        }
+
+        // If backend indicated this is Pearson, redirect to Pearson reader
+        if (docInfo.provider === 'pearson' && docInfo.reader_url) {
+          window.location.replace(docInfo.reader_url);
+          return;
+        }
+
+        const title = docInfo.title || resourceId.split('/').pop().replace(/\.pdf$/i, '').replace(/_/g, ' ');
+        const author = docInfo.author || (docInfo.provider === 'huggingface' ? 'Hugging Face Dataset: Prataykarali/Library_books' : 'Archipelago Library Holding');
+        const badge = docInfo.provider === 'huggingface' ? 'HF Dataset' : (docInfo.provider === 'pearson' ? 'Pearson eLibrary' : 'Local PDF');
+
+        document.getElementById('doc-title').textContent = title;
+        document.title = `${title} — Archipelago Reader`;
+        document.getElementById('doc-author').textContent = author;
+        document.getElementById('doc-badge').textContent = badge;
+
+        // Build streaming URL for the PDF
+        rawPdfUrl = docInfo.pdf_url || `/papers/${encodeURIComponent(resourceId)}`;
+        const anchorUrl = rawPdfUrl + (rawPdfUrl.includes('#') ? '' : `#page=${pageNum}`);
+        document.getElementById('btn-raw-pdf').href = anchorUrl;
+        errorFallbackLink.href = anchorUrl;
+
+        loadingText.textContent = `Rendering page ${pageNum}...`;
+
+        // Load the PDF via PDF.js
+        const loadingTask = pdfjsLib.getDocument({
+          url: rawPdfUrl,
+          withCredentials: true,
+          cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+          cMapPacked: true,
+        });
+
+        pdfDoc = await loadingTask.promise;
+        pageCountSpan.textContent = pdfDoc.numPages;
+        pageNumInput.max = pdfDoc.numPages;
+
+        if (pageNum > pdfDoc.numPages) {
+          pageNum = 1;
+        }
+
+        loadingEl.classList.add('hidden');
+        canvas.classList.remove('hidden');
+
+        renderPage(pageNum);
+      } catch (err) {
+        console.error("PDF loading error:", err);
+        showError(err.message || "Failed to load PDF bytes from server.");
+      }
+    }
+
+    function renderPage(num) {
+      pageRendering = true;
+      pageNumInput.value = num;
+
+      // Update URL query & hash silently so reload retains exact page
+      const url = new URL(window.location);
+      url.searchParams.set('page', num);
+      window.history.replaceState({}, '', url.toString());
+
+      pdfDoc.getPage(num).then(function(page) {
+        const viewport = page.getViewport({ scale: scale });
+        const outputScale = window.devicePixelRatio || 1;
+
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
+        canvas.style.width = Math.floor(viewport.width) + "px";
+        canvas.style.height = Math.floor(viewport.height) + "px";
+
+        const transform = outputScale !== 1
+          ? [outputScale, 0, 0, outputScale, 0, 0]
+          : null;
+
+        const renderContext = {
+          canvasContext: ctx,
+          transform: transform,
+          viewport: viewport
+        };
+
+        const renderTask = page.render(renderContext);
+
+        renderTask.promise.then(function() {
+          pageRendering = false;
+          if (pageNumPending !== null) {
+            renderPage(pageNumPending);
+            pageNumPending = null;
+          }
+        });
+      }).catch(function(err) {
+        console.error("Page render error:", err);
+        pageRendering = false;
+      });
+
+      // Update button states
+      document.getElementById('btn-prev').disabled = (num <= 1);
+      document.getElementById('btn-next').disabled = (pdfDoc && num >= pdfDoc.numPages);
+    }
+
+    function queueRenderPage(num) {
+      if (pageRendering) {
+        pageNumPending = num;
+      } else {
+        renderPage(num);
+      }
+    }
+
+    function goToPrevPage() {
+      if (pageNum <= 1) return;
+      pageNum--;
+      queueRenderPage(pageNum);
+    }
+
+    function goToNextPage() {
+      if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
+      pageNum++;
+      queueRenderPage(pageNum);
+    }
+
+    function handlePageInputChange(e) {
+      const val = parseInt(e.target.value, 10);
+      if (pdfDoc && val >= 1 && val <= pdfDoc.numPages) {
+        pageNum = val;
+        queueRenderPage(pageNum);
+      } else {
+        e.target.value = pageNum;
+      }
+    }
+
+    function zoomIn() {
+      scale = Math.min(3.0, scale + 0.15);
+      updateZoomLabel();
+      queueRenderPage(pageNum);
+    }
+
+    function zoomOut() {
+      scale = Math.max(0.5, scale - 0.15);
+      updateZoomLabel();
+      queueRenderPage(pageNum);
+    }
+
+    function fitWidth() {
+      if (!pdfDoc) return;
+      const containerWidth = document.getElementById('viewer-container').clientWidth - 48;
+      pdfDoc.getPage(pageNum).then(function(page) {
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
+        scale = Math.max(0.6, containerWidth / unscaledViewport.width);
+        updateZoomLabel();
+        queueRenderPage(pageNum);
+      });
+    }
+
+    function updateZoomLabel() {
+      zoomLabel.textContent = `${Math.round(scale * 100)}%`;
+    }
+
+    function handleBack() {
+      if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+        window.history.back();
+      } else {
+        window.location.assign('/library');
+      }
+    }
+
+    function showError(msg) {
+      loadingEl.classList.add('hidden');
+      canvas.classList.add('hidden');
+      errorEl.classList.remove('hidden');
+      errorDetail.textContent = msg;
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        goToPrevPage();
+      } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        goToNextPage();
+      } else if (e.key === '+' || e.key === '=') {
+        zoomIn();
+      } else if (e.key === '-') {
+        zoomOut();
+      } else if (e.key === 'Home') {
+        if (pdfDoc) { pageNum = 1; queueRenderPage(pageNum); }
+      } else if (e.key === 'End') {
+        if (pdfDoc) { pageNum = pdfDoc.numPages; queueRenderPage(pageNum); }
+      }
+    });
+
+    // Start loading on DOM ready
+    window.addEventListener('DOMContentLoaded', loadDocument);
+  </script>
+</body>
+</html>
