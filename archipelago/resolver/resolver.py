@@ -14,6 +14,9 @@ from archipelago.resolver.pearson import resolve_pearson_url
 
 logger = logging.getLogger("archipelago.resolver")
 
+# Stable error text so a cached negative and a fresh miss agree.
+RESOLUTION_FAILED_ERROR = "Resource link could not be resolved across catalog providers"
+
 
 class LinkResolver:
     """Integrated Link Resolver with Rate Limiting, Negative Caching, and Dual-Mode Resolvers."""
@@ -177,16 +180,18 @@ class LinkResolver:
             hf_fallback["id"] = resource_id
             return hf_fallback
 
-        # Failed resolution
-        self.cache.set_negative(cache_key, "Resource link could not be resolved")
-        return {
+        # Failed resolution. The cached negative entry must carry the same error
+        # text a fresh miss returns, so callers see one stable shape.
+        failure_payload = {
             "id": resource_id,
             "title": title or resource_id,
             "working": False,
             "status": 404,
-            "error": "Resource link could not be resolved across catalog providers",
+            "error": RESOLUTION_FAILED_ERROR,
             "url": None,
         }
+        self.cache.set_negative(cache_key, RESOLUTION_FAILED_ERROR, context=failure_payload)
+        return failure_payload
 
 
 # Global singleton instance for quick module-level helper calls

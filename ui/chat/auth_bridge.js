@@ -2,6 +2,8 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const API_PREFIX = "/api/";
 const LOGIN_PATH = "/login";
+// Pages anyone may read without signing in.
+const OPEN_PATHS = new Set(["/", "/landing", "/chat", "/library"]);
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
 const STAFF_ROUTES = new Set(["/chat", "/library", "/graph"]);
 
@@ -53,6 +55,10 @@ window.archipelagoRequireSession = async () => {
   } catch (_) {}
   sessionStorage.removeItem("archipelago_local_user");
   localStorage.removeItem("archipelago_local_user");
+  // Open pages (landing, chat, library) stay readable without a session; only
+  // staff surfaces redirect. Staff routes opt in via
+  // `archipelagoAuthorizePage`, which always requires a role.
+  if (OPEN_PATHS.has(window.location.pathname.replace(/\/$/, "") || "/")) return null;
   const next = encodeURIComponent(window.location.pathname + window.location.search);
   window.location.replace(`${LOGIN_PATH}?next=${next}`);
   return null;

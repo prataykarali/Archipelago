@@ -133,20 +133,34 @@ def require_librarian(fn):
 
 require_token = require_librarian
 
+# Reading and asking stay open to anonymous campus users. Set to "0" to require
+# a verified session on every chat request instead.
+_OPEN_READING_ALLOWED = os.getenv("ARCHIPELAGO_OPEN_READING", "1").strip().lower() not in {
+    "0", "false", "no",
+}
+
 
 def require_student_or_open(fn):
+    """Allow reading/asking without a session; attach a principal when present.
+
+    Learning access is open to every campus user, so an anonymous visitor may
+    chat. When a session *is* supplied it is verified and attached to ``g`` so
+    role-aware behaviour still works. Mutating endpoints use the stricter
+    ``require_librarian`` / ``require_auth`` decorators instead.
+    """
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         if request.method == "OPTIONS":
             return fn(*args, **kwargs)
-        if not supabase_auth.is_auth_required():
-            return fn(*args, **kwargs)
         principal, auth_error = supabase_auth.authenticate_request(request)
         if principal is None:
-            return jsonify({
-                "error": "unauthorized",
-                "detail": auth_error or "A verified Supabase session is required",
-            }), 401
+            if supabase_auth.is_auth_required() and not _OPEN_READING_ALLOWED:
+                return jsonify({
+                    "error": "unauthorized",
+                    "detail": auth_error or "A verified Supabase session is required",
+                }), 401
+            g.authenticated = False
+            return fn(*args, **kwargs)
         g.archipelago_principal = principal
         g.authenticated = True
         g.user_role = principal.role

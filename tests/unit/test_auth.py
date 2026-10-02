@@ -87,12 +87,40 @@ def test_librarian_token_preferred(client, monkeypatch):
     assert resp3.status_code == 200
 
 
-def test_chat_requires_verified_session_even_with_librarian_token(client, monkeypatch):
+def test_chat_is_open_without_a_session(client, monkeypatch):
+    """Reading and asking are open to anonymous campus users.
+
+    Mutating surfaces must still refuse an unverified caller even when a
+    librarian service token happens to be configured.
+    """
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.setenv("ARCHIPELAGO_LIBRARIAN_TOKEN", "lib-secret")
-    # A staff service token is not a substitute for a verified user session.
-    resp = client.post("/chat")
-    assert resp.status_code == 401
+
+    assert client.post("/chat").status_code == 200
+    assert client.post("/protected").status_code == 401
+
+
+def test_open_reading_can_be_disabled(monkeypatch):
+    """ARCHIPELAGO_OPEN_READING=0 restores mandatory sessions for chat."""
+    import importlib
+
+    import archipelago.auth as auth_module
+
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
+    monkeypatch.setenv("ARCHIPELAGO_OPEN_READING", "0")
+    try:
+        importlib.reload(auth_module)
+        app = Flask(__name__)
+
+        @app.route("/chat", methods=["POST"])
+        @auth_module.require_student_or_open
+        def chat():
+            return jsonify({"ok": True}), 200
+
+        assert app.test_client().post("/chat").status_code == 401
+    finally:
+        monkeypatch.delenv("ARCHIPELAGO_OPEN_READING", raising=False)
+        importlib.reload(auth_module)
 
 
 def test_wraps_preserves_function_name():

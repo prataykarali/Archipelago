@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import kuzu
+import re
 
 from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference import state as st
@@ -97,19 +98,69 @@ def _citation_quality_score(section_title: str, text_passage: str, page_number: 
     return score
 
 
-def get_concept_citations(concept_id, limit=2):
+# How strongly a document titled after the concept outranks one that merely
+# mentions it. Large enough to beat reference-list and page-position penalties.
+_TITLE_AFFINITY_WEIGHT = 3.0
+
+# How strongly "this document discusses the concept most" ranks above passage
+# quality. This is what makes the canonical paper win over incidental mentions.
+_MENTION_SHARE_WEIGHT = 2.5
+
+# Minimum chunk rows to pull when ranking citations by mention share.
+_MENTION_POOL_MIN = 24
+
+_TITLE_STOPWORDS = frozenset({    "the", "a", "an", "of", "and", "for", "in", "on", "to", "is", "are",
+    "with", "using", "via", "model", "models", "learning", "neural", "network",
+})
+
+
+def _title_tokens(text: str) -> set[str]:
+    """Content tokens from a document id or concept name, for affinity matching."""
+    return {
+        t for t in re.findall(r"[a-z0-9]+", (text or "").lower())
+        if len(t) > 2 and t not in _TITLE_STOPWORDS
+    }
+
+
+def _title_affinity(doc_id: str, concept_names: list[str]) -> float:
+    """Reward a document whose own title is about the concept.
+
+    A chunk may legitimately MENTION a concept, but when the document itself is
+    titled after the concept (e.g. "Attention Is All You Need" for Attention)
+    that source is the canonical citation and must win.
+    """
+    doc_tokens = _title_tokens(doc_id)
+    if not doc_tokens:
+        return 0.0
+    best = 0.0
+    for name in concept_names:
+        name_tokens = _title_tokens(name)
+        if not name_tokens:
+            continue
+        overlap = doc_tokens & name_tokens
+        if not overlap:
+            continue
+        # Fraction of the concept's content words present in the document title.
+        best = max(best, len(overlap) / len(name_tokens))
+    return best
+
+
+def get_concept_citations(concept_id, limit=2, concept_names=None):
     """Get source passages for one concept, with page metadata intact.
 
-    Prefers non-bibliography, definitional passages over reference-list pages
-    (fixes the 'everything cites LoRA page 14' symptom).
+    Ranking, highest first:
+      1. the document that discusses this concept most (mention share) — the
+         paper actually *about* the concept rather than one that cites it;
+      2. a document whose own title matches the concept;
+      3. definitional body passages over reference-list pages.
     """
     safe_id = str(concept_id).replace("'", "\\'")
     citations = []
     try:
         with graph_lock.read_lock():
             conn = kuzu.Connection(st.db)
-            # Fetch a wider pool, then rank
-            fetch_n = max(8, int(limit) * 4)
+            # Fetch a wide pool: mention share needs the full distribution.
+            fetch_n = max(_MENTION_POOL_MIN, int(limit) * 4)
             res = conn.execute(f"""
                 MATCH (d:Document)-[:HAS_CHUNK]->(chk:Chunk)-[:MENTIONS]->
                       (c:Concept {{id: '{safe_id}'}})
@@ -126,14 +177,29 @@ def get_concept_citations(concept_id, limit=2):
                 })
     except Exception as e:
         print(f"Citation retrieval error for {concept_id}: {e}")
-    citations.sort(
-        key=lambda c: _citation_quality_score(
-            c.get("section_title") or "",
-            c.get("text_passage") or "",
-            c.get("page_number") or 0,
-        ),
-        reverse=True,
-    )
+
+    if not citations:
+        return []
+
+    names = list(concept_names or [concept_id])
+    mention_counts: dict[str, int] = {}
+    for c in citations:
+        mention_counts[c["doc_id"]] = mention_counts.get(c["doc_id"], 0) + 1
+    max_mentions = max(mention_counts.values())
+
+    def _rank(c: dict) -> float:
+        share = mention_counts.get(c["doc_id"], 0) / max_mentions
+        return (
+            _citation_quality_score(
+                c.get("section_title") or "",
+                c.get("text_passage") or "",
+                c.get("page_number") or 0,
+            )
+            + _MENTION_SHARE_WEIGHT * share
+            + _TITLE_AFFINITY_WEIGHT * _title_affinity(c.get("doc_id") or "", names)
+        )
+
+    citations.sort(key=_rank, reverse=True)
     return citations[: max(1, int(limit))]
 
 

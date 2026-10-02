@@ -162,7 +162,8 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <!-- Supabase Authentication Widget -->
+                <!-- Role badge only: reading and asking are open to everyone, so
+                     there is deliberately no sign-in button in the chat header. -->
                 <div id="auth-header-widget" class="flex items-center gap-1.5">
                     <div id="user-profile-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-accentPurple/20 border border-accentPurple/40 text-xs text-white">
                         <i class="fa-solid fa-user-shield text-accentPurple text-[11px]"></i>
@@ -172,10 +173,6 @@
                             <i class="fa-solid fa-right-from-bracket"></i>
                         </button>
                     </div>
-                    <a id="auth-login-link" href="/login" class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-accentPurple/30 to-accentPink/30 hover:from-accentPurple/50 hover:to-accentPink/50 text-white text-xs font-bold border border-white/20 flex items-center gap-1.5 transition-all shadow-sm">
-                        <i class="fa-solid fa-key text-[10px] text-amber-300"></i>
-                        <span>Sign In</span>
-                    </a>
                 </div>
 
                 <div id="connection-status" class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/35 border border-white/15 text-[10px] backdrop-blur-sm">

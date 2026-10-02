@@ -16,6 +16,11 @@ ROOT = HOST_ROOT
 UI = ROOT / "ui"
 ASSET = ROOT / "ui_assets"
 
+# Reading and asking stay open; staff surfaces remain role-gated.
+OPEN_READING_ALLOWED = os.getenv("ARCHIPELAGO_OPEN_READING", "1").strip().lower() not in {
+    "0", "false", "no",
+}
+
 MAX_CONTENT_LENGTH_BYTES = 5 * 1024 * 1024
 
 # Endpoints reachable without a Supabase session.  Library browsing, the reader
@@ -71,7 +76,14 @@ PAGE_FILES = {
     "login": "login.html",
 }
 # Pages that require a session when auth is enabled.
-AUTH_GATED_PAGES = frozenset({"chat", "library"})
+# Reading and asking are open to every campus user, so chat and the library are
+# NOT gated — an exact book/page link must never bounce a reader to the login
+# page. Elevated surfaces (the graph console, librarian import) stay gated in
+# their own routes. Set ARCHIPELAGO_OPEN_READING=0 to restore mandatory
+# sessions for these pages.
+AUTH_GATED_PAGES = (
+    frozenset() if OPEN_READING_ALLOWED else frozenset({"chat", "library"})
+)
 
 SESSION_COOKIE_NAME = "archipelago_token"
 SESSION_COOKIE_MAX_AGE = 3600

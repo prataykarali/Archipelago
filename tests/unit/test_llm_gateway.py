@@ -49,31 +49,31 @@ def test_gateway_configuration():
 
 
 def test_is_llm_available_mock():
-    with patch("archipelago.inference.llm_gateway._openai_client") as mock_oa:
+    with patch("archipelago.inference.llm_gateway.part01_config._openai_client") as mock_oa:
         mock_oa.chat.completions.create.return_value = MagicMock(choices=[MagicMock()])
-        with patch("archipelago.inference.llm_gateway.get_active_provider", return_value="xkiro"):
+        with patch("archipelago.inference.llm_gateway.part01_config.get_active_provider", return_value="xkiro"):
             available = is_llm_available()
             assert isinstance(available, bool)
 
 
 def test_gateway_chat_xkiro():
-    with patch("archipelago.inference.llm_gateway._chat_xkiro", return_value="Test answer from xkiro"):
-        with patch("archipelago.inference.llm_gateway.get_active_provider", return_value="xkiro"):
+    with patch("archipelago.inference.llm_gateway.part03_chat._chat_xkiro", return_value="Test answer from xkiro"):
+        with patch("archipelago.inference.llm_gateway.part01_config.get_active_provider", return_value="xkiro"):
             result = gateway_chat([{"role": "user", "content": "hello"}], purpose="chat")
             assert result == "Test answer from xkiro"
 
 
 def test_gateway_chat_failover():
-    with patch("archipelago.inference.llm_gateway._chat_xkiro", return_value=None):
-        with patch("archipelago.inference.llm_gateway._chat_gemini", return_value="Fallback answer from Gemini"):
-            with patch("archipelago.inference.llm_gateway.get_active_provider", return_value="xkiro"):
+    with patch("archipelago.inference.llm_gateway.part03_chat._chat_xkiro", return_value=None):
+        with patch("archipelago.inference.llm_gateway.part03_chat._chat_gemini", return_value="Fallback answer from Gemini"):
+            with patch("archipelago.inference.llm_gateway.part01_config.get_active_provider", return_value="xkiro"):
                 result = gateway_chat([{"role": "user", "content": "hello"}], purpose="synthesis")
                 assert result == "Fallback answer from Gemini"
 
 
 def test_gateway_stream_mock():
-    with patch("archipelago.inference.llm_gateway._stream_xkiro", return_value=iter(["chunk1 ", "chunk2"])):
-        with patch("archipelago.inference.llm_gateway.get_active_provider", return_value="xkiro"):
+    with patch("archipelago.inference.llm_gateway.part04_stream._stream_xkiro", return_value=iter(["chunk1 ", "chunk2"])):
+        with patch("archipelago.inference.llm_gateway.part01_config.get_active_provider", return_value="xkiro"):
             chunks = list(gateway_chat_stream([{"role": "user", "content": "hi"}], purpose="synthesis"))
             assert chunks == ["chunk1 ", "chunk2"]
 
@@ -91,9 +91,9 @@ def test_xkiro_retries_once_after_short_rate_limit():
         RateLimitError("rate limited"),
         MagicMock(choices=[MagicMock(message=MagicMock(content="ok"))]),
     ]
-    with patch("archipelago.inference.llm_gateway.configure_gateway"), \
-         patch("archipelago.inference.llm_gateway._openai_client", client), \
-         patch("archipelago.inference.llm_gateway.time.sleep") as sleep:
+    with patch("archipelago.inference.llm_gateway.part01_config.configure_gateway"), \
+         patch("archipelago.inference.llm_gateway.part01_config._openai_client", client), \
+         patch("archipelago.inference.llm_gateway.part03_chat.time.sleep") as sleep:
         assert _chat_xkiro([{"role": "user", "content": "ping"}], max_tokens=5) == "ok"
     assert client.chat.completions.create.call_count == 2
     sleep.assert_called_once_with(0.1)

@@ -16,3 +16,8 @@ python-docx>=1.1.0
 pytest>=8.0
 pytest-timeout>=2.2
 google-generativeai>=0.8.0
+
+# Local OCR for librarian page-image intake (scanned index / content pages).
+# Paired with the tesseract-ocr system package installed in the Dockerfile.
+pytesseract>=0.3.10
+Pillow>=10.0.0

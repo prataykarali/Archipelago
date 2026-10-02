@@ -217,6 +217,75 @@ Verified: `test_ui_link_integrity` + `test_host_inference_deployment` +
 `test_host_intent_routing` + `test_host_roadmap` → 29 passed; SMOKE OK in both
 trees.
 
+### 4. Modularization wave — every production module ≤ 400 lines
+
+Target: no production `.py` under `archipelago/`, `host_inference/`, `okf/`
+exceeds 400 lines (and none exceed the 500 hard cap in `AGENTS.md`). All splits
+preserve the original public namespace (facade `__init__.py` / re-export) and
+behaviour.
+
+| Original | → Package / modules | Max file |
+|----------|--------------------|---------:|
+| `archipelago/api/app.py` (671) | slimmed to 110-line facade + `engine_state.py`, `middleware.py`, `routes_{auth,chat,discovery,docs,library}.py` | ≤ 320 |
+| `archipelago/inference/intent_gate.py` (537) | `intent_gate/` (4) | ≤ 300 |
+| `archipelago/inference/routing.py` (1,376) | `routing/` (14) | ≤ 300 |
+| `archipelago/inference/synthesis.py` (1,340) | `synthesis/` (11) | ≤ 286 |
+| `archipelago/inference/routes_misc.py` (1,124) | `routes_misc/` (11) | ≤ 284 |
+| `chat_server.py` (1,327) | `chat_server/` (9) | ≤ 260 |
+| `archipelago/inference/diagnostic_mcq.py` (1,183) | `diagnostic_mcq/` (7) | ≤ 293 |
+| `archipelago/ingestion/librarian_worker.py` (862) | `librarian_worker/` (6) | ≤ 400 |
+| `archipelago/inference/library_queries.py` (662) | `library_queries/` (5) | ≤ 334 |
+| `archipelago/graph/subgraph.py` (621) | `subgraph/` (4) | ≤ 315 |
+| `archipelago/inference/curriculum.py` (611) | `curriculum/` (5) | ≤ 317 |
+| `archipelago/inference/ranking.py` (541) | `ranking/` (4) | ≤ 346 |
+| `okf/relations.py` (494) | `relations/` (4) | ≤ 361 |
+| `archipelago/inference/catalog_ops.py` (494) | `catalog_ops/` (4) | ≤ 385 |
+| `archipelago/ingestion/spreadsheet.py` (491) | `spreadsheet/` (4) | ≤ 389 |
+| `archipelago/ingestion/mention.py` (480) | `mention/` (4) | ≤ 352 |
+| `archipelago/inference/tc75_cases.py` (472) | `tc75_cases/` (4) | ≤ 394 |
+| `okf/graph/evidence.py` (466) | `evidence/` (5) | ≤ 352 |
+| `archipelago/inference/ods_parser.py` (465) | `ods_parser/` (4) | ≤ 384 |
+| `archipelago/inference/library_credentials.py` (458) | `library_credentials/` (4) | ≤ 359 |
+| `okf/pipeline.py` (443) | `pipeline/` (4) | ≤ 315 |
+| `archipelago/ingestion/lib_qwen_extractor.py` (434) | `lib_qwen_extractor/` (4) | ≤ 219 |
+| `okf/extraction.py` (407) | `extraction/` (5) | ≤ 301 |
+| `archipelago/inference/demo_query_books.py` (407) | `demo_query_books/` (4) | ≤ 347 |
+| `okf/graph/ingest.py` (405) | `ingest.py` (309) + `ingest_manual.py` (110) | ≤ 309 |
+| `okf/eval/gold.py` (403) | `gold/` (4) | ≤ 374 |
+| `ingestion_worker.py` (612) | `ingestion_worker.py` (247) + `ingestion_worker_job_mixin.py` (387) | ≤ 387 |
+
+`ui/graph/index.html` (2,171 → 366) and `ui/graph/neon.html` (832 → 113)
+were split earlier in the wave (CSS under `ui/graph/styles/`, JS under
+`ui/graph/js/`).
+
+**Tooling:** `scripts/refactor/split_module.py` (generalized AST splitter)
+was extended this wave:
+* guarded top-level `try: import x` blocks now contribute their bound names to
+the package owner map (late-bound through `_deps`), and their module is
+imported for side effects;
+* the facade emits part-module imports **before** the re-exported original
+imports, so a trailing import (e.g. `from okf.pipeline_staged import …`)
+no longer creates a cycle;
+* the dotted import path is derived by probing for a real `__init__.py`, fixing
+`okf.*` packages;
+* `okf/graph/ingest.py` was split **manually** because an inner helper shares
+its name with a module-level function (auto sibling-rewriting would corrupt the
+nested `def`) — re-exported from `okf/graph/ingest_manual.py`;
+* `okf/pipeline` uses late-bound `_rt.` lookup for `BASE_DIR`,
+`cleanup_and_canonicalize`, and `ingest_to_kuzu` so the documented
+`patch("okf.pipeline.…")` contracts in `tests/unit/test_quality_and_eval.py`
+keep working.
+
+**Verified:** `compileall` clean; `test_quality_and_eval` (5),
+`test_relations` / `test_manual_graph_api` / `test_ingestion_intake` /
+`test_demo_query_books` / `test_lib_qwen_extractor` / `test_librarian_pipeline` /
+`test_library_recovery` / host/api suites (90) all pass; UI browser smoke
+(`node scripts/refactor/smoke_chat_ui.mjs`) → `SMOKE OK` on both trees.
+Pre-existing red (unchanged): `test_tc75_honest_pass` Category-1 cases reject
+with `low_similarity_reject` in this environment (embedding/similarity
+calibration, not touched by this wave), and `test_staged_pipeline_regression`
+imports a `pdf_ingestion` module that does not exist in the repo.
+
 ## Deferred / known issues
 
 1. ~~`host_inference/server.py` not split~~ — **resolved** (see fix batch 3).
@@ -226,10 +295,20 @@ trees.
    `hostapp.factory:create_app()` with a locally verified boot. The live
    deployment still runs an **older build** — redeploy to pick up the new
    landing and the repointed start command.
-2. **`ui/graph/index.html` (2,171) and `frontend/ui/graph/index.html` (2,231)
-   not split.** Tooling (`scripts/refactor/split_inline_css.py`,
-   `split_chat_js.mjs`) is ready; needs a `graph_ui_source()` branch in
-   `tests/unit/_ui_source.py` and a graph smoke test.
+2. ~~`ui/graph/index.html` (2,171) and `frontend/ui/graph/index.html` (2,231)
+   not split.~~ — **resolved** (batch 5): `ui/graph/index.html` is 366 lines
+   with CSS/JS under `ui/graph/styles/` + `ui/graph/js/`; `graph_ui_model.md`
+   and the browser smoke exercise the split tree.
+2b. **Test + script files still exceed 400 lines:**
+   `tests/unit/test_inference_75_cases.py` (814),
+   `tests/integration/test_citation_correctness.py` (480),
+   `tests/unit/test_ui_deeplinking.py` (417),
+   `scripts/download_pilot_corpus.py` (834),
+   `scripts/run_master_library_ingest.py` (817),
+   `scripts/ops/seed_soference_nodes.py` (495),
+   `scripts/ops/gpu_ingest_local_pdfs.py` (487),
+   `scripts/eval_lib_qwen_ingestion.py` (441). These are excluded from the
+   quality-gate file-size check but can be split next.
 3. **Dead modal left in the tree.** `showGraphChoiceModal()` in
    `js/11-populate-topology.js` is now a no-op and `graph-choice-modal` in
    `index.html` is never shown, because the choice is delivered inline in the
@@ -249,10 +328,17 @@ trees.
 1. ~~Split `host_inference/server.py`~~ — done (batch 3). ~~§P2 fix list~~ —
    done and verified (in-chat graph, clickable page links, intent routing,
    concise replies).
-2. Redeploy `archipelago-2` so the live site picks up the new landing, the
-   batch-4 entrypoint, and the `src/` consolidation.
-3. Split `ui/graph/index.html` (2,171) + `frontend/ui/graph/index.html`
-   (2,231) with the existing tooling.
+2. **Redeploy `archipelago-2`.** The host is an antideploy build and its
+   default branch is **`session3-stable`** (`68f06cf`), *not* `archipelago3`.
+   `archipelago3` (`51b4e99`) is 2 commits ahead and fast-forwards cleanly, but
+   nothing deploys until `session3-stable` is fast-forwarded. Verified live on
+   2026-10-02: `/` still serves the old "Built for the Curious" landing
+   (`<title>Archipelago — Built for the Curious</title>`), `/chat` → 302
+   `/login`, `/api/graph/subgraph` → 401; `/api/readiness` confirms the hostapp
+   (`mode: inference-only`, `concepts: 520`, `pearson_books: 40`).
+3. ~~Split `ui/graph/index.html` + `frontend/ui/graph/index.html`.~~ — done
+   (batch 5). Next: split the >400-line test/script files listed in Deferred
+   §2b.
 4. Reconcile the remaining divergent pieces (`login.html`, hosted-only
    `graph.html`) into one canonical UI tree.
 5. Remove the dead `graph-choice-modal` + `showGraphChoiceModal` no-op.

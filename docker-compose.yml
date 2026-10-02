@@ -24,7 +24,7 @@ services:
       - ./data/uploads:/app/data/uploads
       - ./models:/models:ro
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:5151/api/readiness"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:5151/ready"]
       interval: 30s
       timeout: 10s
       start_period: 60s

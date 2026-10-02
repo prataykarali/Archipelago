@@ -66,4 +66,9 @@ def test_resolver_caching_behavior(resolver: LinkResolver) -> None:
 
         # Second call should use cache
         res2 = resolver.resolve(title="Test ML Textbook", isbn="9780123456789")
-        assert res2 == res1
+
+        # Cache provenance markers are expected; the resolution itself must match.
+        provenance = {"cached_negative", "checked_at"}
+        assert {k: v for k, v in res2.items() if k not in provenance} == {
+            k: v for k, v in res1.items() if k not in provenance
+        }

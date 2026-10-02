@@ -65,11 +65,11 @@
     </p>
   </header>
 
-  <main class="relative z-10 flex-1">
+  <main class="relative z-10 flex min-h-[calc(100vh-120px)] flex-col items-center justify-center px-6 pb-16 pt-6">
 
-    <!-- Hero copy -->
-    <section class="px-6 pt-8 text-center md:pt-12">
-      <p class="text-[10px] tracking-[0.45em] text-white/60 md:text-xs">KNOWLEDGE OPERATIONS</p>
+    <!-- Hero copy: eyebrow → wordmark-scale title → promise → CTAs -->
+    <section class="flex w-full flex-col items-center text-center">
+      <p class="text-[10px] uppercase tracking-[0.45em] text-white/60 md:text-xs">Knowledge Operations</p>
       <h1
         class="mt-4 font-semibold text-white"
         style="font-size: clamp(2rem, 8.5vw, 6.5rem); letter-spacing: 0.26em; margin-right: -0.26em;"
@@ -81,48 +81,32 @@
       </p>
     </section>
 
-    <!-- Hero video with serif overlay -->
-    <section class="relative mx-auto mt-8 w-full max-w-6xl px-4 md:mt-10 md:px-6" aria-label="Archipelago introduction">
-      <div class="relative aspect-video w-full overflow-hidden">
-        <video
-          id="bg-hero-video"
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_115001_bcdaa3b4-03de-47e7-ad63-ae3e392c32d4.mp4"
-          autoplay
-          loop
-          muted
-          playsinline
-          preload="auto"
-          class="absolute inset-0 h-full w-full object-cover opacity-0"
-          aria-hidden="true"
-        ></video>
-        <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black/80" aria-hidden="true"></div>
-        <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
-          <h2 class="font-serif-title text-4xl text-white sm:text-5xl md:text-6xl">Built for the curious</h2>
-          <p class="max-w-md text-xs leading-relaxed text-white/85 md:text-sm">
-            Your campus AI/ML co-pilot for deep questions, sharp sources, and quiet focus.
-          </p>
-          <div class="mt-4 flex flex-wrap items-center justify-center gap-3 md:gap-4">
-            <a
-              id="enter-chat-link"
-              href="/chat"
-              class="rounded-full bg-white px-7 py-3 text-sm font-semibold text-black no-underline transition-colors hover:bg-white/90"
-            >
-              Enter the chat
-            </a>
-            <a
-              id="library-details-link"
-              href="/library"
-              class="liquid-glass rounded-full px-7 py-3 text-sm font-medium text-white no-underline transition-colors hover:bg-white/10"
-            >
-              Library details
-            </a>
-          </div>
-        </div>
+    <!-- Serif promise + primary actions -->
+    <section class="relative mt-10 flex w-full max-w-6xl flex-col items-center md:mt-14" aria-label="Archipelago introduction">
+      <h2 class="font-serif-title text-center text-4xl text-white sm:text-5xl md:text-6xl">Built for the curious</h2>
+      <p class="mx-auto mt-4 max-w-md text-center text-xs leading-relaxed text-white/85 md:text-sm">
+        Your campus AI/ML co-pilot for deep questions, sharp sources, and quiet focus.
+      </p>
+      <div class="mt-7 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+        <a
+          id="enter-chat-link"
+          href="/chat"
+          class="rounded-full bg-black/60 px-7 py-3 text-sm font-semibold text-white no-underline ring-1 ring-white/25 backdrop-blur-sm transition-colors hover:bg-black/80"
+        >
+          Enter the chat
+        </a>
+        <a
+          id="library-details-link"
+          href="/library"
+          class="rounded-full bg-amber-300 px-7 py-3 text-sm font-semibold text-black no-underline transition-colors hover:bg-amber-200"
+        >
+          Library details
+        </a>
       </div>
     </section>
 
     <!-- Institutional research links -->
-    <section aria-labelledby="institution-links-title" class="mx-auto mt-12 w-full max-w-5xl px-6 md:mt-16">
+    <section aria-labelledby="institution-links-title" class="mx-auto mt-14 w-full max-w-5xl px-2 md:mt-20">
       <h2 id="institution-links-title" class="mb-4 text-center text-xs uppercase tracking-[0.22em] text-white/60">
         Institutional research links
       </h2>
@@ -130,7 +114,7 @@
         <a href="https://iemcrp.com/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
           <span class="block text-sm font-semibold text-white">IEMCRP</span><span class="mt-1 block text-xs text-white/55">Research portal ↗</span>
         </a>
-        <a href="http://uemk-opac.l2c2.co.in/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
+        <a href="https://uemk-opac.l2c2.co.in/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
           <span class="block text-sm font-semibold text-white">UEMK OPAC</span><span class="mt-1 block text-xs text-white/55">Library catalogue ↗</span>
         </a>
         <a href="https://ieeexplore.ieee.org/" target="_blank" rel="noopener noreferrer" class="liquid-glass rounded-xl p-4 no-underline transition-colors hover:bg-white/10">
@@ -146,57 +130,11 @@
     </section>
   </main>
 
-  <footer class="relative z-10 pb-10 pt-12 text-center">
+  <footer class="relative z-10 pb-8 pt-4 text-center">
     <p class="text-xs text-white/40"><span aria-hidden="true">△</span> Archipelago — Islands of insight, connected.</p>
   </footer>
 
   <script>
-    // Custom requestAnimationFrame-based Video Fade System (500ms fade-in/fade-out)
-    const video = document.getElementById('bg-hero-video');
-    let currentAnimFrame = null;
-    let fadingOut = false;
-
-    function fadeToOpacity(targetOpacity, durationMs, callback) {
-      if (currentAnimFrame) cancelAnimationFrame(currentAnimFrame);
-      const startOpacity = parseFloat(video.style.opacity || 0);
-      const startTime = performance.now();
-
-      function step(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / durationMs, 1);
-        const currentOpacity = startOpacity + (targetOpacity - startOpacity) * progress;
-        video.style.opacity = currentOpacity;
-
-        if (progress < 1) {
-          currentAnimFrame = requestAnimationFrame(step);
-        } else if (callback) {
-          callback();
-        }
-      }
-      currentAnimFrame = requestAnimationFrame(step);
-    }
-
-    video.addEventListener('play', () => {
-      fadingOut = false;
-      fadeToOpacity(1, 500);
-    });
-
-    video.addEventListener('timeupdate', () => {
-      if (video.duration && (video.duration - video.currentTime <= 0.55) && !fadingOut) {
-        fadingOut = true;
-        fadeToOpacity(0, 500);
-      }
-    });
-
-    video.addEventListener('ended', () => {
-      video.style.opacity = 0;
-      setTimeout(() => {
-        video.currentTime = 0;
-        fadingOut = false;
-        video.play();
-      }, 100);
-    });
-
     // Mount the in-app navigation when the visitor already has a verified session.
     async function hasActiveSession() {
       try {

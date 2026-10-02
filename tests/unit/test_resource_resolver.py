@@ -23,8 +23,10 @@ def test_registry_contains_46_unique_resources():
     assert report["total_resources"] == 46
     assert report["sources"]["pearson"] == 40
     assert report["sources"]["local"] == 2
-    assert report["sources"]["huggingface"] == 2
-    assert report["sources"]["metadata_only"] == 2
+    # The GAN paper is a real Hugging Face-hosted file; only the Stanford
+    # SLP3 page has no hosted file and stays metadata_only.
+    assert report["sources"]["huggingface"] == 3
+    assert report["sources"]["metadata_only"] == 1
 
 
 def test_registry_lookup_by_id_and_alias():
@@ -107,7 +109,7 @@ def test_link_resolver_cascade_and_caching():
     res_local = resolver.resolve("ostep_three_easy_pieces")
     assert res_local["working"] is True
     assert res_local["source"] == "local"
-    assert "08_Paging.pdf" in res_local["url"]
+    assert "00_Dialogue.pdf" in res_local["url"]
 
     # Cached hit
     res_cached = resolver.resolve("ostep_three_easy_pieces")

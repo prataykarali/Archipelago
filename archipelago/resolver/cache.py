@@ -56,16 +56,28 @@ class ResolverCache:
         expiry = time.time() + self.positive_ttl_sec
         self.cache[key] = (data, expiry)
 
-    def set_negative(self, key: str, error_msg: str = "404 Not Found") -> None:
-        """Cache failed resolution / 404 to avoid repeated expensive external lookups."""
+    def set_negative(
+        self,
+        key: str,
+        error_msg: str = "404 Not Found",
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        """Cache failed resolution so repeated expensive lookups are avoided.
+
+        The cached record keeps the caller's context (id, title, url) so a cache
+        hit returns the same shape as the original miss, plus a marker saying it
+        came from cache.
+        """
         expiry = time.time() + self.negative_ttl_sec
-        record = {
+        record: dict[str, Any] = dict(context or {})
+        record.update({
             "working": False,
             "error": error_msg,
             "status": 404,
+            "url": None,
             "cached_negative": True,
             "checked_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        }
+        })
         self.cache[key] = (record, expiry)
 
     def clear(self) -> None:

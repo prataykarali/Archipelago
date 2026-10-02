@@ -217,9 +217,13 @@ def register(app: Flask, ctx: AppContext) -> None:
         return response
 
     @app.get("/open/<book_id>")
+    @app.get("/open/book/<book_id>")
     def open_pearson(book_id: str):
         """Redirect an indexed Pearson title to its exact reader page."""
+        # Citations and legacy links may carry the `book/` prefix.
         clean_id = (book_id or "").strip()
+        if clean_id.startswith("book/"):
+            clean_id = clean_id.removeprefix("book/").strip()
         if not clean_id or len(clean_id) > MAX_BOOK_ID_LEN or not BOOK_ID_PATTERN.match(clean_id):
             return jsonify({"error": "bad_request", "detail": "Invalid book ID format."}), 400
 

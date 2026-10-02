@@ -14,6 +14,10 @@ app.before_request(load_user)
 _PUBLIC_PATHS = frozenset({
     "/api/readiness",
     "/api/health",
+    # Container probes cannot present a user session, so liveness/readiness are
+    # always reachable. They expose service status only, never corpus content.
+    "/health",
+    "/ready",
     "/api/ingest/capabilities",
     "/api/auth/config",
     "/api/page-view",

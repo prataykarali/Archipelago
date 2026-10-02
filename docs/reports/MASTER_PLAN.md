@@ -45,29 +45,20 @@ Already done this effort:
 - Pre-existing UI syntax bug fixed (duplicate `const citations` in
   `appendEvidenceRail`) — it had frozen the chat page.
 
-Still oversized (Python, > 400 lines) — **40+ files**. Highest-value first:
+**Status 2026-10-02 (batch 4 + modularization wave):** the 400-line objective
+listed below is met for all production Python under `archipelago/`,
+`host_inference/`, `okf/` — `find … -name '*.py' | xargs wc -l` now reports
+**zero** files over 400 lines (the 500-line hard cap holds with margin). See
+`HANDOFF_2026_10_01_modularization.md` §4 for the full old→new table and the
+splitter/tooling changes. Only **test and script** files still exceed 400 (see
+handoff Deferred §2b); those are exempt from the quality-gate size check.
 
-```
-1376  archipelago/inference/routing.py
-1340  archipelago/inference/synthesis.py
-1327  chat_server.py
-1211  host_inference/engine.py          <-- hosted path, do first
-1183  src/archipelago/inference/diagnostic_mcq.py
-1124  archipelago/inference/routes_misc.py
-1026  archipelago/inference/routes_chat.py
- 862  archipelago/ingestion/librarian_worker.py (+ src/ duplicate)
- 847  host_inference/server.py          <-- hosted path, do first
-```
-
-Still oversized (HTML):
-
-```
-2231  frontend/ui/graph/index.html
-2171  ui/graph/index.html               <-- canonical graph UI
-1081  ui/chat/library.html
- 993  host_inference/ui/library.html
- 832  ui/graph/neon.html
-```
+Historically oversized (now split): `routing.py` 1376, `synthesis.py` 1340,
+`chat_server.py` 1327, `engine.py` 1211, `diagnostic_mcq.py` 1183,
+`routes_misc.py` 1124, `routes_chat.py` 1026, `librarian_worker.py` 862,
+`server.py` 847, `app.py` 671, `intent_gate.py` 537, plus a further 14 files in
+400–494. HTML: `ui/graph/index.html` 2171 → 366, `neon.html` 832 → 113
+(`frontend/ui/graph` kept in sync).
 
 ---
 
@@ -86,11 +77,13 @@ direction respected. Work **package by package**, verifying after each.
 **Invariant:** `from engine import Engine, maybe_polish, _hf_doc_path` and
 `import engine as hosted_engine` must keep working (shim). Same for `server`.
 
-### P1.2 — Canonical graph UI (`ui/graph/index.html` 2171)
+### P1.2 — Canonical graph UI (`ui/graph/index.html` 2171) — **DONE**
 
-Same tooling as chat: `scripts/refactor/split_inline_css.py` then
-`scripts/refactor/split_chat_js.mjs`, plus a `graph_ui_source()` branch in
-`tests/unit/_ui_source.py` and a graph smoke test.
+`ui/graph/index.html` → 366 lines; CSS in `ui/graph/styles/` (2 files), JS in
+`ui/graph/js/` (10 modules). `ui/graph/neon.html` → 113 lines with
+`styles/neon-01-loader.css` + `js/neon/`. `graph_ui` symlink and
+`frontend/ui/graph` kept byte-identical; `_ui_source.graph_ui_source()` and the
+browser smoke cover the split tree.
 
 ### P1.3 — Python inference package (`archipelago/inference/`)
 
@@ -167,13 +160,23 @@ Per `docs/01` §15-27 and `docs/02`:
 8. CI: add live inference / graph-retrieval / source-link / roadmap smoke gates
    behind `RUN_LIVE_E2E=1`; add the 5151-node graph integrity check.
 
-> **Status (2026-10-01):** the public entrypoint is settled — the live site
+> **Status (2026-10-02):** the public entrypoint is settled — the live site
 > (`archipelago-2.antideploy.com`) is the hostapp serving `host_inference/ui/`,
-> and `.antideploy.json` `start_command` now boots
+> and `.antideploy.json` `start_command` boots
 > `hostapp.factory:create_app()` (verified boot + landing served locally).
 > The hosted landing was rebuilt to the Archipelago brand page (△ wordmark,
 > KNOWLEDGE hero, video overlay, no sign-in UI — sign-in stays server-side at
-> `/login`). Redeploy required to publish.
+> `/login`).
+>
+> **BLOCKER for deploy:** antideploy builds the repository **default branch**,
+> which is `session3-stable` (`68f06cf`) — *not* `archipelago3`. Pushing
+> `archipelago3` (`51b4e99`) does **not** redeploy. `archipelago3` is 2 commits
+> ahead and fast-forwards `session3-stable`, so publishing = push
+> `archipelago3` onto `session3-stable` (or change the repo default branch).
+> Live verified 2026-10-02: `/` is still the old "Built for the Curious"
+> landing, `/chat` → 302 `/login`, `/api/graph/subgraph` → 401;
+> `/api/readiness` = hostapp (`mode: inference-only`, `concepts: 520`,
+> `pearson_books: 40`).
 
 ---
 

@@ -1,0 +1,45 @@
+.lib-label:first-of-type{margin-top:0}
+.lib-input,.lib-select,.lib-textarea{width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:10px;
+  background:rgba(15,23,42,0.015);color:var(--tx);font-family:inherit;font-size:13px;outline:none;transition:border .15s,box-shadow .15s}
+.lib-input:focus,.lib-select:focus,.lib-textarea:focus{border-color:rgba(139,92,246,0.4);box-shadow:0 0 0 3px rgba(139,92,246,0.08)}
+.lib-textarea{min-height:72px;resize:vertical}
+.lib-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:10px;
+  font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;border:none;margin-top:14px;width:100%}
+.lib-btn.primary{background:linear-gradient(135deg,#8b5cf6,#f97316);color:#fff;box-shadow:0 4px 14px rgba(139,92,246,0.22)}
+.lib-btn.primary:hover{box-shadow:0 6px 20px rgba(139,92,246,0.32);transform:translateY(-1px)}
+.lib-btn.primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.lib-btn.secondary{background:rgba(15,23,42,0.04);color:var(--tx2);border:1px solid var(--bd2)}
+.lib-btn.secondary:hover{background:rgba(15,23,42,0.08)}
+.lib-status{margin-top:12px;padding:10px 14px;border-radius:10px;font-size:12px;display:none;line-height:1.5}
+.lib-status.ok{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:#065f46;display:block}
+.lib-status.err{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#991b1b;display:block}
+.lib-status.info{background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.18);color:#0369a1;display:block}
+.lib-drop{border:2px dashed var(--bd2);border-radius:12px;padding:24px 16px;text-align:center;
+  cursor:pointer;transition:border-color .15s,background .15s;background:rgba(15,23,42,0.015);display:block}
+.lib-drop:hover,.lib-drop.drag-over{border-color:rgba(249,115,22,0.5);background:rgba(249,115,22,0.04)}
+.lib-drop-icon{margin-bottom:8px}
+.lib-drop-label{font-size:13px;font-weight:700;color:var(--tx2)}
+.lib-drop-hint{font-size:11px;color:var(--mu);margin-top:4px}
+.lib-stages{margin-top:12px;list-style:none}
+.lib-stage{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:11px;color:var(--mu);border:1px solid transparent;transition:all .2s}
+.lib-stage[data-state=active]{background:rgba(2,132,199,0.06);border-color:rgba(2,132,199,0.18);color:#0284c7;font-weight:700}
+.lib-stage[data-state=done]{color:#10b981;font-weight:600}
+.lib-stage[data-state=error]{color:#ef4444}
+.lib-dot{width:7px;height:7px;border-radius:50%;background:var(--bd3);flex-shrink:0;transition:background .2s}
+.lib-stage[data-state=active] .lib-dot{background:#0284c7;box-shadow:0 0 6px rgba(2,132,199,0.4);animation:lib-pulse .9s ease-in-out infinite}
+.lib-stage[data-state=done] .lib-dot{background:#10b981}
+.lib-stage[data-state=error] .lib-dot{background:#ef4444}
+@keyframes lib-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+.lib-elapsed{font-size:10.5px;color:var(--mu);margin-top:8px;font-family:'JetBrains Mono',monospace}
+
+  /* Edges hidden by default - reveal on tap / node select */
+  .edge-path {
+    opacity: 0 !important;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none !important;
+  }
+  .edge-path.hl, .edge-path.active-flow {
+    opacity: 0.9 !important;
+    pointer-events: stroke !important;
+  }
+

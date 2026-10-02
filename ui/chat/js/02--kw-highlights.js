@@ -158,7 +158,7 @@ import { state } from './00-state.js';
             'graphrag_ms': 'papers/Edge2024_GraphRAG.pdf',
             'goodfellow2014_gan.pdf': 'papers/Goodfellow2014_GAN.pdf',
             'deep_learning_goodfellow': 'papers/Goodfellow2014_GAN.pdf',
-            'book_deep_learning_goodfellow_2016': 'papers/Goodfellow2014_GAN.pdf',
+            'paper_goodfellow_2014_gan': 'papers/Goodfellow2014_GAN.pdf',
             'kwon2023_vllm.pdf': 'papers/Kwon2023_vLLM.pdf',
             'brown2020_gpt3.pdf': 'papers/Brown2020_GPT3.pdf',
             'bahdanau2014_attention.pdf': 'papers/Bahdanau2014_Attention.pdf',
@@ -239,8 +239,15 @@ import { state } from './00-state.js';
             const isPearson = Boolean(pEntry || citation.is_pearson || citation.subscription_id || citation.source === 'pearson');
 
             if (isPearson) {
-                const subId = (pEntry && pEntry.sub) || citation.subscription_id || 'debf3e10-c27c-469a-a2aa-8a30c919db91';
-                const bId = (pEntry && pEntry.id) || citation.book_id || citation.doc_id || '0fcd531f-3ba1-495e-9c9e-b43b034b88d9';
+                const subId = (pEntry && pEntry.sub) || citation.subscription_id;
+                const bId = (pEntry && pEntry.id) || citation.book_id;
+                // Never guess an identifier: without a real book id we would link
+                // the reader to an unrelated book, so fall through to the
+                // internal page-view reader instead of fabricating a URL.
+                if (!subId || !bId) {
+                    if (directUrl) return directUrl.includes('#page=') ? directUrl : `${directUrl}#page=${page}`;
+                    return `/api/page-view?doc_id=${encodeURIComponent(citation.doc_id || '')}&page=${page}#page=${page}`;
+                }
                 const bType = (pEntry && pEntry.type) || citation.book_type || 'pdf';
                 const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
                 const pagePart = `/page/${page || 1}`;
@@ -310,6 +317,21 @@ import { state } from './00-state.js';
                     link.setAttribute('aria-disabled', 'true');
                 }
                 rail.appendChild(link);
+
+                // When the passage was indexed from the Hugging Face dataset,
+                // also offer the exact dataset file page as provenance.
+                const hfUrl = citation.hf_url;
+                if (typeof hfUrl === 'string' && hfUrl.includes('huggingface.co/datasets/')) {
+                    const sourceLink = document.createElement('a');
+                    sourceLink.className = 'view-page-link text-[11px] font-semibold opacity-70 hover:opacity-100';
+                    sourceLink.textContent = 'dataset source ↗';
+                    sourceLink.href = hfUrl;
+                    sourceLink.dataset.pageUrl = hfUrl;
+                    sourceLink.target = '_blank';
+                    sourceLink.rel = 'noopener noreferrer';
+                    sourceLink.title = 'Open this document on Hugging Face';
+                    rail.appendChild(sourceLink);
+                }
             });
             messageBody.appendChild(rail);
         }

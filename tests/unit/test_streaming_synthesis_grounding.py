@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import pytest
 import archipelago.inference.synthesis as synthesis
+from archipelago.inference import state as st
+from archipelago.inference.synthesis import streaming as synth_streaming
 
 pytestmark = pytest.mark.unit
 
@@ -60,7 +62,7 @@ def test_ollama_unavailable_raises_runtime_error(monkeypatch):
     def _fail(*_a, **_k):
         raise RuntimeError("Ollama unavailable: connection refused")
 
-    monkeypatch.setattr(synth, "gateway_chat_stream", _fail)
+    monkeypatch.setattr(synth_streaming, "gateway_chat_stream", _fail)
     with pytest.raises(RuntimeError, match="LLM unavailable"):
         synth.synthesize_with_ollama_streaming(
             "LoRA notes [S1]",
@@ -75,16 +77,16 @@ def test_empty_model_output_raises_runtime_error(monkeypatch):
     def _empty_stream(*_a, **_k):
         return iter([""])
 
-    monkeypatch.setattr(synth, "gateway_chat_stream", _empty_stream)
+    monkeypatch.setattr(synth_streaming, "gateway_chat_stream", _empty_stream)
     with pytest.raises(RuntimeError, match="Empty response"):
         synth.synthesize_with_ollama_streaming("LoRA notes [S1]")
 
 
 def test_citation_id_pattern_matches_colon_form():
     """CITATION_ID_PATTERN matches [S1: form used in citation payloads."""
-    ids1 = synthesis.st.CITATION_ID_PATTERN.findall("[S1: LoRA | paper.pdf, p.2]")
+    ids1 = st.CITATION_ID_PATTERN.findall("[S1: LoRA | paper.pdf, p.2]")
     assert ids1 == ["S1"]
-    ids2 = synthesis.st.CITATION_ID_PATTERN.findall("[S9: QLoRA | paper.pdf, p.5]")
+    ids2 = st.CITATION_ID_PATTERN.findall("[S9: QLoRA | paper.pdf, p.5]")
     assert ids2 == ["S9"]
 
 

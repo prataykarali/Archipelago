@@ -3,8 +3,11 @@ from __future__ import annotations
 
 import pytest
 
+from archipelago import supabase_auth
 from archipelago.api import app as api_module
 from archipelago.supabase_auth import AuthPrincipal
+from archipelago.supabase_auth import part01_verify as verify
+from archipelago.supabase_auth import part02_local_store as local_store
 
 
 @pytest.fixture()
@@ -55,7 +58,7 @@ def test_authenticated_profile_is_returned(client, monkeypatch: pytest.MonkeyPat
         role="student",
         access_token="test-token",
     )
-    monkeypatch.setattr(api_module.supabase_auth, "authenticate_request", lambda _: (principal, None))
+    monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _: (principal, None))
 
     response = client.get("/api/auth/me", headers={"Authorization": "Bearer test-token"})
 
@@ -71,7 +74,7 @@ def test_student_cannot_upload_when_auth_is_enabled(client, monkeypatch: pytest.
         role="student",
         access_token="test-token",
     )
-    monkeypatch.setattr(api_module.supabase_auth, "authenticate_request", lambda _: (principal, None))
+    monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _: (principal, None))
 
     response = client.post("/api/upload", headers={"Authorization": "Bearer test-token"})
 
@@ -87,7 +90,7 @@ def test_student_cannot_access_user_management(client, monkeypatch: pytest.Monke
         role="student",
         access_token="test-token",
     )
-    monkeypatch.setattr(api_module.supabase_auth, "authenticate_request", lambda _: (principal, None))
+    monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _: (principal, None))
 
     response = client.get("/api/users", headers={"Authorization": "Bearer test-token"})
     assert response.status_code == 403
@@ -102,8 +105,8 @@ def test_librarian_can_list_users(client, monkeypatch: pytest.MonkeyPatch):
         role="librarian",
         access_token="test-token",
     )
-    monkeypatch.setattr(api_module.supabase_auth, "authenticate_request", lambda _: (principal, None))
-    monkeypatch.setattr(api_module.supabase_auth, "list_managed_users", lambda p: ([{"username": "12024002028038", "role": "student"}], None))
+    monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _: (principal, None))
+    monkeypatch.setattr(supabase_auth, "list_managed_users", lambda p: ([{"username": "12024002028038", "role": "student"}], None))
 
     response = client.get("/api/users", headers={"Authorization": "Bearer test-token"})
     assert response.status_code == 200
@@ -125,8 +128,8 @@ def test_librarian_cannot_create_administrator(monkeypatch: pytest.MonkeyPatch):
 
 def test_user_updates_fail_closed_without_supabase_service_key(monkeypatch: pytest.MonkeyPatch, tmp_path):
     from archipelago import supabase_auth
-    monkeypatch.setattr(supabase_auth, "get_service_role_key", lambda: "")
-    monkeypatch.setattr(supabase_auth, "_LOCAL_USERS_FILE", tmp_path / "users.json")
+    monkeypatch.setattr(verify, "get_service_role_key", lambda: "")
+    monkeypatch.setattr(local_store, "LOCAL_USERS_FILE", tmp_path / "users.json")
     
     # Local JSON fallback must not become an alternate production identity store.
     initial_users = [
@@ -156,8 +159,8 @@ def test_user_updates_fail_closed_without_supabase_service_key(monkeypatch: pyte
 
 def test_librarian_can_delete_student_but_not_admin(monkeypatch: pytest.MonkeyPatch, tmp_path):
     from archipelago import supabase_auth
-    monkeypatch.setattr(supabase_auth, "get_service_role_key", lambda: "")
-    monkeypatch.setattr(supabase_auth, "_LOCAL_USERS_FILE", tmp_path / "users.json")
+    monkeypatch.setattr(verify, "get_service_role_key", lambda: "")
+    monkeypatch.setattr(local_store, "LOCAL_USERS_FILE", tmp_path / "users.json")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
     monkeypatch.setenv("ARCHIPELAGO_ALLOW_DEV_AUTH", "1")
 
@@ -197,8 +200,8 @@ def test_librarian_can_delete_student_but_not_admin(monkeypatch: pytest.MonkeyPa
 
 def test_administrator_full_crud_permissions(monkeypatch: pytest.MonkeyPatch, tmp_path):
     from archipelago import supabase_auth
-    monkeypatch.setattr(supabase_auth, "get_service_role_key", lambda: "")
-    monkeypatch.setattr(supabase_auth, "_LOCAL_USERS_FILE", tmp_path / "users.json")
+    monkeypatch.setattr(verify, "get_service_role_key", lambda: "")
+    monkeypatch.setattr(local_store, "LOCAL_USERS_FILE", tmp_path / "users.json")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
     monkeypatch.setenv("ARCHIPELAGO_ALLOW_DEV_AUTH", "1")
 

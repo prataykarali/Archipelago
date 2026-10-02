@@ -10,8 +10,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# tesseract-ocr above powers scanned book index/content page intake for the
+# librarian. It runs in-process, so the library computer stays air-gap capable.
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential curl \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./requirements.txt
@@ -20,8 +24,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 EXPOSE 5151
+# Liveness uses /health; the orchestrator polls /ready before routing traffic.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -fsS "http://127.0.0.1:${PORT}/api/readiness" || exit 1
+    CMD curl -fsS "http://127.0.0.1:${PORT}/health" || exit 1
 
 # Compose/platforms override this command for graph and chat services.
 CMD ["gunicorn", "--bind", "0.0.0.0:5151", "--workers", "1", "--threads", "8", "--timeout", "300", "--access-logfile", "-", "--error-logfile", "-", "archipelago.apps.inference_app:create_app()"]

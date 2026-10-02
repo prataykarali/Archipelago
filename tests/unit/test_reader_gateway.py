@@ -116,20 +116,15 @@ def test_reader_ui_pearson_redirects_to_open_gateway(client):
     assert "/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9" in resp.headers["Location"]
 
 
-def test_unauthenticated_request_redirects_to_login(anon_client):
-    """Unauthenticated users opening Archipelago routes must be redirected to /login."""
-    # No cookies set, no verified session
-    resp = anon_client.get("/chat")
-    assert resp.status_code == 302
-    assert "/login" in resp.headers["Location"]
+def test_reading_routes_are_open_to_anonymous_visitors(anon_client):
+    """Chat, library, and the reader are open knowledge, not gated pages."""
+    # No cookies set, no verified session.
+    assert anon_client.get("/chat").status_code == 200
+    assert anon_client.get("/library").status_code == 200
 
-    resp_lib = anon_client.get("/library")
-    assert resp_lib.status_code == 302
-    assert "/login" in resp_lib.headers["Location"]
-
-    resp_open = anon_client.get("/open/book_math_for_machine_learning_2020")
-    assert resp_open.status_code == 302
-    assert "/login" in resp_open.headers["Location"]
+    reader = anon_client.get("/read/book_math_for_machine_learning_2020?page=5")
+    assert reader.status_code == 200
+    assert "pdfjsLib" in reader.get_data(as_text=True)
 
 
 def test_unauthenticated_cannot_fetch_catalogs_or_pearson_metadata(anon_client):

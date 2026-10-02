@@ -28,6 +28,10 @@ from quality_gate import (
     should_exclude_from_magic,
 )
 
+# Matches `NAME = ...`, `NAME: TYPE = ...`, and annotated assignments, so the
+# literal that defines a named constant is never reported as a magic number.
+CONSTANT_DEFINITION_RE = re.compile(r"^[A-Z][A-Z0-9_]*(?:\s*:[^=]+)?\s*=(?!=)\s*\S")
+
 
 def gate_lint(root: Path) -> GateResult:
     """Pass 1: Lint — ruff check + ruff format --check."""
@@ -58,6 +62,7 @@ def gate_lint(root: Path) -> GateResult:
         result.details.append("ruff format --check: OK")
 
     if not result.details:
+        result.passed = True
         result.details.append("All lint checks passed")
 
     return result
@@ -81,6 +86,7 @@ def gate_types(root: Path) -> GateResult:
         for line in proc.stdout.strip().splitlines()[-30:]:
             result.details.append(f"  {line}")
     else:
+        result.passed = True
         result.details.append("mypy --strict: OK")
 
     return result
@@ -117,6 +123,7 @@ def gate_banned_patterns(root: Path) -> GateResult:
         result.passed = False
         result.details.insert(0, f"Found {total_violations} banned pattern violation(s)")
     else:
+        result.passed = True
         result.details.append("No banned patterns found")
 
     return result
@@ -143,6 +150,10 @@ def gate_magic_numbers(root: Path) -> GateResult:
             stripped = line.lstrip()
             if stripped.startswith("#"):
                 continue
+            # A literal on the right-hand side of a constant definition is the
+            # named constant itself, not a magic number.
+            if CONSTANT_DEFINITION_RE.match(stripped):
+                continue
 
             for match in MAGIC_NUMBER_PATTERN.finditer(line):
                 num_str = match.group(1)
@@ -167,6 +178,7 @@ def gate_magic_numbers(root: Path) -> GateResult:
             "Define named constants for non-trivial literals. Exception: 0, 1, -1 are allowed."
         )
     else:
+        result.passed = True
         result.details.append("No magic numbers found")
 
     return result
@@ -197,6 +209,7 @@ def gate_file_size(root: Path) -> GateResult:
         for v in violations:
             result.details.append(f"  {v}")
     else:
+        result.passed = True
         result.details.append(f"All files within {MAX_FILE_LINES} line limit")
 
     return result
@@ -248,6 +261,7 @@ def gate_dependency_direction(root: Path) -> GateResult:
         for v in violations:
             result.details.append(f"  {v}")
     else:
+        result.passed = True
         result.details.append("All imports follow downward-only dependency rules")
 
     return result
@@ -283,6 +297,7 @@ def gate_except_pass(root: Path) -> GateResult:
         for v in violations:
             result.details.append(f"  {v}")
     else:
+        result.passed = True
         result.details.append("No except: pass patterns found")
 
     return result

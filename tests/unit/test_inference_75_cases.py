@@ -474,15 +474,28 @@ def test_credentials_never_hardcoded_in_source():
         "fG8BeaTC",
         "gh8ccws]",
     ]
-    scan_paths = [
+    # These targets may be a single module or a split package; scan both.
+    scan_targets = [
         root / "archipelago" / "inference" / "eresource_credentials.py",
-        root / "archipelago" / "inference" / "synthesis.py",
-        root / "archipelago" / "inference" / "routing.py",
+        root / "archipelago" / "inference" / "synthesis",
+        root / "archipelago" / "inference" / "routing",
     ]
-    for path in scan_paths:
-        text = path.read_text(encoding="utf-8")
-        for secret in forbidden:
-            assert secret not in text, f"secret leaked in {path.name}"
+
+    def source_files(target: Path) -> list[Path]:
+        if target.is_file():
+            return [target]
+        if target.is_dir():
+            return sorted(target.rglob("*.py"))
+        return []
+
+    scanned = 0
+    for target in scan_targets:
+        for path in source_files(target):
+            text = path.read_text(encoding="utf-8")
+            for secret in forbidden:
+                assert secret not in text, f"secret leaked in {path}"
+            scanned += 1
+    assert scanned > 0, "no source files were scanned"
 
 
 # ═══════════════════════════════════════════════════════════════════════════

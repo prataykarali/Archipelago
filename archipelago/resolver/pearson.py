@@ -120,6 +120,20 @@ def _fuzzy_match_book(catalog: list[dict[str, Any]], query_id: str | None, query
     return None
 
 
+def _with_reader_version(url: str) -> str:
+    """Ensure a catalog reader URL carries the pinned reader version.
+
+    Catalog entries may store a bare viewer URL. Without the version query the
+    reader can fall back to an older viewer, so the pinned version is added here
+    rather than relying on the browser to patch it.
+    """
+    if not url or "version=" in url:
+        return url
+    if "?" in url:
+        return url.replace("?", f"?version={PEARSON_READER_VERSION}&", 1)
+    return url.replace(".html", f".html?version={PEARSON_READER_VERSION}", 1)
+
+
 def resolve_pearson_url(
     book_id: str | None = None,
     subscription_id: str | None = None,
@@ -157,7 +171,7 @@ def resolve_pearson_url(
         book_type = matched_book.get("book_type", "pdf")
 
         if r_url:
-            target_url = r_url
+            target_url = _with_reader_version(r_url)
         else:
             target_url = _reader_url(str(b_id), str(sub_id), str(book_type))
 
@@ -233,7 +247,7 @@ def build_reader_url(book_or_uuid: dict[str, Any] | str, page: int = 1) -> str:
         matched_book = _fuzzy_match_book(catalog, str(book_or_uuid), str(book_or_uuid), None)
 
     if matched_book and matched_book.get("reader_base_url"):
-        base_url = matched_book["reader_base_url"]
+        base_url = _with_reader_version(matched_book["reader_base_url"])
     elif matched_book:
         b_id = matched_book.get("id")
         sub_id = matched_book.get("subscription_id") or "debf3e10-c27c-469a-a2aa-8a30c919db91"

@@ -14,9 +14,9 @@ def test_sync_all_resources_reconciliation_numbers():
 
     assert stats["total"] == 46
     assert stats["pearson"] == 40
-    assert stats["huggingface"] == 2
+    assert stats["huggingface"] == 3
     assert stats["local"] == 2
-    assert stats["metadata_only"] == 2
+    assert stats["metadata_only"] == 1
 
     # At least 45 resources resolve cleanly
     assert stats["resolved"] >= 44
