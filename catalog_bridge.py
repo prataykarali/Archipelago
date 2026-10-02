@@ -10,15 +10,20 @@ from thefuzz import fuzz
 def link_resource_to_document(
     db_path: str, resource_title: str, doc_id: str, pdf_url: str | None = None
 ) -> bool:
-    """Explicitly link a Resource node to a Document node via PROVIDES_TEXT."""
+    """Explicitly link a Resource node to a Document node via PROVIDES_TEXT.
+
+    ``resource_title`` is matched case-insensitively against ``Resource.title``.
+    Returns True only when the edge actually exists afterwards, so a typo in
+    the title reports failure instead of silently doing nothing.
+    """
     db = kuzu.Database(db_path)
     conn = kuzu.Connection(db)
 
-    title_esc = resource_title.replace("'", "\\'")
-    doc_esc = doc_id.replace("'", "\\'")
-    url_val = f"'{pdf_url}'" if pdf_url else "NULL"
-
     try:
+        title_esc = resource_title.replace("'", "\\'")
+        doc_esc = doc_id.replace("'", "\\'")
+        url_val = f"'{pdf_url}'" if pdf_url else "NULL"
+
         # Update Document pdf_url if provided
         if pdf_url:
             conn.execute(f"MATCH (d:Document {{id: '{doc_esc}'}}) SET d.pdf_url = {url_val}")
@@ -30,11 +35,15 @@ def link_resource_to_document(
             MERGE (r)-[p:PROVIDES_TEXT]->(d)
             SET p.pdf_url = {url_val}
         """)
-        del conn, db
-        return True
+        linked = conn.execute(
+            f"MATCH (r:Resource)-[:PROVIDES_TEXT]->(d:Document {{id: '{doc_esc}'}}) "
+            f"WHERE lower(r.title) = lower('{title_esc}') RETURN count(*)"
+        ).get_next()[0]
+        return linked > 0
     except Exception:
-        del conn, db
         return False
+    finally:
+        del conn, db
 
 
 def auto_link_resources(db_path: str) -> dict[str, int]:

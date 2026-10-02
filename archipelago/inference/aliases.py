@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 import urllib.parse
+from typing import Any
 
 from archipelago.inference import state as st
 

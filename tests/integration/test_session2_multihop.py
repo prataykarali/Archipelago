@@ -124,8 +124,13 @@ def curriculum_graph(flask_test_client, tmp_kuzu_db):
         }
         for cid, name, summary in concepts
     }
+    # `generate_aliases` moved out of `inference.state` into
+    # `inference.aliases` during the modularization split; `state` no longer
+    # re-exports it.
+    from archipelago.inference.aliases import generate_aliases
+
     for cid, node in inference_server.CONCEPTS_DATA.items():
-        node["aliases"] = inference_server.generate_aliases(node)
+        node["aliases"] = generate_aliases(node)
 
     old_db = inference_server.db
     inference_server.db = conn.db
@@ -141,8 +146,10 @@ def curriculum_graph(flask_test_client, tmp_kuzu_db):
 
 
 def test_find_curriculum_chains_multihop(curriculum_graph):
-    import archipelago.inference.state as s
-    paths = s.find_curriculum_chains("low_rank_adaptation", max_hops=3, max_paths=6)
+    # Moved to `inference.curriculum` during the modularization split.
+    from archipelago.inference.curriculum import find_curriculum_chains
+
+    paths = find_curriculum_chains("low_rank_adaptation", max_hops=3, max_paths=6)
     assert paths, "expected at least one curriculum path"
     # Some path should mention matrix_decomposition (2-hop) or transformer
     all_ids = set()

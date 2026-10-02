@@ -2,9 +2,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any
+
+from okf.config import BASE_DIR
+
+logger = logging.getLogger(__name__)
 
 
 def load_okf_results(path: Path | str) -> list[dict[str, Any]]:
@@ -79,13 +84,38 @@ def assert_merge_safe(
 
 
 def upsert_upload_inventory_meta(
-    dest_dir: Path | str,
     meta: dict[str, Any],
+    dest_rel: str,
+    graph_ready: bool = False,
+    base_dir: Path | str | None = None,
 ) -> Path:
-    """Persist librarian upload metadata next to the PDF inventory."""
-    folder = Path(dest_dir)
+    """Record one librarian upload in ``pdfs/upload_inventory.json``.
+
+    Args:
+        meta: Upload metadata (title, kind, doc_id, …). Must not be empty.
+        dest_rel: Path of the stored file relative to ``pdfs/``, e.g.
+            ``"papers/attention.pdf"``.
+        graph_ready: True only once the upload has been merged into the live
+            graph. Rows with ``graph_ready=False`` are listed in the librarian
+            inventory but must not be treated as searchable sources.
+        base_dir: Repository root; defaults to :data:`okf.config.BASE_DIR`.
+
+    Returns:
+        Path to the written inventory file.
+
+    The row is keyed on the destination path, so re-uploading the same file
+    updates the existing row instead of appending a duplicate — that is what
+    makes a repeated ingestion idempotent.
+    """
+    if not isinstance(meta, dict) or not meta:
+        raise ValueError("upload metadata must be a non-empty dict")
+    if not dest_rel:
+        raise ValueError("dest_rel is required")
+
+    folder = Path(base_dir if base_dir is not None else BASE_DIR) / "pdfs"
     folder.mkdir(parents=True, exist_ok=True)
     out = folder / "upload_inventory.json"
+
     existing: list[dict[str, Any]] = []
     if out.is_file():
         try:
@@ -93,9 +123,14 @@ def upsert_upload_inventory_meta(
             if isinstance(loaded, list):
                 existing = [row for row in loaded if isinstance(row, dict)]
         except (OSError, json.JSONDecodeError):
+            logger.warning("Discarding unreadable upload inventory at %s", out)
             existing = []
-    doc_id = str(meta.get("doc_id") or meta.get("filename") or "")
-    kept = [row for row in existing if str(row.get("doc_id") or row.get("filename") or "") != doc_id]
-    kept.append(meta)
+
+    kept = [row for row in existing if row.get("path") != dest_rel]
+    record = dict(meta)
+    record["path"] = dest_rel
+    record["graph_ready"] = bool(graph_ready)
+    kept.append(record)
+
     out.write_text(json.dumps(kept, ensure_ascii=False, indent=2), encoding="utf-8")
     return out

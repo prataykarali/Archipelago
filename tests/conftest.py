@@ -66,6 +66,21 @@ def verified_student_auth(monkeypatch):
         lambda _request: (principal, None),
     )
     return principal
+
+
+@pytest.fixture(autouse=True)
+def _isolate_auth_required_env(monkeypatch):
+    """Pin ``ARCHIPELAGO_AUTH_REQUIRED`` to 0 for tests that do not opt in.
+
+    Several services (chat_server, the graph app) read this flag **at import
+    time** into a module constant. Without pinning it, the developer ``.env``
+    (which sets it to 1) leaks into the suite: any test that merely imports
+    ``chat_server`` inherits "auth required", and unrelated tests then fail in a
+    file-order-dependent way. Tests that assert the guarded behaviour set the
+    variable themselves (see ``verified_student_auth`` and
+    ``test_auth.py``), and monkeypatch restores whatever they chose.
+    """
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
 import os
 import re
 import shutil

@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 from pathlib import Path
 import sys
+from typing import Any
 
 from archipelago.resolver.resolver import LinkResolver
 

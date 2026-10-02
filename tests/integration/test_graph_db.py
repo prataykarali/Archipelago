@@ -1,7 +1,7 @@
 import json
-import os
 import re
 import pytest
+from pathlib import Path
 from unittest.mock import patch
 
 import okf.extraction as okf_extraction
@@ -10,25 +10,31 @@ from mock_data import MOCK_TEXT_CHUNKS
 # Mark all tests in this file as integration tests
 pytestmark = pytest.mark.integration
 
+# Gold relationship fixture. It used to live at the repo root as
+# ``okf_relationships.json`` and was deleted in c63e3ec as a "generated
+# artifact" — but it is hand-authored gold data, and the test that consumes it
+# broke with FileNotFoundError. Test fixtures belong under tests/fixtures/.
+GOLD_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "gold_okf_relationships.json"
+
+
 @pytest.fixture
 def gold_okf_data():
-    """Loads gold standard relationship data from okf_relationships.json."""
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    path = os.path.join(base_dir, "okf_relationships.json")
-    with open(path, "r") as f:
-        return json.load(f)
+    """Loads the gold standard relationship data."""
+    with GOLD_FIXTURE.open(encoding="utf-8") as handle:
+        return json.load(handle)
 
 def test_extract_and_find_relationships(gold_okf_data, tmp_path):
     """
     Ported validation from legacy test_okf_graph.py.
-    Extract OKF (mocked) and verify relationship mapping and topological sort.
+    Verify relationship mapping and topological sort over the gold OKF records.
+
+    The extraction call is mocked away: this test is about the *relationship
+    mapping* that follows, not about the model. ``extract_batch`` was removed
+    from ``okf.extraction`` during the modularization split, so patching it only
+    re-injected the fixture we already hold.
     """
-    # Mock extract_batch to return the gold_okf_data without hitting external APIs
-    with patch("okf_extraction.extract_batch", return_value=gold_okf_data) as mock_extract:
-        text_chunks = [chunk["text"] for chunk in MOCK_TEXT_CHUNKS]
-        results = okf_extraction.extract_batch(text_chunks)
-        
-    assert results == gold_okf_data
+    results = gold_okf_data
+    assert results
     
     # Step 2: Build a concept name mapping (lowercase for matching)
     concept_names = {r.get('concept_name', '').lower(): r for r in results}

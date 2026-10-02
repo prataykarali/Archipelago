@@ -43,7 +43,7 @@ def mock_staged_pipeline():
             on_progress(stage, 100, {"message": f"{stage} done"})
         return [], mock_db, mock_graph_export
 
-    with patch("ingestion_worker.run_pipeline_staged", side_effect=fake_pipeline):
+    with patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_pipeline):
         yield mock_graph_export
 
 
@@ -114,8 +114,8 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
         return merged, mock_db, export
 
     # Patch BASE_DIR and other internal calls to use our tmp directory path
-    with patch("ingestion_worker.BASE_DIR", tmp_path), \
-         patch("ingestion_worker.run_pipeline_staged", side_effect=fake_merged_pipeline), \
+    with patch("ingestion_worker_job_mixin.BASE_DIR", tmp_path), \
+         patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_merged_pipeline), \
          patch("kuzu.Database") as mock_kuzu_db, \
          patch("catalog_bridge.auto_link_resources", return_value={"linked": 0}):
         mock_kuzu_db.return_value.execute.return_value.has_next.return_value = False
@@ -141,7 +141,7 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
 
     # Check job record status
     final = tmp_store.get_job(job.job_id)
-    assert final.status == JobStatus.COMPLETE
+    assert final.status == JobStatus.COMPLETE, f"job failed: {final.error}"
     assert final.graph_version == 1
     assert final.result.get("merge", {}).get("prior_doc_count") == 2
     assert final.result["nodes"] == 3
@@ -174,7 +174,7 @@ def test_failed_ingestion_no_graph_change(tmp_path, tmp_store):
     lock = GraphLock()
     w = IngestionWorker(tmp_store, live_db_path=str(live_db), graph_lock=lock)
 
-    with patch("ingestion_worker.run_pipeline_staged", side_effect=error_pipeline):
+    with patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=error_pipeline):
         w._process_job(job.job_id)
 
     # Live DB files must remain untouched
@@ -212,7 +212,7 @@ def test_cancelled_ingestion(tmp_path, tmp_store):
     lock = GraphLock()
     w = IngestionWorker(tmp_store, live_db_path=str(live_db), graph_lock=lock)
 
-    with patch("ingestion_worker.run_pipeline_staged", side_effect=cancel_pipeline):
+    with patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=cancel_pipeline):
         w._process_job(job.job_id)
 
     # Live DB is untouched

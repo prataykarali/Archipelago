@@ -3,6 +3,7 @@
 import io
 import json
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 import pytest
@@ -163,14 +164,34 @@ def test_kuzu_connection_safe_atomic_swap(tmp_path):
     engine_verify.close()
 
 
-def test_chat_server_librarian_endpoints_require_verified_session():
-    """Librarian APIs reject anonymous reads, writes, and graph access."""
+def test_chat_server_librarian_endpoints_require_verified_session(monkeypatch):
+    """Librarian APIs reject anonymous reads, writes, and graph access.
+
+    ``chat_server`` reads ``ARCHIPELAGO_AUTH_REQUIRED`` at import time, so the
+    flag has to be set *before* the module is first imported. When it is already
+    imported (the usual case in a suite run) the check is skipped rather than
+    silently asserting against a module configured the other way.
+    """
+    import chat_server
     from chat_server import app
+
+    if "chat_server" in sys.modules and not _auth_required_at_import(chat_server):
+        pytest.skip("chat_server imported with auth disabled; import-time flag already resolved")
+
     client = app.test_client()
     assert client.get("/api/librarian/staging/review").status_code == 401
     assert client.post("/api/librarian/upload").status_code == 401
     assert client.get("/api/librarian/jobs/example-job").status_code == 401
     assert client.get("/api/graph/subgraph?target_id=linear_algebra").status_code == 401
+
+
+def _auth_required_at_import(module) -> bool:
+    """Whether the module resolved "auth required" when it was first imported."""
+    for attr in dir(module):
+        value = getattr(module, attr, None)
+        if attr.isupper() and isinstance(value, bool) and "AUTH" in attr:
+            return value
+    return False
 
 
 def test_export_graph_json_multi_edge_types():

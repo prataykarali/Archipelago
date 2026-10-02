@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
+from typing import Any
+
 from flask import jsonify, send_from_directory, request, redirect
 from ingestion_jobs import JobStatus
 from ingestion_worker import job_store, get_worker, graph_lock

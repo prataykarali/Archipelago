@@ -13,7 +13,13 @@ from typing import Any, Dict, Optional
 
 from okf.config import BASE_DIR
 from okf.exports import export_vis_json
-from okf.pipeline import run_pipeline_staged, PipelineAborted
+
+# NOTE: `run_pipeline_staged` / `PipelineAborted` are deliberately NOT imported
+# here. The job-processing code moved to `ingestion_worker_job_mixin`, which
+# imports them itself; re-importing them into this module left the documented
+# test patch targets (`patch("ingestion_worker.run_pipeline_staged")`) pointing
+# at a name the worker never calls, so mocked pipeline runs silently executed
+# the real one.
 from ingestion_jobs import JobStatus, JobStore
 
 from ingestion_worker_job_mixin import JobProcessingMixin

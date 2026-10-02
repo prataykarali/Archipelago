@@ -26,6 +26,11 @@ SUPABASE_USER_TIMEOUT_SEC = 10
 SUPABASE_PROFILE_TIMEOUT_SEC = 8
 # Client IP headers set by the CDN / proxy in front of the app, most specific first.
 CLIENT_IP_HEADERS = ("CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
+# The burst min-gap guards state-changing calls.  Idempotent reads must never be
+# rejected on timing alone: a reader opening two exact book links, or a page
+# firing several API calls in parallel, is normal browsing, not abuse.  The
+# per-minute ceiling still applies to every method.
+SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 
 class AuthGuard:
@@ -112,23 +117,37 @@ class RateLimiter:
         return request.remote_addr or "127.0.0.1"
 
     @staticmethod
-    def _check(bucket_map: dict[str, deque], max_per_min: int, min_gap_sec: float) -> tuple[bool, int]:
+    def _check(
+        bucket_map: dict[str, deque],
+        max_per_min: int,
+        min_gap_sec: float,
+        enforce_min_gap: bool = True,
+    ) -> tuple[bool, int]:
         ip = RateLimiter.client_ip()
         now = time.time()
         bucket = bucket_map[ip]
         while bucket and now - bucket[0] > RATE_WINDOW_SEC:
             bucket.popleft()
-        if bucket and now - bucket[-1] < min_gap_sec:
+        if enforce_min_gap and bucket and now - bucket[-1] < min_gap_sec:
             return True, 1
         if len(bucket) >= max_per_min:
             return True, max(1, int(RATE_WINDOW_SEC - (now - bucket[0])))
         bucket.append(now)
         return False, 0
 
+    @staticmethod
+    def _is_state_changing() -> bool:
+        """True for methods whose burst rate is worth policing."""
+        return request.method not in SAFE_METHODS
+
     def check_chat(self) -> tuple[bool, int]:
-        """Check the strict chat bucket."""
-        return self._check(self._chat, CHAT_RATE_MAX_PER_MIN, CHAT_RATE_MIN_GAP_SEC)
+        """Check the strict chat bucket (burst-gated on state-changing calls)."""
+        return self._check(
+            self._chat, CHAT_RATE_MAX_PER_MIN, CHAT_RATE_MIN_GAP_SEC, self._is_state_changing()
+        )
 
     def check_api(self) -> tuple[bool, int]:
-        """Check the general API bucket."""
-        return self._check(self._api, API_RATE_MAX_PER_MIN, API_RATE_MIN_GAP_SEC)
+        """Check the general API bucket (burst-gated on state-changing calls)."""
+        return self._check(
+            self._api, API_RATE_MAX_PER_MIN, API_RATE_MIN_GAP_SEC, self._is_state_changing()
+        )

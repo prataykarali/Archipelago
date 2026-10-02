@@ -1,7 +1,10 @@
 """Auto-split from monolith — blocks are verbatim."""
 from __future__ import annotations
 
+from okf.canonicalize import _concept_key, canonicalize_name
+from okf.eval._base import FUZZY_MATCH_THRESHOLD, _rf_fuzz
 from okf.eval.structural import structural_audit
+
 from . import _deps as _rt  # noqa: F401
 
 

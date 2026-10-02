@@ -64,10 +64,10 @@ def test_failed_kuzu_write_aborts_ingestion(tmp_path, tmp_store, dummy_pdf_creat
     lock = GraphLock()
     w = IngestionWorker(tmp_store, live_db_path=str(live_db), graph_lock=lock)
     
-    with patch("ingestion_worker.run_pipeline_staged", side_effect=fake_pipeline), \
+    with patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_pipeline), \
          patch("shutil.copytree", side_effect=IOError("Simulated disk write failure")), \
          patch("shutil.copy2", side_effect=IOError("Simulated disk write failure")), \
-         patch("ingestion_worker.BASE_DIR", tmp_path):
+         patch("ingestion_worker_job_mixin.BASE_DIR", tmp_path):
         w._process_job(job.job_id)
         
     # Verify live graph directory still contains the original marker (untouched)
@@ -120,8 +120,8 @@ def test_readd_document_idempotent(tmp_path, tmp_store, dummy_pdf_creator):
     upload1 = tmp_store.job_dir(job1.job_id) / "upload.pdf"
     dummy_pdf_creator(upload1)
     
-    with patch("ingestion_worker.run_pipeline_staged", side_effect=fake_pipeline), \
-         patch("ingestion_worker.BASE_DIR", tmp_path):
+    with patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_pipeline), \
+         patch("ingestion_worker_job_mixin.BASE_DIR", tmp_path):
         w._process_job(job1.job_id)
         
     assert (tmp_path / "okf_graph.json").exists()
@@ -132,8 +132,8 @@ def test_readd_document_idempotent(tmp_path, tmp_store, dummy_pdf_creator):
     upload2 = tmp_store.job_dir(job2.job_id) / "upload.pdf"
     dummy_pdf_creator(upload2)
     
-    with patch("ingestion_worker.run_pipeline_staged", side_effect=fake_pipeline), \
-         patch("ingestion_worker.BASE_DIR", tmp_path):
+    with patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_pipeline), \
+         patch("ingestion_worker_job_mixin.BASE_DIR", tmp_path):
         w._process_job(job2.job_id)
         
     graph_v2 = (tmp_path / "okf_graph.json").read_text()
@@ -188,8 +188,8 @@ def test_live_upload_cannot_corrupt_active_graph(tmp_path, tmp_store, dummy_pdf_
         time.sleep(0.02)  # Simulate some ingestion time
         return [], None, mock_graph_export
         
-    with patch("ingestion_worker.run_pipeline_staged", side_effect=fake_pipeline), \
-         patch("ingestion_worker.BASE_DIR", tmp_path), \
+    with patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_pipeline), \
+         patch("ingestion_worker_job_mixin.BASE_DIR", tmp_path), \
          patch("kuzu.Database"), \
          patch("shutil.copytree"):
         w._process_job(job.job_id)

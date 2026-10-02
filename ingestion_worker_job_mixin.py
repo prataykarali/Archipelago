@@ -6,6 +6,7 @@ method body is byte-identical to the original.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -15,6 +16,8 @@ from ingestion_jobs import JobStatus
 from okf.config import BASE_DIR
 from okf.exports import export_vis_json
 from okf.pipeline import PipelineAborted, run_pipeline_staged
+
+logger = logging.getLogger(__name__)
 
 
 class JobProcessingMixin:
@@ -118,7 +121,9 @@ class JobProcessingMixin:
                 shutil.copy2(str(upload_pdf), str(dest_pdf_path))
                 dest_rel_full = f"{sub.name}/{Path(src_name).name}"
                 upsert_upload_inventory_meta(
-                    upload_meta, dest_rel_full, graph_ready=False,
+                    upload_meta or {"title": Path(src_name).stem, "kind": meta_kind or "paper"},
+                    dest_rel_full,
+                    graph_ready=False,
                 )
                 try:
                     from archipelago.inference.inventory_ssot import (
@@ -126,7 +131,7 @@ class JobProcessingMixin:
                     )
                     clear_all_inventory_caches()
                 except Exception as cache_err:
-                    print(f"Warning: inventory cache clear failed: {cache_err}")
+                    logger.warning("Inventory cache clear failed: %s", cache_err)
                 self.job_store.update_status(
                     job_id,
                     JobStatus.COMPLETE,
@@ -320,7 +325,7 @@ class JobProcessingMixin:
                 from archipelago.inference.inventory_ssot import clear_all_inventory_caches
                 clear_all_inventory_caches()
             except Exception as cache_err:
-                print(f"Warning: inventory cache clear failed: {cache_err}")
+                logger.warning("Inventory cache clear failed: %s", cache_err)
 
             max_v = 0
             jobs_list = self.job_store.list_jobs()

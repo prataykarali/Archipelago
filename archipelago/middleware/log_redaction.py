@@ -41,15 +41,25 @@ def redact(text: str) -> str:
 
 
 class RedactingFilter(logging.Filter):
-    """A logging filter that redacts credentials from records."""
+    """A logging filter that redacts credentials from records.
+
+    Args are only rewritten when they are *text*. Converting an ``int`` arg to
+    ``str`` would break ``%d`` formatting at handler time — a real crash, seen in
+    the suite as ``TypeError: %d format: a real number is required, not str`` —
+    so numeric and other opaque args are passed through untouched.
+    """
 
     def filter(self, record: logging.LogRecord) -> bool:
         record.msg = redact(str(record.msg))
         if record.args:
             if isinstance(record.args, dict):
-                record.args = {k: redact(str(v)) for k, v in record.args.items()}
+                record.args = {
+                    k: redact(v) if isinstance(v, str) else v for k, v in record.args.items()
+                }
             else:
-                record.args = tuple(redact(str(a)) for a in record.args)
+                record.args = tuple(
+                    redact(a) if isinstance(a, str) else a for a in record.args
+                )
         return True
 
 

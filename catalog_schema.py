@@ -1,58 +1,23 @@
-"""Catalog schema definition for KùzuDB institutional catalog tables."""
+"""
+Institutional catalog schema for KùzuDB — thin compat shim.
+
+The catalog DDL used to live only here, while production ingestion created
+tables from ``okf.graph.common._SCHEMA_DDL`` (concept graph only). No
+production path ever called ``create_schema``, so every real graph was missing
+``Resource`` / ``Subject`` and ``/api/catalog/search`` silently matched nothing.
+The DDL is now part of the canonical schema list in ``okf.graph.common``; this
+module remains so existing imports and tests keep working.
+"""
 from __future__ import annotations
+
 from typing import Any
+
+from okf.graph.common import _create_schema, _migrate_schema
+
+__all__ = ["create_schema"]
 
 
 def create_schema(conn: Any) -> None:
-    """Create node and relationship tables for institutional library catalog."""
-    ddl_statements = [
-        """
-        CREATE NODE TABLE IF NOT EXISTS Subject (
-            id STRING PRIMARY KEY,
-            subject_name STRING,
-            total_titles INT64
-        )
-        """,
-        """
-        CREATE NODE TABLE IF NOT EXISTS Resource (
-            id STRING PRIMARY KEY,
-            title STRING,
-            author STRING,
-            copyright_year INT64,
-            publisher STRING,
-            biblionumber STRING,
-            total_copies INT64,
-            available_copies INT64,
-            barcodes STRING,
-            overdue_items INT64,
-            is_periodical BOOLEAN
-        )
-        """,
-        """
-        CREATE NODE TABLE IF NOT EXISTS Document (
-            id STRING PRIMARY KEY,
-            doc_hash STRING,
-            page_count INT64,
-            title STRING,
-            edition STRING,
-            page_label_map STRING,
-            pdf_url STRING
-        )
-        """,
-        """
-        CREATE REL TABLE IF NOT EXISTS CATEGORIZES (
-            FROM Subject TO Resource
-        )
-        """,
-        """
-        CREATE REL TABLE IF NOT EXISTS PROVIDES_TEXT (
-            FROM Resource TO Document,
-            pdf_url STRING
-        )
-        """,
-    ]
-    for ddl in ddl_statements:
-        try:
-            conn.execute(ddl)
-        except Exception:
-            pass
+    """Ensure the full graph schema (concepts + institutional catalog) exists."""
+    _create_schema(conn)
+    _migrate_schema(conn)
