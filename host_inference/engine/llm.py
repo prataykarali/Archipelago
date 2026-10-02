@@ -1,17 +1,37 @@
-"""LLM provider integration: XKIRO (preferred) with OpenRouter fallback.
+"""LLM provider integration: XKIRO (preferred), then NVIDIA NIM.
 
 One concern: turning a grounded draft into fluent prose.  The grounded draft is
 always the source of truth — if the provider is unavailable or drops the page
 citation, the draft is returned unchanged.  XKIRO stays the preferred provider.
+
+Provider order is ``XKIRO_API_KEY`` → ``NVIDIA_API_KEY``, so adding the second
+provider never changes behaviour for a deployment that already has an XKIRO key.
+Both are OpenAI-compatible chat-completions endpoints, so one code path serves
+them.
+
+``ARCHIPELAGO_LLM_PROVIDER`` pins a single provider, for when an operator wants
+the fallback chain disabled rather than merely unused.
 """
+
 from __future__ import annotations
 
+from collections.abc import Iterator
 import json
 import os
 import time
-from collections.abc import Iterator
+from typing import TypedDict
 
 import requests
+
+
+class ProviderConfig(TypedDict):
+    """One resolved chat-completions endpoint."""
+
+    base_url: str
+    key: str
+    model: str
+    provider: str
+
 
 REPLY_SYSTEM_PROMPT = (
     "You are Archipelago's academic librarian and tutor. Answer concisely in 1–3 sentences, "
@@ -28,8 +48,17 @@ POLISH_ROUTES = frozenset({"GRAPH_SYNTHESIS", "RELATION", "CROSS_DOMAIN", "BOOK_
 
 XKIRO_DEFAULT_BASE_URL = "https://api.xkiro.com/v1"
 XKIRO_DEFAULT_MODEL = "qwen/qwen3.8-max:free"
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-OPENROUTER_DEFAULT_MODEL = "openai/gpt-4o-mini"
+NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
+NVIDIA_DEFAULT_MODEL = "deepseek-ai/deepseek-v4.1-flash"
+
+# Fallback chain. OpenRouter was dropped deliberately: NVIDIA NIM is cheaper,
+# has no third-party prompt logging, and keeps the key inside one vendor.
+PROVIDER_ORDER = ("xkiro", "nvidia")
+PROVIDER_KEY_ENV = {"xkiro": "XKIRO_API_KEY", "nvidia": "NVIDIA_API_KEY"}
+PROVIDER_BASE_URL_ENV = {"xkiro": "XKIRO_BASE_URL", "nvidia": "NVIDIA_BASE_URL"}
+PROVIDER_MODEL_ENV = {"xkiro": "XKIRO_MODEL", "nvidia": "NVIDIA_MODEL"}
+PROVIDER_BASE_URL = {"xkiro": XKIRO_DEFAULT_BASE_URL, "nvidia": NVIDIA_BASE_URL}
+PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
 
 STREAM_TIMEOUT_SECONDS = 30
 COMPLETE_TIMEOUT_SECONDS = 40
@@ -37,31 +66,39 @@ COMPLETE_TIMEOUT_SECONDS = 40
 COMPLETE_SPACING_SECONDS = 1.2
 
 
-def provider_config() -> dict | None:
+def provider_config() -> ProviderConfig | None:
     """Return the preferred provider config, or ``None`` when no key is set.
 
-    XKIRO wins whenever ``XKIRO_API_KEY`` is present; OpenRouter is the fallback.
+    XKIRO wins whenever ``XKIRO_API_KEY`` is present; NVIDIA is the fallback.
+    ``ARCHIPELAGO_LLM_PROVIDER`` restricts the chain to one named provider, so
+    an operator can disable fallback entirely rather than merely not use it.
     """
-    xkey = os.environ.get("XKIRO_API_KEY", "").strip()
-    if xkey:
-        return {
-            "base_url": os.environ.get("XKIRO_BASE_URL", XKIRO_DEFAULT_BASE_URL),
-            "key": xkey,
-            "model": os.environ.get("XKIRO_MODEL", XKIRO_DEFAULT_MODEL),
-            "provider": "xkiro",
-        }
-    okey = os.environ.get("OPENROUTER_API_KEY", "").strip()
-    if okey:
-        return {
-            "base_url": OPENROUTER_BASE_URL,
-            "key": okey,
-            "model": os.environ.get("OPENROUTER_MODEL", OPENROUTER_DEFAULT_MODEL),
-            "provider": "openrouter",
-        }
+    pinned = os.environ.get("ARCHIPELAGO_LLM_PROVIDER", "").strip().lower()
+    if pinned and pinned not in PROVIDER_ORDER:
+        return None
+    for name in PROVIDER_ORDER:
+        if pinned and name != pinned:
+            continue
+        config = _build_config(name)
+        if config is not None:
+            return config
     return None
 
 
-def complete(config: dict, text: str) -> str:
+def _build_config(provider: str) -> ProviderConfig | None:
+    """Return one provider's config from its env key, or ``None`` if unset."""
+    key = os.environ.get(PROVIDER_KEY_ENV[provider], "").strip()
+    if not key:
+        return None
+    return {
+        "base_url": os.environ.get(PROVIDER_BASE_URL_ENV[provider], PROVIDER_BASE_URL[provider]),
+        "key": key,
+        "model": os.environ.get(PROVIDER_MODEL_ENV[provider], PROVIDER_MODEL[provider]),
+        "provider": provider,
+    }
+
+
+def complete(config: ProviderConfig, text: str) -> str:
     """Blocking single completion. Raises on transport or HTTP errors."""
     time.sleep(COMPLETE_SPACING_SECONDS)
     response = requests.post(
@@ -79,10 +116,10 @@ def complete(config: dict, text: str) -> str:
         timeout=COMPLETE_TIMEOUT_SECONDS,
     )
     response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"].strip()
+    return str(response.json()["choices"][0]["message"]["content"]).strip()
 
 
-def stream_completion(config: dict, text: str) -> Iterator[str]:
+def stream_completion(config: ProviderConfig, text: str) -> Iterator[str]:
     """Yield content deltas from the provider's SSE stream.
 
     Yields nothing at all when the provider errors, so the caller can detect a
@@ -91,7 +128,10 @@ def stream_completion(config: dict, text: str) -> Iterator[str]:
     try:
         resp = requests.post(
             f"{config['base_url'].rstrip('/')}/chat/completions",
-            headers={"Authorization": f"Bearer {config['key']}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {config['key']}",
+                "Content-Type": "application/json",
+            },
             json={
                 "model": config["model"],
                 "temperature": REPLY_TEMPERATURE,
@@ -114,7 +154,7 @@ def stream_completion(config: dict, text: str) -> Iterator[str]:
             line_str = line.decode("utf-8", errors="replace")
             if not line_str.startswith("data: "):
                 continue
-            data_part = line_str[len("data: "):].strip()
+            data_part = line_str[len("data: ") :].strip()
             if data_part == "[DONE]":
                 break
             try:
@@ -129,7 +169,9 @@ def stream_completion(config: dict, text: str) -> Iterator[str]:
         return
 
 
-def maybe_polish(text: str, route: str, link_lines: list[str] | None = None) -> tuple[str, dict | None]:
+def maybe_polish(
+    text: str, route: str, link_lines: list[str] | None = None
+) -> tuple[str, dict[str, str] | None]:
     """Ask the provider to phrase the grounded draft.
 
     Keeps the draft if the model is unavailable or drops the page citation.
@@ -141,6 +183,7 @@ def maybe_polish(text: str, route: str, link_lines: list[str] | None = None) -> 
         return text, None
     if link_lines is None:
         from .constants import CITATION_LINE_PREFIXES
+
         link_lines = [line for line in text.splitlines() if line.startswith(CITATION_LINE_PREFIXES)]
     try:
         polished = complete(config, text)
