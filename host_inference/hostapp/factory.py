@@ -7,6 +7,10 @@ from __future__ import annotations
 
 from flask import Flask
 
+# Must precede the archipelago imports below: it puts the repository root on
+# sys.path when host_inference is deployed on its own. See sibling_path.
+import sibling_path  # noqa: F401
+
 from archipelago.middleware.log_redaction import install_log_redaction
 
 from .config import MAX_CONTENT_LENGTH_BYTES, load_env

@@ -9,10 +9,5 @@
     "HF_ENDPOINT": "https://huggingface.co",
     "HF_DATASET_REPO": "Pratay/archipelago-corpus"
   },
-  "port": 5151,
-  "notes": {
-    "start_command": "Two things were wrong with the previous form and both were verified fixed by running it. (1) PYTHONPATH is required: hostapp imports archipelago.middleware.log_redaction, which lives at the repo root and is unreachable once gunicorn --chdir moves into host_inference. (2) The WSGI target is the module-level `application` in hostapp/wsgi.py, not `hostapp.factory:create_app` \u2014 gunicorn 26 calls a referenced factory with arguments and fails with 'create_app() takes from 0 to 1 positional arguments but 2 were given'.",
-    "corpus": "Every corpus artifact is gitignored, so a build ships no graph. hostapp.corpus_bootstrap fetches the real export from HF_DATASET_REPO at boot and falls back to the tracked slice in host_inference/fixtures/. GET /api/readiness reports which is in use under `corpus.full`; a false there means the deployment is answering a much narrower library than the physical one.",
-    "secrets": "Set XKIRO_API_KEY / NVIDIA_API_KEY, SUPABASE_* and ARCHIPELAGO_LIBRARIAN_TOKEN in the platform's secret store, never in this file. With no LLM key the app still serves grounded graph answers from the fixture, but without a model it cannot phrase them."
-  }
+  "port": 5151
 }
