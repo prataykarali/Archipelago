@@ -150,3 +150,70 @@ Decodo/Hyperbrowser proxy behind the W6 gate.
 4. **Proxy provider** — Decodo (named in the request) vs the catalog-recommended
    Hyperbrowser; either way it sits behind the W6 compliance gate.
 5. **Workstream order** — which of W1–W8 to execute first.
+
+---
+
+## 6. Update — 2026-10-02, this session
+
+**Unit:** 1262 passed / 7 skipped (was 363 passing with 3 failures).
+**Integration:** 38 passed / 7 failed (was 26 passed / 13 failed / 6 errors).
+Nothing newly broken: the 7 remaining integration failures are byte-identical
+to the pre-existing set recorded in §2.
+
+### Workstreams closed
+
+| ID | Item | Evidence |
+|----|------|----------|
+| W1 | Security baseline | ✅ (prior turn) — extended: auth-env + external-service test isolation |
+| W2 | Regression suites | ✅ `test_feature_regression_matrix.py` gates a suite per feature; 5 new suites (cache, rate-limit tiers, catalog, lifecycle, fetch policy) + portability |
+| W3 | Ingestion portability | ✅ healthchecks on all 4 services, real entrypoints, Ollama sibling service, bind-mounted model + state, no inline `python -c` |
+| W4 | Librarian UX | ✅ catalogue populated (149 resources, idempotent), uploads fixed end-to-end |
+| W5 | Source lifecycle | ✅ withdrawal ledger + proposals, 56 tests |
+| W6 | Compliance-aware fetch | ✅ default-deny gate + audit log, wired into Apify, 43 tests |
+| W7 | Integrations | ✅ Apify verified live; Scrapling/Decodo assessed |
+| W8 | SLM evals | ✅ harness built — **verdict: not ready** |
+
+### Defects found and fixed
+
+Silent (no error raised, feature simply dead):
+
+1. `Resource`/`Subject` never created — `/api/catalog/search` matched nothing, ever.
+2. `upsert_upload_inventory_meta()` arity mismatch — every librarian upload died.
+3. `archipelago.inference.inventory_ssot` missing — cache invalidation never ran.
+4. `run_pipeline_staged` duplicated across two modules — mocked pipeline tests ran the real one.
+5. Catalog DDL lived only in `catalog_schema.py`, which production never called.
+
+Correctness:
+
+6. Log-redaction filter stringified numeric args — `%d` formatting crashed.
+7. `resolve_local_model_path()` hardcoded a developer home path — container silently got no model.
+8. Cache replay and demo cards bypassed the withdrawal check entirely.
+9. `link_resource_to_document()` returned `True` unconditionally.
+10. Robots parser leaked rules across `User-agent` groups.
+
+### Known red, honestly
+
+**`mypy --strict` and repo-wide `ruff` remain failing** (pre-existing, thousands
+of legacy findings). Not claimed green.
+
+**7 integration failures**, all pre-existing and all real product bugs:
+
+- `test_library_info_route`, `test_library_info_lab_manuals`,
+  `test_context_status_endpoint`, `test_page_view_endpoint_structure` — the
+  library-info surface returns `suggest_topics` for "library opening hours"
+  instead of the schedule answer, so a real student question is misrouted.
+- `test_every_citation_resolves_to_chunk`, `test_every_citation_maps_to_kuzu_evidence`,
+  `test_graph_structural_integrity` — citation→chunk resolution and the
+  structural audit disagree with the current corpus.
+
+**SLM is not ingestion-ready** (alias F1 0.125 vs 0.35 gate). Root cause is the
+training data, documented in `docs/guides/SLM_EXTRACTION_EVAL.md`.
+
+### Not built
+
+Provider sweeps are not wired to live Pearson/HF probes. Both connectors exist;
+the response→verdict mapping is deliberately left undone because an over-broad
+mapping would delete real books from the catalogue.
+
+The AntDeploy redeploy remains blocked: the host builds the repo default branch
+`session3-stable`, and nothing has rebuilt since `archipelago3` moved ahead.
