@@ -19,7 +19,7 @@ pass unless it was run.
 | `pdf_ingestion` regression **fixed** | Stale patch target → `archipelago.ingestion.pdf_io.ingest_document`; `tests/integration/test_staged_pipeline_regression.py` **2 passed**. |
 | Repo corpus restored | `okf_graph.json` = **514 concepts** (from `okf_graph.bak-soference-20260912-183509/`); tc75 structural suite **75 passed**. |
 | New contract tests | `tests/unit/test_pipeline_base_dir_contract.py` (2 tests) pin the late-bound `BASE_DIR` contract. |
-| SLM verified ready | `lib-qwen:latest` (v44, qwen2, 494M params, Q8_0) loaded in Ollama; live smoke extraction returned `Stochastic Gradient Descent`. **No re-training required.** |
+| ~~SLM verified ready~~ **SUPERSEDED — see below** | ~~`lib-qwen:latest` (v44, qwen2, 494M params, Q8_0) loaded in Ollama; live smoke extraction returned `Stochastic Gradient Descent`. No re-training required.~~ **This claim was wrong.** A single smoke extraction cannot detect a centrality or consistency failure. The 11-probe harness (`python -m archipelago.eval.extract_eval`) measures alias F1 **0.125** (gate 0.35): 1 of 8 real passages yields the right concept, and two paraphrases of the same passage produce *different wrong* answers. **Do not enable unattended SLM ingest.** Full numbers and remediation: [`docs/guides/SLM_EXTRACTION_EVAL.md`](../guides/SLM_EXTRACTION_EVAL.md). The model is structurally sound (100% valid JSON, 100% schema, 0 celebrity nodes, 100% correct on negatives) but picks a plausible *neighbouring* concept instead of the passage's central one. |
 
 Commit: `93d40cb`. Three follow-up commits total this turn (`e35f392`, `93d40cb`, plus `e7ecc47`).
 
@@ -80,7 +80,7 @@ Commit: `93d40cb`. Three follow-up commits total this turn (`e35f392`, `93d40cb`
 | 11 | HF Spaces as a feature | 🔴 not built | model/dataset sync (`scripts/sync_to_hf_library.py` exists) as a first-class toggle |
 | 12 | Auto-ask librarian to ingest new books | 🔴 not built | detect new/changed sources → librarian prompt/queue |
 | 13 | Forget withdrawn sources ("not in records") | 🔴 not built | source-version reconciliation + tombstone/soft-delete + reply copy |
-| 14 | SLM fine-tuned & ready | ✅ verified | smoke extraction works; optionally an eval harness |
+| 14 | SLM fine-tuned & ready | 🔴 **not ready** | eval harness built (`archipelago/eval/extract_eval.py`, 51 tests); measured alias F1 **0.125** vs 0.35 gate. Structural checks pass, concept centrality does not. Needs dataset rebuild — see [`docs/guides/SLM_EXTRACTION_EVAL.md`](../guides/SLM_EXTRACTION_EVAL.md) |
 | 15 | Scrapling | 🔴 not built | evaluate OSS lib (no license/ToS conflict) |
 | 16 | Apify setup | 🔴 not built | token + `apify-client`; paid-run cost caps; MCP optional |
 

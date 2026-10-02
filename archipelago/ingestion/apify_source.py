@@ -51,6 +51,10 @@ class ApifyBudgetError(ValueError):
     """The requested charge ceiling is missing, non-positive, or too large."""
 
 
+class FetchRefused(PermissionError):
+    """The compliance gate blocked a URL the caller asked an Actor to visit."""
+
+
 def configured() -> bool:
     """True when an Apify token is present in the environment."""
     return bool(os.environ.get(APIFY_TOKEN_ENV, "").strip())
@@ -132,6 +136,52 @@ def _as_mapping(run: Any) -> dict:
     return {k: getattr(run, k) for k in dir(run) if not k.startswith("_")}
 
 
+def gate_start_urls(
+    start_urls: list[str] | None,
+    *,
+    allowed_hosts: set[str] | None = None,
+    actor: str = "",
+    host_delay_sec: float = 0.0,
+) -> list[dict]:
+    """Run every ``startUrls`` entry through the compliance gate.
+
+    An Actor run is still a fetch of those pages, so the same robots/ToS and
+    no-credentials rules apply. Callers may pass only what survived here.
+
+    Raises:
+        FetchRefused: at least one URL was disallowed. The message names it, so
+            the operator fixes the allowlist or the input rather than the run
+            silently visiting a disallowed page.
+    """
+    from archipelago.ingestion.fetch_policy import check_fetch
+
+    allowed: list[dict] = []
+    refused: list[str] = []
+    for entry in start_urls or []:
+        url = entry.get("url") if isinstance(entry, dict) else entry
+        if not isinstance(url, str) or not url:
+            continue
+        decision = check_fetch(
+            url,
+            allowed_hosts=allowed_hosts,
+            actor=actor,
+            # One batch is one logical fetch of one Actor run, so the per-host
+            # spacing must not reject the second URL of the same batch. Spacing
+            # still applies between separate runs.
+            host_delay_sec=host_delay_sec,
+        )
+        if decision.allowed:
+            allowed.append({"url": url})
+        else:
+            refused.append(f"{url} ({decision.reason})")
+
+    if refused:
+        raise FetchRefused(
+            "Apify startUrls blocked by the fetch policy: " + "; ".join(refused)
+        )
+    return allowed
+
+
 def run_actor(
     actor_id: str,
     run_input: dict | None = None,
@@ -139,6 +189,7 @@ def run_actor(
     approved: bool,
     max_total_charge_usd: Decimal | None = None,
     max_items: int | None = None,
+    allowed_hosts: set[str] | None = None,
 ) -> dict:
     """Start an Actor run with a hard bill cap; requires explicit approval.
 
@@ -149,9 +200,15 @@ def run_actor(
             go-ahead for the first paid run of the session.
         max_total_charge_usd: per-run ceiling; defaults to the configured one.
         max_items: caps billed items for pay-per-result Actors.
+        allowed_hosts: Host allowlist for any ``startUrls`` in ``run_input``;
+            defaults to the compliance gate's configured allowlist.
 
     Returns a summary mapping: ``status``, ``run_id``, ``dataset_id``, and
     ``item_count``. Call :func:`fetch_dataset_items` to read the data.
+
+    Raises:
+        ApifyApprovalRequired: no explicit go-ahead was given.
+        FetchRefused: a requested URL is not permitted by the fetch policy.
     """
     if not approved:
         raise ApifyApprovalRequired(
@@ -159,13 +216,20 @@ def run_actor(
             "go-ahead, then pass approved=True"
         )
     cap = resolve_charge_cap(max_total_charge_usd)
+    input_payload = dict(run_input or {})
+    start_urls = input_payload.get("startUrls")
+    if start_urls:
+        # Replace rather than append: only gated URLs may reach the Actor.
+        input_payload["startUrls"] = gate_start_urls(
+            start_urls, allowed_hosts=allowed_hosts, actor=actor_id
+        )
     client = _client()
 
     logger.info(
         "Apify Actor run %s (cap %s USD, max_items=%s)", actor_id, cap, max_items
     )
     run = client.actor(actor_id).call(
-        run_input=run_input or {},
+        run_input=input_payload,
         max_total_charge_usd=cap,
         max_items=max_items,
         wait_duration=_wait_duration(),

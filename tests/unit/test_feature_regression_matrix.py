@@ -65,6 +65,8 @@ FEATURE_SUITES: dict[str, tuple[str, ...]] = {
     "institutional catalog": ("test_catalog_search.py",),
     "source lifecycle (withdrawals + proposals)": ("test_source_lifecycle.py",),
     "security / log redaction": ("test_log_redaction.py",),
+    "web-fetch compliance gate": ("test_fetch_policy.py",),
+    "apify source client": ("test_apify_source.py",),
 }
 
 
