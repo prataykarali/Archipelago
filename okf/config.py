@@ -20,22 +20,55 @@ MAX_RETRIES = 1
 #   2. lib-qwen (v5 fine-tuned extractor, parent of app root)
 #   3. aura-qwen (legacy default)
 #   4. absolute fallback under the libraryAI workspace
+#: Local model directories searched relative to the repo, in priority order.
+#: ``BASE_DIR/models/<name>`` is the layout the Docker appliance mounts, so the
+#: container finds the model without any host-specific path. The first entry is
+#: the shipped fine-tune (LoRA v44, merged); the rest are accepted aliases so an
+#: operator's existing download still resolves.
+LOCAL_MODEL_NAMES = (
+    "lib_qwen_v44_hf",
+    "lib-qwen",
+    "lib-qwen-v44",
+    "aura-qwen",
+)
+#: Colon-separated extra roots to search, used when the model lives on a
+#: separate volume. Never a hardcoded developer home directory: an absolute
+#: path baked into the config silently breaks the Docker appliance and every
+#: other machine.
+EXTERNAL_MODEL_ROOTS_ENV = "ARCHIPELAGO_MODEL_ROOTS"
+
+
 def resolve_local_model_path() -> Path:
+    """Locate the local extraction model.
+
+    Order: ``OKF_LOCAL_MODEL`` (explicit, may be relative to the repo), then
+    ``models/<name>`` under the repo (the container layout), then each name
+    beside the repo, then each colon-separated root in
+    ``ARCHIPELAGO_MODEL_ROOTS``.
+
+    Returns the first existing candidate; if none exists, returns the canonical
+    in-repo location so the resulting error message names a real path rather
+    than a stale absolute one.
+    """
     env = os.environ.get("OKF_LOCAL_MODEL", "").strip()
     if env:
         p = Path(env).expanduser()
         if not p.is_absolute():
             p = (BASE_DIR / p).resolve()
         return p
-    parent = BASE_DIR.parent
-    for name in ("lib-qwen", "aura-qwen"):
-        candidate = parent / name
+
+    search: list[Path] = [
+        BASE_DIR / "models" / name for name in LOCAL_MODEL_NAMES
+    ]
+    search += [BASE_DIR.parent / name for name in LOCAL_MODEL_NAMES]
+    for root in os.environ.get(EXTERNAL_MODEL_ROOTS_ENV, "").split(os.pathsep):
+        if root.strip():
+            search += [Path(root.strip()) / name for name in LOCAL_MODEL_NAMES]
+
+    for candidate in search:
         if candidate.exists():
             return candidate
-    fallback = Path("/home/pratay-karali/Desktop/libraryAI/lib-qwen")
-    if fallback.exists():
-        return fallback
-    return parent / "lib-qwen"
+    return BASE_DIR / "models" / LOCAL_MODEL_NAMES[0]
 
 
 _local_path = resolve_local_model_path()

@@ -1,58 +1,106 @@
 # Archipelago Library Computer — Self-Contained Docker Stack
 #
-# This stack runs on the institution's library/IEDC computer and owns
-# the institutional knowledge state: ingestion, graph, library index.
+# This stack runs on the institution's library/IEDC computer and owns the
+# institutional knowledge state: ingestion, graph, library index.
 #
 # Usage:
-#   docker compose pull
-#   docker compose up -d
+#   cp .env.example .env        # then fill in credentials
+#   docker compose up -d --build
+#   docker compose ps           # wait for archipelago-ingestion to be healthy
 #
-# The library computer should NOT send the entire corpus to AntDeploy.
-# It caches and indexes institutional knowledge locally, sending only
-# minimal retrieval context to the inference API.
+# The library computer must NOT send the corpus to the hosted inference API. It
+# indexes institutional knowledge locally and sends only minimal retrieval
+# context.
+#
+# Portability notes (these are load-bearing, not decoration):
+#   * Every long-running command is a real entrypoint module, never an inline
+#     `python -c`. Inline commands cannot be linted, tested, or given a
+#     healthcheck.
+#   * The model is mounted from the host (`${ARCHIPELAGO_MODEL_DIR}`) rather
+#     than a named volume. A named volume starts empty, so the container would
+#     silently fall back to a default model path.
+#   * Ollama runs as a sibling service so the appliance is air-gap capable.
+#     Point ARCHIPELAGO_OLLAMA_HOST at an external daemon instead if the
+#     library already has one.
+
+name: archipelago-library
 
 services:
+  # ─── Ollama (local SLM) ────────────────────────
+  # Kept in the stack so the library computer needs no internet for ingestion.
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama:/root/.ollama
+    # Detached: nothing in the stack talks to the Ollama HTTP API directly.
+    expose:
+      - "11434"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
   # ─── Ingestion Worker ──────────────────────────
   archipelago-ingestion:
     build:
-      context: ../../
+      context: ../..
       dockerfile: Dockerfile
-    command: >
-      python -c "
-      import sys; sys.path.insert(0, '.');
-      from ingestion_worker import IngestionWorker;
-      from ingestion_jobs import JobStore;
-      store = JobStore('jobs');
-      worker = IngestionWorker(store);
-      worker.start();
-      import time;
-      try:
-        while True: time.sleep(3600)
-      except KeyboardInterrupt:
-        worker.stop()
-      "
+    # Real entrypoint: starts the queue worker and blocks. Swappable for a
+    # debug shell with `docker compose run --rm --entrypoint bash
+    # archipelago-ingestion`.
+    entrypoint: ["python", "scripts/run_ingestion_worker.py"]
     volumes:
+      # The graph database is a directory volume: KùzuDB is a directory, not a
+      # single file, so a file mount silently hides the catalog.
       - graph-data:/app/okf_graph.db
       - graph-json:/app/okf_graph.json
       - pdfs:/app/pdfs
       - jobs:/app/jobs
       - uploads:/app/data/uploads
-      - models:/app/models:ro
+      # Host model directory, read-only. See portability note above.
+      - ${ARCHIPELAGO_MODEL_DIR:-../../models}:/app/models:ro
+      # Institutional state that travels with the corpus: the source-lifecycle
+      # ledger and the librarian ingest-proposal queue. Mounted as a bind (not
+      # a named volume) so `docker compose down` never silently discards which
+      # sources were withdrawn.
+      - ${ARCHIPELAGO_STATE_DIR:-../../data}:/app/data
     env_file:
       - .env
     environment:
       ARCHIPELAGO_ENV: "library"
-      OKF_LOCAL_MODEL: "/app/models/lib-qwen"
+      ARCHIPELAGO_OLLAMA_HOST: "http://ollama:11434"
+      ARCHIPELAGO_STATE_DIR: "/app"
+      OKF_LOCAL_MODEL: "/app/models/lib_qwen_v44_hf"
+      ARCHIPELAGO_BIND: "0.0.0.0"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    # Liveness only: never let a missing model trigger a restart loop.
+    healthcheck:
+      test: ["CMD", "python", "scripts/worker_health.py", "liveness", "/app/jobs"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 45s
     restart: unless-stopped
 
   # ─── Graph Server ──────────────────────────────
   archipelago-graph:
     build:
-      context: ../../
+      context: ../..
       dockerfile: Dockerfile
-    command: >
-      gunicorn --bind 0.0.0.0:5150 --workers 1 --threads 4
-      --timeout 120 --access-logfile - graph_server:app
+    command:
+      - gunicorn
+      - --bind=0.0.0.0:5150
+      - --workers=1
+      - --threads=4
+      - --timeout=120
+      - --access-logfile=-
+      - --error-logfile=-
+      - graph_server:app
     ports:
       - "5150:5150"
     volumes:
@@ -64,40 +112,45 @@ services:
     environment:
       PORT: "5150"
       ARCHIPELAGO_GRAPH_PORT: "5150"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5150/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     depends_on:
-      - archipelago-ingestion
+      archipelago-ingestion:
+        condition: service_healthy
     restart: unless-stopped
 
   # ─── Sync Service ──────────────────────────────
+  # Reports graph size to the hosted API every SYNC_INTERVAL_SEC.
   archipelago-sync:
     build:
-      context: ../../
+      context: ../..
       dockerfile: Dockerfile
-    command: >
-      python -c "
-      import time, json, os, requests;
-      API = os.environ.get('ARCHIPELAGO_INFERENCE_URL', 'http://localhost:5151');
-      while True:
-        try:
-          with open('okf_graph.json') as f:
-            stats = json.load(f).get('stats', {});
-          print(f'Graph: {stats.get(\"node_count\", \"?\")} nodes, {stats.get(\"edge_count\", \"?\")} edges');
-        except Exception as e:
-          print(f'Sync check error: {e}');
-        time.sleep(300)
-      "
+    entrypoint: ["python", "scripts/run_sync_service.py"]
     volumes:
       - graph-json:/app/okf_graph.json:ro
     env_file:
       - .env
+    environment:
+      SYNC_INTERVAL_SEC: "300"
+    healthcheck:
+      test: ["CMD", "python", "scripts/worker_health.py", "liveness", "/tmp"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
     depends_on:
-      - archipelago-ingestion
+      - archipelago-graph
     restart: unless-stopped
 
 volumes:
+  # KùzuDB database directory (catalog tables + concept graph).
   graph-data:
+  # okf_graph.json export consumed by the graph UI and the hosted API.
   graph-json:
   pdfs:
   jobs:
   uploads:
-  models:
+  ollama:
