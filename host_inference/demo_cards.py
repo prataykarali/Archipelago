@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 from urllib.parse import quote
 
+from engine.withdrawal import withdrawal_notice_for_doc, withdrawn_documents
+
 # Longer needles first so "lora vs bert" is not swallowed by "lora".
 DEMOS: list[tuple[tuple[str, ...], dict]] = [
     (("lora vs bert", "compare lora"), {
@@ -147,8 +149,47 @@ def match_demo(query: str, books: list[dict]) -> dict | None:
                 "pdf_url": url,
                 "is_pearson": True,
             })
-        return {"text": "\n".join(lines).strip(), "citations": citations}
+        return {
+            "text": "\n".join(lines).strip(),
+            "citations": _mark_withdrawn(citations),
+        }
     return None
+
+
+def _mark_withdrawn(citations: list[dict]) -> list[dict]:
+    """Flag and strip citations whose source document has been withdrawn.
+
+    Demo cards hard-code their citations, so they bypass ``cite_record`` — the
+    one place that consults the lifecycle ledger. Without this, a retired title
+    would keep being offered here even after the graph stopped citing it. A
+    withdrawn citation keeps its identity (so the UI can explain) but loses its
+    URL, because the link would 404.
+
+    Every returned citation carries an explicit ``withdrawn`` boolean, including
+    when nothing is retired, so consumers never have to distinguish "absent"
+    from "false".
+    """
+    try:
+        retired = withdrawn_documents()
+    except Exception:
+        retired = set()
+
+    marked = []
+    for citation in citations:
+        doc_id = str(citation.get("doc_id") or "")
+        if doc_id and doc_id in retired:
+            marked.append(
+                {
+                    **citation,
+                    "url": "",
+                    "pdf_url": "",
+                    "withdrawn": True,
+                    "notice": withdrawal_notice_for_doc(doc_id),
+                }
+            )
+        else:
+            marked.append({**citation, "withdrawn": False})
+    return marked
 
 
 def redact_for_model(text: str) -> str:

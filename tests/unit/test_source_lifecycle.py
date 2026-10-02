@@ -475,3 +475,161 @@ def test_proposal_roundtrips_through_dict():
 def test_ledger_roundtrips_through_dict():
     state = SourceState(source_id="x", status="withdrawn", provider="pearson")
     assert SourceState.from_dict(state.to_dict()).status == "withdrawn"
+
+
+# ─── End-to-end: the notice reaches the chat payload ────────────────────────
+
+
+def _solo_graph(tmp_path, doc_id, concept_id="lora"):
+    """A graph with one concept whose only supporting doc is ``doc_id``."""
+    payload = {
+        "nodes": [
+            {
+                "id": concept_id,
+                "label": "Low-Rank Adaptation",
+                "sources": [
+                    {
+                        "doc_id": doc_id,
+                        "page_number": 2,
+                        "text_passage": "Low-Rank Adaptation freezes the base weights.",
+                    }
+                ],
+            }
+        ]
+    }
+    path = tmp_path / "solo_graph.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def test_chat_payload_carries_the_notice_when_the_only_source_is_withdrawn(
+    ledger_dir, tmp_path, monkeypatch
+):
+    """A student must be told the title left the record, not shown a dead link."""
+    import engine.graph as gmod
+    from hostapp.factory import create_app
+
+
+    solo = _solo_graph(tmp_path, "papers/Hu2021_LoRA.pdf")
+    record_check(
+        "isbn:lora",
+        "gone",
+        provider="huggingface",
+        message="HTTP 404 - file removed from repo",
+        metadata={"title": "LoRA paper", "doc_id": "papers/Hu2021_LoRA.pdf"},
+        base_dir=ledger_dir,
+    )
+
+    original_init = gmod.LibraryGraph.__init__
+
+    def patched(self, path):
+        original_init(self, solo)
+
+    monkeypatch.setattr(gmod.LibraryGraph, "__init__", patched)
+    app = create_app()
+    # A distinct query from the live-alternative test: cache_service is a
+    # process-wide singleton, so reusing a query would replay a cached frame
+    # and hide whether the fresh-compute path is correct.
+    body = app.test_client().post(
+        "/api/chat", json={"query": "explain low-rank adaptation"}
+    ).get_data(as_text=True)
+    meta = json.loads(body.split("\n[STREAM_START]\n", 1)[0].strip())
+
+    assert meta["withdrawn_notice"]
+    assert "no longer in the library" in meta["withdrawn_notice"]
+    assert meta["text_override"] == meta["withdrawn_notice"]
+    citation = meta["citations"][0]
+    assert citation["withdrawn"] is True
+    assert citation["url"] == ""
+
+
+def test_chat_payload_has_no_notice_when_a_live_source_remains(ledger_dir, tmp_path, monkeypatch):
+    """One title's withdrawal must not mute a question another document answers."""
+    import engine.graph as gmod
+    from hostapp.factory import create_app
+
+    payload = {
+        "nodes": [
+            {
+                "id": "lora",
+                "label": "Low-Rank Adaptation",
+                "sources": [
+                    {"doc_id": "papers/Hu2021_LoRA.pdf", "page_number": 2, "text_passage": "primary"},
+                    {"doc_id": "papers/live.pdf", "page_number": 9, "text_passage": "secondary"},
+                ],
+            }
+        ]
+    }
+    graph_file = tmp_path / "alt_graph.json"
+    graph_file.write_text(json.dumps(payload), encoding="utf-8")
+    record_check(
+        "isbn:lora",
+        "gone",
+        provider="huggingface",
+        metadata={"title": "LoRA paper", "doc_id": "papers/Hu2021_LoRA.pdf"},
+        base_dir=ledger_dir,
+    )
+
+    original_init = gmod.LibraryGraph.__init__
+
+    def patched(self, path):
+        original_init(self, graph_file)
+
+    monkeypatch.setattr(gmod.LibraryGraph, "__init__", patched)
+    app = create_app()
+    body = app.test_client().post("/api/chat", json={"query": "explain LoRA"}).get_data(
+        as_text=True
+    )
+    meta = json.loads(body.split("\n[STREAM_START]\n", 1)[0].strip())
+
+    assert "withdrawn_notice" not in meta
+    assert "text_override" not in meta
+    assert meta["citations"][0]["doc_id"] == "papers/live.pdf"
+
+
+# ─── Demo cards: hand-built citations must honour the ledger ────────────────
+
+
+def test_demo_card_citations_are_withdrawal_checked(ledger_dir):
+    """Demo cards hard-code citations, bypassing cite_record.
+
+    Without an explicit check, a retired title keeps being offered in the demo
+    answers even after the graph stopped citing it.
+    """
+    import demo_cards
+    from engine.withdrawal import withdrawn_documents
+
+    assert withdrawn_documents(load_ledger(ledger_dir)) == set()
+
+    citations = [
+        {"doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf", "url": "/read?doc=x"},
+    ]
+    record_check(
+        "isbn:vaswani",
+        "gone",
+        provider="huggingface",
+        metadata={"doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf"},
+        base_dir=ledger_dir,
+    )
+
+    marked = demo_cards._mark_withdrawn(citations)
+    assert marked[0]["withdrawn"] is True
+    assert marked[0]["url"] == ""
+    assert "no longer in the library" in marked[0]["notice"]
+
+
+def test_demo_card_marking_leaves_live_citations_usable(ledger_dir):
+    import demo_cards
+
+    citations = [{"doc_id": "papers/live.pdf", "url": "/read?doc=live"}]
+    marked = demo_cards._mark_withdrawn(citations)
+    assert marked[0]["withdrawn"] is False
+    assert marked[0]["url"] == "/read?doc=live"
+
+
+def test_demo_card_marking_is_a_no_op_without_a_ledger(ledger_dir):
+    import demo_cards
+
+    citations = [{"doc_id": "papers/live.pdf", "url": "/read?doc=live"}]
+    assert demo_cards._mark_withdrawn([]) == []
+    assert len(demo_cards._mark_withdrawn(citations)) == 1

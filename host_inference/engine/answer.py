@@ -8,8 +8,8 @@ plus the graph payload the chat UI renders.  Reply *composition* lives in
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
+import re
 
 from demo_cards import match_demo, redact_for_model
 from library_index import Catalog
@@ -19,8 +19,8 @@ from . import compose, diagnostics
 from .constants import (
     CITATION_LINE_PREFIXES,
     CODE_MESSAGE,
-    HIJACK_MESSAGE,
     HERE,
+    HIJACK_MESSAGE,
     KILL_SWITCH,
     OOD_MESSAGE,
     PASSING_MENTIONS,
@@ -31,7 +31,6 @@ from .graph import LibraryGraph
 from .links import source_links
 from .llm import provider_config, stream_completion
 from .nodes import node_public
-from .render import neighborhood_block
 from .patterns import (
     AUTH_RE,
     CODE_TRAP,
@@ -42,6 +41,7 @@ from .patterns import (
     SCHEDULE_RE,
     SHELF_RE,
 )
+from .render import neighborhood_block
 
 # Routing thresholds and caps.
 MIN_QUERY_LEN = 2
@@ -121,6 +121,21 @@ class Engine:
             payload["anchor_concept"] = None
             payload["prerequisites"] = []
             payload["unlocks"] = []
+
+        # A citation whose only supporting document was withdrawn upstream must
+        # say so in the reply, not just omit its link. The UI reads
+        # ``withdrawn_notice`` and renders it in place of the answer, so a
+        # student is told the title left the record rather than being shown an
+        # unciteable source list.
+        notices = [
+            citation.get("notice")
+            for citation in payload["citations"]
+            if isinstance(citation, dict) and citation.get("withdrawn")
+        ]
+        if notices:
+            payload["withdrawn_notice"] = notices[0]
+            payload["text_override"] = notices[0]
+
         return {"route": route, "text": text, "payload": payload, "anchor": anchor, "extra": extra}
 
     def stream_chat(self, query: str):

@@ -81,6 +81,29 @@ def _isolate_auth_required_env(monkeypatch):
     ``test_auth.py``), and monkeypatch restores whatever they chose.
     """
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_external_services(monkeypatch):
+    """Force every optional external service to its offline path.
+
+    A developer ``.env`` points at real Supabase / Hugging Face / LLM
+    endpoints. Without clearing those variables a test that intends to exercise
+    the in-memory cache or the fake-client path silently uses the live service,
+    so results depend on network state and on what earlier tests cached. Each
+    test then starts from a known-empty cache.
+    """
+    for var in (
+        "SUPABASE_URL",
+        "SUPABASE_SECRET_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_SERVICE_KEY",
+        "SUPABASE_PUBLISHABLE_KEY",
+        "HF_TOKEN",
+        "XKIRO_API_KEY",
+        "GEMINI_API_KEY",
+    ):
+        monkeypatch.delenv(var, raising=False)
 import os
 import re
 import shutil

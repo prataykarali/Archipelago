@@ -11,7 +11,6 @@ import json
 import re
 
 from flask import Flask, current_app, jsonify, request
-
 from host_roadmap import build_quiz, build_roadmap
 
 from ..context import AppContext
@@ -33,6 +32,20 @@ def _metadata_frame(chunks: list[str]) -> dict:
         return json.loads(chunks[0].split(STREAM_MARKER, 1)[0].strip())
     except ValueError:
         return {}
+
+
+def _withdrawn_notice(sources: list) -> str:
+    """First withdrawal notice among ``sources``, or "" when all are live.
+
+    Re-derived on every cache replay rather than trusted from the cached
+    payload, because a source can be withdrawn *after* the answer was cached.
+    """
+    for source in sources:
+        if isinstance(source, dict) and source.get("withdrawn"):
+            notice = str(source.get("notice") or "").strip()
+            if notice:
+                return notice
+    return ""
 
 
 def register(app: Flask, ctx: AppContext) -> None:
@@ -65,12 +78,13 @@ def register(app: Flask, ctx: AppContext) -> None:
                 if cached_response_text.startswith("{") and STREAM_MARKER.strip() in cached_response_text:
                     yield cached_response_text
                     return
+                sources = cached_entry.get("sources") or []
                 payload = {
                     "anchor_concept": (cached_entry.get("graph_data") or {}).get("target_id"),
                     "prerequisites": [],
                     "unlocks": [],
                     "related_concepts": [],
-                    "citations": cached_entry.get("sources") or [],
+                    "citations": sources,
                     "graph_data": cached_entry.get("graph_data"),
                     "roadmap": cached_entry.get("roadmap_data"),
                     "model": {"provider": "cache", "model": "ai_response_cache"},
@@ -80,6 +94,14 @@ def register(app: Flask, ctx: AppContext) -> None:
                         "details": f"Returned from cache (hit #{cached_entry.get('hit_count', 1)}). Zero LLM calls made.",
                     }],
                 }
+                # A cache entry written before a source was withdrawn still
+                # carries that source's citation. Without this, replaying it
+                # would resurrect an unciteable reference with no warning —
+                # the exact failure the lifecycle ledger exists to prevent.
+                notice = _withdrawn_notice(sources)
+                if notice:
+                    payload["withdrawn_notice"] = notice
+                    payload["text_override"] = notice
                 yield json.dumps(payload) + STREAM_MARKER
                 yield cached_response_text
 

@@ -18,9 +18,9 @@ No test performs a real network request.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import sys
 import time
-from pathlib import Path
 
 import pytest
 
@@ -53,7 +53,7 @@ def _robots(body: str) -> None:
     The cache is only honoured within ROBOTS_CACHE_TTL_SEC, so a stale stamp
     would silently fall through to a real network fetch.
     """
-    fp._robots_cache[f"https://example.edu/robots.txt"] = (time.monotonic(), body)
+    fp._robots_cache["https://example.edu/robots.txt"] = (time.monotonic(), body)
 
 
 def _audit_lines(tmp_path) -> list[dict]:
