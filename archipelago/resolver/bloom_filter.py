@@ -24,7 +24,7 @@ class BloomFilter:
         indexes = []
         item_bytes = str(item).encode("utf-8")
         h1 = int(hashlib.sha256(item_bytes).hexdigest(), 16)
-        h2 = int(hashlib.md5(item_bytes).hexdigest(), 16)
+        h2 = int(hashlib.md5(item_bytes, usedforsecurity=False).hexdigest(), 16)
         for i in range(self.num_hashes):
             combined = (h1 + i * h2) % self.size
             indexes.append(combined)
@@ -65,7 +65,12 @@ class CuckooFilter:
         return max(fp, 1)  # Ensure non-zero
 
     def _hash_index(self, item: str) -> int:
-        h = int(hashlib.md5(str(item).encode("utf-8")).hexdigest(), 16)
+        h = int(
+            hashlib.md5(
+                str(item).encode("utf-8"), usedforsecurity=False
+            ).hexdigest(),
+            16,
+        )
         return h % self.num_buckets
 
     def _alt_index(self, index: int, fingerprint: int) -> int:

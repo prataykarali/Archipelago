@@ -6,7 +6,12 @@ from typing import Any
 
 def select_layout_index(query: str, domain: str) -> int:
     """Select a stable, pseudorandom layout index in [0, 100)."""
-    h = int(hashlib.md5(f"{query}:{domain}".encode("utf-8")).hexdigest(), int("16"))
+    h = int(
+        hashlib.md5(
+            f"{query}:{domain}".encode("utf-8"), usedforsecurity=False
+        ).hexdigest(),
+        int("16"),
+    )
     return h % int("100")
 
 

@@ -5,7 +5,7 @@ import csv
 import os
 import re
 import zipfile
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET  # hardened: untrusted ODS/upload XML
 from . import _deps as _rt  # noqa: F401
 
 

@@ -21,7 +21,7 @@ logger = logging.getLogger("archipelago.resolver.validator")
 FORBIDDEN_HOSTS = {
     "localhost",
     "127.0.0.1",
-    "0.0.0.0",
+    "0.0.0.0",  # nosec B104 — SSRF deny-list entry, not a bind address
     "::1",
     "169.254.169.254",
     "metadata.google.internal",

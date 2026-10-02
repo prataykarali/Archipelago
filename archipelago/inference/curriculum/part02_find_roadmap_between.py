@@ -283,7 +283,10 @@ def generate_diagnostic_quiz(
         difficulty = c_node.get("difficulty") or "intermediate"
 
         # Deterministic distractor selection using hash
-        h_val = int(hashlib.md5(f"{cid}_{q_idx}".encode()).hexdigest(), 16)
+        h_val = int(
+            hashlib.md5(f"{cid}_{q_idx}".encode(), usedforsecurity=False).hexdigest(),
+            16,
+        )
         distractors = []
         for d_offset in range(3):
             d_idx = (h_val + d_offset * 17) % max(1, len(distractor_pool))

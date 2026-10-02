@@ -1,8 +1,10 @@
+import json
 import logging
 import time
 import uuid
-import json
-from flask import request, g
+
+from flask import g, request
+
 
 class JSONFormatter(logging.Formatter):
     def format(self, record):
@@ -11,7 +13,7 @@ class JSONFormatter(logging.Formatter):
             "level": record.levelname,
             "message": record.getMessage(),
         }
-        
+
         if hasattr(record, "request_id"):
             log_data["request_id"] = record.request_id
         if hasattr(record, "method"):
@@ -22,13 +24,16 @@ class JSONFormatter(logging.Formatter):
             log_data["status"] = record.status
         if hasattr(record, "duration_ms"):
             log_data["duration_ms"] = record.duration_ms
-            
+
         return json.dumps(log_data)
 
 def setup_logging(app):
+    from archipelago.middleware.log_redaction import install_log_redaction
+
+    install_log_redaction()
     handler = logging.StreamHandler()
     handler.setFormatter(JSONFormatter())
-    
+
     # Remove default handlers and add our JSON handler
     app.logger.handlers = []
     app.logger.addHandler(handler)
@@ -43,9 +48,9 @@ def setup_logging(app):
     def after_request(response):
         if not hasattr(g, 'start_time'):
             return response
-            
+
         duration_ms = (time.time() - g.start_time) * 1000
-        
+
         log_record = logging.LogRecord(
             name=app.logger.name,
             level=logging.INFO,
@@ -60,6 +65,6 @@ def setup_logging(app):
         log_record.path = request.path
         log_record.status = response.status_code
         log_record.duration_ms = round(duration_ms, 2)
-        
+
         app.logger.handle(log_record)
         return response

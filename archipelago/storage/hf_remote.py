@@ -23,6 +23,9 @@ logger = logging.getLogger("archipelago.storage.hf_remote")
 
 DEFAULT_REPO_ID = "Prataykarali/Library_books"
 DEFAULT_CACHE_DIR = Path.home() / ".cache" / "archipelago" / "library_books"
+# Hub revision to download from. Pin to a commit/tag SHA in production so an
+# upstream force-push cannot silently change the corpus we ingest.
+DEFAULT_REVISION = os.environ.get("HF_DATASET_REVISION", "main")
 
 
 def compute_sha256(data_or_path: bytes | str | Path) -> str:
@@ -46,8 +49,10 @@ class HFStorageClient:
         token: str | None = None,
         cache_dir: Path | str | None = None,
         offline: bool = False,
+        revision: str | None = None,
     ):
         self.offline = offline
+        self.revision = revision or DEFAULT_REVISION
         self.repo_id = (
             repo_id
             or os.environ.get("HF_DATASET_REPO")
@@ -239,6 +244,7 @@ class HFStorageClient:
             filename=remote_path,
             repo_type="dataset",
             token=self.token,
+            revision=self.revision,
             local_dir=str(self.cache_dir),
             force_download=force_download,
         )

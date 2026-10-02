@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Artifacts written by the ingestion/pipeline code paths. They are gitignored
@@ -67,11 +66,13 @@ def verified_student_auth(monkeypatch):
         lambda _request: (principal, None),
     )
     return principal
-import kuzu
-import shutil
 import os
 import re
+import shutil
 from unittest.mock import MagicMock, patch
+
+import kuzu
+
 
 @pytest.fixture
 def tmp_kuzu_db(tmp_path):
@@ -79,7 +80,7 @@ def tmp_kuzu_db(tmp_path):
     db_path = str(tmp_path / "test_kuzu.db")
     db = kuzu.Database(db_path)
     conn = kuzu.Connection(db)
-    
+
     # Set up schema (Document, Chunk, Concept, and relationships: HAS_CHUNK, MENTIONS, REQUIRES, UNLOCKS, RELATED)
     conn.execute("CREATE NODE TABLE Document (id STRING PRIMARY KEY)")
     conn.execute("""
@@ -105,17 +106,17 @@ def tmp_kuzu_db(tmp_path):
     conn.execute("CREATE REL TABLE REQUIRES (FROM Concept TO Concept, relation_type STRING, source STRING)")
     conn.execute("CREATE REL TABLE UNLOCKS (FROM Concept TO Concept, relation_type STRING, source STRING)")
     conn.execute("CREATE REL TABLE RELATED (FROM Concept TO Concept, relation_type STRING, source STRING)")
-    
+
     # Expose db and db_path as custom attributes on the connection for test utility
     conn.db = db
     conn.db_path = db_path
-    
+
     yield conn
-    
+
     # Explicitly delete connection and database objects to release locks
     del conn
     del db
-    
+
     if os.path.exists(db_path):
         shutil.rmtree(db_path, ignore_errors=True)
 
@@ -260,23 +261,23 @@ def sample_concepts():
 def sample_graph(tmp_kuzu_db, sample_concepts):
     """Populates tmp_kuzu_db with a small graph: 5 concepts, 4 edges, plus documents/chunks and mentions."""
     conn = tmp_kuzu_db
-    
+
     def escape(s):
         return str(s).replace("\\", "\\\\").replace("'", "\\'")
-        
+
     created_docs = set()
     created_chunks = set()
-    
+
     # 1. Insert Concept nodes and their source chunk/document lineage
     for concept in sample_concepts:
         name = concept["concept_name"]
         cid = ''.join(ch if ch.isalnum() else '_' for ch in name.lower())
         cid = re.sub(r'_+', '_', cid).strip('_') or 'concept'
-        
+
         concept_type = concept.get("concept_type", "definition")
         difficulty = concept.get("difficulty", "intermediate")
         summary = concept.get("summary", "")
-        
+
         conn.execute(f"""
             CREATE (c:Concept {{
                 id: '{cid}',
@@ -286,24 +287,24 @@ def sample_graph(tmp_kuzu_db, sample_concepts):
                 summary: '{escape(summary)}'
             }})
         """)
-        
+
         for src in concept.get("sources", []):
             doc_id = src.get("doc_id")
             chunk_id = src.get("chunk_id")
             if not doc_id or not chunk_id:
                 continue
-                
+
             safe_doc_id = escape(doc_id)
             if safe_doc_id not in created_docs:
                 conn.execute(f"MERGE (d:Document {{id: '{safe_doc_id}'}})")
                 created_docs.add(safe_doc_id)
-                
+
             chunk_db_id = f"{safe_doc_id}_{escape(chunk_id)}"
             if chunk_db_id not in created_chunks:
                 page_number = int(src.get("page_number", 0))
                 section_title = escape(src.get("section_title", ""))
                 text_passage = escape(src.get("text_passage", ""))
-                
+
                 conn.execute(f"""
                     CREATE (ch:Chunk {{
                         id: '{chunk_db_id}',
@@ -318,13 +319,13 @@ def sample_graph(tmp_kuzu_db, sample_concepts):
                     CREATE (d)-[:HAS_CHUNK]->(ch)
                 """)
                 created_chunks.add(chunk_db_id)
-                
+
             # Link Chunk -> Concept
             conn.execute(f"""
                 MATCH (ch:Chunk {{id: '{chunk_db_id}'}}), (c:Concept {{id: '{cid}'}})
                 CREATE (ch)-[:MENTIONS]->(c)
             """)
-            
+
     # 2. Insert relationship edges (exactly 4 REQUIRES edges between the 5 concepts)
     edges = [
         ("linear_algebra", "basic_algebra", "REQUIRES", "requires", "math_for_ml.pdf:chunk_002"),
@@ -337,7 +338,7 @@ def sample_graph(tmp_kuzu_db, sample_concepts):
             MATCH (a:Concept {{id: '{from_id}'}}), (b:Concept {{id: '{to_id}'}})
             CREATE (a)-[r:{rel_table} {{relation_type: '{rel_type}', source: '{escape(source)}'}}]->(b)
         """)
-        
+
     return conn
 
 
@@ -345,10 +346,10 @@ def sample_graph(tmp_kuzu_db, sample_concepts):
 def mock_ollama():
     """Patches/mocks ollama.Client calls to avoid connecting to a local Ollama server during tests."""
     mock_client_instance = MagicMock()
-    
+
     mock_list_response = {'models': [{'name': 'qwen3.5:0.8b'}]}
     mock_client_instance.list.return_value = mock_list_response
-    
+
     mock_chat_response = {
         'message': {
             'role': 'assistant',
@@ -357,7 +358,7 @@ def mock_ollama():
         }
     }
     mock_client_instance.chat.return_value = mock_chat_response
-    
+
     with patch('ollama.Client', return_value=mock_client_instance) as mock_class:
         yield mock_client_instance
 
@@ -365,16 +366,16 @@ def mock_ollama():
 @pytest.fixture
 def flask_test_client(tmp_kuzu_db, sample_concepts):
     """Initializes concepts data and returns flask client, overriding the db with the temporary one."""
-    import archipelago.inference.state as inference_server
     from archipelago.inference.bootstrap import app
-    
+    import archipelago.inference.state as inference_server
+
     # Save original values to restore later
     old_db = inference_server.db
     old_concepts = inference_server.CONCEPTS_DATA
-    
+
     # Point server db to the temporary test db
     inference_server.db = tmp_kuzu_db.db
-    
+
     # Build CONCEPTS_DATA from sample_concepts
     concepts_dict = {}
     for concept in sample_concepts:
@@ -390,10 +391,10 @@ def flask_test_client(tmp_kuzu_db, sample_concepts):
             "summary": concept.get("summary", "")
         }
     inference_server.CONCEPTS_DATA = concepts_dict
-    
+
     with app.test_client() as client:
         yield client
-        
+
     # Restore original values
     inference_server.db = old_db
     inference_server.CONCEPTS_DATA = old_concepts

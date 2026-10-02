@@ -31,9 +31,12 @@ from archipelago.api.engine_state import (
     init_engine,
     load_concepts_data,
 )
+from archipelago.middleware.log_redaction import install_log_redaction
 
 logger = logging.getLogger("archipelago.api")
 logging.basicConfig(level=logging.INFO)
+
+install_log_redaction()
 
 # Build runtime components before any route can serve a request.
 init_engine()
@@ -72,7 +75,26 @@ api_readiness = routes_docs.api_readiness
 api_upload = routes_docs.api_upload
 
 DEFAULT_PORT = 5051
-BIND_HOST = "0.0.0.0"
+LOOPBACK_HOST = "127.0.0.1"
+ALL_INTERFACES_HOST = "0.0.0.0"  # nosec B104 — opt-in only, gated by ARCHIPELAGO_TOKEN below
+
+
+def _resolve_bind_host() -> str:
+    """Bind to loopback unless explicitly authorised.
+
+    ``ARCHIPELAGO_BIND_HOST`` wins when set; otherwise ``0.0.0.0`` is used only
+    when ``ARCHIPELAGO_TOKEN`` is present, matching the deployment rule in
+    AGENTS.md (never expose all interfaces unauthenticated).
+    """
+    explicit = os.environ.get("ARCHIPELAGO_BIND_HOST", "").strip()
+    if explicit:
+        return explicit
+    if os.environ.get("ARCHIPELAGO_TOKEN", "").strip():
+        return ALL_INTERFACES_HOST
+    return LOOPBACK_HOST
+
+
+BIND_HOST = _resolve_bind_host()
 
 __all__ = [
     "BASE_DIR",

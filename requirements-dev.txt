@@ -1,0 +1,9 @@
+-r requirements.txt
+
+# Local engineering gates (Skill 1 lint/types, Skill 2 security, Skill 4 quality).
+# CI installs these; they are not runtime dependencies.
+ruff>=0.6.0
+mypy>=1.11.0
+bandit>=1.7.0
+detect-secrets>=1.5.0
+pip-audit>=2.7.0

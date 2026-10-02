@@ -1,12 +1,12 @@
 """Auto-split from monolith — blocks are verbatim."""
 from __future__ import annotations
 
-from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
 import mimetypes
 import os
 from pathlib import Path
 import sys
 
+from flask import Flask, g, jsonify, request, send_from_directory
 
 REPO_ROOT = Path(__file__).resolve().parent
 
@@ -21,6 +21,11 @@ if REPO_ROOT.name in _WRAPPER_DIRS:
 
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+# Access logs must never capture tokens/credentials from query strings.
+from archipelago.middleware.log_redaction import install_log_redaction  # noqa: E402
+
+install_log_redaction()
 
 
 try:

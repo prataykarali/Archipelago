@@ -16,5 +16,19 @@ from hostapp.config import DEFAULT_PORT
 app = create_app()
 
 
+def _resolve_bind_host() -> str:
+    """Loopback by default; all interfaces only with an explicit opt-in token."""
+    explicit = os.environ.get("ARCHIPELAGO_BIND_HOST", "").strip()
+    if explicit:
+        return explicit
+    if os.environ.get("ARCHIPELAGO_TOKEN", "").strip():
+        return "0.0.0.0"  # nosec B104 — explicit authenticated opt-in
+    return "127.0.0.1"
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", DEFAULT_PORT)), threaded=True)
+    app.run(
+        host=_resolve_bind_host(),
+        port=int(os.environ.get("PORT", DEFAULT_PORT)),
+        threaded=True,
+    )

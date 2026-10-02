@@ -44,10 +44,12 @@ def load_local_model():
 
     print(f"  Loading local model from {local_path}...")
     try:
-        LOCAL_TOKENIZER = AutoTokenizer.from_pretrained(
+        # ``local_path`` is a local directory (never a hub id), so there is no
+        # revision to pin; remote loading is not attempted here.
+        LOCAL_TOKENIZER = AutoTokenizer.from_pretrained(  # nosec B615
             local_path, trust_remote_code=True, fix_mistral_regex=True
         )
-        LOCAL_MODEL = AutoModelForCausalLM.from_pretrained(
+        LOCAL_MODEL = AutoModelForCausalLM.from_pretrained(  # nosec B615
             local_path,
             dtype=torch.float16,
             device_map="auto",

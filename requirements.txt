@@ -21,3 +21,6 @@ google-generativeai>=0.8.0
 # Paired with the tesseract-ocr system package installed in the Dockerfile.
 pytesseract>=0.3.10
 Pillow>=10.0.0
+
+# Hardened XML parsing for untrusted ODS / uploaded spreadsheet XML (XXE-safe).
+defusedxml>=0.7.1

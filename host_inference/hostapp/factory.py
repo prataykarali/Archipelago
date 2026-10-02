@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from flask import Flask
 
+from archipelago.middleware.log_redaction import install_log_redaction
+
 from .config import MAX_CONTENT_LENGTH_BYTES, load_env
 from .context import AppContext
 from .inventory_store import InventoryStore
@@ -24,7 +26,6 @@ def build_context() -> AppContext:
     created.
     """
     from cache_service import cache_metrics, cache_service, request_dedup
-
     from engine import Engine
 
     return AppContext(
@@ -49,6 +50,8 @@ def create_app(ctx: AppContext | None = None) -> Flask:
         A configured :class:`flask.Flask` app with all routes registered.
     """
     load_env()
+    # Scrub tokens/credentials from access logs before any record is emitted.
+    install_log_redaction()
     context = ctx or build_context()
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH_BYTES

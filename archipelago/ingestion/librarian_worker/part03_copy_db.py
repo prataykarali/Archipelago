@@ -166,7 +166,13 @@ def export_graph_json(db_path: Path | str, data_file: Path | str = _rt.DATA_FILE
 
 
 def _post_inference(url: str, timeout: int = 90) -> dict[str, Any] | None:
+    import urllib.parse
     import urllib.request
+
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        _rt.logger.warning("Refusing non-http(s) inference URL: %r", url)
+        return None
 
     req = urllib.request.Request(
         url,
@@ -175,7 +181,7 @@ def _post_inference(url: str, timeout: int = 90) -> dict[str, Any] | None:
         headers={"Content-Type": "application/json"},
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310 — scheme validated above
             body = resp.read().decode("utf-8")
             _rt.logger.info("Inference POST %s -> %s", url, body)
             try:

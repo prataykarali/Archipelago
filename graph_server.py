@@ -7,10 +7,14 @@ import os
 from pathlib import Path
 from urllib.parse import quote
 
-import requests
 from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
+import requests
 
 from archipelago import supabase_auth
+from archipelago.middleware.log_redaction import install_log_redaction
+
+# Access logs must never capture the `?token=`/Authorization values used here.
+install_log_redaction()
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "okf_graph.json"

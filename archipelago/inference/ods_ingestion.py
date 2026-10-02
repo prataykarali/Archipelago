@@ -71,7 +71,9 @@ def ensure_ods_schema(conn: kuzu.Connection) -> None:
 
 def _ods_id(prefix: str, *parts: str) -> str:
     raw = "_".join(str(p) for p in parts if p)
-    hash_digest = hashlib.md5(raw.encode("utf-8")).hexdigest()[:12]
+    hash_digest = hashlib.md5(
+        raw.encode("utf-8"), usedforsecurity=False
+    ).hexdigest()[:12]
     stem = raw[:48].lower().replace(" ", "_").replace("/", "_")
     return f"ods_{prefix}_{stem}_{hash_digest}"
 
