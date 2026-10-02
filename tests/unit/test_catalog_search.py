@@ -15,8 +15,8 @@ Deterministic: builds a throwaway Kuzu database in ``tmp_path``.
 """
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -92,8 +92,9 @@ def test_catalog_bridge_links_resource_to_document(tmp_path):
 
 def test_catalog_bridge_reports_failure_for_unknown_title(tmp_path):
     """A title that matches no Resource must report False, not a silent no-op."""
-    from catalog_bridge import link_resource_to_document
     import kuzu
+
+    from catalog_bridge import link_resource_to_document
 
     db_path = str(tmp_path / "miss.db")
     conn = kuzu.Connection(kuzu.Database(db_path))
@@ -276,8 +277,8 @@ def test_catalog_search_endpoint_returns_matches_for_a_real_book(tmp_path, monke
     """
     import kuzu
 
-    import archipelago.api.engine_state as engine_state
     from archipelago.api import app as app_module
+    import archipelago.api.engine_state as engine_state
     from archipelago.api.routes_library import app as library_app
 
     db_path = str(tmp_path / "api.db")

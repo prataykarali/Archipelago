@@ -10,10 +10,11 @@ Idempotent: re-running converges to the same rows (``MERGE`` on a stable id).
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 import logging
 import math
 import re
-from typing import Any, Iterable
+from typing import Any
 
 import kuzu
 import pandas as pd
@@ -130,7 +131,7 @@ def _read_ods(path: str) -> pd.DataFrame:
     """Read an ODS export, falling back to the default Excel engine."""
     try:
         return pd.read_excel(path, engine="odf")
-    except Exception:  # noqa: BLE001 - engine fallback is intentional
+    except Exception:
         return pd.read_excel(path)
 
 

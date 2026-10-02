@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import json
+from collections.abc import Iterable
 import logging
-import os
-from typing import Any, Iterable
+from typing import Any
 
 from okf.config import BASE_DIR, infer_source_category
 from okf.exports import build_graph_rag_index, build_visual_graph
@@ -195,7 +194,7 @@ def _run_ddl(conn: Any, statements: Iterable[str]) -> None:
     for ddl in statements:
         try:
             conn.execute(ddl)
-        except Exception as exc:  # noqa: BLE001 - best-effort DDL, must not abort ingest
+        except Exception as exc:
             if _is_already_exists(exc):
                 logger.debug("Schema object already present, skipping: %s", _first_line(ddl))
             else:
@@ -240,10 +239,10 @@ __all__ = [
     "_kuzu_escape",
     "_kuzu_literal",
     "_migrate_schema",
-    "logger",
-    "create_concept_id",
-    "infer_source_category",
     "_source_record",
     "build_graph_rag_index",
     "build_visual_graph",
+    "create_concept_id",
+    "infer_source_category",
+    "logger",
 ]

@@ -63,6 +63,7 @@ FEATURE_SUITES: dict[str, tuple[str, ...]] = {
         "test_librarian_pipeline.py",
     ),
     "institutional catalog": ("test_catalog_search.py",),
+    "source lifecycle (withdrawals + proposals)": ("test_source_lifecycle.py",),
     "security / log redaction": ("test_log_redaction.py",),
 }
 

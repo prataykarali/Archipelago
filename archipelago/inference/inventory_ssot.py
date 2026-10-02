@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import json
 import logging
-import threading
 from pathlib import Path
+import threading
 from typing import Any
 
 from okf.config import BASE_DIR

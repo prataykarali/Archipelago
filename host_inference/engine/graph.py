@@ -17,6 +17,7 @@ import numpy as np
 from .constants import ALIASES, FORMULAS
 from .docmap import hf_doc_path
 from .text import embed, tokens
+from .withdrawal import best_live_source, withdrawal_notice_for_doc, withdrawn_documents
 
 # How much of a source passage is retained on a citation record.
 PASSAGE_CHAR_LIMIT = 700
@@ -179,28 +180,46 @@ class LibraryGraph:
         return scored[:top_k]
 
     def best_source(self, cid: str, query: str = "") -> dict | None:
-        """Pick the source passage whose text best overlaps the query and label."""
+        """Pick the citable source passage whose text best overlaps the query.
+
+        Documents the lifecycle ledger marks ``withdrawn`` are skipped, so a
+        title Pearson or Hugging Face has removed cannot be cited. If every
+        passage for this concept came from a withdrawn document, the concept
+        simply has no source here (``None``) — the caller then reports the
+        title as no longer in records rather than inventing a citation.
+        """
+        return self.best_live_source(cid, query)[0]
+
+    def best_live_source(self, cid: str, query: str = "") -> tuple[dict | None, bool]:
+        """``(best citable source, all_withdrawn)`` for a concept."""
         sources = list((self.nodes.get(cid) or {}).get("sources") or [])
         if not sources:
-            return None
+            return None, False
         wanted = set(tokens(query)) | set(tokens(self.label(cid)))
-        best = None
-        best_score = -1
-        for source in sources:
+        retired = withdrawn_documents()
+
+        def score(source: dict) -> int:
             passage = source.get("text_passage") or ""
             overlap = len(wanted & set(tokens(passage)))
             page = int(source.get("page_number") or 0)
-            score = overlap * SOURCE_OVERLAP_WEIGHT + (SOURCE_LATER_PAGE_BONUS if page > 1 else 0)
-            if score > best_score:
-                best, best_score = source, score
-        return best
+            return overlap * SOURCE_OVERLAP_WEIGHT + (SOURCE_LATER_PAGE_BONUS if page > 1 else 0)
+
+        return best_live_source(sources, score, retired)
 
     def cite_record(self, cid: str, query: str = "", index: int = 1) -> dict:
-        """Build the structured citation record the chat payload carries."""
-        source = self.best_source(cid, query or getattr(self, "_query", ""))
+        """Build the structured citation record the chat payload carries.
+
+        When every passage behind this concept came from a withdrawn document,
+        the record is marked ``withdrawn`` and carries no URL — the chat UI can
+        then say the title is no longer in records instead of offering a link
+        that will 404.
+        """
+        source, all_withdrawn = self.best_live_source(
+            cid, query or getattr(self, "_query", "")
+        )
         page = int((source or {}).get("page_number") or 1)
         doc_id = hf_doc_path(str((source or {}).get("doc_id") or ""))
-        if not doc_id and cid in FORMULAS:
+        if not doc_id and not all_withdrawn and cid in FORMULAS:
             _formula, filename, formula_page = FORMULAS[cid]
             doc_id = f"papers/{filename}"
             page = formula_page
@@ -214,6 +233,8 @@ class LibraryGraph:
             "printed_page": page,
             "pdf_url": hf_url,
             "url": hf_url,
+            "withdrawn": bool(all_withdrawn),
+            "notice": withdrawal_notice_for_doc(doc_id) if all_withdrawn else "",
             "text_passage": ((source or {}).get("text_passage") or "")[:PASSAGE_CHAR_LIMIT],
         }
 
