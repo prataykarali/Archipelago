@@ -281,10 +281,22 @@ keep working.
 `test_demo_query_books` / `test_lib_qwen_extractor` / `test_librarian_pipeline` /
 `test_library_recovery` / host/api suites (90) all pass; UI browser smoke
 (`node scripts/refactor/smoke_chat_ui.mjs`) → `SMOKE OK` on both trees.
-Pre-existing red (unchanged): `test_tc75_honest_pass` Category-1 cases reject
-with `low_similarity_reject` in this environment (embedding/similarity
-calibration, not touched by this wave), and `test_staged_pipeline_regression`
-imports a `pdf_ingestion` module that does not exist in the repo.
+**Root-caused during verification:** the Category-1 `low_similarity_reject`
+failures were **not** environmental. The pipeline split temporarily broke the
+`patch("okf.pipeline.BASE_DIR")` contract, so
+`test_pipeline_structural_audit_abort` wrote generated artifacts into the repo
+root and overwrote the local (gitignored) `okf_graph.json` corpus with a
+2-concept fixture; with an empty corpus `rank_concepts` returns generic scores
+(~0.26) below the kill-switch threshold, so every in-scope curriculum query was
+rejected. The `_rt.` late-binding fix stops the writes (verified:
+`test_quality_and_eval` no longer mutates `okf_graph.json` or emits
+`graph_audit.json`), and the corpus was restored from
+`okf_graph.bak-soference-20260912-183509/` (514 concepts). Result:
+`test_tc75_honest_structural_pass` is now **75 passed**.
+
+The only remaining known red is `test_staged_pipeline_regression`, which
+imports a `pdf_ingestion` module that does not exist anywhere in the repo
+(unrelated, pre-existing).
 
 ## Deferred / known issues
 
