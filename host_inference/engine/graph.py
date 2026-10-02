@@ -35,6 +35,11 @@ class LibraryGraph:
 
     def __init__(self, path: Path):
         raw = json.loads(path.read_text(encoding="utf-8"))
+        # ``stats.fixture`` is stamped by scripts/build_corpus_fixture.py. Tracked
+        # here so /api/readiness can say "this deployment is on the fallback
+        # slice" rather than presenting a 59-concept graph as the whole library.
+        stats = raw.get("stats") or {}
+        self.corpus_source = "fixture" if stats.get("fixture") else "full"
         self.nodes: dict[str, dict] = {}
         for node in raw.get("nodes") or []:
             if node.get("id"):

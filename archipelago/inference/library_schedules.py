@@ -209,25 +209,36 @@ def format_schedule_for_response(schedule_result: dict[str, Any]) -> str:
 
 # ── Query Router Integration ──────────────────────────────────────────────
 
+#: Institutional desks and rooms whose hours the schedule answers. Kept as an
+#: alternation so "what time does the circulation desk open" is recognised the
+#: same way "when does the library open" is — the desk name was previously
+#: hardcoded as the literal word "library", so every desk-scoped hours question
+#: fell through to the concept pipeline.
+_INSTITUTION = r"(?:iem/?uem\s+|iem\s+|uem\s+)?(?:library|reading\s+room|circulation(?:\s+desk)?|lending(?:\s+desk)?|reference(?:\s+desk)?|help\s*desk)"
+
 _SCHEDULE_KEYWORDS = re.compile(
     r"("
-    r"library\s+hours?|operating\s+hours?|opening\s+hours?|closing\s+times?|"
+    r"(?:library|reading\s+room|circulation|lending|reference)\s+hours?|"
+    r"operating\s+hours?|opening\s+hours?|closing\s+times?|"
     r"working\s+hours?|"
-    r"open\s+now|is\s+it\s+open|when\s+(?:do\s+|does\s+|is\s+the\s+)library\s+"
-    r"(?:open|close)|"
-    r"hours?\s+of\s+operation|library\s+(?:timing|timings|schedule)|"
-    r"what\s+time\s+(?:does\s+|is\s+)the\s+library|"
-    r"library\s+open\s+on\s+\w+|open\s+on\s+sundays?|open\s+on\s+weekends?|"
+    r"open\s+now|is\s+it\s+open|"
+    rf"when\s+(?:do\s+|does\s+|is\s+the\s+){_INSTITUTION}\s*(?:open|close)|"
+    rf"what\s+time\s+(?:does\s+|is\s+)(?:the\s+)?{_INSTITUTION}|"
+    rf"(?:what\s+time|when)\b[^?!]{{0,30}}\b{_INSTITUTION}\s*(?:open|close)|"
+    r"hours?\s+of\s+operation|"
+    rf"{_INSTITUTION}\s+(?:timing|timings|schedule)|"
+    rf"{_INSTITUTION}\s+open\s+on\s+\w+|open\s+on\s+(?:sundays?|weekends?)|"
     r"weekend\s+hours?|sunday\s+hours?|holiday\s+schedule|"
     r"24\s*[x×]\s*7|24/?7|"
-    r"is\s+the\s+(?:iem/?uem\s+|iem\s+|uem\s+)?library\s+open|"
-    r"library\s+open"
+    rf"is\s+the\s+{_INSTITUTION}\s+open|"
+    rf"{_INSTITUTION}\s+open"
     r")",
     re.I,
 )
 
 _DAY_PATTERN = re.compile(
-    r"\b(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?|today)\b",
+    r"\b(mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?|"
+    r"weekends?|weekdays?|today)\b",
     re.I,
 )
 

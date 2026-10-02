@@ -14,7 +14,7 @@ The implementation lives in focused submodules:
 * :mod:`engine.graph`     — the in-memory concept graph
 * :mod:`engine.render`    — markdown graph helpers
 * :mod:`engine.links`     — exact-source link lines
-* :mod:`engine.llm`       — XKIRO / OpenRouter provider integration
+* :mod:`engine.llm`       — XKIRO / NVIDIA NIM provider integration
 * :mod:`engine.answer`    — the :class:`Engine` itself
 """
 from __future__ import annotations

@@ -16,6 +16,7 @@ def context_status():
             "session_id": session_id,
             "active_topics": list(tracker.active_topics),
             "history_len": len(tracker.get_history()),
+            **tracker.status(),
         })
 
     data = request.get_json() or {}
@@ -34,4 +35,5 @@ def context_status():
         "active_topics": list(tracker.active_topics),
         "history_len": len(tracker.get_history()),
         "action": action,
+        **tracker.status(),
     })

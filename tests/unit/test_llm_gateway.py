@@ -64,11 +64,41 @@ def test_gateway_chat_xkiro():
 
 
 def test_gateway_chat_failover():
+    """xkiro down -> NVIDIA NIM, the configured second leg."""
     with patch("archipelago.inference.llm_gateway.part03_chat._chat_xkiro", return_value=None):
-        with patch("archipelago.inference.llm_gateway.part03_chat._chat_gemini", return_value="Fallback answer from Gemini"):
+        with patch("archipelago.inference.llm_gateway.part03_chat._chat_nvidia", return_value="Fallback answer from NVIDIA"):
             with patch("archipelago.inference.llm_gateway.part01_config.get_active_provider", return_value="xkiro"):
                 result = gateway_chat([{"role": "user", "content": "hello"}], purpose="synthesis")
-                assert result == "Fallback answer from Gemini"
+                assert result == "Fallback answer from NVIDIA"
+
+
+def test_gateway_chain_never_silently_uses_gemini():
+    """With both xkiro and NVIDIA down, nothing is attempted on Gemini.
+
+    Gemini is not in the default chain, and an unpinned fallback to a third-party
+    provider would send prompts somewhere no operator chose.
+    """
+    from archipelago.inference.llm_gateway import part01_config as config
+
+    assert config.PROVIDER_FALLBACK_ORDER == ("xkiro", "nvidia")
+
+    with patch("archipelago.inference.llm_gateway.part03_chat._chat_xkiro", return_value=None):
+        with patch("archipelago.inference.llm_gateway.part03_chat._chat_nvidia", return_value=None):
+            with patch("archipelago.inference.llm_gateway.part03_chat._chat_gemini") as gemini:
+                with patch("archipelago.inference.llm_gateway.part01_config.get_active_provider", return_value="xkiro"):
+                    result = gateway_chat([{"role": "user", "content": "hello"}], purpose="synthesis")
+    assert result is None
+    gemini.assert_not_called()
+
+
+def test_gateway_prefers_xkiro_when_it_is_healthy():
+    """The fallback must not be reached while the primary is answering."""
+    with patch("archipelago.inference.llm_gateway.part03_chat._chat_xkiro", return_value="xkiro answer"):
+        with patch("archipelago.inference.llm_gateway.part03_chat._chat_nvidia") as nvidia:
+            with patch("archipelago.inference.llm_gateway.part01_config.get_active_provider", return_value="xkiro"):
+                result = gateway_chat([{"role": "user", "content": "hello"}], purpose="synthesis")
+    assert result == "xkiro answer"
+    nvidia.assert_not_called()
 
 
 def test_gateway_stream_mock():

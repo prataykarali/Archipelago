@@ -21,7 +21,7 @@ One concern per module, all ≤ 310 lines:
 | `graph.py` | 229 | in-memory concept graph |
 | `render.py` | 41 | markdown graph helpers |
 | `links.py` | 39 | exact-source link lines |
-| `llm.py` | 153 | XKIRO (preferred) / OpenRouter |
+| `llm.py` | 153 | XKIRO (preferred) / NVIDIA NIM |
 | `compose.py` | 197 | synthesis / relation / matrix / shelf / auth |
 | `diagnostics.py` | 212 | diagnostic MCQ + adaptive personalized graph |
 | `answer.py` | 310 | routing, streaming, payload assembly |

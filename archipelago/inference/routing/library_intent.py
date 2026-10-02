@@ -14,6 +14,15 @@ def _detect_library_intent(query: str) -> dict | None:
         return None
 
     from archipelago.inference.library_credentials import detect_credentials_query
+    from archipelago.inference.library_schedules import detect_library_hours_query
+
+    # Combined hours + access ("is the library open on weekends and what is the
+    # opac link?") matched the credential branch and answered with the portal
+    # card alone, silently dropping the schedule — the one half the student
+    # cannot look up anywhere else. Hours is detected independently and carried
+    # as a slot so the dispatcher can answer both halves in one reply.
+    wants_hours = detect_library_hours_query(q) is not None
+    hours_slot = {"also_hours": True} if wants_hours else {}
 
     catalog_stats = (
         ("subject" in ql and any(term in ql for term in ("highest", "leaderboard", "title count")))
@@ -33,7 +42,7 @@ def _detect_library_intent(query: str) -> dict | None:
         return {"intent": "library_resource_lookup", "raw": q}
 
     if re.search(r"\bworking\s+hours\b|\boperating\s+schedule\b|\blibrary\s+(?:hours?|times?|timings?|schedule)\b|\b(?:hours?|times?|timings?)\s+(?:of|for)\s+(?:the\s+)?library\b|\bwhen\s+is\s+(?:the\s+)?library\s+open\b|\btell\s+timing\s+of\s+library\b", ql):
-        return {"intent": "library_hours", "raw": q}
+        return {"intent": "library_hours", "raw": q, "slots": hours_slot}
 
     credential_request = detect_credentials_query(q)
     if credential_request:
@@ -41,7 +50,7 @@ def _detect_library_intent(query: str) -> dict | None:
             "intent": "library_resources",
             "resource_key": credential_request.get("resource_key", ""),
             "raw": q,
-            "slots": {**credential_request.get("slots", {}), "resource_access": True},
+            "slots": {**credential_request.get("slots", {}), "resource_access": True, **hours_slot},
         }
 
     if re.search(
@@ -50,7 +59,19 @@ def _detect_library_intent(query: str) -> dict | None:
         r"sciencedirect|science\s+direct|ieee\s*xplore|springer(?:\s+link)?)\b",
         ql,
     ):
-        return {"intent": "library_resources", "raw": q, "resource_access": True}
+        return {
+            "intent": "library_resources",
+            "raw": q,
+            "resource_access": True,
+            **({"slots": hours_slot} if hours_slot else {}),
+        }
+
+    # 0. Lab manuals and reprography. "Where are the lab manuals?" is a shelf
+    #    location question, but it matched no holdings pattern and fell through
+    #    to the out-of-domain reject — telling a student the library does not
+    #    have the manuals when it stocks them at a known reprography counter.
+    if re.search(r"\b(lab\s+manuals?|xerox|reprography|muskan)\b", ql):
+        return {"intent": "library_materials", "raw": q}
 
     # 1. Book Details / Specific Book Summary
     book_detail_patterns = (
@@ -83,7 +104,7 @@ def _detect_library_intent(query: str) -> dict | None:
         r"\b(open\s+on\s+(?:saturdays?|sundays?|weekends?))\b",
     )
     if any(re.search(p, ql) for p in hours_patterns):
-        return {"intent": "library_hours", "raw": q}
+        return {"intent": "library_hours", "raw": q, "slots": hours_slot}
 
     # 4. Chapter lookup (must run before generic book-recommendation patterns)
     concept_verbs = r"\b(discuss(?:es|ed)?|mention(?:s|ed)?|contain(?:s|ed)?|cover(?:s|ed)?)\b"

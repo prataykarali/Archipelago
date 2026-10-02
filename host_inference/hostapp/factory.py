@@ -11,6 +11,7 @@ from archipelago.middleware.log_redaction import install_log_redaction
 
 from .config import MAX_CONTENT_LENGTH_BYTES, load_env
 from .context import AppContext
+from .corpus_bootstrap import provision
 from .inventory_store import InventoryStore
 from .middleware import register_middleware
 from .routes import register_routes
@@ -42,6 +43,11 @@ def build_context() -> AppContext:
 def create_app(ctx: AppContext | None = None) -> Flask:
     """Create and configure the hosted Flask app.
 
+    Provisions the concept graph first: every corpus artifact is gitignored, so a
+    fresh build has none, and an engine built against an empty graph answers
+    "not indexed" to everything while ``/api/readiness`` still reports healthy.
+    Boot fetch, then the tracked fixture; never raises.
+
     Args:
         ctx: Optional pre-built context. Tests pass fakes; production omits it
             and gets :func:`build_context`.
@@ -52,6 +58,7 @@ def create_app(ctx: AppContext | None = None) -> Flask:
     load_env()
     # Scrub tokens/credentials from access logs before any record is emitted.
     install_log_redaction()
+    provision()
     context = ctx or build_context()
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH_BYTES

@@ -316,7 +316,15 @@ def write_all_artifacts(graph_export: dict, okf_results: list, db,
 
 
 def export_full_json(db, output_path: str):
-    """Export full graph structure (concepts, edges, stats, visualization, index) to JSON."""
+    """Export full graph structure (concepts, edges, stats, visualization, index) to JSON.
+
+    Also emits a top-level ``nodes`` array, aliased from ``visualization.nodes``.
+    Two of the three readers of this file disagreed about where the concept list
+    lived — one read ``nodes``, another ``visualization.nodes``, and the library
+    server read only the latter while ignoring the sibling ``concepts`` block
+    entirely, which made every textbook concept invisible to it.  Emitting all
+    three, from one source, means a reader can no longer be silently empty.
+    """
     import kuzu
     import json
     if hasattr(db, 'execute'):
@@ -328,6 +336,25 @@ def export_full_json(db, output_path: str):
     graph_export = export_graph(conn)
     graph_export["visualization"] = build_visual_graph([], graph_export)
     graph_export["graph_rag_index"] = build_graph_rag_index([], graph_export)
+    # The `concepts` index carries sources, requirements and retrieval text that
+    # the visualization nodes omit, so merge those fields onto the alias.
+    concept_index = graph_export.get("concepts") or {}
+    nodes = []
+    for node in graph_export["visualization"].get("nodes", []):
+        merged = dict(node)
+        extra = concept_index.get(merged.get("id")) or {}
+        if not merged.get("sources") and extra.get("sources"):
+            merged["sources"] = extra["sources"]
+        nodes.append(merged)
+    for cid, concept in concept_index.items():
+        if any(n.get("id") == cid for n in nodes):
+            continue
+        merged = dict(concept)
+        merged.setdefault("id", cid)
+        merged.setdefault("label", merged.get("name") or cid)
+        merged.setdefault("name", merged.get("label") or cid)
+        nodes.append(merged)
+    graph_export["nodes"] = nodes
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(graph_export, f, indent=2, ensure_ascii=False)

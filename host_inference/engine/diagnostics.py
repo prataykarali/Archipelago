@@ -6,6 +6,7 @@ scoring ticks and gaps, and emitting the personalized graph for the chat UI.
 from __future__ import annotations
 
 from .nodes import node_public
+from .pathfinder import SEARCH_ALGORITHM, learning_path
 
 # Diagnostic / adaptive-quiz caps.
 MCQ_DISTRACTORS = 3
@@ -108,6 +109,25 @@ def _roadmap_step(graph, cid: str) -> dict:
     }
 
 
+def _personalized_roadmap(graph, target: str, mastered_ids: list[str], gap_ids: list[str]) -> dict:
+    """Roadmap ordered by shortest path through *unmastered* material.
+
+    The chain is the static prerequisite order; this is the personalised one.
+    Nodes the student has already passed are excluded from the search, so the
+    plan never re-teaches a validated concept, and review gaps carry a penalty so
+    the route consolidates them instead of bypassing them.
+    """
+    mastered = frozenset(mastered_ids)
+    gaps = frozenset(gap_ids)
+    order = learning_path(graph, target, mastered, gaps)
+    return {
+        "algorithm": SEARCH_ALGORITHM,
+        "skipped_mastered": [cid for cid in mastered if cid != target],
+        "hops": max(len(order) - 1, 0),
+        "steps": [_roadmap_step(graph, cid) for cid in order if cid in graph.nodes],
+    }
+
+
 def adaptive_step(engine, body: dict) -> dict:
     """Advance one adaptive-quiz step and return the personalized graph."""
     graph = engine.graph
@@ -127,7 +147,6 @@ def adaptive_step(engine, body: dict) -> dict:
         "is_correct": is_tick,
         "choice": choice,
     })
-    chain = body.get("chain") or mcq_for(engine, target, 0)["chain"]
     asked = len(history)
     mastered_ids = [row["concept_id"] for row in history if row.get("is_correct")]
     gap_ids = [row["concept_id"] for row in history if not row.get("is_correct")]
@@ -188,10 +207,7 @@ def adaptive_step(engine, body: dict) -> dict:
         "full_score": ticks >= MASTERY_TICKS,
         "zero_score": not mastered_ids,
         "personalized_graph": {"nodes": nodes, "edges": edges},
-        "roadmap": {
-            "hops": max(len(chain) - 1, 1),
-            "steps": [_roadmap_step(graph, cid) for cid in chain if cid in graph.nodes],
-        },
+        "roadmap": _personalized_roadmap(graph, target, mastered_ids, gap_ids),
     }
     return {
         "is_tick": is_tick,

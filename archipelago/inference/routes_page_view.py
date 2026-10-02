@@ -167,14 +167,11 @@ def page_view():  # type: ignore[return]
             "is_pearson": True,
         }), 200
 
-    if request.method == "GET" and not wants_json:
-        if pearson_url:
-            return redirect(pearson_url, code=302)
-        target = f"/read/{quote(doc_id, safe='')}?page={page}#page={page}"
-        return redirect(target, code=302)
-
     if not found_chunk and not passage:
-        # Explicit miss — never invent a first-chunk fallback for random docs
+        # Explicit miss — never invent a first-chunk fallback for random docs.
+        # Checked *before* the browser redirect above so a bogus doc_id returns a
+        # 404 to API callers instead of a 302 into a reader that will also fail;
+        # the redirect is a nicety for humans following a citation link.
         return jsonify({
             "error": f"Cited page {page} not found for document '{doc_id_raw}'.",
             "doc_id": doc_id,
@@ -186,6 +183,11 @@ def page_view():  # type: ignore[return]
             "pdf_available": bool(avail),
             "url": f"/pdfs/{quote(doc_id, safe='/')}#page={page}" if doc_id else "",
         }), 404
+
+    if request.method == "GET" and not wants_json:
+        target = f"/read/{quote(doc_id, safe='')}?page={page}#page={page}"
+        return redirect(target, code=302)
+
 
     if not passage:
         passage = (

@@ -11,6 +11,7 @@ registers every route; the implementation lives in sibling modules:
 - ``routes_discovery`` — topic suggestions, roadmap, diagnostic MCQs
 - ``routes_library``   — catalog search, e-resources, document inventory
 - ``routes_docs``      — /api/readiness, /api/upload
+- ``routes_acquisition`` — librarian demand digest + acquisition plan
 """
 
 from __future__ import annotations
@@ -44,6 +45,7 @@ init_engine()
 # Importing these modules registers their routes and request hooks on ``app``.
 from archipelago.api import (
     middleware,
+    routes_acquisition,  # noqa: F401 - imported for route registration
     routes_auth,
     routes_chat,
     routes_discovery,

@@ -61,7 +61,11 @@ def test_openrouter_is_not_a_provider() -> None:
 
 def test_nvidia_defaults() -> None:
     assert llm.NVIDIA_BASE_URL == "https://integrate.api.nvidia.com/v1"
-    assert llm.NVIDIA_DEFAULT_MODEL == "deepseek-ai/deepseek-v4.1-flash"
+    # Measured against the provisioned model list for this key: deepseek-v4.1-flash
+    # answered once and then timed out on every call, and several candidates in
+    # the catalogue return 410 Gone / 404 Not Found. nemotron-3-super is the
+    # strongest model on the list that responds reliably (<1s warm).
+    assert llm.NVIDIA_DEFAULT_MODEL == "nvidia/nemotron-3-super-120b-a12b"
 
 
 def test_no_key_yields_no_config() -> None:

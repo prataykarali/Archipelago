@@ -12,8 +12,8 @@ import time
 
 logger = logging.getLogger(__name__)
 
-# Thread Safety for configuration
-_config_lock = threading.Lock()
+# Thread Safety for configuration.
+_config_lock = threading.RLock()
 _is_configured = False
 _openai_client = None
 
@@ -22,14 +22,31 @@ LLM_UNAVAILABLE_MSG = (
     "The library is currently closed. Please hold while I stoke the intellectual furnaces..."
 )
 
-# Provider & API Configuration — xkiro stays primary
+# Provider & API Configuration — the chain is xkiro → nvidia.
+#
+# OpenRouter was removed deliberately: NVIDIA NIM is cheaper, logs no prompts
+# through a third party, and keeps the key inside one vendor.  Gemini is no
+# longer in the default chain either; it stays reachable only when an operator
+# pins ARCHIPELAGO_LLM_PROVIDER=gemini, which keeps the deployment honest (no
+# silent third-party prompt logging) without deleting working code.
 XKIRO_BASE_URL = os.environ.get("XKIRO_BASE_URL", "https://api.xkiro.com/v1")
 XKIRO_API_KEY = os.environ.get("XKIRO_API_KEY", "").strip()
 XKIRO_DEFAULT_MODEL = os.environ.get("XKIRO_MODEL", "qwen/qwen3.8-max:free")
 
+NVIDIA_BASE_URL = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
+NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "").strip()
+NVIDIA_DEFAULT_MODEL = os.environ.get("NVIDIA_MODEL", "deepseek-ai/deepseek-v4.1-flash")
+
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 
 DEFAULT_PROVIDER = os.environ.get("ARCHIPELAGO_LLM_PROVIDER", "xkiro").lower()
+
+#: Failover order when no provider is pinned. Both speak the OpenAI
+#: chat-completions protocol, so one call path serves both.
+PROVIDER_FALLBACK_ORDER = ("xkiro", "nvidia")
+
+#: Providers reachable only when explicitly pinned, never as a silent fallback.
+_PINNED_ONLY = ("gemini",)
 
 GEMINI_MODELS = {
     "gemini-3.5-flash": "gemini-3.5-flash",
@@ -56,6 +73,12 @@ MAX_RETRY_AFTER_SECONDS = 3.0
 MIN_RETRY_DELAY_SECONDS = 0.1
 AVAILABILITY_TTL_SECONDS = 5.0
 AVAILABILITY_TIMEOUT_SECONDS = 8
+# A cold NIM reasoning model needs longer to answer a one-word ping than a
+# free-tier xkiro model does; probing it with the xkiro timeout reports a
+# healthy NVIDIA endpoint as down and pushes traffic to whatever comes next.
+NVIDIA_AVAILABILITY_TIMEOUT_SECONDS = 30
+#: NVIDIA NIM reasoning models answer slowly; the SDK default of 60s is not enough.
+DEFAULT_NVIDIA_TIMEOUT_SECONDS = 120
 AVAILABILITY_MAX_TOKENS = 5
 AVAILABILITY_PING = "ping"
 
@@ -83,8 +106,59 @@ def xkiro_retry_delay(exc: Exception, attempt: int) -> float | None:
 
 
 def get_active_provider() -> str:
-    """Return active provider ('xkiro' or 'gemini')."""
-    return os.environ.get("ARCHIPELAGO_LLM_PROVIDER", DEFAULT_PROVIDER).lower()
+    """Return the pinned provider name, or the head of the fallback chain.
+
+    ``gemini`` is accepted for backwards compatibility but is not in
+    ``PROVIDER_FALLBACK_ORDER``: it is reachable only when explicitly pinned.
+    """
+    pinned = os.environ.get("ARCHIPELAGO_LLM_PROVIDER", "").strip().lower()
+    if pinned:
+        return pinned
+    return PROVIDER_FALLBACK_ORDER[0]
+
+
+def nvidia_chat(
+    payload: dict,
+    stream: bool = False,
+    timeout: int = DEFAULT_NVIDIA_TIMEOUT_SECONDS,
+):
+    """Call NVIDIA NIM over plain HTTP and return the decoded body.
+
+    Deliberately *not* the OpenAI SDK.  The SDK's transport (HTTP/2 plus
+    Brotli/zstd content negotiation) stalls against ``integrate.api.nvidia.com``
+    — every SDK call timed out at 90s while an identical ``requests.post``
+    returned 200 in seconds.  The hosted engine already talks to the endpoint with
+    ``requests``; this keeps the two stacks on one working transport instead of
+    shipping a fallback that reports NVIDIA as permanently down.
+
+    Returns the parsed JSON dict, or ``None`` on any failure.
+    """
+    import requests
+
+    api_key = os.environ.get("NVIDIA_API_KEY", NVIDIA_API_KEY).strip()
+    base_url = os.environ.get("NVIDIA_BASE_URL", NVIDIA_BASE_URL).rstrip("/")
+    if not api_key:
+        return None
+    body = dict(payload)
+    body.setdefault("model", os.environ.get("NVIDIA_MODEL", NVIDIA_DEFAULT_MODEL))
+    try:
+        response = requests.post(
+            f"{base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                # Avoid content encodings the endpoint negotiates badly.
+                "Accept-Encoding": "identity",
+            },
+            json=body,
+            stream=stream,
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        return response
+    except Exception as exc:
+        logger.warning("nvidia request failed: %s", exc.__class__.__name__)
+        return None
 
 
 def configure_gateway():
@@ -105,7 +179,10 @@ def configure_gateway():
             except Exception as exc:
                 logger.warning("Failed to initialize OpenAI client for xkiro: %s", exc)
 
-            # 2. Initialize Gemini GenAI client (failover)
+            # 2. NVIDIA NIM needs no client object: it is called over requests
+            #    in nvidia_chat, because the OpenAI SDK transport stalls on this host.
+
+            # 3. Gemini — kept importable, not in the default chain.
             try:
                 import google.generativeai as genai
 
@@ -120,8 +197,38 @@ def configure_gateway():
             _is_configured = True
 
 
+def _probe_openai_compatible(client, model: str, label: str, timeout: int) -> bool:
+    """Whether an OpenAI-compatible endpoint answers a trivial ping.
+
+    Judged on ``res.choices`` rather than on returned text: the NVIDIA NIM
+    reasoning models spend their first tokens on ``reasoning_content`` and can
+    exhaust a tiny ``max_tokens`` before emitting any visible content, so an
+    empty completion there means "answered, no text yet", not "unreachable".
+    The timeout is passed per provider because a cold reasoning endpoint needs
+    far longer than a free-tier xkiro model.
+    """
+    try:
+        res = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": AVAILABILITY_PING}],
+            max_tokens=AVAILABILITY_MAX_TOKENS,
+            timeout=timeout,
+        )
+        return bool(res.choices)
+    except Exception as exc:
+        logger.warning("%s availability check failed: %s", label, exc)
+        return False
+
+
 def is_llm_available() -> bool:
-    """Check if LLM API is reachable. 5-second TTL cache."""
+    """Check if the provider chain is reachable. 5-second TTL cache.
+
+    Probes each leg of ``PROVIDER_FALLBACK_ORDER`` in turn, so an xkiro outage
+    reports the chain as available while NVIDIA is serving.  The probe judges
+    ``res.choices``, never returned text: NVIDIA NIM reasoning models spend
+    their first tokens on ``reasoning_content``, so an empty content field there
+    means "answered, no prose yet", not "unreachable".
+    """
     global _availability_cache
     now = time.time()
     if now - _availability_cache["time"] < AVAILABILITY_TTL_SECONDS:
@@ -130,32 +237,35 @@ def is_llm_available() -> bool:
     configure_gateway()
     provider = get_active_provider()
     status = False
+    last_provider = provider
 
-    # Try active provider (xkiro first)
-    if provider == "xkiro" and _openai_client is not None:
-        try:
-            res = _openai_client.chat.completions.create(
-                model=XKIRO_DEFAULT_MODEL,
-                messages=[{"role": "user", "content": AVAILABILITY_PING}],
-                max_tokens=AVAILABILITY_MAX_TOKENS,
-                timeout=AVAILABILITY_TIMEOUT_SECONDS,
-            )
-            status = bool(res.choices)
-        except Exception as e:
-            logger.warning("xkiro availability check failed: %s; trying gemini fallback", e)
-            provider = "gemini"
+    if provider == "xkiro" and _openai_client is not None and _probe_openai_compatible(
+        _openai_client, XKIRO_DEFAULT_MODEL, "xkiro", AVAILABILITY_TIMEOUT_SECONDS
+    ):
+        status = True
 
     if not status:
+        nvidia_body = nvidia_chat(
+            {"messages": [{"role": "user", "content": AVAILABILITY_PING}],
+             "max_tokens": AVAILABILITY_MAX_TOKENS},
+            timeout=NVIDIA_AVAILABILITY_TIMEOUT_SECONDS,
+        )
+        if nvidia_body is not None:
+            status, last_provider = True, "nvidia"
+
+    # Gemini is a last resort *only* when no NVIDIA key is configured. With one
+    # present the deployment stays inside the declared xkiro → nvidia chain
+    # rather than silently shipping prompts to a provider nobody pinned.
+    if not status and provider not in _PINNED_ONLY and not NVIDIA_API_KEY:
         try:
             import google.generativeai as genai
 
             list(genai.list_models())
-            status = True
-        except Exception as e:
-            logger.error("Gemini availability check also failed: %s", e)
-            status = False
+            status, last_provider = True, "gemini"
+        except Exception as exc:
+            logger.error("No provider in the fallback chain is reachable: %s", exc)
 
     _availability_cache["status"] = status
     _availability_cache["time"] = time.time()
-    _availability_cache["provider"] = provider
+    _availability_cache["provider"] = last_provider
     return status

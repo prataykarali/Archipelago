@@ -45,7 +45,14 @@ DEFAULT_MCQ_CORRECT = 2
 DEFAULT_MCQ_SCORE = 0.5
 
 _PUBLIC_AUTH_PATHS = frozenset({"/api/readiness", "/api/auth/config"})
-_LIBRARIAN_OR_ADMIN_PATHS = frozenset({"/api/upload", "/api/users"})
+_LIBRARIAN_OR_ADMIN_PATHS = frozenset({
+    "/api/upload",
+    "/api/users",
+    # Procurement signals: what students asked for that the library does not
+    # hold, and what could be bought to fix it. Never student-facing.
+    "/api/librarian/demand-digest",
+    "/api/librarian/acquisition-plan",
+})
 _LIBRARIAN_OR_ADMIN_ROLES = frozenset({"librarian", "administrator"})
 _UPLOAD_ALLOWED_SUFFIXES = (".pdf", ".md", ".markdown", ".txt")
 
@@ -86,7 +93,16 @@ def ensure_pdf_dir() -> None:
 
 
 def load_concepts_data() -> int:
-    """Load the concept index from the graph export; returns the concept count."""
+    """Load the concept index from the graph export; returns the concept count.
+
+    Merges both halves of the export.  ``visualization.nodes`` holds the
+    automatically extracted AI/ML nodes; the sibling ``concepts`` block holds the
+    hand-curated *textbook* concepts — third normal form, LoRA, BERT, attention,
+    RAG.  Loading only the first meant "Explain third normal form" had no anchor,
+    scored below the similarity floor, and was deflected as out-of-scope: the
+    entire database-and-PEFT curriculum the response contract is written around
+    was invisible to this stack.  The hosted engine has always merged them.
+    """
     if not DATA_FILE.is_file():
         return 0
     try:
@@ -95,11 +111,22 @@ def load_concepts_data() -> int:
     except Exception as exc:
         logger.warning("Failed loading %s: %s", DATA_FILE.name, exc)
         return 0
+
     nodes = raw.get("visualization", {}).get("nodes", []) or raw.get("nodes", [])
     for node in nodes:
         cid = node.get("id", "")
         if cid:
             _concepts_data[cid] = node
+
+    for cid, concept in (raw.get("concepts") or {}).items():
+        if not cid or not isinstance(concept, dict) or cid in _concepts_data:
+            continue
+        merged = dict(concept)
+        merged.setdefault("id", cid)
+        merged.setdefault("label", merged.get("name") or cid)
+        merged.setdefault("name", merged.get("label") or cid)
+        _concepts_data[cid] = merged
+
     return len(_concepts_data)
 
 

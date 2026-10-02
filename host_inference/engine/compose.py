@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 
-from .constants import KILL_SWITCH, PORTALS, SHELF
+from .constants import KILL_SWITCH, PORTALS, SCHEDULE, SHELF
 from .render import arrow, lineage, neighborhood_block
 
 # Comparative matrix cells are trimmed to keep the table readable.
@@ -56,21 +56,39 @@ def resolve_fragment(engine, fragment: str) -> tuple[str | None, bool]:
 
 
 def synthesis(engine, cid: str) -> str:
-    """The default grounded concept reply: summary, lineage, formula, links."""
+    """The contract's master template, sections 1-3.
+
+    Ordered so the answer is usable before the scaffolding is read: the direct
+    definition first, then the ``REQUIRES ➔ UNLOCKS`` path, then the grounded
+    detail and its page provenance.  Section 4 (physical inventory) is appended
+    by :mod:`engine.inventory_card` once the catalogue has been consulted, so a
+    concept with no holdings never gets an empty card.
+    """
     graph = engine.graph
     node = graph.nodes[cid]
     summary = (node.get("summary") or "Indexed catalog concept.").strip()
     cite = graph.citation(cid)
     formula = graph.formula(cid)
     lines = [
+        "### 1. Concept Definition",
+        "",
         f"**{graph.label(cid)}.** {summary} {cite}",
         "",
-        f"**Topological graph sequence.** {lineage(graph, cid)}",
+        "### 2. Topological Graph Path",
+        "",
+        f"`REQUIRES ➔ UNLOCKS` {lineage(graph, cid)}",
     ]
     if formula:
         lines.extend(["", f"**LaTeX derivation.** {formula}"])
+    lines.extend([
+        "",
+        "### 3. Grounded Synthesis & Page Provenance",
+        "",
+    ])
+    if formula:
+        lines.append(f"The derivation above is the indexed form for {graph.label(cid)}.")
     else:
-        lines.extend(["", f"**Provenance.** Grounded in the catalog summary above. {cite}"])
+        lines.append(f"Grounded in the catalog summary above. {cite}")
     link = engine.pearson_line(cid)
     if link:
         lines.extend(["", link])
@@ -178,20 +196,66 @@ def shelf_generic(engine, cid: str) -> str:
 
 def auth_card(query: str) -> str:
     """Render the institutional-access portal card."""
-    q = query.lower()
-    chosen = [row for row in PORTALS if row[0].split()[0].lower() in q or row[0].lower() in q]
-    if not chosen:
-        chosen = PORTALS[:4]
     lines = [
         "[RENDER_AUTH_CARD]",
         "**Institutional access.** Sign in with your own campus account. This assistant does not store or reveal passwords.",
         "",
     ]
-    for name, url, how in chosen:
-        lines.append(f"- **{name}.** {url} — {how}.")
-    lines.append("")
+    lines.extend(_portal_lines(query))
     lines.append(
         "If a title is paywalled outside these portals, borrow a reciprocal membership card "
         "(British Council Library or American Library) from the Central Library front desk."
     )
     return "\n".join(lines)
+
+
+def admin_card(query: str, wants_hours: bool, wants_access: bool) -> str:
+    """Contract type 3: the schedule and the access portals in one card.
+
+    Students ask both halves in a single sentence ("how do I access IEEE
+    off-campus, and what are library Sunday hours?").  Routing that to *either*
+    the schedule sheet or the portal list silently drops half the question, and
+    dropping the schedule half loses the one fact the student cannot look up.
+    So: render whichever halves were actually asked for, and never a graph.
+    """
+    q = query.lower()
+    if wants_hours and wants_access:
+        lines = [
+            "[RENDER_AUTH_CARD]",
+            "**Institutional access.** Sign in with your own campus account. This assistant does not store or reveal passwords.",
+            "",
+            "**Central Library schedule**",
+            "",
+            *SCHEDULE,
+            "",
+            *[_portal_row(line) for line in _portal_lines(q)],
+            "",
+            "If a title is paywalled outside these portals, borrow a reciprocal membership card "
+            "(British Council Library or American Library) from the Central Library front desk.",
+        ]
+        return "\n".join(lines)
+    if wants_hours:
+        lines = ["**Central Library schedule**", "", *SCHEDULE, ""]
+        lines.append("Source: Central Library Academic Schedule.")
+        return "\n".join(lines)
+    return auth_card(query)
+
+
+def _portal_rows(query: str) -> list[str]:
+    """Portal bullet lines for the databases named in ``query``."""
+    return [_portal_row(line) for line in _portal_lines(query)]
+
+
+def _portal_row(line: str) -> str:
+    """Prefix a portal description with the bullet the chat UI expects."""
+    return line if line.startswith("- ") else f"- {line}"
+
+
+def _portal_lines(query: str) -> list[str]:
+    """The portal descriptions matching ``query``, defaulting to the core four."""
+    q = query.lower()
+    chosen = [row for row in PORTALS if row[0].split()[0].lower() in q or row[0].lower() in q]
+    if not chosen:
+        chosen = PORTALS[:4]
+    return [f"**{name}.** {url} — {how}." for name, url, how in chosen]
+

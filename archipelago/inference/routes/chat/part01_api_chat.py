@@ -24,6 +24,7 @@ from archipelago.inference.routes.chat.part03_library_routes import (
     handle_library_chapters,
     handle_library_holdings,
     handle_library_hours,
+    handle_library_materials,
     handle_library_resources,
 )
 from archipelago.inference.routes.chat.part04_fallback_routes import (
@@ -50,6 +51,7 @@ ROUTE_HANDLERS = {
     "library_book_details": handle_library_book_details,
     "library_resources": handle_library_resources,
     "library_hours": handle_library_hours,
+    "library_materials": handle_library_materials,
     "library_holdings": handle_library_holdings,
     "library_books": handle_library_books,
     "library_chapters": handle_library_chapters,

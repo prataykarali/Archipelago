@@ -21,7 +21,7 @@ from __future__ import annotations
 import enum
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,7 @@ class QueryIntent(str, enum.Enum):
     INGESTION_ANALYSIS = "INGESTION_ANALYSIS"
     GRAPH_SYNTHESIS = "GRAPH_SYNTHESIS"
     TOPIC_SUGGESTION = "TOPIC_SUGGESTION"
+    GUARDRAIL_INTERCEPT = "GUARDRAIL_INTERCEPT"
 
 
 # ── Malicious / Prompt Injection Patterns ─────────────────────────────────────
@@ -89,21 +90,89 @@ _DUAL_ENTITY_PATTERNS = [
 _MCQ_PATTERNS = [
     re.compile(r"\b(quiz|diagnostic|assessment|test\s+my\s+knowledge|practice\s+questions?|mcqs?)\b", re.I),
     re.compile(r"\b(roadmap\s+quiz|prerequisite\s+test|knowledge\s+check)\b", re.I),
+    # Curriculum requests are contract type 4 in their own right. They matched
+    # nothing before, so "I want to learn RAG" fell through to GRAPH_SYNTHESIS
+    # and answered a definition instead of offering the learning path.
+    re.compile(
+        r"\b(i\s+want\s+to\s+learn|i'?d\s+like\s+to\s+learn|teach\s+me|"
+        r"show\s+(?:me\s+)?(?:the\s+)?learning\s+(?:roadmap|path)|"
+        r"learning\s+roadmap|what\s+should\s+i\s+study\s+first|"
+        r"prepare\s+me\s+for|revision\s+plan|study\s+plan)\b",
+        re.I,
+    ),
 ]
 
 _CATALOG_SHELF_PATTERNS = [
     re.compile(r"\b(shelf|stacks?|call\s+number|floor|aisle|barcode|holdings?|physical\s+copy|borrow|checkout|copies\s+available)\b", re.I),
     re.compile(r"\b(where\s+is\s+the\s+book|find\s+on\s+shelf|library\s+shelf|catalog\s+search)\b", re.I),
+    # "How many copies of X are available" and "Where are the lab manuals" are
+    # location questions. Neither matched, so both were answered as concept
+    # queries and scored against the curriculum kill-switch.
+    re.compile(r"\bhow\s+many\s+(?:physical\s+)?copies\b", re.I),
+    re.compile(r"\b(?:lab\s+manuals?|xerox|reprography)\b", re.I),
+    re.compile(r"\bwhere\s+(?:are|is|do\s+i\s+find|can\s+i\s+find)\b.*\b(?:manual|handbook|textbook|book)\b", re.I),
 ]
 
 _AUTH_GATEWAY_PATTERNS = [
     re.compile(r"\b(ndli|ieee(?:\s+explore)?|scopus|sciencedirect|springer|acm\s+digital\s+library)\b", re.I),
     re.compile(r"\b(e-?resources?|portal\s+link|passkey|credentials?|institutional\s+login|proxy\s+access)\b", re.I),
+    # Contract type 3 covers operating hours as well as database access. Hours
+    # had no pattern at all, so "what are the library Sunday hours" was scored as
+    # an out-of-corpus concept question and deflected.
+    re.compile(r"\b(opac\s+link|off-?campus|remote\s+access|proxy\s+login)\b", re.I),
+    re.compile(
+        r"\b(?:(?:library|reading\s+room|circulation|lending|reference)\s+)?"
+        r"(?:opening\s+hours|working\s+hours|timetable)\b",
+        re.I,
+    ),
+    # Day-scoped hours: "library Sunday hours", "Monday timings", "is the library
+    # open on weekends". Requiring the two words to be adjacent meant any day or
+    # status qualifier broke the match.
+    re.compile(
+        r"\b(?:library|reading\s+room|circulation\s+desk)?\s*"
+        r"(sun(?:day)?|mon(?:day)?|tues(?:day)?|wed(?:nesday)?|thur(?:sday)?|"
+        r"fri(?:day)?|sat(?:urday)?|weekend|weekday|holiday)\s+"
+        r"(?:hours?|timings?|schedule|open(?:ing)?)\b",
+        re.I,
+    ),
+    re.compile(r"\b(?:is|are)\s+the\s+(?:library|reading\s+room|circulation\s+desk)\s+open\b", re.I),
+    re.compile(r"\bwhat\s+time\s+(?:does|do|is)\b.*\b(?:library|desk|open|close)\b", re.I),
 ]
 
 _INGESTION_ANALYSIS_PATTERNS = [
     re.compile(r"\b(uploaded|newly\s+ingested|uploaded\s+paper|theorem\s+\d+|formula|equation\s+\d+|deep\s*link|#page=\d+)\b", re.I),
     re.compile(r"\b(pdf\s+page|view\s+passage|cite\s+paper|paper\s+analysis)\b", re.I),
+    # "Analyze this uploaded PDF" already matched the previous upload pattern, but
+    # "extract the OKF nodes from my uploaded paper" did not, because the pattern
+    # demanded the literal word "uploaded" and these phrasings say "this PDF" or
+    # "my uploaded manuscript".
+    re.compile(
+        r"\b(?:analy[sz]e|extract|ingest|index|project)\b[^.?!]{0,40}\b"
+        r"(?:this|my|the|attached|uploaded)?\s*"
+        r"(?:pdf|paper|document|file|okf|manuscript)\b",
+        re.I,
+    ),
+    re.compile(r"\b(?:okf\s+nodes?|ingestion\s+graph|new\s+nodes?\s+from)\b", re.I),
+]
+
+# Contract type 6, checked before the curriculum/concept patterns: a request to
+# write code is a scope deflection even when it is dressed as coursework
+# ("write a Python script to solve B+ tree insertions").
+_GUARDRAIL_PATTERNS = [
+    # "write a Python web scraper" names the language, then a *thing being
+    # built*. Requiring the implementation noun immediately after the language
+    # missed every phrasing that inserted a descriptor, which is most of them.
+    re.compile(
+        r"\b(?:write|create|generate|give|show)\s+(?:me\s+)?(?:a\s+|an\s+)?"
+        r"(?:\w+\s+){0,3}?(?:python|java|c\+\+|c#|javascript|js|typescript|ts|sql|"
+        r"bash|shell|go|rust|ruby|php|scala|kotlin|react)\b",
+        re.I,
+    ),
+    re.compile(r"\b(?:python|java|javascript|node)\s+(?:web\s+)?(?:scraper|crawler|bot|spider)\b", re.I),
+    re.compile(r"\bwrite\s+(?:me\s+)?(?:the\s+|a\s+|an\s+)?\w+\s+script\s+to\b", re.I),
+    re.compile(r"\b(?:pip\s+install|npm\s+install|yarn\s+add|dockerfile|docker\s+compose|apt-get\s+install)\b", re.I),
+    re.compile(r"\b(?:recipe|cook|bake|lasagna|pasta\s+recipe|what'?s\s+for\s+dinner)\b", re.I),
+    re.compile(r"\b(?:tell\s+me\s+a\s+)?(?:joke|horoscope|astrological\s+sign)\b", re.I),
 ]
 
 
@@ -120,7 +189,7 @@ class QueryRouter:
         self.tier2_threshold = tier2_threshold
         self.max_query_len = max_query_len
 
-    def validate_and_normalize(self, raw_query: str) -> Tuple[bool, str, Optional[str]]:
+    def validate_and_normalize(self, raw_query: str) -> tuple[bool, str, str | None]:
         """Validate length bounds, intercept malicious injections, and strip conversational noise.
 
         Returns:
@@ -160,7 +229,7 @@ class QueryRouter:
         final_query = norm if norm else cleaned
         return True, final_query, None
 
-    def detect_dual_entities(self, query: str) -> List[str]:
+    def detect_dual_entities(self, query: str) -> list[str]:
         """Detect bridge queries containing two distinct entities (Fixes TC-04 bug).
 
         Example:
@@ -187,11 +256,23 @@ class QueryRouter:
         return []
 
 
-    def classify_intent(self, query: str, dual_entities: Optional[List[str]] = None) -> QueryIntent:
-        """Classify normalized query into one of the 6 core intent patterns."""
+    def classify_intent(self, query: str, dual_entities: list[str] | None = None) -> QueryIntent:
+        """Classify normalized query into one of the contract types.
+
+        Order is load-bearing. Scope refusals are tested first so that a request
+        framed as coursework ("write a Python script for my B+ tree assignment")
+        is a guardrail intercept rather than a curriculum question, and the three
+        static-institution intents are tested before the concept default so an
+        hours query is never scored against the curriculum corpus.
+        """
         ql = query.lower()
 
-        # 1. MCQ_DIAGNOSTIC
+        # 6. GUARDRAIL_INTERCEPT — checked first, see docstring.
+        for pat in _GUARDRAIL_PATTERNS:
+            if pat.search(ql):
+                return QueryIntent.GUARDRAIL_INTERCEPT
+
+        # 1. MCQ_DIAGNOSTIC (includes plain curriculum learning requests).
         for pat in _MCQ_PATTERNS:
             if pat.search(ql):
                 return QueryIntent.MCQ_DIAGNOSTIC
@@ -201,17 +282,17 @@ class QueryRouter:
             if pat.search(ql):
                 return QueryIntent.CATALOG_SHELF_ROUTING
 
-        # 3. AUTH_GATEWAY
+        # 3. AUTH_GATEWAY (operating hours and e-resource access both land here)
         for pat in _AUTH_GATEWAY_PATTERNS:
             if pat.search(ql):
                 return QueryIntent.AUTH_GATEWAY
 
-        # 4. INGESTION_ANALYSIS
+        # 5. INGESTION_ANALYSIS
         for pat in _INGESTION_ANALYSIS_PATTERNS:
             if pat.search(ql):
                 return QueryIntent.INGESTION_ANALYSIS
 
-        # 5. Dual entity queries default to GRAPH_SYNTHESIS
+        # 4. Dual entity queries default to GRAPH_SYNTHESIS
         if dual_entities and len(dual_entities) >= 2:
             return QueryIntent.GRAPH_SYNTHESIS
 
@@ -239,8 +320,8 @@ class QueryRouter:
     def route_query(
         self,
         raw_query: str,
-        retriever_fn: Optional[Any] = None,
-    ) -> Dict[str, Any]:
+        retriever_fn: Any | None = None,
+    ) -> dict[str, Any]:
         """Comprehensive routing entrypoint.
 
         Validates, normalizes, detects dual entities, classifies intent,
@@ -263,8 +344,33 @@ class QueryRouter:
         dual_ents = self.detect_dual_entities(norm_q)
         intent = self.classify_intent(norm_q, dual_entities=dual_ents)
 
-        # Non-graph intents (Catalog, Auth, Diagnostic) bypass concept cosine thresholding
-        if intent in (QueryIntent.CATALOG_SHELF_ROUTING, QueryIntent.AUTH_GATEWAY, QueryIntent.MCQ_DIAGNOSTIC):
+        # Scope refusals are contract type 6, reported through the pipeline's
+        # existing out_of_scope stage so every consumer keeps working unchanged.
+        # The *reason* — code generation versus off-topic — is carried on
+        # ``intent``, so the caller can say the right thing without guessing.
+        if intent == QueryIntent.GUARDRAIL_INTERCEPT:
+            return {
+                "route": "out_of_scope",
+                "tier": RoutingTier.TIER_3_REJECT.value,
+                "intent": intent.value,
+                "normalized_query": norm_q,
+                "dual_entities": dual_ents,
+                "similarity": 0.0,
+                "error": "Out of scope",
+                "message": OUT_OF_SCOPE_MESSAGE,
+            }
+
+        # Static-institution and scope intents never depend on the concept corpus,
+        # so they bypass cosine thresholding entirely: "what are the Sunday
+        # hours" has no semantic similarity to any concept node, and scoring it
+        # against the corpus was the original cause of hours being deflected as
+        # out-of-scope.
+        if intent in (
+            QueryIntent.CATALOG_SHELF_ROUTING,
+            QueryIntent.AUTH_GATEWAY,
+            QueryIntent.MCQ_DIAGNOSTIC,
+            QueryIntent.INGESTION_ANALYSIS,
+        ):
             return {
                 "route": "execute",
                 "tier": RoutingTier.TIER_1_EXECUTE.value,

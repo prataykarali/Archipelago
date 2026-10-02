@@ -8,6 +8,7 @@ from typing import Any
 from flask import Response, jsonify, request
 
 from archipelago.api import engine_state as state
+from archipelago.api.contract_handlers import direct_intent_reply, guardrail_text
 from archipelago.api.engine_state import (
     DEFAULT_ANCHOR,
     DEFAULT_DIFFICULTY,
@@ -20,6 +21,12 @@ from archipelago.api.engine_state import (
     concept_name,
     concept_node,
     ensure_engine,
+)
+from archipelago.core.contract import (
+    GRAPH_SYNTHESIS,
+    GUARDRAIL_INTERCEPT,
+    contract_for,
+    graph_decision,
 )
 from archipelago.core.router import (
     OUT_OF_SCOPE_MESSAGE,
@@ -34,13 +41,6 @@ REJECTED_STATUS = 400
 SUCCESS_STATUS = 200
 ANCHOR_TOP_K = 1
 MIN_DUAL_ENTITIES = 2
-CATALOG_SHELF_FALLBACK = (
-    "The catalog shelf coordinates are located in Central Library Stack Room A (Floors 2 & 3)."
-)
-AUTH_GATEWAY_FALLBACK = (
-    "Institutional e-resources (NDLI, IEEE Xplore, Scopus, ScienceDirect) are accessible "
-    "via the Central Library Portal using your institutional SSO credentials."
-)
 
 
 def _score_query(term: str) -> tuple[float, Any]:
@@ -54,67 +54,51 @@ def _score_query(term: str) -> tuple[float, Any]:
     return 0.0, None
 
 
-def _catalog_shelf_answer() -> str:
-    """Subject-wise holdings summary, with a stack-room fallback."""
-    try:
-        from archipelago.inference.catalog_ops import subject_title_counts
+def _contract_payload(status: str, contract: str, **fields: Any) -> dict[str, Any]:
+    """Stamp every chat response with its contract and graph-render decision.
 
-        counts = subject_title_counts(limit=TOPIC_SUGGEST_LIMIT)
-        lines = ["### Institutional Library Holdings\n"]
-        for c in counts:
-            lines.append(
-                f"- **{c.get('subject')}**: {c.get('title_count')} titles available in stacks"
-            )
-        return "\n".join(lines)
-    except Exception:
-        return CATALOG_SHELF_FALLBACK
-
-
-def _auth_gateway_answer(norm_q: str) -> str:
-    """Redacted institutional access guidance."""
-    try:
-        from archipelago.inference.eresource_credentials import format_credential_reply
-
-        return format_credential_reply(norm_q)
-    except Exception:
-        return AUTH_GATEWAY_FALLBACK
+    The UI draws the in-chat graph from ``render_graph``.  Deriving it here, from
+    the contract, rather than leaving each branch to remember, is what makes the
+    show/hide protocol deterministic.
+    """
+    decision = graph_decision(contract)
+    return {
+        "status": status,
+        "contract": contract,
+        "render_graph": decision.render,
+        "render_rule": decision.rule,
+        **fields,
+    }
 
 
-def _handle_direct_intents(intent: str, norm_q: str):
-    """Answer catalog/auth/MCQ intents directly; None when the pipeline continues."""
-    if intent == QueryIntent.CATALOG_SHELF_ROUTING.value:
-        return jsonify(
-            {
-                "status": "success",
-                "intent": intent,
-                "text": _catalog_shelf_answer(),
-                "citations": [],
-            }
-        ), SUCCESS_STATUS
+def _handle_mcq_diagnostic(norm_q: str):
+    """Contract type 4: the diagnostic MCQ payload for a learning request."""
+    anchor_hits = state._retriever.resolve_anchor(norm_q, top_k=ANCHOR_TOP_K)
+    anchor_id = anchor_hits[0][0] if anchor_hits else DEFAULT_ANCHOR
+    anchor_label = concept_name(anchor_id)
+    prereqs = state._retriever.get_upstream_prerequisites(anchor_id, max_hops=1)
+    mcq_payload = state._synthesis.generate_diagnostic_mcq(anchor_label, prereqs)
+    return jsonify(
+        _contract_payload(
+            "success",
+            contract_for("mcq_diagnostic"),
+            intent=QueryIntent.MCQ_DIAGNOSTIC.value,
+            quiz=mcq_payload,
+        )
+    ), SUCCESS_STATUS
 
-    if intent == QueryIntent.AUTH_GATEWAY.value:
-        return jsonify(
-            {
-                "status": "success",
-                "intent": intent,
-                "text": _auth_gateway_answer(norm_q),
-                "citations": [],
-            }
-        ), SUCCESS_STATUS
+
+def _handle_direct_intents(intent: str | None, norm_q: str):
+    """Answer a non-graph contract intent; ``None`` when the pipeline continues."""
+    if not intent:
+        return None
+
+    reply = direct_intent_reply(intent, norm_q)
+    if reply is not None:
+        return jsonify(reply), SUCCESS_STATUS
 
     if intent == QueryIntent.MCQ_DIAGNOSTIC.value:
-        anchor_hits = state._retriever.resolve_anchor(norm_q, top_k=ANCHOR_TOP_K)
-        anchor_id = anchor_hits[0][0] if anchor_hits else DEFAULT_ANCHOR
-        anchor_label = concept_name(anchor_id)
-        prereqs = state._retriever.get_upstream_prerequisites(anchor_id, max_hops=1)
-        mcq_payload = state._synthesis.generate_diagnostic_mcq(anchor_label, prereqs)
-        return jsonify(
-            {
-                "status": "success",
-                "intent": intent,
-                "quiz": mcq_payload,
-            }
-        ), SUCCESS_STATUS
+        return _handle_mcq_diagnostic(norm_q)
 
     return None
 
@@ -166,24 +150,33 @@ def api_chat() -> Response:
 
     if route == "rejected":
         return jsonify(
-            {
-                "status": "rejected",
-                "tier": tier,
-                "text": routing_result.get("message") or SECURITY_BOUNDARY_MESSAGE,
-                "citations": [],
-                "topology": None,
-            }
+            _contract_payload(
+                "rejected",
+                GUARDRAIL_INTERCEPT,
+                tier=tier,
+                text=routing_result.get("message") or SECURITY_BOUNDARY_MESSAGE,
+                citations=[],
+                topology=None,
+            )
         ), REJECTED_STATUS
 
     if route == "out_of_scope":
+        # A guardrail intercept and a plain scope deflection share this pipeline
+        # stage but not their wording: the former owes the reader an explanation
+        # of *why* code or a recipe is out of bounds.
+        body = OUT_OF_SCOPE_MESSAGE
+        if intent == GUARDRAIL_INTERCEPT:
+            body = guardrail_text(norm_q)
         return jsonify(
-            {
-                "status": "out_of_scope",
-                "tier": tier,
-                "text": OUT_OF_SCOPE_MESSAGE,
-                "citations": [],
-                "topology": None,
-            }
+            _contract_payload(
+                "out_of_scope",
+                GUARDRAIL_INTERCEPT,
+                tier=tier,
+                intent=intent,
+                text=body,
+                citations=[],
+                topology=None,
+            )
         ), SUCCESS_STATUS
 
     # Step 2: Handle Non-Graph Direct Intents
@@ -196,12 +189,13 @@ def api_chat() -> Response:
         candidates = state._retriever.suggest_topics(norm_q, top_k=TOPIC_SUGGEST_LIMIT)
         suggestion_payload = state._synthesis.generate_topic_suggestions(norm_q, candidates)
         return jsonify(
-            {
-                "status": "suggest_topics",
-                "tier": tier,
-                "intent": QueryIntent.TOPIC_SUGGESTION.value,
+            _contract_payload(
+                "suggest_topics",
+                contract_for("suggest_topics"),
+                tier=tier,
+                intent=QueryIntent.TOPIC_SUGGESTION.value,
                 **suggestion_payload,
-            }
+            )
         ), SUCCESS_STATUS
 
     # Step 4: Tier 1 Execute (GRAPH_SYNTHESIS)
@@ -211,11 +205,12 @@ def api_chat() -> Response:
     if not anchor_id:
         candidates = state._retriever.suggest_topics(norm_q, top_k=MAX_TOPIC_SUGGEST_FALLBACK)
         return jsonify(
-            {
-                "status": "suggest_topics",
-                "tier": RoutingTier.TIER_2_SUGGEST.value,
+            _contract_payload(
+                "suggest_topics",
+                contract_for("suggest_topics"),
+                tier=RoutingTier.TIER_2_SUGGEST.value,
                 **state._synthesis.generate_topic_suggestions(norm_q, candidates),
-            }
+            )
         ), SUCCESS_STATUS
 
     prereqs = state._retriever.get_upstream_prerequisites(anchor_id, max_hops=MAX_UPSTREAM_HOPS)
@@ -241,10 +236,11 @@ def api_chat() -> Response:
 
     response_data = state._synthesis.synthesize_response(payload, stream=False)
     return jsonify(
-        {
-            "status": "success",
-            "tier": tier,
-            "intent": QueryIntent.GRAPH_SYNTHESIS.value,
+        _contract_payload(
+            "success",
+            GRAPH_SYNTHESIS,
+            tier=tier,
+            intent=QueryIntent.GRAPH_SYNTHESIS.value,
             **response_data,
-        }
+        )
     ), SUCCESS_STATUS

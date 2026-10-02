@@ -49,7 +49,10 @@ POLISH_ROUTES = frozenset({"GRAPH_SYNTHESIS", "RELATION", "CROSS_DOMAIN", "BOOK_
 XKIRO_DEFAULT_BASE_URL = "https://api.xkiro.com/v1"
 XKIRO_DEFAULT_MODEL = "qwen/qwen3.8-max:free"
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
-NVIDIA_DEFAULT_MODEL = "deepseek-ai/deepseek-v4.1-flash"
+# Verified against the provisioned NVIDIA NIM model list for this key: the
+# previously configured deepseek-v4.1-flash is not provisioned (410/404) and
+# timed out on every call. nemotron-3-super answers in under a second.
+NVIDIA_DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 # Fallback chain. OpenRouter was dropped deliberately: NVIDIA NIM is cheaper,
 # has no third-party prompt logging, and keeps the key inside one vendor.

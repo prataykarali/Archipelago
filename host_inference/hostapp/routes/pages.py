@@ -12,6 +12,12 @@ from ..context import AppContext
 
 GRAPH_PAGE_FILE = "graph.html"
 
+#: Concept count below which the deployment is provably running the tracked
+#: fixture rather than the library's full corpus.  The fixture is ~59 concepts;
+#: the real corpus is 500+.  Kept here so the readiness report and the threshold
+#: that produced it are stated together.
+FULL_CORPUS_MIN_CONCEPTS = 200
+
 
 def register(app: Flask, ctx: AppContext) -> None:
     """Register page and health routes on ``app``."""
@@ -57,10 +63,27 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/api/health")
     @app.get("/api/readiness")
     def health():
+        # ``ok`` means the process is up and serving — it must stay true for the
+        # platform's health check to pass. Whether the *corpus* is the full one is
+        # reported separately in ``corpus``, because a deployment running the
+        # tracked fixture is healthy and yet answering a much narrower library,
+        # and an operator must be able to tell those apart from outside.
+        graph = ctx.engine.graph
+        concepts = len(graph.nodes)
+        # Read the marker defensively: tests and alternate engines supply their
+        # own graph objects, and readiness must never be the thing that 500s.
+        source = getattr(graph, "corpus_source", None) or (
+            "fixture" if concepts < FULL_CORPUS_MIN_CONCEPTS else "full"
+        )
         return jsonify({
             "ok": True,
             "mode": "inference-only",
-            "concepts": len(ctx.engine.graph.nodes),
+            "concepts": concepts,
+            "corpus": {
+                "concepts": concepts,
+                "full": source == "full",
+                "source": source,
+            },
             "pearson_books": len(ctx.engine.books),
             "cache": ctx.engine.cache_info.get("source"),
             "ingestion": False,

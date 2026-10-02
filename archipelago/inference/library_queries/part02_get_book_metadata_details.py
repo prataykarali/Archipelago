@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from thefuzz import fuzz
-from archipelago.inference.graph_lock import graph_lock
-from archipelago.inference import state as st
+
 import kuzu
-from . import _deps as _rt  # noqa: F401
+from thefuzz import fuzz
+
+from archipelago.inference import state as st
+from archipelago.inference.graph_lock import graph_lock
+
+from . import _deps as _rt
 
 
 def get_book_metadata_details(query: str) -> dict[str, Any] | None:
@@ -162,6 +165,30 @@ def get_library_hours_response() -> str:
 - **Online Catalogue (OPAC)**: [uemk-opac.l2c2.co.in](https://uemk-opac.l2c2.co.in) (24/7 online catalogue search).
 - **Institutional E-Resources**: IEEE Xplore, ScienceDirect / Scopus, Springer Link, and Pearson eLibrary accessible on campus network.
 """
+
+
+#: Counter codes for the reprography and materials desks.
+REPROGRAPHY_LOCATION = "B1 LG2.7"
+REPROGRAPHY_NAME = "Muskan Xerox"
+
+
+def get_library_materials_response(query: str) -> str:
+    """Lab-manual and reprography locations for ``query``.
+
+    Lab manuals are not catalogued items: they are stocked, then reprinted at a
+    reprography counter. Answering only from the OPAC therefore returns nothing
+    useful, and answering "not in the library" is actively wrong.
+    """
+    return (
+        "### \U0001F4DA Lab Manuals & Reprography Counter\n\n"
+        f"- **Location:** `{REPROGRAPHY_LOCATION}` ({REPROGRAPHY_NAME}).\n"
+        "- **What is there:** photocopies and lab-manual reprints.\n"
+        "- Central Library also provides physical copies of the corresponding "
+        "textbooks for reference; reprints are made on request at the counter.\n\n"
+        f"**OPAC.** http://uemk-opac.l2c2.co.in\n\n"
+        "Borrowing from the Central Library remains the primary route; digital "
+        "access does not replace the physical collection."
+    )
 
 
 def get_library_holdings_response(query: str) -> str:

@@ -14,6 +14,7 @@ from archipelago.inference.library_queries import (
     get_chapters_of_book,
     get_library_holdings_response,
     get_library_hours_response,
+    get_library_materials_response,
     render_library_book_details,
 )
 from archipelago.inference.routes.chat.part00_shared import with_holdings
@@ -77,11 +78,22 @@ def handle_library_book_details(query, history, routing, wants_synthesis):
 
 
 def handle_library_resources(query, history, routing, wants_synthesis):
-    """Institutional portal guidance (redacted)."""
+    """Institutional portal guidance (redacted), plus hours when both were asked."""
     from archipelago.inference.library_resource_access import render_resource_access
 
-    resource_key = str((routing.get("slots") or {}).get("resource_key") or "")
+    routing_slots = routing.get("slots") or {}
+    # ``resolve_query_routing`` wraps the detector's own ``slots`` dict inside
+    # another one, so a slot can appear at either level depending on which
+    # detector produced it. Merge rather than guess: missing this is what let a
+    # combined hours-and-access question answer only half of itself.
+    slots = {**routing_slots, **(routing_slots.get("slots") or {})}
+    resource_key = str(slots.get("resource_key") or "")
     notes = render_resource_access(query, resource_key=resource_key)
+    if slots.get("also_hours"):
+        # A combined "is the library open on weekends and what is the opac link?"
+        # must answer both halves; returning the portal card alone dropped the
+        # schedule, which is the fact the student most needs and cannot look up.
+        notes = get_library_hours_response() + "\n\n" + notes
 
     def generate_resource_access():
         payload = {
@@ -129,6 +141,38 @@ def handle_library_hours(query, history, routing, wants_synthesis):
         yield with_holdings(query, notes)
 
     return Response(generate_hours(), mimetype="text/plain")
+
+
+def handle_library_materials(query, history, routing, wants_synthesis):
+    """Lab-manual and reprography counter locations.
+
+    Contract type 2. "Where are the lab manuals?" matched no holdings pattern
+    and was rejected as out-of-domain, which is the worst possible answer to a
+    student standing in the building: the library does stock them, at a counter
+    with a known shelf code.
+    """
+    notes = get_library_materials_response(query)
+
+    def generate_materials():
+        payload = {
+            "anchor_concept": None,
+            "prerequisites": [],
+            "unlocks": [],
+            "citations": [],
+            "related_concepts": [],
+            "routing": {"route": routing["route"], "score": 1.0, "reason": "library_materials"},
+            "logs": [
+                {
+                    "step": "Library Retrieval",
+                    "status": "Success",
+                    "details": "Returned lab-manual and reprography counter locations.",
+                }
+            ],
+        }
+        yield json.dumps(payload) + "\n[STREAM_START]\n"
+        yield with_holdings(query, notes)
+
+    return Response(generate_materials(), mimetype="text/plain")
 
 
 def handle_library_holdings(query, history, routing, wants_synthesis):

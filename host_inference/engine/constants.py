@@ -39,6 +39,21 @@ HIJACK_MESSAGE = (
     "Currently, I am scoped to the AI/ML and institutional library domain only."
 )
 
+# A curriculum request for a legitimate syllabus topic we have not indexed yet.
+# Deliberately different from OOD_MESSAGE: the student is *not* off-topic, the
+# library simply has not ingested that node. Telling someone studying for an
+# exam that their topic "falls outside the scope" is misleading and erodes
+# trust in every other answer we give.
+UNINDEXED_CURRICULUM_MESSAGE = (
+    "**{subject}** is a recognised subject area, but the library has not indexed a "
+    "concept node for it yet, so I cannot ground a lesson or roadmap in retrieved text.\n\n"
+    "I will not invent a curriculum for a topic I cannot cite. If you upload the "
+    "textbook chapter or syllabus, the librarian can ingest it and this assistant "
+    "will build the prerequisite graph from your own course material.\n\n"
+    "Indexed topics you can study now include LoRA, BERT, attention mechanisms, "
+    "Retrieval-Augmented Generation, graph neural networks, and third normal form."
+)
+
 ALIASES = {
     "lora": "matrix_factorization",
     "low-rank adaptation": "matrix_factorization",

@@ -21,7 +21,10 @@ models/
 
 # Pipeline generated outputs
 okf_results.json
+# The generated corpus itself never enters git; the tracked fixture below is the
+# one okf_graph.json that must, so a deployment is never built empty.
 okf_graph.json
+!host_inference/fixtures/okf_graph.json
 accuracy.json
 pdf_chunks.json
 mock_results.json
@@ -82,6 +85,7 @@ archipelago_graph.html
 
 # Old graph DB backups
 okf_graph.bak*/
+okf_graph.db.fixture-backup
 backups/
 
 # Font duplicates (canonical copy in frontend/ui/warfield/)

@@ -15,7 +15,15 @@ from demo_cards import match_demo, redact_for_model
 from library_index import Catalog
 from remote_cache import hydrate, load_books
 
-from . import compose, diagnostics
+from . import (
+    catalogue,
+    compose,
+    diagnostics,
+    ingestion_view,
+    inventory,
+    inventory_card,
+    telemetry,
+)
 from .constants import (
     CITATION_LINE_PREFIXES,
     CODE_MESSAGE,
@@ -24,9 +32,10 @@ from .constants import (
     KILL_SWITCH,
     OOD_MESSAGE,
     PASSING_MENTIONS,
-    SCHEDULE,
     SHELF,
+    UNINDEXED_CURRICULUM_MESSAGE,
 )
+from .contract import contract_for, graph_decision
 from .graph import LibraryGraph
 from .links import source_links
 from .llm import provider_config, stream_completion
@@ -35,6 +44,7 @@ from .patterns import (
     AUTH_RE,
     CODE_TRAP,
     DIAG_RE,
+    INGEST_RE,
     INJECTION,
     PARAM_RE,
     RELATE_RE,
@@ -115,12 +125,43 @@ class Engine:
                 )
             ),
             "routing": {"route": route, "score": extra.get("score", 1.0), "reason": extra.get("reason", route)},
-            "logs": [{"step": "Hosted inference", "status": "ok", "details": route}],
         }
-        if extra.get("hide_graph"):
+
+        # The graph-render protocol is decided from the contract, not from which
+        # branch of the router ran, so it cannot vary with query phrasing.
+        contract = contract_for(route)
+        decision = graph_decision(route)
+        payload["contract"] = contract
+        payload["render_graph"] = decision.render
+        payload["render_rule"] = decision.rule
+        payload["logs"] = [{"step": "Hosted inference", "status": "ok", "details": route}]
+
+        if extra.get("hide_graph") or not decision.render:
             payload["anchor_concept"] = None
             payload["prerequisites"] = []
             payload["unlocks"] = []
+
+        # Contract type 5 carries its projection alongside the reply text.
+        if extra.get("projection"):
+            payload.update(extra["projection"])
+
+        # Contract: a grounded concept answer closes with the physical holdings.
+        # Skipped for administrative and location-only answers, which must not
+        # carry a concept card (see the graph-render protocol).
+        if anchor_ok and decision.render:
+            concept = graph.nodes[anchor]
+            cards = inventory_card.attach_inventory(
+                payload,
+                anchor,
+                graph.label(anchor),
+                str(concept.get("summary") or ""),
+                catalogue.load_catalogue(),
+            )
+            # Append section 4 of the master template to the reply text itself,
+            # so the holdings survive as prose for any client that renders plain
+            # text. The card is never allowed to displace the explanation.
+            if cards:
+                text = text + "\n" + inventory_card.render_inventory_section(cards)
 
         # A citation whose only supporting document was withdrawn upstream must
         # say so in the reply, not just omit its link. The UI reads
@@ -136,7 +177,7 @@ class Engine:
             payload["withdrawn_notice"] = notices[0]
             payload["text_override"] = notices[0]
 
-        return {"route": route, "text": text, "payload": payload, "anchor": anchor, "extra": extra}
+        return {"route": route, "contract": contract, "text": text, "payload": payload, "anchor": anchor, "extra": extra}
 
     def stream_chat(self, query: str):
         """Yield the metadata frame immediately, then stream tokens from XKIRO.
@@ -177,6 +218,59 @@ class Engine:
             # Fallback to grounded text if stream connection failed or produced 0 tokens
             yield grounded_text
 
+    def _route_shelf_query(self, query: str, best_score: float) -> tuple[str, str, str | None, dict]:
+        """Answer a physical-location question from the institutional catalogue.
+
+        Contract type 2 (``CATALOG_SHELF_ROUTING``). Returns a
+        ``CATALOG_SHELF_ROUTING`` route with the shelf card, or an honest
+        "not indexed" reply — never a fabricated location.
+        """
+        requested = inventory.extract_title(query)
+        records = catalogue.load_catalogue()
+        record, score = inventory.best_record(records, requested)
+        confidence = inventory.match_confidence(score)
+
+        if record is None or confidence == "none":
+            # No holding. Record the demand so the acquisition desk can see it.
+            telemetry.log_demand(requested)
+            text = inventory.no_record_reply(requested)
+            return (
+                "CATALOG_SHELF_ROUTING",
+                text,
+                None,
+                {
+                    "hide_graph": True,
+                    "reason": "shelf_not_indexed",
+                    "score": best_score,
+                    "inventory": {"title": requested, "held": False},
+                },
+            )
+
+        text = inventory.shelf_card(
+            record,
+            requested=requested,
+            confidence=confidence,
+        )
+        return (
+            "CATALOG_SHELF_ROUTING",
+            text,
+            None,
+            {
+                "hide_graph": True,
+                "reason": "catalogue_match",
+                "score": best_score,
+                "inventory": {
+                    "title": record.get("title", ""),
+                    "isbn": record.get("isbn", ""),
+                    "available": record.get("available_copies", 0),
+                    "total": record.get("total_copies", 0),
+                    "held": True,
+                    "confidence": confidence,
+                    "reader_url": catalogue.reader_link(record),
+                },
+            },
+        )
+
     def _route(self, query: str) -> tuple[str, str, str | None, dict]:
         graph = self.graph
         if not query or len(query) < MIN_QUERY_LEN:
@@ -185,8 +279,36 @@ class Engine:
             return "PERSONA_LOCK", HIJACK_MESSAGE, None, {"hide_graph": True, "reason": "injection"}
         if CODE_TRAP.search(query):
             return "CODE_TRAP", CODE_MESSAGE, None, {"hide_graph": True, "reason": "procedural"}
+
+        # Contract type 3 is tested before the canned demo cards. A combined
+        # hours-plus-access sentence ("how do I access IEEE off-campus, and what
+        # are library Sunday hours?") matched a demo card on the word "access"
+        # and was answered with a fixed paragraph about the Pearson bookshelf —
+        # losing both the schedule and the access instructions.
+        wants_hours = bool(SCHEDULE_RE.search(query))
+        wants_access = bool(AUTH_RE.search(query)) and not SHELF_RE.search(query)
+        if wants_hours or wants_access:
+            route = "SCHEDULE" if wants_hours and not wants_access else "AUTH_GATEWAY"
+            return route, compose.admin_card(query, wants_hours, wants_access), None, {
+                "hide_graph": True,
+                "reason": "schedule_sheet" if wants_hours else "auth_gateway",
+            }
+
+        # Contract type 5: the uploaded-paper flow. Must precede the concept
+        # path, since "extract the OKF nodes from my uploaded paper" has no
+        # curriculum similarity and was deflected as out-of-domain.
+        if INGEST_RE.search(query) and not SHELF_RE.search(query):
+            text, projection = ingestion_view.ingestion_reply(query, graph)
+            return "INGESTION_ANALYSIS", text, None, {
+                "reason": "uploaded_okf_projection",
+                "projection": projection,
+                "hide_graph": False,
+            }
+
         demo = match_demo(query, self.books)
-        if demo:
+        if demo and not DIAG_RE.search(query):
+            # Demo cards are canned blurbs. A curriculum request must reach the
+            # diagnostic/roadmap path instead of receiving a fixed paragraph.
             return "DEMO", demo["text"], None, {
                 "hide_graph": True,
                 "reason": "demo_prompt",
@@ -201,17 +323,18 @@ class Engine:
                 "I cannot use external knowledge to fill in the gaps."
             )
             return "PASSING_MENTION", text, None, {"hide_graph": True, "reason": "passing_mention"}
-        if SCHEDULE_RE.search(query):
-            lines = ["**Central Library schedule**", ""]
-            lines.extend(SCHEDULE)
-            lines.append("")
-            lines.append("Source: Central Library Academic Schedule.")
-            return "SCHEDULE", "\n".join(lines), None, {"hide_graph": True, "reason": "schedule_sheet"}
-        if AUTH_RE.search(query) and not SHELF_RE.search(query):
-            return "AUTH_GATEWAY", compose.auth_card(query), None, {"hide_graph": True, "reason": "auth_gateway"}
 
         catalog_hit = self.catalog.reply(query)
-        if catalog_hit and not SHELF_RE.search(query):
+        # A learning request ("I want to learn X", "Teach me Y") is a
+        # curriculum intent, not a book lookup. The catalog matcher fires on
+        # the title words alone, so it used to swallow every curriculum prompt
+        # before the diagnostic check could see it. Curriculum wins.
+        # A relational prompt ("how does Softmax connect to Self-Attention?")
+        # is the same story: the matcher saw "Attention" in a catalogue title
+        # and answered with a book page instead of a traversal path.
+        learning_request = bool(DIAG_RE.search(query))
+        relational_request = bool(RELATE_RE.search(query))
+        if catalog_hit and not SHELF_RE.search(query) and not learning_request and not relational_request:
             return "BOOK_PAGE", catalog_hit["text"], None, {
                 "hide_graph": True,
                 "reason": "catalog_book",
@@ -238,6 +361,11 @@ class Engine:
                 return "CATALOG_SHELF", compose.shelf(self, shelf_id), shelf_id, {"score": best_score, "reason": "shelf"}
             if shelf_id:
                 return "CATALOG_SHELF", compose.shelf_generic(self, shelf_id), shelf_id, {"score": best_score, "reason": "shelf_generic"}
+            # No concept anchor: the question is about a *book*, not a concept.
+            # Consult the institutional catalogue before giving up, otherwise
+            # every "where is a physical copy of X" hit the OOD kill switch even
+            # with the title catalogued.
+            return self._route_shelf_query(query, best_score)
 
         domains = compose.domain_pair(self, query)
         if domains and any(token in query.lower() for token in ("compare", "versus", "vs", "difference", "with")):
@@ -289,7 +417,22 @@ class Engine:
                 return "CATALOG_DEPTH", text, target, {"score": best_score, "reason": "missing_parameter"}
 
         if best_score < KILL_SWITCH and not hits:
-            return "OOD_KILL", OOD_MESSAGE, None, {"hide_graph": True, "score": best_score, "reason": "cosine_below_0.75"}
+            # Distinguish "we have not indexed this syllabus topic" from "you are
+            # off-topic". Both are below the similarity threshold, but only the
+            # second deserves a scope deflection.
+            if DIAG_RE.search(query):
+                subject = inventory.extract_title(query) or "That topic"
+                return (
+                    "CURRICULUM_UNINDEXED",
+                    UNINDEXED_CURRICULUM_MESSAGE.format(subject=subject),
+                    None,
+                    {"hide_graph": True, "score": best_score, "reason": "curriculum_not_indexed"},
+                )
+            return "GUARDRAIL_INTERCEPT", OOD_MESSAGE, None, {
+                "hide_graph": True,
+                "score": best_score,
+                "reason": "cosine_below_0.75",
+            }
 
         if DIAG_RE.search(query) and anchors:
             target = anchors[0]

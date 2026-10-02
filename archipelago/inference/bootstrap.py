@@ -4,6 +4,10 @@ from flask import g, jsonify, request
 from archipelago.inference import routes_misc  # noqa: F401
 from archipelago.inference import routes_chat  # noqa: F401
 from archipelago.inference import routes_page_view  # noqa: F401
+# Registered for its side effect: /api/context-status is defined here, and the
+# module was never imported by this bootstrap, so the route did not exist on the
+# app it builds — a 404 for a documented endpoint.
+from archipelago.inference import routes_context  # noqa: F401
 from archipelago.inference.state import app
 from archipelago.inference.routes_chat import init_concepts_data
 from archipelago.auth import load_user
