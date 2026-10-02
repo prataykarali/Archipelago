@@ -88,11 +88,24 @@ Commit: `93d40cb`. Three follow-up commits total this turn (`e35f392`, `93d40cb`
 
 ## 4. Proposed workstreams (priority order)
 
-**W1 — Security baseline (do first).** Install `bandit`, `detect-secrets`,
-`pip-audit`, `mypy` into the venv (dev-only, declared in `requirements-dev.txt`),
-run them, remediate findings. Add auth-boundary tests (401 without token / 200 with)
-for **every** mutating endpoint on hostapp, chat_server, and `archipelago/api`.
-Acceptance: scanners run green-or-triaged; auth tests pass; no secret in tracked files.
+**W1 — Security baseline — ✅ DONE (`257d45d`).**
+* `requirements-dev.txt` declares ruff/mypy/bandit/detect-secrets/pip-audit.
+* **bandit** medium/high findings: **10 → 0** (was 5 high, 10 medium). Real fixes:
+  XXE-safe ODS parsing via `defusedxml`; absolute-http(s) validation before every
+  `urlopen`; fail-closed Supabase key; pinned Hugging Face download revision;
+  `usedforsecurity=False` on non-security MD5; loopback-default binds.
+* **Log redaction** added (`archipelago/middleware/log_redaction.py`) and wired
+  into hostapp, chat_server, graph_server, the inference API and
+  `setup_logging` — a live access log had captured a `?token=` JWT.
+* **Secret scan:** `.env`, `host_inference/.env`, `logs/` are gitignored and
+  untracked; remaining `detect-secrets` hits are doc/test fixtures.
+* **pip-audit:** *No known vulnerabilities found.*
+* **Auth boundary:** parametrised suite (`tests/unit/test_auth_boundary.py`)
+  proves every protected mutating endpoint returns 401/403 anonymously while the
+  deliberate-public ones do not; log-redaction unit tests in
+  `tests/unit/test_log_redaction.py`.
+* Still red by design: `mypy --strict` and repo-wide `ruff` (pre-existing,
+  thousands of legacy findings). Not claimed green.
 
 **W2 — Regression suites.** One suite per feature: graph retrieval + subgraph,
 Supabase login/session, answer cache (hit/miss/dedup + metrics), rate limit
@@ -128,6 +141,7 @@ Decodo/Hyperbrowser proxy behind the W6 gate.
 
 ## 5. Decisions / credentials needed
 
+0. **Apify token** — user will paste `APIFY_TOKEN` (+ per-run USD cap) for W7.
 1. **Deploy trigger** — the fast-forward to `session3-stable` has not rebuilt the
    live site; confirm how antideploy is triggered (dashboard vs integration).
 2. **Scraping scope** — which domains/collections? Any that require login or
