@@ -1,4 +1,52 @@
+from pathlib import Path
+
 import pytest
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+# Artifacts written by the ingestion/pipeline code paths. They are gitignored
+# and live at the repository root in production, but a test must never write
+# them there: doing so overwrites the local concept corpus (okf_graph.json)
+# that inference loads, which silently breaks routing.
+_GENERATED_ARTIFACTS = (
+    "okf_graph.json",
+    "okf_graph.db",
+    "okf_results.json",
+    "graph_audit.json",
+    "accuracy.json",
+    "pdf_chunks.json",
+    "_graph_nodes.json",
+    "_graph_edges.json",
+    "source_audit.json",
+)
+
+
+def _artifact_state() -> dict:
+    """Fingerprint each generated repo-root artifact by existence + size.
+
+    Size (not mtime) is deliberate: closing a Kùzu handle legitimately touches
+    ``okf_graph.db``'s mtime without changing its contents, whereas the bug we
+    guard against rewrites the corpus and changes its size.
+    """
+    state: dict = {}
+    for name in _GENERATED_ARTIFACTS:
+        path = REPO_ROOT / name
+        state[name] = path.stat().st_size if path.exists() else None
+    return state
+
+
+@pytest.fixture(autouse=True)
+def _guard_repo_artifacts():
+    """Fail any test that writes generated artifacts into the repository root."""
+    before = _artifact_state()
+    yield
+    after = _artifact_state()
+    changed = sorted(n for n in before if before[n] != after[n])
+    assert not changed, (
+        "test wrote generated artifacts into the repository root: "
+        f"{changed}. Anchor pipeline output to tmp_path / a patched BASE_DIR."
+    )
 
 
 @pytest.fixture

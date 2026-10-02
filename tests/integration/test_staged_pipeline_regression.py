@@ -120,7 +120,8 @@ def test_staged_ingest_preserves_existing_relations(tmp_path):
     }
 
     with patch("okf.pipeline.BASE_DIR", tmp_path), \
-         patch("pdf_ingestion.ingest_document", return_value=[dict(NEW_DOC_CHUNK)]), \
+         patch("archipelago.ingestion.pdf_io.ingest_document",
+               return_value=[dict(NEW_DOC_CHUNK)]), \
          patch("okf.extraction.LOCAL_MODE", False), \
          patch("okf.extraction.extract_okf_v15",
                return_value=[dict(r) for r in NEW_DOC_EXTRACTION]), \
@@ -175,7 +176,8 @@ def test_staged_ingest_still_filters_new_doc_relations(tmp_path):
     }
 
     with patch("okf.pipeline.BASE_DIR", tmp_path), \
-         patch("pdf_ingestion.ingest_document", return_value=[dict(NEW_DOC_CHUNK)]), \
+         patch("archipelago.ingestion.pdf_io.ingest_document",
+               return_value=[dict(NEW_DOC_CHUNK)]), \
          patch("okf.extraction.LOCAL_MODE", False), \
          patch("okf.extraction.extract_okf_v15", return_value=hallucinated), \
          patch("okf.pipeline.ingest_to_kuzu",

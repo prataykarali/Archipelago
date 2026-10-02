@@ -135,6 +135,7 @@ def finalize_and_build(okf_results: list, total_chunks: int,
         graph_export, okf_results, db,
         total_chunks=total_chunks,
         successful_chunk_count=successful_chunk_count,
+        base_dir=_rt.BASE_DIR,
     )
 
     # ── Stage 5: Evaluation ──
