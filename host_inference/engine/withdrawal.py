@@ -16,8 +16,6 @@ from collections.abc import Iterable
 import logging
 from typing import Any
 
-import sibling_path  # noqa: F401 - repo root on sys.path for a standalone deploy
-
 logger = logging.getLogger(__name__)
 
 # Used when the provider is unknown; kept in sync with the lifecycle module's

@@ -33,12 +33,17 @@ import tempfile
 
 logger = logging.getLogger(__name__)
 
-#: Datasets the boot fetch reads from.  ``okf_graph.json`` is the concept graph the
+#: Where each corpus artifact lives inside the Hugging Face dataset repo, mapped
+#: to where it has to land on disk.  ``okf_graph.json`` is the concept graph the
 #: engine loads; the bookshelf export is the institutional catalogue.
-CORPUS_ARTIFACTS = (
-    "okf_graph.json",
-    "pearson_bookshelf.json",
-)
+#:
+#: Paths are the real layout of Prataykarali/Library_books.  Guessing here is how
+#: a deploy silently ends up on the 84-concept fixture while the log says the
+#: fetch "succeeded".
+CORPUS_ARTIFACTS: dict[str, str] = {
+    "okf_graph.json": "okf_graph.json",
+    "catalogs/pearson_bookshelf.json": "data/catalogs/pearson_bookshelf.json",
+}
 
 #: Where the tracked fallback slice lives, relative to the repository root.
 FIXTURE_DIR = Path("host_inference") / "fixtures"
@@ -141,7 +146,6 @@ def provision(root: Path | None = None) -> dict[str, object]:
     repo_root = Path(root) if root else Path(__file__).resolve().parents[2]
     graph_json = repo_root / "okf_graph.json"
     cache_graph = repo_root / "host_inference" / "cache" / "okf_graph.json"
-    catalogue = repo_root / "data" / "catalogs" / "pearson_bookshelf.json"
 
     report: dict[str, object] = {"source": "present", "ok": True}
 
@@ -155,17 +159,18 @@ def provision(root: Path | None = None) -> dict[str, object]:
     fetched = False
     if repo_id:
         staging = repo_root / "data" / "provisioned"
-        for filename in CORPUS_ARTIFACTS:
-            target = staging / filename
-            if _hf_download(repo_id, filename, target, token):
-                fetched = True
-                if filename == "okf_graph.json":
-                    for candidate in (graph_json, cache_graph):
-                        candidate.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copyfile(target, candidate)
-                elif filename == "pearson_bookshelf.json":
-                    catalogue.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copyfile(target, catalogue)
+        for remote_path, local_path in CORPUS_ARTIFACTS.items():
+            target = staging / remote_path
+            if not _hf_download(repo_id, remote_path, target, token):
+                continue
+            fetched = True
+            destination = repo_root / local_path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(target, destination)
+            if local_path == "okf_graph.json":
+                # The engine reads the cache copy, not the root one.
+                cache_graph.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(target, cache_graph)
 
     if not fetched:
         installed = _restore_fixture(repo_root, graph_json)

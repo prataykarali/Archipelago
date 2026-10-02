@@ -86,8 +86,21 @@ def public_catalog(books: list[dict]) -> bytes:
 
 
 def public_library_manifest() -> bytes:
-    """Export only reader-backed shelf items and separate holdings metadata."""
-    from archipelago.inference.library_catalog_api import build_library_data_payload
+    """Export only reader-backed shelf items and separate holdings metadata.
+
+    Raises:
+        RuntimeError: when the library catalogue API is unavailable. The hosted
+        image is built from ``host_inference`` alone and does not carry the
+        ``archipelago`` package, so this publisher only works from the library
+        workstation — better a clear error than a silently empty manifest.
+    """
+    try:
+        from archipelago.inference.library_catalog_api import build_library_data_payload
+    except ImportError as exc:
+        raise RuntimeError(
+            "public_library_manifest needs the archipelago package; it runs on "
+            "the library workstation, not the hosted deploy"
+        ) from exc
 
     source = build_library_data_payload(REPO)
     hf_manifest = REPO / "data" / "catalogs" / "hf_dataset_manifest.json"

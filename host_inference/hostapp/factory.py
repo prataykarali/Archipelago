@@ -7,11 +7,12 @@ from __future__ import annotations
 
 from flask import Flask
 
-# Must precede the archipelago imports below: it puts the repository root on
-# sys.path when host_inference is deployed on its own. See sibling_path.
-import sibling_path  # noqa: F401
-
-from archipelago.middleware.log_redaction import install_log_redaction
+# Local, not from archipelago: the hosted image is built from this directory
+# alone, so the sibling package is not in the container. Relative import so it
+# resolves however the tree is reached — flat on sys.path in the container, or
+# as host_inference.hostapp from a test. tests/unit/test_host_log_redaction.py
+# pins this copy to the shared one so they cannot diverge.
+from .log_redaction import install_log_redaction
 
 from .config import MAX_CONTENT_LENGTH_BYTES, load_env
 from .context import AppContext
