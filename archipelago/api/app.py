@@ -82,11 +82,11 @@ ALL_INTERFACES_HOST = "0.0.0.0"  # nosec B104 — opt-in only, gated by ARCHIPEL
 def _resolve_bind_host() -> str:
     """Bind to loopback unless explicitly authorised.
 
-    ``ARCHIPELAGO_BIND_HOST`` wins when set; otherwise ``0.0.0.0`` is used only
-    when ``ARCHIPELAGO_TOKEN`` is present, matching the deployment rule in
-    AGENTS.md (never expose all interfaces unauthenticated).
+    ``ARCHIPELAGO_BIND`` (the documented variable) wins when set; otherwise
+    ``0.0.0.0`` is used only when ``ARCHIPELAGO_TOKEN`` is present, matching the
+    deployment rule in AGENTS.md (never expose all interfaces unauthenticated).
     """
-    explicit = os.environ.get("ARCHIPELAGO_BIND_HOST", "").strip()
+    explicit = os.environ.get("ARCHIPELAGO_BIND", "").strip()
     if explicit:
         return explicit
     if os.environ.get("ARCHIPELAGO_TOKEN", "").strip():

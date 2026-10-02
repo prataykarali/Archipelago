@@ -18,7 +18,7 @@ app = create_app()
 
 def _resolve_bind_host() -> str:
     """Loopback by default; all interfaces only with an explicit opt-in token."""
-    explicit = os.environ.get("ARCHIPELAGO_BIND_HOST", "").strip()
+    explicit = os.environ.get("ARCHIPELAGO_BIND", "").strip()
     if explicit:
         return explicit
     if os.environ.get("ARCHIPELAGO_TOKEN", "").strip():

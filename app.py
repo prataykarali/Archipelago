@@ -15,6 +15,7 @@ __all__ = ["app"]
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", os.environ.get("ARCHIPELAGO_INFERENCE_PORT", "5051")))
-    bind = os.environ.get("ARCHIPELAGO_BIND", "0.0.0.0")
+    # Loopback by default; the container/Dockerfile sets ARCHIPELAGO_BIND=0.0.0.0.
+    bind = os.environ.get("ARCHIPELAGO_BIND", "127.0.0.1")
     print(f"\n🚀 Archipelago Production REST Engine listening on http://{bind}:{port}\n")
     app.run(host=bind, port=port, debug=False)

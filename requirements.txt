@@ -24,3 +24,6 @@ Pillow>=10.0.0
 
 # Hardened XML parsing for untrusted ODS / uploaded spreadsheet XML (XXE-safe).
 defusedxml>=0.7.1
+
+# Web-data Actors for source discovery (server-side only; cost-capped).
+apify-client>=1.7.0
