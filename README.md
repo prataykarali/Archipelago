@@ -281,7 +281,43 @@ python -m archipelago graph diff --baseline okf_graph_baseline.json
 
 # Download a pinned extraction model from Hugging Face
 python -m archipelago model download --repo Prataykarali/lib-qwen --revision v5
+
+# Merge the institutional catalogue (Koha + Pearson eLibrary) into the graph
+python -m archipelago library populate
+
+# Propose entitled-but-unheld books for librarian review (downloads nothing)
+python -m archipelago library propose
+
+# Report source availability (verified / withdrawn)
+python -m archipelago library sources --withdrawn-only
 ```
+
+### 3b. Library catalogue & source lifecycle
+
+The librarian-facing surface, backed by the graph's `Resource` / `Subject`
+tables:
+
+- **Populate** — merges the institution's Koha export (periodicals) and the
+  Pearson eLibrary bookshelf (books) into the graph, idempotently. Both
+  sources are needed: the Koha export contains periodicals only, so without the
+  bookshelf the catalogue cannot answer a question about a textbook.
+  `python -m archipelago library populate` → 149 searchable resources.
+- **Forget withdrawn titles** — when Pearson or Hugging Face removes a book,
+  the chat stops citing it and answers that it is no longer in records. Only a
+  confirmed `404`/`410` retires a source; a timeout or missing credential never
+  does. Concepts supported by other documents keep answering.
+  Details: [`docs/guides/SOURCE_LIFECYCLE.md`](docs/guides/SOURCE_LIFECYCLE.md).
+- **Ask before ingesting new books** — a provider sweep proposes entitled
+  titles to the librarian instead of downloading commercial text. New proposals
+  default to `toc_only` (structure only), and a recorded decision survives
+  re-sweeps.
+- **Compliance-gated web access** — every outbound fetch passes
+  `archipelago/ingestion/fetch_policy.py` (default-deny allowlist, robots.txt,
+  no credentials, audit log). Details:
+  [`docs/guides/WEB_FETCH_POLICY.md`](docs/guides/WEB_FETCH_POLICY.md).
+- **SLM readiness** — `python -m archipelago.eval.extract_eval` is the go/no-go
+  for unattended SLM ingest. **Currently failing** (alias F1 0.125 vs 0.35
+  gate): [`docs/guides/SLM_EXTRACTION_EVAL.md`](docs/guides/SLM_EXTRACTION_EVAL.md).
 
 ### 4. CI/CD Pipeline
 Continuous integration enforces:
