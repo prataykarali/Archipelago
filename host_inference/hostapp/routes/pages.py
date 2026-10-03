@@ -23,7 +23,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     """Register page and health routes on ``app``."""
 
     def _page(name: str):
-        if name in AUTH_GATED_PAGES and ctx.auth.required():
+        if name in AUTH_GATED_PAGES and name not in {"chat", "library", "landing"} and ctx.auth.required():
             principal, _error = ctx.auth.principal()
             if principal is None:
                 return redirect(f"/login?next=/{name}")

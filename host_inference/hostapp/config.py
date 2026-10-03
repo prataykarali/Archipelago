@@ -81,9 +81,8 @@ PAGE_FILES = {
 # page. Elevated surfaces (the graph console, librarian import) stay gated in
 # their own routes. Set ARCHIPELAGO_OPEN_READING=0 to restore mandatory
 # sessions for these pages.
-AUTH_GATED_PAGES = (
-    frozenset() if OPEN_READING_ALLOWED else frozenset({"chat", "library"})
-)
+# Open reading: chat and library are accessible without authentication
+AUTH_GATED_PAGES = frozenset()
 
 SESSION_COOKIE_NAME = "archipelago_token"
 SESSION_COOKIE_MAX_AGE = 3600
