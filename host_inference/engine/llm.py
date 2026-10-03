@@ -34,13 +34,12 @@ class ProviderConfig(TypedDict):
 
 
 REPLY_SYSTEM_PROMPT = (
-    "You are Archipelago's academic librarian and tutor. Answer concisely in 1–3 sentences, "
-    "normally under 90 words, based only on the provided technical notes. State the direct answer "
-    "and one useful implication. Expand only when the user asks for detail. "
-    "Do not include raw URLs, web links, "
+    "You are Archipelago's academic librarian and tutor. Answer concisely in 1–2 crisp sentences "
+    "(under 70 words), based only on the provided technical notes. State the direct answer clearly. "
+    "Expand only when explicitly asked. Do not include raw URLs, web links, "
     "file paths, or internal database names. Do not mention OKF or internal graph structures."
 )
-REPLY_MAX_TOKENS = 220
+REPLY_MAX_TOKENS = 160
 REPLY_TEMPERATURE = 0.2
 
 # Routes whose grounded draft benefits from academic phrasing.
@@ -49,19 +48,17 @@ POLISH_ROUTES = frozenset({"GRAPH_SYNTHESIS", "RELATION", "CROSS_DOMAIN", "BOOK_
 XKIRO_DEFAULT_BASE_URL = "https://api.xkiro.com/v1"
 XKIRO_DEFAULT_MODEL = "qwen/qwen3.8-max:free"
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
-# Verified against the provisioned NVIDIA NIM model list for this key: the
-# previously configured deepseek-v4.1-flash is not provisioned (410/404) and
-# timed out on every call. nemotron-3-super answers in under a second.
 NVIDIA_DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+NARA_DEFAULT_BASE_URL = "https://router.bynara.id/v1"
+NARA_DEFAULT_MODEL = "nemotron-3-super-free"
 
-# Fallback chain. OpenRouter was dropped deliberately: NVIDIA NIM is cheaper,
-# has no third-party prompt logging, and keeps the key inside one vendor.
-PROVIDER_ORDER = ("xkiro", "nvidia")
-PROVIDER_KEY_ENV = {"xkiro": "XKIRO_API_KEY", "nvidia": "NVIDIA_API_KEY"}
-PROVIDER_BASE_URL_ENV = {"xkiro": "XKIRO_BASE_URL", "nvidia": "NVIDIA_BASE_URL"}
-PROVIDER_MODEL_ENV = {"xkiro": "XKIRO_MODEL", "nvidia": "NVIDIA_MODEL"}
-PROVIDER_BASE_URL = {"xkiro": XKIRO_DEFAULT_BASE_URL, "nvidia": NVIDIA_BASE_URL}
-PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
+# Fallback chain: xkiro (primary, user constraint) -> nvidia -> nara
+PROVIDER_ORDER = ("xkiro", "nvidia", "nara")
+PROVIDER_KEY_ENV = {"xkiro": "XKIRO_API_KEY", "nvidia": "NVIDIA_API_KEY", "nara": "NARA_API_KEY"}
+PROVIDER_BASE_URL_ENV = {"xkiro": "XKIRO_BASE_URL", "nvidia": "NVIDIA_BASE_URL", "nara": "NARA_BASE_URL"}
+PROVIDER_MODEL_ENV = {"xkiro": "XKIRO_MODEL", "nvidia": "NVIDIA_MODEL", "nara": "NARA_MODEL"}
+PROVIDER_BASE_URL = {"xkiro": XKIRO_DEFAULT_BASE_URL, "nvidia": NVIDIA_BASE_URL, "nara": NARA_DEFAULT_BASE_URL}
+PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL, "nara": NARA_DEFAULT_MODEL}
 
 STREAM_TIMEOUT_SECONDS = 30
 COMPLETE_TIMEOUT_SECONDS = 40

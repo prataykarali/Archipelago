@@ -17,8 +17,13 @@ def register(app: Flask, ctx: AppContext) -> None:
     """Register static routes on ``app``."""
 
     @app.get("/ui/assets/<path:filename>")
+    @app.get("/assets/<path:filename>")
     def ui_assets(filename):
-        return send_from_directory(ASSET, filename)
+        if (ASSET / filename).is_file():
+            return send_from_directory(ASSET, filename)
+        if (UI / "assets" / filename).is_file():
+            return send_from_directory(UI / "assets", filename)
+        return jsonify({"error": "not_found"}), 404
 
     @app.get("/<path:filename>")
     def static_files(filename):
