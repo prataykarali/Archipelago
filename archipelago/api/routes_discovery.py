@@ -13,7 +13,6 @@ from archipelago.api.engine_state import (
     DEFAULT_MCQ_TOTAL,
     TOPIC_SUGGEST_LIMIT,
     app,
-    concept_node,
     ensure_engine,
 )
 
@@ -91,70 +90,10 @@ def api_roadmap_quiz() -> Response:
 
 @app.route("/api/chat/diagnostic-mcqs", methods=["GET", "POST"])
 def api_chat_diagnostic_mcqs() -> Response:
-    """Retrieve diagnostic MCQs and prerequisite sequence for target concept."""
-    try:
-        data = request.get_json(silent=True) or {}
-    except Exception:
-        data = {}
+    """Use private server-authoritative learning sessions across local and hosted apps."""
+    from archipelago.personalization_bridge import diagnostic_response
 
-    target_id = _requested_concept(data)
-    if not target_id:
-        return jsonify(
-            {
-                "error": "Missing target concept",
-                "available": False,
-                "mcqs": [],
-            }
-        ), BAD_REQUEST_STATUS
-
-    try:
-        from archipelago.inference.diagnostic_mcq import (
-            generate_diagnostic_mcqs,
-            generate_single_mcq_on_the_spot,
-            get_prerequisite_chain,
-        )
-
-        t_node = concept_node(target_id)
-        prereqs = [
-            p.get("id") if isinstance(p, dict) else str(p)
-            for p in (t_node.get("prerequisites") or [])
-        ]
-        mcqs = generate_diagnostic_mcqs(
-            target_id,
-            prereq_ids=prereqs,
-            num_questions=QUESTION_COUNT,
-            concepts_data=state._concepts_data,
-        )
-        chain = get_prerequisite_chain(target_id, state._concepts_data)
-        prereq_chain = [c for c in chain if c != target_id]
-        immediate_prereq = prereq_chain[-1] if prereq_chain else target_id
-        initial_q = generate_single_mcq_on_the_spot(
-            immediate_prereq, state._concepts_data, q_index=1
-        )
-
-        return jsonify(
-            {
-                "success": True,
-                "available": bool(mcqs),
-                "target_concept": target_id,
-                "chain": chain,
-                "prereq_chain": prereq_chain,
-                "immediate_prerequisite": immediate_prereq,
-                "initial_question": initial_q,
-                "mcqs": mcqs,
-            }
-        ), SUCCESS_STATUS
-    except Exception as exc:
-        logger.warning("Diagnostic MCQ API error: %s", exc)
-        return jsonify(
-            {
-                "success": False,
-                "available": False,
-                "target_concept": target_id,
-                "mcqs": [],
-                "badge": "Personalized assessment temporarily unavailable.",
-            }
-        ), SUCCESS_STATUS
+    return diagnostic_response(state._concepts_data, start=True)
 
 
 @app.route("/api/chat/verify-mcq", methods=["POST"])
@@ -191,16 +130,10 @@ def api_chat_verify_mcq() -> Response:
 
 @app.route("/api/chat/adaptive-step", methods=["POST"])
 def api_chat_adaptive_step() -> Response:
-    """Execute an on-the-spot adaptive leap-back skip-list step."""
-    try:
-        data = request.get_json(force=True) or {}
-    except Exception:
-        data = {}
+    """Use private server-authoritative learning sessions across local and hosted apps."""
+    from archipelago.personalization_bridge import diagnostic_response
 
-    from archipelago.inference.diagnostic_mcq import execute_adaptive_step
-
-    result = execute_adaptive_step(data, concepts_data=state._concepts_data)
-    return jsonify(result), SUCCESS_STATUS
+    return diagnostic_response(state._concepts_data, start=False)
 
 
 @app.route("/api/chat/telemetry", methods=["POST"])

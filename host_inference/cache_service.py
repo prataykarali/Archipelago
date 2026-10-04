@@ -27,7 +27,7 @@ logger = logging.getLogger("archipelago.cache")
 
 DEFAULT_MODEL_VERSION = "qwen3.8-max"
 DEFAULT_GRAPH_VERSION = "okf-5151-v3"
-DEFAULT_PROMPT_VERSION = "v2.1"
+DEFAULT_PROMPT_VERSION = "private-learning-v2"
 DEFAULT_LIBRARY_VERSION = "2026.09"
 
 RESPONSE_TTL_SEC = 3600      # 1 hour

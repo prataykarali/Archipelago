@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 import re
 
-from demo_cards import match_demo, redact_for_model
+from demo_cards import match_demo
 from library_index import Catalog
 from remote_cache import hydrate, load_books
 
@@ -36,9 +36,11 @@ from .constants import (
     UNINDEXED_CURRICULUM_MESSAGE,
 )
 from .contract import contract_for, graph_decision
+from .conversation import ACADEMIC_QUERY, GREETING_PREFIX, conversational_reply
 from .graph import LibraryGraph
+from .inspector import build_trace
 from .links import source_links
-from .llm import provider_config, stream_completion
+from .llm import fallback_config, provider_config, stream_completion
 from .nodes import node_public
 from .patterns import (
     AUTH_RE,
@@ -51,6 +53,7 @@ from .patterns import (
     SCHEDULE_RE,
     SHELF_RE,
 )
+from .privacy import inference_context
 from .render import neighborhood_block
 
 # Routing thresholds and caps.
@@ -137,6 +140,8 @@ class Engine:
         payload["logs"] = [{"step": "Hosted inference", "status": "ok", "details": route}]
 
         if extra.get("hide_graph") or not decision.render:
+            payload["render_graph"] = False
+            payload["related_concepts"] = []
             payload["anchor_concept"] = None
             payload["prerequisites"] = []
             payload["unlocks"] = []
@@ -177,6 +182,7 @@ class Engine:
             payload["withdrawn_notice"] = notices[0]
             payload["text_override"] = notices[0]
 
+        payload["inspector"] = build_trace(graph, payload, route, contract, extra)
         return {"route": route, "contract": contract, "text": text, "payload": payload, "anchor": anchor, "extra": extra}
 
     def stream_chat(self, query: str):
@@ -191,7 +197,8 @@ class Engine:
         payload = result["payload"]
 
         can_polish = route in POLISHABLE_ROUTES
-        config = provider_config() if can_polish else None
+        safe_text = inference_context(self.graph, payload)
+        config = provider_config() if can_polish and safe_text else None
         if config:
             payload["model"] = {"provider": config["provider"], "model": config["model"]}
             payload["logs"].append({"step": config["provider"], "status": "ok", "details": config["model"]})
@@ -203,13 +210,20 @@ class Engine:
             yield grounded_text
             return
 
-        safe_text = redact_for_model(grounded_text)
         link_lines = [line for line in grounded_text.splitlines() if line.startswith(CITATION_LINE_PREFIXES)]
 
         streamed_tokens = 0
         for delta in stream_completion(config, safe_text):
             streamed_tokens += 1
             yield delta
+
+        if streamed_tokens == 0:
+            fallback = fallback_config(config)
+            if fallback:
+                yield "\n*Primary inference provider unavailable; trying NVIDIA.*\n\n"
+                for delta in stream_completion(fallback, safe_text):
+                    streamed_tokens += 1
+                    yield delta
 
         if streamed_tokens > 0:
             if link_lines:
@@ -275,6 +289,10 @@ class Engine:
         graph = self.graph
         if not query or len(query) < MIN_QUERY_LEN:
             return "EMPTY", "Ask a library question of at least two characters.", None, {"hide_graph": True, "reason": "empty"}
+        small_talk = conversational_reply(query)
+        if small_talk:
+            return "CONVERSATION", small_talk, None, {"hide_graph": True, "reason": "conversation"}
+        query = GREETING_PREFIX.sub("", query)
         if INJECTION.search(query):
             return "PERSONA_LOCK", HIJACK_MESSAGE, None, {"hide_graph": True, "reason": "injection"}
         if CODE_TRAP.search(query):
@@ -304,6 +322,9 @@ class Engine:
                 "projection": projection,
                 "hide_graph": False,
             }
+
+        if SHELF_RE.search(query):
+            return self._route_shelf_query(query, 1.0)
 
         demo = match_demo(query, self.books)
         if demo and not DIAG_RE.search(query):
@@ -343,6 +364,10 @@ class Engine:
             }
 
         ranked = graph.rank(query, top_k=RANK_TOP_K)
+        if not ranked:
+            return "ACADEMIC_UNINDEXED", "No concepts are indexed yet. Ask a librarian to ingest this material.", None, {
+                "hide_graph": True, "reason": "empty_corpus",
+            }
         best_score, best_id = ranked[0]
         hits = graph.phrase_hits(query)
         anchors = []
@@ -428,6 +453,11 @@ class Engine:
                     None,
                     {"hide_graph": True, "score": best_score, "reason": "curriculum_not_indexed"},
                 )
+            if ACADEMIC_QUERY.search(query):
+                return "ACADEMIC_UNINDEXED", (
+                    "I couldn't ground that question in the currently indexed academic sources. "
+                    "Try the concept name, or ask a librarian to add a relevant source."
+                ), None, {"hide_graph": True, "score": best_score, "reason": "academic_not_indexed"}
             return "GUARDRAIL_INTERCEPT", OOD_MESSAGE, None, {
                 "hide_graph": True,
                 "score": best_score,

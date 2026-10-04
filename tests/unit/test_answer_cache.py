@@ -381,3 +381,19 @@ def test_cache_hit_preserves_stream_metadata_frame(cache_app):
     text = hit.get_data(as_text=True)
     assert CACHE_MARKER in text, "cached replay must keep the metadata frame"
     assert hit.mimetype == "text/plain"
+
+
+def test_diagnostic_and_explanation_do_not_share_cache(cache_app):
+    client = cache_app.app.test_client()
+    for query in ("explain BERT", "teach me BERT", "teach me BERT"):
+        client.post("/api/chat", json={"query": query}).get_data()
+    assert cache_app.engine.calls == 3
+
+
+def test_personal_state_and_login_bypass_shared_cache(cache_app):
+    client = cache_app.app.test_client()
+    for _ in range(2):
+        client.post("/api/chat", json={"query": "explain BERT", "session_id": "private"}).get_data()
+        client.post("/api/chat", json={"query": "explain BERT"}, headers={"Authorization": "Bearer test"}).get_data()
+    assert cache_app.engine.calls == 4
+    assert not cache_app.ctx.cache_service._mem_response

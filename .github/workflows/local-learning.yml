@@ -1,0 +1,48 @@
+name: Local learning regression
+on:
+  push:
+    branches: [session3-stable, "restore/**"]
+    paths:
+      - "host_inference/**"
+      - "archipelago/personalization_bridge.py"
+      - "ui/chat/**"
+      - "scripts/run_local.py"
+      - "scripts/export_graphier.py"
+      - "tests/**"
+      - ".github/workflows/local-learning.yml"
+  pull_request:
+    branches: [session3-stable, main, develop]
+jobs:
+  focused-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r host_inference/requirements.txt pytest pytest-timeout kuzu PyJWT cryptography
+      - name: Private sessions, cache, provider policy, UI parity, safe export
+        run: >-
+          pytest tests/unit/test_learning_sessions.py
+          tests/unit/test_answer_cache.py tests/unit/test_llm_provider_chain.py
+          tests/unit/test_ui_link_integrity.py tests/unit/test_graphier_export.py
+          --timeout=30 -q
+      - name: JavaScript syntax
+        run: |
+          for file in host_inference/ui/js/*.js; do
+            node --input-type=module --check < "$file"
+          done
+      - name: Local startup
+        run: |
+          python scripts/run_local.py --port 5151 > /tmp/archipelago.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid"' EXIT
+          for n in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:5151/api/readiness; then
+              curl --fail --silent http://127.0.0.1:5151/chat > /dev/null
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/archipelago.log
+          exit 1

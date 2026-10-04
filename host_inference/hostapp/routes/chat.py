@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import json
 import re
+import secrets
 
-from flask import Flask, current_app, jsonify, request
+from engine.patterns import DIAG_RE, INGEST_RE
+from flask import Flask, current_app, jsonify, request, stream_with_context
 from host_roadmap import build_quiz, build_roadmap
 
 from ..context import AppContext
@@ -64,10 +66,16 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "Query cannot be empty"}), 400
 
         ctx.cache_metrics.record_request()
-        norm_query = ctx.cache_service.normalize_query(query)
+        # Never share query results carrying a login or learner state.
+        personal = bool(
+            request.headers.get("Authorization") or request.cookies.get("archipelago_token")
+            or any(body.get(key) for key in ("session_id", "mastery", "learning_state", "preference"))
+        )
+        cacheable = not personal and not DIAG_RE.search(query) and not INGEST_RE.search(query)
+        norm_query = ctx.cache_service.normalize_query(query) if cacheable else secrets.token_urlsafe(24)
 
         # 1. Response cache (Doc 03 Section 3: Cache HIT) — no AI call.
-        cached_entry = ctx.cache_service.get_cached_response(query)
+        cached_entry = ctx.cache_service.get_cached_response(query) if cacheable else None
         if cached_entry:
             ctx.cache_metrics.record_hit(tokens_saved=TOKENS_SAVED_PER_HIT)
             cached_response_text = str(cached_entry.get("response") or "")
@@ -76,7 +84,22 @@ def register(app: Flask, ctx: AppContext) -> None:
                 # A cached stream already carries its metadata frame, so replay
                 # it verbatim and the in-chat graph survives the cache.
                 if cached_response_text.startswith("{") and STREAM_MARKER.strip() in cached_response_text:
-                    yield cached_response_text
+                    prefix, answer = cached_response_text.split(STREAM_MARKER, 1)
+                    try:
+                        frame = json.loads(prefix)
+                        from engine.withdrawal import NEUTRAL_NOTICE, withdrawn_documents
+                        retired = withdrawn_documents()
+                        if any(c.get("doc_id") in retired for c in frame.get("citations", [])):
+                            frame["withdrawn_notice"] = NEUTRAL_NOTICE
+                            frame["text_override"] = NEUTRAL_NOTICE
+                            frame["citations"] = [
+                                c for c in frame.get("citations", []) if c.get("doc_id") not in retired
+                            ]
+                            answer = NEUTRAL_NOTICE
+                        frame["cache"] = {"hit": True, "shared": True}
+                        yield json.dumps(frame) + STREAM_MARKER + answer
+                    except (ValueError, TypeError):
+                        yield cached_response_text
                     return
                 sources = cached_entry.get("sources") or []
                 payload = {
@@ -133,7 +156,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                     collected_chunks.append(chunk)
                     yield chunk
 
-                if collected_chunks:
+                if collected_chunks and cacheable:
                     meta = _metadata_frame(collected_chunks)
                     ctx.cache_service.cache_response(
                         query=query,
@@ -151,17 +174,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                 if is_leader:
                     ctx.request_dedup.cleanup(norm_query)
 
-        return current_app.response_class(generate(), mimetype=STREAM_MIME)
-
-    @app.get("/api/chat/diagnostic-mcqs")
-    def diagnostic_mcqs():
-        concept = request.args.get("concept") or ""
-        return jsonify(ctx.engine.diagnostic_payload(concept))
-
-    @app.post("/api/chat/adaptive-step")
-    def adaptive_step():
-        body = request.get_json(silent=True) or {}
-        return jsonify(ctx.engine.adaptive_step(body))
+        return current_app.response_class(stream_with_context(generate()), mimetype=STREAM_MIME)
 
     @app.post("/api/chat/telemetry")
     def telemetry():

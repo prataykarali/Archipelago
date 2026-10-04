@@ -221,7 +221,12 @@ def test_diagnostic_mcqs_endpoint_latency_and_contract():
         data = resp.get_json()
         assert data["success"] is True
         assert data["available"] is True
-        assert len(data["mcqs"]) >= 3
+        # Adaptive protocol issues one question at a time; never expose future keys.
+        assert len(data["mcqs"]) == 1
+        assert data["session_id"]
+        assert data["initial_questions"] == 3
+        assert data["max_questions"] == 10
+        assert "correct_option" not in data["initial_question"]
         for mcq in data["mcqs"]:
             assert set(mcq["options"].keys()) == {"A", "B", "C", "D"}
 
@@ -377,3 +382,34 @@ def test_adaptive_step_leap_back_and_completion():
     assert "personalized_graph" in step3
     assert "evaluation" in step3
 
+
+
+def test_local_proxy_preserves_private_diagnostic_cookie(monkeypatch):
+    """A browser must keep its owner binding across the separate local UI service."""
+    import chat_server
+    from archipelago import supabase_auth
+
+    principal = supabase_auth.AuthPrincipal("test-user", "student", "student", "test-token")
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
+    monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _request: (principal, None))
+    nonce = "a" * 43
+
+    class Reply:
+        status_code = 200
+        content = b'{"success": true}'
+        headers = {
+            "Content-Type": "application/json",
+            "Set-Cookie": f"archipelago_learning={nonce}; HttpOnly; SameSite=Strict; Path=/",
+        }
+
+    def get(*args, **kwargs):
+        assert kwargs["headers"]["Cookie"] == f"archipelago_learning={nonce}"
+        return Reply()
+
+    monkeypatch.setattr(chat_server._requests, "get", get)
+    with chat_server.app.test_client() as client:
+        client.set_cookie("archipelago_learning", nonce)
+        response = client.get("/api/chat/diagnostic-mcqs?concept=n0")
+        assert response.status_code == 200
+        assert "HttpOnly" in response.headers["Set-Cookie"]
+        assert response.headers["Cache-Control"] == "no-store, private"

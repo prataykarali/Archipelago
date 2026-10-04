@@ -44,7 +44,7 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 
             const cy = h / 2;
             const cx = w / 2;
-            const gapNodes = nodes.filter(n => n.status === 'review_gap');
+            const gapNodes = nodes.filter(n => ['review_gap', 'missing', 'fading'].includes(n.status));
             const mastNodes = nodes.filter(n => n.status === 'mastered');
             const targetNode = nodes.find(n => n.role === 'target') || nodes[nodes.length - 1];
             const unlockedNodes = nodes.filter(n => n.status === 'downstream_unlocked');
@@ -55,7 +55,7 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
             gapNodes.forEach((n, i) => {
                 const y = (h / (gapNodes.length + 1)) * (i + 1);
                 const x = 120 + (i % 2 === 1 ? 40 : 0);
-                nodeCoords[n.id] = { x, y, node: n, color: `url(#grad-gap-${sid})`, stroke: '#f59e0b', glow: '#ea580c', badge: 'Review Gap' };
+                nodeCoords[n.id] = { x, y, node: n, color: `url(#grad-gap-${sid})`, stroke: '#f59e0b', glow: '#ea580c', badge: n.status === 'missing' ? 'Missing' : n.status === 'fading' ? 'Fading' : 'Review Gap' };
             });
 
             // Place mastered nodes in the center (x = cx - 120)
@@ -86,8 +86,8 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 
             // Draw directed edges
             edges.forEach(e => {
-                const u = nodeCoords[e.from_id];
-                const v = nodeCoords[e.to_id];
+                const u = nodeCoords[e.from_id || e.source];
+                const v = nodeCoords[e.to_id || e.target];
                 if (u && v && u !== v) {
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     const midX = (u.x + v.x) / 2;
@@ -101,6 +101,11 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
                     path.setAttribute('stroke-width', '2.2');
                     path.setAttribute('filter', `url(#neon-${sid})`);
                     path.setAttribute('marker-end', marker);
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    title.textContent = `${u.node.label} ${e.relation} ${v.node.label}`;
+                    path.appendChild(title);
+                    path.setAttribute('tabindex', '0');
+                    path.setAttribute('aria-label', title.textContent);
                     svgElement.appendChild(path);
                 }
             });
@@ -179,7 +184,7 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
                     span.className = `px-2 py-1 rounded-lg border cursor-pointer hover:scale-105 transition-all text-[10px] font-bold ${colorCls}`;
                     span.textContent = label;
                     span.title = n.summary || _nodeSummary(n.data || n) || label;
-                    span.onclick = () => selectHorizontalNode(cardId, n.id, n.data || n, anchor, prereqs, unlocks, related);
+                    span.onclick = () => selectPersonalizedNode(cardId, n, anchorLabel);
                     container.appendChild(span);
                 });
             };
@@ -203,29 +208,31 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
             const actionsEl = document.getElementById(`pers-insp-actions-${cardId}`);
 
             if (titleEl) titleEl.textContent = node.label || node.id;
-            if (summaryEl) summaryEl.textContent = node.summary || 'Prerequisite component in this pathway.';
+            if (summaryEl) summaryEl.textContent = [node.summary, node.why].filter(Boolean).join('\n\n');
             if (badgeEl) {
-                badgeEl.textContent = node.status === 'mastered' ? 'Prerequisite Mastered (🟢)' : (node.status === 'review_gap' ? 'Review Gap (🟡)' : 'Target Goal (🌟)');
+                badgeEl.textContent = ['missing', 'fading'].includes(node.status) ? node.status.toUpperCase() : node.status === 'mastered' ? 'Prerequisite Mastered (🟢)' : (node.status === 'review_gap' ? 'Review Gap (🟡)' : 'Target Goal (🌟)');
                 badgeEl.className = `px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${node.status === 'mastered' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : (node.status === 'review_gap' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-accentPurple/25 text-accentPurple border border-accentPurple/40')}`;
             }
             if (citationEl) {
                 citationEl.textContent = node.citation ? `Citation: ${node.citation}` : '';
             }
             if (actionsEl) {
-                let actionButtons = '';
-                if (node.doc_id) {
-                    actionButtons += `
-                        <button onclick="openPrerequisiteRemediationReader('${node.doc_id}', ${node.page_number || 1}, '${escapeHTML(node.label)}', '${escapeHTML(node.summary)}')" type="button" class="px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
-                            <i class="fa-solid fa-book-open text-xs"></i> <span>View Textbook (p. ${node.printed_page || node.page_number || 1})</span>
-                        </button>
-                    `;
+                actionsEl.replaceChildren();
+                if (node.url && (node.url.startsWith('/read?') || node.url.startsWith('/open/'))) {
+                    const link = document.createElement('a');
+                    link.href = node.url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'px-3 py-2 rounded-lg bg-amber-500/20 text-amber-300 text-xs';
+                    link.textContent = `View source (p. ${node.page_number || '?'})`;
+                    actionsEl.appendChild(link);
                 }
-                actionButtons += `
-                    <button onclick="autoPrompt('Explain prerequisite concept ${escapeHTML(node.label)} for mastering ${escapeHTML(anchorLabel)}')" type="button" class="px-3 py-2 rounded-lg bg-accentPurple hover:bg-accentPurple/80 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-accentPurple/25">
-                        <i class="fa-solid fa-comment-dots text-xs"></i> <span>Explain Gap</span>
-                    </button>
-                `;
-                actionsEl.innerHTML = actionButtons;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'px-3 py-2 rounded-lg bg-accentPurple text-white text-xs';
+                button.textContent = 'Explain this prerequisite';
+                button.addEventListener('click', () => window.autoPrompt(`Explain ${node.label} for ${anchorLabel}`));
+                actionsEl.appendChild(button);
             }
         }
 

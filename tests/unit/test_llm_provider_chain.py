@@ -142,3 +142,14 @@ def test_maybe_polish_skips_routes_without_prose_needs() -> None:
     text, meta = llm.maybe_polish("Grounded draft.", "GUARDRAIL_INTERCEPT")
     assert text == "Grounded draft."
     assert meta is None
+
+
+def test_failover_is_bounded_and_pin_disables_it(monkeypatch):
+    monkeypatch.setenv("XKIRO_API_KEY", "test-x")
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-n")
+    primary = llm.provider_config()
+    secondary = llm.fallback_config(primary)
+    assert secondary["provider"] == "nvidia"
+    assert llm.fallback_config(secondary) is None
+    monkeypatch.setenv("ARCHIPELAGO_LLM_PROVIDER", "xkiro")
+    assert llm.fallback_config(primary) is None

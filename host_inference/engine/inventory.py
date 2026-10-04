@@ -39,7 +39,9 @@ NO_RECORD_TEMPLATE = (
     "catalogue for the Central Library.\n\n"
     "Search the OPAC for the current holdings: http://uemk-opac.l2c2.co.in, "
     "or ask at the circulation desk. If the library does not hold it, the "
-    "acquisition desk can place a request — this has been logged as demand."
+     "acquisition desk can place a request — this has been logged as demand. "
+    "ISBN, call number and live availability are unverified; no shelf location is invented. "
+    "Digital access does not replace the physical library."
 )
 
 
