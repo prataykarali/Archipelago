@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import queue
-import re
 import threading
 import time
-import uuid
-from pathlib import Path
 from typing import Any, Optional
+import uuid
+
 from archipelago.graph.engine import KuzuGraphEngine
 from archipelago.graph.graph_fusion import GraphFusionEngine
 from archipelago.ingestion.lib_qwen_extractor import (
@@ -17,7 +17,7 @@ from archipelago.ingestion.lib_qwen_extractor import (
     canonicalize_concept_name,
     is_negative_sample,
 )
-from archipelago.storage.hf_remote import HFStorageClient
+
 from . import _deps as _rt  # noqa: F401
 
 
@@ -96,29 +96,17 @@ class LibrarianWorker(threading.Thread):
 
     def _process_job(self, job: _rt.LibrarianJob) -> None:
         job.status = "processing"
-        job.stage = "HF_UPLOAD"
+        job.stage = "LOCAL_VALIDATION"
         self._save_job(job)
 
         local_file = Path(job.file_path)
         if not local_file.is_file():
             raise FileNotFoundError(f"Uploaded file not found: {local_file}")
 
-        # ── Stage 1: Push to Hugging Face Remote Storage ───────────────────────
-        hf_client = HFStorageClient()
-        safe_name = re.sub(r"[^\w\.-]", "_", local_file.name)
-        remote_rel_path = f"books/librarian_uploads/{safe_name}"
-        try:
-            _rt.logger.info("Uploading %s to HF dataset %s...", local_file, hf_client.repo_id)
-            hf_res = hf_client.upload_file(
-                local_path=local_file,
-                remote_path=remote_rel_path,
-                commit_message=f"Librarian upload: {job.title} ({job.isbn})",
-            )
-            job.hf_remote_path = remote_rel_path
-            _rt.logger.info("HF remote push finished: %s", hf_res.get("mode"))
-        except Exception as hf_err:
-            _rt.logger.warning("HF upload warning (will continue locally): %s", hf_err)
-            job.hf_remote_path = remote_rel_path
+        # Full documents are never published merely because ingestion was requested.
+        # Use a separately reviewed rights manifest and the graph-only export tool
+        # for publication. Local ingestion remains usable without HF credentials.
+        job.hf_remote_path = ""
 
         # ── Stage 2: Slicing with High-Yield Structural Filtering ──────────────
         job.stage = "STRUCTURAL_SLICING"
@@ -129,8 +117,7 @@ class LibrarianWorker(threading.Thread):
         try:
             raw_chunks = ingest_document(str(local_file), max_pages=30)
         except Exception as slice_err:
-            _rt.logger.warning("Universal chunker failed, falling back to basic text slice: %s", slice_err)
-            raw_chunks = []
+            raise RuntimeError("Document extraction/OCR failed; no graph was published.") from slice_err
 
         # Filter out negative boilerplate samples
         valid_chunks = []
@@ -139,6 +126,8 @@ class LibrarianWorker(threading.Thread):
             if not is_negative_sample(passage):
                 valid_chunks.append(chk)
 
+        if not valid_chunks:
+            raise ValueError("No eligible readable chunks were extracted; ingestion did not complete.")
         job.chunks_processed = len(valid_chunks)
         self._save_job(job)
 
@@ -167,6 +156,8 @@ class LibrarianWorker(threading.Thread):
         job.stage = "CANONICAL_RESOLVE"
         self._save_job(job)
 
+        if not all_concepts:
+            raise RuntimeError("Extraction returned no validated concepts. Verify the ingestion model before publishing.")
         resolved_concepts = extractor.second_pass_relation_resolver(all_concepts)
         job.concepts_extracted = len(resolved_concepts)
 
@@ -233,8 +224,8 @@ class LibrarianWorker(threading.Thread):
 
         # 1. Merge Document
         safe_title = job.title.replace("'", "''")
-        safe_author = job.author.replace("'", "''")
-        remote_url = job.hf_remote_path or f"books/librarian_uploads/{safe_name}"
+        # No remote URL exists until a separate, approved publication succeeds.
+        remote_url = job.hf_remote_path or ""
         try:
             conn.execute(
                 f"MERGE (d:Document {{id: '{doc_id}'}}) "

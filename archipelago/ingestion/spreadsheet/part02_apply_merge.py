@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+
 from . import _deps as _rt  # noqa: F401
 
 
@@ -15,13 +16,14 @@ def apply_merge(
     """Apply a spreadsheet merge. Idempotent: re-running yields UNCHANGED only."""
     plan = _rt.plan_merge(path, record_type=record_type, retire_missing=retire_missing)
     writes: list[dict[str, Any]] = []
-    if not dry_run:
+    if not dry_run and not plan.errors:
         writes = _write_plan(plan, record_type)
     summary = plan.summary()
-    summary["applied"] = not dry_run
+    summary["applied"] = not dry_run and not plan.errors
     summary["dry_run"] = dry_run
     summary["retire_missing"] = retire_missing
     summary["writes_performed"] = len(writes)
+    summary["success"] = not plan.errors
     summary["idempotent"] = all(
         c["outcome"] in (_rt.OUTCOME_UNCHANGED, _rt.OUTCOME_RETIRE)
         for c in summary["changes"]
@@ -98,26 +100,36 @@ def _write_plan(plan: _rt.MergePlan, record_type: str) -> list[dict[str, Any]]:
         return written
     try:
         import kuzu
+
         from archipelago.inference import state as st
         if getattr(st, "db", None) is None:
             plan.errors.append("Graph database unavailable; nothing was written.")
             return written
-        builder = _subject_params if record_type == "subject" else _resource_params
+        builder = _rt._subject_params if record_type == "subject" else _rt._resource_params
         subject_set, resource_set = _update_statements(record_type)
         update_stmt = subject_set if record_type == "subject" else resource_set
         with graph_lock.write_lock():
             conn = kuzu.Connection(st.db)
-            for change in pending:
-                merge_stmt, params = builder(change)
-                try:
+            from archipelago.ingestion.catalog_locations import ensure_fields, store_fields
+
+            if record_type == "resource":
+                ensure_fields(conn)
+            conn.execute("BEGIN TRANSACTION")
+            try:
+                for change in pending:
+                    merge_stmt, params = builder(change)
                     if change.outcome == _rt.OUTCOME_UPDATE:
-                        # A SET only touches an existing row, so it is safe.
                         conn.execute(update_stmt, params)
                     else:
                         conn.execute(merge_stmt, params)
+                    if record_type == "resource":
+                        store_fields(conn, change.record_id, change.fields)
                     written.append({"record_id": change.record_id, "outcome": change.outcome})
-                except Exception as exc:
-                    plan.errors.append(f"{change.record_id}: {exc}")
+                conn.execute("COMMIT")
+            except Exception:
+                conn.execute("ROLLBACK")
+                written.clear()
+                raise
     except Exception as exc:
         plan.errors.append(f"Merge aborted: {exc}")
     return written

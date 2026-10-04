@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from . import _deps as _rt  # noqa: F401
 
-
 _DEFAULT_CONN = None
 
 
@@ -17,6 +16,9 @@ def set_default_connection(conn):
     """
     global _DEFAULT_CONN
     _DEFAULT_CONN = conn
+    # Package splitting must not freeze a copy of the injected connection.
+    import okf.graph.evidence as package
+    package._DEFAULT_CONN = conn
 
 
 def _get_default_graph_db():

@@ -18,6 +18,7 @@ REQUIRED = {"book_id", "title", "total_copies", "available_copies"}
 TEXT_FIELDS = (
     "book_id", "title", "authors", "publisher", "subject", "publication_year",
     "category", "availability", "take_home", "location", "accession",
+    "call_number", "rack", "shelf", "doc_id",
 )
 
 

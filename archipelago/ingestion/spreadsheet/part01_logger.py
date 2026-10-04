@@ -1,14 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
 from __future__ import annotations
 
-import logging
-import re
 from dataclasses import dataclass, field
+import logging
 from pathlib import Path
+import re
 from typing import Any
-from archipelago.ingestion.mention import normalize_title as _normalize_title
-from . import _deps as _rt  # noqa: F401
 
+from archipelago.ingestion.mention import normalize_title as _normalize_title
+
+from . import _deps as _rt  # noqa: F401
 
 logger = logging.getLogger("archipelago.ingestion.spreadsheet")
 
@@ -56,8 +57,13 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "total_copies": ("totalcopies", "nocopies", "noofcopies", "numberofcopies", "copies",
                      "holdings", "total"),
     "available_copies": ("availablecopies", "available", "availcopies", "availcopiescount",
-                         "onloan", "copiesavailable"),
+                         "copiesavailable"),
     "overdue_items": ("overdueitems", "overdue", "onloanitems"),
+     "call_number": ("callnumber", "classification"),
+    "barcode": ("barcode", "itembarcode"),
+    "rack": ("rack", "racknumber"),
+    "shelf": ("shelf", "shelfnumber"),
+    "location": ("location", "shelflocation", "librarylocation"),
     "is_periodical": ("isperiodical", "periodical", "journal", "serial"),
 }
 
@@ -65,7 +71,7 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
 REQUIRED_FIELDS = ("title",)
 
 
-_STR_FIELDS = ("title", "author", "publisher", "isbn", "subject")
+_STR_FIELDS = ("title", "author", "publisher", "isbn", "subject", "call_number", "barcode", "rack", "shelf", "location")
 
 
 _INT_FIELDS = ("total_copies", "available_copies", "overdue_items")
@@ -209,12 +215,9 @@ def record_id_for(record: dict[str, Any]) -> str:
 
 def read_rows(path: str | Path) -> list[list[Any]]:
     """Read an ODS/CSV/TSV/XLSX export into rows, reusing the shared parser."""
-    from archipelago.inference.ods_parser import read_ods_sheet
-    p = Path(path)
-    if not p.is_file():
-        return []
-    # The shared parser expects a string path, not a Path.
-    return read_ods_sheet(str(p))
+    from archipelago.ingestion.table_reader import read_table
+
+    return read_table(path)
 
 
 def find_header_row(rows: list[list[Any]], scan_rows: int = 12) -> int:
@@ -230,7 +233,10 @@ def find_header_row(rows: list[list[Any]], scan_rows: int = 12) -> int:
 def load_records(path: str | Path, max_rows: int = MAX_ROWS) -> tuple[list[dict[str, Any]], list[str], list[str]]:
     """Load a spreadsheet into normalized records plus detected fields and errors."""
     errors: list[str] = []
-    rows = read_rows(path)
+    try:
+        rows = read_rows(path)
+    except (ValueError, OSError, UnicodeError) as exc:
+        return [], [], [str(exc)]
     if not rows:
         return [], [], [f"No readable rows in {Path(path).name}."]
 
@@ -245,6 +251,8 @@ def load_records(path: str | Path, max_rows: int = MAX_ROWS) -> tuple[list[dict[
     if missing:
         errors.append(f"{Path(path).name}: missing required column(s): {', '.join(missing)}")
 
+    if errors:
+        return [], detected, errors
     records: list[dict[str, Any]] = []
     for offset, row in enumerate(rows[header_index + 1:], start=header_index + 2):
         if len(records) >= max_rows:
@@ -254,6 +262,13 @@ def load_records(path: str | Path, max_rows: int = MAX_ROWS) -> tuple[list[dict[
             continue
         record = row_to_record(row, mapping)
         if not record.get("title"):
+            continue
+        total, available = record.get("total_copies"), record.get("available_copies")
+        if (total is not None and total < 0) or (available is not None and available < 0):
+            errors.append(f"Row {offset}: copy counts cannot be negative.")
+            continue
+        if total is not None and available is not None and available > total:
+            errors.append(f"Row {offset}: available copies exceed total copies.")
             continue
         record["_row"] = offset
         records.append(record)
@@ -275,6 +290,7 @@ def _fetch_existing(record_type: str) -> dict[str, dict[str, Any]]:
         name_field = "title"
     try:
         import kuzu
+
         from archipelago.inference import state as st
         if getattr(st, "db", None) is None:
             return existing
@@ -293,6 +309,12 @@ def _fetch_existing(record_type: str) -> dict[str, dict[str, Any]]:
                 "overdue_items": row[8] if len(row) > 8 and row[8] is not None else 0,
                 "is_periodical": bool(row[9]) if len(row) > 9 else False,
             }
+        if record_type == "resource":
+            from archipelago.ingestion.catalog_locations import read_fields
+
+            for record_id, details in read_fields(conn).items():
+                if record_id in existing:
+                    existing[record_id].update(details)
     except Exception as exc:
         logger.debug("Existing catalogue read unavailable: %s", exc)
     return existing

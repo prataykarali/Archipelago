@@ -27,3 +27,6 @@ defusedxml>=0.7.1
 
 # Web-data Actors for source discovery (server-side only; cost-capped).
 apify-client>=1.7.0
+
+# Local XLSX catalogue intake; ODS uses hardened standard XML reader.
+openpyxl>=3.1.0

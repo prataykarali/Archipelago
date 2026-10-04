@@ -1,10 +1,12 @@
 """Auto-split from monolith — blocks are verbatim."""
 from __future__ import annotations
 
-import re
 from pathlib import Path
+import re
 from urllib.parse import quote
-from flask import jsonify, send_from_directory, request, redirect
+
+from flask import jsonify, redirect, request, send_from_directory
+
 from archipelago.inference import state as st
 
 
@@ -22,17 +24,19 @@ def serve_pdf(filename):
 
     Searches recursively under pdfs/ and falls back to remote arXiv/publisher URLs.
     """
-    pdf_dir = Path(st.PDF_DIR)
+    pdf_dir = Path(st.PDF_DIR).resolve()
+    candidate = (pdf_dir / filename).resolve()
+    if Path(filename).is_absolute() or not candidate.is_relative_to(pdf_dir):
+        return jsonify({"error": "Invalid document path."}), 400
     target_name = Path(filename).name
 
     # 1. Check exact path
-    candidate = pdf_dir / filename
     if candidate.is_file():
         return send_from_directory(str(candidate.parent), candidate.name)
 
     # 2. Check direct stem under pdf_dir or subfolders (papers/, textbooks/, etc.)
     for match in pdf_dir.glob(f"**/{target_name}"):
-        if match.is_file():
+        if match.is_file() and match.resolve().is_relative_to(pdf_dir):
             return send_from_directory(str(match.parent), match.name)
 
     # 3. Check arXiv regex pattern (e.g. 1706.03762v7.pdf)
@@ -57,8 +61,8 @@ def serve_pdf(filename):
         pass
 
     # 5. Hugging Face Cloud Gateway fallback for non-Pearson books & papers
-    hf_cloud_url = f"https://huggingface.co/datasets/Prataykarali/Library_books/resolve/main/{quote(target_name, safe='')}"
-    return redirect(hf_cloud_url, code=302)
+    # Unknown paths are not evidence of files in a private dataset.
+    return jsonify({"error": "Document is not present in the approved local source registry."}), 404
 
 
 REMOTE_PDF_SOURCES = {

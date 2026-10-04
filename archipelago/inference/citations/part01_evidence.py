@@ -135,7 +135,8 @@ def build_concept_citation_map(target_concept, prereqs, unlocks, graph_db=None):
     # Accept both dict (with "id" key) and string (concept_id) for target_concept
     if isinstance(target_concept, str):
         target_id = target_concept
-        target_name = target_concept
+        target = st.CONCEPTS_DATA.get(target_concept) or {}
+        target_name = target.get("label") or target.get("name") or target_concept.replace("_", " ")
     else:
         target_id = target_concept.get("id", "")
         target_name = _node_name(target_concept)

@@ -1,11 +1,21 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
 from __future__ import annotations
 
-from archipelago.inference.llm_gateway import gateway_chat, gateway_chat_stream, gateway_chat_with_tools, is_llm_available, LLM_UNAVAILABLE_MSG, configure_gateway
 from archipelago.inference import state as st
 from archipelago.inference.citations import (
-    _citation_label, _citation_marker, _cite_with_link, validate_citations,
+    _citation_label,
+    _citation_marker,
+    _cite_with_link,
     cleanse_model_citations,
+    validate_citations,
+)
+from archipelago.inference.llm_gateway import (
+    LLM_UNAVAILABLE_MSG,
+    configure_gateway,
+    gateway_chat,
+    gateway_chat_stream,
+    gateway_chat_with_tools,
+    is_llm_available,
 )
 
 
@@ -66,6 +76,7 @@ def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None,
             "5. PASSING MENTIONS: if Context only name-drops an entity, refuse with "
             "'This information is not detailed in the provided library texts.'"
         )
+        system_prompt += "\n" + cite_rule
         user_content = (
             f"[Context]:\n{indexed_response}\n\n"
             f"[User Query]:\n{user_query or ''}"
@@ -82,6 +93,13 @@ def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None,
         user_content = indexed_response
         num_predict = 180
         temperature = 0.0
+    from archipelago.inference.outbound_context import minimal_context, redact
+
+    user_content = (
+        "[UNTRUSTED_RETRIEVED_CONTEXT]\n"
+        + minimal_context(citation_payloads)
+        + "\n[/UNTRUSTED_RETRIEVED_CONTEXT]\n[User Query]:\n" + redact(user_query or "")
+    )
     try:
         text = gateway_chat(
             messages=[

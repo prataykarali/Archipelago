@@ -128,3 +128,13 @@ page 1; PDF page indices and printed page labels may differ.
 
 See `docs/reports/FOLLOWUP_REPAIRS_2026-10-04.md` for repairs, browser commands
 and the remaining missing-originals/access limitations.
+
+
+## October 4 remaining-issue repairs
+See `docs/reports/REMAINING_REPAIRS_2026-10-04.md` for tested scope and unresolved blockers.
+
+- Optional 30-day browser mastery memory is under **Learning memory (optional)**. It saves mastery/preference, not answers. **Forget saved learning** deletes both consent and records.
+- Scanned PDF ingestion requires local `tesseract-ocr`; table intake supports CSV/TSV/ODS/XLSX. Root Python requirements include XLSX and hardened XML support.
+- Workstation ingestion no longer automatically uploads full documents to HF. Publication requires a separate approved rights-reviewed export.
+- Verified staff can request aggregate-only `/api/staff/learning-summary`; no staff dashboard or live OPAC connector is certified.
+- Model weights and institutional library exports are not present. Error handling/readiness probes are not successful model/library restoration.

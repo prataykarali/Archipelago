@@ -62,8 +62,8 @@ def inventory_cards_for_concept(
                 "author": record.get("author", ""),
                 "isbn": record.get("isbn", "") or record.get("biblionumber", ""),
                 "publisher": record.get("publisher", ""),
-                "available_copies": record.get("available_copies", 0),
-                "total_copies": record.get("total_copies", 0),
+                "available_copies": record.get("available_copies"),
+                "total_copies": record.get("total_copies"),
                 "match": score,
                 "confidence": confidence,
                 "reader_url": str(record.get("reader_base_url") or ""),
@@ -90,18 +90,21 @@ def render_inventory_section(cards: list[dict[str, Any]]) -> str:
         "",
     ]
     for card in cards:
-        available = int(card.get("available_copies") or 0)
-        total = int(card.get("total_copies") or 0)
+        available = card.get("available_copies")
+        total = card.get("total_copies")
         qualifier = "" if card.get("confidence") == "confirmed" else " (closest indexed match)"
         lines.append(f"* **Resource title.** {card.get('title', '')}{qualifier}")
         if card.get("author"):
             lines.append(f"* **Author.** {card['author']}")
         if card.get("isbn"):
             lines.append(f"* **ISBN / shelf locator.** `{card['isbn']}`")
-        lines.append(
-            f"* **Live shelf availability.** **{available} physical cop"
-            f"{'y' if available == 1 else 'ies'} available** out of {total} total."
-        )
+        if isinstance(available, int) and isinstance(total, int):
+            lines.append(
+                f"* **Imported holdings snapshot.** {available} of {total} copies available. "
+                "Confirm current circulation in the OPAC."
+            )
+        else:
+            lines.append("* **Availability.** Not present in the imported holdings.")
         if card.get("reader_url"):
             lines.append(f"* **Institutional e-resource.** {card['reader_url']}")
 

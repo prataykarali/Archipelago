@@ -86,3 +86,12 @@ def diagnostic_response(concepts: dict, *, start: bool):
         current_app.extensions["private_learning_store"] = store
     graph = LocalLearningGraph(concepts)
     return start_response(graph, store) if start else step_response(graph, store)
+
+
+def memory_response():
+    """Expose owner deletion controls through the local protocol as well."""
+    from hostapp.learning_memory import LearningMemory
+    from hostapp.routes.learning_settings import settings_response
+
+    path = Path(os.getenv("ARCHIPELAGO_QUIZ_DB", str(_HOST / "cache" / "local_quiz_sessions.sqlite3")))
+    return settings_response(LearningMemory(path.with_name("learning_memory.sqlite3")))

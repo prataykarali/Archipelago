@@ -1,15 +1,17 @@
 from archipelago.ingestion._pdf_base import *  # noqa: F403
 from archipelago.ingestion.pdf_chunk import chunk_pdf
-from archipelago.ingestion.pdf_formats import chunk_markdown, chunk_text, chunk_docx
+from archipelago.ingestion.pdf_formats import chunk_docx, chunk_markdown, chunk_text
 from archipelago.ingestion.pdf_utils import *  # noqa: F403
+
 # import * skips leading-underscore names — bind the helpers we call directly.
 from archipelago.ingestion.pdf_utils import (
     _compute_doc_hash,
-    _extract_title_from_pdf,
     _extract_edition_from_pdf,
     _extract_page_labels,
+    _extract_title_from_pdf,
     annotate_chunks,
 )
+
 
 def ingest_document(path: str, max_pages: int = None) -> list:
     """Universal document ingester. Routes to the right chunker by file extension.
@@ -29,7 +31,7 @@ def ingest_document(path: str, max_pages: int = None) -> list:
     if ext == ".pdf":
         if fitz is None:
             raise ImportError("PyMuPDF (fitz) is required. Install with: pip install pymupdf")
-        
+
         # Open once to extract document metadata
         doc = fitz.open(path)
         doc_hash = _compute_doc_hash(path)
@@ -38,8 +40,8 @@ def ingest_document(path: str, max_pages: int = None) -> list:
         edition = _extract_edition_from_pdf(doc)
         page_label_map = _extract_page_labels(doc)
         doc.close()
-        
-        chunks = chunk_pdf(path, max_pages=max_pages)
+
+        chunks = chunk_pdf(path, max_pages=max_pages, page_bounded=True)
     elif ext in (".md", ".markdown"):
         doc_hash = _compute_doc_hash(path)
         chunks = chunk_markdown(path)
@@ -60,7 +62,7 @@ def ingest_document(path: str, max_pages: int = None) -> list:
 
     # Annotate all chunks with chunk_kind
     chunks = annotate_chunks(chunks)
-    
+
     # Attach document-level metadata to each chunk for downstream storage
     for chunk in chunks:
         chunk["doc_hash"] = doc_hash

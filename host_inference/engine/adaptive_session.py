@@ -61,7 +61,7 @@ def public_question(question: dict | None) -> dict | None:
     return {key: question[key] for key in QUESTION_FIELDS} if question else None
 
 
-def start(graph, target: str, preference: str = "conceptual") -> tuple[dict, dict]:
+def start(graph, target: str, preference: str = "conceptual", remembered: dict | None = None) -> tuple[dict, dict]:
     """Start a minimal, bounded session; unknown targets never select a random node."""
     if not isinstance(target, str) or target not in graph.nodes:
         raise ValueError("The target concept is not indexed.")
@@ -70,6 +70,10 @@ def start(graph, target: str, preference: str = "conceptual") -> tuple[dict, dic
     session = {
         "target": target, "preference": preference, "depths": neighborhood(graph, target),
         "history": [], "mastery": {}, "completed": False,
+    }
+    session["mastery"] = {
+        cid: dict(record) for cid, record in (remembered or {}).items()
+        if cid in session["depths"] and isinstance(record, dict)
     }
     cid = next_node(graph, session)
     session["question"] = _question(graph, cid)

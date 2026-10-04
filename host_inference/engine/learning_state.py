@@ -88,6 +88,7 @@ def next_node(graph, session: dict) -> str | None:
         return min(unasked, key=lambda cid: (
             by_depth.get(depths[cid], 0),
             -depths[cid],
+            effective_mastery(session["mastery"].get(cid, {})) == "mastered",
             graph.nodes[cid].get("concept_type") not in preferred,
             cid,
         ))
@@ -96,7 +97,7 @@ def next_node(graph, session: dict) -> str | None:
     uncertain = [
         cid for cid, record in session["mastery"].items()
         if record["confidence"] > 0 and effective_mastery(record) != "mastered"
-        and record["verification_count"] < 2
+        and sum(row["concept_id"] == cid for row in history) < 2
     ]
     return uncertain[0] if uncertain else None
 

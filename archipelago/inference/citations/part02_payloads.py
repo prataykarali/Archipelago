@@ -143,6 +143,9 @@ def citation_payload(evidence, topic, evidence_id=None):
         "subscription_id": subscription_id,
         "isbn": isbn,
     }
+    for flag in ("private", "visibility", "allow_external_inference"):
+        if flag in evidence:
+            payload[flag] = evidence[flag]
     # When the document is indexed from the Hugging Face dataset, also expose the
     # exact dataset file page so a reader can reach the original source directly
     # (never the dataset homepage).
@@ -212,8 +215,18 @@ def build_citation_payloads(target_concept, prereqs, unlocks, citation_map):
     topics = {target_concept.get("id", ""): _node_name(target_concept)}
     for item in list(prereqs) + list(unlocks):
         topics.setdefault(item.get("id"), _node_name(item))
+    records = {item.get("id"): item for item in [target_concept, *prereqs, *unlocks]}
     payloads = []
     for concept_id, evidence_list in citation_map.items():
         for evidence in evidence_list:
-            payloads.append(citation_payload(evidence, topics.get(concept_id, "")))
+            payload = citation_payload(evidence, topics.get(concept_id, ""))
+            node = records.get(concept_id, {})
+            for flag in ("private", "visibility", "allow_external_inference"):
+                if flag == "private" and node.get(flag):
+                    payload[flag] = True
+                elif flag == "allow_external_inference" and node.get(flag) is False:
+                    payload[flag] = False
+                elif flag == "visibility" and str(node.get(flag, "")).lower() in {"private", "restricted", "confidential"}:
+                    payload[flag] = node[flag]
+            payloads.append(payload)
     return payloads

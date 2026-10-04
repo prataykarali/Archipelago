@@ -5,6 +5,9 @@ on:
     paths:
       - "host_inference/**"
       - "archipelago/personalization_bridge.py"
+      - "archipelago/ingestion/**"
+      - "archipelago/inference/**"
+      - "okf/graph/**"
       - "archipelago/resolver/**"
       - "archipelago/inference/citations/**"
       - "chat_server/**"
@@ -23,13 +26,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r host_inference/requirements.txt pytest pytest-timeout kuzu PyJWT cryptography
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements.txt cryptography openpyxl odfpy
       - name: Private sessions, cache, provider policy, UI parity, safe export
         run: >-
           pytest tests/unit/test_learning_sessions.py
           tests/unit/test_answer_cache.py tests/unit/test_llm_provider_chain.py
           tests/unit/test_ui_link_integrity.py tests/unit/test_graphier_export.py
           tests/unit/test_reader_safety.py tests/unit/test_library_restoration.py
+          tests/unit/test_remaining_repairs.py tests/integration/test_spreadsheet_atomic.py
           --timeout=30 -q
       - name: Chat transport edge cases
         run: node --test tests/js/chat-transport.test.mjs

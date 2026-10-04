@@ -2,11 +2,18 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+
 from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
 from flask.typing import ResponseReturnValue
 import requests as _requests
+
 from .learning_proxy import learning_headers, learning_response
-from .merged01_repo_root import INFERENCE_CHAT_URL, _STREAM_CHUNK_BYTES, _inference_auth_headers, app  # noqa: F401
+from .merged01_repo_root import (  # noqa: F401
+    _STREAM_CHUNK_BYTES,
+    INFERENCE_CHAT_URL,
+    _inference_auth_headers,
+    app,
+)
 
 
 @app.route("/api/chat", methods=["POST", "OPTIONS"])
@@ -184,3 +191,18 @@ def readiness_proxy() -> ResponseReturnValue:
         )
     except Exception as exc:
         return jsonify({"ready": False, "error": str(exc)}), 503
+
+
+@app.route("/api/chat/learning-memory", methods=["GET", "DELETE", "OPTIONS"])
+def learning_memory_proxy() -> ResponseReturnValue:
+    """Proxy owner-controlled opt-in memory inspection and deletion."""
+    if request.method == "OPTIONS":
+        return ("", 204)
+    try:
+        upstream = _requests.request(
+            request.method, f"{_inference_base()}/api/chat/learning-memory",
+            headers=learning_headers(_inference_auth_headers()), timeout=5,
+        )
+    except _requests.RequestException:
+        return {"error": "Learning memory service unavailable."}, 503
+    return learning_response(upstream)

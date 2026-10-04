@@ -198,6 +198,7 @@ def gateway_chat_stream(
     start_time = time.time()
     order = _provider_order(provider)
 
+    emitted = False
     for name in order:
         try:
             for chunk in _stream_by_name(
@@ -209,7 +210,9 @@ def gateway_chat_stream(
                 max_tokens=max_tokens,
                 timeout=timeout,
             ):
-                yield chunk
+                if chunk:
+                    emitted = True
+                    yield chunk
             latency_ms = (time.time() - start_time) * 1000
             print(
                 f"gateway_chat_stream | Provider: {name} | Purpose: {purpose} "
@@ -217,6 +220,8 @@ def gateway_chat_stream(
             )
             return
         except Exception as exc:
+            if emitted:
+                raise RuntimeError("Provider interrupted after output started.") from exc
             logger.warning("%s streaming failed: %s", name, exc)
             next_name = [n for n in order if n != name]
             if not next_name:

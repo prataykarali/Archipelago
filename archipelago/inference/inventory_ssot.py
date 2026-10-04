@@ -29,7 +29,7 @@ INVENTORY_FILENAME = "upload_inventory.json"
 # disk invalidates the cache even if a caller forgets to clear it explicitly.
 _cache_lock = threading.Lock()
 _cached_rows: list[dict[str, Any]] | None = None
-_cached_stamp: tuple[int, int] | None = None
+_cached_stamp: tuple[str, int, int] | None = None
 
 
 def inventory_path(base_dir: Path | str | None = None) -> Path:
@@ -38,12 +38,12 @@ def inventory_path(base_dir: Path | str | None = None) -> Path:
     return root / "pdfs" / INVENTORY_FILENAME
 
 
-def _stamp(path: Path) -> tuple[int, int] | None:
+def _stamp(path: Path) -> tuple[str, int, int] | None:
     """(size, mtime) fingerprint, or None when the file is absent."""
     if not path.is_file():
         return None
     stat = path.stat()
-    return stat.st_size, stat.st_mtime_ns
+    return str(path.resolve()), stat.st_size, stat.st_mtime_ns
 
 
 def read_inventory(base_dir: Path | str | None = None, use_cache: bool = True) -> list[dict[str, Any]]:
@@ -52,6 +52,7 @@ def read_inventory(base_dir: Path | str | None = None, use_cache: bool = True) -
     Never raises: a missing or corrupt inventory is an empty library, not a
     failed request.
     """
+    global _cached_rows, _cached_stamp
     path = inventory_path(base_dir)
     with _cache_lock:
         stamp = _stamp(path)
@@ -70,7 +71,6 @@ def read_inventory(base_dir: Path | str | None = None, use_cache: bool = True) -
             rows = []
 
     with _cache_lock:
-        global _cached_rows, _cached_stamp
         _cached_rows, _cached_stamp = rows, stamp
     return list(rows)
 

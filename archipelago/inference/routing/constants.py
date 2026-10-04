@@ -66,7 +66,7 @@ _TECHNICAL_MARKERS = re.compile(
     r"convolution|pooling|filter|kernel|feature\s+map|"
     r"attention\s+mechanism|self-?attention|"
     r"multi-?head\s+attention|positional\s+encoding|"
-    r"matrix|matrices|jacobian|covariance|probability|"
+    r"matrix|matrices|jacobian|covariance|probability|likelihood|estimation|bayesian|entropy|"
     r"backpropagation|fine-?tun\w*|"
     r"premium\s+llm|openai|anthropic|google\s+ai|microsoft\s+ai|"
     r"hugging\s*face|huggingface"
@@ -106,7 +106,7 @@ _SANITY_FILLER = frozenset({
     "highest", "most", "many", "much", "use", "used", "using", "way", "other",
     "around", "depend", "depends", "not", "one", "two", "long", "short",
     "sequence", "sequences", "man", "hey", "buddy", "cool", "now", "good",
-    "evening", "morning", "tired", "math", "hard", "also", "really",
+    "evening", "morning", "tired", "math", "hard", "also", "really", "maximum", "minimum",
     "from", "they", "them", "any", "some", "all", "but", "than", "then",
     "there", "here", "each", "both", "very", "more", "less", "only", "even",
     # graph-navigation vocabulary (curriculum questions, not foreign content)

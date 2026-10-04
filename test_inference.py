@@ -1,5 +1,7 @@
 """Test the reconstructed inference backend."""
+import importlib
 import sys
+
 sys.path.insert(0, '.')
 
 import json
@@ -22,7 +24,7 @@ if os.path.exists('.env'):
             line = line.strip()
             if line and not line.startswith('#'):
                 k, v = line.split('=', 1)
-                print(f"   {k}={v[:20]}")
+                print(f"   {k}: configured")
 
 # 3. Test imports
 print("\n3. Module imports:")
@@ -35,7 +37,7 @@ for mod_name, import_path in [
     ("synthesis", "archipelago.inference.synthesis"),
 ]:
     try:
-        exec(f"from {import_path} import *")
+        importlib.import_module(import_path)
         print(f"   ✓ {mod_name}")
     except Exception as e:
         print(f"   ✗ {mod_name}: {e}")
@@ -77,13 +79,13 @@ except Exception as e:
 # 6. Test ranking
 print("\n6. Concept ranking test:")
 try:
-    from archipelago.inference.ranking import rank_concepts, find_anchor_concept
+    from archipelago.inference.ranking import find_anchor_concept, rank_concepts
     if CONCEPTS_DATA:
         ranked = rank_concepts("transformer attention", top_k=3)
         print(f"   Ranked: {[r.get('label', r['id'])[:30] for r in ranked]}")
         anchor = find_anchor_concept("What is RAG?")
         if anchor:
-            print(f"   Anchor: {anchor.get('name', anchor['id'])} (score={anchor.get('score', 0):.3f})")
+            print(f"   Anchor: {anchor[0]} (score={anchor[1]:.3f})")
         else:
             print("   No anchor found")
 except Exception as e:
