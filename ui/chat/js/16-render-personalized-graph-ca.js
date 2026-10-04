@@ -42,15 +42,15 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
             cardWrapper.innerHTML = `
                 <div class="concept-visualize-card border border-accentPurple/30 rounded-2xl bg-panelBg/95 shadow-xl overflow-hidden">
                     <!-- Header bar with Normal Graph switcher -->
-                    <div class="w-full px-4 py-3 flex items-center justify-between bg-white/5 border-b border-white/10">
+                    <div class="graph-card-heading w-full px-4 py-3 flex items-center justify-between bg-white/5 border-b border-white/10">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <div class="w-7 h-7 rounded-lg bg-accentPurple/25 border border-accentPurple/40 flex items-center justify-center text-accentPurple shrink-0">
                                 <i class="fa-solid fa-graduation-cap text-sm"></i>
                             </div>
                             <div class="flex flex-col text-left min-w-0">
-                                <span class="font-extrabold text-white text-xs tracking-tight flex items-center gap-2">
+                                <span class="graph-card-title font-extrabold text-white text-xs tracking-tight flex items-center gap-2">
                                     Personalized Knowledge Graph
-                                    <span class="px-2 py-0.5 rounded-full bg-accentPurple/25 border border-accentPurple/40 text-[10px] text-accentPurple font-mono font-bold truncate max-w-[140px] sm:max-w-[200px]">${escapeHTML(anchorLabel)}</span>
+                                    <span class="graph-anchor-label px-2 py-0.5 rounded-full bg-accentPurple/25 border border-accentPurple/40 text-[10px] text-accentPurple font-mono font-bold truncate max-w-[140px] sm:max-w-[200px]">${escapeHTML(anchorLabel)}</span>
                                 </span>
                                 <span class="text-[10px] text-gray-400 font-medium">Adaptive learning pathway derived from your diagnostic answers</span>
                             </div>

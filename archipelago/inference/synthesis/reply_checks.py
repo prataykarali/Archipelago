@@ -66,10 +66,14 @@ def _finalize_stream_answer(
     from archipelago.inference.cleanser import cleanse_llm_output
 
     cleaned_model = _strip_residual_markers(cleanse_llm_output(model))
+    from archipelago.inference.citations import cleanse_model_citations
+
     baseline = grounded or first_paint or ""
+    if citation_payloads:
+        baseline = cleanse_model_citations(baseline, citation_payloads)
     if not _model_answer_is_usable(cleaned_model, user_query, baseline):
         return baseline
     # A concise grounded response with citations wins over a much longer rewrite.
     if _count_words(baseline) and _count_words(cleaned_model) > max(120, _count_words(baseline) * 3):
         return baseline
-    return cleaned_model
+    return cleanse_model_citations(cleaned_model, citation_payloads) if citation_payloads else cleaned_model

@@ -121,7 +121,7 @@ def test_concepts_and_nodes_agree_on_the_slice(fixture_payload):
 def test_stub_detection_agrees_with_the_fixture(fixture_payload):
     from hostapp import corpus_bootstrap as cb
 
-    assert cb.is_stub(FIXTURE) is False
+    assert cb.is_stub(FIXTURE) is True  # Usable demo, but must not suppress full-library restoration.
 
 
 def test_missing_graph_is_a_stub():
@@ -149,7 +149,9 @@ def test_provision_installs_the_fixture_on_a_fresh_build(tmp_path, monkeypatch):
     report = cb.provision(tmp_path)
 
     assert report["source"] == "fixture"
-    assert report["ok"] is True
+    assert report["ok"] is False  # Fixture is usable, not a complete restored library.
+    assert report["concepts"] > 0
+    assert report["missing"]
     assert (tmp_path / "okf_graph.json").is_file()
     # The engine reads the cache copy, so both must exist.
     assert (tmp_path / "host_inference" / "cache" / "okf_graph.json").is_file()
@@ -167,7 +169,10 @@ def test_provision_leaves_a_full_corpus_alone(tmp_path):
     before = full.read_text(encoding="utf-8")
     shutil.copytree(HOST_DIR / "fixtures", tmp_path / "host_inference" / "fixtures")
 
-    assert cb.provision(tmp_path) == {"source": "present", "ok": True}
+    report = cb.provision(tmp_path)
+    assert report["source"] == "present"
+    assert report["ok"] is False  # Graph exists; catalogue and manifest still need restoring.
+    assert "data/catalogs/pearson_bookshelf.json" in report["missing"]
     assert full.read_text(encoding="utf-8") == before
 
 

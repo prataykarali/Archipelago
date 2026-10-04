@@ -185,10 +185,24 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
                 primeAvatarVideo(vid, clip.src);
                 if (!vid._avatarErrorBound) {
                     vid._avatarErrorBound = true;
-                    vid.addEventListener('error', () => {
-                        console.warn('Avatar video failed to load:', vid.currentSrc || vid.src);
-                    });
+                    vid._recoverAvatar = () => {
+                        console.warn('Original avatar clip unavailable:', vid.dataset.avatarClip);
+                        if (!vid.dataset.usedFallback) {
+                            vid.dataset.usedFallback = '1';
+                            // Existing original librarian artwork, not a replacement asset.
+                            vid.src = '/assets/librarian_speak.mp4';
+                            vid.load();
+                            if (!vid.classList.contains('is-hidden')) playAvatarVideo(vid);
+                        } else {
+                            root.classList.add('avatar-media-unavailable');
+                            const label = root.querySelector('.avatar-label');
+                            if (label) label.textContent = 'AI Librarian · media unavailable';
+                        }
+                    };
+                    vid.addEventListener('error', vid._recoverAvatar);
                 }
+                // Eager HTML preload may fail before this module attaches its listener.
+                if (vid.error && !vid.dataset.usedFallback) vid._recoverAvatar();
                 // Story advances on ended (one full play per beat)
                 if (vid._avatarEndedHandler) {
                     vid.removeEventListener('ended', vid._avatarEndedHandler);

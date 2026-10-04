@@ -107,3 +107,34 @@ The offline export strips raw passages, unknown fields, private-marked nodes and
 Only an explicit `--publish` with `HF_TOKEN` and `huggingface_hub` installed writes to **Prataykarali/graphier**. A newly created dataset is private; an existing dataset's visibility is retained. **Library_books is never modified.** No dataset publication was performed as part of this change.
 
 See `docs/reports/LOCAL_RESTORATION_2026-10-04.md` for measured results and remaining work.
+## Reader configuration and follow-up fixes
+
+Set `HF_DATASET_REPO` to the exact authorized `owner/dataset` and provide a
+read-only `HF_TOKEN` through your local secret environment (never Git or chat).
+The reader default is `Prataykarali/library_books`, matching the supplied URL;
+its casing/existence still needs authorized confirmation. Bootstrap runs only
+when the dataset is explicitly configured.
+
+Expected approved exports: `okf_graph.json`, `catalogs/pearson_bookshelf.json`,
+and `library_manifest.json` with `hf_paths` naming real PDF files. The bootstrap
+validates exports and retries missing catalogue/manifest independently of the
+graph. Missing access is a blocked restoration, not an empty library reported
+as fully restored.
+
+Pearson citations open a book-specific handoff with manual page instructions.
+Constructed URLs and catalog metadata are not authenticated page verification.
+The internal PDF reader rejects out-of-range pages rather than substituting
+page 1; PDF page indices and printed page labels may differ.
+
+See `docs/reports/FOLLOWUP_REPAIRS_2026-10-04.md` for repairs, browser commands
+and the remaining missing-originals/access limitations.
+
+
+## October 4 remaining-issue repairs
+See `docs/reports/REMAINING_REPAIRS_2026-10-04.md` for tested scope and unresolved blockers.
+
+- Optional 30-day browser mastery memory is under **Learning memory (optional)**. It saves mastery/preference, not answers. **Forget saved learning** deletes both consent and records.
+- Scanned PDF ingestion requires local `tesseract-ocr`; table intake supports CSV/TSV/ODS/XLSX. Root Python requirements include XLSX and hardened XML support.
+- Workstation ingestion no longer automatically uploads full documents to HF. Publication requires a separate approved rights-reviewed export.
+- Verified staff can request aggregate-only `/api/staff/learning-summary`; no staff dashboard or live OPAC connector is certified.
+- Model weights and institutional library exports are not present. Error handling/readiness probes are not successful model/library restoration.

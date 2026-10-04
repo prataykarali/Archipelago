@@ -1,12 +1,12 @@
 """Pearson eLibrary Link Resolver - Pure Metadata & External URL Generation Engine."""
 from __future__ import annotations
 
-import datetime
 import json
 import logging
 from pathlib import Path
 import re
 from typing import Any
+from urllib.parse import urlsplit
 
 logger = logging.getLogger("archipelago.resolver.pearson")
 
@@ -143,19 +143,27 @@ def resolve_pearson_url(
     use_playwright: bool = False,
     timeout: int = 6,
 ) -> dict[str, Any]:
-    """Resolve a Pearson eLibrary textbook using catalog metadata to an external reader destination."""
+    """Resolve catalog metadata only; legacy ``working`` means URL availability, not access.
+
+    No network probe occurs here. ``verified``, ``access_verified`` and
+    ``page_verified`` remain false, even when a URL can be constructed.
+    """
     
     # 1. Direct URL check
-    if existing_url and "pearson.com" in existing_url and "http" in existing_url:
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    if existing_url and urlsplit(existing_url).scheme == "https" and urlsplit(existing_url).hostname in {"elibrary.in.pearson.com", "ebooks.elibrary.in.pearson.com"} and not urlsplit(existing_url).username:
         return {
             "working": True,
             "url": existing_url,
             "canonical_url": existing_url,
             "source": "pearson",
-            "verified": True,
-            "status": "authenticated",
-            "last_verified": now_iso,
+            "verified": False,
+            "url_available": True,
+            "access_verified": False,
+            "page_verified": False,
+            "navigation": "manual_page",
+            "note": "Book URL available; open the book and select the cited page manually. Access has not been verified.",
+            "status": "unverified",
+            "last_verified": None,
             "target_blank": True,
         }
 
@@ -175,37 +183,45 @@ def resolve_pearson_url(
         else:
             target_url = _reader_url(str(b_id), str(sub_id), str(book_type))
 
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         return {
             "working": True,
             "url": target_url,
             "canonical_url": target_url,
             "reader_url": target_url,
             "source": "pearson",
-            "verified": True,
+            "verified": False,
+            "url_available": True,
+            "access_verified": False,
+            "page_verified": False,
+            "navigation": "manual_page",
+            "note": "Book URL available; open the book and select the cited page manually. Access has not been verified.",
             "book_id": b_id,
             "subscription_id": sub_id,
             "isbn": b_isbn,
             "title": b_title,
-            "status": "authenticated",
-            "last_verified": now_iso,
+            "status": "unverified",
+            "last_verified": None,
             "target_blank": True,
         }
 
     # 2. If book_id and subscription_id are explicitly passed
     if book_id and subscription_id:
         canonical_url = _reader_url(book_id, subscription_id)
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         return {
             "working": True,
             "url": canonical_url,
             "canonical_url": canonical_url,
             "reader_url": canonical_url,
             "source": "pearson",
-            "verified": True,
+            "verified": False,
+            "url_available": True,
+            "access_verified": False,
+            "page_verified": False,
+            "navigation": "manual_page",
+            "note": "Book URL available; open the book and select the cited page manually. Access has not been verified.",
             "book_id": book_id,
-            "status": "authenticated",
-            "last_verified": now_iso,
+            "status": "unverified",
+            "last_verified": None,
             "target_blank": True,
         }
 

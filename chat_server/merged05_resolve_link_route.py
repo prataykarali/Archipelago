@@ -53,7 +53,8 @@ def resolve_link_route(book_id: str | None = None):
 
     if result.get("working") and result.get("url"):
         if result.get("source") == "pearson":
-            return _build_redirect_shell(result["url"], title=result.get("title") or "Pearson eLibrary")
+            from host_inference.pearson_handoff import handoff
+            return handoff(result.get("title") or "Pearson eLibrary", result["url"], page)
         return redirect(result["url"], code=302)
 
     # Fallback to local PDF proxy or 404

@@ -113,7 +113,7 @@ def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_ap
     assert saved["rows"][0]["title"] == "Graph Book"
 
 
-def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_app, monkeypatch):
+def test_pearson_link_shows_manual_page_handoff_without_rendering_credentials(hosted_app, monkeypatch):
     import hostapp.routes.reader as reader_routes
 
     monkeypatch.setattr(reader_routes, "load_books", lambda: [{
@@ -124,8 +124,11 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     }])
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("#book/book-1/page/7")
+    assert response.status_code == 200
+    assert b"#book/book-1" in response.data
+    assert b"/page/7" not in response.data
+    assert b"page 7" in response.data
+    assert b"Automatic page navigation is not verified" in response.data
     assert b"password" not in response.data.lower()
 
 

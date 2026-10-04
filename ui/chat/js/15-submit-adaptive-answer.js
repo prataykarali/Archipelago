@@ -1,3 +1,4 @@
+import { renderGapResources } from './learning-memory.js';
 // Auto-split from ui/chat/index.html — 15-submit-adaptive-answer.js
 // Feature module 16 of 22.
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
@@ -91,6 +92,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 const hint = document.getElementById(`adaptive-hint-${msgId}`);
 
                 if (data.completed) {
+                    state.gap_resources = data.gap_resources || [];
                     state.submitted = true;
                     if (banner) {
                         banner.classList.remove('hidden');
@@ -225,6 +227,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
             const zone = getOrCreateInteractiveZone(msgId);
             if (!zone) {
                 renderPersonalizedGraphCard(msgId, evalData, metadata);
+                        renderGapResources(getOrCreateInteractiveZone(msgId), window._adaptiveState[msgId]?.gap_resources);
                 return;
             }
 
@@ -321,6 +324,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     setTimeout(() => {
                         zone.innerHTML = '';
                         renderPersonalizedGraphCard(msgId, evalData, metadata);
+                        renderGapResources(getOrCreateInteractiveZone(msgId), window._adaptiveState[msgId]?.gap_resources);
                     }, 400);
                 };
                 if (exploreBtn) exploreBtn.addEventListener('click', doTransition);

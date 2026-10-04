@@ -12,18 +12,16 @@ from archipelago.inference.citations import (
     _resolve_printed_page,
     build_citation_payloads,
     build_concept_citation_map,
+    cleanse_model_citations,
 )
 from archipelago.inference.curriculum import (
     find_curriculum_chains,
     format_curriculum_paths_section,
 )
-from archipelago.inference.demo_query_books import merge_demo_citations
 from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference.neighborhood import get_graph_neighborhood
-from archipelago.inference.reply_inventory import inventory_suffix
 from archipelago.inference.routes.chat.part00_shared import with_holdings
 from archipelago.inference.synthesis import (
-    OLLAMA_UNAVAILABLE_MSG,
     build_graph_notes,
     enforce_sterile_prose,
     format_natural_fallback,
@@ -79,7 +77,9 @@ def handle_graph_path(query, history, routing, wants_synthesis):
 
         citation_map = build_concept_citation_map(target_concept, prereqs, unlocks)
         citation_payloads = build_citation_payloads(target_concept, prereqs, unlocks, citation_map)
-        citation_payloads = merge_demo_citations(query, citation_payloads)
+        # Curated reading suggestions are not retrieved evidence. Never add
+        # demo pages to the graph citation contract.
+        citation_payloads = [item for item in citation_payloads if item.get("doc_id")]
         evidence_ids = {
             payload["evidence_id"] for payload in citation_payloads if payload["evidence_id"]
         }
@@ -111,6 +111,7 @@ def handle_graph_path(query, history, routing, wants_synthesis):
             curriculum_paths=curriculum_paths,
             partial=is_partial,
         )
+        natural_fallback = cleanse_model_citations(natural_fallback, citation_payloads)
         match_score = routing.get("score")
         step_logs = [
             {
@@ -232,15 +233,15 @@ def handle_graph_path(query, history, routing, wants_synthesis):
                         fallback_prose = (
                             enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
                         )
-                        yield with_holdings(query, fallback_prose, citations=citation_payloads)
+                        yield "\n[STREAM_DONE]\n" + with_holdings(query, fallback_prose, citations=citation_payloads)
                     else:
-                        yield inventory_suffix(query, citations=citation_payloads)
-                    return
-                except RuntimeError:
-                    yield with_holdings(query, OLLAMA_UNAVAILABLE_MSG, citations=citation_payloads)
+                        final = cleanse_model_citations("".join(accumulated), citation_payloads)
+                        yield "\n[STREAM_DONE]\n" + with_holdings(query, final, citations=citation_payloads)
                     return
                 except Exception:
-                    yield with_holdings(query, OLLAMA_UNAVAILABLE_MSG, citations=citation_payloads)
+                    # Keep real retrieved material usable when inference is unavailable.
+                    # The fallback is deterministically grounded before it reaches the UI.
+                    yield "\n[STREAM_DONE]\n" + with_holdings(query, natural_fallback, citations=citation_payloads)
                     return
             fallback_prose = (
                 enforce_sterile_prose(natural_fallback) if sterile else natural_fallback

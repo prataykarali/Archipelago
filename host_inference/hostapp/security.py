@@ -6,12 +6,12 @@ globals, which keeps them testable without patching imports.
 """
 from __future__ import annotations
 
+from collections import defaultdict, deque
 import os
 import time
-from collections import defaultdict, deque
 
-import requests
 from flask import request
+import requests
 
 from .config import (
     API_RATE_MAX_PER_MIN,
@@ -94,7 +94,7 @@ class AuthGuard:
         role = str(profiles[0].get("role") or "")
         if role not in AUTH_ROLES:
             return None, "Your account role is not permitted in Archipelago."
-        return {"role": role, "username": profiles[0].get("username") or "", "token": token}, None
+        return {"role": role, "user_id": user_response.json().get("id"), "username": profiles[0].get("username") or "", "token": token}, None
 
 
 class RateLimiter:

@@ -121,14 +121,14 @@ class LibQwenExtractor:
         print(f"Loading model from {model_path} ...")
         t0 = time.time()
         self.tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True
+            model_path, trust_remote_code=False, local_files_only=True
         )
         dtype = torch.float16 if torch.cuda.is_available() else torch.float32
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
             dtype=dtype,
             device_map="auto" if torch.cuda.is_available() else None,
-            trust_remote_code=True,
+            trust_remote_code=False, local_files_only=True,
         )
         if not torch.cuda.is_available():
             self.model = self.model.to("cpu")

@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
+import re
 
 from flask import Flask
 
@@ -152,6 +152,7 @@ _DOMAIN_TERMS = (
     "dijkstra", "shortest path", "graph algorithm", "compiler", "compilers", "programming language",
     "software engineering", "distributed system", "distributed systems", "security", "cryptography",
     "linear algebra", "calculus", "probability", "statistics", "mathematics", "optimization",
+    "likelihood", "estimation", "bayesian", "markov", "entropy",
 )
 
 _LEARNING_INTENT = (
@@ -173,3 +174,9 @@ _OFFTOPIC_MARKERS = (
     "relativity", "physics", "chemistry", "biology", "photosynthesis",
     "shakespeare", "world war", "history", "literature"
 )
+
+
+def build_concept_citation_map(target_concept, prereqs, unlocks, graph_db=None):
+    """Preserve the historical state-module citation API without an import cycle."""
+    from archipelago.inference.citations import build_concept_citation_map as build
+    return build(target_concept, prereqs, unlocks, graph_db=graph_db)

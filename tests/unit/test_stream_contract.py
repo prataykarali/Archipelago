@@ -27,10 +27,9 @@ def _read_chat_ui() -> str:
 
 
 def _stream_client_source() -> str:
-    source = _read_chat_ui()
-    start = source.index("const reader = response.body.getReader();")
-    end = source.index("// Add to conversational history", start)
-    return source[start:end]
+    return (ROOT / "ui/chat/js/08-send-message.js").read_text() + (
+        ROOT / "ui/chat/js/chat-transport.js"
+    ).read_text()
 
 
 @pytest.mark.skipif(_is_followup_query is None, reason="_is_followup_query removed in refactor")
@@ -51,10 +50,13 @@ def test_stream_client_recognizes_metadata_delimiter() -> None:
     client = _stream_client_source()
 
     assert "'[STREAM_START]'" in client
-    assert "const metaStr = buffer.substring(0, idx)" in client
-    assert "const metadata = JSON.parse(metaStr);" in client
-    assert "metadataParsed = true;" in client
-    assert "consumeTextChunk(buffer);" in client
+    assert "JSON.parse(this.header.slice(0, index))" in client
+    assert "this.started = true" in client
+    assert "for await (const event of readChatResponse(response))" in client
+    assert "consumeTextChunk(event.value)" in client
+    # EOF must validate framing, not spill the metadata buffer into the answer.
+    assert "parser.finish()" in client
+    assert "consumeTextChunk(buffer)" not in client
 
 
 def test_stream_done_frame_replaces_provisional_text() -> None:

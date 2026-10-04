@@ -112,7 +112,7 @@ def test_tc71_readiness_survives_while_services_up():
     from urllib.error import URLError
 
     try:
-        with urllib.request.urlopen(f"{INFER_URL}/api/readiness", timeout=3) as resp:
+        with urllib.urlopen(f"{INFER_URL}/api/readiness", timeout=3) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except (URLError, TimeoutError, OSError) as exc:
         pytest.skip(f"inference not up: {exc}")

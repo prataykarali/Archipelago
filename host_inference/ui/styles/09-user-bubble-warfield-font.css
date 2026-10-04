@@ -324,3 +324,28 @@
         color: #fbbf24;
         border: 1px solid rgba(245, 158, 11, 0.35);
     }
+
+/* Keep icon glyphs out of typography overrides on cards and headings. */
+body i.fa-solid, body .fa-solid::before, body i.fas, body .fas::before {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+body i.fa-regular, body .fa-regular::before, body i.far, body .far::before {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+body i.fa-brands, body .fa-brands::before {
+    font-family: "Font Awesome 6 Brands" !important;
+}
+.personalized-graph-card-wrapper .graph-card-heading {
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+.personalized-graph-card-wrapper .graph-card-title {
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.personalized-graph-card-wrapper .graph-anchor-label {
+    white-space: nowrap;
+    flex-shrink: 0;
+}

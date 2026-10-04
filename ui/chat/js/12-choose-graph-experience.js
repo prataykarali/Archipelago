@@ -1,3 +1,4 @@
+import { renderLearningMemoryControls, rememberParameter } from './learning-memory.js';
 import { renderQueryInspector } from './query-inspector.js';
 // Auto-split from ui/chat/index.html — 12-choose-graph-experience.js
 // Feature module 13 of 22.
@@ -74,12 +75,14 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
                     });
                     zone.appendChild(button);
                 }
+                renderLearningMemoryControls(zone);
                 return;
             }
             // Render the graph directly after an answer.  The old choice card
             // hid the graph behind an unrelated diagnostic/roadmap decision.
             dismissGraphChoiceModal();
             renderHorizontalGraphCard(msgId, metadata);
+            renderLearningMemoryControls(getOrCreateInteractiveZone(msgId));
         }
 
         window.renderGraphExperiencePrompt = renderGraphExperiencePrompt;
@@ -120,7 +123,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
 
             try {
                 const preference = sessionStorage.getItem('archipelago_learning_preference') || 'conceptual';
-                const resp = await fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(anchorId)}&preference=${encodeURIComponent(preference)}`);
+                const resp = await fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(anchorId)}&preference=${encodeURIComponent(preference)}${rememberParameter()}`);
                 const data = await resp.json();
 
                 if (data && data.success !== false && (data.initial_question || (data.mcqs && data.mcqs.length))) {

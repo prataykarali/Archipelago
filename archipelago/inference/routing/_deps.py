@@ -1,22 +1,20 @@
-"""Late-bound access to the routing package's own namespace.
-
-The routing pipeline historically lived in a single module, so callers (and
-tests) monkeypatch attributes on ``archipelago.inference.routing`` itself and
-expect the pipeline to see the patch.  After the package split, every
-cross-module call resolves through this shim at *call time* instead of binding
-the name at import time — preserving that contract.
-
-Usage inside the package::
-
-    from . import _deps as _rt
-
-    ranked = _rt.rank_concepts(query, top_k=10)
-"""
+"""Late-bound routing collaborators, preserving both public patch boundaries."""
 from __future__ import annotations
 
+from archipelago.inference import intent_gate, ranking, scope_gate
 import archipelago.inference.routing as _routing
+
+_MODULES = (ranking, intent_gate, scope_gate)
+_ORIGINALS: dict = {}
 
 
 def __getattr__(name: str):
-    """Resolve ``name`` against the live routing package namespace."""
-    return getattr(_routing, name)
+    """Prefer explicit routing overrides, otherwise resolve the current collaborator."""
+    value = getattr(_routing, name)
+    for module in _MODULES:
+        if not hasattr(module, name):
+            continue
+        current = getattr(module, name)
+        original = _ORIGINALS.setdefault(name, value)
+        return current if value is original else value
+    return value

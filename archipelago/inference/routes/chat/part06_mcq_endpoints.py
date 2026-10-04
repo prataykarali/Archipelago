@@ -58,3 +58,10 @@ def api_verify_mcq():
 
     result = evaluate_diagnostic_mcqs(mcqs, answers, target_concept_id=target_id)
     return jsonify(result)
+
+
+@st.app.route("/api/chat/learning-memory", methods=["GET", "DELETE"])
+def api_learning_memory():
+    """Inspect or forget only the current browser's opted-in mastery."""
+    from archipelago.personalization_bridge import memory_response
+    return memory_response()

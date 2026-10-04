@@ -1,15 +1,33 @@
 from archipelago.ingestion._pdf_base import (  # noqa: F401
-    fitz, docx, hashlib, json, re, os, Path, Counter,
-    _CITATION_RE, _EMAIL_RE, _ARXIV_HEADER_RE, _MATH_CHARS,
+    _ARXIV_HEADER_RE,
+    _CITATION_RE,
+    _EMAIL_RE,
+    _MATH_CHARS,
+    Counter,
+    Path,
+    docx,
+    fitz,
+    hashlib,
+    json,
+    os,
+    re,
 )
-from archipelago.ingestion.pdf_utils import (
-    _nonspace, _numeric_token_fraction, _alpha_ratio,
-    sanitize_section_title, classify_chunk_kind, annotate_chunks,
-    _detect_heading, _get_body_font_size, _extract_page_labels,
-    _compute_doc_hash, _extract_title_from_pdf, _extract_edition_from_pdf,
-)
+from archipelago.ingestion.pdf_formats import chunk_docx, chunk_markdown, chunk_text  # noqa: F401
 from archipelago.ingestion.pdf_utils import *  # noqa: F403
-from archipelago.ingestion.pdf_formats import chunk_markdown, chunk_text, chunk_docx  # noqa: F401
+from archipelago.ingestion.pdf_utils import (
+    _alpha_ratio,
+    _compute_doc_hash,
+    _detect_heading,
+    _extract_edition_from_pdf,
+    _extract_page_labels,
+    _extract_title_from_pdf,
+    _get_body_font_size,
+    _nonspace,
+    _numeric_token_fraction,
+    annotate_chunks,
+    classify_chunk_kind,
+    sanitize_section_title,
+)
 
 SKIP_SECTION_PATTERNS = frozenset({
     "table of contents", "contents", "toc",
@@ -45,7 +63,7 @@ def should_skip_section(section_title: str) -> bool:
     return False
 
 def chunk_pdf(pdf_path: str, max_chunk_chars: int = 1600,
-              min_chunk_chars: int = 200, max_pages: int = None) -> list:
+              min_chunk_chars: int = 200, max_pages: int = None, page_bounded: bool = False) -> list:
     """
     Split a PDF into section-aware chunks with provenance metadata.
 
@@ -53,6 +71,7 @@ def chunk_pdf(pdf_path: str, max_chunk_chars: int = 1600,
         {doc_id, chunk_id, section_title, page_number, text,
          text_offset_start, text_offset_end, block_x, block_y, block_w, block_h}
 
+    page_bounded: True for citation ingestion; legacy callers can keep multi-page section chunks.
     max_pages: if set, only the first N pages are read (used to cap huge books
     like Math-for-ML to their first couple of chapters).
     """
@@ -77,73 +96,79 @@ def chunk_pdf(pdf_path: str, max_chunk_chars: int = 1600,
     current_section = "Introduction"
     current_blocks = []
 
-    for page_num in range(page_cap):
-        page = doc[page_num]
-        blocks = page.get_text("dict")["blocks"]
-        page_text_accumulator = ""  # Track character offset within the page
+    try:
+        for page_num in range(page_cap):
+            page = doc[page_num]
+            from archipelago.ingestion.ocr import page_blocks
 
-        for block in blocks:
-            if "lines" not in block:
-                continue
-            block_text = ""
-            is_heading = False
-            block_bbox = block.get("bbox", None)  # (x0, y0, x1, y1)
+            blocks, _ocr_used = page_blocks(page)
+            page_text_accumulator = ""  # Track character offset within the page
 
-            for line in block["lines"]:
-                line_text = ""
-                for span in line["spans"]:
-                    text = span["text"]
-                    line_text += text
-                    if not is_heading and _detect_heading(
-                        text, span["size"], span["font"], body_size
-                    ):
-                        is_heading = True
-                block_text += line_text.strip() + " "
+            for block in blocks:
+                if "lines" not in block:
+                    continue
+                block_text = ""
+                is_heading = False
+                block_bbox = block.get("bbox", None)  # (x0, y0, x1, y1)
 
-            block_text = block_text.strip()
-            if not block_text:
-                continue
+                for line in block["lines"]:
+                    line_text = ""
+                    for span in line["spans"]:
+                        text = span["text"]
+                        line_text += text
+                        if not is_heading and _detect_heading(
+                            text, span["size"], span["font"], body_size
+                        ):
+                            is_heading = True
+                    block_text += line_text.strip() + " "
 
-            # Record text offset within the page (character position)
-            text_offset_start = len(page_text_accumulator)
-            page_text_accumulator += block_text + "\n"
-            text_offset_end = len(page_text_accumulator)
+                block_text = block_text.strip()
+                if not block_text:
+                    continue
 
-            # New section detected
-            if is_heading and len(block_text) < 150 and len(block_text) > 2:
-                # Save previous section if it has content
-                total_chars = sum(len(b["text"]) for b in current_blocks)
-                if total_chars >= min_chunk_chars:
-                    sections.append({
-                        "section_title": current_section,
-                        "blocks": current_blocks
-                    })
-                elif total_chars > 0:
-                    if sections:
-                        # Merge tiny section into previous
-                        sections[-1]["blocks"].extend(current_blocks)
-                    else:
-                        # No previous section to merge into, keep it as its own section
+                # Record text offset within the page (character position)
+                text_offset_start = len(page_text_accumulator)
+                page_text_accumulator += block_text + "\n"
+                text_offset_end = len(page_text_accumulator)
+
+                # New section detected
+                if is_heading and len(block_text) < 150 and len(block_text) > 2:
+                    # Save previous section if it has content
+                    total_chars = sum(len(b["text"]) for b in current_blocks)
+                    if total_chars >= min_chunk_chars:
                         sections.append({
                             "section_title": current_section,
                             "blocks": current_blocks
                         })
+                    elif total_chars > 0:
+                        if sections:
+                            # Merge tiny section into previous
+                            sections[-1]["blocks"].extend(current_blocks)
+                        else:
+                            # No previous section to merge into, keep it as its own section
+                            sections.append({
+                                "section_title": current_section,
+                                "blocks": current_blocks
+                            })
 
-                current_section = block_text.strip()
-                current_blocks = []
-            else:
-                block_info = {
-                    "text": block_text,
-                    "page_number": page_num + 1,
-                    "text_offset_start": text_offset_start,
-                    "text_offset_end": text_offset_end,
-                }
-                if block_bbox:
-                    block_info["block_x"] = block_bbox[0]
-                    block_info["block_y"] = block_bbox[1]
-                    block_info["block_w"] = block_bbox[2] - block_bbox[0]
-                    block_info["block_h"] = block_bbox[3] - block_bbox[1]
-                current_blocks.append(block_info)
+                    current_section = block_text.strip()
+                    current_blocks = []
+                else:
+                    block_info = {
+                        "text": block_text,
+                        "page_number": page_num + 1,
+                        "text_offset_start": text_offset_start,
+                        "text_offset_end": text_offset_end,
+                    }
+                    if block_bbox:
+                        block_info["block_x"] = block_bbox[0]
+                        block_info["block_y"] = block_bbox[1]
+                        block_info["block_w"] = block_bbox[2] - block_bbox[0]
+                        block_info["block_h"] = block_bbox[3] - block_bbox[1]
+                    current_blocks.append(block_info)
+
+    finally:
+        doc.close()
 
     # Don't forget the last section
     total_chars = sum(len(b["text"]) for b in current_blocks)
@@ -160,8 +185,6 @@ def chunk_pdf(pdf_path: str, max_chunk_chars: int = 1600,
                 "section_title": current_section,
                 "blocks": current_blocks
             })
-
-    doc.close()
 
     # Now split oversized sections into sub-chunks
     chunks = []
@@ -248,7 +271,10 @@ def chunk_pdf(pdf_path: str, max_chunk_chars: int = 1600,
                 current_block_w = b_w
                 current_block_h = b_h
 
-            if len(current_chunk_text) + len(b_text) > max_chunk_chars and current_chunk_text:
+            if current_chunk_text and (
+                (page_bounded and b_page != current_page_number)
+                or len(current_chunk_text) + len(b_text) > max_chunk_chars
+            ):
                 _flush_chunk()
                 current_chunk_text = b_text + "\n"
                 current_page_number = b_page
