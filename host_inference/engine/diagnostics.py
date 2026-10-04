@@ -27,10 +27,10 @@ def diagnostic_intro(engine, cid: str) -> str:
     names = ", ".join(graph.label(p) for p in pres)
     return (
         f"**Diagnostic checkpoint for {graph.label(cid)}.** "
-        "Full text generation is paused. Answer the four checks on the prerequisite nodes, "
+        "Choose a normal concept graph or a personalized prerequisite check. "
         f"then the personalized graph is drawn from your ticks and gaps.\n\n"
         f"Upstream nodes in the checkpoint: {names}.\n\n"
-        "Use **Yes, Start Diagnostic** under this reply to take the four-option checks."
+        "Personalized mode starts with up to three checks and stops when coverage is sufficient (ten maximum)."
     )
 
 

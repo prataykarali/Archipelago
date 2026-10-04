@@ -5,6 +5,7 @@ from collections.abc import Iterator
 from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
 from flask.typing import ResponseReturnValue
 import requests as _requests
+from .learning_proxy import learning_headers, learning_response
 from .merged01_repo_root import INFERENCE_CHAT_URL, _STREAM_CHUNK_BYTES, _inference_auth_headers, app  # noqa: F401
 
 
@@ -47,12 +48,12 @@ def chat_diagnostic_mcqs_proxy() -> ResponseReturnValue:
     target = f"{base}/api/chat/diagnostic-mcqs"
     try:
         if request.method == "GET":
-            upstream = _requests.get(target, params=request.args, headers=_inference_auth_headers(), timeout=5)
+            upstream = _requests.get(target, params=request.args, headers=learning_headers(_inference_auth_headers()), timeout=5)
         else:
             upstream = _requests.post(
                 target,
                 json=request.get_json(silent=True) or {},
-                headers=_inference_auth_headers(),
+                headers=learning_headers(_inference_auth_headers()),
                 timeout=5,
             )
     except Exception as exc:
@@ -63,11 +64,7 @@ def chat_diagnostic_mcqs_proxy() -> ResponseReturnValue:
             "badge": "Personalized assessment temporarily unavailable.",
             "error": str(exc),
         }, 200
-    return Response(
-        upstream.content,
-        status=upstream.status_code,
-        content_type=upstream.headers.get("Content-Type", "application/json"),
-    )
+    return learning_response(upstream)
 
 
 @app.route("/api/chat/telemetry", methods=["POST", "OPTIONS"])
@@ -81,7 +78,7 @@ def chat_telemetry_proxy() -> ResponseReturnValue:
         upstream = _requests.post(
             target,
             json=request.get_json(silent=True) or {},
-            headers=_inference_auth_headers(),
+            headers=learning_headers(_inference_auth_headers()),
             timeout=5,
         )
         return Response(
@@ -104,17 +101,13 @@ def chat_verify_mcq_proxy() -> ResponseReturnValue:
         upstream = _requests.post(
             target,
             json=request.get_json(silent=True) or {},
-            headers=_inference_auth_headers(),
+            headers=learning_headers(_inference_auth_headers()),
             timeout=30,
         )
     except Exception as exc:
         app.logger.warning("Inference upstream unreachable for verify-mcq: %s", exc)
         return {"error": f"inference upstream unreachable: {exc}"}, 502
-    return Response(
-        upstream.content,
-        status=upstream.status_code,
-        content_type=upstream.headers.get("Content-Type", "application/json"),
-    )
+    return learning_response(upstream)
 
 
 @app.route("/api/chat/adaptive-step", methods=["POST", "OPTIONS"])
@@ -128,17 +121,13 @@ def chat_adaptive_step_proxy() -> ResponseReturnValue:
         upstream = _requests.post(
             target,
                 json=request.get_json(silent=True) or {},
-                headers=_inference_auth_headers(),
+                headers=learning_headers(_inference_auth_headers()),
                 timeout=30,
         )
     except Exception as exc:
         app.logger.warning("Inference upstream unreachable for adaptive-step: %s", exc)
         return {"error": f"inference upstream unreachable: {exc}"}, 502
-    return Response(
-        upstream.content,
-        status=upstream.status_code,
-        content_type=upstream.headers.get("Content-Type", "application/json"),
-    )
+    return learning_response(upstream)
 
 
 def _inference_base() -> str:

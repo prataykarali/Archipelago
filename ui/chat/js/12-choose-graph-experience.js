@@ -1,3 +1,4 @@
+import { renderQueryInspector } from './query-inspector.js';
 // Auto-split from ui/chat/index.html — 12-choose-graph-experience.js
 // Feature module 13 of 22.
 import { dismissGraphChoiceModal, getOrCreateInteractiveZone } from './11-populate-topology.js';
@@ -48,7 +49,33 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
 
         function renderGraphExperiencePrompt(msgId, metadata, options = {}) {
             if (window.showGraphCards === false) return;
-            if (!metadata || !metadata.anchor_concept) return;
+            renderQueryInspector(msgId, metadata);
+            if (!metadata || !metadata.anchor_concept || metadata.render_graph === false) return;
+            if (metadata.contract === 'MCQ_DIAGNOSTIC') {
+                window._activeChoiceContext = { msgId, metadata };
+                const zone = getOrCreateInteractiveZone(msgId);
+                if (!zone) return;
+                zone.innerHTML = '';
+                const heading = document.createElement('p');
+                heading.className = 'text-sm text-gray-200 mb-3';
+                heading.textContent = 'Choose your learning mode. Normal mode needs no quiz.';
+                zone.appendChild(heading);
+                for (const [choice, label] of [
+                    ['personalized', 'Personalized Graph + Adaptive Q&A'],
+                    ['normal', 'Normal Concept Graph']
+                ]) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'px-4 py-2 m-1 rounded-xl bg-accentPurple/20 border border-accentPurple/40 text-sm';
+                    button.textContent = label;
+                    button.addEventListener('click', () => {
+                        window._activeChoiceContext = { msgId, metadata };
+                        chooseGraphExperience(choice, msgId);
+                    });
+                    zone.appendChild(button);
+                }
+                return;
+            }
             // Render the graph directly after an answer.  The old choice card
             // hid the graph behind an unrelated diagnostic/roadmap decision.
             dismissGraphChoiceModal();
@@ -92,7 +119,8 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             `;
 
             try {
-                const resp = await fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(anchorId)}`);
+                const preference = sessionStorage.getItem('archipelago_learning_preference') || 'conceptual';
+                const resp = await fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(anchorId)}&preference=${encodeURIComponent(preference)}`);
                 const data = await resp.json();
 
                 if (data && data.success !== false && (data.initial_question || (data.mcqs && data.mcqs.length))) {
@@ -100,6 +128,8 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
                     const initialQ = data.initial_question || data.mcqs[0];
                     window._adaptiveState[msgId] = {
                         metadata: metadata,
+                        session_id: data.session_id,
+                        preference: data.preference || 'conceptual',
                         target_concept: data.target_concept || anchorId,
                         target_label: anchorLabel,
                         chain: data.chain || [],
@@ -110,7 +140,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
                         consecutive_ticks: 0,
                         question_count: 1,
                         max_questions: 10,
-                        min_questions: 5,
+                        min_questions: 3,
                         history: [],
                         eval_stack: data.eval_stack || [],
                         mastered: [],

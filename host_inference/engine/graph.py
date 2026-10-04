@@ -6,10 +6,11 @@ dependency path, best supporting source, citation record).
 """
 from __future__ import annotations
 
-import json
-import re
 from collections import deque
+from contextvars import ContextVar
+import json
 from pathlib import Path
+import re
 from urllib.parse import quote
 
 import numpy as np
@@ -18,6 +19,8 @@ from .constants import ALIASES, FORMULAS
 from .docmap import hf_doc_path
 from .text import embed, tokens
 from .withdrawal import best_live_source, withdrawal_notice_for_doc, withdrawn_documents
+
+CURRENT_QUERY: ContextVar[str] = ContextVar("archipelago_query", default="")
 
 # How much of a source passage is retained on a citation record.
 PASSAGE_CHAR_LIMIT = 700
@@ -72,6 +75,14 @@ class LibraryGraph:
             label = (node.get("label") or node.get("name") or cid).strip()
             self._label_index.append((label.lower(), cid))
             self._label_index.append((cid.replace("_", " "), cid))
+
+    @property
+    def _query(self) -> str:
+        return CURRENT_QUERY.get()
+
+    @_query.setter
+    def _query(self, value: str) -> None:
+        CURRENT_QUERY.set(value)
 
     def _blob(self, node: dict) -> str:
         label = node.get("label") or node.get("name") or node["id"]

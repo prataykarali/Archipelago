@@ -63,7 +63,8 @@ def create_app(ctx: AppContext | None = None) -> Flask:
     load_env()
     # Scrub tokens/credentials from access logs before any record is emitted.
     install_log_redaction()
-    provision()
+    if ctx is None:
+        provision()
     context = ctx or build_context()
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH_BYTES

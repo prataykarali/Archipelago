@@ -49,7 +49,7 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
                 }
                 const label = _nodeLabel(cid) || cid.replace(/_/g, ' ');
                 return `<span class="px-2 py-0.5 rounded-lg border text-[10px] font-mono flex items-center shrink-0 ${badgeClass}">${icon}${escapeHTML(label)}</span>`;
-            }).join('<i class="fa-solid fa-arrow-right text-[8px] text-gray-500 shrink-0"></i>');
+            }).join('<i class="fa-solid fa-circle text-[8px] text-gray-500 shrink-0"></i>');
 
             // Persist adaptive quiz state to sessionStorage
             try {
@@ -97,7 +97,7 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 
                     <!-- Topological Sequence Breadcrumbs (Leaf -> Prerequisites -> Immediate Y -> Target X) -->
                     <div class="flex items-center gap-2 overflow-x-auto py-1 px-1 custom-scrollbar">
-                        <span class="text-[9px] uppercase font-bold text-gray-400 shrink-0">Topology Path:</span>
+                        <span class="text-[9px] uppercase font-bold text-gray-400 shrink-0">Prerequisite Coverage:</span>
                         <div class="flex items-center gap-1.5 min-w-max">
                             ${breadcrumbs}
                         </div>
@@ -119,7 +119,7 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 
                         <!-- 4 Distinct Radio Buttons A, B, C, D in Clean 2-Column Grid -->
                         <div class="mcq-radio-group mt-3" id="adaptive-radio-group-${msgId}">
-                            ${['A', 'B', 'C', 'D'].map(k => {
+                            ${Object.keys(mcq.options || {}).map(k => {
                                 const optText = (mcq.options && mcq.options[k]) || '';
                                 return `
                                     <label class="mcq-radio-label" id="adaptive-label-${msgId}-${k}">
@@ -131,6 +131,21 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
                             }).join('')}
                         </div>
 
+                        <div class="flex flex-wrap gap-3 text-xs">
+                            <label>Confidence
+                                <select id="adaptive-confidence-${msgId}" class="rounded bg-gray-900 border border-white/20 p-2">
+                                    <option value="low">Guessing</option>
+                                    <option value="medium" selected>Somewhat sure</option>
+                                    <option value="high">Very sure</option>
+                                </select>
+                            </label>
+                            <label>Learning preference (optional)
+                                <select id="adaptive-preference-${msgId}" class="rounded bg-gray-900 border border-white/20 p-2">
+                                    ${[['conceptual', 'Conceptual / Intuitive'], ['mathematical', 'Mathematical'], ['code', 'Code / Implementation']].map(([value, label]) =>
+                                        `<option value="${value}" ${state.preference === value ? 'selected' : ''}>${label}</option>`).join('')}
+                                </select>
+                            </label>
+                        </div>
                         <!-- Literature Citation & Pedagogical Explanation Box (Hidden until submitted) -->
                         <div id="adaptive-exp-${msgId}" class="hidden p-3.5 rounded-xl border border-white/10 bg-black/60 text-xs space-y-1.5 mt-3 shadow-inner">
                             <div class="flex items-center gap-2 text-accentPurple font-bold">

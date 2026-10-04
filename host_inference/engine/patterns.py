@@ -34,7 +34,7 @@ SCHEDULE_RE = re.compile(
 )
 SHELF_RE = re.compile(
     r"\b(physical (book|copy|copies)|where can i find|where do i find|"
-    r"call number|on the shelf|which shelf|barcode|stacks?|rack|"
+    r"where is .*(?:book|concepts|textbook)|call number|on the shelf|which shelf|barcode|stacks?|rack|"
     # "a physical copy on campus" / "copies available" are shelf intents that the
     # original pattern missed because it required "copy" to follow "physical".
     r"copies? (available|available\?|in stock)|availability|"

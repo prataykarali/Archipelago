@@ -22,14 +22,14 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
 
             const anchor = metadata ? metadata.anchor_concept : (evalData ? evalData.target_concept : null);
             const anchorLabel = _nodeLabel(anchor) || 'Target Concept';
-            const baseline = evalData ? evalData.baseline_concept : 'Foundational';
+            const baseline = (evalData?.personalized_graph?.nodes || []).filter(n => n.status === 'mastered').map(n => n.label).join(', ');
             const score = evalData ? evalData.score : '0/3';
             const isZero = evalData ? evalData.zero_score : false;
             const isFull = evalData ? evalData.full_score : false;
 
             const pGraph = (evalData && evalData.personalized_graph) || { nodes: [], edges: [] };
             const nodes = pGraph.nodes || [];
-            const gapNodes = nodes.filter(n => n.status === 'review_gap');
+            const gapNodes = nodes.filter(n => ['review_gap', 'missing', 'fading'].includes(n.status));
             const targetNode = nodes.find(n => n.role === 'target') || { label: anchorLabel, summary: '' };
 
             let statusPill = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300">Score: ${score} · Targeted Remediation</span>`;
@@ -71,7 +71,7 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                             <div class="flex items-center gap-1.5 text-amber-300 font-bold">
                                 <i class="fa-solid fa-triangle-exclamation text-xs"></i>
                                 <span class="text-[10px] uppercase tracking-wider text-amber-300">Gaps to Review:</span>
-                                <span class="text-white font-extrabold">${gapNodes.length ? gapNodes.map(n => escapeHTML(n.label)).join(', ') : 'None (Mastered)'}</span>
+                                <span class="text-white font-extrabold">${gapNodes.length ? gapNodes.map(n => escapeHTML(n.label)).join(', ') : 'No assessed gaps'}</span>
                             </div>
                             <i class="fa-solid fa-angles-right text-accentPurple/60 text-xs hidden sm:inline-block"></i>
                             <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
@@ -106,7 +106,7 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2">
                                     <span id="pers-insp-badge-${cardId}" class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm">
-                                        ${gapNodes.length ? 'Review Gap Node' : 'Prerequisite Mastery'}
+                                        ${gapNodes.length ? 'Review / Unverified Node' : 'Selected Node'}
                                     </span>
                                     <span id="pers-insp-citation-${cardId}" class="text-[10px] text-gray-400 font-mono">Click any node on the graph above to inspect literature citations</span>
                                 </div>

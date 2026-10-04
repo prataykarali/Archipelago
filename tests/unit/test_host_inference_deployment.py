@@ -147,6 +147,9 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     monkeypatch.setenv("XKIRO_API_KEY", "configured-test-key")
     monkeypatch.setattr(hosted_engine.requests, "post", fake_post)
     instance = hosted_engine.Engine.__new__(hosted_engine.Engine)
+    instance.graph = SimpleNamespace(nodes={
+        "graph_retrieval": {"id": "graph_retrieval", "summary": "Graph retrieval follows indexed links."},
+    })
     instance.answer = lambda query: {
         "route": "GRAPH_SYNTHESIS",
         "text": "Grounded fallback with [citation].",
@@ -156,8 +159,8 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     chunks = list(instance.stream_chat("explain graph retrieval"))
     metadata = json.loads(chunks[0].split("\n[STREAM_START]\n", 1)[0])
 
-    assert captured["payload"]["max_tokens"] == 220
-    assert "1–3 sentences" in captured["payload"]["messages"][0]["content"]
+    assert captured["payload"]["max_tokens"] == 160
+    assert "1–2 crisp sentences" in captured["payload"]["messages"][0]["content"]
     assert metadata["model"]["provider"] == "xkiro"
     assert chunks[-1] == "Grounded fallback with [citation]."
 

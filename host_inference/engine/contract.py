@@ -50,6 +50,8 @@ CONTRACT_TITLES = {
 # routing.py`` fails if a new route is added without a mapping, so this table
 # cannot silently drift from the router.
 ROUTE_CONTRACT = {
+    "CONVERSATION": AUTH_GATEWAY,
+    "ACADEMIC_UNINDEXED": GRAPH_SYNTHESIS,
     # 1. Pedagogical graph traversal.
     "GRAPH_SYNTHESIS": GRAPH_SYNTHESIS,
     "RELATION": GRAPH_SYNTHESIS,
