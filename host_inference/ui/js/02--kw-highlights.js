@@ -115,15 +115,18 @@ import { state } from './00-state.js';
             showPearsonCredentialToast();
         }
 
-        // Dynamically load full Pearson manifest with all slugs and doc_ ids
-        fetch('/data/catalogs/pearson_bookshelf.json').then(r => r.json()).then(data => {
-            if (data && data.books) {
-                for (const b of data.books) {
+        // Load the browser-safe shelf API; never expose the private export.
+        fetch('/api/library/data').then(r => {
+            if (!r.ok) throw new Error('Catalogue unavailable');
+            return r.json();
+        }).then(data => {
+            if (data && Array.isArray(data.ebook_shelf)) {
+                for (const b of data.ebook_shelf.filter(book => book.isPearson)) {
                     const item = {
                         id: b.id,
                         slug: b.slug || '',
                         type: b.book_type || 'pdf',
-                        sub: b.subscription_id || 'debf3e10-c27c-469a-a2aa-8a30c919db91',
+                        sub: '',
                         isbn: b.isbn || '',
                         title: b.title,
                         author: b.author || ''

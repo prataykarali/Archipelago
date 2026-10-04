@@ -76,3 +76,35 @@ def test_anonymous_owner_controls_remain_available_with_auth_required(monkeypatc
     assert client.delete("/api/chat/learning-memory").json["deleted"] is True
     assert client.get("/api/staff/learning-summary").status_code == 401
     assert client.post("/api/ingest").status_code == 403
+
+def test_original_embedded_fonts_are_permitted_without_broadening_scripts():
+    from hostapp.middleware import CONTENT_SECURITY_POLICY
+
+    assert "font-src 'self' data:" in CONTENT_SECURITY_POLICY
+    assert "script-src 'self' data:" not in CONTENT_SECURITY_POLICY
+    assert "object-src 'none'" in CONTENT_SECURITY_POLICY
+
+
+def test_telemetry_does_not_consume_diagnostic_bucket(monkeypatch, tmp_path):
+    from cache_service import cache_metrics, cache_service, request_dedup
+    from hostapp.factory import create_app
+    from hostapp.security import AuthGuard
+
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
+    monkeypatch.setenv("ARCHIPELAGO_QUIZ_DB", str(tmp_path / "telemetry.sqlite3"))
+    called = []
+    ctx = SimpleNamespace(
+        engine=SimpleNamespace(graph=SimpleNamespace(nodes={}), books=[]),
+        auth=AuthGuard(),
+        limiter=SimpleNamespace(
+            check_chat=lambda: called.append("chat") or (False, 0),
+            check_api=lambda: called.append("api") or (False, 0),
+        ),
+        inventory=None, cache_service=cache_service, cache_metrics=cache_metrics,
+        request_dedup=request_dedup,
+    )
+    response = create_app(ctx).test_client().post(
+        "/api/chat/telemetry", json={"event": "graph_choice", "mode": "normal"},
+    )
+    assert response.status_code == 204
+    assert called == ["api"]

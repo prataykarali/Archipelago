@@ -26,7 +26,7 @@ CONTENT_SECURITY_POLICY = (
     "form-action 'self'; "
     "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
-    "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; "
+    "font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; "
     "connect-src 'self' https://spllaastejfwclllfndp.supabase.co; "
     "frame-src 'self' https://ebooks.elibrary.in.pearson.com https://elibrary.in.pearson.com https://huggingface.co; "
     "worker-src 'self' blob: https://cdnjs.cloudflare.com"
@@ -57,7 +57,7 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
             if principal is None:
                 return jsonify({"error": "unauthorized", "detail": error}), 401
             request.archipelago_principal = principal  # type: ignore[attr-defined]
-        if path.startswith("/api/chat"):
+        if path.startswith("/api/chat") and path != "/api/chat/telemetry":
             return _apply_limit(ctx.limiter.check_chat())
         if path.startswith("/api/") or path.startswith("/open/") or path.startswith("/papers/"):
             return _apply_limit(ctx.limiter.check_api())
