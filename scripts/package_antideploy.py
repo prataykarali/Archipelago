@@ -43,6 +43,13 @@ def package(root: Path, output: Path, assets: Path, recovered: Path) -> dict:
                 missing.append(name)
                 continue
             data = matched.read_bytes()
+        # Both asset URL aliases use the ui_assets directory first. Avoid
+        # shipping a second identical copy at the fallback location.
+        if name.startswith("host_inference/ui_assets/"):
+            duplicate = stage / "host_inference" / "ui" / "assets" / source.name
+            if duplicate.is_file() and duplicate.read_bytes() == data:
+                duplicate.unlink()
+                manifest = [item for item in manifest if item["path"] != duplicate.relative_to(stage).as_posix()]
         dest = stage / name
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(data)
