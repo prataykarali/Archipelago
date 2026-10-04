@@ -1,67 +1,42 @@
-# Archipelago: PDF → OKF → KuzuDB Knowledge Graph
+# Archipelago
 
-A local-first, domain-agnostic knowledge graph pipeline. It extracts structured concepts from documents (PDFs, Markdown, plain text), canonicalises them, and ingests them into a KuzuDB graph database with full provenance tracking.
+Archipelago is a library and learning assistant built around a knowledge graph. It combines document ingestion, graph backed retrieval, grounded answers with source links, a chat interface, and tools for exploring the graph and library catalogue.
 
-> **Domain note:** The repo is seeded with AI/ML papers only as a test corpus. The code, schema, prompts, and graph UI are generic and work with any subject.
+The repository contains both a local graph and inference stack and a lightweight hosted inference service. The hosted service is in `host_inference/`; the main application code is in `archipelago/` and `okf/`.
 
-## Architecture
+## What is in the project
 
+- **Chat and question answering** — routes questions, retrieves relevant graph evidence, and formats grounded replies and citations.
+- **Knowledge graph** — stores concepts, prerequisite relationships, document provenance, and library resources in KùzuDB.
+- **Library catalogue** — searches book and periodical metadata and provides source links.
+- **Document ingestion** — extracts and cleans concepts from PDFs and other supported documents before adding them to the graph.
+- **Graph and library interfaces** — static browser interfaces under `ui/` and `host_inference/ui/`.
+- **Hosted inference service** — Flask application and deployment-specific UI under `host_inference/`.
+
+Feature behavior depends on the configured model provider, graph data, and optional external services. See [known gaps](#known-gaps) before treating the system as production ready.
+
+## Repository layout
+
+```text
+archipelago/           Application, APIs, inference, graph access, ingestion
+okf/                   Knowledge extraction, cleanup, graph persistence, evaluation
+host_inference/        Standalone hosted inference service and its UI
+ui/chat/                Main chat UI
+ui/graph/               Knowledge graph UI
+frontend/               Frontend source and shared assets
+tests/                  Unit, integration, frontend, and end-to-end tests
+docs/                   Architecture, operations, audits, and feature guides
+deploy/                 Local library-computer deployment files
+scripts/                Evaluation, maintenance, and operations commands
+training/               Dataset preparation and model training utilities
+pilot_corpus/           Small evaluation corpus and expected results
 ```
-Documents (PDF / MD / TXT)
-        |
-   [1] Section-Aware Chunking (archipelago.ingestion / pdf_ingestion.py shim)
-        |
-   [2] OKF Extraction (okf.* / okf_pipeline.py shim, local SLM / Ollama)
-        |
-   [2b] Post-Extraction Cleanup (okf.cleanup_parts: grounding, dedupe, cycles)
-        |
-   [3] Entity Canonicalization (okf.canonicalize)
-        |
-   [4] KuzuDB MERGE Ingestion (okf.graph)
-        |
-   [5] Accuracy Evaluation (okf.eval)
-        |
-   Outputs: okf_results.json, okf_graph.json, accuracy.json
-        |
-   [6] Inference / Chat RAG (archipelago.inference) + Graph UI (ui/graph)
-```
 
-Feature packages and dependency rules: **[docs/guides/ARCHITECTURE.md](docs/guides/ARCHITECTURE.md)**.
+The canonical Python application package is `archipelago/`. Root scripts such as `chat_server.py`, `graph_server.py`, and `inference_server.py` are launch entry points. `host_inference/` is a separate service boundary with its own requirements and Dockerfile.
 
-## OKF v1.6 Schema
+## Run locally
 
-Each concept extracted from a document contains:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `concept_name` | string | Short noun phrase (aim for ≤5 words) |
-| `concept_type` | enum | `method`, `metric`, `technique`, `theory`, `tool`, `dataset`, `result`, `definition` |
-| `difficulty` | enum | `foundational`, `intermediate`, `advanced`, `expert` |
-| `summary` | string | 1–2 sentence description |
-| `prerequisites` | list[str] | Concepts needed BEFORE this one |
-| `unlocks` | list[str] | Concepts this one ENABLES |
-| `related_to` | list[obj] | `{concept, relation}` where relation is `uses`, `extends`, `contrasts_with`, `evaluated_by`, `variant_of`, `part_of` |
-| `tags` | list[str] | Keyword tags (lowercase, hyphenated) |
-
-Provenance fields are attached by the pipeline and must not be emitted by the model:
-
-| Field | Description |
-|-------|-------------|
-| `doc_id` | Source document path |
-| `chunk_id` | Chunk identifier |
-| `page_number` | Source page number |
-| `section_title` | Source section heading |
-| `source_category` | `paper`, `textbook`, `markdown`, etc. |
-| `source_passage` | The exact chunk text that produced the node |
-
-## Setup
-
-### Prerequisites
-
-- Python 3.10+
-- Ollama running locally with any small Instruct model (default: `qwen3.5:0.8b`)
-
-### Install
+Python 3.10 or newer is required. Create an environment and install the main dependencies:
 
 ```bash
 python -m venv .venv
@@ -69,262 +44,53 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Pull a model (if using Ollama)
+Copy `.env.example` to `.env` and set only the integrations you plan to use. Keep credentials in local environment variables or the hosting platform's secret store; never commit populated secrets.
+
+Start individual services from the repository root:
 
 ```bash
-ollama pull qwen3.5:0.8b
+python -m archipelago.apps.inference_app
+python chat_server.py
+python graph_server.py
 ```
 
-Or place a local GGUF model in `models/`.
-
-## Usage
-
-### Run the full pipeline
+The hosted inference service has separate dependencies and is started from the repository root with:
 
 ```bash
-# Process all files in pdfs/
-python okf_pipeline.py
-
-# Process a specific file
-python okf_pipeline.py path/to/document.pdf
-
-# Resume from saved results (skip re-extraction)
-python okf_pipeline.py --resume
+pip install -r host_inference/requirements.txt
+PYTHONPATH="$PWD" gunicorn --chdir host_inference --bind 127.0.0.1:5151 hostapp.wsgi
 ```
 
-### Supported input formats
+For local ingestion and the library-computer stack, follow [`deploy/library-computer/README.md`](deploy/library-computer/README.md). Additional operational instructions are in [`PILOT_LAUNCH.md`](PILOT_LAUNCH.md).
 
-- `.pdf` - Section-aware chunking via PyMuPDF
-- `.md` / `.markdown` - Split by headings
-- `.txt` / `.text` - Paragraph-based chunking
+## Tests and checks
 
-### Add more documents
-
-Drop any PDF, Markdown, or text file into `pdfs/` or one of its subfolders and re-run the pipeline. Concepts that resolve to the same canonical name across documents automatically share a node in the graph (cross-document bridges).
-
-## Output Files
-
-| File | Description |
-|------|-------------|
-| `okf_results.json` | All extracted OKF concepts with provenance |
-| `okf_graph.json` | Full graph export (nodes + edges) |
-| `accuracy.json` | Accuracy scores and breakdown |
-| `okf_graph.db` | KuzuDB database file |
-
-## Servers
-
-**Pilot launch (one command):** `./scripts/ops/start_pilot.sh` — starts all
-three services, runs the 7-query demo gate, and prints the pilot URL table.
-Full pilot scope, safety defaults, and demo script: **[PILOT_LAUNCH.md](PILOT_LAUNCH.md)**.
+Run the offline test suites from the repository root:
 
 ```bash
-python graph_server.py                          # Graph UI + API :5050
-python inference_server.py                      # Chat / RAG API :5051
-# or: python -m archipelago.apps.inference_app
-python chat_server.py                           # Chat static UI :5052
+pytest tests/unit/ -k 'not test_heavy_gpu'
+pytest tests/integration/
 ```
 
-Static UI lives under `ui/chat` and `ui/graph`. Compat symlinks `chat_ui` →
-`ui/chat` and `graph_ui` → `ui/graph` keep existing server paths working.
+Live end-to-end checks are opt-in and may need external services and credentials. Quality tooling is defined in `requirements-dev.txt` and the GitHub Actions workflow at `.github/workflows/ci.yml`.
 
-### Known pilot caveats
+## Configuration and data
 
-- Citations can still be imperfect on already-ingested chunks until re-ingest
-  (bibliography-skip + dominant-page fixes are in code; live data predates them).
-- Agent/LangChain nodes are seeded, not extracted from full papers.
-- Graph has ~450 concepts from a small source set — sparse for niche topics.
-- Curriculum answers come from graph edges, not a real teacher.
+- `.env.example` documents supported local configuration. Do not put live credentials in `.antideploy.json` or commit them.
+- `host_inference/requirements.txt` and `host_inference/Dockerfile` describe the standalone inference service.
+- `deploy/library-computer/` contains the local library deployment configuration.
+- Runtime graph databases, uploaded documents, model weights, and generated outputs may be ignored by Git. A clean checkout may therefore need a corpus or graph export before retrieval can return useful evidence.
 
-## Training data
+## Known gaps
 
-Scripts live under `training/`:
+The checked-in readiness notes report that the SLM extraction evaluation is below its acceptance threshold; unattended model-based ingestion should remain disabled until that evaluation passes. Integration behavior also depends on the selected synthesis provider and available graph evidence. Review [`docs/reports/PRODUCTION_READINESS_AND_PLATFORM_PLAN.md`](docs/reports/PRODUCTION_READINESS_AND_PLATFORM_PLAN.md) and [`docs/guides/SLM_EXTRACTION_EVAL.md`](docs/guides/SLM_EXTRACTION_EVAL.md) for measured results and open work.
 
-```bash
-python training/prepare_okf_training_data.py
-python training/split_okf_dataset.py
-```
+Do not consider a deployment verified until the test suites pass, the configured `/api/readiness` check is healthy, and representative chat, citation, catalogue, and graph workflows have been exercised against the deployed service.
 
-Output under `training_data/` (jsonl train/test pairs + reports). Splits are
-chunk-held-out so source chunks do not leak between train and test.
+## More documentation
 
-See [docs/guides/FINE_TUNING_GUIDE.md](docs/guides/FINE_TUNING_GUIDE.md).
-
-## Demo (Mock Data)
-
-```bash
-python okf_kuzu_graph.py    # Build graph from mock_data.py
-python chat.py               # Interactive chat with the local model
-pytest tests/                # Unit + integration suite
-```
-
-## Project Structure
-
-```
-libraryAI/
-  archipelago/
-    inference/          # chat RAG ranking curriculum citations synthesis
-    apps/               # process entrypoints (inference_app)
-    ingestion/          # PDF / MD / TXT / DOCX chunking
-  okf/
-    graph/              # Kùzu ingest / export / evidence
-    cleanup_parts/      # grounding, dedupe, cycles
-    eval/               # metrics, gold, structural audit
-  docs/
-    guides/             # ARCHITECTURE, OKF_SPEC, fine-tuning, privacy
-    reports/            # audits, handoffs, pilot notes
-  training/             # dataset + fine-tune scripts
-  scripts/ops/          # bulk ingest, rebuild_graph, tidy_root, …
-  ui/chat, ui/graph     # canonical static UIs
-  chat_ui → ui/chat     # compat symlink
-  graph_ui → ui/graph   # compat symlink
-  tests/                # unit / integration / e2e
-  pdfs/                 # drop documents here
-  pilot_corpus/         # frozen pilot + gold
-  jobs/                 # live upload quarantine
-  data/                 # optional logs / artifacts staging
-
-  # Thin root shims (keep for imports / CLI)
-  okf_pipeline.py       # → okf.*
-  pdf_ingestion.py      # → archipelago.ingestion.*
-  inference_server.py   # → archipelago.inference.*
-
-  # Small entrypoints (not shims)
-  chat_server.py, graph_server.py
-  ingestion_jobs.py, ingestion_worker.py
-
-  # Legacy / demo (do not grow)
-  okf_extraction.py, okf_kuzu_graph.py, mock_data.py, chat.py
-```
-
-Full dependency rules and root-clutter policy:
-[docs/guides/ARCHITECTURE.md](docs/guides/ARCHITECTURE.md).
-
-### Root clutter
-
-- **Logs:** move with `bash scripts/ops/tidy_root.sh` → `data/logs/` (safe).
-- **Backups** (`*.bak*`, `*.thin.*`, `*.pre_sync_*`): keep; archive under
-  `data/backups/` only after checking scripts/docs. Do not delete casually.
-- **Live graph data** (`okf_results.json`, `okf_graph.json`, `okf_graph.db`):
-  required runtime artifacts at `BASE_DIR`.
-
-## Configuration
-
-Primary constants live in `okf/config.py` (re-exported via `okf_pipeline`):
-
-- `MODEL_NAME` — Ollama model name
-- `MAX_RETRIES` — retry count for failed extractions
-- `ALIAS_MAP` — concept aliases (keep empty for domain-agnostic mode)
-
----
-
-## Production Deployment & Institutional Engineering
-
-Archipelago is designed as a three-part institutional knowledge architecture:
-
-```
-                   STUDENTS / WEB
-                         │
-                         ▼
-                 ┌───────────────┐
-                 │   AntDeploy   │
-                 │ API + Chat    │
-                 │ Rate Limiting │
-                 │ Supabase Auth │
-                 └───────┬───────┘
-                         │
-                    Secure API
-                         │
-                         ▼
-        ┌────────────────────────────────┐
-        │  Library / IEDC PC (Appliance) │
-        │  Docker Compose                │
-        │  ├─ Ingestion Worker           │
-        │  ├─ KùzuDB Graph Engine        │
-        │  ├─ Library Index              │
-        │  └─ Sync / Health Service      │
-        │                                │
-        │  Downloaded Local Model        │
-        │  (Hugging Face: lib-qwen)      │
-        └────────────────────────────────┘
-```
-
-### 1. Central Inference & Serving (AntDeploy)
-The public-facing chat and retrieval API is deployed using AntDeploy with:
-- Specification in [`.antideploy.json`](.antideploy.json).
-- Multi-tier sliding window rate limiter (`archipelago/middleware/rate_limiter.py`).
-- Supabase JWT authentication and Row Level Security (`supabase/migrations/`).
-- Three-tier AI caching layer saving up to 70%+ of inference calls (`archipelago/inference/cache_service.py`).
-- Request deduplication for simultaneous in-flight queries (`archipelago/inference/request_dedup.py`).
-
-### 2. Institutional Library Computer (Docker Appliance)
-The institution's library computer runs a self-contained Docker appliance holding institutional data locally:
-```bash
-cd deploy/library-computer
-cp .env.example .env
-docker compose up -d
-```
-See [`deploy/library-computer/README.md`](deploy/library-computer/README.md) for full instructions.
-
-### 3. Archipelago CLI
-```bash
-# Ingest local documents into quarantine
-python -m archipelago ingest --source syllabus.pdf
-
-# Run structural graph integrity checks (5,151-node baseline)
-python -m archipelago graph validate
-
-# Inspect live graph statistics
-python -m archipelago graph stats
-
-# Compare current graph against a versioned baseline
-python -m archipelago graph diff --baseline okf_graph_baseline.json
-
-# Download a pinned extraction model from Hugging Face
-python -m archipelago model download --repo Prataykarali/lib-qwen --revision v5
-
-# Merge the institutional catalogue (Koha + Pearson eLibrary) into the graph
-python -m archipelago library populate
-
-# Propose entitled-but-unheld books for librarian review (downloads nothing)
-python -m archipelago library propose
-
-# Report source availability (verified / withdrawn)
-python -m archipelago library sources --withdrawn-only
-```
-
-### 3b. Library catalogue & source lifecycle
-
-The librarian-facing surface, backed by the graph's `Resource` / `Subject`
-tables:
-
-- **Populate** — merges the institution's Koha export (periodicals) and the
-  Pearson eLibrary bookshelf (books) into the graph, idempotently. Both
-  sources are needed: the Koha export contains periodicals only, so without the
-  bookshelf the catalogue cannot answer a question about a textbook.
-  `python -m archipelago library populate` → 149 searchable resources.
-- **Forget withdrawn titles** — when Pearson or Hugging Face removes a book,
-  the chat stops citing it and answers that it is no longer in records. Only a
-  confirmed `404`/`410` retires a source; a timeout or missing credential never
-  does. Concepts supported by other documents keep answering.
-  Details: [`docs/guides/SOURCE_LIFECYCLE.md`](docs/guides/SOURCE_LIFECYCLE.md).
-- **Ask before ingesting new books** — a provider sweep proposes entitled
-  titles to the librarian instead of downloading commercial text. New proposals
-  default to `toc_only` (structure only), and a recorded decision survives
-  re-sweeps.
-- **Compliance-gated web access** — every outbound fetch passes
-  `archipelago/ingestion/fetch_policy.py` (default-deny allowlist, robots.txt,
-  no credentials, audit log). Details:
-  [`docs/guides/WEB_FETCH_POLICY.md`](docs/guides/WEB_FETCH_POLICY.md).
-- **SLM readiness** — `python -m archipelago.eval.extract_eval` is the go/no-go
-  for unattended SLM ingest. **Currently failing** (alias F1 0.125 vs 0.35
-  gate): [`docs/guides/SLM_EXTRACTION_EVAL.md`](docs/guides/SLM_EXTRACTION_EVAL.md).
-
-### 4. CI/CD Pipeline
-Continuous integration enforces:
-- **Pass 1:** Lint & format with `ruff`
-- **Pass 2:** Strict type checks with `mypy`
-- **Pass 3:** 5-Pass review and banned security patterns (`scripts/quality_gate.py`)
-- **Pass 4:** Unit, integration, and E2E test suites with `pytest`
-- **Pass 5:** Graph regression audit against 5,151 baseline (`scripts/validate_graph.py`)
-- **Pass 6:** Production Docker buildx verification
-
+- [Architecture guide](docs/guides/ARCHITECTURE.md)
+- [Pilot launch and smoke checks](PILOT_LAUNCH.md)
+- [Production readiness report](docs/reports/PRODUCTION_READINESS_AND_PLATFORM_PLAN.md)
+- [Security guidance](docs/SECURITY.md)
+- [CI workflow](.github/workflows/ci.yml)
