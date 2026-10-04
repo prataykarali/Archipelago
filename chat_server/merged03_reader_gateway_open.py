@@ -5,6 +5,7 @@ from flask import Flask, Response, g, jsonify, redirect, request, send_from_dire
 from urllib.parse import quote, urlsplit, urlunsplit, parse_qsl, urlencode
 from .merged01_repo_root import _has_valid_auth_session, _is_auth_enforced, app  # noqa: F401
 from .merged02_index import _requested_page  # noqa: F401
+from host_inference.pearson_handoff import handoff
 from .merged04_hf_token import HF_DOC_MAP, _build_redirect_shell  # noqa: F401
 
 
@@ -37,7 +38,7 @@ def reader_gateway_open(resource_id: str = ""):
                 page_part = f"/page/{page_int or 1}"
                 pearson_url = f"https://ebooks.elibrary.in.pearson.com/wr/{v}?version=1.0.317.1&subscriptionId={sub_id}#book/{b_id}{page_part}"
             title = (matched.get("title") if matched else clean_id) or "Pearson eLibrary Textbook"
-            return _build_redirect_shell(pearson_url or "https://elibrary.in.pearson.com/", title=f"{title} (Pearson eLibrary)")
+            return handoff(title, pearson_url or "https://elibrary.in.pearson.com/", page_int)
     except Exception as exc:
         app.logger.warning("Pearson check error in gateway: %s", exc)
 
@@ -49,7 +50,7 @@ def reader_gateway_open(resource_id: str = ""):
             if rec.source == "pearson":
                 from archipelago.resolver.pearson import resolve as pearson_resolve
                 p_url = pearson_resolve(rec.resource_id, page=page_int) or rec.reader_url
-                return _build_redirect_shell(p_url, title=f"{rec.title} (Pearson eLibrary)")
+                return handoff(rec.title, p_url, page_int)
             elif rec.source in ("huggingface", "local"):
                 read_url = f"/read/{quote(clean_id, safe='/')}?page={page_int}"
                 return redirect(read_url, code=302)
@@ -81,7 +82,9 @@ def reader_info_api(resource_id):
                 "title": matched.get("title", ""),
                 "author": matched.get("author", ""),
                 "provider": "pearson",
-                "reader_url": p_url,
+                "reader_url": f"/open/{quote(clean_id, safe='')}?page={page}",
+                "navigation": "manual_page",
+                "page_verified": False,
                 "page_count": matched.get("page_count", 0),
             })
     except Exception:
@@ -100,7 +103,9 @@ def reader_info_api(resource_id):
                     "title": rec.title,
                     "author": rec.author,
                     "provider": "pearson",
-                    "reader_url": p_url,
+                    "reader_url": f"/open/{quote(clean_id, safe='')}?page={page}",
+                "navigation": "manual_page",
+                "page_verified": False,
                     "page_count": rec.page_count,
                 })
             elif rec.source == "huggingface":

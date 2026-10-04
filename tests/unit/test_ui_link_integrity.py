@@ -37,13 +37,15 @@ def test_no_malformed_pearson_version_parameter():
             assert MALFORMED_VERSION not in text, f"{path} has a double '?' Pearson URL"
 
 
-def test_pearson_urls_join_parameters_with_ampersand():
+def test_pearson_links_use_the_manual_page_gateway():
+    """The browser must not reconstruct unsupported external page fragments."""
     for root in (CANONICAL, HOSTED):
-        builders = [path for path in _js_files(root) if "pearson.com/wr/" in path.read_text(encoding="utf-8")]
-        assert builders, f"{root} has no Pearson URL builder"
-        for path in builders:
-            text = path.read_text(encoding="utf-8")
-            assert "version=1.0.317.1&subscriptionId=" in text, f"{path} does not join version and subscription with '&'"
+        citation = (root / "js/02--kw-highlights.js").read_text()
+        click = (root / "js/21-generate-roadmap.js").read_text()
+        assert "/open/${encodeURIComponent(bId)}?page=" in citation
+        assert "/open/${encodeURIComponent(bId)}?page=" in click
+        assert "pearson.com/wr/" not in citation + click
+        assert "pEntry.id || '0fcd531f" not in click
 
 
 def test_link_interceptor_is_loaded_by_the_chat_page():

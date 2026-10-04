@@ -5,6 +5,9 @@ on:
     paths:
       - "host_inference/**"
       - "archipelago/personalization_bridge.py"
+      - "archipelago/resolver/**"
+      - "archipelago/inference/citations/**"
+      - "chat_server/**"
       - "ui/chat/**"
       - "scripts/run_local.py"
       - "scripts/export_graphier.py"
@@ -26,7 +29,10 @@ jobs:
           pytest tests/unit/test_learning_sessions.py
           tests/unit/test_answer_cache.py tests/unit/test_llm_provider_chain.py
           tests/unit/test_ui_link_integrity.py tests/unit/test_graphier_export.py
+          tests/unit/test_reader_safety.py tests/unit/test_library_restoration.py
           --timeout=30 -q
+      - name: Chat transport edge cases
+        run: node --test tests/js/chat-transport.test.mjs
       - name: JavaScript syntax
         run: |
           for file in host_inference/ui/js/*.js; do

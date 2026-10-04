@@ -44,17 +44,9 @@ def resolve_hf_path(value: str) -> str:
     if raw in paths:
         return raw
     base = raw.rsplit("/", 1)[-1]
-    candidates = (
-        raw.removeprefix("papers/"),
-        f"books/papers/{base}",
-        f"textbooks/{base}",
-        f"books/textbooks/{base}",
-        f"archipelago-books-cs/{raw}",
-    )
-    for candidate in candidates:
-        if candidate in paths:
-            return candidate
-    return ""
+    candidates = [path for path in paths if path.rsplit("/", 1)[-1] == base]
+    return candidates[0] if len(candidates) == 1 else ""
+
 
 
 def hf_title(path: str) -> str:
@@ -188,7 +180,7 @@ class Catalog:
             )
         text = "\n\n".join([
             body,
-            f"**Pearson page.** [{title} p.{page}]({url})",
+            f"**Pearson book.** [Open {title}]({url}), then go to page {page} in the reader. Automatic page navigation is not verified.",
         ])
         return {
             "text": text,

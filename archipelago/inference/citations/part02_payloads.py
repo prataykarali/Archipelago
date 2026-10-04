@@ -120,8 +120,8 @@ def citation_payload(evidence, topic, evidence_id=None):
             p_page = page_number if isinstance(page_number, int) and page_number > 0 else 1
             p_url = pearson_resolve(book_id, page=p_page)
             if p_url:
-                reader_url = p_url
-                url = p_url
+                reader_url = f"/open/{quote(str(book_id), safe='')}?page={p_page}"
+                url = reader_url
             if not title and p_res.get("title"):
                 title = p_res["title"]
     except Exception:

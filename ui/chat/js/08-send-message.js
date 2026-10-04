@@ -1,6 +1,7 @@
 // Auto-split from ui/chat/index.html — 08-send-message.js
 // Feature module 9 of 22.
 import { state } from './00-state.js';
+import { readChatResponse } from './chat-transport.js';
 import { setSendButtonState, stopGeneration } from './07-open-page-viewer-modal.js';
 import { dismissGraphChoiceModal, populateTopology } from './11-populate-topology.js';
 import { API_HOST, CHAT_RESPONSE_TIMEOUT_MS, MAX_HISTORY_TURNS_SENT, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, setLibrarianThinking, showStickyAvatar } from './00-current-origin.js';
@@ -78,8 +79,6 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
             armStreamIdleWatchdog();
 
             // Hoisted so catch/finally can keep partial GPU SLM text on abort.
-            let buffer = '';
-            let metadataParsed = false;
             let assistantText = '';
             let awaitingFinalFrame = false;
             let userScrolledUp = false;
@@ -125,8 +124,6 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                     throw new Error(`HTTP Error ${response.status}`);
                 }
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
 
                 // Remove typing dots when the first text comes in
                 let cleanedIndicator = false;
@@ -318,7 +315,7 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         liveRewriteMode = false;
                         if (rest && rest.trim()) {
                             const currentDraft = staticStreamBuffer || rewriteBuffer || assistantText;
-                            if (_shouldReplaceFinal(rest, currentDraft) || !currentDraft) {
+                            if (rest.trim()) {
                                 staticStreamBuffer = rest;
                                 rewriteBuffer = "";
                                 assistantText = rest;
@@ -335,63 +332,19 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                     }
                 };
 
-                while (true) {
-                    const { done, value } = await reader.read();
+                for await (const event of readChatResponse(response)) {
                     armStreamIdleWatchdog();
-                    if (done) {
-                        if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
-                        typewriter.flush();
-                        if (!cleanedIndicator && msgEl) {
-                            msgEl.innerHTML = '';
-                            cleanedIndicator = true;
-                            const wrap = msgEl.closest('.msg-bubble-wrap');
-                            if (wrap) wrap.classList.remove('is-thinking');
-                        }
-                        if (buffer) {
-                            consumeTextChunk(buffer);
-                            buffer = '';
-                        }
-                        // Always re-finalize after the terminal flush so paper
-                        // cards survive the innerHTML wipe from flush/render.
-                        finalizeStreamedBubble();
-                        if (msgEl && window._lastChatMetadata) {
-                            appendEvidenceRail(msgEl, window._lastChatMetadata);
-                            wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
-                        }
-                        state.isGenerating = false;
-                        try { window.isGenerating = false; } catch (_) {}
-                        _updateGlowState(false);
-                        setSendButtonState('send');
-                        setLibrarianThinking(false);
-                        break;
-                    }
-
-                    buffer += decoder.decode(value, { stream: true });
-
-                    if (!metadataParsed) {
-                        const idx = buffer.indexOf('[STREAM_START]');
-                        if (idx !== -1) {
-                            const metaStr = buffer.substring(0, idx).trim();
-                            buffer = buffer.substring(idx + '[STREAM_START]'.length).replace(/^\n+/, '');
-                            metadataParsed = true;
-
-                            try {
-                                const metadata = JSON.parse(metaStr);
-                                window._lastChatMetadata = metadata;
-                                populatePipeline(metadata);
-                                populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
-                                // renderHorizontalGraphCard & roadmap_assessment deferred until typing finishes
-                            } catch (err) {
-                                console.error('Error parsing pipeline metadata:', err);
-                            }
-                        }
-                    }
-
-                    if (metadataParsed && buffer) {
-                        consumeTextChunk(buffer);
-                        buffer = '';
+                    if (event.type === 'metadata') {
+                        const metadata = event.value;
+                        window._lastChatMetadata = metadata;
+                        populatePipeline(metadata);
+                        populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
+                    } else {
+                        consumeTextChunk(event.value);
                     }
                 }
+                if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
+                _finishStreamUi();
 
                 // Add to conversational history
                 state.chatHistory.push({ role: 'user', content: inputVal });
@@ -433,10 +386,10 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                             );
                         } catch (__) {}
                     }
-                    if (aborted && msgEl && !msgEl.querySelector('.stream-abort-note')) {
+                    if (msgEl && !msgEl.querySelector('.stream-abort-note')) {
                         const note = document.createElement('div');
                         note.className = 'stream-abort-note text-amber-300/90 text-xs mt-2 opacity-80';
-                        note.textContent = 'Generation stopped — showing the answer received so far.';
+                        note.textContent = 'Response interrupted — showing only the answer received so far. Retry for a complete answer.';
                         msgEl.appendChild(note);
                     }
                     try {
@@ -457,7 +410,11 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         ? ((err.message && err.message !== 'The user aborted a request.') ? err.message : 'stream was interrupted')
                         : (err && err.message ? err.message : 'unknown error');
                     if (msgEl) {
-                        msgEl.innerHTML = `<div class="text-rose-400 flex items-center gap-2 border border-rose-500/20 bg-rose-500/5 p-3 rounded-lg"><i class="fa-solid fa-circle-exclamation"></i>Failed to stream generation: ${why}. Ensure the local model / inference server is running.</div>`;
+                        const alert = document.createElement('div');
+                        alert.className = 'text-rose-400 p-3 rounded-lg border border-rose-500/20';
+                        alert.setAttribute('role', 'alert');
+                        alert.textContent = `Could not complete the answer: ${why}`;
+                        msgEl.replaceChildren(alert);
                     }
                 }
             } finally {

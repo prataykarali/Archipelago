@@ -239,19 +239,10 @@ import { state } from './00-state.js';
             const isPearson = Boolean(pEntry || citation.is_pearson || citation.subscription_id || citation.source === 'pearson');
 
             if (isPearson) {
-                const subId = (pEntry && pEntry.sub) || citation.subscription_id;
                 const bId = (pEntry && pEntry.id) || citation.book_id;
-                // Never guess an identifier: without a real book id we would link
-                // the reader to an unrelated book, so fall through to the
-                // internal page-view reader instead of fabricating a URL.
-                if (!subId || !bId) {
-                    if (directUrl) return directUrl.includes('#page=') ? directUrl : `${directUrl}#page=${page}`;
-                    return `/api/page-view?doc_id=${encodeURIComponent(citation.doc_id || '')}&page=${page}#page=${page}`;
-                }
-                const bType = (pEntry && pEntry.type) || citation.book_type || 'pdf';
-                const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
-                const pagePart = `/page/${page || 1}`;
-                return `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
+                if (bId) return `/open/${encodeURIComponent(bId)}?page=${page || 1}`;
+                return `/api/page-view?doc_id=${encodeURIComponent(citation.doc_id || '')}&page=${page}`;
+
             }
 
             // 3. Direct external URL (Hugging Face, arXiv, etc.)

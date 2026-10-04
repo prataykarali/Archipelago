@@ -146,6 +146,7 @@
     }
 
     let pdfDoc = null;
+    let pageLabels = null;
     let pageNum = 1;
     let pageRendering = false;
     let pageNumPending = null;
@@ -211,8 +212,9 @@
         // Fetch document metadata from backend reader info route
         const infoResp = await fetch(`/api/reader/info/${encodeURIComponent(resourceId)}?page=${pageNum}`);
         let docInfo = {};
-        if (infoResp.ok) {
-          docInfo = await infoResp.json();
+        docInfo = await infoResp.json();
+        if (!infoResp.ok) {
+          throw new Error(docInfo.detail || 'This document is unavailable in the configured library.');
         }
 
         // If backend indicated this is Pearson, redirect to Pearson reader
@@ -251,8 +253,9 @@
         pageNumInput.max = pdfDoc.numPages;
 
         if (pageNum > pdfDoc.numPages) {
-          pageNum = 1;
+          throw new Error(`Requested PDF page ${pageNum}, but this document has ${pdfDoc.numPages} pages. No other page was substituted.`);
         }
+        pageLabels = await pdfDoc.getPageLabels();
 
         loadingEl.classList.add('hidden');
         canvas.classList.remove('hidden');
@@ -271,7 +274,12 @@
       // Update URL query & hash silently so reload retains exact page
       const url = new URL(window.location);
       url.searchParams.set('page', num);
+      url.hash = `page=${num}`;
       window.history.replaceState({}, '', url.toString());
+      document.getElementById('btn-raw-pdf').href = `${rawPdfUrl.split('#')[0]}#page=${num}`;
+      pageNumInput.title = pageLabels?.[num - 1]
+        ? `PDF page ${num}; printed label ${pageLabels[num - 1]}`
+        : `PDF page ${num}; printed page label unavailable`;
 
       pdfDoc.getPage(num).then(function(page) {
         const viewport = page.getViewport({ scale: scale });
@@ -304,6 +312,7 @@
       }).catch(function(err) {
         console.error("Page render error:", err);
         pageRendering = false;
+        showError('The requested PDF page could not be rendered. Please retry.');
       });
 
       // Update button states

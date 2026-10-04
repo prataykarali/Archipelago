@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 CORPUS_ARTIFACTS: dict[str, str] = {
     "okf_graph.json": "okf_graph.json",
     "catalogs/pearson_bookshelf.json": "data/catalogs/pearson_bookshelf.json",
+    "library_manifest.json": "library_manifest.json",
 }
 
 #: Where the tracked fallback slice lives, relative to the repository root.
@@ -75,8 +76,10 @@ def is_stub(graph_json: Path) -> bool:
         payload = json.loads(graph_json.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return True
+    if not isinstance(payload, dict):
+        return True
     nodes = payload.get("nodes") or payload.get("concepts") or {}
-    return len(nodes) < MIN_USEFUL_CONCEPTS
+    return bool(payload.get("stats", {}).get("fixture")) or len(nodes) < MIN_USEFUL_CONCEPTS
 
 
 def _hf_download(repo_id: str, filename: str, destination: Path, token: str) -> bool:
@@ -147,52 +150,71 @@ def provision(root: Path | None = None) -> dict[str, object]:
     graph_json = repo_root / "okf_graph.json"
     cache_graph = repo_root / "host_inference" / "cache" / "okf_graph.json"
 
-    report: dict[str, object] = {"source": "present", "ok": True}
-
-    if not is_stub(graph_json) or not is_stub(cache_graph):
-        return report
-
-    logger.info("Concept graph is missing or a stub; provisioning at boot.")
+    report: dict[str, object] = {"source": "present", "ok": True, "restored": [], "missing": []}
     repo_id = os.environ.get(HF_REPO_ENV, "").strip()
     token = os.environ.get(HF_TOKEN_ENV, "").strip()
+    staging = repo_root / "data" / "provisioned"
+    graph_needs_restore = is_stub(graph_json) and is_stub(cache_graph)
 
-    fetched = False
-    if repo_id:
-        staging = repo_root / "data" / "provisioned"
-        for remote_path, local_path in CORPUS_ARTIFACTS.items():
-            target = staging / remote_path
-            if not _hf_download(repo_id, remote_path, target, token):
-                continue
-            fetched = True
-            destination = repo_root / local_path
+    for remote_path, local_path in CORPUS_ARTIFACTS.items():
+        destination = repo_root / local_path
+        cache_copy = repo_root / "host_inference" / "cache" / destination.name
+        needed = graph_needs_restore if local_path == "okf_graph.json" else not (
+            _valid_artifact(destination, local_path) or _valid_artifact(cache_copy, local_path)
+        )
+        if not needed:
+            continue
+        target = staging / remote_path
+        if repo_id and _hf_download(repo_id, remote_path, target, token) and _valid_artifact(target, local_path):
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(target, destination)
-            if local_path == "okf_graph.json":
-                # The engine reads the cache copy, not the root one.
-                cache_graph.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(target, cache_graph)
+            cache_copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(target, cache_copy)
+            report["restored"].append(local_path)
+        else:
+            report["missing"].append(local_path)
 
-    if not fetched:
-        installed = _restore_fixture(repo_root, graph_json)
-        if installed:
-            cache_graph.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(graph_json, cache_graph)
-        report["source"] = "fixture" if installed else "missing"
+    # Never overwrite a real graph just because the catalogue failed to fetch.
+    if (not _valid_artifact(graph_json, "okf_graph.json")
+        and not _valid_artifact(cache_graph, "okf_graph.json")
+        and _restore_fixture(repo_root, graph_json)):
+        cache_graph.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(graph_json, cache_graph)
 
-    # Every read of the graph goes through this guard: an unreadable or truncated
-    # artifact must not crash boot. `is_stub` treats it as missing, so it is
-    # replaced above; this read only reports the outcome.
     import json
 
     payload: dict = {}
-    if graph_json.is_file():
-        try:
-            payload = json.loads(graph_json.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            payload = {}
+    for candidate in (cache_graph, graph_json):
+        if _valid_artifact(candidate, "okf_graph.json"):
+            payload = json.loads(candidate.read_text(encoding="utf-8"))
+            break
     report["concepts"] = len(payload.get("nodes") or payload.get("concepts") or {})
-    report["ok"] = int(report["concepts"]) >= MIN_USEFUL_CONCEPTS
+    report["source"] = "fixture" if payload.get("stats", {}).get("fixture") else (
+        "downloaded" if report["restored"] else "present" if payload else "missing"
+    )
+    report["ok"] = bool(payload) and not bool(report["missing"]) and report["source"] != "fixture"
     return report
+
+
+def _valid_artifact(path: Path, local_path: str) -> bool:
+    """Reject HTML/error responses and malformed exports before replacing local data."""
+    import json
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    if not isinstance(payload, dict):
+        return False
+    if local_path == "okf_graph.json":
+        return bool(payload.get("nodes") or payload.get("concepts"))
+    if local_path.endswith("pearson_bookshelf.json"):
+        books = payload.get("books")
+        return isinstance(books, list) and bool(books) and all(
+            isinstance(book, dict) and book.get("id") and book.get("title") for book in books
+        )
+    paths = payload.get("hf_paths")
+    return isinstance(paths, list) and all(isinstance(item, str) and item.endswith(".pdf") for item in paths)
 
 
 __all__ = [

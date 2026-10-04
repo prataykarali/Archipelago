@@ -78,14 +78,11 @@ def hydrate() -> dict[str, str]:
 
 
 def pearson_page_url(book: dict, page: int = 1) -> str:
-    """Exact Pearson reader URL: viewer + version + subscription + #book/{id}/page/{n}."""
-    page_n = max(1, int(page or 1))
-    if book.get("page_count") and int(book["page_count"]) > 1:
-        page_n = min(page_n, int(book["page_count"]))
+    """Book-specific Pearson URL. Requested pages require a manual reader handoff."""
     viewer = "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "index.html"
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
-    page_part = f"/page/{page_n}"
+    page_part = ""
     return (
         f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
     )
@@ -99,7 +96,7 @@ def public_book(book: dict) -> dict:
         "author": book.get("author") or "Institutional collection",
         "year": "",
         "domain": book.get("domain") or "CS & AI",
-        "desc": "Institutional e-book. Open opens the exact Pearson page for your library login.",
+        "desc": "Institutional e-book. Open the book, then select the cited page in Pearson.",
         "isbn": book.get("isbn") or "",
         "isPearson": True,
         "page_count": book.get("page_count") or 1,

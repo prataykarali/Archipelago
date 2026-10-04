@@ -156,13 +156,10 @@ import { renderChatHistory } from './20--compact-history.js';
                 e.preventDefault();
                 e.stopPropagation();
                 copyPearsonCreds();
-                let targetUrl = href;
-                if (!targetUrl.includes('version=')) {
-                    targetUrl = targetUrl.replace(/\.html\?/, '.html?version=1.0.317.1&');
-                    if (!targetUrl.includes('version=')) {
-                        targetUrl = targetUrl.replace(/\.html/, '.html?version=1.0.317.1');
-                    }
-                }
+                const match = href.match(/#book\/([^/]+)(?:\/page\/(\d+))?/);
+                const targetUrl = match
+                    ? `/open/${encodeURIComponent(match[1])}?page=${match[2] || 1}`
+                    : href;
                 window.open(targetUrl, '_blank', 'noopener,noreferrer');
                 return;
             }
@@ -225,13 +222,9 @@ import { renderChatHistory } from './20--compact-history.js';
             const pEntry = typeof getPearsonBookEntry === 'function' ? getPearsonBookEntry(doc_id) : null;
             if (pEntry) {
                 copyPearsonCreds();
-                const subId = pEntry.sub || 'debf3e10-c27c-469a-a2aa-8a30c919db91';
-                const bId = pEntry.id || '0fcd531f-3ba1-495e-9c9e-b43b034b88d9';
-                const bType = pEntry.type || 'pdf';
-                const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
-                const pagePart = `/page/${page || 1}`;
-                const pUrl = `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
-                window.open(pUrl, '_blank', 'noopener,noreferrer');
+                const bId = pEntry.id;
+                if (!bId) return;
+                window.open(`/open/${encodeURIComponent(bId)}?page=${page || 1}`, '_blank', 'noopener,noreferrer');
                 return;
             }
 
