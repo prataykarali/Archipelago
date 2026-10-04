@@ -36,6 +36,8 @@ PUBLIC_API = frozenset({
     "/api/chat/diagnostic-mcqs",
     "/api/chat/adaptive-step",
     "/api/chat/telemetry",
+    # Cookie-owned controls contain no other browser's memory or staff data.
+    "/api/chat/learning-memory",
     "/api/catalog/all",
     "/api/page-view",
     "/api/graph/subgraph",

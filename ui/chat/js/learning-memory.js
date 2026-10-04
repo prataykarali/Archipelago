@@ -13,7 +13,7 @@ export function renderLearningMemoryControls(container) {
     try { checkbox.checked = localStorage.getItem('archipelago_remember_learning') === '1'; } catch (_) {}
     label.append(checkbox, ' Remember mastery on this browser for 30 days');
     const note = document.createElement('p');
-    note.textContent = 'Saves concept mastery and preference only—not answers. Normal mode does not save learning memory. Staff may see anonymous gap counts only when at least five consenting browser profiles share a gap.';
+    note.textContent = 'Saves concept mastery and preference only—not answers. Normal mode does not save learning memory. Hosted memory can reset on a deployment or container replacement. Staff may see anonymous gap counts only when at least five consenting browser profiles share a gap.';
     const status = document.createElement('p');
     status.setAttribute('role', 'status');
     const forget = document.createElement('button');
