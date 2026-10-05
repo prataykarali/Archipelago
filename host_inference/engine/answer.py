@@ -87,6 +87,7 @@ class Engine:
         path = graph_path or (HERE / "cache" / "okf_graph.json")
         if not path.is_file():
             path = HERE.parent / "okf_graph.json"
+        self.graph_path = path
         self.graph = LibraryGraph(path)
         self.books = load_books()
         self.catalog = Catalog(self.graph.nodes, self.books)

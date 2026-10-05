@@ -58,7 +58,7 @@ Unassessed nodes stay missing. Three confident checks covering available prerequ
 - SQLite sessions are browser/login bound, expire after one hour, and are capped at 1,000.
 - Expired sessions become inaccessible immediately; physical cleanup occurs on the next session creation. There is no long-term learner profile or opt-in cross-day memory in this release.
 - `ARCHIPELAGO_QUIZ_DB` can select a local database path outside the repository.
-- Authenticated and diagnostic chat requests bypass shared answer caching.
+- Diagnostic, first-person and learner-state chat requests bypass shared answer caching. Authenticated public knowledge questions can reuse the versioned answer cache.
 - Client history/mastery fields are not authoritative.
 - Only bounded retrieved academic summaries can reach inference providers; credential-like strings, contacts and private-marked nodes are filtered. Inventory and learner history are excluded. This is a defensive filter, not a formal DLP guarantee.
 - Automatic provider order is XKIRO → NVIDIA. Existing explicit provider pinning remains supported.

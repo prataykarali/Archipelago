@@ -29,8 +29,8 @@ rather than merely on start order:
 
 ```bash
 # 1. Configure
-cp .env.example .env       # Supabase credentials, inference API URL, secrets
 cd deploy/library-computer
+cp .env.example .env       # Supabase credentials, inference API URL, secrets
 
 # 2. Point at the extraction model on this machine.
 #    The compose file mounts ${ARCHIPELAGO_MODEL_DIR} read-only at /app/models.
@@ -42,13 +42,19 @@ docker compose up -d --build
 
 # 4. Verify
 docker compose ps                       # all four should be healthy
-curl -s http://localhost:5150/api/health | python -m json.tool
-curl -s http://localhost:5150/api/readiness | python -m json.tool
+curl -s http://127.0.0.1:5150/api/health | python -m json.tool
+curl -s http://127.0.0.1:5150/api/readiness | python -m json.tool
 ```
 
 `docker compose up -d` on a cold machine will not be healthy instantly: the
 graph server waits on ingestion's healthcheck, which in turn waits for Ollama.
 Allow ~60 s on first boot.
+
+The graph port binds to loopback on the library computer. Put an authenticated
+reverse proxy in front of it before allowing access from other machines. The
+worker writes `/app/graph-state/okf_graph.json` through a legacy-path link;
+the graph and sync services read the same named volume. A regular file at the
+legacy path prevents startup rather than being silently overwritten.
 
 ### Fetching the extraction model
 

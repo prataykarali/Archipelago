@@ -1,12 +1,14 @@
 """Unit tests for Archipelago Reader Gateway (/open/ and /read/), PDF.js reader, and Pearson redirect."""
+
 from __future__ import annotations
 
 import pytest
-from chat_server import app, _build_redirect_shell
+
 from archipelago import supabase_auth
+from chat_server import app
 
 
-def _fake_student_principal(request):  # noqa: ANN001, ARG001
+def _fake_student_principal(request):
     principal = supabase_auth.AuthPrincipal(
         user_id="test-user-id",
         username="gateway-tester",
@@ -92,20 +94,20 @@ def test_reader_info_api_for_hf_resource(client):
 
 
 def test_reader_gateway_pearson_book_opens_new_tab(client):
-    """Pearson book -> /open/<id> returns new-tab HTML redirect shell with credentials."""
+    """Pearson book -> /open/<id> gives a book link and manual page handoff."""
     client.set_cookie("archipelago_user", "authenticated")
     # Tanenbaum Computer Networks 6e
     resp = client.get("/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9?page=10")
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
-    assert "window.open" in html
-    assert "_blank" in html
+    assert "Open book in Pearson" in html
+    assert 'target="_blank"' in html
     assert "ebooks.elibrary.in.pearson.com" in html
     assert "0fcd531f-3ba1-495e-9c9e-b43b034b88d9" in html
-    # The gateway points to the exact book/page without exposing shared credentials.
-    assert "page/10" in html
-    assert "library.uemk@uem.edu.in" not in html
-    assert "Central-Library@#1" not in html
+    assert "page 10" in html
+    assert "/page/10" not in html
+    assert "Automatic page navigation is not verified" in html
+    assert "window.open" not in html
 
 
 def test_reader_ui_pearson_redirects_to_open_gateway(client):

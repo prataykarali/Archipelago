@@ -9,17 +9,17 @@ Implements doc 03_ai_call_minimization_caching.md:
 - Request deduplication for concurrent in-flight queries
 - AI budget protection & telemetry metrics
 """
+
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import hashlib
-import json
 import logging
 import os
 import re
 import threading
 import time
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import requests
 
@@ -30,9 +30,9 @@ DEFAULT_GRAPH_VERSION = "okf-5151-v3"
 DEFAULT_PROMPT_VERSION = "private-learning-v2"
 DEFAULT_LIBRARY_VERSION = "2026.09"
 
-RESPONSE_TTL_SEC = 3600      # 1 hour
-RETRIEVAL_TTL_SEC = 1800     # 30 minutes
-GRAPH_TTL_SEC = 7200         # 2 hours
+RESPONSE_TTL_SEC = 3600  # 1 hour
+RETRIEVAL_TTL_SEC = 1800  # 30 minutes
+GRAPH_TTL_SEC = 7200  # 2 hours
 
 
 class CacheMetrics:
@@ -67,7 +67,7 @@ class CacheMetrics:
             self.ai_calls_avoided += 1
             self.tokens_saved += tokens_saved
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         with self._lock:
             ratio = (self.cache_hits + self.dedup_hits) / max(1, self.total_requests)
             return {
@@ -87,8 +87,8 @@ class RequestDeduplicator:
 
     def __init__(self, wait_timeout: float = 25.0) -> None:
         self._lock = threading.Lock()
-        self._in_flight: Dict[str, threading.Event] = {}
-        self._results: Dict[str, Any] = {}
+        self._in_flight: dict[str, threading.Event] = {}
+        self._results: dict[str, Any] = {}
         self.wait_timeout = wait_timeout
 
     def is_in_flight(self, key: str) -> bool:
@@ -103,7 +103,7 @@ class RequestDeduplicator:
             self._in_flight[key] = threading.Event()
             return True
 
-    def wait(self, key: str) -> Optional[Any]:
+    def wait(self, key: str) -> Any | None:
         """Followers wait for the leader to complete and return the result."""
         with self._lock:
             evt = self._in_flight.get(key)
@@ -145,16 +145,16 @@ class CacheService:
         self.library_version = library_version
 
         # In-memory storage for high-speed cache & offline fallback
-        self._mem_response: Dict[str, Dict[str, Any]] = {}
-        self._mem_retrieval: Dict[str, Dict[str, Any]] = {}
-        self._mem_graph: Dict[str, Dict[str, Any]] = {}
+        self._mem_response: dict[str, dict[str, Any]] = {}
+        self._mem_retrieval: dict[str, dict[str, Any]] = {}
+        self._mem_graph: dict[str, dict[str, Any]] = {}
 
         self.supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
         self.supabase_key = (
             os.environ.get("SUPABASE_SECRET_KEY")
             or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
             or os.environ.get("SUPABASE_SERVICE_KEY")
-            or os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
+            or ""
         ).strip()
         self.has_supabase = bool(self.supabase_url and self.supabase_key)
         self.supabase_table_available = True
@@ -192,7 +192,7 @@ class CacheService:
         ]
         for f in fillers:
             if q.startswith(f + " "):
-                q = q[len(f) + 1:].strip()
+                q = q[len(f) + 1 :].strip()
                 break
 
         # Remove punctuation, symbols, redundant spaces
@@ -211,7 +211,7 @@ class CacheService:
 
     # ─── Supabase REST Helper ────────────────────────────────────────────
 
-    def _headers(self) -> Dict[str, str]:
+    def _headers(self) -> dict[str, str]:
         return {
             "apikey": self.supabase_key,
             "Authorization": f"Bearer {self.supabase_key}",
@@ -221,7 +221,7 @@ class CacheService:
 
     # ─── Response Cache (Doc 03 Section 2, 3, 4) ─────────────────────────
 
-    def get_cached_response(self, query: str) -> Optional[Dict[str, Any]]:
+    def get_cached_response(self, query: str) -> dict[str, Any] | None:
         """Lookup cached response. Checks in-memory cache first, then Supabase."""
         norm_query = self.normalize_query(query)
         if not norm_query:
@@ -234,7 +234,7 @@ class CacheService:
             entry = self._mem_response.get(cache_key)
             if entry and entry.get("expires_at_epoch", 0) > now:
                 entry["hit_count"] = entry.get("hit_count", 0) + 1
-                entry["last_hit_at"] = datetime.now(timezone.utc).isoformat()
+                entry["last_hit_at"] = datetime.now(UTC).isoformat()
                 return entry
 
         # 2. Supabase REST lookup if configured
@@ -251,14 +251,15 @@ class CacheService:
                         # Verify not expired
                         try:
                             exp_dt = datetime.fromisoformat(expires_str.replace("Z", "+00:00"))
-                            if datetime.now(timezone.utc) <= exp_dt:
-                                # Populate local memory cache
+                            if datetime.now(UTC) <= exp_dt:
+                                # Populate local memory cache only for a valid,
+                                # unexpired timestamp. Bad rows are cache misses.
                                 row["expires_at_epoch"] = exp_dt.timestamp()
                                 with self._lock:
                                     self._mem_response[cache_key] = row
                                 return row
-                        except Exception:
-                            return row
+                        except (ValueError, TypeError, AttributeError):
+                            logger.warning("Ignoring Supabase cache row with invalid expiry")
                 elif resp.status_code in {404, 400}:
                     # Table may not be created in Supabase schema yet; avoid repeated failing HTTP calls
                     self.supabase_table_available = False
@@ -271,9 +272,9 @@ class CacheService:
         self,
         query: str,
         response_text: str,
-        sources: Optional[List[Any]] = None,
-        graph_data: Optional[Dict[str, Any]] = None,
-        roadmap_data: Optional[List[Any]] = None,
+        sources: list[Any] | None = None,
+        graph_data: dict[str, Any] | None = None,
+        roadmap_data: list[Any] | None = None,
         ttl_seconds: int = RESPONSE_TTL_SEC,
     ) -> None:
         """Cache a newly synthesized AI response."""
@@ -282,8 +283,8 @@ class CacheService:
             return
         query_hash = self.hash_str(norm_query)
         cache_key = self.generate_cache_key(norm_query)
-        now_dt = datetime.now(timezone.utc)
-        exp_dt = datetime.fromtimestamp(now_dt.timestamp() + ttl_seconds, tz=timezone.utc)
+        now_dt = datetime.now(UTC)
+        exp_dt = datetime.fromtimestamp(now_dt.timestamp() + ttl_seconds, tz=UTC)
 
         data = {
             "cache_key": cache_key,
@@ -309,20 +310,27 @@ class CacheService:
 
         # 2. Persist to Supabase REST asynchronously / best-effort
         if self.has_supabase and self.supabase_table_available:
+
             def _push():
                 try:
                     payload = dict(data)
                     payload.pop("expires_at_epoch", None)
                     url = f"{self.supabase_url}/rest/v1/ai_response_cache"
-                    requests.post(url, headers=self._headers(), json=payload, timeout=4.0)
-                except Exception:
-                    pass
+                    response = requests.post(
+                        url, headers=self._headers(), json=payload, timeout=4.0
+                    )
+                    if not response.ok:
+                        logger.warning(
+                            "Supabase answer cache write failed with HTTP %s", response.status_code
+                        )
+                except requests.RequestException:
+                    logger.warning("Supabase answer cache write failed", exc_info=True)
 
             threading.Thread(target=_push, daemon=True).start()
 
     # ─── Retrieval Cache (Doc 03 Section 6) ───────────────────────────────
 
-    def get_cached_retrieval(self, query: str) -> Optional[Dict[str, Any]]:
+    def get_cached_retrieval(self, query: str) -> dict[str, Any] | None:
         query_hash = self.hash_str(self.normalize_query(query))
         now = time.time()
         with self._lock:
@@ -331,7 +339,9 @@ class CacheService:
                 return entry
         return None
 
-    def cache_retrieval(self, query: str, data: Dict[str, Any], ttl_seconds: int = RETRIEVAL_TTL_SEC) -> None:
+    def cache_retrieval(
+        self, query: str, data: dict[str, Any], ttl_seconds: int = RETRIEVAL_TTL_SEC
+    ) -> None:
         query_hash = self.hash_str(self.normalize_query(query))
         exp_epoch = time.time() + ttl_seconds
         payload = dict(data)
@@ -342,7 +352,7 @@ class CacheService:
 
     # ─── Graph Cache (Doc 03 Section 7) ───────────────────────────────────
 
-    def get_cached_graph(self, concept_id: str) -> Optional[Dict[str, Any]]:
+    def get_cached_graph(self, concept_id: str) -> dict[str, Any] | None:
         key = f"{concept_id}:{self.graph_version}"
         now = time.time()
         with self._lock:
@@ -351,7 +361,9 @@ class CacheService:
                 return entry
         return None
 
-    def cache_graph(self, concept_id: str, data: Dict[str, Any], ttl_seconds: int = GRAPH_TTL_SEC) -> None:
+    def cache_graph(
+        self, concept_id: str, data: dict[str, Any], ttl_seconds: int = GRAPH_TTL_SEC
+    ) -> None:
         key = f"{concept_id}:{self.graph_version}"
         exp_epoch = time.time() + ttl_seconds
         payload = dict(data)

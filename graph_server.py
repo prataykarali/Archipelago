@@ -17,10 +17,14 @@ from archipelago.middleware.log_redaction import install_log_redaction
 install_log_redaction()
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_FILE = BASE_DIR / "okf_graph.json"
+DATA_FILE = Path(os.environ.get("ARCHIPELAGO_GRAPH_JSON", str(BASE_DIR / "okf_graph.json")))
 STATIC_DIR = BASE_DIR / "graph_ui"
-_ASSET_ROOTS = tuple(path for path in (BASE_DIR / "buttons", BASE_DIR / "ui" / "assets") if path.is_dir())
-_PUBLIC_AUTH_PATHS = frozenset({"/api/auth/config", "/api/auth/me", "/api/readiness", "/api/health"})
+_ASSET_ROOTS = tuple(
+    path for path in (BASE_DIR / "buttons", BASE_DIR / "ui" / "assets") if path.is_dir()
+)
+_PUBLIC_AUTH_PATHS = frozenset(
+    {"/api/auth/config", "/api/auth/me", "/api/readiness", "/api/health"}
+)
 
 app = Flask(__name__, static_folder=str(STATIC_DIR))
 
@@ -48,7 +52,9 @@ def enforce_graph_auth():
             return redirect(f"{chat_origin}/login?next={quote(target, safe='')}", code=302)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": error}), 401
-    return jsonify({"error": "forbidden", "detail": "Librarian or administrator role required"}), 403
+    return jsonify(
+        {"error": "forbidden", "detail": "Librarian or administrator role required"}
+    ), 403
 
 
 @app.after_request
@@ -80,12 +86,14 @@ def auth_me():
     principal, error = supabase_auth.authenticate_request(request)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": error}), 401
-    return jsonify({
-        "authenticated": True,
-        "user_id": principal.user_id,
-        "username": principal.username,
-        "role": principal.role,
-    })
+    return jsonify(
+        {
+            "authenticated": True,
+            "user_id": principal.user_id,
+            "username": principal.username,
+            "role": principal.role,
+        }
+    )
 
 
 @app.route("/api/readiness", methods=["GET"])
@@ -100,15 +108,25 @@ def api_graph():
     visualization = data.get("visualization", {})
     nodes = visualization.get("nodes", data.get("nodes", []))
     raw_edges = data.get("edges", [])
-    edges = [{
-        "id": edge.get("id", f"e{index}"),
-        "source": edge.get("from_id") or edge.get("source"),
-        "target": edge.get("to_id") or edge.get("target"),
-        "relation": edge.get("relation"),
-        "edge_type": edge.get("edge_type"),
-        "source_ref": edge.get("source", ""),
-    } for index, edge in enumerate(raw_edges)]
-    return jsonify({"nodes": nodes, "edges": edges, "stats": data.get("stats", {}), "clusters": visualization.get("clusters", {})})
+    edges = [
+        {
+            "id": edge.get("id", f"e{index}"),
+            "source": edge.get("from_id") or edge.get("source"),
+            "target": edge.get("to_id") or edge.get("target"),
+            "relation": edge.get("relation"),
+            "edge_type": edge.get("edge_type"),
+            "source_ref": edge.get("source", ""),
+        }
+        for index, edge in enumerate(raw_edges)
+    ]
+    return jsonify(
+        {
+            "nodes": nodes,
+            "edges": edges,
+            "stats": data.get("stats", {}),
+            "clusters": visualization.get("clusters", {}),
+        }
+    )
 
 
 @app.route("/api/schema")
@@ -125,7 +143,16 @@ def api_node(node_id: str):
     node = next((item for item in nodes if item.get("id") == node_id), None)
     if node is None:
         return jsonify({"error": "node not found"}), 404
-    return jsonify({"node": node, "edges": [edge for edge in edges if edge.get("source") == node_id or edge.get("target") == node_id]})
+    return jsonify(
+        {
+            "node": node,
+            "edges": [
+                edge
+                for edge in edges
+                if edge.get("source") == node_id or edge.get("target") == node_id
+            ],
+        }
+    )
 
 
 @app.route("/api/<path:api_path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -192,12 +219,14 @@ def api_stats():
     visualization = data.get("visualization", {})
     nodes = visualization.get("nodes", data.get("nodes", []))
     edges = data.get("edges", [])
-    return jsonify({
-        "node_count": len(nodes),
-        "edge_count": len(edges),
-        "schema_version": data.get("schema", {}).get("version", "1.6"),
-        "updated_at": data.get("updated_at"),
-    })
+    return jsonify(
+        {
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+            "schema_version": data.get("schema", {}).get("version", "1.6"),
+            "updated_at": data.get("updated_at"),
+        }
+    )
 
 
 @app.route("/")

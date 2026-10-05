@@ -16,6 +16,22 @@
   requests still use the source route, with the requested page retained.
 - Removed a false physical-copy claim from Pearson e-book catalogue cards.
   Read requests no longer trip the write burst limiter by themselves.
+- An authenticated Pearson reader session opened the correct book, but a fresh
+  URL ending in `/page/35` displayed page 22. Moving to page 35 in the reader
+  did not update the URL. Chat citations now route direct Pearson URLs through
+  the book-specific handoff and keep the page as an instruction; they no longer
+  manufacture a deep link the reader ignores.
+- Shared answer caching now works for ordinary authenticated academic queries.
+  First-person, sensitive and learner-state queries still bypass it. Cache
+  keys fingerprint the loaded graph and book catalogue, malformed/expired
+  Supabase rows are misses, and persistence requires a server-side key.
+- Corrected the library-computer Compose graph export mount: the worker writes
+  through a checked link to the shared directory volume, and the graph and
+  sync services read the same file. The graph port now binds to loopback with
+  staff auth and a restricted origin in the Compose configuration.
+- Removed literal shared-account values from tracked test and evaluation
+  files. The existing repository history may still contain them, so provider
+  rotation remains necessary.
 
 ## Verification
 
@@ -32,6 +48,11 @@
   chat returned a graph synthesis reply with a Hugging Face citation. The tested
   Hugging Face PDF returned valid bytes and had four pages. The diagnostic API
   reported a ten-question cap, but its full assessment path was not E2E tested.
+- With private graph, catalog, PDF and model fixtures copied into the isolated
+  checkout for testing, the complete unit suite passed: **1,520 passed, 7
+  skipped**. The copied fixtures were removed afterward. The structural chat
+  UI smoke test passed. The Docker Compose plugin is absent on this host, so
+  the YAML and shared-export behavior were tested without a container boot.
 
 ## Deferred / next pair
 
@@ -47,11 +68,16 @@
   provider. Removing it from HTML does not revoke it. No provider-side rotation
   was performed in this change.
 - Pearson currently serves a book-specific handoff with manual page
-  instructions. An authenticated, exact-page Pearson jump has not been
-  verified; the requested page must not be claimed as opened automatically.
+  instructions. The tested `/page/N` format failed to jump in a fresh
+  authenticated reader tab. Do not claim an exact-page opening unless Pearson
+  supplies and demonstrates another supported link format.
 - Hosted ingestion is intentionally denied and reports disabled. The local
   workstation ingestion, OCR/model gate, Supabase synchronization and rollback
   still need a real end-to-end operator run with authorized sources.
+- The committed ingestion-model evaluation reports alias F1 of 0.4219 on 32
+  probes, 0% exact empty-input matches, and one contamination failure; its own
+  gate marks it unready for a full replacement. Do not auto-promote or publish
+  new weights without a held-out eval and rights-reviewed data.
 - Validate Supabase authentication as a real student and librarian, XKIRO and
   NVIDIA provider failover, the full diagnostic flow, all source pages and the
   landing assets on the new deployed release before closing this work.

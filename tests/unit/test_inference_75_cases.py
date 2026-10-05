@@ -56,7 +56,7 @@ def mock_cred_env(monkeypatch, clear_cred_cache, tmp_path):
             "label": "Lexis Advance India / Manupatra",
         },
         "efy": {
-            "user": "library.uemk@uem.edu.in",
+            "user": "[institutional-account]",
             "url": "https://ezine.efymag.com/loginefy.asp",
             "label": "Electronics For You (ezine)",
         },
@@ -398,7 +398,7 @@ def test_tc30_efy_ezine_from_secure_store(mock_cred_env):
     )
     assert reply is not None
     assert "ezine.efymag.com" in reply
-    assert "library.uemk@uem.edu.in" not in reply
+    assert "[institutional-account]" not in reply
     assert "E190219" not in reply
 
 
