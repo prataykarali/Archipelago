@@ -1,18 +1,60 @@
 """Match a question to any Pearson title or Hugging Face PDF and its exact page."""
+
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
+import re
 from urllib.parse import quote
 
 HERE = Path(__file__).resolve().parent
 STOP = {
-    "what", "whats", "how", "does", "the", "and", "for", "with", "book", "books",
-    "paper", "papers", "textbook", "explain", "about", "from", "this", "that",
-    "page", "pages", "chapter", "tell", "where", "find", "open", "read", "show",
-    "using", "into", "your", "library", "please", "would", "like",
+    "what",
+    "whats",
+    "how",
+    "does",
+    "the",
+    "and",
+    "for",
+    "with",
+    "book",
+    "books",
+    "paper",
+    "papers",
+    "textbook",
+    "explain",
+    "about",
+    "from",
+    "this",
+    "that",
+    "page",
+    "pages",
+    "chapter",
+    "tell",
+    "where",
+    "find",
+    "open",
+    "read",
+    "show",
+    "using",
+    "into",
+    "your",
+    "library",
+    "please",
+    "would",
+    "like",
 }
+REQUESTED_PAGE_RE = re.compile(r"\b(?:page|p\.)\s*(\d+)\b", re.I)
+MAX_REQUESTED_PAGE = 10000
+
+
+def requested_page(query: str) -> int | None:
+    """Return an explicitly requested page, bounded against abusive input."""
+    match = REQUESTED_PAGE_RE.search(query)
+    if not match:
+        return None
+    page = int(match.group(1))
+    return page if 1 <= page <= MAX_REQUESTED_PAGE else None
 
 
 def _tokens(text: str) -> set[str]:
@@ -48,9 +90,11 @@ def resolve_hf_path(value: str) -> str:
     return candidates[0] if len(candidates) == 1 else ""
 
 
-
 def hf_title(path: str) -> str:
-    parts = [part.rsplit(".", 1)[0] if part.lower().endswith(".pdf") else part for part in path.split("/")]
+    parts = [
+        part.rsplit(".", 1)[0] if part.lower().endswith(".pdf") else part
+        for part in path.split("/")
+    ]
     return " ".join(parts).replace("_", " ").replace("-", " ")
 
 
@@ -67,7 +111,10 @@ def pearson_open(book_id: str, page: int) -> str:
 class Catalog:
     def __init__(self, nodes: dict, books: list[dict]):
         self.books = books
-        self.hf = [{"path": path, "title": hf_title(path), "tokens": _tokens(hf_title(path))} for path in load_hf_paths()]
+        self.hf = [
+            {"path": path, "title": hf_title(path), "tokens": _tokens(hf_title(path))}
+            for path in load_hf_paths()
+        ]
         self.passages: list[dict] = []
         for cid, node in nodes.items():
             for source in node.get("sources") or []:
@@ -75,13 +122,15 @@ class Catalog:
                 text = source.get("text_passage") or ""
                 if not doc or not text:
                     continue
-                self.passages.append({
-                    "concept_id": cid,
-                    "doc_id": doc,
-                    "page": int(source.get("page_number") or 1),
-                    "text": text,
-                    "tokens": _tokens(text),
-                })
+                self.passages.append(
+                    {
+                        "concept_id": cid,
+                        "doc_id": doc,
+                        "page": int(source.get("page_number") or 1),
+                        "text": text,
+                        "tokens": _tokens(text),
+                    }
+                )
 
     def match_hf(self, query: str) -> tuple[dict | None, int]:
         wanted = _tokens(query)
@@ -107,7 +156,11 @@ class Catalog:
         hint = doc_hint.lower()
         best, score = None, 0
         for passage in self.passages:
-            if hint and hint not in passage["doc_id"].lower() and passage["doc_id"].split("/")[-1].lower() not in hint:
+            if (
+                hint
+                and hint not in passage["doc_id"].lower()
+                and passage["doc_id"].split("/")[-1].lower() not in hint
+            ):
                 continue
             overlap = len(wanted & passage["tokens"])
             if overlap > score:
@@ -124,8 +177,15 @@ class Catalog:
         hf, hf_score = self.match_hf(query)
         book, book_score = self.match_pearson(query)
         # One shared word is too weak ("networks"). Two distinctive words, or one long title word.
-        hf_ok = hf is not None and (hf_score >= 2 or any(len(tok) >= 8 and tok in hf["tokens"] for tok in _tokens(query)))
-        book_ok = book is not None and (book_score >= 2 or any(len(tok) >= 8 and tok in _tokens(book.get("title") or "") for tok in _tokens(query)))
+        hf_ok = hf is not None and (
+            hf_score >= 2 or any(len(tok) >= 8 and tok in hf["tokens"] for tok in _tokens(query))
+        )
+        book_ok = book is not None and (
+            book_score >= 2
+            or any(
+                len(tok) >= 8 and tok in _tokens(book.get("title") or "") for tok in _tokens(query)
+            )
+        )
         if hf_ok and (not book_ok or hf_score >= book_score):
             return self._hf_reply(query, hf)
         if book_ok:
@@ -134,7 +194,9 @@ class Catalog:
 
     def _hf_reply(self, query: str, item: dict) -> dict:
         passage = self.best_passage(query, item["path"]) or self.best_passage(query, item["title"])
-        page = int(passage["page"]) if passage else 1
+        page = requested_page(query) or (int(passage["page"]) if passage else 1)
+        if passage and page != int(passage["page"]):
+            passage = None
         url = paper_url(item["path"], page)
         excerpt = " ".join((passage["text"] if passage else "").split())[:420]
         if excerpt:
@@ -144,10 +206,12 @@ class Catalog:
                 f"**{item['title']}.** This file is in the Hugging Face library dataset. "
                 "No scanned passage is indexed beyond the file itself, so the reply does not invent a chapter."
             )
-        text = "\n\n".join([
-            body,
-            f"**Paper page.** [{item['title']} p.{page}]({url})",
-        ])
+        text = "\n\n".join(
+            [
+                body,
+                f"**Paper page.** [{item['title']} p.{page}]({url})",
+            ]
+        )
         return {
             "text": text,
             "citation": {
@@ -165,7 +229,9 @@ class Catalog:
         author = book.get("author") or "Institutional collection"
         page_count = int(book.get("page_count") or 1)
         passage = self.best_passage(query, title)
-        page = int(passage["page"]) if passage else 1
+        page = requested_page(query) or (int(passage["page"]) if passage else 1)
+        if passage and page != int(passage["page"]):
+            passage = None
         if page > page_count:
             page = 1
             passage = None
@@ -178,10 +244,12 @@ class Catalog:
                 f"**{title}.** {author}. Pearson e-book, {page_count} pages. "
                 "This reply uses the catalog record. It does not invent a chapter that is not indexed."
             )
-        text = "\n\n".join([
-            body,
-            f"**Pearson book.** [Open {title}]({url}), then go to page {page} in the reader. Automatic page navigation is not verified.",
-        ])
+        text = "\n\n".join(
+            [
+                body,
+                f"**Pearson book.** [Open {title}]({url}), then go to page {page} in the reader. Automatic page navigation is not verified.",
+            ]
+        )
         return {
             "text": text,
             "citation": {

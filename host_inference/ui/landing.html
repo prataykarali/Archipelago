@@ -11,7 +11,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script type="module" src="/auth_bridge.js"></script>
-
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -165,6 +164,10 @@
           Indian Journals ↗
         </a>
       </div>
+      <div class="mt-5 flex items-center justify-center gap-3" aria-label="Institutional partners">
+        <img src="/assets/iem-logo.png" alt="Institute of Engineering and Management" class="h-12 w-auto rounded bg-white p-1" loading="lazy">
+        <img src="/assets/uem-logo.png" alt="University of Engineering and Management" class="h-12 w-auto rounded bg-white p-1" loading="lazy">
+      </div>
     </section>
   </main>
 
@@ -183,25 +186,6 @@
         <button type="button" onclick="closeAuthModal()" class="text-white/60 hover:text-white bg-transparent border-0 cursor-pointer text-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
-      </div>
-
-      <!-- Quick 1-Click Access with prefilled verified credentials -->
-      <div class="mb-4 pb-4 border-b border-white/10">
-        <p class="text-xs text-white/50 mb-2 font-mono uppercase tracking-wider">Quick 1-Click Access</p>
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="doLandingQuickLogin('student', '12024002028038', 'Archipelago@2026')" class="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/35 border border-purple-500/40 text-purple-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all">
-            <span>🎓 Student</span>
-          </button>
-          <button type="button" onclick="doLandingQuickLogin('faculty', 'faculty.cs', 'Archipelago@2026')" class="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/40 text-amber-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all">
-            <span>🏛️ Faculty</span>
-          </button>
-          <button type="button" onclick="doLandingQuickLogin('librarian', 'librarian', 'Archipelago@2026')" class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-500/40 text-emerald-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all">
-            <span>📚 Librarian</span>
-          </button>
-          <button type="button" onclick="doLandingQuickLogin('administrator', 'administrator', 'Archipelago@2026')" class="px-3 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/35 border border-pink-500/40 text-pink-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all">
-            <span>⚡ Admin</span>
-          </button>
-        </div>
       </div>
 
       <form id="landing-auth-form" onsubmit="handleLandingAuthSubmit(event)" class="space-y-3">
@@ -311,21 +295,6 @@
     function closeAuthModal() {
       const modal = document.getElementById('auth-modal');
       if (modal) modal.classList.add('hidden');
-    }
-
-    function doLandingQuickLogin(role, username, password = "Archipelago@2026") {
-      const roleEl = document.getElementById("modal-role");
-      const userEl = document.getElementById("modal-username");
-      const pwdEl = document.getElementById("modal-password");
-      const msg = document.getElementById("modal-auth-msg");
-      if (roleEl) roleEl.value = role;
-      if (userEl) userEl.value = username;
-      if (pwdEl) pwdEl.value = password;
-      if (msg) msg.textContent = "Authenticating 1-click access...";
-
-      // Trigger automatic submission
-      const form = document.getElementById("landing-auth-form");
-      if (form) form.requestSubmit();
     }
 
     async function handleLandingAuthSubmit(e) {

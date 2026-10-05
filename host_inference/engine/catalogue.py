@@ -12,6 +12,7 @@ Falls back to an empty catalogue rather than raising: an unavailable catalogue
 degrades the shelf card to an honest "not indexed", it does not take the chat
 down.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -69,10 +70,9 @@ def _normalise(book: dict[str, Any]) -> dict[str, Any]:
         "publisher": "Pearson eLibrary",
         "isbn": str(book.get("isbn") or "").strip(),
         "domain": str(book.get("domain") or "").strip(),
-        # E-resources are licensed, not shelved: report one available copy so
-        # the card never claims a physical holding that does not exist.
-        "total_copies": 1,
-        "available_copies": 1,
+        # This e-resource export does not establish physical holdings.
+        "total_copies": 0,
+        "available_copies": 0,
         "barcodes": [],
         "page_count": int(book.get("page_count") or 0),
         "subscription_id": str(book.get("subscription_id") or "").strip(),
