@@ -73,3 +73,13 @@ def test_vercel_entrypoint_rejects_fixture_and_stamps_release(
     graph.corpus_source = "fixture"
     with pytest.raises(RuntimeError, match="Release blocked"):
         vercel_wsgi.create_vercel_app(context)
+
+
+def test_vercel_entrypoint_requires_private_corpus_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SECRET_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="private Supabase corpus access"):
+        vercel_wsgi.create_vercel_app()

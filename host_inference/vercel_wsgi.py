@@ -14,6 +14,15 @@ def create_vercel_app(context=None):
     from hostapp.factory import build_context, create_app
     from live_wsgi import validate_release_context
 
+    if context is None and not (
+        os.environ.get("SUPABASE_URL", "").strip()
+        and (
+            os.environ.get("SUPABASE_SECRET_KEY", "").strip()
+            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+        )
+    ):
+        raise RuntimeError("Release blocked: private Supabase corpus access is not configured.")
+
     release_floor = {
         "minimum_concepts": MINIMUM_LIVE_CONCEPTS,
         "minimum_pearson_books": MINIMUM_LIVE_PEARSON_BOOKS,
