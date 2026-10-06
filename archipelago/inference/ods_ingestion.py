@@ -8,27 +8,24 @@ Implements KùzuDB node table creation and row ingestion for:
 ODS-1: schema validation via ods_parser (ideal + real KOHA exports).
 ODS-2: empty-cell fallbacks + keyword dedup; incomplete rows are dropped + logged.
 """
+
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import hashlib
 from typing import Any
 
 import kuzu
 
 from archipelago.inference.ods_parser import (
-    ODS_SCHEMA_SUBJECT,
-    ODS_SCHEMA_JOURNAL,
-    ODS_SCHEMA_KEYWORD,
-    build_column_map,
+    ODSParseError,
     build_column_map_for_rows,
     clean_ods_row,
     deduplicate_keywords,
     read_ods_sheet,
-    resolve_schema,
     sniff_schema,
-    ODSParseError,
 )
-
+from archipelago.inference.periodical_receipts import issue_receipt
 
 ODS_SCHEMA_DDL: dict[str, str] = {
     "SubjectReport": """
@@ -46,6 +43,17 @@ ODS_SCHEMA_DDL: dict[str, str] = {
             issn STRING,
             issue_count INT64,
             publisher STRING
+        )
+    """,
+    "JournalReceipt": """
+        CREATE NODE TABLE IF NOT EXISTS JournalReceipt (
+            id STRING PRIMARY KEY,
+            journal_title STRING,
+            issue_label STRING,
+            published_date STRING,
+            status STRING,
+            source_status STRING,
+            imported_at STRING
         )
     """,
     "KeywordReport": """
@@ -71,9 +79,7 @@ def ensure_ods_schema(conn: kuzu.Connection) -> None:
 
 def _ods_id(prefix: str, *parts: str) -> str:
     raw = "_".join(str(p) for p in parts if p)
-    hash_digest = hashlib.md5(
-        raw.encode("utf-8"), usedforsecurity=False
-    ).hexdigest()[:12]
+    hash_digest = hashlib.md5(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
     stem = raw[:48].lower().replace(" ", "_").replace("/", "_")
     return f"ods_{prefix}_{stem}_{hash_digest}"
 
@@ -106,11 +112,7 @@ def ingest_ods_subject_report(conn: kuzu.Connection, rows: list[list[str]]) -> d
             continue
         try:
             cleaned = clean_ods_row(row, col_map)
-            dept = (
-                cleaned.get("subject / department")
-                or cleaned.get("subject")
-                or ""
-            ).strip()
+            dept = (cleaned.get("subject / department") or cleaned.get("subject") or "").strip()
             title_count = _parse_int(
                 cleaned.get("title count") or cleaned.get("total titles") or "0"
             )
@@ -166,7 +168,10 @@ def ingest_ods_journal_report(conn: kuzu.Connection, rows: list[list[str]]) -> d
 
     # Aggregate real issue-level rows by journal title.
     aggregates: dict[str, dict[str, Any]] = {}
+    receipts: dict[str, dict[str, str]] = {}
+    is_issue_sheet = "issue number/volume" in schema.get("expected_headers", ())
     dropped = 0
+    receipt_dropped = 0
     errors: list[str] = []
 
     for i, row in enumerate(rows[1:], 2):
@@ -194,6 +199,33 @@ def ingest_ods_journal_report(conn: kuzu.Connection, rows: list[list[str]]) -> d
             issue_raw = cleaned.get("issue count") or cleaned.get("issue number/volume") or "1"
             issue_count = _parse_int(issue_raw)
 
+            receipt_id = None
+            if is_issue_sheet:
+                issue_column = col_map.get("issue count")
+                raw_issue = (
+                    row[issue_column].strip()
+                    if issue_column is not None and issue_column < len(row)
+                    else ""
+                )
+                if not raw_issue:
+                    receipt_dropped += 1
+                    dropped += 1
+                    errors.append(f"Row {i}: issue identity missing — dropped")
+                    continue
+                receipt = issue_receipt(cleaned)
+                if receipt is None:
+                    receipt_dropped += 1
+                    dropped += 1
+                    errors.append(f"Row {i}: issue identity missing — dropped")
+                    continue
+                else:
+                    receipt_id = _ods_id(
+                        "receipt",
+                        receipt["journal_title"].casefold(),
+                        receipt["issue_label"].casefold(),
+                    )
+                    receipts[receipt_id] = receipt
+
             key = journal_title.lower()
             if key not in aggregates:
                 aggregates[key] = {
@@ -201,8 +233,14 @@ def ingest_ods_journal_report(conn: kuzu.Connection, rows: list[list[str]]) -> d
                     "issn": issn,
                     "publisher": publisher,
                     "issue_count": 0,
+                    "issue_ids": set(),
                 }
-            aggregates[key]["issue_count"] += max(issue_count, 1)
+            if not is_issue_sheet or (
+                receipt_id is not None and receipt_id not in aggregates[key]["issue_ids"]
+            ):
+                aggregates[key]["issue_count"] += max(issue_count, 1)
+            if receipt_id is not None:
+                aggregates[key]["issue_ids"].add(receipt_id)
             # Prefer a real ISSN over the placeholder if later rows provide one.
             if issn != "0000-0000":
                 aggregates[key]["issn"] = issn
@@ -211,6 +249,35 @@ def ingest_ods_journal_report(conn: kuzu.Connection, rows: list[list[str]]) -> d
         except Exception as e:
             errors.append(f"Row {i}: {e}")
             dropped += 1
+
+    receipt_upserted = 0
+    imported_at = datetime.now(UTC).isoformat()
+    for receipt_id, receipt in receipts.items():
+        try:
+            conn.execute(
+                """
+                MERGE (r:JournalReceipt {id: $id})
+                ON CREATE SET
+                    r.journal_title = $journal_title,
+                    r.issue_label = $issue_label,
+                    r.published_date = $published_date,
+                    r.status = $status,
+                    r.source_status = $source_status,
+                    r.imported_at = $imported_at
+                ON MATCH SET
+                    r.journal_title = $journal_title,
+                    r.issue_label = $issue_label,
+                    r.published_date = $published_date,
+                    r.status = $status,
+                    r.source_status = $source_status,
+                    r.imported_at = $imported_at
+                """,
+                parameters={"id": receipt_id, **receipt, "imported_at": imported_at},
+            )
+            receipt_upserted += 1
+        except Exception as exc:
+            errors.append(f"Receipt {receipt_id}: {exc}")
+            receipt_dropped += 1
 
     inserted = 0
     for agg in aggregates.values():
@@ -245,6 +312,8 @@ def ingest_ods_journal_report(conn: kuzu.Connection, rows: list[list[str]]) -> d
 
     return {
         "inserted": inserted,
+        "receipts_upserted": receipt_upserted,
+        "receipts_dropped": receipt_dropped,
         "dropped": dropped,
         "errors": errors,
         "schema": schema.get("name"),
@@ -365,6 +434,7 @@ def sync_ods_reports_to_graph(
 def default_docs_ods_paths(docs_dir: str | None = None) -> dict[str, str]:
     """Map report types → institutional ODS files under docs/ (excl. guides/reports)."""
     from pathlib import Path
+
     from archipelago.inference import state as st
 
     root = Path(docs_dir) if docs_dir else (st.BASE_DIR / "docs")

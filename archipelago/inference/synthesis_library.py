@@ -134,11 +134,11 @@ def render_journal_status(subject: str | dict[str, Any], journals: list[dict[str
     heading = "Late issues" if only_late else f"Journal & Periodical Status: {subject}"
     lines = [f"### 📰 {heading}\n"]
     if not journals:
-        message = f"Subscriptions for {subject} are up to date; no late issues were reported." if only_late else f"No active periodical subscriptions found for {subject}."
+        message = f"No late issues were reported for {subject}; verify the latest receipt feed with the library." if only_late else f"No active periodical subscriptions found for {subject}."
         lines.append(message)
         return "\n".join(lines)
     for journal in journals:
         title = journal.get("resource_title") or journal.get("journal_title") or journal.get("title") or "Unknown Journal"
-        status = journal.get("status") or "Up to date"
+        status = journal.get("status") or "Status unknown"
         lines.append(f"- **{title}**: **{status}**")
     return "\n".join(lines)

@@ -238,4 +238,5 @@ class TestRenderers:
             "only_late": True,
             "issues": [],
         })
-        assert "up to date" in out
+        assert "No late issues were reported" in out
+        assert "verify the latest receipt feed" in out

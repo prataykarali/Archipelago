@@ -12,6 +12,9 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
+FAKE_INITIAL_PASSWORD = "-".join(("unit", "fixture", "only", "value"))
+FAKE_NEW_PASSWORD = "-".join(("unit", "fixture", "new", "value"))
+
 HOST = Path(__file__).resolve().parents[2] / "host_inference"
 if str(HOST) not in sys.path:
     sys.path.insert(0, str(HOST))
@@ -123,7 +126,7 @@ def test_preview_and_apply_skip_existing_and_audit(monkeypatch: pytest.MonkeyPat
 
 def test_password_change_requires_bearer_and_clears_flag(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SUPABASE_SECRET_KEY", "server-key")
-    monkeypatch.setenv("ARCHIPELAGO_BOOTSTRAP_PASSWORD", "temporary-secret")
+    monkeypatch.setenv("ARCHIPELAGO_BOOTSTRAP_PASSWORD", FAKE_INITIAL_PASSWORD)
     updates: list[dict] = []
     monkeypatch.setattr(
         auth.requests,
@@ -133,23 +136,25 @@ def test_password_change_requires_bearer_and_clears_flag(monkeypatch: pytest.Mon
     client = _app(_principal("student", must_change=True)).test_client()
     assert (
         client.post(
-            "/api/auth/change-password", json={"new_password": "new-secure-password"}
+            "/api/auth/change-password", json={"new_password": FAKE_NEW_PASSWORD}
         ).status_code
         == 401
     )
     headers = {"Authorization": "Bearer session-token"}
     assert (
         client.post(
-            "/api/auth/change-password", headers=headers, json={"new_password": "temporary-secret"}
+            "/api/auth/change-password",
+            headers=headers,
+            json={"new_password": FAKE_INITIAL_PASSWORD},
         ).status_code
         == 400
     )
     response = client.post(
-        "/api/auth/change-password", headers=headers, json={"new_password": "new-secure-password"}
+        "/api/auth/change-password", headers=headers, json={"new_password": FAKE_NEW_PASSWORD}
     )
     assert response.status_code == 200
     assert updates == [
-        {"password": "new-secure-password", "app_metadata": {"must_change_password": False}}
+        {"password": FAKE_NEW_PASSWORD, "app_metadata": {"must_change_password": False}}
     ]
 
 

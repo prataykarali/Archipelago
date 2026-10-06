@@ -40,10 +40,12 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 - [x] Record the locally reproducible hashes, node-type counts, migration files/live versions, key asset checksums, and deployed release header in the linked baseline report. Model revision and corpus provenance remain open in the full freeze item above.
 - [ ] Map every endpoint to exactly one of the six response contracts and one owning runtime. Record where `host_inference/`, `archipelago/`, and `chat_server/` intentionally differ.
 - [ ] Identify all secrets and exposed credentials in tracked files, Git history, browser bundles, screenshots, logs, CI, and deployment config; rotate compromised institutional/provider credentials through their owners.
+- [x] Investigated the GitGuardian PR alert on a roster test's credential-shaped fixture. The fixture is synthetic test data and has been replaced in the branch head with assembled, explicitly fake values; the historical alert and broader secret inventory remain open in the parent item.
 - [ ] Confirm source rights, Pearson subscription terms, robots policy, HF dataset licenses, and private/public artifact boundaries before any automated extraction or publication.
 - [ ] Make the draft PR the reviewable release unit; require CI and a reviewer from another role. Do not silently promote a red build.
 - [ ] Maintain an explicit risk/decision log for features whose source service does not support the demanded behavior, especially Pearson page links and Vercel Python runtime fit.
 - [ ] Confirm Cloudflare zone/domain control and current DNS/WAF configuration; inventory the AntDeploy rollback origin before changing DNS.
+- [x] The public Cloudflare hostname is not chosen yet (user confirmation on 2026-10-06). Keep DNS and production cutover gated until an institution-controlled hostname is selected and verified.
 
 ## P1 — authentication, Supabase, and security
 
@@ -143,6 +145,46 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 - [ ] Publish local operator URLs for :5150 graph, :5151 inference, :5152 chat, and the Docker appliance only after authenticated readiness and end-to-end ingestion succeed.
 - [ ] Write rollback runbooks, alerts, error budgets, backup/restore tests, on-call handoff, and a final verification matrix with direct evidence for every claimed feature.
 
+## P9 — campus library operations and identity federation
+
+These workflows extend the architecture image from general retrieval to the operational library system. Each needs an authoritative campus source, a named owner, role tests, freshness rules, and a real end-to-end demonstration. Current status below is based on repository inspection; no live campus integration is implied.
+
+### Periodical receipts and open-access alternatives
+
+- [x] The local ODS ingestor now preserves identified issue rows in a `JournalReceipt` table with normalized source status, raw status, publication date, import time, and stable identity. A synthetic Kùzu integration test proves duplicate rows collapse and `Late → Received` updates; real campus ODS and student UI remain open.
+- [ ] Preserve each serial issue from Koha/ODS with journal identity, volume/issue label, expected or published date, source status (`Expected`, `Late`/`Overdue`, `Received`, or `Unknown`), import time, and provenance. Reimports must update the same issue without duplicates; missing status must never be presented as received.
+- [ ] Distinguish a journal subscription from a particular physical issue. Show current status, last source refresh, and a stale-data warning in librarian and student views. Test late-to-received transitions and a real ODS export.
+- [ ] When an issue is late or overdue, offer a verified, rights-compliant open-access article/preprint match (for example, an exact arXiv record) alongside the physical issue status. Require DOI/title/author identity and license checks; do not redirect to a merely related paper or claim the substitute is the same edition.
+- [ ] Keep automatic outbound navigation opt-in and log the source decision without saving private student queries. Test no match, withdrawn preprint, wrong paper, and provider outage.
+- Current state: local ingestion now stores issue rows and statuses as well as aggregate counts, but no real ODS file was available in this checkout for validation. The journal-status formatter accepts status data; unknown journal lookups and blank statuses no longer claim verified holdings or receipt. No late-issue-to-open-access route exists.
+
+### Physical membership tokens
+
+- [x] Student replies no longer turn missing configuration into a claim of zero cards; configured totals are clearly labeled as totals, with live checkout availability referred to the desk. Hardcoded card counts were removed from the credential registry. This does not provide a live ledger.
+- [ ] Replace static British Council/American Library card counts with a librarian-owned token ledger: total, available, checked out, due, lost/unavailable, and last reconciliation. Enforce a single active holder per physical card and prevent negative availability or double checkout.
+- [ ] Give students current availability and desk pickup guidance without exposing borrower identity. Provide staff checkout/return, audit trail, overdue view, and correction workflow; test concurrency and offline desk reconciliation.
+- Current state: optional `ARCHIPELAGO_MEMBERSHIP_*` values provide only configured totals. No per-card transaction or holder ledger exists.
+
+### Class routines and pre-lecture briefs
+
+- [ ] Ingest approved timetable tables or a reviewed OCR result from `lib-time.jpg` with term, class, room, teacher, session time, and source revision. Require human review for ambiguous image text and timetable changes.
+- [ ] Map each upcoming class to teacher lesson-plan topics, OKF concepts, and verified shelf/resource IDs. Distinguish library opening hours from class routine data; do not infer room or lesson from a static hours poster.
+- [ ] Generate weekly and pre-lecture reading briefs for enrolled students with citations, physical availability, and accessible alternatives. Use enrollment and consent controls; support cancellation/reschedule, avoid duplicate briefs, and prove timezone/holiday behavior before enabling notifications.
+- Current state: `library_schedules.py` covers static library operating hours only. No class routine, lesson-plan ingestion, enrollment join, or scheduled brief delivery was found.
+
+### Demand-driven procurement
+
+- [ ] Join privacy-safe concept query counts over a defined time window to current `Resource.available_copies`, holdings freshness, and catalog identity. Produce a librarian-only purchase order **draft** when demand exceeds a reviewed threshold and available copies are zero; never place an order automatically.
+- [ ] Deduplicate concepts/titles, account for digital access and already-open purchase requests, show evidence and estimated demand, and record librarian approve/defer/reject decisions. Test zero versus unknown copy count, a spike followed by replenishment, and student data suppression.
+- Current state: `/api/librarian/demand-digest` and `/api/librarian/acquisition-plan` record repeated requests for *unheld titles*. They do not join concept spikes with zero-copy physical resources, and the digest currently uses local file state that is unsuitable for Vercel durability.
+
+### Institutional SSO and RLS
+
+- [ ] Select the college identity provider and protocol with campus IT: Supabase Auth SAML enterprise SSO for a supported Google Workspace/Microsoft Entra IdP, or an approved OAuth/OIDC provider flow. Record plan/feature availability, domain verification, redirect URLs, account linking, and deprovisioning behavior before enabling it. [Supabase SSO guidance](https://supabase.com/docs/guides/auth/enterprise-sso/auth-sso-saml) and [OAuth provider guidance](https://supabase.com/docs/guides/auth/social-login) describe distinct paths.
+- [ ] Map immutable campus identity and enrollment/employee status to server-controlled student, faculty, librarian, and administrator roles. Keep authorization in Supabase RLS and verified server claims; reject self-assigned roles, stale group membership, cross-student reads, and offboarded accounts.
+- [ ] Replace `ARCHIPELAGO_LIBRARIAN_TOKEN` for interactive staff actions after SSO staging passes. Keep any service-to-service credential scoped, rotated, and separate from human login. Test SSO login/logout, MFA policy, session refresh, role change, deprovisioning, and break-glass recovery.
+- Current state: verified Supabase session guards exist, but local ingestion still accepts a configured legacy shared librarian token and no college IdP/SAML/OAuth federation setup or live RLS role mapping is proven.
+
 ## Latest local validation (2026-10-06)
 
 - `pytest tests/unit/test_source_links.py tests/unit/test_library_recovery.py tests/unit/test_student_roster_hosted.py -q`: **50 passed** after copying the ignored Pearson catalog and graph artifacts into this isolated worktree.
@@ -151,8 +193,12 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 - `pytest -q tests/unit/test_local_ingest_privacy.py tests/unit/test_supabase_service_key_headers.py tests/unit/test_auth_boundary.py tests/unit/test_student_roster_hosted.py`: **21 passed**, including local-only upload forwarding, cloud fallback denial, Supabase key headers, auth boundaries, and roster behavior.
 - `pytest -q tests/integration/test_ingestion_worker.py tests/integration/test_ingestion_safety.py`: **8 passed** for staged worker and rollback safety; this does not exercise the Docker HTTP receiver.
 - `pytest -q tests/unit/test_library_api_startup.py tests/unit/test_local_ingest_privacy.py tests/unit/test_auth_boundary.py`: **11 passed** for local API startup order and privacy/auth boundaries. Compose YAML parsed, but Docker Compose/Gunicorn are unavailable on this host, so the container has not been booted.
+- `pytest -q tests/integration/test_periodical_receipts.py tests/unit/test_membership_card_honesty.py tests/unit/test_student_roster_hosted.py tests/unit/test_session7_catalog_queries.py`: **47 passed** for issue receipt persistence, honest card totals, roster, and existing catalog behavior. The new receipt tests use synthetic rows; campus ODS validation remains open.
+- `pytest -q tests/integration/test_periodical_receipts.py tests/unit/test_periodical_receipts.py tests/unit/test_membership_card_honesty.py tests/unit/test_student_roster_hosted.py tests/unit/test_session7_catalog_queries.py tests/unit/test_inference_75_cases.py`: **132 passed** including status normalization and the existing institutional query cases.
+- `pytest -q tests/integration/test_periodical_receipts.py tests/unit/test_periodical_receipts.py tests/unit/test_membership_card_honesty.py tests/unit/test_student_roster_hosted.py tests/unit/test_session7_catalog_queries.py tests/unit/test_inference_75_cases.py tests/unit/test_tc75_honest_pass.py`: **207 passed** including the broader TC75 honesty checks.
+- `pytest -q tests/unit/test_periodical_receipts.py tests/unit/test_session7_catalog_queries.py tests/unit/test_50_new_cases_verification.py tests/unit/test_membership_card_honesty.py`: **96 passed** after removing fabricated unknown-journal holdings and blank-status optimism.
 - Ruff lint and format checks passed for the changed Pearson resolver, citation/demo/shelf files, roster modules, and affected tests. `git diff --check` passed.
-- The broad suite and repository-wide quality gate are **not green**. The current quality gate reports 418 magic-number findings, one unchecked Ollama call, an oversized answer module, 15 dependency-direction violations, legacy lint/format debt, and missing mypy. Independent review and live staging E2E remain pending. Neither AntDeploy nor Vercel has been updated from this branch.
+- The broad suite and repository-wide quality gate are **not green**. The current quality gate reports 417 magic-number findings, one unchecked Ollama call, an oversized answer module, 15 dependency-direction violations, legacy lint/format debt, and missing mypy. Independent review and live staging E2E remain pending. Neither AntDeploy nor Vercel has been updated from this branch.
 
 ## Document coverage map
 

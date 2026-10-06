@@ -1,9 +1,11 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import os
 import re
 from typing import Any
+
 from . import _deps as _rt  # noqa: F401
 
 
@@ -202,24 +204,30 @@ E_RESOURCE_CREDENTIALS: dict[str, dict[str, Any]] = {
         "name": "British Council Library Membership",
         "type": "Physical Library Membership",
         "access": "Physical Access Card",
-        "card_count": 10,
-        "note": "Central Library holds 10 British Council membership access cards. Contact the Library to avail.",
+        "note": "Ask the Central Library desk for current British Council card availability.",
     },
     "american_library": {
         "name": "American Library Membership",
         "type": "Physical Library Membership",
         "access": "Physical Access Card",
-        "card_count": 5,
-        "note": "Central Library holds 5 American Library membership access cards. Contact the Library to avail.",
+        "note": "Ask the Central Library desk for current American Library card availability.",
     },
 }
 
 
 _RESOURCE_ALIASES: dict[str, list[str]] = {
     "opac": [
-        "opac", "library catalogue", "iem library", "uem library",
-        "iem library catalogue", "uem library catalogue", "catalogue",
-        "library catalog", "iem opac", "uem opac", "uemk-opac",
+        "opac",
+        "library catalogue",
+        "iem library",
+        "uem library",
+        "iem library catalogue",
+        "uem library catalogue",
+        "catalogue",
+        "library catalog",
+        "iem opac",
+        "uem opac",
+        "uemk-opac",
     ],
     "ndli": ["ndli", "national digital library", "ndli club", "ndli portal"],
     "ieee": ["ieee", "ieee xplore", "ieeexplore", "ieee explore"],
@@ -238,12 +246,20 @@ _RESOURCE_ALIASES: dict[str, list[str]] = {
     "delnet": ["delnet"],
     "manupatra": ["manupatra"],
     "lexis_advance": [
-        "lexis advance", "lexis", "lexis advance india", "protege ai",
-        "protegeai", "legal database", "lexisnexis",
+        "lexis advance",
+        "lexis",
+        "lexis advance india",
+        "protege ai",
+        "protegeai",
+        "legal database",
+        "lexisnexis",
     ],
     "cambridge_core": [
-        "cambridge core", "cambridge", "cambridge law journal",
-        "cambridge university press", "cambridge english today",
+        "cambridge core",
+        "cambridge",
+        "cambridge law journal",
+        "cambridge university press",
+        "cambridge english today",
     ],
     "aiu": ["aiu", "association of indian universities", "aiu elibrary"],
     "iei": ["iei", "institution of engineers", "ie india"],
@@ -252,7 +268,9 @@ _RESOURCE_ALIASES: dict[str, list[str]] = {
     "india_today": ["india today", "indiatoday"],
     "institutional_repository": ["institutional repository", "uem repository"],
     "british_council": [
-        "british council", "british council library", "bc library",
+        "british council",
+        "british council library",
+        "bc library",
         "physical access card",
     ],
     "american_library": ["american library", "american library membership"],
@@ -273,21 +291,23 @@ def lookup_credential(resource_name: str) -> dict[str, Any] | None:
         for alias in aliases_iter:
             if key == alias or alias in key or key in alias:
                 return dict(E_RESOURCE_CREDENTIALS[resource_key_iter])
-    for resource_key, creds in E_RESOURCE_CREDENTIALS.items():
+    for _resource_key, creds in E_RESOURCE_CREDENTIALS.items():
         name_lower = creds["name"].lower()
         if key in name_lower or name_lower in key:
             return dict(creds)
     return None
 
 
-_SECRET_FIELD_NAMES: frozenset[str] = frozenset({
-    "password",
-    "passkey",
-    "passkey_alt",
-    "username",
-    "credential_id",
-    "registration_number",
-})
+_SECRET_FIELD_NAMES: frozenset[str] = frozenset(
+    {
+        "password",
+        "passkey",
+        "passkey_alt",
+        "username",
+        "credential_id",
+        "registration_number",
+    }
+)
 
 
 def _redacted(_value: Any) -> str:
@@ -299,8 +319,7 @@ def format_credential_for_response(credential: dict[str, Any]) -> str:
 
     The reply NEVER includes plaintext passwords, passkeys, usernames,
     registration numbers, or e-mail identifiers. Only the portal name,
-    access type, public URL, card count (for physical memberships), and
-    librarian-issued note are rendered.
+    access type, public URL, and librarian-issued note are rendered.
     """
     name = credential.get("name", "Unknown Resource")
     access = credential.get("access", "")
@@ -313,8 +332,6 @@ def format_credential_for_response(credential: dict[str, Any]) -> str:
     ]
     if website:
         lines.append(f"   **Website**: {website}")
-    if "card_count" in credential:
-        lines.append(f"   **Available Cards**: {credential['card_count']}")
     if note:
         lines.append(f"   _Note_: {note}")
     lines.append(

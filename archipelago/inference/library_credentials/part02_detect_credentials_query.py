@@ -7,23 +7,20 @@ from . import _deps as _rt  # noqa: F401
 
 def detect_credentials_query(query: str) -> dict | None:
     """Check if a user query is asking about e-resource credentials, physical
-    membership card counts, or library portal access/details.
+    membership card availability, or library portal access/details.
 
     Returns a routing dict ``{"route": "library_credentials", "resource_key",
     "raw_query"}`` or None. Resource matching is by name/alias only — no
     e-mail or passkey matching is done anymore (secrets no longer live in
-    this module). British Council / American Library physical card count queries
-    are in scope because the card counts (`card_count` field) are public,
-    non-secret metadata that students are entitled to know.
+    this module). British Council / American Library card queries are in scope
+    for desk guidance; live checkout data is not tracked here.
     """
     if not query:
         return None
 
     q_lower = query.lower().strip()
 
-    # Physical membership card counts are public metadata — treat them as
-    # library_credentials (they have the `card_count` field that formatters
-    # render as "Available Cards").
+    # Route physical membership card questions to library desk guidance.
     if (
         "british" in q_lower and "council" in q_lower
         or "american" in q_lower and "library" in q_lower
