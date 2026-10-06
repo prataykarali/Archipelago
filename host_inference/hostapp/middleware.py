@@ -2,6 +2,7 @@
 
 One concern: cross-cutting request policy, registered once against the Flask app.
 """
+
 from __future__ import annotations
 
 from flask import Flask, jsonify, request
@@ -49,13 +50,23 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
             return ("", OPTIONS_NO_CONTENT)
         path = request.path
         if path.startswith(INGESTION_PREFIXES):
-            return jsonify({"error": "forbidden", "detail": "Ingestion stays on the local library workstation."}), 403
+            return jsonify(
+                {
+                    "error": "forbidden",
+                    "detail": "Ingestion stays on the local library workstation.",
+                }
+            ), 403
         # Library browsing, reader routes and chat stay public so an exact
         # book/page link is never blocked by a login redirect.
         if _is_protected_api(path):
             principal, error = ctx.auth.principal()
             if principal is None:
                 return jsonify({"error": "unauthorized", "detail": error}), 401
+            if principal.get("must_change_password") and path not in {
+                "/api/auth/change-password",
+                "/api/auth/me",
+            }:
+                return jsonify({"error": "password_change_required"}), 403
             request.archipelago_principal = principal  # type: ignore[attr-defined]
         if path.startswith("/api/chat") and path != "/api/chat/telemetry":
             return _apply_limit(ctx.limiter.check_chat())
@@ -86,31 +97,43 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), payment=()"
+        )
         response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
         response.headers["X-Archipelago-Mode"] = "inference-only"
         return response
 
     @app.errorhandler(400)
     def handle_bad_request(_error):
-        return jsonify({"error": "bad_request", "detail": "The request was invalid or malformed."}), 400
+        return jsonify(
+            {"error": "bad_request", "detail": "The request was invalid or malformed."}
+        ), 400
 
     @app.errorhandler(403)
     def handle_forbidden(_error):
-        return jsonify({"error": "forbidden", "detail": "Access to this resource is prohibited."}), 403
+        return jsonify(
+            {"error": "forbidden", "detail": "Access to this resource is prohibited."}
+        ), 403
 
     @app.errorhandler(404)
     def handle_not_found(_error):
-        return jsonify({"error": "not_found", "detail": "The requested resource could not be found."}), 404
+        return jsonify(
+            {"error": "not_found", "detail": "The requested resource could not be found."}
+        ), 404
 
     @app.errorhandler(429)
     def handle_rate_limit(_error):
-        return jsonify({"error": "rate_limited", "detail": "Too many requests. Please slow down."}), 429
+        return jsonify(
+            {"error": "rate_limited", "detail": "Too many requests. Please slow down."}
+        ), 429
 
     @app.errorhandler(500)
     def handle_internal_error(error):
         app.logger.error("Internal Server Error: %s", error)
-        return jsonify({"error": "internal_error", "detail": "An internal server error occurred."}), 500
+        return jsonify(
+            {"error": "internal_error", "detail": "An internal server error occurred."}
+        ), 500
 
 
 __all__ = ["register_middleware"]

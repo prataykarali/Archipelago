@@ -1,13 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-import re
 from pathlib import Path
+import re
 from typing import Any
 from urllib.parse import quote
-from archipelago.inference.demo_query_books_data import DEMO_BOOK_ROWS
-from . import _deps as _rt  # noqa: F401
 
+from archipelago.inference.demo_query_books_data import DEMO_BOOK_ROWS
+
+from . import _deps as _rt  # noqa: F401
 
 _QUERY_MATCHERS: list[tuple[str, tuple[str, ...]]] = [
     ("lora_vs_bert", ("lora vs bert", "compare lora", "lora versus bert")),
@@ -16,7 +18,10 @@ _QUERY_MATCHERS: list[tuple[str, tuple[str, ...]]] = [
     ("bert", ("prerequisites for bert", "prerequisite for bert")),
     ("attention", ("attention mechanism", "how does the attention")),
     ("dbms_buffer", ("buffer pools", "silberschatz", "dbms buffer")),
-    ("ostep_paging", ("paging vs segmentation", "virtual memory paging", "paging versus segmentation")),
+    (
+        "ostep_paging",
+        ("paging vs segmentation", "virtual memory paging", "paging versus segmentation"),
+    ),
     ("graphrag", ("graphrag", "graph + rag", "graph and rag")),
     ("peft_rank", ("rank top peft", "peft & rag", "peft and rag papers")),
     ("multi_rag_dbms", ("rag + dbms", "multi-topic: rag", "rag + dbms")),
@@ -91,13 +96,15 @@ def _coerce_row(raw: dict[str, str]) -> dict[str, Any]:
 def _load_rows() -> list[dict[str, Any]]:
     # Keep curated source/page metadata; circulation must come from Koha ODS.
     inventory_fields = {
-        "total_copies", "available_copies", "availability", "is_reference",
-        "shelf_location", "call_number", "library_scope",
+        "total_copies",
+        "available_copies",
+        "availability",
+        "is_reference",
+        "shelf_location",
+        "call_number",
+        "library_scope",
     }
-    return [
-        {k: v for k, v in r.items() if k not in inventory_fields}
-        for r in DEMO_BOOK_ROWS
-    ]
+    return [{k: v for k, v in r.items() if k not in inventory_fields} for r in DEMO_BOOK_ROWS]
 
 
 _ROWS: list[dict[str, Any]] = _load_rows()
@@ -141,9 +148,12 @@ def page_view_href(book: dict[str, Any]) -> str:
     # Check for direct Pearson textbook match
     reader_url = str(book.get("reader_url") or book.get("url") or "")
     if "pearson.com" in reader_url:
-        return reader_url
+        from archipelago.resolver.pearson import _book_only_url
+
+        return _book_only_url(reader_url)
     try:
         from archipelago.resolver.pearson import resolve as pearson_resolve
+
         p_url = pearson_resolve(doc or str(book.get("book_id") or ""), page=page)
         if not p_url and book.get("book_title"):
             p_url = pearson_resolve(str(book["book_title"]), page=page)
@@ -170,6 +180,7 @@ def format_availability_table(books: list[dict[str, Any]]) -> str:
             INVENTORY_DISCLAIMER,
             inventory_for_books,
         )
+
         rows = inventory_for_books(books)
     except Exception:
         rows = books
@@ -182,6 +193,7 @@ def format_availability_table(books: list[dict[str, Any]]) -> str:
     try:
         from archipelago.inference.resource_kind import format_resource_kind_label
     except ImportError:  # pragma: no cover
+
         def format_resource_kind_label(_row: dict) -> str:  # type: ignore[misc]
             return "Catalog metadata"
 
@@ -249,6 +261,7 @@ def enrich_reply_with_books(
 
     try:
         from archipelago.inference.corpus_inventory import inventory_for_books
+
         enriched = inventory_for_books(resolved)
     except Exception:
         enriched = resolved
@@ -258,15 +271,8 @@ def enrich_reply_with_books(
     phrase = book_titles_phrase(enriched)
     mention = ""
     if phrase:
-        mention = (
-            f"\n\n**Sources referenced:** **{phrase}**"
-        )
-    return (
-        body
-        + mention
-        + format_inline_page_links(enriched)
-        + format_availability_table(enriched)
-    )
+        mention = f"\n\n**Sources referenced:** **{phrase}**"
+    return body + mention + format_inline_page_links(enriched) + format_availability_table(enriched)
 
 
 def citation_overlays_for_query(query: str) -> list[dict[str, Any]]:
@@ -299,11 +305,20 @@ def citation_overlays_for_query(query: str) -> list[dict[str, Any]]:
         )
         inventory = inventory_for_books([b])[0]
         if inventory.get("koha_record_verified"):
-            out[-1].update({
-                key: inventory[key]
-                for key in ("koha_record_verified", "total_copies", "available_copies", "availability", "accession", "publisher")
-                if key in inventory
-            })
+            out[-1].update(
+                {
+                    key: inventory[key]
+                    for key in (
+                        "koha_record_verified",
+                        "total_copies",
+                        "available_copies",
+                        "availability",
+                        "accession",
+                        "publisher",
+                    )
+                    if key in inventory
+                }
+            )
     return out
 
 
@@ -322,7 +337,7 @@ def merge_demo_citations(
             c["doc_id"] = resolved
         for o in overlays:
             o_doc = str(o.get("doc_id") or "")
-            if o_doc and (o_doc == did or o_doc == resolved or o_doc in did or did in o_doc):
+            if o_doc and (o_doc in (did, resolved) or o_doc in did or did in o_doc):
                 c["title"] = o["title"]
                 c["document_title"] = o["title"]
                 c["source_title"] = o["title"]
@@ -330,14 +345,18 @@ def merge_demo_citations(
                     c["page_url"] = o["page_url"]
                 if o.get("summary") and not c.get("summary"):
                     c["summary"] = o["summary"]
-                for field in ("koha_record_verified", "total_copies", "available_copies", "availability", "accession", "publisher"):
+                for field in (
+                    "koha_record_verified",
+                    "total_copies",
+                    "available_copies",
+                    "availability",
+                    "accession",
+                    "publisher",
+                ):
                     if field in o:
                         c[field] = o[field]
                 break
-    seen = {
-        str(c.get("title") or c.get("document_title") or "").strip().lower()
-        for c in existing
-    }
+    seen = {str(c.get("title") or c.get("document_title") or "").strip().lower() for c in existing}
     merged = list(existing)
     for o in overlays:
         t = str(o.get("title") or "").strip().lower()

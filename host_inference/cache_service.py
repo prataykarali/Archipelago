@@ -22,6 +22,7 @@ import time
 from typing import Any
 
 import requests
+from supabase_service_headers import service_headers
 
 logger = logging.getLogger("archipelago.cache")
 
@@ -213,9 +214,7 @@ class CacheService:
 
     def _headers(self) -> dict[str, str]:
         return {
-            "apikey": self.supabase_key,
-            "Authorization": f"Bearer {self.supabase_key}",
-            "Content-Type": "application/json",
+            **service_headers(self.supabase_key, json_body=True),
             "Prefer": "resolution=merge-duplicates",
         }
 

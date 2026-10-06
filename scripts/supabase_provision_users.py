@@ -4,6 +4,7 @@ This is a one-time, administrator-run tool. The input CSV is intentionally not
 stored by Archipelago and must be deleted from the administrator workstation
 after the import completes.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -54,11 +55,10 @@ def load_rows(csv_path: Path) -> list[dict[str, str]]:
 
 def api_headers(service_role_key: str) -> dict[str, str]:
     """Return server-only headers for the Supabase Admin API."""
-    return {
-        "apikey": service_role_key,
-        "Authorization": f"Bearer {service_role_key}",
-        "Content-Type": "application/json",
-    }
+    headers = {"apikey": service_role_key, "Content-Type": "application/json"}
+    if not service_role_key.startswith("sb_secret_"):
+        headers["Authorization"] = f"Bearer {service_role_key}"
+    return headers
 
 
 def provision_account(
@@ -77,8 +77,8 @@ def provision_account(
         "user_metadata": {
             "username": username,
             "display_name": row.get("display_name", ""),
-            "must_change_password": True,
         },
+        "app_metadata": {"must_change_password": True},
     }
     response = requests.post(
         f"{base_url}/auth/v1/admin/users",
@@ -100,7 +100,9 @@ def provision_account(
         timeout=REQUEST_TIMEOUT_SECONDS,
     )
     if role_response.status_code not in {200, 204}:
-        raise RuntimeError(f"Could not assign role to {username!r}: HTTP {role_response.status_code}")
+        raise RuntimeError(
+            f"Could not assign role to {username!r}: HTTP {role_response.status_code}"
+        )
 
 
 def main() -> int:

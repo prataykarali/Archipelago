@@ -38,7 +38,8 @@ def _huggingface_source_url(doc_id: str) -> str:
 def build_citation_link(chunk: dict, doc: dict) -> str:
     """Build a page-anchored citation URL for a chunk.
 
-    For Pearson eLibrary books, produces a reader URL with #book/{uuid}/page/{page} fragment.
+    For Pearson eLibrary books, produces a book-specific reader URL without
+    claiming an unsupported automatic page jump.
     For standard PDFs, produces /api/page-view?doc_id=...&page=...#page=... URL.
     """
     page = chunk.get("page_number", 1)
@@ -226,7 +227,11 @@ def build_citation_payloads(target_concept, prereqs, unlocks, citation_map):
                     payload[flag] = True
                 elif flag == "allow_external_inference" and node.get(flag) is False:
                     payload[flag] = False
-                elif flag == "visibility" and str(node.get(flag, "")).lower() in {"private", "restricted", "confidential"}:
+                elif flag == "visibility" and str(node.get(flag, "")).lower() in {
+                    "private",
+                    "restricted",
+                    "confidential",
+                }:
                     payload[flag] = node[flag]
             payloads.append(payload)
     return payloads

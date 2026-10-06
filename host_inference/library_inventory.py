@@ -1,4 +1,5 @@
 """Validated, persistent library holdings imports for the hosted app."""
+
 from __future__ import annotations
 
 import csv
@@ -8,6 +9,7 @@ import os
 from pathlib import Path
 
 import requests
+from supabase_service_headers import service_headers
 
 ROOT = Path(__file__).resolve().parent
 CACHE = ROOT / "cache"
@@ -16,9 +18,21 @@ OBJECT = "library_inventory.json"
 MAX_ROWS = 20_000
 REQUIRED = {"book_id", "title", "total_copies", "available_copies"}
 TEXT_FIELDS = (
-    "book_id", "title", "authors", "publisher", "subject", "publication_year",
-    "category", "availability", "take_home", "location", "accession",
-    "call_number", "rack", "shelf", "doc_id",
+    "book_id",
+    "title",
+    "authors",
+    "publisher",
+    "subject",
+    "publication_year",
+    "category",
+    "availability",
+    "take_home",
+    "location",
+    "accession",
+    "call_number",
+    "rack",
+    "shelf",
+    "doc_id",
 )
 
 
@@ -55,15 +69,17 @@ def parse_inventory_csv(payload: bytes) -> list[dict]:
         if total < 0 or available < 0 or available > total:
             raise ValueError(f"Row {row_number} must have 0 ≤ available_copies ≤ total_copies.")
         item = {key: row.get(key, "")[:500] for key in TEXT_FIELDS}
-        item.update({
-            "book_id": book_id,
-            "title": title,
-            "total_copies": total,
-            "available_copies": available,
-            "accession": (row.get("accession") or book_id)[:160],
-            "available_ratio": f"{available} / {total}",
-            "no_of_copies": total,
-        })
+        item.update(
+            {
+                "book_id": book_id,
+                "title": title,
+                "total_copies": total,
+                "available_copies": available,
+                "accession": (row.get("accession") or book_id)[:160],
+                "available_ratio": f"{available} / {total}",
+                "no_of_copies": total,
+            }
+        )
         rows.append(item)
     if not rows:
         raise ValueError("CSV contains no holdings rows.")
@@ -85,12 +101,16 @@ def load_inventory() -> list[dict] | None:
     path = CACHE / OBJECT
     if not path.is_file():
         url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
-        key = (os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+        key = (
+            os.environ.get("SUPABASE_SECRET_KEY")
+            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+            or ""
+        ).strip()
         if url and key:
             try:
                 response = requests.get(
                     f"{url}/storage/v1/object/{BUCKET}/{OBJECT}",
-                    headers={"Authorization": f"Bearer {key}", "apikey": key},
+                    headers=service_headers(key),
                     timeout=15,
                 )
                 if response.status_code == 200:
@@ -109,17 +129,16 @@ def load_inventory() -> list[dict] | None:
 def save_inventory(rows: list[dict]) -> None:
     """Persist holdings to the private Supabase cache bucket and local cache."""
     url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
-    key = (os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+    key = (
+        os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or ""
+    ).strip()
     if not url or not key:
         raise RuntimeError("Supabase private storage is not configured.")
     payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    headers = {
-        "Authorization": f"Bearer {key}",
-        "apikey": key,
-        "Content-Type": "application/json",
-        "x-upsert": "true",
-    }
-    response = requests.put(f"{url}/storage/v1/object/{BUCKET}/{OBJECT}", headers=headers, data=payload, timeout=30)
+    headers = {**service_headers(key, json_body=True), "x-upsert": "true"}
+    response = requests.put(
+        f"{url}/storage/v1/object/{BUCKET}/{OBJECT}", headers=headers, data=payload, timeout=30
+    )
     if response.status_code not in {200, 201}:
         raise RuntimeError(f"Supabase inventory save failed ({response.status_code}).")
     CACHE.mkdir(parents=True, exist_ok=True)

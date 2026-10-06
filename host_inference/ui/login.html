@@ -128,6 +128,10 @@
           await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
           throw new Error("The selected account type does not match your assigned role.");
         }
+        if (verified.must_change_password) {
+          window.location.replace("/change-password");
+          return;
+        }
         window.location.replace(destinationForRole(verified.role, config));
       } catch (error) {
         message.textContent = error?.message || "Sign-in failed. Please try again.";

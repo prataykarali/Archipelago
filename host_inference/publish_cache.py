@@ -3,6 +3,7 @@
 Pearson subscription ids stay in the private bucket. The HF dataset gets the
 graph plus a public catalog with those ids removed.
 """
+
 from __future__ import annotations
 
 import json
@@ -10,6 +11,7 @@ import os
 from pathlib import Path
 
 import requests
+from supabase_service_headers import service_headers
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
@@ -29,10 +31,7 @@ def _env() -> dict[str, str]:
 def _supabase_headers(env: dict[str, str]) -> tuple[str, dict[str, str]]:
     url = env["SUPABASE_URL"].rstrip("/")
     key = env.get("SUPABASE_SECRET_KEY") or env.get("SUPABASE_SERVICE_ROLE_KEY")
-    headers = {
-        "Authorization": f"Bearer {key}",
-        "apikey": key,
-    }
+    headers = service_headers(key)
     return url, headers
 
 
@@ -43,13 +42,14 @@ def ensure_bucket(url: str, headers: dict[str, str]) -> None:
         json={"id": BUCKET, "name": BUCKET, "public": False},
         timeout=30,
     )
-    if response.status_code not in {200, 201, 409}:
-        # 400 "already exists" is also success on some projects.
-        if "exists" not in response.text.lower():
-            raise SystemExit(f"bucket create failed: {response.status_code} {response.text[:180]}")
+    # 400 "already exists" is also success on some projects.
+    if response.status_code not in {200, 201, 409} and "exists" not in response.text.lower():
+        raise SystemExit(f"bucket create failed: {response.status_code} {response.text[:180]}")
 
 
-def upload_object(url: str, headers: dict[str, str], name: str, payload: bytes, content_type: str) -> None:
+def upload_object(
+    url: str, headers: dict[str, str], name: str, payload: bytes, content_type: str
+) -> None:
     response = requests.post(
         f"{url}/storage/v1/object/{BUCKET}/{name}",
         headers={**headers, "Content-Type": content_type, "x-upsert": "true"},
@@ -71,17 +71,19 @@ def upload_object(url: str, headers: dict[str, str], name: str, payload: bytes, 
 def public_catalog(books: list[dict]) -> bytes:
     slim = []
     for book in books:
-        slim.append({
-            "id": book.get("id"),
-            "title": book.get("title"),
-            "author": book.get("author"),
-            "isbn": book.get("isbn"),
-            "slug": book.get("slug"),
-            "domain": book.get("domain"),
-            "book_type": book.get("book_type"),
-            "page_count": book.get("page_count"),
-            "page_link_pattern": "/open/{id}?page={n}",
-        })
+        slim.append(
+            {
+                "id": book.get("id"),
+                "title": book.get("title"),
+                "author": book.get("author"),
+                "isbn": book.get("isbn"),
+                "slug": book.get("slug"),
+                "domain": book.get("domain"),
+                "book_type": book.get("book_type"),
+                "page_count": book.get("page_count"),
+                "page_link_pattern": "/open/{id}?page={n}",
+            }
+        )
     return json.dumps({"total_books": len(slim), "books": slim}, ensure_ascii=False).encode()
 
 
@@ -107,10 +109,29 @@ def public_library_manifest() -> bytes:
     hf_payload = json.loads(hf_manifest.read_text(encoding="utf-8"))
     hf_paths = [str(path) for path in hf_payload.get("files", []) if str(path).endswith(".pdf")]
     allowed_book_fields = {
-        "id", "title", "author", "year", "domain", "desc", "isbn", "isPearson",
-        "isPaper", "primaryColor", "accentColor", "page_count", "toc", "pdfUrl",
-        "reader_url", "resolveUrl", "isCatalogOnly", "availability", "total_copies",
-        "available_copies", "shelf_location", "call_number", "library_scope",
+        "id",
+        "title",
+        "author",
+        "year",
+        "domain",
+        "desc",
+        "isbn",
+        "isPearson",
+        "isPaper",
+        "primaryColor",
+        "accentColor",
+        "page_count",
+        "toc",
+        "pdfUrl",
+        "reader_url",
+        "resolveUrl",
+        "isCatalogOnly",
+        "availability",
+        "total_copies",
+        "available_copies",
+        "shelf_location",
+        "call_number",
+        "library_scope",
     }
     source_shelf = list(source.get("ebook_shelf", []))
     by_id = {str(book.get("id") or ""): book for book in source_shelf}
@@ -129,21 +150,27 @@ def public_library_manifest() -> bytes:
             continue
         book = by_id.get(path, {})
         is_textbook = path.startswith(("textbooks/", "books/textbooks/", "archipelago-books-cs/"))
-        shelf.append({
-            "id": path,
-            "title": book.get("title") or path.rsplit("/", 1)[-1].removesuffix(".pdf").replace("_", " "),
-            "author": book.get("author") or "Archipelago Hugging Face Library",
-            "year": book.get("year") or "",
-            "domain": book.get("domain") or ("Textbooks & Course Material" if is_textbook else "Research Papers & Preprints"),
-            "desc": "Verified Hugging Face library PDF. Opens in the cloud reader.",
-            "isbn": book.get("isbn") or "",
-            "isPearson": False,
-            "isPaper": not is_textbook,
-            "primaryColor": book.get("primaryColor") or "#7c3aed",
-            "accentColor": book.get("accentColor") or "#ddd6fe",
-            "page_count": book.get("page_count") or 0,
-            "toc": book.get("toc") or [{"title": "Open verified source", "page": 1}],
-        })
+        shelf.append(
+            {
+                "id": path,
+                "title": book.get("title")
+                or path.rsplit("/", 1)[-1].removesuffix(".pdf").replace("_", " "),
+                "author": book.get("author") or "Archipelago Hugging Face Library",
+                "year": book.get("year") or "",
+                "domain": book.get("domain")
+                or (
+                    "Textbooks & Course Material" if is_textbook else "Research Papers & Preprints"
+                ),
+                "desc": "Verified Hugging Face library PDF. Opens in the cloud reader.",
+                "isbn": book.get("isbn") or "",
+                "isPearson": False,
+                "isPaper": not is_textbook,
+                "primaryColor": book.get("primaryColor") or "#7c3aed",
+                "accentColor": book.get("accentColor") or "#ddd6fe",
+                "page_count": book.get("page_count") or 0,
+                "toc": book.get("toc") or [{"title": "Open verified source", "page": 1}],
+            }
+        )
         seen_ids.add(path)
     payload = {
         "ebook_shelf": shelf,
@@ -168,6 +195,7 @@ def upload_hf(env: dict[str, str], graph: bytes, catalog: bytes) -> None:
         print("hf skipped")
         return
     from huggingface_hub import HfApi
+
     api = HfApi(token=token)
     api.create_repo(repo, repo_type="dataset", exist_ok=True)
     for name, data in (("okf_graph.json", graph), ("pearson_public.json", catalog)):

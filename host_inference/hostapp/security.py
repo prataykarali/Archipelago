@@ -80,38 +80,41 @@ class AuthGuard:
             user_response = requests.get(
                 f"{url}/auth/v1/user", headers=headers, timeout=SUPABASE_USER_TIMEOUT_SEC
             )
-            profile_response = (
-                requests.get(
-                    f"{url}/rest/v1/profiles",
-                    params={
-                        "select": "username,role",
-                        "id": f"eq.{user_response.json().get('id', '')}",
-                    },
-                    headers=headers,
-                    timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
-                )
-                if user_response.status_code == 200
-                else None
+            if user_response.status_code != 200:
+                return None, "Your Supabase session could not be verified."
+            user = user_response.json()
+            if not isinstance(user, dict) or not isinstance(user.get("id"), str) or not user["id"]:
+                return None, "Your Supabase session could not be verified."
+            profile_response = requests.get(
+                f"{url}/rest/v1/profiles",
+                params={"select": "username,role", "id": f"eq.{user['id']}"},
+                headers=headers,
+                timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
             )
-        except requests.RequestException:
+            profiles = profile_response.json() if profile_response.status_code == 200 else None
+        except (requests.RequestException, ValueError, TypeError):
             return None, "Supabase identity verification is unavailable."
-        if (
-            user_response.status_code != 200
-            or profile_response is None
-            or profile_response.status_code != 200
-        ):
+        if profile_response.status_code != 200:
             return None, "Your Supabase session could not be verified."
-        profiles = profile_response.json()
-        if not isinstance(profiles, list) or len(profiles) != 1:
+        if (
+            not isinstance(user, dict)
+            or not isinstance(profiles, list)
+            or len(profiles) != 1
+            or not isinstance(profiles[0], dict)
+        ):
             return None, "Your account does not have an assigned Archipelago role."
         role = str(profiles[0].get("role") or "")
         if role not in AUTH_ROLES:
             return None, "Your account role is not permitted in Archipelago."
+        metadata = user.get("app_metadata") if isinstance(user, dict) else None
         return {
             "role": role,
-            "user_id": user_response.json().get("id"),
+            "user_id": user.get("id"),
             "username": profiles[0].get("username") or "",
             "token": token,
+            "app_metadata": metadata if isinstance(metadata, dict) else {},
+            "must_change_password": isinstance(metadata, dict)
+            and metadata.get("must_change_password") is True,
         }, None
 
 

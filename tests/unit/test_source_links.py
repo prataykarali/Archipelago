@@ -1,4 +1,4 @@
-"""Source-link integrity: every book, paper, and dataset resolves to an EXACT page.
+"""Source-link integrity: exact PDF pages and honest Pearson book handoffs.
 
 These tests are the regression gate for docs/01 §5 ("Direct Source Links —
 NON-NEGOTIABLE"): a rendered link must never degrade to a generic homepage
@@ -48,34 +48,34 @@ def library_payload() -> dict:
     return build_library_data_payload(REPO_ROOT)
 
 
-# ── Pearson: exact reader page for every catalog title ────────────────────────
+# ── Pearson: book-specific reader URLs without fabricated page jumps ──────────
 
 
-def test_every_pearson_book_resolves_to_exact_reader_url(pearson_catalog):
-    """All 40 institutional titles must resolve to a #book/{uuid} reader page."""
+def test_every_pearson_book_resolves_to_book_reader_url(pearson_catalog):
+    """Every catalog title must resolve to its own #book/{uuid} reader URL."""
     unresolved = [
         b.get("id") for b in pearson_catalog if not resolve(str(b.get("id")), page=MIN_PAGE)
     ]
     assert not unresolved, f"Pearson books without an exact reader URL: {unresolved}"
 
 
-def test_pearson_reader_urls_carry_book_uuid_and_page(pearson_catalog):
-    """Reader URLs must be page-anchored and book-specific, not the portal."""
+def test_pearson_reader_urls_carry_book_uuid_without_fake_page(pearson_catalog):
+    """Reader URLs identify a book without claiming an unsupported page jump."""
     for book in pearson_catalog:
         url = resolve(str(book.get("id")), page=MAX_PAGE)
         assert url is not None, book.get("title")
         assert url.startswith(PEARSON_READER_PREFIX), f"{book.get('title')}: {url}"
         assert "#book/" in url, f"{book.get('title')} missing #book fragment: {url}"
-        assert f"/page/{MAX_PAGE}" in url, f"{book.get('title')} missing page anchor: {url}"
+        assert "/page/" not in url, f"{book.get('title')} has an unverified page jump: {url}"
         assert PEARSON_PORTAL not in url, f"{book.get('title')} degraded to portal: {url}"
 
 
-def test_pearson_catalog_entries_expose_exact_reader_url(pearson_catalog):
+def test_pearson_catalog_entries_expose_book_reader_url(pearson_catalog):
     """build_reader_url keeps the catalog viewer and subscription per title."""
     for book in pearson_catalog[:10]:
         url = build_reader_url(book, page=7)
         assert "#book/" in url
-        assert "/page/7" in url
+        assert "/page/" not in url
         assert str(book.get("id")) in url, f"wrong book id for {book.get('title')}: {url}"
 
 
@@ -228,7 +228,7 @@ def test_library_stats_are_computed_from_data_not_hardcoded(library_payload):
     assert library_payload["holdings_stats"]["total_records"] == len(library_payload["holdings"])
 
 
-# ── Pearson canonical reader URLs (exact book + page + pinned version) ──────
+# ── Pearson canonical reader URLs (book-specific, pinned version) ───────────
 
 
 def test_pearson_reader_url_pins_the_reader_version(pearson_catalog):
@@ -243,13 +243,13 @@ def test_pearson_reader_url_pins_the_reader_version(pearson_catalog):
         )
 
 
-def test_build_reader_url_keeps_version_and_page(pearson_catalog):
+def test_build_reader_url_keeps_version_without_fake_page(pearson_catalog):
     from archipelago.resolver.pearson import PEARSON_READER_VERSION, build_reader_url
 
     for book in pearson_catalog[:12]:
         url = build_reader_url(book, page=17)
         assert f"version={PEARSON_READER_VERSION}" in url
-        assert "/page/17" in url
+        assert "/page/" not in url
         assert str(book.get("id")) in url
 
 
