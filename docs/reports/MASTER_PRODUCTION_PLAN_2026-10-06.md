@@ -164,9 +164,10 @@ These workflows extend the architecture image from general retrieval to the oper
 ### Physical membership tokens
 
 - [x] Student replies no longer turn missing configuration into a claim of zero cards; configured totals are clearly labeled as totals, with live checkout availability referred to the desk. Hardcoded card counts were removed from the credential registry. This does not provide a live ledger.
+- [x] A librarian-only Supabase card/loan/event migration is staged in `supabase/migrations/20261006061112_external_membership_ledger.sql`. Disposable PostgreSQL 17 tests proved single-active-loan enforcement, lost-card checkout denial, return audit events, browser-role denial, and service-role reads. It has not been applied to the live project or connected to the staff UI.
 - [ ] Replace static British Council/American Library card counts with a librarian-owned token ledger: total, available, checked out, due, lost/unavailable, and last reconciliation. Enforce a single active holder per physical card and prevent negative availability or double checkout.
 - [ ] Give students current availability and desk pickup guidance without exposing borrower identity. Provide staff checkout/return, audit trail, overdue view, and correction workflow; test concurrency and offline desk reconciliation.
-- Current state: optional `ARCHIPELAGO_MEMBERSHIP_*` values provide only configured totals. No per-card transaction or holder ledger exists.
+- Current state: optional `ARCHIPELAGO_MEMBERSHIP_*` values still provide only configured totals in the running app. The new ledger schema is branch-only pending live migration and staff API integration.
 
 ### Class routines and pre-lecture briefs
 
