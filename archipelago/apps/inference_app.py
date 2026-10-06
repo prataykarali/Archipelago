@@ -1,9 +1,10 @@
 """Gunicorn/CLI entrypoint for the Archipelago inference service."""
+
 from __future__ import annotations
 
 import os
-import threading
 from pathlib import Path
+import threading
 
 from dotenv import load_dotenv
 
@@ -22,12 +23,25 @@ def create_app():
     global _runtime_started
     with _runtime_lock:
         if not _runtime_started:
+            if os.getenv("ARCHIPELAGO_ENV", "").strip().lower() == "library":
+                from scripts.run_ingestion_worker import ensure_shared_graph_export
+
+                ensure_shared_graph_export()
             init_concepts_data()
-            if os.getenv("ARCHIPELAGO_LOAD_EMBEDDINGS", "0").strip().lower() in {"1", "true", "yes"}:
-                threading.Thread(target=load_embedding_model, name="ArchipelagoEmbeddings", daemon=True).start()
+            if os.getenv("ARCHIPELAGO_LOAD_EMBEDDINGS", "0").strip().lower() in {
+                "1",
+                "true",
+                "yes",
+            }:
+                threading.Thread(
+                    target=load_embedding_model, name="ArchipelagoEmbeddings", daemon=True
+                ).start()
             if os.getenv("ARCHIPELAGO_LOAD_AURA", "0").strip().lower() in {"1", "true", "yes"}:
-                threading.Thread(target=load_aura_model, name="ArchipelagoAura", daemon=True).start()
+                threading.Thread(
+                    target=load_aura_model, name="ArchipelagoAura", daemon=True
+                ).start()
             from ingestion_worker import get_worker
+
             get_worker()
             _runtime_started = True
     return app

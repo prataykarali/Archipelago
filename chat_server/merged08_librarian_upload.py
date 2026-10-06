@@ -1,11 +1,16 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
+from http import HTTPStatus
 import os
+
+from flask import Response, jsonify, request
 import requests as _requests
-from .merged01_repo_root import BASE_DIR, _inference_auth_headers, app  # noqa: F401
-from .merged06_chat_proxy import _inference_base  # noqa: F401
+
+from archipelago.middleware.local_ingest_origin import local_ingest_origin
+
+from .merged01_repo_root import BASE_DIR, _inference_auth_headers, app
 
 
 @app.route("/api/librarian/upload", methods=["POST", "OPTIONS"])
@@ -52,8 +57,8 @@ def graph_subgraph():
     max_nodes = int(request.args.get("max_nodes", 10))
     min_nodes = int(request.args.get("min_nodes", 5))
 
-    from archipelago.graph.subgraph import generate_bounded_subgraph
     from archipelago.graph.engine import KuzuGraphEngine
+    from archipelago.graph.subgraph import generate_bounded_subgraph
 
     db_path = BASE_DIR / "okf_graph.db"
     conn = None
@@ -80,8 +85,8 @@ def graph_subgraph():
         diff_colors = {
             "foundational": "#10b981",  # emerald green
             "intermediate": "#3b82f6",  # blue
-            "advanced": "#8b5cf6",      # purple
-            "expert": "#ec4899",        # pink
+            "advanced": "#8b5cf6",  # purple
+            "expert": "#ec4899",  # pink
         }
         for n in data.get("nodes", []):
             diff = (n.get("difficulty") or "intermediate").lower()
@@ -117,19 +122,27 @@ def graph_subgraph():
 
 @app.route("/api/ingest", methods=["POST", "OPTIONS"])
 def proxy_ingest_upload():
-    """Proxy multipart file upload to inference server."""
+    """Proxy multipart file upload to the local appliance only."""
     if request.method == "OPTIONS":
         return ("", 204)
-    base = _inference_base()
+    base = local_ingest_origin()
+    if base is None:
+        return jsonify({"error": "local ingestion unavailable"}), HTTPStatus.SERVICE_UNAVAILABLE
     try:
         files = {k: (v.filename, v.stream, v.content_type) for k, v in request.files.items()}
-        headers = {}
-        auth = request.headers.get("Authorization")
-        if auth:
-            headers["Authorization"] = auth
-        upstream = _requests.post(f"{base}/api/ingest", files=files, data=request.form, headers=headers, timeout=60)
-        return Response(upstream.content, status=upstream.status_code,
-                        content_type=upstream.headers.get("Content-Type", "application/json"))
+        upstream = _requests.post(
+            f"{base}/api/ingest",
+            files=files,
+            data=request.form,
+            headers=_inference_auth_headers(),
+            timeout=60,
+            allow_redirects=False,
+        )
+        return Response(
+            upstream.content,
+            status=upstream.status_code,
+            content_type=upstream.headers.get("Content-Type", "application/json"),
+        )
     except Exception as exc:
         return {"error": f"inference upstream unreachable: {exc}"}, 502
 
@@ -139,15 +152,21 @@ def proxy_ingest_status(job_id):
     """Proxy ingestion job status."""
     if request.method == "OPTIONS":
         return ("", 204)
-    base = _inference_base()
+    base = local_ingest_origin()
+    if base is None:
+        return jsonify({"error": "local ingestion unavailable"}), HTTPStatus.SERVICE_UNAVAILABLE
     try:
         upstream = _requests.get(
             f"{base}/api/ingest/{job_id}",
             headers=_inference_auth_headers(),
             timeout=10,
+            allow_redirects=False,
         )
-        return Response(upstream.content, status=upstream.status_code,
-                        content_type=upstream.headers.get("Content-Type", "application/json"))
+        return Response(
+            upstream.content,
+            status=upstream.status_code,
+            content_type=upstream.headers.get("Content-Type", "application/json"),
+        )
     except Exception as exc:
         return {"error": f"inference upstream unreachable: {exc}"}, 502
 
@@ -157,15 +176,21 @@ def proxy_ingest_cancel(job_id):
     """Proxy ingestion job cancellation."""
     if request.method == "OPTIONS":
         return ("", 204)
-    base = _inference_base()
+    base = local_ingest_origin()
+    if base is None:
+        return jsonify({"error": "local ingestion unavailable"}), HTTPStatus.SERVICE_UNAVAILABLE
     try:
-        headers = {}
-        auth = request.headers.get("Authorization")
-        if auth:
-            headers["Authorization"] = auth
-        upstream = _requests.post(f"{base}/api/ingest/{job_id}/cancel", headers=headers, timeout=10)
-        return Response(upstream.content, status=upstream.status_code,
-                        content_type=upstream.headers.get("Content-Type", "application/json"))
+        upstream = _requests.post(
+            f"{base}/api/ingest/{job_id}/cancel",
+            headers=_inference_auth_headers(),
+            timeout=10,
+            allow_redirects=False,
+        )
+        return Response(
+            upstream.content,
+            status=upstream.status_code,
+            content_type=upstream.headers.get("Content-Type", "application/json"),
+        )
     except Exception as exc:
         return {"error": f"inference upstream unreachable: {exc}"}, 502
 
@@ -175,11 +200,21 @@ def proxy_documents_list():
     """Proxy document list."""
     if request.method == "OPTIONS":
         return ("", 204)
-    base = _inference_base()
+    base = local_ingest_origin()
+    if base is None:
+        return jsonify({"error": "local ingestion unavailable"}), HTTPStatus.SERVICE_UNAVAILABLE
     try:
-        upstream = _requests.get(f"{base}/api/documents", headers=_inference_auth_headers(), timeout=10)
-        return Response(upstream.content, status=upstream.status_code,
-                        content_type=upstream.headers.get("Content-Type", "application/json"))
+        upstream = _requests.get(
+            f"{base}/api/documents",
+            headers=_inference_auth_headers(),
+            timeout=10,
+            allow_redirects=False,
+        )
+        return Response(
+            upstream.content,
+            status=upstream.status_code,
+            content_type=upstream.headers.get("Content-Type", "application/json"),
+        )
     except Exception as exc:
         return {"error": f"inference upstream unreachable: {exc}"}, 502
 
@@ -189,15 +224,22 @@ def proxy_document_delete(doc_id):
     """Proxy document deletion."""
     if request.method == "OPTIONS":
         return ("", 204)
-    base = _inference_base()
+    base = local_ingest_origin()
+    if base is None:
+        return jsonify({"error": "local ingestion unavailable"}), HTTPStatus.SERVICE_UNAVAILABLE
     try:
-        headers = {}
-        auth = request.headers.get("Authorization")
-        if auth:
-            headers["Authorization"] = auth
-        upstream = _requests.delete(f"{base}/api/documents/{doc_id}", headers=headers, params=request.args, timeout=30)
-        return Response(upstream.content, status=upstream.status_code,
-                        content_type=upstream.headers.get("Content-Type", "application/json"))
+        upstream = _requests.delete(
+            f"{base}/api/documents/{doc_id}",
+            headers=_inference_auth_headers(),
+            params=request.args,
+            timeout=30,
+            allow_redirects=False,
+        )
+        return Response(
+            upstream.content,
+            status=upstream.status_code,
+            content_type=upstream.headers.get("Content-Type", "application/json"),
+        )
     except Exception as exc:
         return {"error": f"inference upstream unreachable: {exc}"}, 502
 

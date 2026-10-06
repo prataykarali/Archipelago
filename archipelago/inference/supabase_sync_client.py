@@ -4,6 +4,8 @@ Automates synchronization of extracted document chunks, concept nodes,
 and Pearson catalog holdings directly to Supabase via REST API.
 """
 
+from __future__ import annotations
+
 import json
 import os
 from typing import Any
@@ -18,15 +20,16 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
 
 class SupabaseSyncClient:
-    def __init__(self, url: str = None, key: str = None):
-        self.url = (url or SUPABASE_URL).rstrip("/")
-        self.key = key or SUPABASE_KEY
+    def __init__(self, url: str | None = None, key: str | None = None) -> None:
+        self.url = (url if url is not None else SUPABASE_URL).rstrip("/")
+        self.key = key if key is not None else SUPABASE_KEY
         self.headers = {
             "apikey": self.key,
-            "Authorization": f"Bearer {self.key}",
             "Content-Type": "application/json",
-            "Prefer": "resolution=merge-duplicates"
+            "Prefer": "resolution=merge-duplicates",
         }
+        if not self.key.startswith("sb_secret_"):
+            self.headers["Authorization"] = f"Bearer {self.key}"
 
     def _request(self, table: str, data: list[dict[str, Any]]) -> bool:
         """Post upsert payload to Supabase REST endpoint.
@@ -34,7 +37,7 @@ class SupabaseSyncClient:
         Only absolute http(s) URLs with a host are accepted; ``urlopen`` would
         otherwise happily follow ``file:`` or other schemes.
         """
-        if not data:
+        if not data or not self.key:
             return False
         parsed = urlparse(self.url)
         if parsed.scheme not in ("http", "https") or not parsed.netloc:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from http import HTTPStatus
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ from flask import Flask, Response, g, jsonify, redirect, request, send_from_dire
 import requests
 
 from archipelago import supabase_auth
+from archipelago.middleware.local_ingest_origin import local_ingest_origin
 from archipelago.middleware.log_redaction import install_log_redaction
 
 # Access logs must never capture the `?token=`/Authorization values used here.
@@ -25,6 +27,7 @@ _ASSET_ROOTS = tuple(
 _PUBLIC_AUTH_PATHS = frozenset(
     {"/api/auth/config", "/api/auth/me", "/api/readiness", "/api/health"}
 )
+LOCAL_INGEST_ROOTS = frozenset({"ingest", "librarian", "documents", "manual"})
 
 app = Flask(__name__, static_folder=str(STATIC_DIR))
 
@@ -158,7 +161,25 @@ def api_node(node_id: str):
 @app.route("/api/<path:api_path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 def inference_api_proxy(api_path: str):
     """Forward authenticated graph-console API calls to the inference service."""
-    base = os.environ.get("ARCHIPELAGO_INFERENCE_URL", "http://127.0.0.1:5151").rstrip("/")
+    local_ingest = api_path.split("/", 1)[0] in LOCAL_INGEST_ROOTS
+    if local_ingest:
+        base = local_ingest_origin()
+        if base is None:
+            return jsonify({"error": "local ingestion unavailable"}), HTTPStatus.SERVICE_UNAVAILABLE
+    else:
+        if request.files:
+            return jsonify(
+                {"error": "raw uploads must stay on the library computer"}
+            ), HTTPStatus.FORBIDDEN
+        if (
+            request.method in {"POST", "PUT", "PATCH"}
+            and request.content_length
+            and request.mimetype != "application/json"
+        ):
+            return jsonify(
+                {"error": "only JSON is accepted by this cloud proxy"}
+            ), HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+        base = os.environ.get("ARCHIPELAGO_INFERENCE_URL", "http://127.0.0.1:5151").rstrip("/")
     for suffix in ("/api/chat", "/api"):
         if base.endswith(suffix):
             base = base[: -len(suffix)]
@@ -185,6 +206,7 @@ def inference_api_proxy(api_path: str):
                 headers={key: value for key, value in headers.items() if key != "Content-Type"},
                 timeout=(10, 300),
                 stream=True,
+                allow_redirects=False,
             )
         else:
             upstream = requests.request(
@@ -195,6 +217,7 @@ def inference_api_proxy(api_path: str):
                 headers=headers,
                 timeout=(10, 300),
                 stream=True,
+                allow_redirects=False,
             )
     except requests.RequestException as exc:
         app.logger.warning("Inference API proxy failed for %s: %s", api_path, exc)

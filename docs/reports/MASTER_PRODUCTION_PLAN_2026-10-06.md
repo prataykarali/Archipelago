@@ -1,17 +1,21 @@
 # Archipelago institutional production master plan
 
-Date: 2026-10-06. Scope: this Archipelago repository, the existing local library workstation, Supabase, Hugging Face, AntDeploy, and the requested Vercel inference target. This is a living execution checklist. A checked item means the stated evidence exists; it does not imply the whole feature is production-ready.
+Date: 2026-10-06. Scope: this Archipelago repository, the existing local library workstation, Cloudflare, Vercel, Supabase, Hugging Face, and the current AntDeploy deployment during migration. This is a living execution checklist. A checked item means the stated evidence exists; it does not imply the whole feature is production-ready.
 
 ## Decision rules and current truth
 
 - Preserve the landing visuals, 3D assets, animations, video, existing feature paths, and six response contracts. Add IEM/UEM identity without altering the visual design.
 - Keep raw licensed Pearson content and private student records on authorized local systems. Publish only rights-reviewed metadata, graph artifacts, and approved models. Never commit credentials or put service keys in browser code.
 - Treat exact source links as verified behavior: a book-level link does not become an exact-page link by adding an untested fragment. If Pearson cannot deep-link to a page through a supported URL, show the book and an honest page instruction.
-- Use the attached architecture image as a conceptual hybrid cloud/local model. Its Railway box is illustrative; the requested public targets are AntDeploy and, if technically suitable, Vercel.
+- Use the attached architecture image as a conceptual hybrid cloud/local model. The user's chosen public target is Cloudflare in front of Vercel, with Supabase for managed Auth/data/cache. AntDeploy remains a rollback origin only until the Vercel release passes the same gates. Railway is not a target.
 - The documentation calls **5,151** the baseline graph *node count*. Local **:5151** is the inference service port; graph is **:5150**, chat **:5152**. Verify node count and integrity independently of port readiness.
 - Maintain statuses as `not built`, `implemented but unverified`, `local verified`, `staging verified`, or `production verified`. Tests using mocks prove only the code path, not a live dependency.
 - A shared initial student password is a bootstrap secret, supplied through a server secret store only. Enrollment numbers identify students; an immutable first-login flag requires each student to choose a unique password. Do not publish or repeat the bootstrap value.
 - Every release must pass the repository's lint, format, strict typing, quality, architecture, unit, integration, security, graph, ingestion, live staging, and independent human-review gates. Production promotion requires backup and rollback readiness.
+
+### Target data flow
+
+`student/librarian → Cloudflare DNS/CDN/WAF/TLS → Vercel hosted UI and inference API → Supabase Auth and approved metadata/vector/cache tables → external LLM on cache miss`. The library workstation retains raw PDFs, local SLM extraction, and the Kùzu single-writer graph. It exports only rights-reviewed chunks, graph/index metadata, and versioned manifests after librarian approval. Every public document opening must respect its source rights and verified URL behavior. A Vercel preview must pass bundle, read-only filesystem, streaming, cold-start, and live-query checks before any Cloudflare traffic moves.
 
 ## Verified baseline and known blockers
 
@@ -23,20 +27,23 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 - [x] Supabase project exists, Auth migrations are listed, and three public tables have RLS. Security advisor reports leaked-password protection disabled; the credential-import grant and audit tables currently have zero rows.
 - [x] Read-only calls to live Supabase `profiles`, Auth Admin users, and private Storage returned HTTP 200 on 2026-10-06 using corrected server-only key headers; writes still need staging verification.
 - [x] Vercel connection responded, but no Archipelago project was found. There is no verified Vercel inference URL.
+- [x] A fresh 2026-10-06 baseline and graph-count reconciliation is recorded in [`BASELINE_AND_PLATFORM_DECISION_2026-10-06.md`](BASELINE_AND_PLATFORM_DECISION_2026-10-06.md). The checked-in plan's 5,151-node number is not the current local count; see the report before treating it as a release gate.
 - [x] The connected Hugging Face identity can read both `Library_books` and `graphier`; both repos are private and the connector has read-only repo scope, so publication and anonymous source opening are unverified.
 - [x] Hosted roster import and first-login password-change code is on the release branch; focused auth, roster, source-link, and library checks pass locally. Live Supabase account creation/password change has **not** been exercised.
 - [x] The local Pearson resolver, citation builder, demo cards, and library shelf now omit unverified `/page/N` fragments; the requested page remains explicit in handoff metadata. Fabricated sample table-of-contents pages and sample years were removed from Pearson/paper shelf entries.
-- [ ] Reconcile the 5,151 baseline graph with the local 537-concept and hosted 520-concept snapshots; document each layer's identity and export provenance.
+- [ ] Locate provenance for the historical 5,151-node count and reconcile it with the current local 6,081 total Kùzu nodes, 537 exported concepts, 84-concept fixture, and hosted 520 concepts. Do not change the acceptance threshold until the authoritative snapshot is identified.
 - [ ] Resolve the repo-wide quality gate and independent review before deployment. The 2026-10-06 run found 422 magic-number findings, a banned pattern, one oversized module, 15 dependency-direction violations, legacy formatting/lint debt, and missing mypy; remeasure after changes.
 
 ## P0 — inventory, architecture, and release control
 
 - [ ] Freeze a reproducible baseline: commit, branch, graph/catalog hashes, model revision, corpus manifest, Supabase migration versions, runtime config names, asset checksums, and deployed release header.
+- [x] Record the locally reproducible hashes, node-type counts, migration files/live versions, key asset checksums, and deployed release header in the linked baseline report. Model revision and corpus provenance remain open in the full freeze item above.
 - [ ] Map every endpoint to exactly one of the six response contracts and one owning runtime. Record where `host_inference/`, `archipelago/`, and `chat_server/` intentionally differ.
 - [ ] Identify all secrets and exposed credentials in tracked files, Git history, browser bundles, screenshots, logs, CI, and deployment config; rotate compromised institutional/provider credentials through their owners.
 - [ ] Confirm source rights, Pearson subscription terms, robots policy, HF dataset licenses, and private/public artifact boundaries before any automated extraction or publication.
 - [ ] Make the draft PR the reviewable release unit; require CI and a reviewer from another role. Do not silently promote a red build.
 - [ ] Maintain an explicit risk/decision log for features whose source service does not support the demanded behavior, especially Pearson page links and Vercel Python runtime fit.
+- [ ] Confirm Cloudflare zone/domain control and current DNS/WAF configuration; inventory the AntDeploy rollback origin before changing DNS.
 
 ## P1 — authentication, Supabase, and security
 
@@ -47,6 +54,7 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 - [ ] Resolve anonymous reading versus personalized student access; prevent one student's learning memory, diagnostics, or caches from crossing into another user's session.
 - [ ] Apply and verify the faculty-role migration, policy grants, RLS ownership tests, and live unauthorized User A → User B probes.
 - [ ] Fix modern Supabase secret-key header usage across Admin, Storage, response cache, inventory, and sync paths; test with the live project using a narrowly scoped read before any write.
+- [x] Auth Admin and local sync now use opaque `sb_secret_` keys as `apikey` without a Bearer header; legacy JWT keys retain Bearer. Focused tests pass. Live write and the full endpoint inventory remain open in the parent item.
 - [ ] Enable leaked-password protection if compatible with the approved enrollment rollout; verify Auth's configured password policy.
 - [ ] Remove hardcoded/inert user-management UI and DOM HTML interpolation risks; validate all uploaded types, size limits, Unicode, CSV formula injection, filenames, and path traversal.
 - [ ] Audit prompt-injection boundaries, private-data stripping before XKIRO/NVIDIA/Gemini, CORS, cookie flags, CSRF, token handling, CSP, egress allowlist, and staff mutating endpoints.
@@ -68,11 +76,11 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 
 ## P3 — graph integrity, traversal, and presentation
 
-- [ ] Identify the authoritative 5,151-node corpus and check node IDs, edge IDs, supported types, duplicate IDs/edges, orphan references, isolated concepts, empty summaries, provenance, and counts by source.
+- [ ] Identify the authoritative full corpus and check node IDs, edge IDs, supported types, duplicate IDs/edges, orphan references, isolated concepts, empty summaries, provenance, and counts by source. The historical 5,151 count needs provenance before it can be enforced.
 - [ ] Keep Kùzu local as the single-writer graph and export a signed/versioned lightweight snapshot for hosted inference; verify atomic publication, reload, rollback, and no silent fixture fallback in production.
 - [ ] Implement/test context-aware two-pass retrieval: pass 1 selects evidence-backed anchors from query/history; pass 2 traverses a bounded relevant neighborhood with prerequisites, relations, and source constraints.
 - [ ] Compare two-pass output with lexical/vector baseline for ambiguity, unsupported topics, multi-hop questions, collisions, and sparse islands; report precision/recall and latency distributions.
-- [ ] Verify main graph UI zoom, pan, filters, search, node details, source links, keyboard access, loading/empty states, and performance without dumping all 5,151 nodes to the browser.
+- [ ] Verify main graph UI zoom, pan, filters, search, node details, source links, keyboard access, loading/empty states, and performance without dumping the entire institutional graph to the browser.
 - [ ] Verify the in-chat concept graph and personalized diagnostic graph are distinct and appear only under appropriate contracts; test click-through into source and neighborhood.
 - [ ] Make librarian node edits staged, role-gated, provenance-preserving, schema-validated, auditable, reversible, and idempotent; ensure readers never see half-written graph state.
 - [ ] Gate production on graph count/version and integrity, but allow legitimate additive changes through an approved manifest update.
@@ -91,6 +99,7 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 
 ## P5 — local ingestion, OCR, spreadsheets, model, and sync
 
+- [x] Graph and chat upload proxies reject missing/nonlocal ingestion origins and do not follow redirects; tests confirm raw multipart never falls back to the cloud inference URL. Compose now wires the existing local HTTP ingestion API and one worker into the appliance; static YAML/startup tests pass. A live container and upload-to-citation test remain open.
 - [ ] Boot the Docker library appliance with bind-mounted institutional state and pinned image/model revisions; prove it works after restart and without internet once models are present.
 - [ ] Exercise PDF parsing and OCR on born-digital, scanned, rotated, damaged, mixed-language, and empty pages; preserve page provenance and rights flags.
 - [ ] Exercise ODS, CSV, TSV, and XLSX import with schema validation, encoding errors, duplicate rows, formula payloads, large files, and malicious archives; produce dry-run CREATE/UPDATE/UNCHANGED/RETIRE diffs.
@@ -124,12 +133,12 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 
 - [ ] Run Ruff lint/format, strict mypy, architecture and 500-line checks, banned-pattern gate, unit/integration suites, Bandit, secret scan, prompt-injection suite, frontend smoke, and dependency scan on the PR.
 - [ ] Make graph integrity and local ingestion fixture E2E mandatory before staging; use a known source to verify book, concept, relation, library record, retrieval, citation, and no-duplicate rerun.
-- [ ] Deploy isolated AntDeploy staging with exact release artifact and production-like secrets, then run browser and API E2E against the deployed origin.
+- [ ] Build a slim Vercel inference artifact from the reviewed branch, provision an isolated preview with production-like secret names, then run browser and API E2E against that preview. Keep the local workstation and raw PDFs outside the function bundle.
 - [ ] Verify staging Supabase Auth/RLS, cache, provider fallbacks, rate limits, graph, library, chat SSE, two chat graphs, exact source links, metrics, and failure recovery.
-- [ ] Obtain independent human approval per AGENTS.md pass 5 after all automated gates; back up data, publish the reviewed artifact, and record release SHA and migration versions.
-- [ ] Deploy `https://archipelago.antideploy.com`, verify response header SHA, readiness/corpus/fullness, a real chat query, graph, library, Supabase connectivity, provider response, and citation clicks from a clean browser.
-- [ ] Evaluate Vercel's Python function limits, cold start, runtime filesystem, model footprint, and budget. Deploy a separate inference endpoint only if the same evidence/quality gates and live query pass; otherwise document why Vercel is unsuitable and keep AntDeploy as canonical.
-- [ ] Delete/retire `archipelago2.antideploy` only after primary-site traffic, redirects, credentials, and rollback dependencies are inventoried and the replacement passes production smoke.
+- [ ] Obtain independent human approval per AGENTS.md pass 5 after all automated gates; back up data, promote the reviewed Vercel artifact, and record release SHA and migration versions.
+- [ ] Point the approved Cloudflare hostname at Vercel only after preview verification; check TLS/WAF, readiness/corpus/fullness, a real chat query, graph, library, Supabase connectivity, provider response, and citation clicks from a clean browser.
+- [ ] Evaluate Vercel's Python function limits, cold start, read-only runtime filesystem, model/dependency footprint, static assets, SSE, and budget. Resolve each blocker and prove a live query before promotion. Keep AntDeploy serving as the rollback origin during migration.
+- [ ] Retire the AntDeploy origins only after primary-site traffic, redirects, credentials, and rollback dependencies are inventoried and the Vercel replacement passes production smoke.
 - [ ] Publish local operator URLs for :5150 graph, :5151 inference, :5152 chat, and the Docker appliance only after authenticated readiness and end-to-end ingestion succeed.
 - [ ] Write rollback runbooks, alerts, error budgets, backup/restore tests, on-call handoff, and a final verification matrix with direct evidence for every claimed feature.
 
@@ -138,8 +147,11 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 - `pytest tests/unit/test_source_links.py tests/unit/test_library_recovery.py tests/unit/test_student_roster_hosted.py -q`: **50 passed** after copying the ignored Pearson catalog and graph artifacts into this isolated worktree.
 - `pytest tests/unit/test_auth_boundary.py tests/unit/test_student_roster_hosted.py -q`: **9 passed** after the latest auth guard update.
 - `pytest tests/unit/test_librarian_upload_cleanup.py tests/unit/test_student_roster_hosted.py -q`: **12 passed**, including 4 upload-cleanup success/failure/size paths.
+- `pytest -q tests/unit/test_local_ingest_privacy.py tests/unit/test_supabase_service_key_headers.py tests/unit/test_auth_boundary.py tests/unit/test_student_roster_hosted.py`: **21 passed**, including local-only upload forwarding, cloud fallback denial, Supabase key headers, auth boundaries, and roster behavior.
+- `pytest -q tests/integration/test_ingestion_worker.py tests/integration/test_ingestion_safety.py`: **8 passed** for staged worker and rollback safety; this does not exercise the Docker HTTP receiver.
+- `pytest -q tests/unit/test_library_api_startup.py tests/unit/test_local_ingest_privacy.py tests/unit/test_auth_boundary.py`: **11 passed** for local API startup order and privacy/auth boundaries. Compose YAML parsed, but Docker Compose/Gunicorn are unavailable on this host, so the container has not been booted.
 - Ruff lint and format checks passed for the changed Pearson resolver, citation/demo/shelf files, roster modules, and affected tests. `git diff --check` passed.
-- The broad suite and repository-wide quality gate are **not green**. Strict mypy is unavailable in the environment; independent review and live staging E2E remain pending. Neither AntDeploy nor Vercel has been updated from this branch.
+- The broad suite and repository-wide quality gate are **not green**. The current quality gate reports 418 magic-number findings, one unchecked Ollama call, an oversized answer module, 15 dependency-direction violations, legacy lint/format debt, and missing mypy. Independent review and live staging E2E remain pending. Neither AntDeploy nor Vercel has been updated from this branch.
 
 ## Document coverage map
 

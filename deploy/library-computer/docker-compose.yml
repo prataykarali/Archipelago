@@ -43,15 +43,25 @@ services:
       retries: 5
       start_period: 20s
 
-  # ─── Ingestion Worker ──────────────────────────
+  # ─── Local Ingestion API and Worker ────────────
   archipelago-ingestion:
     build:
       context: ../..
       dockerfile: Dockerfile
-    # Real entrypoint: starts the queue worker and blocks. Swappable for a
-    # debug shell with `docker compose run --rm --entrypoint bash
-    # archipelago-ingestion`.
-    entrypoint: ["python", "scripts/run_ingestion_worker.py"]
+    # One Gunicorn worker owns the ingestion queue and Kùzu writer lock.
+    # create_app starts the in-process worker and links the graph export into
+    # the shared volume before serving API traffic.
+    command:
+      - gunicorn
+      - --bind=0.0.0.0:5151
+      - --workers=1
+      - --threads=8
+      - --timeout=300
+      - --access-logfile=-
+      - --error-logfile=-
+      - archipelago.apps.inference_app:create_app()
+    expose:
+      - "5151"
     volumes:
       # The graph database is a directory volume: KùzuDB is a directory, not a
       # single file, so a file mount silently hides the catalog.
@@ -79,9 +89,9 @@ services:
     depends_on:
       ollama:
         condition: service_healthy
-    # Liveness only: never let a missing model trigger a restart loop.
+    # Liveness only: readiness separately checks graph and model state.
     healthcheck:
-      test: ["CMD", "python", "scripts/worker_health.py", "liveness", "/app/jobs"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5151/health"]
       interval: 30s
       timeout: 15s
       retries: 3
@@ -115,7 +125,8 @@ services:
       ARCHIPELAGO_GRAPH_PORT: "5150"
       ARCHIPELAGO_GRAPH_JSON: "/app/graph-state/okf_graph.json"
       ARCHIPELAGO_AUTH_REQUIRED: "1"
-      ARCHIPELAGO_ALLOWED_ORIGIN: "https://archipelago.antideploy.com"
+      ARCHIPELAGO_ALLOWED_ORIGIN: "${ARCHIPELAGO_PUBLIC_ORIGIN:-http://127.0.0.1:5150}"
+      ARCHIPELAGO_LOCAL_INGEST_URL: "http://archipelago-ingestion:5151"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5150/api/health"]
       interval: 30s

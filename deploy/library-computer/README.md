@@ -10,7 +10,7 @@ retrieval context only — never the corpus.
 ```
 Library Computer (air-gap capable)
 ├── ollama                  — local extraction SLM (no internet needed)
-├── archipelago-ingestion   — background ingestion worker + catalog population
+├── archipelago-ingestion   — local HTTP ingestion API + single worker (internal port 5151)
 ├── archipelago-graph       — Graph server + library UI (port 5150)
 └── archipelago-sync        — reports graph size to the hosted API
 ```
@@ -21,7 +21,7 @@ rather than merely on start order:
 | Service | Healthcheck | Waits for |
 |---------|-------------|-----------|
 | `ollama` | `ollama list` | — |
-| `archipelago-ingestion` | worker liveness (queue dir writable) | `ollama` healthy |
+| `archipelago-ingestion` | `GET /health` on the internal API | `ollama` healthy |
 | `archipelago-graph` | `GET /api/health` | ingestion healthy |
 | `archipelago-sync` | process liveness | graph started |
 
@@ -110,8 +110,8 @@ catalogue can answer nothing about a textbook.
 ## Ingesting Documents
 
 ```bash
-# Upload (librarian, via the API)
-curl -X POST http://localhost:5150/api/librarian/upload \
+# Upload (librarian, through the graph server to the internal ingestion API)
+curl -X POST http://localhost:5150/api/ingest \
   -H "Authorization: Bearer $ARCHIPELAGO_LIBRARIAN_TOKEN" \
   -F file=@syllabus.pdf
 
@@ -120,9 +120,14 @@ docker compose exec archipelago-ingestion \
   python -m archipelago ingest --source /app/data/uploads/syllabus.pdf
 ```
 
-Uploads are quarantined, extracted, and swapped into the live graph
-atomically. A failed job leaves the previous graph untouched, and a merge that
-would drop an already-ingested document is refused outright.
+The Compose stack now starts one local API process that owns the ingestion
+worker and Kùzu writer. The graph server forwards upload, status, and document
+operations only to that internal service; no raw upload is sent to the hosted
+inference origin. This wiring has unit and static YAML coverage, but the
+container has not been booted or exercised with a real upload in this release
+worktree. Keep the upload UI closed to users until the P5 upload-to-citation
+test passes. The CLI route remains available for operator-controlled local
+ingestion.
 
 ## Source Lifecycle
 
