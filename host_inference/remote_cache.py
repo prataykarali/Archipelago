@@ -7,10 +7,11 @@ import os
 from pathlib import Path
 
 import requests
+from runtime_paths import runtime_cache_dir
 from supabase_service_headers import service_headers
 
 ROOT = Path(__file__).resolve().parent
-CACHE = ROOT / "cache"
+CACHE = runtime_cache_dir()
 BUCKET = "archipelago-cache"
 FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
 

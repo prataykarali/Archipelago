@@ -70,7 +70,9 @@ def load_hf_paths() -> list[str]:
             return [str(path) for path in paths if str(path).endswith(".pdf")]
     except Exception:
         pass
-    path = HERE / "cache" / "hf_files.json"
+    from runtime_paths import runtime_cache_dir
+
+    path = runtime_cache_dir() / "hf_files.json"
     if not path.is_file():
         return []
     payload = json.loads(path.read_text(encoding="utf-8"))

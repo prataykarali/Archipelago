@@ -21,11 +21,14 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from remote_cache import CACHE
+
 logger = logging.getLogger(__name__)
 
 # Searched in order; the first readable file wins. Host-relative paths only, so
 # the service is portable between the library computer and the cloud.
 CATALOGUE_PATHS = (
+    CACHE / "pearson_bookshelf.json",
     Path("data/catalogs/pearson_bookshelf.json"),
     Path("host_inference/cache/pearson_bookshelf.json"),
     Path("../data/catalogs/pearson_bookshelf.json"),
