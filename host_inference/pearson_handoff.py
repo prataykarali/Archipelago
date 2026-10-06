@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 from flask import render_template_string
 
 PEARSON_HOSTS = {"ebooks.elibrary.in.pearson.com", "elibrary.in.pearson.com"}
+PEARSON_PORTAL = "https://elibrary.in.pearson.com/"
 
 
 def book_url(url: str) -> str:
@@ -29,10 +30,14 @@ def handoff(title: str, url: str, page: int) -> str:
         <main><h1>{{ title }}</h1>
         <p>Open the book in Pearson, then go to <strong>page {{ page }}</strong>
         using the reader&#39;s page control.</p>
-        <p>Automatic page navigation is not verified. Pearson may restore your last-read page.
-        Institutional sign-in may be required. For reflowable books, page numbering may differ.</p>
-        <a href="{{ url }}" target="_blank" rel="noopener noreferrer">Open book in Pearson</a>
+        <p>Sign in through the Pearson portal first. Then open the book and use its page
+        control to select page {{ page }}. Pearson may restore your last-read page;
+        reflowable books may use different numbering.</p>
+        <p><a href="{{ portal }}" target="_blank" rel="noopener noreferrer">Sign in to Pearson eLibrary</a></p>
+        <p><a href="{{ url }}" target="_blank" rel="noopener noreferrer">Open this book in Pearson</a></p>
+        <p>If the book link opens a blank page, return to the Pearson portal and search for
+        <strong>{{ title }}</strong>. This reader does not provide a verified page link.</p>
         <p>Requested source page: {{ page }}. Check the book title and page before using the citation.</p>
         </main></html>""",
-        title=title, url=book_url(url), page=page,
+        title=title, url=book_url(url), portal=PEARSON_PORTAL, page=page,
     )
