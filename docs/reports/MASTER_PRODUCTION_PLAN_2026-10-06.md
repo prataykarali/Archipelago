@@ -108,6 +108,7 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 - [ ] Exclude personalized, enrollment, private, and unsafe questions from shared cache; prevent stale graph or citation results after ingestion.
 - [ ] Bound all local caches, rate-limit key maps, robots/host maps, async cache-write work, SSE client state, and generated session data; measure memory under repeated requests.
 - [x] Audit resource lifecycle read-only first: files, temporary uploads, PDF handles, SQLite connections, HTTP responses, threads, timers, DOM listeners, WebSockets, exception paths, and shutdown. Findings and limits are in `docs/reports/RESOURCE_LEAK_AUDIT_2026-10-06.md`; remediation and measured retest remain open.
+- [x] Local spreadsheet upload staging now has a 32 MB streamed cap and request-owned temporary directory. Preview, apply, parser-error, and oversize cleanup paths pass unit tests. Production disk behavior and the remaining cache/limiter leaks still need load testing.
 - [ ] Load test realistic API request bursts and LLM token throughput separately. Verify p50 first chunk <500 ms and p95 complete answer <20 s under an agreed institutional concurrency profile.
 - [ ] Instrument cache hit ratio, tokens/API calls, queue depth, graph version, source-link failures, ingestion lag, provider failures, and user-visible errors without collecting private question text by default.
 
@@ -136,6 +137,7 @@ Date: 2026-10-06. Scope: this Archipelago repository, the existing local library
 
 - `pytest tests/unit/test_source_links.py tests/unit/test_library_recovery.py tests/unit/test_student_roster_hosted.py -q`: **50 passed** after copying the ignored Pearson catalog and graph artifacts into this isolated worktree.
 - `pytest tests/unit/test_auth_boundary.py tests/unit/test_student_roster_hosted.py -q`: **9 passed** after the latest auth guard update.
+- `pytest tests/unit/test_librarian_upload_cleanup.py tests/unit/test_student_roster_hosted.py -q`: **12 passed**, including 4 upload-cleanup success/failure/size paths.
 - Ruff lint and format checks passed for the changed Pearson resolver, citation/demo/shelf files, roster modules, and affected tests. `git diff --check` passed.
 - The broad suite and repository-wide quality gate are **not green**. Strict mypy is unavailable in the environment; independent review and live staging E2E remain pending. Neither AntDeploy nor Vercel has been updated from this branch.
 
