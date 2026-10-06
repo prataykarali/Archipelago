@@ -42,6 +42,26 @@ The historical 5,151 figure cannot be used as a current release threshold. The K
 
 ## Platform decision and open gates
 
+### Architecture image feature status
+
+| Feature in the image | Evidence now | Status |
+| --- | --- | --- |
+| Student/librarian browser UI and verified roles | UI and Supabase AuthGuard exist; focused anonymous/staff boundary tests pass. No clean-browser run against the new target. | implemented but unverified |
+| Cloudflare entry point and protection | Cloudflare appears in the current AntDeploy response headers. Zone, DNS, WAF, and Vercel origin configuration are not inventoried. | implemented but unverified |
+| Vercel web/API server | No Archipelago Vercel project or preview exists. | not built |
+| Supabase Auth, metadata, cache, vector retrieval | Live project and two Auth migrations exist; faculty/cache migration versions and staging RLS/vector tests are missing. | implemented but unverified |
+| External AI provider on cache miss | Provider adapters exist; no Vercel preview query, quota/failover trace, or cache-miss E2E exists. | implemented but unverified |
+| Local PDF ingestion and Kùzu graph | Local graph has 6,081 typed nodes; Compose now wires a single local HTTP ingestion process and worker. Container boot, extraction model pin, and upload-to-citation E2E are open. | implemented but unverified |
+| Privacy boundary for raw PDFs | Local-only proxy allowlist and redirect denial pass focused tests; `.dockerignore` excludes local graph/results/data. Runtime egress and deployed topology still need proof. | implemented but unverified |
+| Approved chunk/vector/metadata sync | Sync client uses correct modern secret-key headers; rights review, manifest signing, staging schema, and live delta sync remain open. | implemented but unverified |
+
+### Vercel fit blockers found in code
+
+- `host_inference/hostapp/corpus_bootstrap.py` downloads artifacts into the repository tree and `host_inference/cache/`. `host_inference/remote_cache.py` and `library_inventory.py` also write into the image tree. These paths conflict with Vercel's read-only function filesystem; `/tmp` is writable but ephemeral. A preview needs a tested artifact loading strategy before any release claim.
+- `host_inference/hostapp/quiz_store.py` and `learning_memory.py` use local SQLite. An ephemeral function filesystem cannot be the durable, shared store for diagnostic sessions or student mastery. Move approved state to Supabase with per-user RLS or another reviewed durable service, and test cross-instance behavior.
+- `host_inference/server.py` is a Flask WSGI entry point and the slim requirements are Flask, Gunicorn, NumPy, and Requests, but there is no Vercel project/configuration. Successful import or a small dependency list does not establish bundle size, cold start, SSE behavior, static asset routing, or production readiness.
+- The tracked 84-concept fixture is a fallback slice. Preview readiness must reject or visibly mark fixture-only state; it cannot substitute for the approved institutional corpus.
+
 | Decision or risk | Required evidence before cutover |
 | --- | --- |
 | Target is Cloudflare → Vercel → Supabase with local ingestion/Kùzu | Record Cloudflare zone/domain configuration, Vercel project ID and preview URL, Supabase schema and RLS grants, and the approved local-to-cloud artifact contract. |
