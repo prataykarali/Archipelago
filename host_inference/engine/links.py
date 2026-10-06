@@ -9,9 +9,8 @@ Two link families, in priority order:
 The link line is re-appended verbatim after LLM polishing, so it must always
 point at a real, exact page — never a generic homepage.
 """
-from __future__ import annotations
 
-from remote_cache import pearson_page_url
+from __future__ import annotations
 
 HF_LINK_LABEL = "**Hugging Face page.**"
 PEARSON_LINK_LABEL = "**Pearson page.**"
@@ -27,13 +26,18 @@ def source_links(record: dict, book: dict | None, page: int = 1) -> str:
     lines: list[str] = []
     if record.get("url"):
         name = (record.get("doc_id") or "paper").split("/")[-1]
-        lines.append(f"{HF_LINK_LABEL} [{name} p.{page_n}]({record['url']})")
+        title = (
+            record.get("doc_title")
+            or record.get("title")
+            or name.replace("_", " ").replace(".pdf", "")
+        )
+        lines.append(f"[{title} — page {page_n}]({record['url']})")
     if not book:
         return "\n".join(lines)
     page_count = int(book.get("page_count") or 0)
     if page_count and page_n > page_count:
         return "\n".join(lines)
     href = f"/open/{book.get('id')}?page={page_n}"
-    exact = pearson_page_url(book, page_n)
-    lines.append(f"{PEARSON_LINK_LABEL} [{book.get('title')} p.{page_n}]({href}) ({exact})")
+    btitle = book.get("title") or "Pearson Textbook"
+    lines.append(f"[{btitle} — page {page_n}]({href})")
     return "\n".join(lines)

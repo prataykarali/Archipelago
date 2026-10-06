@@ -43,7 +43,8 @@ class AuthGuard:
             return False
         if raw in {"1", "true", "yes"}:
             return True
-        return os.getenv("ARCHIPELAGO_ENV", "development").lower() in {"production", "prod"}
+        url, key = self.supabase()
+        return bool(url and key)
 
     def supabase(self) -> tuple[str, str]:
         """Return ``(url, publishable_key)`` for Supabase, either possibly empty."""

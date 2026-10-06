@@ -39,13 +39,11 @@ def deliver_pdf(doc_path: str):
     if not REPO_PATTERN.fullmatch(repo):
         return error_response("bad_configuration", "Configure HF_DATASET_REPO as owner/dataset.", 503)
     token = os.environ.get("HF_TOKEN", "").strip()
-    if not token:
-        return error_response("unavailable", "The library dataset credential is not configured on the server.", 503)
     upstream = None
     try:
         upstream = requests.get(
             f"https://huggingface.co/datasets/{repo}/resolve/main/{quote(doc_path, safe='/')}",
-            headers={"Authorization": f"Bearer {token}", "Accept": "application/pdf"},
+            headers={**({"Authorization": f"Bearer {token}"} if token else {}), "Accept": "application/pdf"},
             stream=True, timeout=TIMEOUT_SECONDS, allow_redirects=True,
         )
         status = upstream.status_code

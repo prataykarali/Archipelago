@@ -4,6 +4,7 @@ One concern: turning the exported ``okf_graph.json`` into a queryable structure
 and answering structural questions about it (prerequisites, unlocks, shortest
 dependency path, best supporting source, citation record).
 """
+
 from __future__ import annotations
 
 from collections import deque
@@ -55,8 +56,10 @@ class LibraryGraph:
             merged.setdefault("label", merged.get("name") or cid)
             merged.setdefault("name", merged.get("label") or cid)
             self.nodes[cid] = merged
-        viz_nodes = ((raw.get("visualization") or {}).get("nodes") or [])
-        sources_by_id = {node.get("id"): node.get("sources") or [] for node in viz_nodes if node.get("id")}
+        viz_nodes = (raw.get("visualization") or {}).get("nodes") or []
+        sources_by_id = {
+            node.get("id"): node.get("sources") or [] for node in viz_nodes if node.get("id")
+        }
         for cid, node in self.nodes.items():
             if not node.get("sources") and sources_by_id.get(cid):
                 node["sources"] = sources_by_id[cid]
@@ -159,7 +162,7 @@ class LibraryGraph:
             for kind, nxt in hops:
                 if nxt in visited:
                     continue
-                step = path + [(kind, nxt)]
+                step = [*path, (kind, nxt)]
                 if nxt == b:
                     return step
                 visited.add(nxt)
@@ -169,16 +172,23 @@ class LibraryGraph:
     def phrase_hits(self, query: str) -> list[str]:
         """Concept ids whose alias or label appears literally in ``query``."""
         q = f" {re.sub(r'[^a-z0-9]+', ' ', query.lower())} "
+        words = set(q.split())
+        singular = {
+            word[:-1]
+            for word in words
+            if len(word) >= 5 and word.endswith("s") and not word.endswith("ss")
+        }
+        q_with_singular = f" {q.strip()} {' '.join(sorted(singular))} "
         hits = []
         for phrase, cid in sorted(ALIASES.items(), key=lambda item: -len(item[0])):
             if cid not in self.nodes:
                 continue
-            if f" {phrase} " in q and cid not in hits:
+            if f" {phrase} " in q_with_singular and cid not in hits:
                 hits.append(cid)
         for label, cid in sorted(self._label_index, key=lambda item: -len(item[0])):
             if len(label) < MIN_PHRASE_LABEL_LEN:
                 continue
-            if f" {label} " in q and cid not in hits:
+            if f" {label} " in q_with_singular and cid not in hits:
                 hits.append(cid)
         return hits
 
@@ -230,16 +240,18 @@ class LibraryGraph:
         then say the title is no longer in records instead of offering a link
         that will 404.
         """
-        source, all_withdrawn = self.best_live_source(
-            cid, query or getattr(self, "_query", "")
-        )
+        source, all_withdrawn = self.best_live_source(cid, query or getattr(self, "_query", ""))
         page = int((source or {}).get("page_number") or 1)
         doc_id = hf_doc_path(str((source or {}).get("doc_id") or ""))
         if not doc_id and not all_withdrawn and cid in FORMULAS:
             _formula, filename, formula_page = FORMULAS[cid]
             doc_id = f"papers/{filename}"
             page = formula_page
-        name = doc_id.split("/")[-1] if doc_id else f"{re.sub(r'[^A-Za-z0-9]+', '', self.label(cid)) or 'Catalog'}_catalog.pdf"
+        name = (
+            doc_id.split("/")[-1]
+            if doc_id
+            else f"{re.sub(r'[^A-Za-z0-9]+', '', self.label(cid)) or 'Catalog'}_catalog.pdf"
+        )
         hf_url = f"/read?doc={quote(doc_id, safe='')}&page={page}" if doc_id else ""
         return {
             "label": f"[S{index}: {name}, #page={page}]",
@@ -262,5 +274,5 @@ class LibraryGraph:
         """Rendered formula plus citation, or an empty string when none exists."""
         if cid not in FORMULAS:
             return ""
-        formula, filename, page = FORMULAS[cid]
+        formula, _filename, _page = FORMULAS[cid]
         return f"{formula} {self.citation(cid)}"

@@ -51,7 +51,38 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
         function renderGraphExperiencePrompt(msgId, metadata, options = {}) {
             if (window.showGraphCards === false) return;
             renderQueryInspector(msgId, metadata);
-            if (!metadata || !metadata.anchor_concept || metadata.render_graph === false) return;
+            if (!metadata) return;
+            if (!metadata.anchor_concept || metadata.render_graph === false) {
+                const zone = getOrCreateInteractiveZone(msgId);
+                if (!zone) return;
+                const citations = Array.isArray(metadata.citations) ? metadata.citations.slice(0, 6) : [];
+                const title = document.createElement('h3');
+                title.className = 'text-sm font-semibold text-violet-200 mb-3';
+                title.textContent = 'Answer and source graph';
+                const graph = document.createElement('div');
+                graph.className = 'flex flex-wrap items-center gap-3 rounded-xl border border-violet-500/30 bg-violet-950/20 p-4';
+                const answer = document.createElement('span');
+                answer.className = 'rounded-full bg-violet-600/40 border border-violet-400/50 px-3 py-1 text-sm text-white';
+                answer.textContent = 'Answer';
+                graph.appendChild(answer);
+                citations.forEach((citation, index) => {
+                    const edge = document.createElement('span');
+                    edge.className = 'text-amber-300';
+                    edge.textContent = '→';
+                    const node = document.createElement('span');
+                    node.className = 'rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs text-amber-100';
+                    node.textContent = citation.title || citation.doc_title || `Source ${index + 1}`;
+                    graph.append(edge, node);
+                });
+                if (!citations.length) {
+                    const note = document.createElement('span');
+                    note.className = 'text-xs text-gray-400';
+                    note.textContent = 'No cited source was available for this reply.';
+                    graph.appendChild(note);
+                }
+                zone.replaceChildren(title, graph);
+                return;
+            }
             if (metadata.contract === 'MCQ_DIAGNOSTIC') {
                 window._activeChoiceContext = { msgId, metadata };
                 const zone = getOrCreateInteractiveZone(msgId);

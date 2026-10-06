@@ -31,11 +31,7 @@ PUBLIC_API = frozenset({
     "/api/auth/session",
     "/api/health",
     "/api/readiness",
-    "/api/library/data",
-    "/api/chat",
-    "/api/chat/diagnostic-mcqs",
-    "/api/chat/adaptive-step",
-    "/api/chat/telemetry",
+        "/api/chat/telemetry",
     "/api/catalog/all",
     "/api/page-view",
     "/api/graph/subgraph",
@@ -82,7 +78,7 @@ PAGE_FILES = {
 # their own routes. Set ARCHIPELAGO_OPEN_READING=0 to restore mandatory
 # sessions for these pages.
 # Open reading: chat and library are accessible without authentication
-AUTH_GATED_PAGES = frozenset()
+AUTH_GATED_PAGES = frozenset({"chat", "library"})
 
 SESSION_COOKIE_NAME = "archipelago_token"
 SESSION_COOKIE_MAX_AGE = 3600

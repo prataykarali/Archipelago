@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="/library_showcase_3d.js"></script>
+  <script defer src="/scene_background_3d.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
     body {
@@ -79,6 +80,7 @@
       playsinline
       class="w-full h-full object-cover opacity-80"
     ></video>
+    <canvas data-archipelago-scene aria-hidden="true" class="absolute inset-0 w-full h-full opacity-45 mix-blend-screen"></canvas>
     <!-- Soft Vignette Gradient -->
     <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80"></div>
   </div>

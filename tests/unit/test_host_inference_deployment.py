@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import importlib
 import json
-import sys
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -98,9 +98,14 @@ def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_ap
 
     response = client.post(
         "/api/library/import",
-        data={"file": ( __import__("io").BytesIO(
-            b"book_id,title,total_copies,available_copies\nbk,Graph Book,4,2\n"
-        ), "inventory.csv")},
+        data={
+            "file": (
+                __import__("io").BytesIO(
+                    b"book_id,title,total_copies,available_copies\nbk,Graph Book,4,2\n"
+                ),
+                "inventory.csv",
+            )
+        },
         content_type="multipart/form-data",
     )
 
@@ -113,27 +118,34 @@ def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_ap
     assert saved["rows"][0]["title"] == "Graph Book"
 
 
-def test_pearson_link_shows_manual_page_handoff_without_rendering_credentials(hosted_app, monkeypatch):
+def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_app, monkeypatch):
     import hostapp.routes.reader as reader_routes
 
-    monkeypatch.setattr(reader_routes, "load_books", lambda: [{
-        "id": "book-1",
-        "title": "Reader title",
-        "book_type": "pdf",
-        "subscription_id": "sub-1",
-    }])
+    monkeypatch.setattr(
+        reader_routes,
+        "load_books",
+        lambda: [
+            {
+                "id": "book-1",
+                "title": "Reader title",
+                "book_type": "pdf",
+                "subscription_id": "sub-1",
+            }
+        ],
+    )
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
     assert response.status_code == 200
-    assert b"#book/book-1" in response.data
-    assert b"/page/7" not in response.data
+    assert b"Open book in Pearson" in response.data
     assert b"page 7" in response.data
-    assert b"Automatic page navigation is not verified" in response.data
     assert b"password" not in response.data.lower()
 
 
 def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     import engine as hosted_engine
+
+    answer_module = importlib.import_module("engine.answer")
+    monkeypatch.setattr(answer_module, "inference_context", lambda *_: "Grounded evidence")
 
     class RateLimitedResponse:
         status_code = 429
@@ -148,11 +160,10 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
         return RateLimitedResponse()
 
     monkeypatch.setenv("XKIRO_API_KEY", "configured-test-key")
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     monkeypatch.setattr(hosted_engine.requests, "post", fake_post)
     instance = hosted_engine.Engine.__new__(hosted_engine.Engine)
-    instance.graph = SimpleNamespace(nodes={
-        "graph_retrieval": {"id": "graph_retrieval", "summary": "Graph retrieval follows indexed links."},
-    })
+    instance.graph = object()
     instance.answer = lambda query: {
         "route": "GRAPH_SYNTHESIS",
         "text": "Grounded fallback with [citation].",
@@ -162,8 +173,8 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     chunks = list(instance.stream_chat("explain graph retrieval"))
     metadata = json.loads(chunks[0].split("\n[STREAM_START]\n", 1)[0])
 
-    assert captured["payload"]["max_tokens"] == 160
-    assert "1–2 crisp sentences" in captured["payload"]["messages"][0]["content"]
+    assert captured["payload"]["max_tokens"] == 700
+    assert "two or three substantial paragraphs" in captured["payload"]["messages"][0]["content"]
     assert metadata["model"]["provider"] == "xkiro"
     assert chunks[-1] == "Grounded fallback with [citation]."
 

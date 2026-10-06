@@ -3,7 +3,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const API_PREFIX = "/api/";
 const LOGIN_PATH = "/login";
 // Pages anyone may read without signing in.
-const OPEN_PATHS = new Set(["/", "/landing", "/chat", "/library"]);
+const OPEN_PATHS = new Set(["/", "/landing"]);
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
 const STAFF_ROUTES = new Set(["/chat", "/library", "/graph"]);
 
@@ -536,4 +536,3 @@ window.archipelagoOpenUserManagementModal = async (principal) => {
 
   await loadUsers();
 };
-

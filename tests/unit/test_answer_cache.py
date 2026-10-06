@@ -8,14 +8,15 @@ proves a cache hit makes **zero** model calls.
 Deterministic: no network. Supabase env vars are cleared so every test exercises
 the in-memory path.
 """
+
 from __future__ import annotations
 
 import importlib.util
 import json
+from pathlib import Path
 import sys
 import threading
 import time
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -324,7 +325,7 @@ def cache_app(cache_mod, isolated_env):
     return SimpleNamespace(app=create_app(ctx), engine=engine, ctx=ctx)
 
 
-def test_chat_miss_then_hit_makes_zero_second_model_call(cache_app):
+def test_each_chat_query_runs_fresh_inference(cache_app):
     client = cache_app.app.test_client()
 
     first = client.post("/api/chat", json={"query": "explain BERT"})
@@ -340,60 +341,45 @@ def test_chat_miss_then_hit_makes_zero_second_model_call(cache_app):
     body = second.get_data(as_text=True)
     meta = json.loads(body.split(CACHE_MARKER, 1)[0].strip())
 
-    assert cache_app.engine.calls == 1, "cache hit must not call the model"
+    assert cache_app.engine.calls == 2
     assert meta["target_id"] == "bert"
     assert meta["citations"][0]["doc_id"] == "papers/d1.pdf"
     assert "BERT is a transformer encoder." in body
 
 
-def test_legacy_cache_entry_replays_with_cache_provider(cache_app):
-    """A cache entry without an embedded metadata frame is rebuilt as JSON."""
+def test_legacy_cache_entry_does_not_override_fresh_answer(cache_app):
+    """Stored answers must never displace current retrieval and inference."""
     cache_app.ctx.cache_service.cache_response(
         "explain BERT", "Legacy cached answer.", sources=[{"doc_id": "papers/old.pdf"}]
     )
-    body = cache_app.app.test_client().post(
-        "/api/chat", json={"query": "explain BERT"}
-    ).get_data(as_text=True)
+    body = (
+        cache_app.app.test_client()
+        .post("/api/chat", json={"query": "explain BERT"})
+        .get_data(as_text=True)
+    )
     meta = json.loads(body.split(CACHE_MARKER, 1)[0].strip())
 
-    assert cache_app.engine.calls == 0
-    assert meta["model"] == {"provider": "cache", "model": "ai_response_cache"}
-    assert meta["citations"][0]["doc_id"] == "papers/old.pdf"
-    assert "Legacy cached answer." in body
+    assert cache_app.engine.calls == 1
+    assert meta["citations"][0]["doc_id"] == "papers/d1.pdf"
+    assert "Legacy cached answer." not in body
 
 
-def test_cache_metrics_endpoint_reports_hit_ratio(cache_app):
+def test_cache_metrics_endpoint_reports_no_answer_replays(cache_app):
     client = cache_app.app.test_client()
     client.post("/api/chat", json={"query": "explain BERT"}).get_data(as_text=True)  # miss
     client.post("/api/chat", json={"query": "explain BERT"}).get_data(as_text=True)  # hit
 
     stats = client.get("/api/metrics/cache").get_json()
     assert stats["ai_requests_total"] == 2
-    assert stats["ai_cache_hits"] == 1
-    assert stats["ai_cache_misses"] == 1
-    assert stats["cache_hit_ratio"] == 0.5
+    assert stats["ai_cache_hits"] == 0
+    assert stats["ai_cache_misses"] == 2
+    assert stats["cache_hit_ratio"] == 0
 
 
-def test_cache_hit_preserves_stream_metadata_frame(cache_app):
+def test_fresh_reply_preserves_stream_metadata_frame(cache_app):
     client = cache_app.app.test_client()
     client.post("/api/chat", json={"query": "explain BERT"}).get_data(as_text=True)
     hit = client.post("/api/chat", json={"query": "explain BERT"})
     text = hit.get_data(as_text=True)
-    assert CACHE_MARKER in text, "cached replay must keep the metadata frame"
+    assert CACHE_MARKER in text, "fresh reply must keep the metadata frame"
     assert hit.mimetype == "text/plain"
-
-
-def test_diagnostic_and_explanation_do_not_share_cache(cache_app):
-    client = cache_app.app.test_client()
-    for query in ("explain BERT", "teach me BERT", "teach me BERT"):
-        client.post("/api/chat", json={"query": query}).get_data()
-    assert cache_app.engine.calls == 3
-
-
-def test_personal_state_and_login_bypass_shared_cache(cache_app):
-    client = cache_app.app.test_client()
-    for _ in range(2):
-        client.post("/api/chat", json={"query": "explain BERT", "session_id": "private"}).get_data()
-        client.post("/api/chat", json={"query": "explain BERT"}, headers={"Authorization": "Bearer test"}).get_data()
-    assert cache_app.engine.calls == 4
-    assert not cache_app.ctx.cache_service._mem_response

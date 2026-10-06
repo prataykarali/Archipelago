@@ -44,6 +44,7 @@ import { state } from './00-state.js';
                         if (/^H[1-6]$/.test(p.nodeName)) return NodeFilter.FILTER_REJECT;
                         p = p.parentNode;
                     }
+                    pattern.lastIndex = 0;
                     return pattern.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
                 }
             });
@@ -90,6 +91,14 @@ import { state } from './00-state.js';
             });
         }
 
+        function citationTitle(citation, fallback = 'Source') {
+            const named = citation.doc_title || citation.title || citation.document_title;
+            if (named) return String(named);
+            const filename = String(citation.doc_id || citation.document_id || fallback).split('/').pop();
+            return filename.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ')
+                .replace(/^[A-Za-z]+\d{4}\s+/, '').trim() || fallback;
+        }
+
         function showPearsonCredentialToast() {
             let t = document.getElementById('archipelago-pearson-toast');
             if (!t) {
@@ -99,8 +108,8 @@ import { state } from './00-state.js';
                 document.body.appendChild(t);
             }
             t.innerHTML = `
-                <span style="color:#fbbf24;font-weight:700;display:flex;align-items:center;gap:4px">🔑 Pearson access:</span>
-                <span>Continue in the Pearson reader and sign in through the library portal when prompted.</span>
+                <span style="color:#fbbf24;font-weight:700">Pearson eLibrary:</span>
+                <span>Sign in with your own institutional account to open licensed books.</span>
             `;
             t.style.opacity = '1';
             t.style.transform = 'translateX(-50%) translateY(0)';
@@ -108,7 +117,7 @@ import { state } from './00-state.js';
             window._pearsonToastTimeout = setTimeout(() => {
                 t.style.opacity = '0';
                 t.style.transform = 'translateX(-50%) translateY(10px)';
-            }, 12000);
+            }, 18000);
         }
 
         function copyPearsonCreds() {
@@ -137,7 +146,7 @@ import { state } from './00-state.js';
             }
         }).catch(() => {});
 
-        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/Library_books/blob/main';
+        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/graphier/blob/main';
 
         const HF_CANONICAL_DOCS = {
             'deisenroth_math_for_ml.pdf': 'textbooks/Deisenroth_Math_For_ML.pdf',
@@ -206,17 +215,9 @@ import { state } from './00-state.js';
 
             // 1. Direct Pearson URL already present
             if (typeof directUrl === 'string' && directUrl.includes('pearson.com')) {
-                let u = directUrl;
-                if (!u.includes('version=')) {
-                    u = u.replace(/\.html\?/, '.html?version=1.0.317.1&');
-                    if (!u.includes('version=')) {
-                        u = u.replace(/\.html/, '.html?version=1.0.317.1');
-                    }
-                }
-                if (u.includes('/page/')) {
-                    return u.replace(/\/page\/\d+/, `/page/${page || 1}`);
-                }
-                return `${u}/page/${page || 1}`;
+                // Reader URLs carry the book in their hash. Appending /page after
+                // a query string produces a white Pearson viewer.
+                return directUrl;
             }
 
             // 2. Identify Pearson book from catalog using any candidate ID or title
@@ -282,7 +283,7 @@ import { state } from './00-state.js';
             }
             // Keep source navigation in the chat itself.  The inventory is useful
             // context, but it must not be the only way to reach a cited page.
-            const citations = getResponseCitations(metadata).slice(0, 3);
+            const citations = getResponseCitations(metadata).slice(0, 6);
             messageBody.setAttribute("data-evidence-count", String(citations.length));
             if (!citations.length) return;
 
@@ -294,11 +295,11 @@ import { state } from './00-state.js';
             rail.appendChild(label);
             citations.forEach((citation, index) => {
                 const page = Math.max(1, Number(citation.page_number || citation.page || 1));
-                const title = citation.doc_title || citation.title || citation.document_title || citation.doc_id || `Source ${index + 1}`;
+                const title = citationTitle(citation, `Source ${index + 1}`);
                 const href = citationPageUrl(citation);
                 const link = document.createElement('a');
                 link.className = 'view-page-link text-[11px] font-semibold';
-                link.textContent = `${title} · p.${page} ↗`;
+                link.textContent = `${title} · page ${page}`;
                 link.href = href || '#';
                 if (href) {
                     link.dataset.pageUrl = href;
@@ -309,22 +310,8 @@ import { state } from './00-state.js';
                 }
                 rail.appendChild(link);
 
-                // When the passage was indexed from the Hugging Face dataset,
-                // also offer the exact dataset file page as provenance.
-                const hfUrl = citation.hf_url;
-                if (typeof hfUrl === 'string' && hfUrl.includes('huggingface.co/datasets/')) {
-                    const sourceLink = document.createElement('a');
-                    sourceLink.className = 'view-page-link text-[11px] font-semibold opacity-70 hover:opacity-100';
-                    sourceLink.textContent = 'dataset source ↗';
-                    sourceLink.href = hfUrl;
-                    sourceLink.dataset.pageUrl = hfUrl;
-                    sourceLink.target = '_blank';
-                    sourceLink.rel = 'noopener noreferrer';
-                    sourceLink.title = 'Open this document on Hugging Face';
-                    rail.appendChild(sourceLink);
-                }
             });
             messageBody.appendChild(rail);
         }
 
-export { HF_CANONICAL_DOCS, HF_DATASET_BASE, _KW_HIGHLIGHTS, _enrichAssistantMarkup, appendEvidenceRail, citationPageUrl, copyPearsonCreds, getPearsonBookEntry, getResponseCitations, showPearsonCredentialToast };
+export { HF_CANONICAL_DOCS, HF_DATASET_BASE, _KW_HIGHLIGHTS, _enrichAssistantMarkup, appendEvidenceRail, citationPageUrl, citationTitle, copyPearsonCreds, getPearsonBookEntry, getResponseCitations, showPearsonCredentialToast };

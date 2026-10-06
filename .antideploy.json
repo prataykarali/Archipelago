@@ -7,7 +7,8 @@
   "env": {
     "FLASK_ENV": "production",
     "HF_ENDPOINT": "https://huggingface.co",
-    "HF_DATASET_REPO": "Prataykarali/Library_books"
+    "HF_DATASET_REPO": "Prataykarali/Library_books",
+    "ARCHIPELAGO_AUTH_REQUIRED": "1"
   },
   "port": 5151
 }
