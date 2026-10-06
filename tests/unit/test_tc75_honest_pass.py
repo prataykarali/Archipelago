@@ -53,7 +53,7 @@ def cred_store(tmp_path_factory):
             "label": "Lexis Advance India / Manupatra",
         },
         "efy": {
-            "user": "library.uemk@uem.edu.in",
+            "user": "[institutional-account]",
             "url": "https://ezine.efymag.com/loginefy.asp",
             "label": "Electronics For You",
         },

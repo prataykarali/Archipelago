@@ -8,14 +8,15 @@ proves a cache hit makes **zero** model calls.
 Deterministic: no network. Supabase env vars are cleared so every test exercises
 the in-memory path.
 """
+
 from __future__ import annotations
 
 import importlib.util
 import json
+from pathlib import Path
 import sys
 import threading
 import time
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -98,6 +99,39 @@ def test_cache_key_uses_query_content(cache_mod, isolated_env):
     assert svc.generate_cache_key("bert") != svc.generate_cache_key("gpt")
 
 
+def test_supabase_cache_requires_server_side_service_key(cache_mod, monkeypatch):
+    for name in ("SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "browser-public-key")
+    svc = cache_mod.CacheService()
+    assert not svc.has_supabase
+    assert svc.supabase_key == ""
+
+
+def test_loaded_corpus_fingerprint_invalidates_answer_cache(monkeypatch, tmp_path):
+    if str(HOST) not in sys.path:
+        sys.path.insert(0, str(HOST))
+    from cache_service import cache_service
+    import engine as hosted_engine
+    from hostapp.factory import build_context
+
+    graph_path = tmp_path / "okf_graph.json"
+    graph_path.write_text('{"nodes":[{"id":"a"}]}', encoding="utf-8")
+    books = [{"id": "book-a", "title": "First title"}]
+    monkeypatch.setattr(
+        hosted_engine, "Engine", lambda: SimpleNamespace(graph_path=graph_path, books=books)
+    )
+    monkeypatch.setattr(cache_service, "graph_version", cache_service.graph_version)
+    monkeypatch.setattr(cache_service, "library_version", cache_service.library_version)
+
+    build_context()
+    first_key = cache_service.generate_cache_key("bert")
+    graph_path.write_text('{"nodes":[{"id":"b"}]}', encoding="utf-8")
+    build_context()
+    assert cache_service.generate_cache_key("bert") != first_key
+
+
 # ─── Response cache hit / miss / TTL ─────────────────────────────────────────
 
 
@@ -126,6 +160,23 @@ def test_expired_entry_is_a_miss(cache_mod, isolated_env):
     svc = cache_mod.CacheService()
     svc.cache_response("bert", "text", ttl_seconds=-1)
     assert svc.get_cached_response("bert") is None
+
+
+@pytest.mark.parametrize("expires_at", ["not-a-date", "2000-01-01T00:00:00Z", None])
+def test_invalid_or_expired_supabase_row_is_a_miss(cache_mod, monkeypatch, expires_at):
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "synthetic-test-key")
+    monkeypatch.setattr(
+        cache_mod.requests,
+        "get",
+        lambda *args, **kwargs: SimpleNamespace(
+            status_code=200,
+            json=lambda: [{"response": "stale answer", "expires_at": expires_at}],
+        ),
+    )
+    svc = cache_mod.CacheService()
+    assert svc.get_cached_response("explain BERT") is None
+    assert svc._mem_response == {}
 
 
 def test_empty_query_and_empty_response_are_not_cached(cache_mod, isolated_env):
@@ -351,9 +402,11 @@ def test_legacy_cache_entry_replays_with_cache_provider(cache_app):
     cache_app.ctx.cache_service.cache_response(
         "explain BERT", "Legacy cached answer.", sources=[{"doc_id": "papers/old.pdf"}]
     )
-    body = cache_app.app.test_client().post(
-        "/api/chat", json={"query": "explain BERT"}
-    ).get_data(as_text=True)
+    body = (
+        cache_app.app.test_client()
+        .post("/api/chat", json={"query": "explain BERT"})
+        .get_data(as_text=True)
+    )
     meta = json.loads(body.split(CACHE_MARKER, 1)[0].strip())
 
     assert cache_app.engine.calls == 0
@@ -390,10 +443,30 @@ def test_diagnostic_and_explanation_do_not_share_cache(cache_app):
     assert cache_app.engine.calls == 3
 
 
-def test_personal_state_and_login_bypass_shared_cache(cache_app):
+def test_authenticated_public_question_uses_shared_cache(cache_app):
     client = cache_app.app.test_client()
     for _ in range(2):
-        client.post("/api/chat", json={"query": "explain BERT", "session_id": "private"}).get_data()
-        client.post("/api/chat", json={"query": "explain BERT"}, headers={"Authorization": "Bearer test"}).get_data()
-    assert cache_app.engine.calls == 4
+        client.post(
+            "/api/chat",
+            json={"query": "explain BERT"},
+            headers={"Authorization": "Bearer synthetic-test-token"},
+        ).get_data()
+    assert cache_app.engine.calls == 1
+
+
+@pytest.mark.parametrize(
+    "query,body",
+    [
+        ("explain BERT", {"session_id": "private"}),
+        ("explain my grades", {}),
+        ("what is my account status", {}),
+        ("explain bert for me", {}),
+        ("email me at student@example.edu", {}),
+    ],
+)
+def test_personal_queries_bypass_shared_cache(cache_app, query, body):
+    client = cache_app.app.test_client()
+    for _ in range(2):
+        client.post("/api/chat", json={"query": query, **body}).get_data()
+    assert cache_app.engine.calls == 2
     assert not cache_app.ctx.cache_service._mem_response

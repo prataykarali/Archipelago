@@ -207,19 +207,18 @@ import { state } from './00-state.js';
                 return `${clean}#page=${page}`;
             }
 
-            // 1. Direct Pearson URL already present
-            if (typeof directUrl === 'string' && directUrl.includes('pearson.com')) {
-                let u = directUrl;
-                if (!u.includes('version=')) {
-                    u = u.replace(/\.html\?/, '.html?version=1.0.317.1&');
-                    if (!u.includes('version=')) {
-                        u = u.replace(/\.html/, '.html?version=1.0.317.1');
+            // Pearson's reader ignores /page/N in the book hash. Keep the
+            // requested page in our honest handoff instead of inventing a
+            // deep link that opens the reader's last-read page.
+            if (typeof directUrl === 'string' && directUrl.startsWith('https://')) {
+                try {
+                    const parsed = new URL(directUrl);
+                    const pearsonHosts = ['ebooks.elibrary.in.pearson.com', 'elibrary.in.pearson.com'];
+                    if (pearsonHosts.includes(parsed.hostname) && !parsed.username && !parsed.password) {
+                        const match = parsed.hash.match(/^#book\/([a-zA-Z0-9_-]+)/);
+                        if (match) return `/open/${encodeURIComponent(match[1])}?page=${page}`;
                     }
-                }
-                if (u.includes('/page/')) {
-                    return u.replace(/\/page\/\d+/, `/page/${page || 1}`);
-                }
-                return `${u}/page/${page || 1}`;
+                } catch (_) { /* Ignore malformed external links. */ }
             }
 
             // 2. Identify Pearson book from catalog using any candidate ID or title

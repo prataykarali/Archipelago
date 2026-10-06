@@ -98,7 +98,7 @@
 > **Expected:** Hugging Face Datasets (Private repository).
 
 **Q25.** What user ID is used for accessing Electronics For You (EFY) ezine?
-> **Expected:** `library.uemk@uem.edu.in`.
+> **Expected:** `[institutional-account]`.
 
 ---
 

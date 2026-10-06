@@ -6,30 +6,14 @@ from urllib.parse import quote as _url_quote
 
 from archipelago.inference.library_catalog.part01_ods import CATALOG_COLORS, display_title
 from archipelago.inference.library_catalog.part03_prominent import PROMINENT_EBOOKS
+from archipelago.resolver.pearson import build_reader_url
 
-_PEARSON_READER_BASE = "https://ebooks.elibrary.in.pearson.com/wr"
-_PEARSON_PDF_VIEWER = f"{_PEARSON_READER_BASE}/pdfviewer.html"
-_PEARSON_INDEX_VIEWER = f"{_PEARSON_READER_BASE}/index.html"
-_PEARSON_DEFAULT_YEAR = "2024"
 _PEARSON_DEFAULT_AUTHOR = "Pearson Education"
 _PEARSON_DEFAULT_DOMAIN = "Computer Science & Engineering"
 _PAPER_DEFAULT_AUTHOR = "ArXiv / Academic Research"
 PAPER_DOMAIN = "Research Papers & Preprints"
 TEXTBOOK_DOMAIN = "Textbooks & Course Material"
 HOLDINGS_DOMAIN = "Central Library Holdings"
-
-_PEARSON_DEMO_TOC = [
-    {"title": "Chapter 1: Foundations & Architecture", "page": 1},
-    {"title": "Chapter 2: Core Concepts & Practice", "page": 35},
-    {"title": "Chapter 3: Advanced Topics", "page": 90},
-]
-
-_PAPER_DEMO_TOC = [
-    {"title": "1. Abstract & Motivation", "page": 1},
-    {"title": "2. Formulation & Architecture", "page": 3},
-    {"title": "3. Experiments & Results", "page": 6},
-    {"title": "4. Conclusions & Future Work", "page": 10},
-]
 
 
 def _colors(offset: int = 0) -> tuple[str, str]:
@@ -42,15 +26,8 @@ def build_prominent_ebook_entries() -> list[dict]:
 
 
 def build_pearson_reader_url(book: dict) -> str:
-    """Build the exact Pearson eLibrary reader URL for one catalog book."""
-    book_id = book.get("id", "")
-    explicit = book.get("reader_base_url", "")
-    if explicit:
-        return explicit
-    sub_id = book.get("subscription_id", "")
-    sub_param = f"?subscriptionId={sub_id}" if sub_id else ""
-    viewer = _PEARSON_PDF_VIEWER if book.get("book_type") == "pdf" else _PEARSON_INDEX_VIEWER
-    return f"{viewer}{sub_param}#book/{book_id}"
+    """Build the book-level Pearson URL without an unsupported page fragment."""
+    return build_reader_url(book)
 
 
 def append_pearson_books(
@@ -68,7 +45,7 @@ def append_pearson_books(
                 "id": b_id,
                 "title": pb.get("title", "Pearson Title"),
                 "author": pb.get("author", _PEARSON_DEFAULT_AUTHOR),
-                "year": _PEARSON_DEFAULT_YEAR,
+                "year": pb.get("year") or "",
                 "isPearson": True,
                 "primaryColor": pcol,
                 "accentColor": acol,
@@ -79,7 +56,7 @@ def append_pearson_books(
                 "desc": f"Pearson institutional title in {pb.get('domain', 'CS')}. ISBN: {pb.get('isbn', 'N/A')}.",
                 "isbn": pb.get("isbn", "N/A"),
                 "page_count": pb.get("page_count", 0),
-                "toc": [dict(t) for t in _PEARSON_DEMO_TOC],
+                "toc": [],
             }
         )
     return shelf
@@ -96,7 +73,7 @@ def append_papers(shelf: list[dict], papers: list[dict], start_offset: int) -> l
                 "id": doc_id,
                 "title": p["title"],
                 "author": p.get("source", _PAPER_DEFAULT_AUTHOR),
-                "year": "2020-2024",
+                "year": p.get("year") or "",
                 "isPearson": False,
                 "isPaper": True,
                 "primaryColor": pcol,
@@ -107,8 +84,8 @@ def append_papers(shelf: list[dict], papers: list[dict], start_offset: int) -> l
                 "resolveUrl": f"/open/{doc_id}",
                 "desc": f"Foundational AI/ML research publication: {p['title']}. Readable in the internal PDF reader.",
                 "isbn": "ArXiv Preprint",
-                "page_count": 15,
-                "toc": [dict(t) for t in _PAPER_DEMO_TOC],
+                "page_count": p.get("page_count") or 0,
+                "toc": p.get("toc") or [],
             }
         )
     return shelf

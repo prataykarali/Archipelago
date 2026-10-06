@@ -22,3 +22,6 @@ pdfs/
 training_data/
 *.db
 *.db/
+okf_graph.json
+okf_results.json
+data/

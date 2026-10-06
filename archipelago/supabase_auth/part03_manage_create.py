@@ -104,8 +104,8 @@ def _patch_profile(url: str, headers: dict[str, str], uid: str, payload: dict[st
             json=payload,
             timeout=CREATE_PROFILE_TIMEOUT_SECONDS,
         )
-    except Exception:
-        pass
+    except requests.RequestException as exc:
+        logger.warning("Supabase profile patch failed for %s: %s", uid, exc)
 
 
 def _auth_error_message(response: requests.Response) -> str:
@@ -187,7 +187,7 @@ def create_managed_user(
     local_users = _read_local_users()
     if any(u.get("username", "").lower() == username.lower() for u in local_users):
         return None, f"Username '{username}' is already registered."
-    now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    now_str = datetime.datetime.now(datetime.UTC).isoformat()
     new_entry = {
         "id": f"user-{uuid.uuid4().hex[:USER_ID_HEX_LENGTH]}",
         "username": username,

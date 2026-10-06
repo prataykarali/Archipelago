@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from http import HTTPStatus
 import json
 import os
 from pathlib import Path
@@ -11,16 +12,22 @@ from flask import Flask, Response, g, jsonify, redirect, request, send_from_dire
 import requests
 
 from archipelago import supabase_auth
+from archipelago.middleware.local_ingest_origin import local_ingest_origin
 from archipelago.middleware.log_redaction import install_log_redaction
 
 # Access logs must never capture the `?token=`/Authorization values used here.
 install_log_redaction()
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_FILE = BASE_DIR / "okf_graph.json"
+DATA_FILE = Path(os.environ.get("ARCHIPELAGO_GRAPH_JSON", str(BASE_DIR / "okf_graph.json")))
 STATIC_DIR = BASE_DIR / "graph_ui"
-_ASSET_ROOTS = tuple(path for path in (BASE_DIR / "buttons", BASE_DIR / "ui" / "assets") if path.is_dir())
-_PUBLIC_AUTH_PATHS = frozenset({"/api/auth/config", "/api/auth/me", "/api/readiness", "/api/health"})
+_ASSET_ROOTS = tuple(
+    path for path in (BASE_DIR / "buttons", BASE_DIR / "ui" / "assets") if path.is_dir()
+)
+_PUBLIC_AUTH_PATHS = frozenset(
+    {"/api/auth/config", "/api/auth/me", "/api/readiness", "/api/health"}
+)
+LOCAL_INGEST_ROOTS = frozenset({"ingest", "librarian", "documents", "manual"})
 
 app = Flask(__name__, static_folder=str(STATIC_DIR))
 
@@ -48,7 +55,9 @@ def enforce_graph_auth():
             return redirect(f"{chat_origin}/login?next={quote(target, safe='')}", code=302)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": error}), 401
-    return jsonify({"error": "forbidden", "detail": "Librarian or administrator role required"}), 403
+    return jsonify(
+        {"error": "forbidden", "detail": "Librarian or administrator role required"}
+    ), 403
 
 
 @app.after_request
@@ -80,12 +89,14 @@ def auth_me():
     principal, error = supabase_auth.authenticate_request(request)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": error}), 401
-    return jsonify({
-        "authenticated": True,
-        "user_id": principal.user_id,
-        "username": principal.username,
-        "role": principal.role,
-    })
+    return jsonify(
+        {
+            "authenticated": True,
+            "user_id": principal.user_id,
+            "username": principal.username,
+            "role": principal.role,
+        }
+    )
 
 
 @app.route("/api/readiness", methods=["GET"])
@@ -100,15 +111,25 @@ def api_graph():
     visualization = data.get("visualization", {})
     nodes = visualization.get("nodes", data.get("nodes", []))
     raw_edges = data.get("edges", [])
-    edges = [{
-        "id": edge.get("id", f"e{index}"),
-        "source": edge.get("from_id") or edge.get("source"),
-        "target": edge.get("to_id") or edge.get("target"),
-        "relation": edge.get("relation"),
-        "edge_type": edge.get("edge_type"),
-        "source_ref": edge.get("source", ""),
-    } for index, edge in enumerate(raw_edges)]
-    return jsonify({"nodes": nodes, "edges": edges, "stats": data.get("stats", {}), "clusters": visualization.get("clusters", {})})
+    edges = [
+        {
+            "id": edge.get("id", f"e{index}"),
+            "source": edge.get("from_id") or edge.get("source"),
+            "target": edge.get("to_id") or edge.get("target"),
+            "relation": edge.get("relation"),
+            "edge_type": edge.get("edge_type"),
+            "source_ref": edge.get("source", ""),
+        }
+        for index, edge in enumerate(raw_edges)
+    ]
+    return jsonify(
+        {
+            "nodes": nodes,
+            "edges": edges,
+            "stats": data.get("stats", {}),
+            "clusters": visualization.get("clusters", {}),
+        }
+    )
 
 
 @app.route("/api/schema")
@@ -125,13 +146,40 @@ def api_node(node_id: str):
     node = next((item for item in nodes if item.get("id") == node_id), None)
     if node is None:
         return jsonify({"error": "node not found"}), 404
-    return jsonify({"node": node, "edges": [edge for edge in edges if edge.get("source") == node_id or edge.get("target") == node_id]})
+    return jsonify(
+        {
+            "node": node,
+            "edges": [
+                edge
+                for edge in edges
+                if edge.get("source") == node_id or edge.get("target") == node_id
+            ],
+        }
+    )
 
 
 @app.route("/api/<path:api_path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 def inference_api_proxy(api_path: str):
     """Forward authenticated graph-console API calls to the inference service."""
-    base = os.environ.get("ARCHIPELAGO_INFERENCE_URL", "http://127.0.0.1:5151").rstrip("/")
+    local_ingest = api_path.split("/", 1)[0] in LOCAL_INGEST_ROOTS
+    if local_ingest:
+        base = local_ingest_origin()
+        if base is None:
+            return jsonify({"error": "local ingestion unavailable"}), HTTPStatus.SERVICE_UNAVAILABLE
+    else:
+        if request.files:
+            return jsonify(
+                {"error": "raw uploads must stay on the library computer"}
+            ), HTTPStatus.FORBIDDEN
+        if (
+            request.method in {"POST", "PUT", "PATCH"}
+            and request.content_length
+            and request.mimetype != "application/json"
+        ):
+            return jsonify(
+                {"error": "only JSON is accepted by this cloud proxy"}
+            ), HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+        base = os.environ.get("ARCHIPELAGO_INFERENCE_URL", "http://127.0.0.1:5151").rstrip("/")
     for suffix in ("/api/chat", "/api"):
         if base.endswith(suffix):
             base = base[: -len(suffix)]
@@ -158,6 +206,7 @@ def inference_api_proxy(api_path: str):
                 headers={key: value for key, value in headers.items() if key != "Content-Type"},
                 timeout=(10, 300),
                 stream=True,
+                allow_redirects=False,
             )
         else:
             upstream = requests.request(
@@ -168,6 +217,7 @@ def inference_api_proxy(api_path: str):
                 headers=headers,
                 timeout=(10, 300),
                 stream=True,
+                allow_redirects=False,
             )
     except requests.RequestException as exc:
         app.logger.warning("Inference API proxy failed for %s: %s", api_path, exc)
@@ -192,12 +242,14 @@ def api_stats():
     visualization = data.get("visualization", {})
     nodes = visualization.get("nodes", data.get("nodes", []))
     edges = data.get("edges", [])
-    return jsonify({
-        "node_count": len(nodes),
-        "edge_count": len(edges),
-        "schema_version": data.get("schema", {}).get("version", "1.6"),
-        "updated_at": data.get("updated_at"),
-    })
+    return jsonify(
+        {
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+            "schema_version": data.get("schema", {}).get("version", "1.6"),
+            "updated_at": data.get("updated_at"),
+        }
+    )
 
 
 @app.route("/")

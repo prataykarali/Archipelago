@@ -1,4 +1,5 @@
 """Pearson eLibrary Link Resolver - Pure Metadata & External URL Generation Engine."""
+
 from __future__ import annotations
 
 import json
@@ -47,11 +48,22 @@ def _normalize_key(s: str | None) -> str:
     """Normalize string to lowercase alphanumeric characters, stripping common prefixes."""
     if not s:
         return ""
-    clean = s.lower().replace("doc_", "").replace("pearson_", "").replace("book_", "").replace(".pdf", "")
+    clean = (
+        s.lower()
+        .replace("doc_", "")
+        .replace("pearson_", "")
+        .replace("book_", "")
+        .replace(".pdf", "")
+    )
     return re.sub(r"[^a-z0-9]", "", clean)
 
 
-def _fuzzy_match_book(catalog: list[dict[str, Any]], query_id: str | None, query_title: str | None, query_isbn: str | None) -> dict[str, Any] | None:
+def _fuzzy_match_book(
+    catalog: list[dict[str, Any]],
+    query_id: str | None,
+    query_title: str | None,
+    query_isbn: str | None,
+) -> dict[str, Any] | None:
     """Find matching Pearson book using exact, normalized, or fuzzy criteria."""
     if not query_id and not query_title and not query_isbn:
         return None
@@ -85,7 +97,6 @@ def _fuzzy_match_book(catalog: list[dict[str, Any]], query_id: str | None, query
             nb_title = _normalize_key(book.get("title", ""))
             nb_slug = _normalize_key(book.get("slug", ""))
             nb_id = _normalize_key(book.get("id", ""))
-            nb_author = _normalize_key(book.get("author", ""))
             if nq in (nb_title, nb_slug, nb_id):
                 return book
             # Check aliases
@@ -113,7 +124,7 @@ def _fuzzy_match_book(catalog: list[dict[str, Any]], query_id: str | None, query
         clean_q = query_id.replace("-", "").lower()
         for book in catalog:
             b_id = book.get("id", "").replace("-", "").lower()
-            matching_chars = sum(1 for a, b in zip(clean_q, b_id) if a == b)
+            matching_chars = sum(1 for a, b in zip(clean_q, b_id, strict=False) if a == b)
             if matching_chars / max(len(clean_q), len(b_id)) > 0.75:
                 return book
 
@@ -134,6 +145,11 @@ def _with_reader_version(url: str) -> str:
     return url.replace(".html", f".html?version={PEARSON_READER_VERSION}", 1)
 
 
+def _book_only_url(url: str) -> str:
+    """Remove unsupported page fragments from a Pearson book reader URL."""
+    return re.sub(r"/page/\d+", "", url)
+
+
 def resolve_pearson_url(
     book_id: str | None = None,
     subscription_id: str | None = None,
@@ -148,9 +164,16 @@ def resolve_pearson_url(
     No network probe occurs here. ``verified``, ``access_verified`` and
     ``page_verified`` remain false, even when a URL can be constructed.
     """
-    
+
     # 1. Direct URL check
-    if existing_url and urlsplit(existing_url).scheme == "https" and urlsplit(existing_url).hostname in {"elibrary.in.pearson.com", "ebooks.elibrary.in.pearson.com"} and not urlsplit(existing_url).username:
+    if (
+        existing_url
+        and urlsplit(existing_url).scheme == "https"
+        and urlsplit(existing_url).hostname
+        in {"elibrary.in.pearson.com", "ebooks.elibrary.in.pearson.com"}
+        and not urlsplit(existing_url).username
+    ):
+        existing_url = _book_only_url(existing_url)
         return {
             "working": True,
             "url": existing_url,
@@ -174,12 +197,16 @@ def resolve_pearson_url(
         b_id = matched_book.get("id")
         b_isbn = matched_book.get("isbn")
         b_title = matched_book.get("title")
-        sub_id = matched_book.get("subscription_id") or subscription_id or "debf3e10-c27c-469a-a2aa-8a30c919db91"
+        sub_id = (
+            matched_book.get("subscription_id")
+            or subscription_id
+            or "debf3e10-c27c-469a-a2aa-8a30c919db91"
+        )
         r_url = matched_book.get("reader_base_url")
         book_type = matched_book.get("book_type", "pdf")
 
         if r_url:
-            target_url = _with_reader_version(r_url)
+            target_url = _book_only_url(_with_reader_version(r_url))
         else:
             target_url = _reader_url(str(b_id), str(sub_id), str(book_type))
 
@@ -242,19 +269,18 @@ def resolve_pearson_url(
 
 
 def build_reader_url(book_or_uuid: dict[str, Any] | str, page: int = 1) -> str:
-    """Build a Pearson eLibrary reader URL for a specific book and page.
+    """Build a book-specific Pearson URL without claiming an unsupported page jump.
 
     Preserves the exact reader viewer (index.html for reflowable, pdfviewer.html for pdf)
     and specific subscriptionId defined in the catalog.
 
     Args:
         book_or_uuid: A matched book dict, book UUID, slug, doc_id, or title.
-        page: The page number to navigate to (default: 1).
+        page: Requested citation page, handled by the caller's manual-page UI.
 
     Returns:
-        Full Pearson reader URL with #book/{uuid}/page/{page} fragment.
+        Pearson reader URL with a #book/{uuid} fragment.
     """
-    import re
     matched_book = None
     if isinstance(book_or_uuid, dict):
         matched_book = book_or_uuid
@@ -268,17 +294,14 @@ def build_reader_url(book_or_uuid: dict[str, Any] | str, page: int = 1) -> str:
         b_id = matched_book.get("id")
         sub_id = matched_book.get("subscription_id") or "debf3e10-c27c-469a-a2aa-8a30c919db91"
         book_type = matched_book.get("book_type", "pdf")
-        viewer = "index.html" if book_type == "reflowable" else "pdfviewer.html"
         base_url = _reader_url(str(b_id), str(sub_id), str(book_type))
     else:
         import os
+
         sub_id = os.environ.get("PEARSON_SUBSCRIPTION_ID", "debf3e10-c27c-469a-a2aa-8a30c919db91")
         base_url = _reader_url(str(book_or_uuid), str(sub_id))
 
-    clean_base = re.sub(r"/page/\d+", "", base_url)
-    if page and int(page) >= 1:
-        return f"{clean_base}/page/{int(page)}"
-    return clean_base
+    return _book_only_url(base_url)
 
 
 def resolve(book_id: str, page: int = 1) -> str | None:
@@ -289,7 +312,8 @@ def resolve(book_id: str, page: int = 1) -> str | None:
         page: The page to navigate to.
 
     Returns:
-        Pearson reader URL string with page fragment, or None if not found.
+        Book-specific Pearson reader URL, or None if not found. Page navigation
+        must be explained separately until a supported deep link is verified.
     """
     if not book_id:
         return None

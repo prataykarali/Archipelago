@@ -16,6 +16,7 @@ Every physical claim is sourced. When the institution holds no physical copy the
 card says so plainly and reports the demand signal instead of inventing a
 location — a fabricated rack number is worse than no answer.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -39,7 +40,7 @@ NO_RECORD_TEMPLATE = (
     "catalogue for the Central Library.\n\n"
     "Search the OPAC for the current holdings: http://uemk-opac.l2c2.co.in, "
     "or ask at the circulation desk. If the library does not hold it, the "
-     "acquisition desk can place a request — this has been logged as demand. "
+    "acquisition desk can place a request — this has been logged as demand. "
     "ISBN, call number and live availability are unverified; no shelf location is invented. "
     "Digital access does not replace the physical library."
 )
@@ -53,10 +54,41 @@ def _norm(text: str) -> str:
 def _tokens(text: str) -> set[str]:
     """Content tokens, with edition/ordinal noise removed."""
     stop = {
-        "the", "a", "an", "and", "or", "of", "in", "on", "to", "for", "ed",
-        "edition", "vol", "volume", "book", "copy", "copies", "physical",
-        "campus", "library", "find", "where", "can", "i", "me", "my", "please",
-        "is", "there", "any", "have", "has", "do", "you", "available",
+        "the",
+        "a",
+        "an",
+        "and",
+        "or",
+        "of",
+        "in",
+        "on",
+        "to",
+        "for",
+        "ed",
+        "edition",
+        "vol",
+        "volume",
+        "book",
+        "copy",
+        "copies",
+        "physical",
+        "campus",
+        "library",
+        "find",
+        "where",
+        "can",
+        "i",
+        "me",
+        "my",
+        "please",
+        "is",
+        "there",
+        "any",
+        "have",
+        "has",
+        "do",
+        "you",
+        "available",
     }
     return {tok for tok in _norm(text).split() if tok not in stop and len(tok) > 1}
 
@@ -70,15 +102,11 @@ def extract_title(query: str) -> str:
     """
     # Students paste curly quotes from Word and search boxes, so the delimiter
     # set covers ASCII, single-curly, and double-curly forms.
-    quoted = re.search(
-        "[\"'\u2018\u201c]([^\"'\u2019\u201d]{3,120})[\"'\u2019\u201d]", query
-    )
+    quoted = re.search("[\"'\u2018\u201c]([^\"'\u2019\u201d]{3,120})[\"'\u2019\u201d]", query)
     if quoted:
         return quoted.group(1).strip()
 
-    titled = re.search(
-        r"\b(?:for|of|title|called|named)\s+([A-Z0-9][^?!.]{2,90})", query
-    )
+    titled = re.search(r"\b(?:for|of|title|called|named)\s+([A-Z0-9][^?!.]{2,90})", query)
     if titled:
         candidate = re.split(r"\s+(?:on|at|in|for|available)\b", titled.group(1))[0]
         if candidate.strip():
@@ -148,13 +176,14 @@ def probable_match_notice(requested: str, matched: str) -> str:
 
 def _copies(record: dict[str, Any]) -> tuple[int, int]:
     """``(available, total)`` copy counts, tolerating string or null cells."""
+
     def as_int(value: Any) -> int:
         try:
             return int(float(value))
         except (TypeError, ValueError):
             return 0
 
-    total = as_int(record.get("total_copies")) or 1
+    total = as_int(record.get("total_copies")) if "total_copies" in record else 1
     available = as_int(record.get("available_copies"))
     return max(0, min(available, total)), total
 
@@ -190,10 +219,16 @@ def shelf_card(
         label = "ISBN / shelf locator" if record.get("isbn") else "Call number / shelf location"
         lines.append(f"**{label}.** `{biblionumber}`{citation}")
 
-    lines.append(
-        f"**Live shelf availability.** **{available} physical cop{'y' if available == 1 else 'ies'} "
-        f"available** out of {total} total{citation}."
-    )
+    if publisher == "Pearson eLibrary":
+        lines.append(
+            "**Physical inventory.** This is a licensed e-book; no physical copy "
+            "or shelf location is verified by this catalog export."
+        )
+    else:
+        lines.append(
+            f"**Live shelf availability.** **{available} physical cop{'y' if available == 1 else 'ies'} "
+            f"available** out of {total} total{citation}."
+        )
 
     barcodes = _render_barcodes(record.get("barcodes"))
     if barcodes:

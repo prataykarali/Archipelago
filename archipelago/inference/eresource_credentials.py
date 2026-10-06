@@ -14,9 +14,11 @@ mode 0600). This module reads it for metadata fields (``url``,
 ``login_format``, etc.) but intentionally refuses to echo secrets
 (``password``, ``passkey``, ``username``, etc.).
 
-Card counts come from ``ARCHIPELAGO_MEMBERSHIP_*`` env vars and default
-to 0 (conservative — do not promise stock the library does not have).
+Optional card totals come from ``ARCHIPELAGO_MEMBERSHIP_*`` env vars. These
+are not live checkout counts, so student replies direct availability checks
+to the library desk.
 """
+
 from __future__ import annotations
 
 import json
@@ -97,13 +99,19 @@ def format_credential_reply(prompt: str) -> str | None:
                 return url.strip()
         return default
 
-    # British Council / American Library membership cards (physical, count only)
+    # Environment totals are not a live physical checkout ledger.
     if "british council" in p_lower or "american library" in p_lower:
-        bc_cards = os.environ.get("ARCHIPELAGO_MEMBERSHIP_BRITISH_COUNCIL", "0")
-        al_cards = os.environ.get("ARCHIPELAGO_MEMBERSHIP_AMERICAN_LIBRARY", "0")
+        bc_cards = os.environ.get("ARCHIPELAGO_MEMBERSHIP_BRITISH_COUNCIL", "").strip()
+        al_cards = os.environ.get("ARCHIPELAGO_MEMBERSHIP_AMERICAN_LIBRARY", "").strip()
+        if bc_cards.isdecimal() and al_cards.isdecimal():
+            return (
+                f"Configured card totals: **{bc_cards} British Council** and "
+                f"**{al_cards} American Library**. Live checkout availability is not "
+                "tracked here; confirm with the Central Library desk."
+            )
         return (
-            f"Central Library has **{bc_cards} British Council** and "
-            f"**{al_cards} American Library** membership cards. Visit the desk to borrow."
+            "British Council and American Library card availability is not tracked "
+            "here. Ask the Central Library desk before visiting."
         )
 
     # Scopus / ScienceDirect
@@ -142,9 +150,7 @@ def format_credential_reply(prompt: str) -> str | None:
     if "opac" in p_lower:
         o_creds = creds.get("opac") or {}
         fmt = (
-            o_creds.get("login_format")
-            if isinstance(o_creds, dict)
-            else None
+            o_creds.get("login_format") if isinstance(o_creds, dict) else None
         ) or "Emp ID / Enrollment No."
         return _portal_line(
             "IEM/UEM Library OPAC",

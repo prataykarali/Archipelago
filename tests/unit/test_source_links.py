@@ -1,9 +1,10 @@
-"""Source-link integrity: every book, paper, and dataset resolves to an EXACT page.
+"""Source-link integrity: exact PDF pages and honest Pearson book handoffs.
 
 These tests are the regression gate for docs/01 §5 ("Direct Source Links —
 NON-NEGOTIABLE"): a rendered link must never degrade to a generic homepage
 while an exact verified page exists, and no URL may be fabricated.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -47,31 +48,34 @@ def library_payload() -> dict:
     return build_library_data_payload(REPO_ROOT)
 
 
-# ── Pearson: exact reader page for every catalog title ────────────────────────
+# ── Pearson: book-specific reader URLs without fabricated page jumps ──────────
 
-def test_every_pearson_book_resolves_to_exact_reader_url(pearson_catalog):
-    """All 40 institutional titles must resolve to a #book/{uuid} reader page."""
-    unresolved = [b.get("id") for b in pearson_catalog if not resolve(str(b.get("id")), page=MIN_PAGE)]
+
+def test_every_pearson_book_resolves_to_book_reader_url(pearson_catalog):
+    """Every catalog title must resolve to its own #book/{uuid} reader URL."""
+    unresolved = [
+        b.get("id") for b in pearson_catalog if not resolve(str(b.get("id")), page=MIN_PAGE)
+    ]
     assert not unresolved, f"Pearson books without an exact reader URL: {unresolved}"
 
 
-def test_pearson_reader_urls_carry_book_uuid_and_page(pearson_catalog):
-    """Reader URLs must be page-anchored and book-specific, not the portal."""
+def test_pearson_reader_urls_carry_book_uuid_without_fake_page(pearson_catalog):
+    """Reader URLs identify a book without claiming an unsupported page jump."""
     for book in pearson_catalog:
         url = resolve(str(book.get("id")), page=MAX_PAGE)
         assert url is not None, book.get("title")
         assert url.startswith(PEARSON_READER_PREFIX), f"{book.get('title')}: {url}"
         assert "#book/" in url, f"{book.get('title')} missing #book fragment: {url}"
-        assert f"/page/{MAX_PAGE}" in url, f"{book.get('title')} missing page anchor: {url}"
+        assert "/page/" not in url, f"{book.get('title')} has an unverified page jump: {url}"
         assert PEARSON_PORTAL not in url, f"{book.get('title')} degraded to portal: {url}"
 
 
-def test_pearson_catalog_entries_expose_exact_reader_url(pearson_catalog):
+def test_pearson_catalog_entries_expose_book_reader_url(pearson_catalog):
     """build_reader_url keeps the catalog viewer and subscription per title."""
     for book in pearson_catalog[:10]:
         url = build_reader_url(book, page=7)
         assert "#book/" in url
-        assert "/page/7" in url
+        assert "/page/" not in url
         assert str(book.get("id")) in url, f"wrong book id for {book.get('title')}: {url}"
 
 
@@ -90,11 +94,11 @@ def test_non_pearson_identifier_returns_no_pearson_url():
 
 # ── Hugging Face: exact dataset file page, never the repo root ───────────────
 
+
 def test_hf_resources_use_exact_per_file_pages(library_payload):
     """Every HF shelf entry points at its own file page, not the dataset root."""
     hf_entries = [
-        b for b in library_payload["ebook_shelf"]
-        if "huggingface.co" in str(b.get("pdfUrl", ""))
+        b for b in library_payload["ebook_shelf"] if "huggingface.co" in str(b.get("pdfUrl", ""))
     ]
     assert hf_entries, "expected indexed Hugging Face resources"
     for entry in hf_entries:
@@ -103,14 +107,13 @@ def test_hf_resources_use_exact_per_file_pages(library_payload):
         assert url != HF_REPO_ROOT, "HF entry degraded to the dataset homepage"
         assert url.rstrip("/") != HF_REPO_ROOT, "HF entry degraded to the dataset homepage"
         # The file segment must name a real path, not just the repo.
-        assert url[len(HF_BLOB_PREFIX):], f"HF entry has no file path: {url}"
+        assert url[len(HF_BLOB_PREFIX) :], f"HF entry has no file path: {url}"
 
 
 def test_hf_resources_expose_direct_download_url(library_payload):
     """Each HF entry also exposes a resolve/ download URL for the same file."""
     hf_entries = [
-        b for b in library_payload["ebook_shelf"]
-        if "huggingface.co" in str(b.get("pdfUrl", ""))
+        b for b in library_payload["ebook_shelf"] if "huggingface.co" in str(b.get("pdfUrl", ""))
     ]
     for entry in hf_entries:
         assert "/resolve/main/" in str(entry.get("resolveUrl", "")), entry.get("id")
@@ -128,6 +131,7 @@ def test_no_shelf_entry_links_a_bare_portal_or_repo_homepage(library_payload):
 
 
 # ── Prominent e-books: title must match the document it links to ──────────────
+
 
 def test_prominent_ebooks_link_to_their_own_document(library_payload):
     """Guard against a book title pointing at an unrelated file."""
@@ -161,6 +165,7 @@ def test_generative_adversarial_nets_is_labelled_as_the_gan_paper(library_payloa
 
 # ── Page links: encoded doc id, page anchor, and printed-page mapping ─────────
 
+
 def test_page_view_link_is_encoded_and_page_anchored():
     payload = citation_payload(
         {"doc_id": "papers/Hu2021_LoRA.pdf", "page_number": 3, "text": "rank decomposition"},
@@ -193,12 +198,15 @@ def test_printed_page_label_resolves_from_page_label_map():
 
 
 def test_build_citation_link_anchors_the_requested_page():
-    url = build_citation_link({"doc_id": "papers/Hu2021_LoRA.pdf", "page_number": 7}, {"title": "LoRA"})
+    url = build_citation_link(
+        {"doc_id": "papers/Hu2021_LoRA.pdf", "page_number": 7}, {"title": "LoRA"}
+    )
     assert "#page=7" in url
     assert "papers%2FHu2021_LoRA.pdf" in url
 
 
 # ── Institutional portals: exact, not generic ────────────────────────────────
+
 
 def test_institutional_portal_urls_are_exact(library_payload):
     assert library_payload["opac_url"] == "https://uemk-opac.l2c2.co.in"
@@ -220,7 +228,8 @@ def test_library_stats_are_computed_from_data_not_hardcoded(library_payload):
     assert library_payload["holdings_stats"]["total_records"] == len(library_payload["holdings"])
 
 
-# ── Pearson canonical reader URLs (exact book + page + pinned version) ──────
+# ── Pearson canonical reader URLs (book-specific, pinned version) ───────────
+
 
 def test_pearson_reader_url_pins_the_reader_version(pearson_catalog):
     """Catalog reader URLs must carry the pinned version, not rely on browser JS."""
@@ -229,20 +238,23 @@ def test_pearson_reader_url_pins_the_reader_version(pearson_catalog):
     for book in pearson_catalog[:12]:
         result = resolve_pearson_url(book_id=str(book.get("id")), title=book.get("title"))
         url = result["url"]
-        assert f"version={PEARSON_READER_VERSION}" in url, f"{book.get('title')} missing version: {url}"
+        assert f"version={PEARSON_READER_VERSION}" in url, (
+            f"{book.get('title')} missing version: {url}"
+        )
 
 
-def test_build_reader_url_keeps_version_and_page(pearson_catalog):
+def test_build_reader_url_keeps_version_without_fake_page(pearson_catalog):
     from archipelago.resolver.pearson import PEARSON_READER_VERSION, build_reader_url
 
     for book in pearson_catalog[:12]:
         url = build_reader_url(book, page=17)
         assert f"version={PEARSON_READER_VERSION}" in url
-        assert "/page/17" in url
+        assert "/page/" not in url
         assert str(book.get("id")) in url
 
 
 # ── Citations expose the exact Hugging Face dataset file page ───────────────
+
 
 def test_citation_payload_exposes_exact_hf_dataset_page():
     """A citation from an indexed PDF must link to its exact dataset file page."""
@@ -278,6 +290,7 @@ def test_non_pdf_citation_has_no_hf_link():
 
 
 # ── Chat must emit a real graph ─────────────────────────────────────────────
+
 
 def test_chat_response_carries_a_real_graph():
     """The in-chat graph must come from the live graph, not be empty."""
@@ -323,10 +336,11 @@ def test_chat_graph_node_contract_matches_frontend():
         assert {"from_id", "to_id", "relation"} <= set(edge)
 
 
-# ── Reader gateway: exact book + page redirect ─────────────────────────────
+# ── Reader gateway: exact book plus honest page handoff ──────────────────────
 
-def test_open_gateway_redirects_to_exact_pearson_page():
-    """Both /open/<id> and /open/book/<id> must land on the exact book + page."""
+
+def test_open_gateway_links_to_book_and_explains_manual_page_navigation():
+    """Both gateway forms name the page without promising Pearson will jump."""
     import sys
 
     sys.path.insert(0, str(REPO_ROOT / "host_inference"))
@@ -338,8 +352,10 @@ def test_open_gateway_redirects_to_exact_pearson_page():
 
     for path in (f"/open/{book_id}?page=12", f"/open/book/{book_id}?page=12"):
         response = client.get(path)
-        assert response.status_code == 302, f"{path} -> {response.status_code}"
-        location = response.headers["Location"]
-        assert "ebooks.elibrary.in.pearson.com" in location
-        assert f"#book/{book_id}/page/12" in location, f"missing exact page anchor: {location}"
-        assert "version=" in location
+        assert response.status_code == 200, f"{path} -> {response.status_code}"
+        body = response.get_data(as_text=True)
+        assert "ebooks.elibrary.in.pearson.com" in body
+        assert f"#book/{book_id}" in body
+        assert "/page/12" not in body
+        assert "page 12" in body
+        assert "Automatic page navigation is not verified" in body

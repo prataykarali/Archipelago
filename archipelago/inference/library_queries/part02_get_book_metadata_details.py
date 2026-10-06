@@ -346,13 +346,7 @@ def find_journal_status(journal_title: str) -> dict[str, Any] | None:
     for j in _rt.JOURNAL_REGISTRY:
         if jt in j["title"].lower() or j["title"].lower() in jt:
             return j
-    return {
-        "title": journal_title,
-        "publisher": "IEEE / ACM / Springer",
-        "status": "In Library Archive",
-        "available_copies": 1,
-        "total_copies": 1,
-    }
+    return None
 
 
 def _prefer_papers_query(query: str) -> bool:

@@ -3,14 +3,26 @@
 One concern: registering every route group against a Flask app and its context.
 Adding a feature means adding one module and one line here.
 """
+
 from __future__ import annotations
 
 from flask import Flask
 
 from ..context import AppContext
-from . import auth, chat, diagnostics, graph, learning_settings, library, pages, reader, static
+from . import (
+    auth,
+    chat,
+    diagnostics,
+    graph,
+    learning_settings,
+    library,
+    pages,
+    reader,
+    static,
+    users,
+)
 
-MODULES = (pages, graph, auth, library, reader, static, chat, diagnostics, learning_settings)
+MODULES = (pages, graph, auth, library, reader, static, chat, diagnostics, learning_settings, users)
 
 
 def register_routes(app: Flask, ctx: AppContext) -> None:

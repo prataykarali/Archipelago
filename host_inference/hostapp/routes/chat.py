@@ -5,6 +5,7 @@ deduplication, grounded streaming synthesis, the adaptive diagnostic QnA flow,
 and the roadmap/quiz builders.  AI calls are minimised per doc 03: a cache hit
 or an in-flight duplicate never reaches the model.
 """
+
 from __future__ import annotations
 
 import json
@@ -19,6 +20,11 @@ from ..context import AppContext
 
 # Query hygiene: strip null bytes and ASCII control characters, keep whitespace.
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+PRIVATE_QUERY = re.compile(
+    r"\b(?:my|mine|me|our|ours|i|we|student\s+id|password|token|account|"
+    r"grades?|marks?|enrolment|enrollment)\b|@|\b\d{8,}\b",
+    re.IGNORECASE,
+)
 MAX_QUERY_CHARS = 500
 STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
@@ -57,7 +63,9 @@ def register(app: Flask, ctx: AppContext) -> None:
     def api_chat():
         body = request.get_json(silent=True)
         if not isinstance(body, dict):
-            return jsonify({"error": "invalid_payload", "detail": "Request body must be a JSON object"}), 400
+            return jsonify(
+                {"error": "invalid_payload", "detail": "Request body must be a JSON object"}
+            ), 400
         raw_query = str(body.get("query") or "")
         query = CONTROL_CHARS.sub("", raw_query).strip()
         if len(query) > MAX_QUERY_CHARS:
@@ -66,13 +74,17 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "Query cannot be empty"}), 400
 
         ctx.cache_metrics.record_request()
-        # Never share query results carrying a login or learner state.
+        # A login proves access but does not make a public concept question
+        # personal. Never share answers that depend on learner state or carry
+        # identifiers, credentials, or first-person context in the query.
         personal = bool(
-            request.headers.get("Authorization") or request.cookies.get("archipelago_token")
-            or any(body.get(key) for key in ("session_id", "mastery", "learning_state", "preference"))
+            any(body.get(key) for key in ("session_id", "mastery", "learning_state", "preference"))
+            or PRIVATE_QUERY.search(query)
         )
         cacheable = not personal and not DIAG_RE.search(query) and not INGEST_RE.search(query)
-        norm_query = ctx.cache_service.normalize_query(query) if cacheable else secrets.token_urlsafe(24)
+        norm_query = (
+            ctx.cache_service.normalize_query(query) if cacheable else secrets.token_urlsafe(24)
+        )
 
         # 1. Response cache (Doc 03 Section 3: Cache HIT) — no AI call.
         cached_entry = ctx.cache_service.get_cached_response(query) if cacheable else None
@@ -83,17 +95,23 @@ def register(app: Flask, ctx: AppContext) -> None:
             def generate_cached():
                 # A cached stream already carries its metadata frame, so replay
                 # it verbatim and the in-chat graph survives the cache.
-                if cached_response_text.startswith("{") and STREAM_MARKER.strip() in cached_response_text:
+                if (
+                    cached_response_text.startswith("{")
+                    and STREAM_MARKER.strip() in cached_response_text
+                ):
                     prefix, answer = cached_response_text.split(STREAM_MARKER, 1)
                     try:
                         frame = json.loads(prefix)
                         from engine.withdrawal import NEUTRAL_NOTICE, withdrawn_documents
+
                         retired = withdrawn_documents()
                         if any(c.get("doc_id") in retired for c in frame.get("citations", [])):
                             frame["withdrawn_notice"] = NEUTRAL_NOTICE
                             frame["text_override"] = NEUTRAL_NOTICE
                             frame["citations"] = [
-                                c for c in frame.get("citations", []) if c.get("doc_id") not in retired
+                                c
+                                for c in frame.get("citations", [])
+                                if c.get("doc_id") not in retired
                             ]
                             answer = NEUTRAL_NOTICE
                         frame["cache"] = {"hit": True, "shared": True}
@@ -111,11 +129,13 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "graph_data": cached_entry.get("graph_data"),
                     "roadmap": cached_entry.get("roadmap_data"),
                     "model": {"provider": "cache", "model": "ai_response_cache"},
-                    "logs": [{
-                        "step": "Supabase Cache",
-                        "status": "Hit",
-                        "details": f"Returned from cache (hit #{cached_entry.get('hit_count', 1)}). Zero LLM calls made.",
-                    }],
+                    "logs": [
+                        {
+                            "step": "Supabase Cache",
+                            "status": "Hit",
+                            "details": f"Returned from cache (hit #{cached_entry.get('hit_count', 1)}). Zero LLM calls made.",
+                        }
+                    ],
                 }
                 # A cache entry written before a source was withdrawn still
                 # carries that source's citation. Without this, replaying it
@@ -138,8 +158,7 @@ def register(app: Flask, ctx: AppContext) -> None:
 
                 def generate_dedup():
                     if isinstance(wait_result, list):
-                        for chunk in wait_result:
-                            yield chunk
+                        yield from wait_result
                     else:
                         yield str(wait_result)
 

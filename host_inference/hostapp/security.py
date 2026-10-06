@@ -4,6 +4,7 @@ One concern: deciding who the caller is and whether they may proceed.  Route
 modules call ``ctx.auth`` and ``ctx.limiter`` instead of reaching for module
 globals, which keeps them testable without patching imports.
 """
+
 from __future__ import annotations
 
 from collections import defaultdict, deque
@@ -38,12 +39,15 @@ class AuthGuard:
 
     def required(self) -> bool:
         """True when a verified Supabase session is mandatory."""
+        environment = (
+            os.getenv("ARCHIPELAGO_ENV") or os.getenv("FLASK_ENV") or "development"
+        ).lower()
+        if environment in {"production", "prod"}:
+            return True
         raw = os.getenv("ARCHIPELAGO_AUTH_REQUIRED", "").strip().lower()
         if raw in {"0", "false", "no"}:
             return False
-        if raw in {"1", "true", "yes"}:
-            return True
-        return os.getenv("ARCHIPELAGO_ENV", "development").lower() in {"production", "prod"}
+        return raw in {"1", "true", "yes"}
 
     def supabase(self) -> tuple[str, str]:
         """Return ``(url, publishable_key)`` for Supabase, either possibly empty."""
@@ -73,28 +77,45 @@ class AuthGuard:
             return None, "A Supabase session is required."
         headers = {"apikey": key, "Authorization": f"Bearer {token}"}
         try:
-            user_response = requests.get(f"{url}/auth/v1/user", headers=headers, timeout=SUPABASE_USER_TIMEOUT_SEC)
-            profile_response = (
-                requests.get(
-                    f"{url}/rest/v1/profiles",
-                    params={"select": "username,role", "id": f"eq.{user_response.json().get('id', '')}"},
-                    headers=headers,
-                    timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
-                )
-                if user_response.status_code == 200
-                else None
+            user_response = requests.get(
+                f"{url}/auth/v1/user", headers=headers, timeout=SUPABASE_USER_TIMEOUT_SEC
             )
-        except requests.RequestException:
+            if user_response.status_code != 200:
+                return None, "Your Supabase session could not be verified."
+            user = user_response.json()
+            if not isinstance(user, dict) or not isinstance(user.get("id"), str) or not user["id"]:
+                return None, "Your Supabase session could not be verified."
+            profile_response = requests.get(
+                f"{url}/rest/v1/profiles",
+                params={"select": "username,role", "id": f"eq.{user['id']}"},
+                headers=headers,
+                timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
+            )
+            profiles = profile_response.json() if profile_response.status_code == 200 else None
+        except (requests.RequestException, ValueError, TypeError):
             return None, "Supabase identity verification is unavailable."
-        if user_response.status_code != 200 or profile_response is None or profile_response.status_code != 200:
+        if profile_response.status_code != 200:
             return None, "Your Supabase session could not be verified."
-        profiles = profile_response.json()
-        if not isinstance(profiles, list) or len(profiles) != 1:
+        if (
+            not isinstance(user, dict)
+            or not isinstance(profiles, list)
+            or len(profiles) != 1
+            or not isinstance(profiles[0], dict)
+        ):
             return None, "Your account does not have an assigned Archipelago role."
         role = str(profiles[0].get("role") or "")
         if role not in AUTH_ROLES:
             return None, "Your account role is not permitted in Archipelago."
-        return {"role": role, "user_id": user_response.json().get("id"), "username": profiles[0].get("username") or "", "token": token}, None
+        metadata = user.get("app_metadata") if isinstance(user, dict) else None
+        return {
+            "role": role,
+            "user_id": user.get("id"),
+            "username": profiles[0].get("username") or "",
+            "token": token,
+            "app_metadata": metadata if isinstance(metadata, dict) else {},
+            "must_change_password": isinstance(metadata, dict)
+            and metadata.get("must_change_password") is True,
+        }, None
 
 
 class RateLimiter:
@@ -103,6 +124,8 @@ class RateLimiter:
     def __init__(self) -> None:
         self._chat: dict[str, deque] = defaultdict(deque)
         self._api: dict[str, deque] = defaultdict(deque)
+        self._chat_last_mutation: dict[str, float] = {}
+        self._api_last_mutation: dict[str, float] = {}
 
     @staticmethod
     def client_ip() -> str:
@@ -119,6 +142,7 @@ class RateLimiter:
     @staticmethod
     def _check(
         bucket_map: dict[str, deque],
+        last_mutation_map: dict[str, float],
         max_per_min: int,
         min_gap_sec: float,
         enforce_min_gap: bool = True,
@@ -128,11 +152,14 @@ class RateLimiter:
         bucket = bucket_map[ip]
         while bucket and now - bucket[0] > RATE_WINDOW_SEC:
             bucket.popleft()
-        if enforce_min_gap and bucket and now - bucket[-1] < min_gap_sec:
+        last_mutation = last_mutation_map.get(ip)
+        if enforce_min_gap and last_mutation is not None and now - last_mutation < min_gap_sec:
             return True, 1
         if len(bucket) >= max_per_min:
             return True, max(1, int(RATE_WINDOW_SEC - (now - bucket[0])))
         bucket.append(now)
+        if enforce_min_gap:
+            last_mutation_map[ip] = now
         return False, 0
 
     @staticmethod
@@ -143,11 +170,19 @@ class RateLimiter:
     def check_chat(self) -> tuple[bool, int]:
         """Check the strict chat bucket (burst-gated on state-changing calls)."""
         return self._check(
-            self._chat, CHAT_RATE_MAX_PER_MIN, CHAT_RATE_MIN_GAP_SEC, self._is_state_changing()
+            self._chat,
+            self._chat_last_mutation,
+            CHAT_RATE_MAX_PER_MIN,
+            CHAT_RATE_MIN_GAP_SEC,
+            self._is_state_changing(),
         )
 
     def check_api(self) -> tuple[bool, int]:
         """Check the general API bucket (burst-gated on state-changing calls)."""
         return self._check(
-            self._api, API_RATE_MAX_PER_MIN, API_RATE_MIN_GAP_SEC, self._is_state_changing()
+            self._api,
+            self._api_last_mutation,
+            API_RATE_MAX_PER_MIN,
+            API_RATE_MIN_GAP_SEC,
+            self._is_state_changing(),
         )

@@ -3,9 +3,18 @@
 One concern: assembling the app — collaborators, middleware, routes — so tests
 can build an app around fakes and production gets the real graph-backed engine.
 """
+
 from __future__ import annotations
 
+import hashlib
+import json
+
 from flask import Flask
+
+from .config import MAX_CONTENT_LENGTH_BYTES, load_env
+from .context import AppContext
+from .corpus_bootstrap import provision
+from .inventory_store import InventoryStore
 
 # Local, not from archipelago: the hosted image is built from this directory
 # alone, so the sibling package is not in the container. Relative import so it
@@ -13,11 +22,6 @@ from flask import Flask
 # as host_inference.hostapp from a test. tests/unit/test_host_log_redaction.py
 # pins this copy to the shared one so they cannot diverge.
 from .log_redaction import install_log_redaction
-
-from .config import MAX_CONTENT_LENGTH_BYTES, load_env
-from .context import AppContext
-from .corpus_bootstrap import provision
-from .inventory_store import InventoryStore
 from .middleware import register_middleware
 from .routes import register_routes
 from .security import AuthGuard, RateLimiter
@@ -34,8 +38,16 @@ def build_context() -> AppContext:
     from cache_service import cache_metrics, cache_service, request_dedup
     from engine import Engine
 
+    engine = Engine()
+    graph_path = getattr(engine, "graph_path", None)
+    if graph_path is not None:
+        cache_service.graph_version = hashlib.sha256(graph_path.read_bytes()).hexdigest()
+        cache_service.library_version = hashlib.sha256(
+            json.dumps(engine.books, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()
+
     return AppContext(
-        engine=Engine(),
+        engine=engine,
         auth=AuthGuard(),
         limiter=RateLimiter(),
         inventory=InventoryStore(),

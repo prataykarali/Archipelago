@@ -10,6 +10,7 @@ These pin three things that were real, shipped bugs:
    ``ui/chat`` tree — that drift is what caused the Pearson bug to appear only
    on the hosted deployment.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -43,6 +44,8 @@ def test_pearson_links_use_the_manual_page_gateway():
         citation = (root / "js/02--kw-highlights.js").read_text()
         click = (root / "js/21-generate-roadmap.js").read_text()
         assert "/open/${encodeURIComponent(bId)}?page=" in citation
+        assert "/open/${encodeURIComponent(match[1])}?page=" in citation
+        assert "return `${u}/page/" not in citation
         assert "/open/${encodeURIComponent(bId)}?page=" in click
         assert "pearson.com/wr/" not in citation + click
         assert "pEntry.id || '0fcd531f" not in click
@@ -55,9 +58,14 @@ def test_link_interceptor_is_loaded_by_the_chat_page():
         assert '<script type="module" src="/js/index.js"></script>' in index
 
         entry = (root / "js" / "index.js").read_text(encoding="utf-8")
-        loaded = {line.split("'./")[-1].split("'")[0] for line in entry.splitlines() if "import './" in line}
+        loaded = {
+            line.split("'./")[-1].split("'")[0]
+            for line in entry.splitlines()
+            if "import './" in line
+        }
         interceptor = [
-            name for name in loaded
+            name
+            for name in loaded
             if "addEventListener('click'" in (root / "js" / name).read_text(encoding="utf-8")
         ]
         interceptors_text = "".join(
@@ -96,4 +104,6 @@ def test_dead_roadmap_quiz_script_is_gone():
     """roadmap_quiz.js never existed; the tag 404'd on every page load."""
     for root in (CANONICAL, HOSTED):
         index = (root / "index.html").read_text(encoding="utf-8")
-        assert "roadmap_quiz.js" not in index, f"{root}/index.html still references a missing script"
+        assert "roadmap_quiz.js" not in index, (
+            f"{root}/index.html still references a missing script"
+        )

@@ -24,15 +24,6 @@
 <body>
   <main>
     <h1>Welcome to Archipelago</h1>
-    <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin: 0 0 10px 0; font-family: monospace;">Quick 1-Click Access</p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button type="button" onclick="quickFill('student', '12024002028038', 'Archipelago@2026')" style="background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); border-radius: 8px; color: #c4b5fd; padding: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">🎓 Student</button>
-        <button type="button" onclick="quickFill('faculty', 'faculty.cs', 'Archipelago@2026')" style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; color: #fcd34d; padding: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">🏛️ Faculty</button>
-        <button type="button" onclick="quickFill('librarian', 'librarian', 'Archipelago@2026')" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; color: #6ee7b7; padding: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">📚 Librarian</button>
-        <button type="button" onclick="quickFill('administrator', 'administrator', 'Archipelago@2026')" style="background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.3); border-radius: 8px; color: #f472b6; padding: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">⚡ Admin</button>
-      </div>
-    </div>
     <form id="login-form">
       <label for="role">Account type</label>
       <select id="role" required>
@@ -49,15 +40,6 @@
       <button type="submit" class="submit-btn">Sign in</button>
     </form>
   </main>
-
-  <script>
-    window.quickFill = function(role, username, password) {
-      document.querySelector('#role').value = role;
-      document.querySelector('#username').value = username;
-      document.querySelector('#password').value = password;
-      document.querySelector('#login-form').requestSubmit();
-    };
-  </script>
 
   <script type="module">
     const EMAIL_DOMAIN = ".iem.archipelago.invalid";
@@ -145,6 +127,10 @@
           await supabase.auth.signOut();
           await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
           throw new Error("The selected account type does not match your assigned role.");
+        }
+        if (verified.must_change_password) {
+          window.location.replace("/change-password");
+          return;
         }
         window.location.replace(destinationForRole(verified.role, config));
       } catch (error) {

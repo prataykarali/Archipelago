@@ -7,6 +7,7 @@ atomic graph swap in flight is never killed mid-rename.
 Kept as a real module rather than an inline ``python -c`` so it can be linted,
 tested, and pointed at by the compose healthcheck.
 """
+
 from __future__ import annotations
 
 import logging
@@ -23,6 +24,24 @@ if str(REPO_ROOT) not in sys.path:
 # How often the idle loop wakes to check the shutdown flag. Short enough that
 # SIGTERM is honoured promptly, long enough not to spin a core.
 SHUTDOWN_POLL_SEC = 1.0
+GRAPH_EXPORT_ENV = "ARCHIPELAGO_GRAPH_JSON"
+
+
+def ensure_shared_graph_export() -> None:
+    """Link the legacy graph export path to the shared Docker volume."""
+    configured = os.environ.get(GRAPH_EXPORT_ENV, "").strip()
+    if not configured:
+        return
+    target = Path(configured).resolve()
+    legacy = REPO_ROOT / "okf_graph.json"
+    if target == legacy:
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if legacy.is_symlink() and legacy.resolve() == target:
+        return
+    if legacy.exists() or legacy.is_symlink():
+        raise RuntimeError("Graph export path exists and is not the shared volume link")
+    legacy.symlink_to(target)
 
 
 def configure_logging() -> None:
@@ -39,6 +58,7 @@ def configure_logging() -> None:
 def main() -> int:
     """Start the worker and block until asked to stop."""
     configure_logging()
+    ensure_shared_graph_export()
     logger = logging.getLogger("archipelago.ingestion.worker")
 
     from ingestion_jobs import JobStore

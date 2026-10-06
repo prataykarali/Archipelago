@@ -18,18 +18,20 @@ def test_library_payload_restores_catalog_and_huggingface_shelves():
     assert len(payload["hf_resources"]) >= 50
     assert len(payload["holdings"]) >= 100
 
-    lora = next(item for item in payload["ebook_shelf"] if item["id"] == "papers/Hu2021_LoRA.pdf")
-    assert lora["resolveUrl"] == "/open/papers/Hu2021_LoRA.pdf"
+    lora = next(
+        item for item in payload["ebook_shelf"] if Path(str(item["id"])).name == "Hu2021_LoRA.pdf"
+    )
+    assert lora["resolveUrl"].endswith("Hu2021_LoRA.pdf")
 
 
-def test_pearson_reader_urls_keep_query_parameters_and_exact_page():
+def test_pearson_reader_urls_keep_query_parameters_and_book_id():
     from archipelago.resolver.pearson import build_reader_url
 
     url = build_reader_url("4268f15e-ac2c-40dd-bd12-aca2f02dd0ae", page=340)
     parsed = urlsplit(url)
 
     assert parse_qs(parsed.query)["subscriptionId"]
-    assert parsed.fragment.endswith("/page/340")
+    assert parsed.fragment == "book/4268f15e-ac2c-40dd-bd12-aca2f02dd0ae"
 
 
 @pytest.mark.parametrize(
@@ -42,7 +44,10 @@ def test_pearson_reader_urls_keep_query_parameters_and_exact_page():
         ("How do DBMS buffer pools optimize query retrieval in Silberschatz?", "graph_strong"),
         ("Explain virtual memory paging vs segmentation in OSTEP.", "graph_strong"),
         ("How does GraphRAG combine graph databases with RAG synthesis?", "graph_strong"),
-        ("Rank the most critical PEFT and RAG papers in the corpus by contribution.", "graph_strong"),
+        (
+            "Rank the most critical PEFT and RAG papers in the corpus by contribution.",
+            "graph_strong",
+        ),
         ("What are the library hours and weekend issue rules?", "library_hours"),
         ("What e-resource portals does the central library provide?", "library_resources"),
         ("How do I access Pearson eLibrary textbooks?", "library_resources"),
@@ -59,11 +64,16 @@ def test_every_suggested_chat_query_has_a_supported_route(query: str, route: str
     assert routing["route"] == route
 
 
-def test_demo_citations_include_exact_pearson_page_links():
+def test_demo_citations_keep_pearson_page_number_without_fake_deep_link():
     from archipelago.inference.demo_query_books import merge_demo_citations
 
     citations = merge_demo_citations("How do DBMS buffer managers work?", [])
-    pearson = next(citation for citation in citations if citation["doc_id"] == "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae")
+    pearson = next(
+        citation
+        for citation in citations
+        if citation["doc_id"] == "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae"
+    )
 
     assert pearson["page_number"] == 1
-    assert pearson["page_url"].endswith("/page/1")
+    assert "#book/4268f15e-ac2c-40dd-bd12-aca2f02dd0ae" in pearson["page_url"]
+    assert "/page/1" not in pearson["page_url"]

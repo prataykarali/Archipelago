@@ -103,12 +103,15 @@ def account_email(username: str, role: str) -> str:
 
 
 def _admin_headers() -> dict[str, str]:
+    """Use opaque secret keys as API keys; legacy JWTs also need Bearer auth."""
     key = get_service_role_key()
-    return {
+    headers = {
         "apikey": key,
-        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
     }
+    if not key.startswith("sb_secret_"):
+        headers["Authorization"] = f"Bearer {key}"
+    return headers
 
 
 def _bearer_headers(access_token: str) -> dict[str, str]:

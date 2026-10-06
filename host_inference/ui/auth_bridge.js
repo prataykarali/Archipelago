@@ -50,7 +50,14 @@ window.archipelagoRequireSession = async () => {
     const { data } = await supabase?.auth.getSession();
     if (data?.session?.access_token) {
       const response = await fetch("/api/auth/me", { cache: "no-store" });
-      if (response.ok) return data.session;
+      if (response.ok) {
+        const principal = await response.json();
+        if (principal.must_change_password && window.location.pathname !== "/change-password") {
+          window.location.replace("/change-password");
+          return null;
+        }
+        return data.session;
+      }
     }
   } catch (_) {}
   sessionStorage.removeItem("archipelago_local_user");
@@ -87,6 +94,10 @@ window.archipelagoAuthorizePage = async (allowedRoles) => {
     return null;
   }
   const principal = await response.json();
+  if (principal.must_change_password) {
+    window.location.replace("/change-password");
+    return null;
+  }
   if (!allowedRoles.includes(principal.role)) {
     window.location.replace("/chat");
     return null;
@@ -112,6 +123,10 @@ window.archipelagoMountNavigation = async () => {
   }
 
   if (!principal || !principal.authenticated || !principal.role) return;
+  if (principal.must_change_password) {
+    window.location.replace("/change-password");
+    return;
+  }
 
   const existing = document.querySelector("#archipelago-role-navigation");
   if (existing) existing.remove();
@@ -145,7 +160,7 @@ window.archipelagoMountNavigation = async () => {
   if (principal.role === "librarian" || principal.role === "administrator") {
     const userMgmtBtn = document.createElement("button");
     userMgmtBtn.type = "button";
-    userMgmtBtn.innerHTML = `<span>👥 Manage Users</span>`;
+    userMgmtBtn.textContent = "Import students";
     userMgmtBtn.style.cssText = "border:1px solid rgba(139,92,246,0.5);border-radius:999px;background:rgba(139,92,246,0.15);color:#c4b5fd;cursor:pointer;padding:4px 10px;font:inherit;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;transition:all 0.2s;";
     userMgmtBtn.onmouseenter = () => { userMgmtBtn.style.background = "rgba(139,92,246,0.3)"; userMgmtBtn.style.color = "#ffffff"; };
     userMgmtBtn.onmouseleave = () => { userMgmtBtn.style.background = "rgba(139,92,246,0.15)"; userMgmtBtn.style.color = "#c4b5fd"; };
@@ -174,366 +189,112 @@ window.archipelagoMountNavigation = async () => {
   document.body.appendChild(nav);
 };
 
-// ── Interactive User Management Modal for Librarian and Administrator ────────
+// A verified librarian grant or administrator role is checked again by the API.
 window.archipelagoOpenUserManagementModal = async (principal) => {
-  let modal = document.querySelector("#archipelago-user-mgmt-modal");
-  if (modal) modal.remove();
+  const existing = document.querySelector("#archipelago-user-mgmt-modal");
+  if (existing) existing.remove();
 
-  modal = document.createElement("div");
+  const modal = document.createElement("div");
   modal.id = "archipelago-user-mgmt-modal";
-  modal.style.cssText = "position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Inter',system-ui,sans-serif;";
-
-  const container = document.createElement("div");
-  container.style.cssText = "background:#120d22;border:1px solid rgba(255,255,255,0.15);border-radius:20px;max-width:850px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.8);color:#fff;";
-
-  // Header
-  const header = document.createElement("div");
-  header.style.cssText = "padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.02);";
-  header.innerHTML = `
-    <div>
-      <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;">
-        <span>User & Login Account Management</span>
-        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:rgba(139,92,246,0.2);color:#c4b5fd;border:1px solid rgba(139,92,246,0.3);text-transform:uppercase;">${principal.role}</span>
-      </h2>
-      <p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,0.6);">
-        ${principal.role === 'administrator' ? 'Full administrator permissions: add, update username/password, and delete any account.' : 'Librarian permissions: add/delete students, update student usernames, and update your own username.'}
-      </p>
-    </div>
-    <button id="close-user-modal" style="background:rgba(255,255,255,0.1);border:0;color:#fff;font-size:18px;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-  `;
-  container.appendChild(header);
-
-  // Content Area
-  const content = document.createElement("div");
-  content.style.cssText = "padding:20px 24px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:20px;";
-
-  // Top action bar (Add user + Search)
-  const actionBar = document.createElement("div");
-  actionBar.style.cssText = "display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;";
-  actionBar.innerHTML = `
-    <div style="position:relative;flex:1;min-width:240px;">
-      <input type="text" id="user-mgmt-search" placeholder="Search by username or display name..." style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;outline:none;" />
-    </div>
-    <button id="open-add-user-btn" style="background:#10b981;border:0;border-radius:10px;color:#000;font-weight:700;font-size:13px;padding:10px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;">
-      <span>+ Add New ${principal.role === 'administrator' ? 'Account' : 'Student'}</span>
-    </button>
-  `;
-  content.appendChild(actionBar);
-
-  // Alert banner
-  const alertBox = document.createElement("div");
-  alertBox.id = "user-mgmt-alert";
-  alertBox.style.cssText = "display:none;padding:12px 16px;border-radius:10px;font-size:13px;";
-  content.appendChild(alertBox);
-
-  function showAlert(msg, isError = false) {
-    alertBox.style.display = "block";
-    alertBox.style.background = isError ? "rgba(239,68,68,0.15)" : "rgba(16,185,129,0.15)";
-    alertBox.style.border = `1px solid ${isError ? "#ef4444" : "#10b981"}`;
-    alertBox.style.color = isError ? "#fca5a5" : "#6ee7b7";
-    alertBox.textContent = msg;
-    setTimeout(() => { alertBox.style.display = "none"; }, 5000);
-  }
-
-  // Users Table Container
-  const tableContainer = document.createElement("div");
-  tableContainer.style.cssText = "border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;background:rgba(0,0,0,0.3);";
-  tableContainer.innerHTML = `
-    <table style="width:100%;border-collapse:collapse;text-align:left;font-size:13px;">
-      <thead style="background:rgba(255,255,255,0.05);font-size:11px;text-transform:uppercase;color:rgba(255,255,255,0.5);">
-        <tr>
-          <th style="padding:12px 16px;">Username</th>
-          <th style="padding:12px 16px;">Role</th>
-          <th style="padding:12px 16px;">Display Name</th>
-          <th style="padding:12px 16px;text-align:right;">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="user-mgmt-tbody">
-        <tr><td colspan="4" style="padding:24px;text-align:center;color:rgba(255,255,255,0.5);">Loading users...</td></tr>
-      </tbody>
-    </table>
-  `;
-  content.appendChild(tableContainer);
-  container.appendChild(content);
-  modal.appendChild(container);
+  modal.style.cssText = "position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif";
+  const panel = document.createElement("section");
+  panel.style.cssText = "background:#171126;border:1px solid #67518b;border-radius:20px;max-width:480px;width:100%;padding:28px;color:#fff";
+  panel.setAttribute("aria-label", "Import student accounts");
+  const heading = document.createElement("h2");
+  heading.textContent = "Import student enrollments";
+  panel.appendChild(heading);
+  const help = document.createElement("p");
+  help.textContent = "Upload a UTF-8 CSV exported from a spreadsheet with enrollment and optional display_name columns. Up to 100 rows per import. Existing accounts are skipped. Students must choose a new password on first sign-in.";
+  panel.appendChild(help);
+  const form = document.createElement("form");
+  form.style.cssText = "display:grid;gap:12px";
+  const sourceLabel = document.createElement("label");
+  sourceLabel.textContent = "Approved source label";
+  const sourceInput = document.createElement("input");
+  sourceInput.name = "source_label";
+  sourceInput.maxLength = 160;
+  sourceInput.required = principal.role === "librarian";
+  sourceInput.style.cssText = "display:block;width:100%;padding:10px;background:#0d0a16;border:1px solid #67518b;color:#fff;border-radius:8px;box-sizing:border-box";
+  sourceLabel.appendChild(sourceInput);
+  form.appendChild(sourceLabel);
+  const fileLabel = document.createElement("label");
+  fileLabel.textContent = "Student CSV file";
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.name = "file";
+  fileInput.accept = ".csv,text/csv";
+  fileInput.required = true;
+  fileLabel.appendChild(fileInput);
+  form.appendChild(fileLabel);
+  const message = document.createElement("p");
+  message.setAttribute("role", "status");
+  message.setAttribute("aria-live", "polite");
+  form.appendChild(message);
+  const preview = document.createElement("button");
+  preview.type = "submit";
+  preview.textContent = "Preview import";
+  preview.style.cssText = "background:#8b5cf6;color:#fff;border:0;border-radius:8px;padding:10px;cursor:pointer";
+  form.appendChild(preview);
+  const apply = document.createElement("button");
+  apply.type = "button";
+  apply.textContent = "Create accounts";
+  apply.disabled = true;
+  apply.style.cssText = preview.style.cssText;
+  form.appendChild(apply);
+  const close = document.createElement("button");
+  close.type = "button";
+  close.textContent = "Close";
+  close.style.cssText = "background:transparent;color:#fff;border:1px solid #67518b;border-radius:8px;padding:10px;cursor:pointer";
+  close.onclick = () => modal.remove();
+  form.appendChild(close);
+  panel.appendChild(form);
+  modal.appendChild(panel);
   document.body.appendChild(modal);
+  modal.addEventListener("click", event => { if (event.target === modal) modal.remove(); });
 
-  // Close handlers
-  modal.querySelector("#close-user-modal").onclick = () => modal.remove();
-  modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
-
-  let allUsers = [];
-
-  async function loadUsers() {
+  let previewedFile = null;
+  async function sendImport(path) {
+    const body = new FormData();
+    body.set("source_label", sourceInput.value.trim());
+    body.set("file", fileInput.files[0]);
+    const response = await fetch(path, { method: "POST", body });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.detail || "Import could not be completed.");
+    return result;
+  }
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    apply.disabled = true;
+    preview.disabled = true;
+    message.textContent = "Checking enrollment records…";
     try {
-      const resp = await fetch("/api/users");
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        showAlert(err.detail || "Failed to load users.", true);
-        return;
-      }
-      const data = await resp.json();
-      allUsers = data.users || [];
-      renderTable();
-    } catch (err) {
-      showAlert("Network error fetching user directory.", true);
+      const result = await sendImport("/api/users/import/preview");
+      previewedFile = fileInput.files[0];
+      message.textContent = `${result.received} records: ${result.to_create} new, ${result.existing} already present.`;
+      apply.disabled = result.to_create === 0;
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      preview.disabled = false;
     }
-  }
-
-  function renderTable(filter = "") {
-    const tbody = tableContainer.querySelector("#user-mgmt-tbody");
-    const q = filter.toLowerCase().trim();
-    const filtered = allUsers.filter(u => 
-      (u.username || "").toLowerCase().includes(q) || 
-      (u.display_name || "").toLowerCase().includes(q) ||
-      (u.role || "").toLowerCase().includes(q)
-    );
-
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:rgba(255,255,255,0.5);">No matching users found.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = "";
-    filtered.forEach(u => {
-      const isSelf = u.id === principal.user_id;
-      const isStudent = u.role === "student";
-      const canEdit = principal.role === "administrator" || isStudent || isSelf;
-      const canDelete = !isSelf && (principal.role === "administrator" || (principal.role === "librarian" && isStudent));
-
-      const roleBadgeBg = u.role === 'administrator' ? '#ec489922' : (u.role === 'librarian' ? '#10b98122' : '#8b5cf622');
-      const roleBadgeColor = u.role === 'administrator' ? '#ec4899' : (u.role === 'librarian' ? '#10b981' : '#a78bfa');
-
-      const tr = document.createElement("tr");
-      tr.style.cssText = "border-top:1px solid rgba(255,255,255,0.06);transition:background 0.15s;";
-      tr.onmouseenter = () => { tr.style.background = "rgba(255,255,255,0.03)"; };
-      tr.onmouseleave = () => { tr.style.background = "transparent"; };
-
-      tr.innerHTML = `
-        <td style="padding:14px 16px;font-weight:600;color:#fff;">
-          ${u.username}
-          ${isSelf ? '<span style="margin-left:6px;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.1);color:#fff;">YOU</span>' : ''}
-        </td>
-        <td style="padding:14px 16px;">
-          <span style="padding:3px 8px;border-radius:999px;background:${roleBadgeBg};color:${roleBadgeColor};font-size:11px;font-weight:600;text-transform:uppercase;">
-            ${u.role}
-          </span>
-        </td>
-        <td style="padding:14px 16px;color:rgba(255,255,255,0.7);">${u.display_name || u.username}</td>
-        <td style="padding:14px 16px;text-align:right;">
-          <div style="display:inline-flex;gap:8px;">
-            ${canEdit ? `<button class="edit-user-btn" data-id="${u.id}" style="padding:6px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:12px;cursor:pointer;font-weight:500;">Edit Username</button>` : ''}
-            ${canDelete ? `<button class="del-user-btn" data-id="${u.id}" data-username="${u.username}" style="padding:6px 12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#fca5a5;font-size:12px;cursor:pointer;font-weight:500;">Delete</button>` : ''}
-          </div>
-        </td>
-      `;
-
-      // Wire edit button
-      const editBtn = tr.querySelector(".edit-user-btn");
-      if (editBtn) {
-        editBtn.onclick = () => openEditUserDialog(u);
-      }
-      // Wire delete button
-      const delBtn = tr.querySelector(".del-user-btn");
-      if (delBtn) {
-        delBtn.onclick = () => deleteUserConfirm(u.id, u.username);
-      }
-
-      tbody.appendChild(tr);
-    });
-  }
-
-  // Filter input event
-  content.querySelector("#user-mgmt-search").addEventListener("input", (e) => {
-    renderTable(e.target.value);
   });
-
-  // Open Add User Dialog
-  content.querySelector("#open-add-user-btn").onclick = () => {
-    openAddUserDialog();
-  };
-
-  // Add User Form Modal
-  function openAddUserDialog() {
-    const subModal = document.createElement("div");
-    subModal.style.cssText = "position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:16px;";
-    subModal.innerHTML = `
-      <div style="background:#171126;border:1px solid rgba(255,255,255,0.2);border-radius:16px;max-width:420px;width:100%;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,0.8);color:#fff;">
-        <h3 style="margin:0 0 16px;font-size:18px;font-weight:700;">Add New ${principal.role === 'administrator' ? 'Account' : 'Student'}</h3>
-        <form id="add-user-form" style="display:flex;flex-direction:column;gap:12px;">
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Username ${principal.role === 'librarian' ? '(or 14-digit Enrollment No.)' : ''}</label>
-            <input name="username" required placeholder="e.g. 12024002028099 or jdoe" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Initial Password (min 6 characters)</label>
-            <input name="password" type="password" required placeholder="••••••••" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Display Name</label>
-            <input name="display_name" placeholder="Full name (optional)" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
-          </div>
-          ${principal.role === 'administrator' ? `
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Role</label>
-            <select name="role" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;">
-              <option value="student">Student</option>
-              <option value="librarian">Librarian</option>
-              <option value="administrator">Administrator</option>
-            </select>
-          </div>
-          ` : `<input type="hidden" name="role" value="student" />`}
-          <div id="add-user-error" style="color:#f87171;font-size:12px;display:none;"></div>
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
-            <button type="button" id="cancel-add-user" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancel</button>
-            <button type="submit" style="background:#10b981;border:0;color:#000;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;">Create Account</button>
-          </div>
-        </form>
-      </div>
-    `;
-    document.body.appendChild(subModal);
-    subModal.querySelector("#cancel-add-user").onclick = () => subModal.remove();
-
-    subModal.querySelector("#add-user-form").onsubmit = async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const payload = {
-        username: form.username.value.trim(),
-        password: form.password.value.trim(),
-        display_name: form.display_name.value.trim(),
-        role: form.role ? form.role.value : "student",
-      };
-
-      const errDiv = subModal.querySelector("#add-user-error");
-      try {
-        const res = await fetch("/api/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          errDiv.textContent = data.detail || "Failed to create user.";
-          errDiv.style.display = "block";
-          return;
-        }
-        subModal.remove();
-        showAlert(`Account '${payload.username}' created successfully!`);
-        await loadUsers();
-      } catch (err) {
-        errDiv.textContent = "Network error creating account.";
-        errDiv.style.display = "block";
-      }
-    };
-  }
-
-  // Edit User Dialog
-  function openEditUserDialog(user) {
-    const isSelf = user.id === principal.user_id;
-    const subModal = document.createElement("div");
-    subModal.style.cssText = "position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:16px;";
-    subModal.innerHTML = `
-      <div style="background:#171126;border:1px solid rgba(255,255,255,0.2);border-radius:16px;max-width:420px;width:100%;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,0.8);color:#fff;">
-        <h3 style="margin:0 0 4px;font-size:18px;font-weight:700;">Update ${isSelf ? 'Your Account' : `Student '${user.username}'`}</h3>
-        <p style="margin:0 0 16px;font-size:12px;color:rgba(255,255,255,0.6);">Update login username, display name, or password.</p>
-        <form id="edit-user-form" style="display:flex;flex-direction:column;gap:12px;">
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Username</label>
-            <input name="username" required value="${user.username}" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Display Name</label>
-            <input name="display_name" value="${user.display_name || ''}" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">New Password (leave blank to keep existing)</label>
-            <input name="password" type="password" placeholder="New password (optional)" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
-          </div>
-          ${principal.role === 'administrator' && !isSelf ? `
-          <div>
-            <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Role</label>
-            <select name="role" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;">
-              <option value="student" ${user.role === 'student' ? 'selected' : ''}>Student</option>
-              <option value="librarian" ${user.role === 'librarian' ? 'selected' : ''}>Librarian</option>
-              <option value="administrator" ${user.role === 'administrator' ? 'selected' : ''}>Administrator</option>
-            </select>
-          </div>
-          ` : ''}
-          <div id="edit-user-error" style="color:#f87171;font-size:12px;display:none;"></div>
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
-            <button type="button" id="cancel-edit-user" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">Cancel</button>
-            <button type="submit" style="background:#8b5cf6;border:0;color:#fff;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    `;
-    document.body.appendChild(subModal);
-    subModal.querySelector("#cancel-edit-user").onclick = () => subModal.remove();
-
-    subModal.querySelector("#edit-user-form").onsubmit = async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const payload = {
-        username: form.username.value.trim(),
-        display_name: form.display_name.value.trim(),
-      };
-      if (form.password.value.trim()) {
-        payload.password = form.password.value.trim();
-      }
-      if (form.role) {
-        payload.role = form.role.value;
-      }
-
-      const errDiv = subModal.querySelector("#edit-user-error");
-      try {
-        const res = await fetch(`/api/users/${user.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          errDiv.textContent = data.detail || "Failed to update user.";
-          errDiv.style.display = "block";
-          return;
-        }
-        subModal.remove();
-        showAlert(`Username updated to '${payload.username}' successfully!`);
-        // If updating self, update local session
-        if (isSelf) {
-          principal.username = payload.username;
-          window.archipelagoMountNavigation();
-        }
-        await loadUsers();
-      } catch (err) {
-        errDiv.textContent = "Network error updating user.";
-        errDiv.style.display = "block";
-      }
-    };
-  }
-
-  // Delete User Confirmation
-  async function deleteUserConfirm(userId, username) {
-    if (!confirm(`Are you sure you want to permanently delete user '${username}'? This cannot be undone.`)) {
+  apply.addEventListener("click", async () => {
+    if (fileInput.files[0] !== previewedFile) {
+      message.textContent = "Preview this file before creating accounts.";
+      apply.disabled = true;
       return;
     }
+    apply.disabled = true;
+    preview.disabled = true;
+    message.textContent = "Creating accounts…";
     try {
-      const res = await fetch(`/api/users/${userId}`, {
-        method: "DELETE",
-        headers: {}
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showAlert(data.detail || "Failed to delete user.", true);
-        return;
-      }
-      showAlert(`User '${username}' has been deleted.`);
-      await loadUsers();
-    } catch (err) {
-      showAlert("Network error deleting user.", true);
+      const result = await sendImport("/api/users/import");
+      message.textContent = `${result.created} created, ${result.existing} already present, ${result.failed} failed.`;
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      preview.disabled = false;
     }
-  }
-
-  await loadUsers();
+  });
+  fileInput.addEventListener("change", () => { previewedFile = null; apply.disabled = true; });
 };
-
