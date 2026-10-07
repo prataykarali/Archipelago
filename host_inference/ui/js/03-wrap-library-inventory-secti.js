@@ -1,7 +1,7 @@
 // Auto-split from ui/chat/index.html — 03-wrap-library-inventory-secti.js
 // Feature module 4 of 22.
 import { state } from './00-state.js';
-import { citationTitle, getResponseCitations } from './02--kw-highlights.js';
+import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-highlights.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_CONTRACT } from './00-current-origin.js';
 
@@ -106,8 +106,12 @@ import { API_CONTRACT } from './00-current-origin.js';
                                 const accession = c.accession || '—';
                                 const total = c.koha_record_verified ? c.total_copies : '—';
                                 const avail = c.koha_record_verified ? c.available_copies : '—';
-                                const pageNum = c.page_number || c.page || 1;
+                                const pageNum = Math.max(1, Math.floor(Number(c.page_number || c.page) || 1));
                                 const badgeStr = c.evidence_id || `S${i+1}`;
+                                const route = citationPageUrl(c);
+                                const action = route && route.startsWith('/')
+                                    ? `<a href="${escapeHTML(route)}" target="_blank" rel="noopener noreferrer" class="text-amber-200 underline underline-offset-2 hover:text-amber-100">Open page ${pageNum}</a>`
+                                    : `Page ${pageNum}`;
                                 return `
                                     <tr class="glass-card hover:border-sky-400/50 hover:scale-[1.01] transition-all duration-200 border border-white/10 rounded-xl my-1.5 p-3 flex flex-col md:table-row gap-2">
                                         <td class="py-2.5 px-3 font-semibold text-gray-200">
@@ -118,12 +122,12 @@ import { API_CONTRACT } from './00-current-origin.js';
                                         <td class="py-2.5 px-3 text-right text-gray-400">${total}</td>
                                         <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${avail}</td>
                                         <td class="py-2.5 px-3 text-center">
-                                            <span class="text-indigo-200 text-xs font-bold">Page ${pageNum}</span>
+                                            <span class="text-indigo-200 text-xs font-bold">${action}</span>
                                         </td>
                                     </tr>
                                 `;
                             }).join('')}
-                        </tbody>
+                        </tbody></table>
 
                     `;
                     scrollWrap.appendChild(tbl);

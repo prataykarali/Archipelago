@@ -3,7 +3,10 @@
 One concern: the ``Personalized`` learning path — building prerequisite MCQs,
 scoring ticks and gaps, and emitting the personalized graph for the chat UI.
 """
+
 from __future__ import annotations
+
+import re
 
 from .nodes import node_public
 from .pathfinder import SEARCH_ALGORITHM, learning_path
@@ -21,16 +24,23 @@ DISTRACTOR_POOL = 8
 
 
 def diagnostic_intro(engine, cid: str) -> str:
-    """The 'answer four checks first' preamble shown before the quiz."""
+    """Explain the indexed concept before offering an optional quiz."""
     graph = engine.graph
     pres = graph.prereqs(cid, 2)[:4] or [cid]
     names = ", ".join(graph.label(p) for p in pres)
+    summary = str(graph.nodes[cid].get("summary") or "No indexed definition is available.").strip()
+    summary = re.sub(rf"^{re.escape(graph.label(cid))}\s*[:.]\s*", "", summary, flags=re.I)
+    source = graph.citation(cid)
     return (
-        f"**Diagnostic checkpoint for {graph.label(cid)}.** "
-        "Choose a normal concept graph or a personalized prerequisite check. "
-        f"then the personalized graph is drawn from your ticks and gaps.\n\n"
-        f"Upstream nodes in the checkpoint: {names}.\n\n"
-        "Personalized mode starts with up to three checks and stops when coverage is sufficient (ten maximum)."
+        f"**{graph.label(cid)}.** {summary} {source} The graph below places this concept "
+        "among the related ideas that the indexed course material connects to it. "
+        "Use the source pages to check the explanation against the original text.\n\n"
+        f"The indexed upstream concepts are {names}. These are the concepts to review "
+        "before moving through the graph toward the target. Their links show the "
+        "recorded prerequisite relationships; they do not claim a dependency that "
+        "the library has not indexed.\n\n"
+        "The normal graph is visible below. Choose **Take Quiz** for a personalized "
+        "prerequisite check; that optional path uses your answers to find study gaps."
     )
 
 
@@ -39,7 +49,7 @@ def mcq_for(engine, concept_id: str, slot: int = 0) -> dict:
     graph = engine.graph
     if concept_id not in graph.nodes:
         concept_id = next(iter(graph.nodes))
-    chain = list(reversed(graph.prereqs(concept_id, 2)[:3])) + [concept_id]
+    chain = [*reversed(graph.prereqs(concept_id, 2)[:3]), concept_id]
     # Unique, keep order.
     seen = []
     for cid in chain:
@@ -57,9 +67,15 @@ def mcq_for(engine, concept_id: str, slot: int = 0) -> dict:
         distractor_ids.append(extra)
     options = {
         "A": summary[:MCQ_OPTION_CHARS],
-        "B": (graph.nodes[distractor_ids[0]].get("summary") or "Unrelated catalog node.")[:MCQ_OPTION_CHARS],
-        "C": (graph.nodes[distractor_ids[1]].get("summary") or "Unrelated catalog node.")[:MCQ_OPTION_CHARS],
-        "D": (graph.nodes[distractor_ids[2]].get("summary") or "Unrelated catalog node.")[:MCQ_OPTION_CHARS],
+        "B": (graph.nodes[distractor_ids[0]].get("summary") or "Unrelated catalog node.")[
+            :MCQ_OPTION_CHARS
+        ],
+        "C": (graph.nodes[distractor_ids[1]].get("summary") or "Unrelated catalog node.")[
+            :MCQ_OPTION_CHARS
+        ],
+        "D": (graph.nodes[distractor_ids[2]].get("summary") or "Unrelated catalog node.")[
+            :MCQ_OPTION_CHARS
+        ],
     }
     return {
         "concept_id": focus,
@@ -142,11 +158,13 @@ def adaptive_step(engine, body: dict) -> dict:
     ticks = int(body.get("consecutive_ticks") or 0)
     ticks = ticks + 1 if is_tick else 0
     history = list(body.get("history") or [])
-    history.append({
-        "concept_id": mcq.get("concept_id") or current,
-        "is_correct": is_tick,
-        "choice": choice,
-    })
+    history.append(
+        {
+            "concept_id": mcq.get("concept_id") or current,
+            "is_correct": is_tick,
+            "choice": choice,
+        }
+    )
     asked = len(history)
     mastered_ids = [row["concept_id"] for row in history if row.get("is_correct")]
     gap_ids = [row["concept_id"] for row in history if not row.get("is_correct")]
@@ -163,36 +181,44 @@ def adaptive_step(engine, body: dict) -> dict:
         if cid in graph.nodes and cid != target:
             pub = node_public(graph.nodes[cid])
             src = graph.cite_record(cid)
-            pub.update({
-                "status": "mastered", "role": "prereq",
-                "doc_id": src.get("doc_id") or "",
-                "page_number": src.get("page_number") or 1,
-                "printed_page": src.get("page_number") or 1,
-                "url": src.get("url") or "",
-            })
+            pub.update(
+                {
+                    "status": "mastered",
+                    "role": "prereq",
+                    "doc_id": src.get("doc_id") or "",
+                    "page_number": src.get("page_number") or 1,
+                    "printed_page": src.get("page_number") or 1,
+                    "url": src.get("url") or "",
+                }
+            )
             nodes.append(pub)
     for cid in gap_ids:
         if cid in graph.nodes and cid != target:
             pub = node_public(graph.nodes[cid])
             src = graph.cite_record(cid)
-            pub.update({
-                "status": "review_gap", "role": "prereq",
-                "doc_id": src.get("doc_id") or f"/library?book={cid}",
-                "page_number": src.get("page_number") or 1,
-                "printed_page": src.get("page_number") or 1,
-                "url": src.get("url") or "",
-            })
+            pub.update(
+                {
+                    "status": "review_gap",
+                    "role": "prereq",
+                    "doc_id": src.get("doc_id") or f"/library?book={cid}",
+                    "page_number": src.get("page_number") or 1,
+                    "printed_page": src.get("page_number") or 1,
+                    "url": src.get("url") or "",
+                }
+            )
             nodes.append(pub)
     target_pub = node_public(graph.nodes[target])
     target_src = graph.cite_record(target)
-    target_pub.update({
-        "status": "unlocked" if ticks >= MASTERY_TICKS else "target",
-        "role": "target",
-        "doc_id": target_src.get("doc_id") or "",
-        "page_number": target_src.get("page_number") or 1,
-        "printed_page": target_src.get("page_number") or 1,
-        "url": target_src.get("url") or "",
-    })
+    target_pub.update(
+        {
+            "status": "unlocked" if ticks >= MASTERY_TICKS else "target",
+            "role": "target",
+            "doc_id": target_src.get("doc_id") or "",
+            "page_number": target_src.get("page_number") or 1,
+            "printed_page": target_src.get("page_number") or 1,
+            "url": target_src.get("url") or "",
+        }
+    )
     nodes.append(target_pub)
     edges = []
     for node in nodes:
@@ -216,7 +242,8 @@ def adaptive_step(engine, body: dict) -> dict:
         "history": history,
         "completed": completed,
         "completion_reason": (
-            "3_consecutive_ticks_mastered" if ticks >= MASTERY_TICKS
+            "3_consecutive_ticks_mastered"
+            if ticks >= MASTERY_TICKS
             else ("four_question_checkpoint" if completed else "")
         ),
         "total_asked": asked,

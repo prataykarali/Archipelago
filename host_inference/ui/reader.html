@@ -113,6 +113,7 @@
         <span>Open Raw</span>
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
       </a>
+      <a id="btn-hub-pdf" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 text-xs font-semibold border border-amber-400/50" title="Open on Hugging Face; a Hub sign-in may be required">Hugging Face ↗</a>
     </div>
   </header>
 
@@ -152,6 +153,7 @@
     let pageNumPending = null;
     let scale = 1.35;
     let rawPdfUrl = '';
+    let officialPdfUrl = '';
     let currentDocId = '';
 
     const canvas = document.getElementById('pdf-canvas');
@@ -234,6 +236,12 @@
 
         // Build streaming URL for the PDF
         rawPdfUrl = docInfo.pdf_url || `/papers/${encodeURIComponent(resourceId)}`;
+        officialPdfUrl = docInfo.official_url || '';
+        const hubLink = document.getElementById('btn-hub-pdf');
+        if (officialPdfUrl) {
+          hubLink.href = officialPdfUrl;
+          hubLink.classList.remove('hidden');
+        }
         const anchorUrl = rawPdfUrl + (rawPdfUrl.includes('#') ? '' : `#page=${pageNum}`);
         document.getElementById('btn-raw-pdf').href = anchorUrl;
         errorFallbackLink.href = anchorUrl;
@@ -277,6 +285,7 @@
       url.hash = `page=${num}`;
       window.history.replaceState({}, '', url.toString());
       document.getElementById('btn-raw-pdf').href = `${rawPdfUrl.split('#')[0]}#page=${num}`;
+      if (officialPdfUrl) document.getElementById('btn-hub-pdf').href = `${officialPdfUrl.split('#')[0]}#page=${num}`;
       pageNumInput.title = pageLabels?.[num - 1]
         ? `PDF page ${num}; printed label ${pageLabels[num - 1]}`
         : `PDF page ${num}; printed page label unavailable`;

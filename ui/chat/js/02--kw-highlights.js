@@ -93,10 +93,11 @@ import { state } from './00-state.js';
 
         function citationTitle(citation, fallback = 'Source') {
             const named = citation.doc_title || citation.title || citation.document_title;
-            if (named) return String(named);
+            if (named && String(named).trim().length > 12) return String(named).trim();
             const filename = String(citation.doc_id || citation.document_id || fallback).split('/').pop();
             return filename.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ')
-                .replace(/^[A-Za-z]+\d{4}\s+/, '').trim() || fallback;
+                .replace(/^([A-Za-z]+)(\d{4})\s+/, '$1 ($2) ')
+                .trim() || String(named || fallback);
         }
 
         function showPearsonCredentialToast() {
@@ -146,7 +147,7 @@ import { state } from './00-state.js';
             }
         }).catch(() => {});
 
-        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/graphier/blob/main';
+        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/Library_books/blob/main';
 
         const HF_CANONICAL_DOCS = {
             'deisenroth_math_for_ml.pdf': 'textbooks/Deisenroth_Math_For_ML.pdf',

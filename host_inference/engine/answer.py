@@ -17,6 +17,7 @@ from remote_cache import hydrate, load_books
 
 from . import (
     catalogue,
+    citations,
     compose,
     diagnostics,
     ingestion_view,
@@ -40,7 +41,7 @@ from .conversation import ACADEMIC_QUERY, GREETING_PREFIX, conversational_reply
 from .graph import LibraryGraph
 from .inspector import build_trace
 from .links import source_links
-from .llm import fallback_config, provider_config, stream_completion
+from .llm import grounded_completion, provider_config
 from .nodes import node_public
 from .patterns import (
     AUTH_RE,
@@ -89,7 +90,7 @@ class Engine:
         record = self.graph.cite_record(cid, getattr(self.graph, "_query", ""))
         stem = re.sub(r"\.pdf$", "", (record.get("doc_id") or "").split("/")[-1].lower())
         stem = stem.replace("_", " ").replace("-", " ")
-        tokens = {tok for tok in re.findall(rf"[a-z]{{{BOOK_TITLE_TOKEN_MIN_LEN},}}", stem)}
+        tokens = set(re.findall(rf"[a-z]{{{BOOK_TITLE_TOKEN_MIN_LEN},}}", stem))
         if not tokens:
             return None
         best = None
@@ -129,6 +130,8 @@ class Engine:
             ),
             "routing": {"route": route, "score": extra.get("score", 1.0), "reason": extra.get("reason", route)},
         }
+        if anchor_ok:
+            payload["citations"] = citations.citation_bundle(graph, anchor, payload["citations"])
 
         # The graph-render protocol is decided from the contract, not from which
         # branch of the router ran, so it cannot vary with query phrasing.
@@ -186,11 +189,7 @@ class Engine:
         return {"route": route, "contract": contract, "text": text, "payload": payload, "anchor": anchor, "extra": extra}
 
     def stream_chat(self, query: str):
-        """Yield the metadata frame immediately, then stream tokens from XKIRO.
-
-        Falls back to the grounded draft when no provider is configured or the
-        stream produced no tokens.
-        """
+        """Yield metadata first, then a validated grounded reply with provider failover."""
         result = self.answer(query)
         route = result["route"]
         grounded_text = result["text"]
@@ -199,38 +198,18 @@ class Engine:
         can_polish = route in POLISHABLE_ROUTES
         safe_text = inference_context(self.graph, payload)
         config = provider_config() if can_polish and safe_text else None
-        if config:
-            payload["model"] = {"provider": config["provider"], "model": config["model"]}
-            payload["logs"].append({"step": config["provider"], "status": "ok", "details": config["model"]})
-
-        # Yield metadata frame immediately (< 10ms) to satisfy client watchdog and populate evidence/graph
+        # The graph and source links render as soon as this metadata arrives.
         yield json.dumps(payload) + "\n[STREAM_START]\n"
-
-        if not config:
-            yield grounded_text
-            return
-
-        link_lines = [line for line in grounded_text.splitlines() if line.startswith(CITATION_LINE_PREFIXES)]
-
-        streamed_tokens = 0
-        for delta in stream_completion(config, safe_text):
-            streamed_tokens += 1
-            yield delta
-
-        if streamed_tokens == 0:
-            fallback = fallback_config(config)
-            if fallback:
-                yield "\n*Primary inference provider unavailable; trying NVIDIA.*\n\n"
-                for delta in stream_completion(fallback, safe_text):
-                    streamed_tokens += 1
-                    yield delta
-
-        if streamed_tokens > 0:
-            if link_lines:
-                yield "\n\n" + "\n".join(link_lines)
-        else:
-            # Fallback to grounded text if stream connection failed or produced 0 tokens
-            yield grounded_text
+        polished, _used = grounded_completion(config, safe_text) if config else ("", None)
+        answer_text = polished or grounded_text
+        link_lines = citations.source_link_lines(payload.get("citations") or [])
+        link_lines.extend(
+            line for line in grounded_text.splitlines() if line.startswith(CITATION_LINE_PREFIXES)
+        )
+        missing_links = [line for line in dict.fromkeys(link_lines) if line not in answer_text]
+        yield answer_text
+        if missing_links:
+            yield "\n\n### Source pages\n" + "\n".join(missing_links)
 
     def _route_shelf_query(self, query: str, best_score: float) -> tuple[str, str, str | None, dict]:
         """Answer a physical-location question from the institutional catalogue.
@@ -328,10 +307,11 @@ class Engine:
 
         demo = match_demo(query, self.books)
         if demo and not DIAG_RE.search(query):
-            # Demo cards are canned blurbs. A curriculum request must reach the
-            # diagnostic/roadmap path instead of receiving a fixed paragraph.
-            return "DEMO", demo["text"], None, {
-                "hide_graph": True,
+            # Keep the curated explanation but attach its indexed concept so
+            # the normal graph appears without a second "tell me" request.
+            demo_anchor = next(iter(graph.phrase_hits(query)), None)
+            return "DEMO", demo["text"], demo_anchor, {
+                "hide_graph": not bool(demo_anchor),
                 "reason": "demo_prompt",
                 "citations": demo["citations"],
                 "score": 1.0,

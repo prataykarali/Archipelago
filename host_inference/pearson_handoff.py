@@ -34,7 +34,7 @@ def handoff(title: str, url: str, page: int) -> str:
         control to select page {{ page }}. Pearson may restore your last-read page;
         reflowable books may use different numbering.</p>
         <p><a href="{{ portal }}" target="_blank" rel="noopener noreferrer">Sign in to Pearson eLibrary</a></p>
-        <p><a href="{{ url }}" target="_blank" rel="noopener noreferrer">Open this book in Pearson</a></p>
+        <p><a href="{{ url }}" target="_blank" rel="noopener noreferrer">Open book in Pearson</a></p>
         <p>If the book link opens a blank page, return to the Pearson portal and search for
         <strong>{{ title }}</strong>. This reader does not provide a verified page link.</p>
         <p>Requested source page: {{ page }}. Check the book title and page before using the citation.</p>

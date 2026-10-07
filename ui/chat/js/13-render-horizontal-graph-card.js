@@ -43,7 +43,7 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                 : 'Take Quiz';
             const quizBtnCls = hasOngoingQuiz
                 ? 'bg-amber-500/25 hover:bg-amber-500/40 border border-amber-400 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20'
-                : 'bg-accentPurple/25 hover:bg-accentPurple/40 border border-accentPurple/50 text-accentPurple hover:text-white font-bold shadow-sm';
+                : 'bg-amber-400 hover:bg-amber-300 border border-amber-200 text-slate-950 font-extrabold shadow-lg shadow-amber-400/30';
 
             cardWrapper.innerHTML = `
                 <div class="concept-visualize-card border border-[#0d3829] rounded-xl overflow-hidden bg-[#03140d] shadow-[0_12px_32px_rgba(0,0,0,0.8),0_0_20px_rgba(0,255,163,0.05)]">
@@ -58,11 +58,11 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                             <span class="text-xs font-mono font-bold text-[#00ffa3] tracking-wide">graphify</span>
                             <span class="text-[10px] font-mono text-[#34d399] opacity-85">shortest path</span>
                         </div>
-                        <div class="text-[10px] font-mono text-[#52796f]">3 hops. Zero files opened.</div>
+                        <div class="text-[10px] font-mono text-emerald-200">Concept connections</div>
                     </div>
-                    <!-- Header toggle bar -->
-                    <button onclick="toggleHorizontalGraphCard('${cardId}')" type="button" class="w-full px-4 py-2.5 flex items-center justify-between bg-black/40 hover:bg-white/5 text-xs font-bold text-[#00ffa3] transition-all border-b border-[#0d3829] group cursor-pointer">
-                        <div class="flex items-center gap-2.5 min-w-0">
+                    <!-- Graph and quiz controls are separate buttons for keyboard access. -->
+                    <div class="w-full px-4 py-3 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-emerald-950/90 via-violet-950/80 to-amber-950/40 border-b-2 border-amber-400/60 shadow-[inset_0_0_24px_rgba(251,191,36,0.12)]">
+                        <button onclick="toggleHorizontalGraphCard('${cardId}')" type="button" aria-label="Toggle normal concept graph" class="flex items-center gap-2.5 min-w-0 text-left cursor-pointer">
                             <div class="w-7 h-7 flex items-center justify-center shrink-0">
                                 <img src="/ui/assets/graph_btn.png" class="w-full h-full object-contain" alt="Graph">
                             </div>
@@ -73,15 +73,15 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                                 </span>
                                 <span class="text-[10px] text-gray-400 font-medium">Click to expand/collapse horizontal node topology card</span>
                             </div>
-                        </div>
+                        </button>
                         <div class="flex items-center gap-2 shrink-0">
-                            <button onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span class="text-xs text-amber-100 font-bold px-3 py-2 rounded-lg bg-amber-400/15 border border-amber-400/50">Normal Graph · Visible</span>
+                            <button onclick="switchToPersonalizedGraph('${msgId}')" type="button" class="px-4 py-2 rounded-lg ${quizBtnCls} text-xs transition-all flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-graduation-cap text-xs"></i> <span>${quizBtnLabel}</span>
                             </button>
-                            <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">Normal Graph</span>
                             <i id="toggle-icon-${cardId}" class="fa-solid fa-chevron-up text-xs text-amber-300 transition-transform"></i>
                         </div>
-                    </button>
+                    </div>
 
                     <!-- Card Body -->
                     <div id="card-body-${cardId}" class="p-4 space-y-4">

@@ -85,28 +85,8 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             }
             if (metadata.contract === 'MCQ_DIAGNOSTIC') {
                 window._activeChoiceContext = { msgId, metadata };
-                const zone = getOrCreateInteractiveZone(msgId);
-                if (!zone) return;
-                zone.innerHTML = '';
-                const heading = document.createElement('p');
-                heading.className = 'text-sm text-gray-200 mb-3';
-                heading.textContent = 'Choose your learning mode. Normal mode needs no quiz.';
-                zone.appendChild(heading);
-                for (const [choice, label] of [
-                    ['personalized', 'Personalized Graph + Adaptive Q&A'],
-                    ['normal', 'Normal Concept Graph']
-                ]) {
-                    const button = document.createElement('button');
-                    button.type = 'button';
-                    button.className = 'px-4 py-2 m-1 rounded-xl bg-accentPurple/20 border border-accentPurple/40 text-sm';
-                    button.textContent = label;
-                    button.addEventListener('click', () => {
-                        window._activeChoiceContext = { msgId, metadata };
-                        chooseGraphExperience(choice, msgId);
-                    });
-                    zone.appendChild(button);
-                }
-                renderLearningMemoryControls(zone);
+                renderHorizontalGraphCard(msgId, metadata);
+                renderLearningMemoryControls(getOrCreateInteractiveZone(msgId));
                 return;
             }
             // Render the graph directly after an answer.  The old choice card

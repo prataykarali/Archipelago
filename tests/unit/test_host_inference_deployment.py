@@ -141,6 +141,20 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     assert b"password" not in response.data.lower()
 
 
+def test_pearson_handoff_keeps_requested_page_when_catalog_count_is_partial(hosted_app, monkeypatch):
+    import hostapp.routes.reader as reader_routes
+
+    monkeypatch.setattr(
+        reader_routes,
+        "load_books",
+        lambda: [{"id": "book-2", "title": "Long reader", "page_count": 269}],
+    )
+    response = hosted_app.app.test_client().get("/open/book-2?page=822")
+
+    assert response.status_code == 200
+    assert b"page 822" in response.data
+
+
 def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     import engine as hosted_engine
 
@@ -173,9 +187,9 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     chunks = list(instance.stream_chat("explain graph retrieval"))
     metadata = json.loads(chunks[0].split("\n[STREAM_START]\n", 1)[0])
 
-    assert captured["payload"]["max_tokens"] == 700
-    assert "two or three substantial paragraphs" in captured["payload"]["messages"][0]["content"]
-    assert metadata["model"]["provider"] == "xkiro"
+    assert captured["payload"]["max_tokens"] == 1000
+    assert "at least two substantial paragraphs" in captured["payload"]["messages"][0]["content"]
+    assert metadata["anchor_concept"]["id"] == "graph_retrieval"
     assert chunks[-1] == "Grounded fallback with [citation]."
 
 

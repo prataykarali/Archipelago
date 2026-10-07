@@ -2,7 +2,7 @@
   "applicationId": "4427410e-8b49-4122-aedb-8dbb5e2e3c60",
   "name": "archipelago",
   "build_command": "pip install -r host_inference/requirements.txt",
-  "start_command": "sh -c 'PYTHONPATH=$PWD gunicorn --chdir host_inference --bind 0.0.0.0:5151 hostapp.wsgi'",
+  "start_command": "sh -c 'PYTHONPATH=$PWD gunicorn --chdir host_inference --bind 0.0.0.0:5151 --timeout 90 hostapp.wsgi'",
   "health_check": "/api/readiness",
   "env": {
     "FLASK_ENV": "production",

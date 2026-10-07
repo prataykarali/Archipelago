@@ -7,6 +7,7 @@ from .nodes import node_public
 
 MAX_CONTEXT_CHARS = 6000
 MAX_CONTEXT_NODES = 8
+MAX_SOURCE_PASSAGES = 4
 SECRET_ASSIGNMENT = re.compile(
     r"(?im)\b(?:password|passwd|api[_ -]?key|secret|access[_ -]?token|"
     r"refresh[_ -]?token|authorization|student[_ -]?(?:id|email)|barcode)"
@@ -46,4 +47,11 @@ def inference_context(graph, payload: dict) -> str:
             records.append(f"{record['label']}: {record['summary']}")
         if len(records) >= MAX_CONTEXT_NODES:
             break
+    for citation in (payload.get("citations") or [])[:MAX_SOURCE_PASSAGES]:
+        if not isinstance(citation, dict) or citation.get("withdrawn"):
+            continue
+        title = citation.get("doc_title") or citation.get("doc_id") or "Indexed source"
+        page = citation.get("page_number") or 1
+        passage = citation.get("text_passage") or ""
+        records.append(f"Source: {title}, page {page}. Passage: {passage}")
     return safe_text("\n".join(records))

@@ -16,7 +16,7 @@ from remote_cache import load_books, pearson_page_url
 
 from ..config import UI
 from ..context import AppContext
-from ..hf_delivery import deliver_pdf, error_response
+from ..hf_delivery import deliver_pdf, error_response, official_pdf_url
 
 READER_PAGE_FILE = "reader.html"
 MIN_PAGE = 1
@@ -156,6 +156,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             "author": "Archipelago Research Holding (HF Dataset)",
             "provider": "huggingface",
             "pdf_url": pdf_route,
+            "official_url": official_pdf_url(clean_target, page),
             "page": page,
             "page_verified": False,
             "status": "manifest_only",
@@ -187,6 +188,6 @@ def register(app: Flask, ctx: AppContext) -> None:
                 raise ValueError
         except (ValueError, TypeError):
             return error_response("bad_page", "Page must be a positive integer.", 400)
-        if book.get("page_count") and page > int(book["page_count"]):
-            return error_response("bad_page", "Requested page exceeds the catalogued page count.", 400)
+        # Pearson's imported page_count is often partial, especially for
+        # reflowable titles; the licensed reader must confirm the page.
         return handoff(book.get("title") or "Pearson book", pearson_page_url(book, page), page)
