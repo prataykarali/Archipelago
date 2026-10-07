@@ -97,3 +97,12 @@ def test_dead_roadmap_quiz_script_is_gone():
     for root in (CANONICAL, HOSTED):
         index = (root / "index.html").read_text(encoding="utf-8")
         assert "roadmap_quiz.js" not in index, f"{root}/index.html still references a missing script"
+
+
+def test_dataset_reader_keeps_path_separators_for_deployed_proxy():
+    """The reverse proxy rejects encoded slashes in reader metadata paths."""
+    for root in (CANONICAL, HOSTED):
+        reader = (root / "reader.html").read_text(encoding="utf-8")
+        assert "resourceId.split('/').map(encodeURIComponent).join('/')" in reader
+        assert "`/api/reader/info/${routeId}?page=${pageNum}`" in reader
+        assert "/api/reader/info/${encodeURIComponent(resourceId)}" not in reader

@@ -212,7 +212,8 @@
 
       try {
         // Fetch document metadata from backend reader info route
-        const infoResp = await fetch(`/api/reader/info/${encodeURIComponent(resourceId)}?page=${pageNum}`);
+        const routeId = resourceId.split('/').map(encodeURIComponent).join('/');
+        const infoResp = await fetch(`/api/reader/info/${routeId}?page=${pageNum}`);
         let docInfo = {};
         docInfo = await infoResp.json();
         if (!infoResp.ok) {
@@ -235,7 +236,7 @@
         document.getElementById('doc-badge').textContent = badge;
 
         // Build streaming URL for the PDF
-        rawPdfUrl = docInfo.pdf_url || `/papers/${encodeURIComponent(resourceId)}`;
+        rawPdfUrl = docInfo.pdf_url || `/papers/${routeId}`;
         officialPdfUrl = docInfo.official_url || '';
         const hubLink = document.getElementById('btn-hub-pdf');
         if (officialPdfUrl) {
