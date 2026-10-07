@@ -136,7 +136,7 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
     assert response.status_code == 200
-    assert b"Open book in Pearson" in response.data
+    assert b"Open page in Pearson" in response.data
     assert b"page 7" in response.data
     assert b"password" not in response.data.lower()
 

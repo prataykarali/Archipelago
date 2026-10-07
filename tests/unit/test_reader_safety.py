@@ -124,26 +124,30 @@ def test_manifest_resolution_not_page_verification(client):
     assert result.json["page"] == 3
 
 
-def test_pearson_manual_handoff_not_fake_deep_link(client):
+def test_pearson_pdf_handoff_uses_page_fragment(client):
     url = pearson_page_url(BOOK, 12)
-    assert "#book/fixture-book" in url and "/page/" not in url
+    assert "#book/fixture-book/page/12" in url
     for path in ("/open/fixture-book?page=12", "/open/book/fixture-book?page=12"):
         response = client.get(path)
         assert response.status_code == 200
         assert "page 12" in response.text
-        assert "does not provide a verified page link" in response.text
+        assert "Open page in Pearson" in response.text
         assert "window.location" not in response.text
-        assert "/page/12" not in response.text
+        assert "/page/12" in response.text
     assert client.get("/open/fixture-book?page=21").status_code == 200
     info = client.get("/api/reader/info/fixture-book?page=12").json
     assert info["reader_url"] == "/open/fixture-book?page=12"
     assert info["page_verified"] is False
 
 
-def test_reflowable_pearson_book_opens_the_actual_reader():
+def test_reflowable_pearson_book_opens_the_actual_reader(client):
     book = {**BOOK, "book_type": "reflowable"}
     assert "/wr/viewer.html?" in pearson_page_url(book, 12)
     assert "/wr/index.html?" not in pearson_page_url(book, 12)
+    assert "/page/12" not in pearson_page_url(book, 12)
+    with client.application.app_context():
+        body = handoff(book["title"], pearson_page_url(book, 12), 12)
+    assert "does not provide a verified page link" in body
 
 
 def test_resolver_does_not_claim_authentication(monkeypatch):

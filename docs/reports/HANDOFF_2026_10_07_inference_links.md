@@ -5,7 +5,7 @@
 - Expanded grounded chat replies and source lists to as many as six indexed pages, with readable title and page labels. Added XKIRO to NVIDIA fallback with pacing and rate-limit cooldown.
 - Showed the normal concept graph for diagnostic and curated concept prompts by default, with clearer quiz and graph controls.
 - Fixed legacy Hugging Face PDF path resolution when the manifest has duplicate basenames. The in-app reader uses the approved dataset path and offers an official Hub file link.
-- Removed the imported Pearson page-count rejection. Verified that eLibrary reflowable books use `viewer.html` and corrected that book link. The handoff retains the requested page number and makes no unverified exact-page claim.
+- Removed the imported Pearson page-count rejection. Verified that eLibrary reflowable books use `viewer.html` and corrected that book link. Verified a PDF eLibrary `#book/<id>/page/42` URL opens page 42 and enabled that pattern for PDF holdings. Reflowable titles retain a manual page handoff because a numeric `/page/822` fragment was ignored by the official reader.
 
 ## Verification
 

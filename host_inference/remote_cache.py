@@ -78,11 +78,12 @@ def hydrate() -> dict[str, str]:
 
 
 def pearson_page_url(book: dict, page: int = 1) -> str:
-    """Book-specific Pearson URL. Requested pages require a manual reader handoff."""
-    viewer = "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "viewer.html"
+    """Book URL, with exact PDF page fragments where Pearson supports them."""
+    is_pdf = str(book.get("book_type") or "").lower() == "pdf"
+    viewer = "pdfviewer.html" if is_pdf else "viewer.html"
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
-    page_part = ""
+    page_part = f"/page/{max(1, int(page))}" if is_pdf else ""
     return (
         f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
     )
