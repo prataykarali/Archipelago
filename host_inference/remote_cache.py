@@ -79,7 +79,7 @@ def hydrate() -> dict[str, str]:
 
 def pearson_page_url(book: dict, page: int = 1) -> str:
     """Book-specific Pearson URL. Requested pages require a manual reader handoff."""
-    viewer = "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "index.html"
+    viewer = "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "viewer.html"
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
     page_part = ""

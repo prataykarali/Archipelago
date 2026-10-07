@@ -64,9 +64,10 @@ def test_unknown_manifest_document_rejected_before_network(client, monkeypatch):
 
 def test_missing_credential_is_explicit(client, monkeypatch):
     monkeypatch.delenv("HF_TOKEN")
+    monkeypatch.setattr(hf_delivery.requests, "get", lambda *a, **k: Upstream(401))
     response = client.get(f"/papers/{PATH}")
     assert response.status_code == 503
-    assert response.json["error"] == "unavailable"
+    assert response.json["error"] == "dataset_access_denied"
 
 
 @pytest.mark.parametrize("status,expected,code", [(401, 503, "dataset_access_denied"), (403, 503, "dataset_access_denied"), (404, 404, "not_found"), (500, 502, "upstream_unavailable")])
@@ -130,13 +131,19 @@ def test_pearson_manual_handoff_not_fake_deep_link(client):
         response = client.get(path)
         assert response.status_code == 200
         assert "page 12" in response.text
-        assert "not verified" in response.text
+        assert "does not provide a verified page link" in response.text
         assert "window.location" not in response.text
         assert "/page/12" not in response.text
-    assert client.get("/open/fixture-book?page=21").status_code == 400
+    assert client.get("/open/fixture-book?page=21").status_code == 200
     info = client.get("/api/reader/info/fixture-book?page=12").json
     assert info["reader_url"] == "/open/fixture-book?page=12"
     assert info["page_verified"] is False
+
+
+def test_reflowable_pearson_book_opens_the_actual_reader():
+    book = {**BOOK, "book_type": "reflowable"}
+    assert "/wr/viewer.html?" in pearson_page_url(book, 12)
+    assert "/wr/index.html?" not in pearson_page_url(book, 12)
 
 
 def test_resolver_does_not_claim_authentication(monkeypatch):
