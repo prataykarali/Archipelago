@@ -3,12 +3,14 @@
 One concern: serving the four UI shells and reporting readiness.  Health output
 is computed from the live graph, never hard-coded.
 """
+
 from __future__ import annotations
 
 from flask import Flask, jsonify, redirect, send_from_directory
 
 from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
 from ..context import AppContext
+from .ingest import _worker_available
 
 GRAPH_PAGE_FILE = "graph.html"
 
@@ -23,7 +25,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     """Register page and health routes on ``app``."""
 
     def _page(name: str):
-        if name in AUTH_GATED_PAGES and name not in {"chat", "library", "landing"} and ctx.auth.required():
+        if name in AUTH_GATED_PAGES and ctx.auth.required():
             principal, _error = ctx.auth.principal()
             if principal is None:
                 return redirect(f"/login?next=/{name}")
@@ -75,20 +77,22 @@ def register(app: Flask, ctx: AppContext) -> None:
         source = getattr(graph, "corpus_source", None) or (
             "fixture" if concepts < FULL_CORPUS_MIN_CONCEPTS else "full"
         )
-        return jsonify({
-            "ok": True,
-            "mode": "inference-only",
-            "concepts": concepts,
-            "corpus": {
+        return jsonify(
+            {
+                "ok": True,
+                "mode": "inference-only",
                 "concepts": concepts,
-                "full": source == "full",
-                "source": source,
-            },
-            "pearson_books": len(ctx.engine.books),
-            "cache": ctx.engine.cache_info.get("source"),
-            "ingestion": False,
-            "cache_metrics": ctx.cache_metrics.stats(),
-        })
+                "corpus": {
+                    "concepts": concepts,
+                    "full": source == "full",
+                    "source": source,
+                },
+                "pearson_books": len(ctx.engine.books),
+                "cache": ctx.engine.cache_info.get("source"),
+                "ingestion": _worker_available(),
+                "cache_metrics": ctx.cache_metrics.stats(),
+            }
+        )
 
     @app.get("/api/metrics/cache")
     def api_cache_metrics():

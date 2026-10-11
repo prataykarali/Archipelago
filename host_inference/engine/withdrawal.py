@@ -10,6 +10,7 @@ That distinction is the point of "the graph forgets it": the institution stops
 citing and offering a withdrawn title, without destroying knowledge that other
 sources independently support.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -20,9 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Used when the provider is unknown; kept in sync with the lifecycle module's
 # provider-neutral wording.
-NEUTRAL_NOTICE = (
-    "This title is no longer in the library's records and cannot be cited or opened."
-)
+NEUTRAL_NOTICE = "This title is no longer in the library's records and cannot be cited or opened."
 
 
 def withdrawn_documents(states: dict[str, Any] | None = None) -> set[str]:

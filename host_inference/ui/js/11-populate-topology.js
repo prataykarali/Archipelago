@@ -324,8 +324,17 @@ import { _initGraphRipple } from './18--init-graph-ripple.js';
         window.getOrCreateInteractiveZone = getOrCreateInteractiveZone;
 
         function showGraphChoiceModal(msgId, metadata) {
-            // Dismiss and suppress modal popup; interactive choice is rendered directly inside the chat card
-            dismissGraphChoiceModal();
+            const modal = document.getElementById('graph-choice-modal');
+            if (!modal) return;
+            window._activeChoiceContext = { msgId, metadata };
+            const badge = document.getElementById('choice-concept-badge');
+            if (badge && metadata && metadata.anchor_concept) {
+                badge.textContent = _nodeLabel(metadata.anchor_concept) || 'Concept';
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const cardP = document.getElementById('choice-card-personalized');
+            if (cardP) setTimeout(() => cardP.focus(), 50);
         }
 
         window.showGraphChoiceModal = showGraphChoiceModal;

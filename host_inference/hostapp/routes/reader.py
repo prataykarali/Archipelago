@@ -4,24 +4,25 @@ One concern: resolving a document id + page number to an exact, working source
 page — the institutional Pearson reader, a Hugging Face dataset PDF, or the
 internal reader — and streaming those sources.
 """
+
 from __future__ import annotations
 
 import os
 import re
 from urllib.parse import quote
 
-import requests
-from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
-
 from engine import _hf_doc_path
+from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
 from library_index import hf_title, resolve_hf_path
 from remote_cache import load_books, pearson_page_url
+import requests
 
 from ..config import UI
 from ..context import AppContext
 
 READER_PAGE_FILE = "reader.html"
-HF_DATASET_RESOLVE_BASE = "https://huggingface.co/datasets/Prataykarali/Library_books/resolve/main"
+HF_REPO_NAME = os.environ.get("HF_DATASET_REPO", "Prataykarali/graphier")
+HF_DATASET_RESOLVE_BASE = f"https://huggingface.co/datasets/{HF_REPO_NAME}/resolve/main"
 HF_STREAM_CHUNK_BYTES = 65536
 HF_STREAM_TIMEOUT_SEC = 30
 MIN_PAGE = 1
@@ -79,28 +80,32 @@ def register(app: Flask, ctx: AppContext) -> None:
             pearson_url = pearson_page_url(book, page)
             if not _wants_json():
                 return redirect(f"/open/{book.get('id')}?page={page}")
-            return jsonify({
-                "doc_id": book.get("id"),
-                "page": page,
-                "title": book.get("title"),
-                "pdf_url": pearson_url,
-                "url": pearson_url,
-                "is_pearson": True,
-            })
+            return jsonify(
+                {
+                    "doc_id": book.get("id"),
+                    "page": page,
+                    "title": book.get("title"),
+                    "pdf_url": pearson_url,
+                    "url": pearson_url,
+                    "is_pearson": True,
+                }
+            )
 
         mapped = _hf_doc_path(doc_id) or doc_id
         clean_doc = mapped.lstrip("/").replace("papers/", "")
         target = f"/read?doc={quote(doc_id, safe='')}&page={page}#page={page}"
         if not _wants_json():
             return redirect(target)
-        return jsonify({
-            "doc_id": doc_id,
-            "page": page,
-            "title": hf_title(mapped) if mapped else "Document",
-            "pdf_url": f"/papers/{clean_doc}",
-            "url": target,
-            "is_pearson": False,
-        })
+        return jsonify(
+            {
+                "doc_id": doc_id,
+                "page": page,
+                "title": hf_title(mapped) if mapped else "Document",
+                "pdf_url": f"/papers/{clean_doc}",
+                "url": target,
+                "is_pearson": False,
+            }
+        )
 
     @app.get("/read")
     @app.get("/read/<path:subpath>")
@@ -119,18 +124,25 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         book = _find_pearson_book(clean_id)
         if book is not None:
-            return jsonify({
-                "id": book.get("id"),
-                "title": book.get("title", ""),
-                "author": book.get("author", "Pearson Education"),
-                "provider": "pearson",
-                "reader_url": pearson_page_url(book, page),
-                "page_count": book.get("page_count", 0),
-            })
+            return jsonify(
+                {
+                    "id": book.get("id"),
+                    "title": book.get("title", ""),
+                    "author": book.get("author", "Pearson Education"),
+                    "provider": "pearson",
+                    "reader_url": pearson_page_url(book, page),
+                    "page_count": book.get("page_count", 0),
+                }
+            )
 
         target_path = resolve_hf_path(_hf_doc_path(clean_id)) or resolve_hf_path(clean_id)
         if not target_path:
-            return jsonify({"error": "not_found", "detail": "This document is not a reader-backed dataset file."}), 404
+            return jsonify(
+                {
+                    "error": "not_found",
+                    "detail": "This document is not a reader-backed dataset file.",
+                }
+            ), 404
         clean_target = target_path.lstrip("/")
         pdf_route = f"/papers/{clean_target.removeprefix('papers/').lstrip('/')}"
         title_guess = (
@@ -138,14 +150,16 @@ def register(app: Flask, ctx: AppContext) -> None:
             if clean_target
             else clean_id.split("/")[-1].replace(".pdf", "").replace("_", " ").title()
         )
-        return jsonify({
-            "id": clean_id,
-            "title": title_guess,
-            "author": "Archipelago Research Holding (HF Dataset)",
-            "provider": "huggingface",
-            "pdf_url": pdf_route,
-            "page": page,
-        })
+        return jsonify(
+            {
+                "id": clean_id,
+                "title": title_guess,
+                "author": "Archipelago Research Holding (HF Dataset)",
+                "provider": "huggingface",
+                "pdf_url": pdf_route,
+                "page": page,
+            }
+        )
 
     @app.get("/papers/<path:doc_path>")
     @app.get("/pdfs/<path:doc_path>")
@@ -154,10 +168,10 @@ def register(app: Flask, ctx: AppContext) -> None:
         if not doc_path or ".." in doc_path or "\\" in doc_path or "\x00" in doc_path:
             return jsonify({"error": "bad_path", "detail": "Invalid document path."}), 400
         if not SAFE_DOC_PATH_PATTERN.match(doc_path):
-            return jsonify({"error": "bad_path", "detail": "Disallowed characters in document path."}), 400
+            return jsonify(
+                {"error": "bad_path", "detail": "Disallowed characters in document path."}
+            ), 400
         token = os.environ.get("HF_TOKEN", "").strip()
-        if not token:
-            return jsonify({"error": "unavailable", "detail": "The paper dataset token is not configured."}), 503
 
         clean_path = doc_path.lstrip("/")
         clean_path = re.sub(r"^(papers/)+", "papers/", clean_path)
@@ -188,7 +202,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             try:
                 response = requests.get(
                     f"{HF_DATASET_RESOLVE_BASE}/{verified}",
-                    headers={"Authorization": f"Bearer {token}"},
+                    headers={"Authorization": f"Bearer {token}"} if token else {},
                     stream=True,
                     timeout=HF_STREAM_TIMEOUT_SEC,
                     allow_redirects=True,
@@ -201,7 +215,9 @@ def register(app: Flask, ctx: AppContext) -> None:
                 continue
 
         if upstream is None or upstream.status_code != 200:
-            return jsonify({"error": "not_found", "detail": "That page is not in the dataset."}), 404
+            return jsonify(
+                {"error": "not_found", "detail": "That page is not in the dataset."}
+            ), 404
 
         def generate():
             try:
@@ -219,7 +235,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/open/<book_id>")
     @app.get("/open/book/<book_id>")
     def open_pearson(book_id: str):
-        """Redirect an indexed Pearson title to its exact reader page."""
+        """Show the Pearson sign-in handoff for an indexed title."""
         # Citations and legacy links may carry the `book/` prefix.
         clean_id = (book_id or "").strip()
         if clean_id.startswith("book/"):
@@ -229,12 +245,13 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         book = _find_pearson_book(clean_id)
         if book is None:
-            return jsonify({"error": "not_found", "detail": "That title is not in the Pearson catalog."}), 404
+            return jsonify(
+                {"error": "not_found", "detail": "That title is not in the Pearson catalog."}
+            ), 404
         try:
             page = max(MIN_PAGE, int(request.args.get("page") or 1))
         except (ValueError, TypeError):
             page = MIN_PAGE
-        # Pearson owns authentication. Keeping the complete deep link intact lets
-        # its own login flow return to the requested title and page without
-        # exposing any secret.
-        return redirect(pearson_page_url(book, page), code=302)
+        if request.args.get("direct") == "1":
+            return redirect(pearson_page_url(book, page), code=302)
+        return send_from_directory(UI, "pearson-handoff.html")

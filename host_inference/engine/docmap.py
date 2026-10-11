@@ -5,6 +5,7 @@ relative paths.  :func:`hf_doc_path` normalises all three onto the single path
 shape the dataset actually contains, so a citation can never point at a file
 that does not exist.
 """
+
 from __future__ import annotations
 
 HF_DOC_MAP = {

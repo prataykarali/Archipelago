@@ -3,7 +3,10 @@
 One concern: the ``Personalized`` learning path — building prerequisite MCQs,
 scoring ticks and gaps, and emitting the personalized graph for the chat UI.
 """
+
 from __future__ import annotations
+
+from itertools import pairwise
 
 from .nodes import node_public
 from .pathfinder import SEARCH_ALGORITHM, learning_path
@@ -14,6 +17,7 @@ MCQ_MAX_QUESTIONS = 4
 MCQ_OPTION_CHARS = 220
 MASTERY_TICKS = 3
 CHECKPOINT_QUESTIONS = 4
+MIN_DIAGNOSTIC_QUESTIONS = 3
 # How long a roadmap step summary may be.
 ROADMAP_STEP_CHARS = 160
 # Distractors are drawn from this many top-ranked neighbours.
@@ -39,7 +43,7 @@ def mcq_for(engine, concept_id: str, slot: int = 0) -> dict:
     graph = engine.graph
     if concept_id not in graph.nodes:
         concept_id = next(iter(graph.nodes))
-    chain = list(reversed(graph.prereqs(concept_id, 2)[:3])) + [concept_id]
+    chain = [*list(reversed(graph.prereqs(concept_id, 2)[:3])), concept_id]
     # Unique, keep order.
     seen = []
     for cid in chain:
@@ -57,9 +61,15 @@ def mcq_for(engine, concept_id: str, slot: int = 0) -> dict:
         distractor_ids.append(extra)
     options = {
         "A": summary[:MCQ_OPTION_CHARS],
-        "B": (graph.nodes[distractor_ids[0]].get("summary") or "Unrelated catalog node.")[:MCQ_OPTION_CHARS],
-        "C": (graph.nodes[distractor_ids[1]].get("summary") or "Unrelated catalog node.")[:MCQ_OPTION_CHARS],
-        "D": (graph.nodes[distractor_ids[2]].get("summary") or "Unrelated catalog node.")[:MCQ_OPTION_CHARS],
+        "B": (graph.nodes[distractor_ids[0]].get("summary") or "Unrelated catalog node.")[
+            :MCQ_OPTION_CHARS
+        ],
+        "C": (graph.nodes[distractor_ids[1]].get("summary") or "Unrelated catalog node.")[
+            :MCQ_OPTION_CHARS
+        ],
+        "D": (graph.nodes[distractor_ids[2]].get("summary") or "Unrelated catalog node.")[
+            :MCQ_OPTION_CHARS
+        ],
     }
     return {
         "concept_id": focus,
@@ -142,15 +152,19 @@ def adaptive_step(engine, body: dict) -> dict:
     ticks = int(body.get("consecutive_ticks") or 0)
     ticks = ticks + 1 if is_tick else 0
     history = list(body.get("history") or [])
-    history.append({
-        "concept_id": mcq.get("concept_id") or current,
-        "is_correct": is_tick,
-        "choice": choice,
-    })
+    history.append(
+        {
+            "concept_id": mcq.get("concept_id") or current,
+            "is_correct": is_tick,
+            "choice": choice,
+        }
+    )
     asked = len(history)
     mastered_ids = [row["concept_id"] for row in history if row.get("is_correct")]
     gap_ids = [row["concept_id"] for row in history if not row.get("is_correct")]
-    completed = ticks >= MASTERY_TICKS or asked >= CHECKPOINT_QUESTIONS
+    completed = asked >= MIN_DIAGNOSTIC_QUESTIONS and (
+        ticks >= MASTERY_TICKS or asked >= CHECKPOINT_QUESTIONS
+    )
     stride = "advance" if is_tick else "leap_back"
     next_q = None
     next_concept = current
@@ -159,45 +173,71 @@ def adaptive_step(engine, body: dict) -> dict:
         next_q = mcq_for(engine, target, slot)
         next_concept = next_q["concept_id"]
     nodes = []
-    for cid in mastered_ids:
+    for cid in dict.fromkeys(mastered_ids):
         if cid in graph.nodes and cid != target:
             pub = node_public(graph.nodes[cid])
             src = graph.cite_record(cid)
-            pub.update({
-                "status": "mastered", "role": "prereq",
-                "doc_id": src.get("doc_id") or "",
-                "page_number": src.get("page_number") or 1,
-                "printed_page": src.get("page_number") or 1,
-                "url": src.get("url") or "",
-            })
+            pub.update(
+                {
+                    "status": "mastered",
+                    "role": "prereq",
+                    "doc_id": src.get("doc_id") or "",
+                    "page_number": src.get("page_number") or 1,
+                    "printed_page": src.get("page_number") or 1,
+                    "url": src.get("url") or "",
+                }
+            )
             nodes.append(pub)
-    for cid in gap_ids:
-        if cid in graph.nodes and cid != target:
+    for cid in dict.fromkeys(gap_ids):
+        if cid in graph.nodes and cid != target and cid not in mastered_ids:
             pub = node_public(graph.nodes[cid])
             src = graph.cite_record(cid)
-            pub.update({
-                "status": "review_gap", "role": "prereq",
-                "doc_id": src.get("doc_id") or f"/library?book={cid}",
-                "page_number": src.get("page_number") or 1,
-                "printed_page": src.get("page_number") or 1,
-                "url": src.get("url") or "",
-            })
+            pub.update(
+                {
+                    "status": "review_gap",
+                    "role": "prereq",
+                    "doc_id": src.get("doc_id") or f"/library?book={cid}",
+                    "page_number": src.get("page_number") or 1,
+                    "printed_page": src.get("page_number") or 1,
+                    "url": src.get("url") or "",
+                }
+            )
             nodes.append(pub)
     target_pub = node_public(graph.nodes[target])
     target_src = graph.cite_record(target)
-    target_pub.update({
-        "status": "unlocked" if ticks >= MASTERY_TICKS else "target",
-        "role": "target",
-        "doc_id": target_src.get("doc_id") or "",
-        "page_number": target_src.get("page_number") or 1,
-        "printed_page": target_src.get("page_number") or 1,
-        "url": target_src.get("url") or "",
-    })
+    target_pub.update(
+        {
+            "status": "unlocked" if ticks >= MASTERY_TICKS else "target",
+            "role": "target",
+            "doc_id": target_src.get("doc_id") or "",
+            "page_number": target_src.get("page_number") or 1,
+            "printed_page": target_src.get("page_number") or 1,
+            "url": target_src.get("url") or "",
+        }
+    )
     nodes.append(target_pub)
-    edges = []
-    for node in nodes:
-        if node["id"] != target:
-            edges.append({"source": node["id"], "target": target, "relation": "REQUIRES"})
+    # A roadmap has one next step per node. Use the computed learning order,
+    # then include any assessed prerequisite that the shortest path omitted.
+    roadmap = _personalized_roadmap(graph, target, mastered_ids, gap_ids)
+    by_id = {node["id"]: node for node in nodes}
+    curriculum_order = mcq_for(engine, target, 0)["chain"][:-1]
+    curriculum_order.extend(step["id"] for step in roadmap["steps"])
+    curriculum_order.extend(by_id)
+    ordered_ids = list(
+        dict.fromkeys(cid for cid in curriculum_order if cid in by_id and cid != target)
+    )
+    ordered_ids.append(target)
+    nodes = [by_id[cid] for cid in ordered_ids]
+    edges = [
+        {
+            "from_id": source,
+            "to_id": destination,
+            "source": source,
+            "target": destination,
+            "relation": "NEXT_STEP",
+        }
+        for source, destination in pairwise(ordered_ids)
+    ]
     correct_count = sum(1 for row in history if row.get("is_correct"))
     evaluation = {
         "target_concept": target,
@@ -207,7 +247,7 @@ def adaptive_step(engine, body: dict) -> dict:
         "full_score": ticks >= MASTERY_TICKS,
         "zero_score": not mastered_ids,
         "personalized_graph": {"nodes": nodes, "edges": edges},
-        "roadmap": _personalized_roadmap(graph, target, mastered_ids, gap_ids),
+        "roadmap": roadmap,
     }
     return {
         "is_tick": is_tick,
@@ -216,7 +256,8 @@ def adaptive_step(engine, body: dict) -> dict:
         "history": history,
         "completed": completed,
         "completion_reason": (
-            "3_consecutive_ticks_mastered" if ticks >= MASTERY_TICKS
+            "3_consecutive_ticks_mastered"
+            if ticks >= MASTERY_TICKS
             else ("four_question_checkpoint" if completed else "")
         ),
         "total_asked": asked,

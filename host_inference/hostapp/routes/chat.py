@@ -1,10 +1,9 @@
 """Chat, diagnostics, roadmap and quiz routes.
 
-One concern: the student-facing query pipeline — cache lookup, request
-deduplication, grounded streaming synthesis, the adaptive diagnostic QnA flow,
-and the roadmap/quiz builders.  AI calls are minimised per doc 03: a cache hit
-or an in-flight duplicate never reaches the model.
+One concern: the student-facing query pipeline, grounded streaming synthesis,
+the adaptive diagnostic QnA flow, and the roadmap/quiz builders.
 """
+
 from __future__ import annotations
 
 import json
@@ -51,11 +50,20 @@ def _withdrawn_notice(sources: list) -> str:
 def register(app: Flask, ctx: AppContext) -> None:
     """Register chat-family routes on ``app``."""
 
+    @app.get("/api/chat/quota")
+    def chat_quota():
+        principal = getattr(request, "archipelago_principal", None)
+        if principal is None:
+            return jsonify({"error": "unauthorized"}), 401
+        return jsonify(ctx.limiter.quota_status(principal["id"]))
+
     @app.post("/api/chat")
     def api_chat():
         body = request.get_json(silent=True)
         if not isinstance(body, dict):
-            return jsonify({"error": "invalid_payload", "detail": "Request body must be a JSON object"}), 400
+            return jsonify(
+                {"error": "invalid_payload", "detail": "Request body must be a JSON object"}
+            ), 400
         raw_query = str(body.get("query") or "")
         query = CONTROL_CHARS.sub("", raw_query).strip()
         if len(query) > MAX_QUERY_CHARS:
@@ -64,50 +72,10 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "Query cannot be empty"}), 400
 
         ctx.cache_metrics.record_request()
-        norm_query = ctx.cache_service.normalize_query(query)
+        principal = getattr(request, "archipelago_principal", None) or {}
+        norm_query = f"{principal.get('id', 'guest')}:{ctx.cache_service.normalize_query(query)}"
 
-        # 1. Response cache (Doc 03 Section 3: Cache HIT) — no AI call.
-        cached_entry = ctx.cache_service.get_cached_response(query)
-        if cached_entry:
-            ctx.cache_metrics.record_hit(tokens_saved=TOKENS_SAVED_PER_HIT)
-            cached_response_text = str(cached_entry.get("response") or "")
-
-            def generate_cached():
-                # A cached stream already carries its metadata frame, so replay
-                # it verbatim and the in-chat graph survives the cache.
-                if cached_response_text.startswith("{") and STREAM_MARKER.strip() in cached_response_text:
-                    yield cached_response_text
-                    return
-                sources = cached_entry.get("sources") or []
-                payload = {
-                    "anchor_concept": (cached_entry.get("graph_data") or {}).get("target_id"),
-                    "prerequisites": [],
-                    "unlocks": [],
-                    "related_concepts": [],
-                    "citations": sources,
-                    "graph_data": cached_entry.get("graph_data"),
-                    "roadmap": cached_entry.get("roadmap_data"),
-                    "model": {"provider": "cache", "model": "ai_response_cache"},
-                    "logs": [{
-                        "step": "Supabase Cache",
-                        "status": "Hit",
-                        "details": f"Returned from cache (hit #{cached_entry.get('hit_count', 1)}). Zero LLM calls made.",
-                    }],
-                }
-                # A cache entry written before a source was withdrawn still
-                # carries that source's citation. Without this, replaying it
-                # would resurrect an unciteable reference with no warning —
-                # the exact failure the lifecycle ledger exists to prevent.
-                notice = _withdrawn_notice(sources)
-                if notice:
-                    payload["withdrawn_notice"] = notice
-                    payload["text_override"] = notice
-                yield json.dumps(payload) + STREAM_MARKER
-                yield cached_response_text
-
-            return current_app.response_class(generate_cached(), mimetype=STREAM_MIME)
-
-        # 2. De-duplicate concurrent identical queries (Doc 03 Section 8).
+        # Only simultaneous requests share work. Completed answers are regenerated.
         if ctx.request_dedup.is_in_flight(norm_query):
             wait_result = ctx.request_dedup.wait(norm_query)
             if wait_result is not None:
@@ -115,14 +83,13 @@ def register(app: Flask, ctx: AppContext) -> None:
 
                 def generate_dedup():
                     if isinstance(wait_result, list):
-                        for chunk in wait_result:
-                            yield chunk
+                        yield from wait_result
                     else:
                         yield str(wait_result)
 
                 return current_app.response_class(generate_dedup(), mimetype=STREAM_MIME)
 
-        # 3. Cache MISS — real retrieval + inference (Doc 03 Section 4).
+        # Fresh retrieval and inference for each request.
         ctx.cache_metrics.record_miss()
         is_leader = ctx.request_dedup.start_flight(norm_query)
 
@@ -133,17 +100,8 @@ def register(app: Flask, ctx: AppContext) -> None:
                     collected_chunks.append(chunk)
                     yield chunk
 
-                if collected_chunks:
-                    meta = _metadata_frame(collected_chunks)
-                    ctx.cache_service.cache_response(
-                        query=query,
-                        response_text="".join(collected_chunks),
-                        sources=meta.get("citations", []),
-                        graph_data=meta,
-                        roadmap_data=meta.get("roadmap", []),
-                    )
-                    if is_leader:
-                        ctx.request_dedup.complete(norm_query, collected_chunks)
+                if collected_chunks and is_leader:
+                    ctx.request_dedup.complete(norm_query, collected_chunks)
             except Exception as exc:
                 current_app.logger.error("Chat stream error: %s", exc)
                 yield "\n\nAn unexpected error occurred during synthesis. Please retry your question."
@@ -156,12 +114,33 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/api/chat/diagnostic-mcqs")
     def diagnostic_mcqs():
         concept = request.args.get("concept") or ""
+        principal = getattr(request, "archipelago_principal", None)
+        if principal:
+            saved = ctx.limiter.completed_quiz(principal["id"], concept)
+            if saved:
+                return jsonify(
+                    {
+                        "success": True,
+                        "completed": True,
+                        "evaluation": saved.get("evaluation"),
+                        "target_concept": concept,
+                    }
+                )
         return jsonify(ctx.engine.diagnostic_payload(concept))
 
     @app.post("/api/chat/adaptive-step")
     def adaptive_step():
         body = request.get_json(silent=True) or {}
-        return jsonify(ctx.engine.adaptive_step(body))
+        principal = getattr(request, "archipelago_principal", None)
+        target = str(body.get("target_concept") or "")
+        if principal and target:
+            saved = ctx.limiter.completed_quiz(principal["id"], target)
+            if saved:
+                return jsonify(saved)
+        result = ctx.engine.adaptive_step(body)
+        if principal and target and result.get("completed"):
+            ctx.limiter.save_completed_quiz(principal["id"], target, result)
+        return jsonify(result)
 
     @app.post("/api/chat/telemetry")
     def telemetry():

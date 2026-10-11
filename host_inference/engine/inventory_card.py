@@ -12,6 +12,7 @@ Attached to the payload rather than inlined into the prose, so the UI can render
 it as a distinct card (and so the LLM polisher is never allowed to summarise it
 away — a hallucinated call number is worse than none).
 """
+
 from __future__ import annotations
 
 import logging
@@ -128,9 +129,7 @@ def attach_inventory(
     if not concept_id:
         return []
     try:
-        cards = inventory_cards_for_concept(
-            concept_id, concept_name, concept_summary, records
-        )
+        cards = inventory_cards_for_concept(concept_id, concept_name, concept_summary, records)
     except Exception as exc:
         logger.warning("Inventory lookup failed for %s: %s", concept_id, exc)
         return []

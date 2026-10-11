@@ -3,9 +3,11 @@
 The same function vectorises both stored nodes and incoming queries, which is
 what makes the cosine comparison meaningful without a downloaded model.
 """
+
 from __future__ import annotations
 
 import hashlib
+import itertools
 import re
 
 import numpy as np
@@ -33,7 +35,7 @@ def embed(text: str) -> np.ndarray:
     if not toks:
         return vec
     grams = list(toks)
-    grams.extend(f"{a}_{b}" for a, b in zip(toks, toks[1:]))
+    grams.extend(f"{a}_{b}" for a, b in itertools.pairwise(toks))
     for gram in grams:
         digest = hashlib.blake2b(gram.encode(), digest_size=8).digest()
         idx = int.from_bytes(digest[:4], "little") % DIM

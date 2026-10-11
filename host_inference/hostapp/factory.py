@@ -3,9 +3,15 @@
 One concern: assembling the app — collaborators, middleware, routes — so tests
 can build an app around fakes and production gets the real graph-backed engine.
 """
+
 from __future__ import annotations
 
 from flask import Flask
+
+from .config import MAX_CONTENT_LENGTH_BYTES, load_env
+from .context import AppContext
+from .corpus_bootstrap import provision
+from .inventory_store import InventoryStore
 
 # Local, not from archipelago: the hosted image is built from this directory
 # alone, so the sibling package is not in the container. Relative import so it
@@ -13,11 +19,6 @@ from flask import Flask
 # as host_inference.hostapp from a test. tests/unit/test_host_log_redaction.py
 # pins this copy to the shared one so they cannot diverge.
 from .log_redaction import install_log_redaction
-
-from .config import MAX_CONTENT_LENGTH_BYTES, load_env
-from .context import AppContext
-from .corpus_bootstrap import provision
-from .inventory_store import InventoryStore
 from .middleware import register_middleware
 from .routes import register_routes
 from .security import AuthGuard, RateLimiter

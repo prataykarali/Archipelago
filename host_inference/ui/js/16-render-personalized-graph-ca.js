@@ -31,6 +31,9 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
             const nodes = pGraph.nodes || [];
             const gapNodes = nodes.filter(n => n.status === 'review_gap');
             const targetNode = nodes.find(n => n.role === 'target') || { label: anchorLabel, summary: '' };
+            const gapExplanation = gapNodes.length
+                ? `Review ${gapNodes.map(n => n.label).join(', ')} before ${anchorLabel}. ${gapNodes[0].summary || 'Use the linked source to strengthen this prerequisite.'}`
+                : `Your answers show the prerequisites for ${anchorLabel} are in place. Follow the numbered path to review how each step leads to the goal.`;
 
             let statusPill = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300">Score: ${score} · Targeted Remediation</span>`;
             if (isFull) {
@@ -42,20 +45,20 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
             cardWrapper.innerHTML = `
                 <div class="concept-visualize-card border border-accentPurple/30 rounded-2xl bg-panelBg/95 shadow-xl overflow-hidden">
                     <!-- Header bar with Normal Graph switcher -->
-                    <div class="w-full px-4 py-3 flex items-center justify-between bg-white/5 border-b border-white/10">
+                    <div class="w-full px-4 py-3 flex flex-wrap items-center justify-between gap-3 bg-white/5 border-b border-white/10">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <div class="w-7 h-7 rounded-lg bg-accentPurple/25 border border-accentPurple/40 flex items-center justify-center text-accentPurple shrink-0">
                                 <i class="fa-solid fa-graduation-cap text-sm"></i>
                             </div>
                             <div class="flex flex-col text-left min-w-0">
-                                <span class="font-extrabold text-white text-xs tracking-tight flex items-center gap-2">
+                                <span class="font-extrabold text-white text-xs tracking-tight flex flex-wrap items-center gap-2">
                                     Personalized Knowledge Graph
                                     <span class="px-2 py-0.5 rounded-full bg-accentPurple/25 border border-accentPurple/40 text-[10px] text-accentPurple font-mono font-bold truncate max-w-[140px] sm:max-w-[200px]">${escapeHTML(anchorLabel)}</span>
                                 </span>
                                 <span class="text-[10px] text-gray-400 font-medium">Adaptive learning pathway derived from your diagnostic answers</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0">
+                        <div class="flex flex-wrap items-center gap-2">
                             ${statusPill}
                             <button onclick="switchToNormalGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-gray-200 text-[10px] font-bold transition-all flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-diagram-project text-[10px]"></i>
@@ -87,7 +90,9 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                             </div>
                         </div>
 
-                        <!-- Personalized Interactive SVG Canvas Map (Proper Interactive Scrollable Multi-Hop Topology Graph) -->
+                        <p class="text-xs text-slate-200 leading-relaxed rounded-lg bg-white/5 p-3">${escapeHTML(gapExplanation.slice(0, 320))}</p>
+                        <p class="text-xs text-slate-300">Follow the numbered arrows from left to right. Select a node for its explanation and source.</p>
+                        <!-- Personalized Interactive SVG Canvas Map -->
                         <div class="relative w-full group/persgraph">
                             <div class="scrollable-graph-container w-full h-64 rounded-xl glass-light border border-white/10 relative overflow-x-auto overflow-y-hidden shadow-inner custom-scrollbar" id="pers-canvas-${cardId}">
                                 <svg id="svg-pers-${cardId}" style="height: 100%; display: block;"></svg>
@@ -110,22 +115,19 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                                     </span>
                                     <span id="pers-insp-citation-${cardId}" class="text-[10px] text-gray-400 font-mono">Click any node on the graph above to inspect literature citations</span>
                                 </div>
-                                <h5 id="pers-insp-title-${cardId}" class="text-sm font-extrabold text-white mt-1 truncate">
+                                <h5 id="pers-insp-title-${cardId}" class="text-sm font-extrabold text-white mt-1 break-words">
                                     ${escapeHTML((gapNodes[0] || targetNode).label)}
                                 </h5>
-                                <p id="pers-insp-summary-${cardId}" class="text-xs text-gray-300 leading-snug mt-0.5 line-clamp-2">
+                                <p id="pers-insp-summary-${cardId}" class="text-xs text-gray-300 leading-relaxed mt-1 break-words">
                                     ${escapeHTML((gapNodes[0] || targetNode).summary || 'Foundational prerequisite component in this curriculum pathway.')}
                                 </p>
                             </div>
-                            <div id="pers-insp-actions-${cardId}" class="flex items-center gap-2 shrink-0">
+                            <div id="pers-insp-actions-${cardId}" class="flex flex-wrap items-center gap-2">
                                 ${(gapNodes[0] && gapNodes[0].doc_id) ? `
                                     <button onclick="openPrerequisiteRemediationReader('${gapNodes[0].doc_id}', ${gapNodes[0].page_number || 1}, '${escapeHTML(gapNodes[0].label)}', '${escapeHTML(gapNodes[0].summary)}')" type="button" class="px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
                                         <i class="fa-solid fa-book-open text-xs"></i> <span>View Textbook (p. ${gapNodes[0].printed_page || gapNodes[0].page_number || 1})</span>
                                     </button>
                                 ` : ''}
-                                <button onclick="autoPrompt('Explain prerequisite concept ${escapeHTML((gapNodes[0] || targetNode).label)} for mastering ${escapeHTML(anchorLabel)}')" type="button" class="px-3 py-2 rounded-lg bg-accentPurple hover:bg-accentPurple/80 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-accentPurple/25">
-                                    <i class="fa-solid fa-comment-dots text-xs"></i> <span>Explain Gap</span>
-                                </button>
                             </div>
                         </div>
 

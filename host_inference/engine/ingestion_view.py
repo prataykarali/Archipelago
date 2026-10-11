@@ -13,6 +13,7 @@ it says so and points at the upload route — an honest "nothing ingested yet" i
 the only correct answer, because inventing a node list would be the exact
 fabrication the rest of the engine is built to avoid.
 """
+
 from __future__ import annotations
 
 import json
@@ -138,9 +139,14 @@ def ingestion_reply(query: str, graph) -> tuple[str, dict[str, Any]]:
         # for ``nodes`` before reading it.
         return NO_UPLOAD_MESSAGE, {
             "ingestion": {
-                "state": "no_upload", "source": "", "job_id": "",
-                "graph_version": None, "doc_id": "", "pages": [],
-                "nodes": [], "edges": [],
+                "state": "no_upload",
+                "source": "",
+                "job_id": "",
+                "graph_version": None,
+                "doc_id": "",
+                "pages": [],
+                "nodes": [],
+                "edges": [],
             }
         }
 

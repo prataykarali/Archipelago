@@ -1,0 +1,29 @@
+.personalized-graph-card-wrapper,
+.personalized-graph-card-wrapper .concept-visualize-card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.personalized-graph-card-wrapper .scrollable-graph-container {
+    touch-action: pan-x;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+}
+
+.personalized-graph-card-wrapper [id^="pers-insp-citation-"] {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .personalized-graph-card-wrapper .concept-visualize-card > div {
+        padding-inline: 0.75rem;
+    }
+
+    .personalized-graph-card-wrapper .scrollable-graph-container {
+        height: 16rem;
+    }
+
+    .personalized-graph-card-wrapper [id^="pers-inspector-"] {
+        align-items: stretch;
+    }
+}

@@ -112,6 +112,7 @@
     <link rel="stylesheet" href="/styles/08-d-switchboardcard-lightgrid-below.css">
     <link rel="stylesheet" href="/styles/09-user-bubble-warfield-font.css">
     <link rel="stylesheet" href="/styles/10-swipe-transitions-animations.css">
+    <link rel="stylesheet" href="/styles/11-roadmap-responsive.css">
 
 <!-- MASTER FONT OVERRIDE FOR AURELLIS AND BRIGEND ONLY -->
 <!-- WARFIELD CHAT MESSAGE FONT -->
@@ -169,7 +170,7 @@
                         <i class="fa-solid fa-user-shield text-accentPurple text-[11px]"></i>
                         <span id="user-role-label" class="font-extrabold capitalize text-[11px]">Student</span>
                         <span id="user-name-label" class="text-gray-300 text-[10px] hidden md:inline"></span>
-                        <button type="button" onclick="signOutSupabase()" class="ml-1 text-gray-400 hover:text-white text-[10px] cursor-pointer" title="Sign out of Supabase">
+                        <button type="button" onclick="signOutSupabase()" class="ml-1 text-gray-400 hover:text-white text-[10px] cursor-pointer" title="Sign out" aria-label="Sign out">
                             <i class="fa-solid fa-right-from-bracket"></i>
                         </button>
                     </div>
@@ -457,6 +458,7 @@
                                 </button>
                             </div>
                         </div>
+                        <p id="query-limit-status" class="mt-2 text-xs text-slate-300" aria-live="polite">35 AI queries per day. After every 7 queries, a one-hour cooldown applies.</p>
                     </div>
                     <p id="chat-availability" class="max-w-3xl mx-auto mt-2 text-[11px] text-gray-500">Student mode: query only. Librarians manage PDFs in the Graph UI → Librarian tab.</p>
                 </div>

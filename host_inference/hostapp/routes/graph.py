@@ -3,6 +3,7 @@
 One concern: returning a small, renderable slice of the concept graph rather
 than ever shipping the whole graph to the browser.
 """
+
 from __future__ import annotations
 
 from flask import Flask, jsonify, request
@@ -32,7 +33,10 @@ def register(app: Flask, ctx: AppContext) -> None:
         if target_id not in graph.nodes:
             return jsonify({"error": "not_found", "detail": "No matching graph concept."}), 404
         try:
-            max_nodes = max(MAX_NODES_FLOOR, min(MAX_NODES_CEILING, int(request.args.get("max_nodes") or MAX_NODES_DEFAULT)))
+            max_nodes = max(
+                MAX_NODES_FLOOR,
+                min(MAX_NODES_CEILING, int(request.args.get("max_nodes") or MAX_NODES_DEFAULT)),
+            )
         except (TypeError, ValueError):
             max_nodes = MAX_NODES_DEFAULT
 
@@ -44,8 +48,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             current, depth = queue.pop(0)
             if depth >= GRAPH_DEPTH:
                 continue
-            neighbors = [(current, neighbor, relation) for relation, neighbor in graph.out.get(current, [])]
-            neighbors.extend((neighbor, current, relation) for relation, neighbor in graph.inn.get(current, []))
+            neighbors = [
+                (current, neighbor, relation) for relation, neighbor in graph.out.get(current, [])
+            ]
+            neighbors.extend(
+                (neighbor, current, relation) for relation, neighbor in graph.inn.get(current, [])
+            )
             for source, target, relation in neighbors:
                 edge_rows.append((source, target, relation))
                 neighbor = target if source == current else source
@@ -57,12 +65,16 @@ def register(app: Flask, ctx: AppContext) -> None:
         nodes = []
         for node_id in selected:
             node = graph.nodes[node_id]
-            nodes.append({"data": {
-                "id": node_id,
-                "name": graph.label(node_id),
-                "summary": str(node.get("summary") or "")[:SUMMARY_CHAR_LIMIT],
-                "kind": str(node.get("type") or node.get("kind") or DEFAULT_KIND),
-            }})
+            nodes.append(
+                {
+                    "data": {
+                        "id": node_id,
+                        "name": graph.label(node_id),
+                        "summary": str(node.get("summary") or "")[:SUMMARY_CHAR_LIMIT],
+                        "kind": str(node.get("type") or node.get("kind") or DEFAULT_KIND),
+                    }
+                }
+            )
         edges = []
         seen_edges = set()
         for source, target, relation in edge_rows:
@@ -70,10 +82,14 @@ def register(app: Flask, ctx: AppContext) -> None:
             if source not in selected_set or target not in selected_set or key in seen_edges:
                 continue
             seen_edges.add(key)
-            edges.append({"data": {
-                "id": f"{source}:{relation}:{target}",
-                "source": source,
-                "target": target,
-                "rel_label": relation,
-            }})
+            edges.append(
+                {
+                    "data": {
+                        "id": f"{source}:{relation}:{target}",
+                        "source": source,
+                        "target": target,
+                        "rel_label": relation,
+                    }
+                }
+            )
         return jsonify({"target_id": target_id, "nodes": nodes, "edges": edges})

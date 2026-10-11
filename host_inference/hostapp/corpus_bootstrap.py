@@ -23,6 +23,7 @@ So the corpus arrives by one of two routes, in this order:
 Never raises.  A deployment with no corpus should start, serve its UI, and say
 honestly that it has nothing indexed — not crash-loop.
 """
+
 from __future__ import annotations
 
 import logging
@@ -93,7 +94,9 @@ def _hf_download(repo_id: str, filename: str, destination: Path, token: str) -> 
         import requests
 
         headers = {"Authorization": f"Bearer {token}"} if token else {}
-        with requests.get(url, headers=headers, timeout=FETCH_TIMEOUT_SECONDS, stream=True) as response:
+        with requests.get(
+            url, headers=headers, timeout=FETCH_TIMEOUT_SECONDS, stream=True
+        ) as response:
             response.raise_for_status()
             with tempfile.NamedTemporaryFile(delete=False, dir=destination.parent) as tmp:
                 written = 0

@@ -1,3 +1,4 @@
+import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 15-submit-adaptive-answer.js
 // Feature module 16 of 22.
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
@@ -7,7 +8,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         async function submitAdaptiveAnswer(msgId) {
             const state = window._adaptiveState[msgId];
-            if (!state || !state.current_mcq) return;
+            if (!state || !state.current_mcq || state.submitted) return;
 
             const checked = document.querySelector(`input[name="adaptive_radio_${msgId}"]:checked`);
             if (!checked) return;
@@ -39,6 +40,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     })
                 });
                 const data = await resp.json();
+                if (!resp.ok) throw new Error(data.detail || data.error || 'Quiz request failed');
 
                 // Update styling of radio choices
                 const isTick = data.is_tick;
@@ -62,6 +64,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 // Update state
                 state.consecutive_ticks = data.consecutive_ticks || 0;
                 state.history = data.history || state.history || [];
+                state.submitted = true;
 
                 // Update tick boxes in header
                 for (let i = 1; i <= 3; i++) {
@@ -82,7 +85,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 const hint = document.getElementById(`adaptive-hint-${msgId}`);
 
                 if (data.completed) {
-                    state.submitted = true;
+                    state.finished = true;
                     if (banner) {
                         banner.classList.remove('hidden');
                         if (data.completion_reason === '3_consecutive_ticks_mastered' || state.consecutive_ticks >= 3) {
@@ -127,8 +130,9 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                         personalized_graph: data.personalized_graph || {},
                     };
                     try {
-                        localStorage.setItem('archipelago_eval_' + state.target_concept, JSON.stringify(evalData));
-                        localStorage.setItem('archipelago_choice_' + state.target_concept, 'personalized');
+                        localStorage.setItem(storageKey('archipelago_eval_' + state.target_concept), JSON.stringify(evalData));
+                        localStorage.setItem(storageKey('archipelago_choice_' + state.target_concept), 'personalized');
+                        sessionStorage.removeItem(storageKey('archipelago_adaptive_' + msgId));
                     } catch (_) {}
 
                     revealFinalCorrectQuestionAndFinish(msgId, data, evalData, state.metadata);
@@ -162,6 +166,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     if (hint) {
                         hint.textContent = isTick ? 'Correct! Advancing towards target concept.' : 'Prerequisite gap detected. Leaping back 2 hops to foundational concepts.';
                     }
+                    try { sessionStorage.setItem(storageKey('archipelago_adaptive_' + msgId), JSON.stringify(state)); } catch (_) {}
                 }
 
             } catch (err) {

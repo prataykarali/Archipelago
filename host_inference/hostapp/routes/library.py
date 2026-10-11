@@ -4,14 +4,14 @@ One concern: exposing the library shelf (Pearson e-books + dataset papers),
 accepting an authorised librarian holdings import, and listing every catalogued
 document for the UI.
 """
+
 from __future__ import annotations
 
-import requests
 from flask import Flask, current_app, jsonify, request
-
 from library_index import hf_title, load_hf_paths, paper_url
-from library_inventory import inventory_stats, load_inventory
+from library_inventory import inventory_stats, load_inventory, sample_inventory
 from remote_cache import load_books, load_library_manifest, public_book
+import requests
 
 from ..config import LIBRARIAN_ROLES
 from ..context import AppContext
@@ -64,41 +64,59 @@ def register(app: Flask, ctx: AppContext) -> None:
         manifest = load_library_manifest()
         if manifest.get("ebook_shelf"):
             inventory = load_inventory()
-            if inventory is not None:
-                manifest["holdings"] = inventory
-                manifest["holdings_stats"] = inventory_stats(inventory)
+            rows = inventory if inventory is not None else sample_inventory()
+            manifest["holdings"] = rows
+            manifest["holdings_stats"] = inventory_stats(rows)
+            manifest["holdings_status"] = "imported" if inventory is not None else "sample"
             return jsonify(manifest)
 
         ebooks = [public_book(book) for book in load_books()]
         for path in load_hf_paths():
             item = dict(DATASET_BOOK)
-            item.update({
-                "id": path,
-                "title": hf_title(path),
-                "domain": _dataset_domain(path),
-                "open_url": paper_url(path, 1),
-                "reader_base_url": paper_url(path, 1),
-            })
+            item.update(
+                {
+                    "id": path,
+                    "title": hf_title(path),
+                    "domain": _dataset_domain(path),
+                    "open_url": paper_url(path, 1),
+                    "reader_base_url": paper_url(path, 1),
+                }
+            )
             ebooks.append(item)
-        return jsonify({
-            "ebook_shelf": ebooks,
-            "ebook_stats": f"{len(ebooks)} institutional e-books · passwords are not shown",
-            "holdings": [],
-            "holdings_stats": None,
-            "holdings_status": "not_synced",
-            "journal_issues": [],
-            "subject_counts": [],
-        })
+        inventory = load_inventory()
+        rows = inventory if inventory is not None else sample_inventory()
+        return jsonify(
+            {
+                "ebook_shelf": ebooks,
+                "ebook_stats": f"{len(ebooks)} institutional e-books · passwords are not shown",
+                "holdings": rows,
+                "holdings_stats": inventory_stats(rows),
+                "holdings_status": "imported" if inventory is not None else "sample",
+                "journal_issues": [],
+                "subject_counts": [],
+            }
+        )
 
     @app.post("/api/library/import")
     def import_library_inventory():
         """Replace the library holdings snapshot from an authorized librarian CSV."""
         principal, _error = ctx.auth.principal()
         if principal is None or principal.get("role") not in LIBRARIAN_ROLES:
-            return jsonify({"error": "forbidden", "detail": "A librarian or administrator session is required."}), 403
+            return jsonify(
+                {
+                    "error": "forbidden",
+                    "detail": "A librarian or administrator session is required.",
+                }
+            ), 403
         upload = request.files.get("file")
-        if upload is None or not upload.filename or not upload.filename.lower().endswith(INVENTORY_FILENAME_SUFFIX):
-            return jsonify({"error": "invalid_file", "detail": "Choose a CSV inventory export."}), 400
+        if (
+            upload is None
+            or not upload.filename
+            or not upload.filename.lower().endswith(INVENTORY_FILENAME_SUFFIX)
+        ):
+            return jsonify(
+                {"error": "invalid_file", "detail": "Choose a CSV inventory export."}
+            ), 400
         try:
             rows = ctx.inventory.parse(upload.read())
         except ValueError as exc:
@@ -107,7 +125,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             ctx.inventory.save(rows)
         except (requests.RequestException, RuntimeError):
             current_app.logger.exception("Library inventory persistence failed")
-            return jsonify({"error": "storage_unavailable", "detail": "The inventory was not saved. Supabase storage is unavailable."}), 503
+            return jsonify(
+                {
+                    "error": "storage_unavailable",
+                    "detail": "The inventory was not saved. Supabase storage is unavailable.",
+                }
+            ), 503
         return jsonify({"ok": True, "holdings_stats": inventory_stats(rows)}), 200
 
     @app.get("/api/catalog/all")
@@ -120,29 +143,33 @@ def register(app: Flask, ctx: AppContext) -> None:
                 continue
             existing.add(book_id)
             title = book.get("title") or ""
-            docs.append({
-                "id": book_id,
-                "title": title,
-                "authors": book.get("author") or CATALOG_FALLBACK_AUTHORS,
-                "year": book.get("year", CATALOG_FALLBACK_YEAR),
-                "cat": "textbook",
-                "dom": _catalog_document_domain(title),
-                "pdf": book_id,
-                "topics": [book.get("domain")] if book.get("domain") else [PEARSON_DOMAIN],
-            })
+            docs.append(
+                {
+                    "id": book_id,
+                    "title": title,
+                    "authors": book.get("author") or CATALOG_FALLBACK_AUTHORS,
+                    "year": book.get("year", CATALOG_FALLBACK_YEAR),
+                    "cat": "textbook",
+                    "dom": _catalog_document_domain(title),
+                    "pdf": book_id,
+                    "topics": [book.get("domain")] if book.get("domain") else [PEARSON_DOMAIN],
+                }
+            )
         for path in load_hf_paths():
             if path in existing:
                 continue
             existing.add(path)
             is_paper = PAPER_MARKER in f"/{path}" or path.lower().endswith(".pdf")
-            docs.append({
-                "id": path,
-                "title": hf_title(path),
-                "authors": CATALOG_AUTHOR,
-                "year": CATALOG_YEAR,
-                "cat": "paper" if is_paper else "textbook",
-                "dom": _catalog_document_domain(path),
-                "pdf": path,
-                "topics": ["Research Paper"],
-            })
+            docs.append(
+                {
+                    "id": path,
+                    "title": hf_title(path),
+                    "authors": CATALOG_AUTHOR,
+                    "year": CATALOG_YEAR,
+                    "cat": "paper" if is_paper else "textbook",
+                    "dom": _catalog_document_domain(path),
+                    "pdf": path,
+                    "topics": ["Research Paper"],
+                }
+            )
         return jsonify({"documents": docs, "total": len(docs)})

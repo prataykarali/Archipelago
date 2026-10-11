@@ -60,6 +60,7 @@ await new Promise((resolve) => server.listen(port, '127.0.0.1', resolve));
 const errors = [];
 const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ['--no-sandbox'] });
 const page = await browser.newPage();
+await page.addInitScript(() => { window.archipelagoUserId = 'smoke-test-user'; });
 page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
 page.on('console', (msg) => {
   if (msg.type() === 'error') {

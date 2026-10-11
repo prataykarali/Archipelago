@@ -13,6 +13,7 @@ Two invariants are enforced from this module, not from the router:
 * whether the in-chat graph is drawn is a *pure function of the contract*, so the
   rendering protocol in the spec is deterministic rather than emergent.
 """
+
 from __future__ import annotations
 
 from typing import NamedTuple
@@ -78,6 +79,7 @@ ROUTE_CONTRACT = {
     "PERSONA_LOCK": GUARDRAIL_INTERCEPT,
     "PASSING_MENTION": GUARDRAIL_INTERCEPT,
     "EMPTY": GUARDRAIL_INTERCEPT,
+    "GREETING": GUARDRAIL_INTERCEPT,
     # Not a concept answer, so it borrows no concept graph; still a catalog lookup.
     "BOOK_PAGE": CATALOG_SHELF_ROUTING,
     # Honest "the corpus does not contain the parameter you asked for".

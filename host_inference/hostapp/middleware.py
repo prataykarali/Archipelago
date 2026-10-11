@@ -2,13 +2,14 @@
 
 One concern: cross-cutting request policy, registered once against the Flask app.
 """
+
 from __future__ import annotations
 
 from flask import Flask, jsonify, request
 
 from .config import (
     ALLOWED_ORIGINS,
-    INGESTION_PREFIXES,
+    LIBRARIAN_ROLES,
     PUBLIC_API,
     PUBLIC_API_PREFIXES,
 )
@@ -24,10 +25,10 @@ CORS_HEADERS = "Content-Type,Authorization,X-Requested-With"
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; "
     "form-action 'self'; "
-    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
     "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; "
-    "connect-src 'self' https://spllaastejfwclllfndp.supabase.co; "
+    "connect-src 'self' https://spllaastejfwclllfndp.supabase.co https://esm.sh; "
     "frame-src 'self' https://ebooks.elibrary.in.pearson.com https://elibrary.in.pearson.com https://huggingface.co; "
     "worker-src 'self' blob: https://cdnjs.cloudflare.com"
 )
@@ -48,15 +49,48 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         if request.method == "OPTIONS":
             return ("", OPTIONS_NO_CONTENT)
         path = request.path
-        if path.startswith(INGESTION_PREFIXES):
-            return jsonify({"error": "forbidden", "detail": "Ingestion stays on the local library workstation."}), 403
+        if path.startswith("/api/ingest") and path != "/api/ingest/capabilities":
+            principal, error = ctx.auth.principal()
+            if principal is None:
+                return jsonify({"error": "unauthorized", "detail": error}), 401
+            if principal.get("role") not in LIBRARIAN_ROLES:
+                return jsonify(
+                    {
+                        "error": "forbidden",
+                        "detail": "A librarian or administrator session is required.",
+                    }
+                ), 403
         # Library browsing, reader routes and chat stay public so an exact
         # book/page link is never blocked by a login redirect.
-        if _is_protected_api(path):
+        if _is_protected_api(path) or (
+            ctx.auth.required() and (path.startswith(("/open/", "/papers/")) or path == "/read")
+        ):
             principal, error = ctx.auth.principal()
             if principal is None:
                 return jsonify({"error": "unauthorized", "detail": error}), 401
             request.archipelago_principal = principal  # type: ignore[attr-defined]
+        if path == "/api/chat" and request.method == "POST" and ctx.auth.required():
+            limited, retry_after = ctx.limiter.check_chat()
+            if limited:
+                return _rate_limited_response(retry_after)
+            principal = getattr(request, "archipelago_principal", None)
+            if principal is None:
+                return jsonify({"error": "unauthorized"}), 401
+            limited, quota = ctx.limiter.check_daily_chat(principal["id"])
+            if limited:
+                response = jsonify(
+                    {
+                        "error": "query_limit",
+                        "detail": "AI queries are paused. Your saved conversations remain available.",
+                        "remaining": quota["remaining"],
+                        "retry_after": quota["retry_after"],
+                    }
+                )
+                response.status_code = 429
+                response.headers["Retry-After"] = str(quota["retry_after"])
+                return response
+            request.archipelago_quota = quota  # type: ignore[attr-defined]
+            return None
         if path.startswith("/api/chat"):
             return _apply_limit(ctx.limiter.check_chat())
         if path.startswith("/api/") or path.startswith("/open/") or path.startswith("/papers/"):
@@ -76,6 +110,10 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
 
     @app.after_request
     def _security_and_cors(response):
+        quota = getattr(request, "archipelago_quota", None)
+        if quota:
+            response.headers["X-Queries-Remaining"] = str(quota["remaining"])
+            response.headers["X-Queries-Used"] = str(quota["used"])
         origin = request.headers.get("Origin", "")
         if origin in ALLOWED_ORIGINS:
             response.headers["Access-Control-Allow-Origin"] = origin
@@ -86,31 +124,43 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), payment=()"
+        )
         response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
         response.headers["X-Archipelago-Mode"] = "inference-only"
         return response
 
     @app.errorhandler(400)
     def handle_bad_request(_error):
-        return jsonify({"error": "bad_request", "detail": "The request was invalid or malformed."}), 400
+        return jsonify(
+            {"error": "bad_request", "detail": "The request was invalid or malformed."}
+        ), 400
 
     @app.errorhandler(403)
     def handle_forbidden(_error):
-        return jsonify({"error": "forbidden", "detail": "Access to this resource is prohibited."}), 403
+        return jsonify(
+            {"error": "forbidden", "detail": "Access to this resource is prohibited."}
+        ), 403
 
     @app.errorhandler(404)
     def handle_not_found(_error):
-        return jsonify({"error": "not_found", "detail": "The requested resource could not be found."}), 404
+        return jsonify(
+            {"error": "not_found", "detail": "The requested resource could not be found."}
+        ), 404
 
     @app.errorhandler(429)
     def handle_rate_limit(_error):
-        return jsonify({"error": "rate_limited", "detail": "Too many requests. Please slow down."}), 429
+        return jsonify(
+            {"error": "rate_limited", "detail": "Too many requests. Please slow down."}
+        ), 429
 
     @app.errorhandler(500)
     def handle_internal_error(error):
         app.logger.error("Internal Server Error: %s", error)
-        return jsonify({"error": "internal_error", "detail": "An internal server error occurred."}), 500
+        return jsonify(
+            {"error": "internal_error", "detail": "An internal server error occurred."}
+        ), 500
 
 
 __all__ = ["register_middleware"]

@@ -9,6 +9,7 @@ gunicorn imports the module once per worker and serves the object it finds.
 Boot cost is unchanged — ``create_app()`` provisions the corpus and builds the
 engine, exactly as it did when the factory was referenced directly.
 """
+
 from __future__ import annotations
 
 from .factory import create_app

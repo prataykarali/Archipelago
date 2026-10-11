@@ -20,6 +20,7 @@ descending is therefore equivalent to topological order on the subset that
 matters, and it degrades gracefully when the graph's edges are inconsistent —
 a fixed prerequisite list does not.
 """
+
 from __future__ import annotations
 
 from heapq import heappop, heappush
@@ -117,7 +118,7 @@ def learning_path(
     # Deepest prerequisite first (largest cost-to-target); ties broken by id so
     # the same diagnostic always produces the same plan.
     ordered = sorted(costs, key=lambda cid: (-costs[cid], cid))
-    return [*ordered[:MAX_PATH_NODES - 1], target]
+    return [*ordered[: MAX_PATH_NODES - 1], target]
 
 
 __all__ = [

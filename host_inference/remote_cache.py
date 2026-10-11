@@ -1,4 +1,5 @@
 """Load the concept graph and Pearson catalog from Supabase, then disk cache."""
+
 from __future__ import annotations
 
 import json
@@ -14,19 +15,30 @@ FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
 
 
 def _production_mode() -> bool:
-    return os.environ.get("ARCHIPELAGO_ENV", "development").strip().lower() in {"production", "prod"}
+    return os.environ.get("ARCHIPELAGO_ENV", "development").strip().lower() in {
+        "production",
+        "prod",
+    }
 
 
 def _headers() -> dict[str, str] | None:
     url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
-    key = os.environ.get("SUPABASE_SECRET_KEY", "").strip() or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    key = (
+        os.environ.get("SUPABASE_SECRET_KEY", "").strip()
+        or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
     if not url or not key:
         return None
     return {"url": url, "Authorization": f"Bearer {key}", "apikey": key}
 
 
 def _fallback(name: str) -> Path | None:
-    for candidate in (ROOT / name, ROOT / "data" / name, ROOT.parent / name, ROOT.parent / "data" / "catalogs" / name):
+    for candidate in (
+        ROOT / name,
+        ROOT / "data" / name,
+        ROOT.parent / name,
+        ROOT.parent / "data" / "catalogs" / name,
+    ):
         if candidate.is_file():
             return candidate
     return None
@@ -74,7 +86,10 @@ def hydrate() -> dict[str, str]:
         src = _fallback(name)
         if src is not None:
             target.write_bytes(src.read_bytes())
-    return {"source": "local" if (CACHE / "okf_graph.json").is_file() else "missing", "cache": str(CACHE)}
+    return {
+        "source": "local" if (CACHE / "okf_graph.json").is_file() else "missing",
+        "cache": str(CACHE),
+    }
 
 
 def pearson_page_url(book: dict, page: int = 1) -> str:
@@ -86,9 +101,7 @@ def pearson_page_url(book: dict, page: int = 1) -> str:
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
     page_part = f"/page/{page_n}"
-    return (
-        f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
-    )
+    return f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
 
 
 def public_book(book: dict) -> dict:

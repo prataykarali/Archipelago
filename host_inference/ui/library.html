@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="/library_showcase_3d.js"></script>
+  <script defer src="/scene_background_3d.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
     body {
@@ -69,30 +70,23 @@
 </head>
 <body class="bg-black text-white min-h-screen relative">
 
-  <!-- Fullscreen Cinematic Butterfly Video Background (Fully Visible) -->
+  <!-- Restored procedural 3D scene behind the library content. -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <video
-      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260717_120352_eb988725-1351-43b3-8095-16e4a1005e3d.mp4"
-      autoplay
-      loop
-      muted
-      playsinline
-      class="w-full h-full object-cover opacity-80"
-    ></video>
+    <canvas data-archipelago-scene aria-hidden="true" class="w-full h-full"></canvas>
     <!-- Soft Vignette Gradient -->
     <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80"></div>
   </div>
 
   <!-- Sticky Top Bar Navigation -->
   <div class="sticky top-0 z-40 backdrop-blur-xl bg-black/60 border-b border-white/10 px-6 md:px-12 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-6 overflow-x-auto text-xs font-mono tracking-wider text-white/70">
-      <a href="#sec-overview" class="hover:text-white transition-colors">01 OVERVIEW</a>
-      <a href="#sec-ebook" class="hover:text-white transition-colors">02 E-BOOK SHELF</a>
-      <a href="#sec-access" class="hover:text-white transition-colors">04 ACCESS</a>
-      <a href="#sec-portals" class="hover:text-white transition-colors">05 DIGITAL PORTALS</a>
-      <a href="#sec-holdings" class="hover:text-white transition-colors">08 HOLDINGS</a>
-      <a href="#sec-auth" class="hover:text-white transition-colors text-amber-400">AUTH ROLES</a>
-      <a href="#sec-ods-reports" class="hover:text-white transition-colors text-blue-400">ODS REPORTS</a>
+    <div class="flex items-center gap-5 overflow-x-auto text-xs font-mono tracking-wider text-white/70">
+      <a href="#sec-overview" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="text-white/40 text-[11px]">01</span><span class="text-amber-400/80 text-[10px] font-bold">- -</span><span>OVERVIEW</span></a>
+      <a href="#sec-ebook" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="text-white/40 text-[11px]">02</span><span class="text-amber-400/80 text-[10px] font-bold">- -</span><span>E-BOOK SHELF</span></a>
+      <a href="#sec-access" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="text-white/40 text-[11px]">04</span><span class="text-amber-400/80 text-[10px] font-bold">- -</span><span>ACCESS</span></a>
+      <a href="#sec-portals" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="text-white/40 text-[11px]">05</span><span class="text-amber-400/80 text-[10px] font-bold">- -</span><span>DIGITAL PORTALS</span></a>
+      <a href="#sec-holdings" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="text-white/40 text-[11px]">08</span><span class="text-amber-400/80 text-[10px] font-bold">- -</span><span>HOLDINGS</span></a>
+      <a href="#sec-auth" class="hover:text-white transition-colors text-amber-400 flex items-center gap-1.5"><span class="text-amber-400/60 text-[10px] font-bold">- -</span><span>AUTH ROLES</span></a>
+      <a href="#sec-ods-reports" class="hover:text-white transition-colors text-blue-400 flex items-center gap-1.5"><span class="text-blue-400/60 text-[10px] font-bold">- -</span><span>ODS REPORTS</span></a>
     </div>
 
     <div class="flex items-center gap-3 flex-shrink-0">
@@ -363,6 +357,7 @@
             <p class="text-xs md:text-sm text-white/70 mt-1">
               Bibliographic records from the holdings export — title, author, publisher, and copy counts with accession numbers. Journal-heavy: not a full book OPAC.
             </p>
+            <p id="holdings-source-label" class="text-xs text-amber-200 mt-2" aria-live="polite"></p>
           </div>
           <input type="text" id="holdings-search-input" placeholder="Search holdings by title, author, or publisher..." class="px-4 py-2 rounded-lg bg-black/60 border border-white/20 text-xs text-white w-full md:w-80 focus:outline-none focus:border-indigo-500 transition-colors" />
         </div>
@@ -390,8 +385,8 @@
 
         <!-- Holdings Table -->
         <div class="rounded-xl border border-white/10 overflow-hidden bg-black/50">
-          <div class="max-h-[480px] overflow-y-auto custom-scrollbar">
-            <table class="w-full text-left border-collapse text-xs font-mono">
+          <div class="max-h-[480px] overflow-auto custom-scrollbar">
+            <table class="w-full min-w-[650px] text-left border-collapse text-xs font-mono">
               <thead class="sticky top-0 bg-zinc-900 border-b border-white/10 text-white/60">
                 <tr>
                   <th class="p-3.5">TITLE</th>
@@ -770,7 +765,7 @@
       tbody.innerHTML = items.map((h, i) => `
         <tr class="hover:bg-white/5 transition-colors">
           <td class="p-3.5 font-medium text-white max-w-xs truncate">${i + 1}. ${h.title}</td>
-          <td class="p-3.5 text-white/70">${h.author || 'Unknown'}</td>
+          <td class="p-3.5 text-white/70">${h.authors || h.author || 'Unknown'}</td>
           <td class="p-3.5 text-white/60">${h.publisher || 'Unknown'}</td>
           <td class="p-3.5 font-mono text-blue-300 text-[11px]">${h.accession || 'N/A'}</td>
           <td class="p-3.5 text-right font-bold ${h.available_copies > 0 ? 'text-emerald-400' : 'text-rose-400'}">${h.available_ratio || `${h.available_copies} / ${h.no_of_copies}`}</td>
@@ -919,13 +914,11 @@
         if (d.holdings && d.holdings.length > 0) {
           holdingsData = d.holdings;
         } else {
-          holdingsData = [
-            { title: 'Journal of human resource management', author: 'Unknown', publisher: 'Unknown', accession: 'J297, J621', no_of_copies: 2, available_copies: 2, available_ratio: '2 / 2' },
-            { title: 'Academy of Management Journal', author: 'Unknown', publisher: 'Unknown', accession: 'J280, J323, J397, J453, J543, J675', no_of_copies: 6, available_copies: 6, available_ratio: '6 / 6' },
-            { title: 'AIMS journal of management', author: 'Unknown', publisher: 'Association of Indian Management Schools', accession: 'J1544', no_of_copies: 1, available_copies: 1, available_ratio: '1 / 1' },
-            { title: 'All India Reporter', author: 'Unknown', publisher: 'All India Reporter', accession: 'LWJ906', no_of_copies: 1, available_copies: 1, available_ratio: '1 / 1' }
-          ];
+          holdingsData = [];
         }
+        document.getElementById('holdings-source-label').textContent = d.holdings_status === 'sample'
+          ? 'Sample spreadsheet values for preview only. These are not live holdings.'
+          : 'Inventory values from the latest library import.';
 
         if (d.holdings_stats) {
           document.getElementById('stat-records-num').innerText = d.holdings_stats.total_records ?? '—';
@@ -959,6 +952,8 @@
   <!-- Librarian Management Panel -->
   <div id="librarian-panel" style="display:none; margin: 2rem auto; max-width: 900px; padding: 1.5rem; background: rgba(30,41,59,0.95); border: 1px solid rgba(139,92,246,0.3); border-radius: 1rem;">
     <h2 style="color: #a78bfa; font-size: 1.3rem; margin-bottom: 1rem;">📚 Librarian Management Console</h2>
+    <p style="margin-bottom:1rem;color:#c4b5fd"><a href="/graph" style="color:#a7f3d0;text-decoration:underline">Open knowledge graph →</a></p>
+    <p id="ingest-capability" role="status" style="margin-bottom:1rem;color:#cbd5e1"></p>
 
     <!-- Upload Card -->
     <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
@@ -999,6 +994,15 @@
         const principal = await response.json();
         if (principal.authenticated && ['librarian', 'administrator'].includes(principal.role)) {
           document.getElementById('librarian-panel').style.display = 'block';
+          const capabilities = await fetch('/api/ingest/capabilities').then(r => r.json());
+          if (!capabilities.upload_api_enabled) {
+            document.getElementById('ingest-capability').textContent = 'Hosted ingestion is unavailable on this deployment. Graph exploration and the library catalog remain available.';
+            document.querySelector('#upload-form button').disabled = true;
+            document.querySelector('#upload-form button').style.opacity = '.5';
+            document.getElementById('submit-index').disabled = true;
+            document.getElementById('submit-index').style.opacity = '.5';
+          }
+          loadJobs();
         }
       } catch (_) {}
     }
@@ -1068,7 +1072,6 @@
     }
     const refreshBtn = document.getElementById('refresh-jobs');
     if (refreshBtn) refreshBtn.addEventListener('click', loadJobs);
-    if (role === 'librarian' || role === 'administrator') loadJobs();
   })();
   </script>
 </body>

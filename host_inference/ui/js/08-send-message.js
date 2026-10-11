@@ -10,6 +10,7 @@ import { _enrichAssistantMarkup, appendEvidenceRail, getResponseCitations } from
 import { wrapLibraryInventorySection } from './03-wrap-library-inventory-secti.js';
 import { renderGraphExperiencePrompt } from './12-choose-graph-experience.js';
 import { populatePipeline } from './10-populate-pipeline.js';
+import { updateBookStackForQuery } from './05-display-books.js';
 import { saveSession } from './20--compact-history.js';
 import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream-support.js';
 
@@ -121,8 +122,19 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                     })
                 });
 
+                const quotaLabel = document.getElementById('query-limit-status');
+                const remaining = response.headers.get('X-Queries-Remaining');
+                if (quotaLabel && remaining !== null) {
+                    quotaLabel.textContent = `${remaining} of 35 AI queries remain today. A one-hour cooldown follows each 7 queries.`;
+                }
+
                 if (!response.ok) {
-                    throw new Error(`HTTP Error ${response.status}`);
+                    const problem = await response.json().catch(() => ({}));
+                    if (response.status === 429 && quotaLabel) {
+                        const minutes = Math.ceil(Number(problem.retry_after || 60) / 60);
+                        quotaLabel.textContent = `AI paused for about ${minutes} minute${minutes === 1 ? '' : 's'}. Saved chats remain available. ${problem.remaining ?? 0} daily queries remain.`;
+                    }
+                    throw new Error(problem.detail || `HTTP Error ${response.status}`);
                 }
 
                 const reader = response.body.getReader();
@@ -214,8 +226,13 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
-                    if (firstFinalize && window._lastChatMetadata && typeof renderGraphExperiencePrompt === 'function') {
-                        renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                    if (firstFinalize && window._lastChatMetadata) {
+                        if (typeof updateBookStackForQuery === 'function') {
+                            updateBookStackForQuery(window._lastChatMetadata);
+                        }
+                        if (typeof renderGraphExperiencePrompt === 'function') {
+                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                        }
                     }
                 };
 
@@ -380,6 +397,9 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                                 window._lastChatMetadata = metadata;
                                 populatePipeline(metadata);
                                 populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
+                                if (typeof updateBookStackForQuery === 'function') {
+                                    updateBookStackForQuery(metadata);
+                                }
                                 // renderHorizontalGraphCard & roadmap_assessment deferred until typing finishes
                             } catch (err) {
                                 console.error('Error parsing pipeline metadata:', err);
@@ -457,7 +477,7 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         ? ((err.message && err.message !== 'The user aborted a request.') ? err.message : 'stream was interrupted')
                         : (err && err.message ? err.message : 'unknown error');
                     if (msgEl) {
-                        msgEl.innerHTML = `<div class="text-rose-400 flex items-center gap-2 border border-rose-500/20 bg-rose-500/5 p-3 rounded-lg"><i class="fa-solid fa-circle-exclamation"></i>Failed to stream generation: ${why}. Ensure the local model / inference server is running.</div>`;
+                        msgEl.textContent = why;
                     }
                 }
             } finally {

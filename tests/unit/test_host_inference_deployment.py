@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import importlib
 import json
-import sys
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -98,9 +98,14 @@ def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_ap
 
     response = client.post(
         "/api/library/import",
-        data={"file": ( __import__("io").BytesIO(
-            b"book_id,title,total_copies,available_copies\nbk,Graph Book,4,2\n"
-        ), "inventory.csv")},
+        data={
+            "file": (
+                __import__("io").BytesIO(
+                    b"book_id,title,total_copies,available_copies\nbk,Graph Book,4,2\n"
+                ),
+                "inventory.csv",
+            )
+        },
         content_type="multipart/form-data",
     )
 
@@ -116,16 +121,25 @@ def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_ap
 def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_app, monkeypatch):
     import hostapp.routes.reader as reader_routes
 
-    monkeypatch.setattr(reader_routes, "load_books", lambda: [{
-        "id": "book-1",
-        "title": "Reader title",
-        "book_type": "pdf",
-        "subscription_id": "sub-1",
-    }])
+    monkeypatch.setattr(
+        reader_routes,
+        "load_books",
+        lambda: [
+            {
+                "id": "book-1",
+                "title": "Reader title",
+                "book_type": "pdf",
+                "subscription_id": "sub-1",
+            }
+        ],
+    )
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("#book/book-1/page/7")
+    assert response.status_code == 200
+    assert b"Sign in to Pearson" in response.data
+    direct = hosted_app.app.test_client().get("/open/book-1?page=7&direct=1")
+    assert direct.status_code == 302
+    assert direct.headers["Location"].endswith("#book/book-1/page/7")
     assert b"password" not in response.data.lower()
 
 
@@ -156,8 +170,8 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     chunks = list(instance.stream_chat("explain graph retrieval"))
     metadata = json.loads(chunks[0].split("\n[STREAM_START]\n", 1)[0])
 
-    assert captured["payload"]["max_tokens"] == 220
-    assert "1–3 sentences" in captured["payload"]["messages"][0]["content"]
+    assert captured["payload"]["max_tokens"] == 700
+    assert "two or three substantial paragraphs" in captured["payload"]["messages"][0]["content"]
     assert metadata["model"]["provider"] == "xkiro"
     assert chunks[-1] == "Grounded fallback with [citation]."
 
