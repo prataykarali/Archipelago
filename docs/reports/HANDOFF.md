@@ -84,7 +84,9 @@ Built: production Supabase Auth passwords were rotated for the named librarian,
 faculty, student enrollment, and administrator accounts using the administrator
 API; no passwords were added to Git. Applied the missing production faculty
 enum migration and corrected the existing faculty profile from student to
-faculty. The provisioning script now accepts faculty accounts. The login page
+faculty. Created a plain `faculty` username for the requested faculty password;
+the older `faculty.cs` account remains available. The provisioning script now
+accepts faculty accounts. The login page
 explains which username to use for each role.
 
 Verified: all four accounts received a Supabase access token and a successful
