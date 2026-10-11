@@ -118,3 +118,15 @@ must be used when it restores a saved position.
 
 Deferred: AntDeploy production remains unchanged pending the repository's
 five failing quality gates and independent review.
+
+## 2026-10-11 — overall regression and release audit
+
+Verified: the project virtual environment collected 1,506 unit tests. The
+serial run reached 405 passes, one skip and five failures before the configured
+stop: the old anonymous-API expectation, three graph contract cases answered
+out of scope, and a test expecting a PDF absent from this checkout. Integration
+tests reached 11 passes, then stopped because this checkout has no root
+`okf_graph.json` export. The repository quality gate still fails five passes.
+The draft release PR has no independent review and no CI run on its base
+branch. The live AntDeploy catalog still reports 83 titles; the 91-title fix
+has not deployed. Do not describe production as verified for this revision.
