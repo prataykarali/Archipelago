@@ -39,3 +39,26 @@ Deferred: verify the flows with two real Supabase accounts and a phone browser.
 The institutional catalogue remains a common library collection; this change
 does not create private uploaded-book collections. Keep provider keys in the
 existing ignored environment file and rotate any keys exposed outside it.
+
+## 2026-10-11 — Pearson browser handoff and integrated release
+
+Built: integrated the hosted release with `session3-stable` on
+`codex/hosted-release-integrated`. Pearson book links now show a two-step
+handoff: sign in on Pearson, return to Archipelago, and open the selected title
+in the same browser. The library book card accepts a requested page number and
+no longer invents chapter page references when a title lacks a real TOC.
+Removed a live Pearson password literal from a legacy test.
+
+Verified: 99 focused hosted tests passed, the hosted chat UI smoke passed, and
+one legacy Pearson gateway test passed. In a browser, Pearson login established
+a session, and an authenticated direct book URL loaded the PDF reader. Pearson
+ignored a `/page/7` fragment on initial load and restored a different page;
+entering 7 in its page box worked. A later Pearson redirect produced a blank
+reader tab, so automatic page landing and session checks are not verified.
+
+Deferred: the PR remains draft because the repository-wide quality gate has
+five failures in older code and the required independent review is pending.
+Production AntDeploy was not changed. Each browser must authenticate with
+Pearson independently; Archipelago cannot inspect or distribute Pearson cookies.
+The hosted ingestion worker remains disabled because it does not publish to
+the hosted corpus.
