@@ -958,6 +958,15 @@
     <p style="margin-bottom:1rem;color:#c4b5fd"><a href="/graph" style="color:#a7f3d0;text-decoration:underline">Open knowledge graph →</a></p>
     <p id="ingest-capability" role="status" style="margin-bottom:1rem;color:#cbd5e1"></p>
 
+    <div style="background:rgba(0,0,0,0.3);border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem;">
+      <h3 style="color:#93c5fd;font-size:1rem;margin-bottom:0.75rem;">Import Library Holdings (CSV)</h3>
+      <form id="inventory-import-form" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+        <input id="inventory-import-file" type="file" accept=".csv,text/csv" required aria-label="Library holdings CSV" style="flex:1;min-width:200px;padding:0.5rem;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:0.5rem;color:#e2e8f0;">
+        <button type="submit" style="padding:0.5rem 1.5rem;background:#059669;color:white;border:0;border-radius:0.5rem;font-weight:600;cursor:pointer;">Import Holdings</button>
+      </form>
+      <p id="inventory-import-status" role="status" style="margin-top:0.5rem;font-size:0.85rem;color:#cbd5e1;"></p>
+    </div>
+
     <!-- Upload Card -->
     <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
       <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Upload Document (PDF/MD/TXT)</h3>
@@ -1016,6 +1025,25 @@
     showStaffIngestionPanel();
 
     function getAuthHeaders() { return {}; }
+
+    document.getElementById('inventory-import-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = document.getElementById('inventory-import-file').files[0];
+      if (!file) return;
+      const status = document.getElementById('inventory-import-status');
+      status.textContent = 'Importing holdings…';
+      const body = new FormData();
+      body.append('file', file);
+      try {
+        const response = await fetch('/api/library/import', { method: 'POST', body });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || result.error || 'Import failed');
+        status.textContent = 'Holdings imported. Refresh the library to see the updated table.';
+        await loadData();
+      } catch (error) {
+        status.textContent = `Import failed: ${error.message}`;
+      }
+    });
 
     // Upload form
     const uploadForm = document.getElementById('upload-form');

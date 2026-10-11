@@ -62,3 +62,18 @@ Production AntDeploy was not changed. Each browser must authenticate with
 Pearson independently; Archipelago cannot inspect or distribute Pearson cookies.
 The hosted ingestion worker remains disabled because it does not publish to
 the hosted corpus.
+
+## 2026-10-11 — librarian access handoff
+
+Built: librarian and administrator sign-in now opens the library management
+console, and staff navigation links directly to it. The console scrolls to
+its controls after identity verification. Added a holdings CSV import form
+using the existing librarian-only Supabase-backed endpoint. Graph exploration
+remains available from the console. Document and chapter ingestion stay
+disabled because the hosted worker cannot publish into the live corpus.
+
+Verified: 17 focused hosted and regression tests passed after this change.
+The repository-wide quality gate still fails on older lint, type, banned
+pattern, magic-number and dependency-direction issues. Live librarian login
+could not be tested without a librarian account. Production remains unchanged;
+the updated draft PR awaits a green gate and independent review.
