@@ -6,7 +6,7 @@
   const FADE_MS = 500;
   const FADE_BEFORE_END_SECONDS = 0.55;
   const RESTART_PAUSE_MS = 100;
-  const VISIBLE_OPACITY = 0.85;
+  const VISIBLE_OPACITY = 1;
   let animationFrame = 0;
   let fadingOut = false;
 

@@ -1,5 +1,19 @@
 Production ship complete on Sun Aug  9 09:01:58 AM IST 2026
 
+## 2026-10-12 — landing scene focus and text motion
+
+Built: removed the Connected Knowledge block from the landing page, moved
+the short introduction away from the character's face, enlarged and raised
+the supplied cinematic scene, and kept the existing navigation, calls to
+action, institutional links, and authentication modal. Added accessible
+word and letter reveals with the requested stagger and easing, plus a
+reduced-motion path.
+
+Verified: 20 hosted regression tests and JavaScript syntax checks passed.
+The live Vercel page and phone-width layout were inspected after deployment.
+
+Deferred: no changes to chat, library, or ingestion.
+
 ## 2026-10-12 — landing cinematic scene handoff
 
 Built: restored the requested ACME girl clip as the landing background, with
