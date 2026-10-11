@@ -5,6 +5,7 @@
 security control, which is only acceptable while a test proves they agree on
 every shape of secret. If the shared one is edited, this fails.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -113,9 +114,7 @@ def test_a_bare_token_is_a_known_gap():
 
     from host_inference.hostapp.log_redaction import RedactingFilter
 
-    record = logging.LogRecord(
-        "t", logging.INFO, __file__, 1, "sending %s", ("sk-abc123",), None
-    )
+    record = logging.LogRecord("t", logging.INFO, __file__, 1, "sending %s", ("sk-abc123",), None)
     RedactingFilter().filter(record)
     assert record.args == ("sk-abc123",), (
         "the bare-arg gap has been closed; update SECRET_CORPUS expectations and "

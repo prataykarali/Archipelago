@@ -4,6 +4,7 @@ One concern: every literal value the engine needs that is not ``0``, ``1`` or
 ``-1`` lives here as a named constant, so the routing and rendering modules read
 as prose rather than as a wall of data.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,7 +22,7 @@ KILL_SWITCH = 0.75
 # Every citation line the grounded text can emit.  The streaming layer keeps
 # these lines out of the model prompt and re-appends them verbatim so the
 # reader always gets a working page link even when the LLM paraphrases.
-CITATION_LINE_PREFIXES = ("**Paper page.**", "**Hugging Face page.**", "**Pearson ")
+CITATION_LINE_PREFIXES = ("**Paper page.**", "**Hugging Face page.**", "**Pearson ", "[", "→ ")
 
 OOD_MESSAGE = (
     "That topic falls outside the current scope of this library assistant. "
@@ -55,9 +56,9 @@ UNINDEXED_CURRICULUM_MESSAGE = (
 )
 
 ALIASES = {
-    "lora": "matrix_factorization",
-    "low-rank adaptation": "matrix_factorization",
-    "low rank adaptation": "matrix_factorization",
+    "lora": "low_rank_adaptation",
+    "low-rank adaptation": "low_rank_adaptation",
+    "low rank adaptation": "low_rank_adaptation",
     "qlora": "qlora",
     "3nf": "third_normal_form",
     "third normal form": "third_normal_form",
@@ -170,9 +171,9 @@ PORTALS = [
 ]
 
 SCHEDULE = [
-    "24×7 Reading Rooms: Open continuously for enrolled students.",
-    "Circulation / Lending Desk: Monday–Friday, 9:00 AM – 6:00 PM.",
-    "Reference Desk Inquiries: Monday–Friday, 10:00 AM – 5:00 PM.",
+    "24×7 Reading Rooms: Open continuously for enrolled students.",  # noqa: RUF001
+    "Circulation / Lending Desk: Monday–Friday, 9:00 AM – 6:00 PM.",  # noqa: RUF001
+    "Reference Desk Inquiries: Monday–Friday, 10:00 AM – 5:00 PM.",  # noqa: RUF001
     "Weekend access: reading rooms stay open; issue and return are weekday-only.",
 ]
 

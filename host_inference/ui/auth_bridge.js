@@ -4,6 +4,7 @@ const API_PREFIX = "/api/";
 const LOGIN_PATH = "/login";
 // Pages anyone may read without signing in.
 const OPEN_PATHS = new Set(["/", "/landing"]);
+const IDLE_TIMEOUT_MS = 300000;
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
 const STAFF_ROUTES = new Set(["/chat", "/library", "/graph"]);
 
@@ -50,19 +51,42 @@ window.archipelagoRequireSession = async () => {
     const { data } = await supabase?.auth.getSession();
     if (data?.session?.access_token) {
       const response = await fetch("/api/auth/me", { cache: "no-store" });
-      if (response.ok) return data.session;
+      if (response.ok) {
+        const principal = await response.json();
+        window.archipelagoUserId = principal.id || principal.user_id;
+        return data.session;
+      }
     }
   } catch (_) {}
   sessionStorage.removeItem("archipelago_local_user");
   localStorage.removeItem("archipelago_local_user");
-  // Open pages (landing, chat, library) stay readable without a session; only
-  // staff surfaces redirect. Staff routes opt in via
-  // `archipelagoAuthorizePage`, which always requires a role.
   if (OPEN_PATHS.has(window.location.pathname.replace(/\/$/, "") || "/")) return null;
   const next = encodeURIComponent(window.location.pathname + window.location.search);
   window.location.replace(`${LOGIN_PATH}?next=${next}`);
   return null;
 };
+
+if (["/chat", "/library", "/graph"].includes(window.location.pathname.replace(/\/$/, ""))) {
+  let idleTimer;
+  const expire = async () => {
+    try {
+      const { supabase } = await window.archipelagoAuthReady;
+      await fetch('/api/auth/session', { method: 'DELETE', credentials: 'same-origin' });
+      if (supabase) await supabase.auth.signOut();
+    } finally {
+      window.archipelagoUserId = null;
+      window.location.replace('/login?timeout=1');
+    }
+  };
+  const resetIdle = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(expire, IDLE_TIMEOUT_MS);
+  };
+  for (const eventName of ['pointerdown', 'keydown', 'touchstart', 'scroll', 'wheel']) {
+    window.addEventListener(eventName, resetIdle, { passive: true });
+  }
+  resetIdle();
+}
 
 window.archipelagoAuthorizePage = async (allowedRoles) => {
   const { config, supabase } = await window.archipelagoAuthReady;

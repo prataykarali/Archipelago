@@ -1,4 +1,5 @@
 """Markdown rendering helpers shared by the grounded reply builders."""
+
 from __future__ import annotations
 
 from .graph import LibraryGraph
@@ -20,7 +21,11 @@ def lineage(graph: LibraryGraph, cid: str) -> str:
     unl = graph.unlocks(cid, 1)[:LINEAGE_NEIGHBOURS]
     label = graph.label(cid)
     if pres and unl:
-        return arrow(graph.label(pres[0]), "REQUIRES", label) + " " + arrow(label, "UNLOCKS", graph.label(unl[0]))
+        return (
+            arrow(graph.label(pres[0]), "REQUIRES", label)
+            + " "
+            + arrow(label, "UNLOCKS", graph.label(unl[0]))
+        )
     if pres:
         return arrow(graph.label(pres[0]), "REQUIRES", label)
     if unl:
@@ -30,8 +35,14 @@ def lineage(graph: LibraryGraph, cid: str) -> str:
 
 def neighborhood_block(graph: LibraryGraph, cid: str) -> str:
     """One markdown bullet summarising a node's direct neighborhood."""
-    pres = ", ".join(graph.label(x) for x in graph.prereqs(cid, 1)[:NEIGHBOURHOOD_LIMIT]) or "none indexed"
-    unl = ", ".join(graph.label(x) for x in graph.unlocks(cid, 1)[:NEIGHBOURHOOD_LIMIT]) or "none indexed"
+    pres = (
+        ", ".join(graph.label(x) for x in graph.prereqs(cid, 1)[:NEIGHBOURHOOD_LIMIT])
+        or "none indexed"
+    )
+    unl = (
+        ", ".join(graph.label(x) for x in graph.unlocks(cid, 1)[:NEIGHBOURHOOD_LIMIT])
+        or "none indexed"
+    )
     return f"- **{graph.label(cid)}** prerequisites: {pres}. Unlocks: {unl}."
 
 

@@ -1,3 +1,4 @@
+import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 14-render-adaptive-mcqcard.js
 // Feature module 15 of 22.
 import { getOrCreateInteractiveZone } from './11-populate-topology.js';
@@ -53,7 +54,7 @@ import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 
             // Persist adaptive quiz state to sessionStorage
             try {
-                sessionStorage.setItem('archipelago_adaptive_' + msgId, JSON.stringify(state));
+                sessionStorage.setItem(storageKey('archipelago_adaptive_' + msgId), JSON.stringify(state));
             } catch (_) {}
 
             cardContent.innerHTML = `

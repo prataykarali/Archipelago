@@ -3,6 +3,7 @@
 Each pattern names the concrete user intent it recognises so routing reads as a
 sequence of intent checks rather than a list of raw regex bodies.
 """
+
 from __future__ import annotations
 
 import re

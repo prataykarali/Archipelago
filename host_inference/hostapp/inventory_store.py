@@ -3,6 +3,7 @@
 One concern: validating an uploaded librarian CSV and persisting it.  Routes
 depend on this object, so a test can substitute an in-memory store.
 """
+
 from __future__ import annotations
 
 from library_inventory import parse_inventory_csv, save_inventory

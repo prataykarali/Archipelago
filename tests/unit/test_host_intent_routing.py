@@ -6,10 +6,11 @@ graph-shaped routes must expose an anchor plus prerequisites/unlocks, and
 factual routes (schedules, portals, refusals) must suppress it.  These tests pin
 that contract against the real exported graph.
 """
+
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -24,7 +25,15 @@ pytestmark = [
 ]
 
 # Routes that must never draw a concept graph in the chat.
-FACTUAL_ROUTES = {"SCHEDULE", "AUTH_GATEWAY", "PASSING_MENTION", "OOD_KILL", "PERSONA_LOCK", "CODE_TRAP", "EMPTY"}
+FACTUAL_ROUTES = {
+    "SCHEDULE",
+    "AUTH_GATEWAY",
+    "PASSING_MENTION",
+    "OOD_KILL",
+    "PERSONA_LOCK",
+    "CODE_TRAP",
+    "EMPTY",
+}
 # Routes that must always draw one.
 GRAPH_ROUTES = {"GRAPH_SYNTHESIS", "RELATION", "CROSS_DOMAIN", "DISCONNECTED", "MCQ_DIAGNOSTIC"}
 

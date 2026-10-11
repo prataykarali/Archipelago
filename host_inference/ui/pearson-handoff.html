@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open Pearson book — Archipelago</title>
+  <script type="module" src="/auth_bridge.js"></script>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #090513; color: #f4ebff; padding: 1rem; box-sizing: border-box; }
+    main { width: min(100%, 35rem); padding: clamp(1.25rem, 5vw, 2rem); border: 1px solid #784a91; border-radius: 1.25rem; background: #1a0d28; box-shadow: 0 18px 55px #0008; }
+    h1 { margin: 0 0 .75rem; font-size: clamp(1.5rem, 5vw, 2rem); }
+    p { line-height: 1.55; color: #dccde7; }
+    ol { padding-left: 1.4rem; line-height: 1.6; }
+    li { margin: 1.25rem 0; }
+    a.button { display: inline-block; margin-top: .6rem; padding: .8rem 1rem; border-radius: .7rem; color: #18071f; background: #e7b6ff; font-weight: 700; text-decoration: none; }
+    a.button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+    a.secondary { background: #a9f3d2; }
+    a.disabled { pointer-events: none; opacity: .5; }
+    #status { min-height: 1.5rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="/library" style="color:#e7b6ff">← Back to library</a></p>
+    <h1>Open your Pearson book</h1>
+    <p id="book-title">Loading book details…</p>
+    <ol>
+      <li>Open Pearson eLibrary and sign in with your own institutional account.<br>
+        <a class="button" href="https://elibrary.in.pearson.com/" target="_blank" rel="noopener noreferrer">1. Sign in to Pearson ↗</a>
+      </li>
+      <li>After sign-in, return here to open the selected book in the same browser.<br>
+        <a id="exact-page" class="button secondary disabled" aria-disabled="true" href="#">2. Open selected book ↗</a>
+      </li>
+    </ol>
+    <p id="page-help">Pearson may restore your last-read page. Use the page box at the bottom of its reader to reach the requested page.</p>
+    <p id="status" role="status">Your Pearson session stays with Pearson. Archipelago does not receive its sign-in details or cookies.</p>
+  </main>
+  <script>
+    (async () => {
+      const path = decodeURIComponent(location.pathname);
+      const bookId = path.split('/').filter(Boolean).pop();
+      const page = Math.max(1, Number.parseInt(new URLSearchParams(location.search).get('page') || '1', 10) || 1);
+      const response = await fetch(`/api/reader/info/${encodeURIComponent(bookId)}?page=${page}`, { cache: 'no-store' });
+      if (!response.ok) {
+        document.getElementById('book-title').textContent = 'This book is unavailable.';
+        return;
+      }
+      const book = await response.json();
+      if (book.provider !== 'pearson' || !book.reader_url) return;
+      document.getElementById('book-title').textContent = `${book.title} · page ${page}`;
+      document.getElementById('page-help').textContent = `In Pearson, enter ${page} in the page box at the bottom of the reader and press Enter. Pearson may restore your last-read page when the book opens.`;
+      const link = document.getElementById('exact-page');
+      link.href = book.reader_url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.classList.remove('disabled');
+      link.removeAttribute('aria-disabled');
+    })().catch(() => {
+      document.getElementById('book-title').textContent = 'Could not load book details. Try again from the library.';
+    });
+  </script>
+</body>
+</html>

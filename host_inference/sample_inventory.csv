@@ -1,0 +1,4 @@
+book_id,title,authors,publisher,subject,publication_year,category,availability,take_home,location,accession,total_copies,available_copies
+SAMPLE-001,Introduction to Machine Learning,Sample Author,Sample Press,Machine Learning,2024,Demo,Sample only,No,Demo shelf,DEMO-001,4,3
+SAMPLE-002,Networks and Convolution,Example Writer,Example Books,Deep Learning,2023,Demo,Sample only,No,Demo shelf,DEMO-002,6,2
+SAMPLE-003,Graph Algorithms Handbook,Demo Editor,Demo Publishing,Algorithms,2022,Demo,Sample only,No,Demo shelf,DEMO-003,5,5

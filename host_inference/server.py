@@ -6,6 +6,7 @@ assembled by :func:`hostapp.create_app`.
 
 Ingestion, uploads and librarian job controls are not served here.
 """
+
 from __future__ import annotations
 
 import os

@@ -4,6 +4,7 @@ One concern: carrying the collaborators (engine, auth, rate limiter, inventory
 store, caches) so routes depend on an injected object rather than module
 globals.  Tests can build a context with fakes and register routes against it.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

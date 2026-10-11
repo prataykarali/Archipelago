@@ -4,6 +4,7 @@ One concern: telling the browser how to authenticate, issuing the session
 cookie, and reporting the current principal.  Secrets never reach the client —
 only the publishable key.
 """
+
 from __future__ import annotations
 
 import os
@@ -23,18 +24,22 @@ def register(app: Flask, ctx: AppContext) -> None:
     def auth_config():
         url, key = ctx.auth.supabase()
         configured = bool(url and key)
-        return jsonify({
-            "configured": configured,
-            "required": ctx.auth.required(),
-            "url": url if configured else None,
-            "publishableKey": key if configured else None,
-            "chatUrl": None,
-            "graphUrl": None,
-        })
+        return jsonify(
+            {
+                "configured": configured,
+                "required": ctx.auth.required(),
+                "url": url if configured else None,
+                "publishableKey": key if configured else None,
+                "chatUrl": None,
+                "graphUrl": None,
+            }
+        )
 
     @app.route("/api/auth/session", methods=["POST", "DELETE", "OPTIONS"])
     def auth_session():
         if request.method == "DELETE":
+            token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+            ctx.auth.end_session(token or request.cookies.get(SESSION_COOKIE_NAME, ""))
             response = jsonify({"authenticated": False})
             response.delete_cookie(SESSION_COOKIE_NAME, path="/")
             return response
@@ -60,4 +65,11 @@ def register(app: Flask, ctx: AppContext) -> None:
         principal, error = ctx.auth.principal()
         if principal is None:
             return jsonify({"authenticated": False, "detail": error}), 401
-        return jsonify({"authenticated": True, "role": principal["role"], "username": principal["username"]})
+        return jsonify(
+            {
+                "authenticated": True,
+                "id": principal["id"],
+                "role": principal["role"],
+                "username": principal["username"],
+            }
+        )

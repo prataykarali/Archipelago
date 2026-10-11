@@ -1,7 +1,6 @@
 // Auto-split from ui/chat/index.html — 08-send-message.js
 // Feature module 9 of 22.
 import { state } from './00-state.js';
-import { readChatResponse } from './chat-transport.js';
 import { setSendButtonState, stopGeneration } from './07-open-page-viewer-modal.js';
 import { dismissGraphChoiceModal, populateTopology } from './11-populate-topology.js';
 import { API_HOST, CHAT_RESPONSE_TIMEOUT_MS, MAX_HISTORY_TURNS_SENT, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, setLibrarianThinking, showStickyAvatar } from './00-current-origin.js';
@@ -11,6 +10,7 @@ import { _enrichAssistantMarkup, appendEvidenceRail, getResponseCitations } from
 import { wrapLibraryInventorySection } from './03-wrap-library-inventory-secti.js';
 import { renderGraphExperiencePrompt } from './12-choose-graph-experience.js';
 import { populatePipeline } from './10-populate-pipeline.js';
+import { updateBookStackForQuery } from './05-display-books.js';
 import { saveSession } from './20--compact-history.js';
 import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream-support.js';
 
@@ -79,6 +79,8 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
             armStreamIdleWatchdog();
 
             // Hoisted so catch/finally can keep partial GPU SLM text on abort.
+            let buffer = '';
+            let metadataParsed = false;
             let assistantText = '';
             let awaitingFinalFrame = false;
             let userScrolledUp = false;
@@ -120,10 +122,23 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error ${response.status}`);
+                const quotaLabel = document.getElementById('query-limit-status');
+                const remaining = response.headers.get('X-Queries-Remaining');
+                if (quotaLabel && remaining !== null) {
+                    quotaLabel.textContent = `${remaining} of 35 AI queries remain today. A one-hour cooldown follows each 7 queries.`;
                 }
 
+                if (!response.ok) {
+                    const problem = await response.json().catch(() => ({}));
+                    if (response.status === 429 && quotaLabel) {
+                        const minutes = Math.ceil(Number(problem.retry_after || 60) / 60);
+                        quotaLabel.textContent = `AI paused for about ${minutes} minute${minutes === 1 ? '' : 's'}. Saved chats remain available. ${problem.remaining ?? 0} daily queries remain.`;
+                    }
+                    throw new Error(problem.detail || `HTTP Error ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
 
                 // Remove typing dots when the first text comes in
                 let cleanedIndicator = false;
@@ -211,8 +226,13 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
-                    if (firstFinalize && window._lastChatMetadata && typeof renderGraphExperiencePrompt === 'function') {
-                        renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                    if (firstFinalize && window._lastChatMetadata) {
+                        if (typeof updateBookStackForQuery === 'function') {
+                            updateBookStackForQuery(window._lastChatMetadata);
+                        }
+                        if (typeof renderGraphExperiencePrompt === 'function') {
+                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                        }
                     }
                 };
 
@@ -315,7 +335,7 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         liveRewriteMode = false;
                         if (rest && rest.trim()) {
                             const currentDraft = staticStreamBuffer || rewriteBuffer || assistantText;
-                            if (rest.trim()) {
+                            if (_shouldReplaceFinal(rest, currentDraft) || !currentDraft) {
                                 staticStreamBuffer = rest;
                                 rewriteBuffer = "";
                                 assistantText = rest;
@@ -332,19 +352,66 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                     }
                 };
 
-                for await (const event of readChatResponse(response)) {
+                while (true) {
+                    const { done, value } = await reader.read();
                     armStreamIdleWatchdog();
-                    if (event.type === 'metadata') {
-                        const metadata = event.value;
-                        window._lastChatMetadata = metadata;
-                        populatePipeline(metadata);
-                        populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
-                    } else {
-                        consumeTextChunk(event.value);
+                    if (done) {
+                        if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
+                        typewriter.flush();
+                        if (!cleanedIndicator && msgEl) {
+                            msgEl.innerHTML = '';
+                            cleanedIndicator = true;
+                            const wrap = msgEl.closest('.msg-bubble-wrap');
+                            if (wrap) wrap.classList.remove('is-thinking');
+                        }
+                        if (buffer) {
+                            consumeTextChunk(buffer);
+                            buffer = '';
+                        }
+                        // Always re-finalize after the terminal flush so paper
+                        // cards survive the innerHTML wipe from flush/render.
+                        finalizeStreamedBubble();
+                        if (msgEl && window._lastChatMetadata) {
+                            appendEvidenceRail(msgEl, window._lastChatMetadata);
+                            wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
+                        }
+                        state.isGenerating = false;
+                        try { window.isGenerating = false; } catch (_) {}
+                        _updateGlowState(false);
+                        setSendButtonState('send');
+                        setLibrarianThinking(false);
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    if (!metadataParsed) {
+                        const idx = buffer.indexOf('[STREAM_START]');
+                        if (idx !== -1) {
+                            const metaStr = buffer.substring(0, idx).trim();
+                            buffer = buffer.substring(idx + '[STREAM_START]'.length).replace(/^\n+/, '');
+                            metadataParsed = true;
+
+                            try {
+                                const metadata = JSON.parse(metaStr);
+                                window._lastChatMetadata = metadata;
+                                populatePipeline(metadata);
+                                populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
+                                if (typeof updateBookStackForQuery === 'function') {
+                                    updateBookStackForQuery(metadata);
+                                }
+                                // renderHorizontalGraphCard & roadmap_assessment deferred until typing finishes
+                            } catch (err) {
+                                console.error('Error parsing pipeline metadata:', err);
+                            }
+                        }
+                    }
+
+                    if (metadataParsed && buffer) {
+                        consumeTextChunk(buffer);
+                        buffer = '';
                     }
                 }
-                if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
-                _finishStreamUi();
 
                 // Add to conversational history
                 state.chatHistory.push({ role: 'user', content: inputVal });
@@ -386,10 +453,10 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                             );
                         } catch (__) {}
                     }
-                    if (msgEl && !msgEl.querySelector('.stream-abort-note')) {
+                    if (aborted && msgEl && !msgEl.querySelector('.stream-abort-note')) {
                         const note = document.createElement('div');
                         note.className = 'stream-abort-note text-amber-300/90 text-xs mt-2 opacity-80';
-                        note.textContent = 'Response interrupted — showing only the answer received so far. Retry for a complete answer.';
+                        note.textContent = 'Generation stopped — showing the answer received so far.';
                         msgEl.appendChild(note);
                     }
                     try {
@@ -410,11 +477,7 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         ? ((err.message && err.message !== 'The user aborted a request.') ? err.message : 'stream was interrupted')
                         : (err && err.message ? err.message : 'unknown error');
                     if (msgEl) {
-                        const alert = document.createElement('div');
-                        alert.className = 'text-rose-400 p-3 rounded-lg border border-rose-500/20';
-                        alert.setAttribute('role', 'alert');
-                        alert.textContent = `Could not complete the answer: ${why}`;
-                        msgEl.replaceChildren(alert);
+                        msgEl.textContent = why;
                     }
                 }
             } finally {

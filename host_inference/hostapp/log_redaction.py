@@ -21,6 +21,7 @@ Usage::
     from hostapp.log_redaction import install_log_redaction
     install_log_redaction()          # root + werkzeug + gunicorn.access
 """
+
 from __future__ import annotations
 
 import logging
@@ -70,9 +71,7 @@ class RedactingFilter(logging.Filter):
                     k: redact(v) if isinstance(v, str) else v for k, v in record.args.items()
                 }
             else:
-                record.args = tuple(
-                    redact(a) if isinstance(a, str) else a for a in record.args
-                )
+                record.args = tuple(redact(a) if isinstance(a, str) else a for a in record.args)
         return True
 
 

@@ -3,6 +3,7 @@
 One concern: serving the UI tree and its asset directory, and refusing to leak
 dotfiles, source directories or API paths through the catch-all.
 """
+
 from __future__ import annotations
 
 from flask import Flask, jsonify, send_from_directory

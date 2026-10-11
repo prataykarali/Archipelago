@@ -1,4 +1,4 @@
-import { renderGapResources } from './learning-memory.js';
+import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 15-submit-adaptive-answer.js
 // Feature module 16 of 22.
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
@@ -8,7 +8,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         async function submitAdaptiveAnswer(msgId) {
             const state = window._adaptiveState[msgId];
-            if (!state || !state.current_mcq) return;
+            if (!state || !state.current_mcq || state.submitted) return;
 
             const checked = document.querySelector(`input[name="adaptive_radio_${msgId}"]:checked`);
             if (!checked) return;
@@ -30,30 +30,22 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        session_id: state.session_id,
-                        question_id: state.current_mcq.question_id,
-                        confidence: document.getElementById(`adaptive-confidence-${msgId}`)?.value || 'medium',
-                        preference: document.getElementById(`adaptive-preference-${msgId}`)?.value || state.preference || 'conceptual',
-                        user_choice: userChoice
+                        target_concept: state.target_concept,
+                        current_concept: state.current_concept,
+                        user_choice: userChoice,
+                        current_mcq: state.current_mcq,
+                        consecutive_ticks: state.consecutive_ticks,
+                        history: state.history || [],
+                        chain: state.chain || []
                     })
                 });
                 const data = await resp.json();
-                if (!resp.ok || data.error) throw new Error(data.error || 'Diagnostic failed');
-                state.preference = document.getElementById(`adaptive-preference-${msgId}`)?.value || state.preference;
-                sessionStorage.setItem('archipelago_learning_preference', state.preference);
-                const explanation = document.getElementById(`adaptive-explanation-${msgId}`);
-                const citation = document.getElementById(`adaptive-citation-${msgId}`);
-                if (explanation) explanation.textContent = [
-                    data.misconception?.prompt,
-                    data.current_record?.explanation
-                ].filter(Boolean).join('\n\n');
-                if (citation) citation.textContent = data.current_record?.citation || '';
-
+                if (!resp.ok) throw new Error(data.detail || data.error || 'Quiz request failed');
 
                 // Update styling of radio choices
                 const isTick = data.is_tick;
                 const rec = data.current_record || {};
-                const correctAns = rec.correct_answer;
+                const correctAns = rec.correct_answer || (state.current_mcq && state.current_mcq.correct_option) || 'A';
 
                 ['A', 'B', 'C', 'D'].forEach(k => {
                     const lbl = document.getElementById(`adaptive-label-${msgId}-${k}`);
@@ -72,6 +64,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 // Update state
                 state.consecutive_ticks = data.consecutive_ticks || 0;
                 state.history = data.history || state.history || [];
+                state.submitted = true;
 
                 // Update tick boxes in header
                 for (let i = 1; i <= 3; i++) {
@@ -92,16 +85,15 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 const hint = document.getElementById(`adaptive-hint-${msgId}`);
 
                 if (data.completed) {
-                    state.gap_resources = data.gap_resources || [];
-                    state.submitted = true;
+                    state.finished = true;
                     if (banner) {
                         banner.classList.remove('hidden');
-                        if (data.evaluation?.passed === true) {
+                        if (data.completion_reason === '3_consecutive_ticks_mastered' || state.consecutive_ticks >= 3) {
                             banner.className = 'rounded-xl p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs space-y-1 shadow-lg shadow-emerald-500/10';
                             banner.innerHTML = `
                                 <div class="flex items-center gap-2 text-sm font-extrabold text-emerald-300">
                                     <i class="fa-solid fa-circle-check text-base"></i>
-                                    <span>Assessed Prerequisites Confirmed</span>
+                                    <span>Prerequisite Mastery Confirmed (3 Ticks)! Concept Unlocked</span>
                                 </div>
                                 <p class="text-emerald-200/90 text-xs">You demonstrated foundational mastery across prerequisites. The personalized curriculum graph for <strong>${escapeHTML(state.target_label)}</strong> is now generated below!</p>
                             `;
@@ -129,17 +121,18 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     }
                     if (hint) hint.textContent = 'Assessment finished. Personalized topology rendered below.';
 
-                    // Store evaluation for this browser tab only and render Personalized Graph
+                    // Store evaluation in localStorage and render Personalized Graph
                     const evalData = data.evaluation || {
                         target_concept: state.target_concept,
                         score: `${state.history.filter(h => h.is_correct).length}/${state.history.length}`,
-                        passed: false,
-                        full_score: false,
+                        passed: state.consecutive_ticks >= 3,
+                        full_score: state.consecutive_ticks >= 3,
                         personalized_graph: data.personalized_graph || {},
                     };
                     try {
-                        sessionStorage.setItem('archipelago_eval_' + state.target_concept, JSON.stringify(evalData));
-                        localStorage.setItem('archipelago_choice_' + state.target_concept, 'personalized');
+                        localStorage.setItem(storageKey('archipelago_eval_' + state.target_concept), JSON.stringify(evalData));
+                        localStorage.setItem(storageKey('archipelago_choice_' + state.target_concept), 'personalized');
+                        sessionStorage.removeItem(storageKey('archipelago_adaptive_' + msgId));
                     } catch (_) {}
 
                     revealFinalCorrectQuestionAndFinish(msgId, data, evalData, state.metadata);
@@ -162,7 +155,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                         } else {
                             btnContainer.innerHTML = `
                                 <button onclick="advanceAdaptiveStep('${msgId}')" type="button" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs shadow-lg shadow-amber-600/30 transition-all flex items-center gap-2 cursor-pointer">
-                                    <i class="fa-solid fa-backward-step text-xs"></i> <span>Review Next Prerequisite</span>
+                                    <i class="fa-solid fa-backward-step text-xs"></i> <span>Leap Back 2 Hops: Foundational Review</span>
                                 </button>
                                 <button onclick="switchToNormalGraph('${msgId}')" type="button" class="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer">
                                     <i class="fa-solid fa-diagram-project text-xs"></i> <span>Skip / Normal Graph</span>
@@ -171,15 +164,13 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                         }
                     }
                     if (hint) {
-                        hint.textContent = isTick ? 'Correct! Advancing towards target concept.' : 'A review gap was recorded. The next question checks remaining coverage.';
+                        hint.textContent = isTick ? 'Correct! Advancing towards target concept.' : 'Prerequisite gap detected. Leaping back 2 hops to foundational concepts.';
                     }
+                    try { sessionStorage.setItem(storageKey('archipelago_adaptive_' + msgId), JSON.stringify(state)); } catch (_) {}
                 }
 
             } catch (err) {
                 console.error('Error in submitAdaptiveAnswer:', err);
-                const hint = document.getElementById(`adaptive-hint-${msgId}`);
-                if (hint) hint.textContent = err.message + ' You can restart or switch to Normal Graph.';
-                document.querySelectorAll(`input[name="adaptive_radio_${msgId}"]`).forEach(input => { input.disabled = false; });
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fa-solid fa-rotate-right text-xs"></i> <span>Retry</span>';
@@ -227,7 +218,6 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
             const zone = getOrCreateInteractiveZone(msgId);
             if (!zone) {
                 renderPersonalizedGraphCard(msgId, evalData, metadata);
-                        renderGapResources(getOrCreateInteractiveZone(msgId), window._adaptiveState[msgId]?.gap_resources);
                 return;
             }
 
@@ -255,7 +245,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 const gaps = completionData.gaps || state.gaps || [];
                 const totalAsked = completionData.total_asked || state.question_count || 0;
                 const targetLabel = state.target_label || metadata?.anchor_concept || 'Target';
-                const isPassed = completionData.evaluation?.passed === true;
+                const isPassed = (completionData.completion_reason === '3_consecutive_ticks_mastered') || (state.consecutive_ticks >= 3);
 
                 // Celebration card
                 const celebCard = document.createElement('div');
@@ -324,7 +314,6 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     setTimeout(() => {
                         zone.innerHTML = '';
                         renderPersonalizedGraphCard(msgId, evalData, metadata);
-                        renderGapResources(getOrCreateInteractiveZone(msgId), window._adaptiveState[msgId]?.gap_resources);
                     }, 400);
                 };
                 if (exploreBtn) exploreBtn.addEventListener('click', doTransition);

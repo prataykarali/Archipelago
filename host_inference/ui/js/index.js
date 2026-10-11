@@ -23,3 +23,15 @@ import './19-draw-horizontal-svg.js';
 import './20--compact-history.js';
 import './21-generate-roadmap.js';
 import './expose.js';
+await window.archipelagoAuthReady;
+await window.archipelagoRequireSession();
+try {
+  const response = await fetch('/api/chat/quota');
+  if (response.ok) {
+    const quota = await response.json();
+    const label = document.getElementById('query-limit-status');
+    if (label) label.textContent = quota.retry_after
+      ? `AI paused for about ${Math.ceil(quota.retry_after / 60)} minutes. ${quota.remaining} of 35 daily queries remain.`
+      : `${quota.remaining} of 35 AI queries remain today. A one-hour cooldown follows each 7 queries.`;
+  }
+} catch (_) {}

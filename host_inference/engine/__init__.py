@@ -17,6 +17,7 @@ The implementation lives in focused submodules:
 * :mod:`engine.llm`       — XKIRO / NVIDIA NIM provider integration
 * :mod:`engine.answer`    — the :class:`Engine` itself
 """
+
 from __future__ import annotations
 
 import requests  # exposed as ``engine.requests`` for existing monkeypatching
@@ -52,18 +53,18 @@ __all__ = [
     "CITATION_LINE_PREFIXES",
     "CODE_MESSAGE",
     "DIM",
-    "Engine",
     "FORMULAS",
     "HERE",
     "HF_DOC_MAP",
     "HIJACK_MESSAGE",
     "KILL_SWITCH",
-    "LibraryGraph",
     "OOD_MESSAGE",
     "PASSING_MENTIONS",
     "PORTALS",
     "SCHEDULE",
     "SHELF",
+    "Engine",
+    "LibraryGraph",
     "_hf_doc_path",
     "embed",
     "hf_doc_path",

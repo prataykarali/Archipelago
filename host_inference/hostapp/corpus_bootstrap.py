@@ -23,6 +23,7 @@ So the corpus arrives by one of two routes, in this order:
 Never raises.  A deployment with no corpus should start, serve its UI, and say
 honestly that it has nothing indexed — not crash-loop.
 """
+
 from __future__ import annotations
 
 import logging
@@ -96,7 +97,9 @@ def _hf_download(repo_id: str, filename: str, destination: Path, token: str) -> 
         import requests
 
         headers = {"Authorization": f"Bearer {token}"} if token else {}
-        with requests.get(url, headers=headers, timeout=FETCH_TIMEOUT_SECONDS, stream=True) as response:
+        with requests.get(
+            url, headers=headers, timeout=FETCH_TIMEOUT_SECONDS, stream=True
+        ) as response:
             response.raise_for_status()
             with tempfile.NamedTemporaryFile(delete=False, dir=destination.parent) as tmp:
                 written = 0
@@ -159,13 +162,21 @@ def provision(root: Path | None = None) -> dict[str, object]:
     for remote_path, local_path in CORPUS_ARTIFACTS.items():
         destination = repo_root / local_path
         cache_copy = repo_root / "host_inference" / "cache" / destination.name
-        needed = graph_needs_restore if local_path == "okf_graph.json" else not (
-            _valid_artifact(destination, local_path) or _valid_artifact(cache_copy, local_path)
+        needed = (
+            graph_needs_restore
+            if local_path == "okf_graph.json"
+            else not (
+                _valid_artifact(destination, local_path) or _valid_artifact(cache_copy, local_path)
+            )
         )
         if not needed:
             continue
         target = staging / remote_path
-        if repo_id and _hf_download(repo_id, remote_path, target, token) and _valid_artifact(target, local_path):
+        if (
+            repo_id
+            and _hf_download(repo_id, remote_path, target, token)
+            and _valid_artifact(target, local_path)
+        ):
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(target, destination)
             cache_copy.parent.mkdir(parents=True, exist_ok=True)
@@ -175,9 +186,11 @@ def provision(root: Path | None = None) -> dict[str, object]:
             report["missing"].append(local_path)
 
     # Never overwrite a real graph just because the catalogue failed to fetch.
-    if (not _valid_artifact(graph_json, "okf_graph.json")
+    if (
+        not _valid_artifact(graph_json, "okf_graph.json")
         and not _valid_artifact(cache_graph, "okf_graph.json")
-        and _restore_fixture(repo_root, graph_json)):
+        and _restore_fixture(repo_root, graph_json)
+    ):
         cache_graph.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(graph_json, cache_graph)
 
@@ -189,8 +202,10 @@ def provision(root: Path | None = None) -> dict[str, object]:
             payload = json.loads(candidate.read_text(encoding="utf-8"))
             break
     report["concepts"] = len(payload.get("nodes") or payload.get("concepts") or {})
-    report["source"] = "fixture" if payload.get("stats", {}).get("fixture") else (
-        "downloaded" if report["restored"] else "present" if payload else "missing"
+    report["source"] = (
+        "fixture"
+        if payload.get("stats", {}).get("fixture")
+        else ("downloaded" if report["restored"] else "present" if payload else "missing")
     )
     report["ok"] = bool(payload) and not bool(report["missing"]) and report["source"] != "fixture"
     return report
@@ -210,11 +225,17 @@ def _valid_artifact(path: Path, local_path: str) -> bool:
         return bool(payload.get("nodes") or payload.get("concepts"))
     if local_path.endswith("pearson_bookshelf.json"):
         books = payload.get("books")
-        return isinstance(books, list) and bool(books) and all(
-            isinstance(book, dict) and book.get("id") and book.get("title") for book in books
+        return (
+            isinstance(books, list)
+            and bool(books)
+            and all(
+                isinstance(book, dict) and book.get("id") and book.get("title") for book in books
+            )
         )
     paths = payload.get("hf_paths")
-    return isinstance(paths, list) and all(isinstance(item, str) and item.endswith(".pdf") for item in paths)
+    return isinstance(paths, list) and all(
+        isinstance(item, str) and item.endswith(".pdf") for item in paths
+    )
 
 
 __all__ = [

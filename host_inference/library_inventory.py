@@ -1,4 +1,5 @@
 """Validated, persistent library holdings imports for the hosted app."""
+
 from __future__ import annotations
 
 import csv
@@ -13,12 +14,21 @@ ROOT = Path(__file__).resolve().parent
 CACHE = ROOT / "cache"
 BUCKET = "archipelago-cache"
 OBJECT = "library_inventory.json"
+SAMPLE_INVENTORY = ROOT / "sample_inventory.csv"
 MAX_ROWS = 20_000
 REQUIRED = {"book_id", "title", "total_copies", "available_copies"}
 TEXT_FIELDS = (
-    "book_id", "title", "authors", "publisher", "subject", "publication_year",
-    "category", "availability", "take_home", "location", "accession",
-    "call_number", "rack", "shelf", "doc_id",
+    "book_id",
+    "title",
+    "authors",
+    "publisher",
+    "subject",
+    "publication_year",
+    "category",
+    "availability",
+    "take_home",
+    "location",
+    "accession",
 )
 
 
@@ -55,15 +65,17 @@ def parse_inventory_csv(payload: bytes) -> list[dict]:
         if total < 0 or available < 0 or available > total:
             raise ValueError(f"Row {row_number} must have 0 ≤ available_copies ≤ total_copies.")
         item = {key: row.get(key, "")[:500] for key in TEXT_FIELDS}
-        item.update({
-            "book_id": book_id,
-            "title": title,
-            "total_copies": total,
-            "available_copies": available,
-            "accession": (row.get("accession") or book_id)[:160],
-            "available_ratio": f"{available} / {total}",
-            "no_of_copies": total,
-        })
+        item.update(
+            {
+                "book_id": book_id,
+                "title": title,
+                "total_copies": total,
+                "available_copies": available,
+                "accession": (row.get("accession") or book_id)[:160],
+                "available_ratio": f"{available} / {total}",
+                "no_of_copies": total,
+            }
+        )
         rows.append(item)
     if not rows:
         raise ValueError("CSV contains no holdings rows.")
@@ -79,13 +91,22 @@ def inventory_stats(rows: list[dict]) -> dict[str, int]:
     }
 
 
+def sample_inventory() -> list[dict]:
+    """Return clearly labelled demonstration rows when no real import exists."""
+    return parse_inventory_csv(SAMPLE_INVENTORY.read_bytes())
+
+
 def load_inventory() -> list[dict] | None:
     """Load the latest import from Supabase Storage or the runtime cache."""
     CACHE.mkdir(parents=True, exist_ok=True)
     path = CACHE / OBJECT
     if not path.is_file():
         url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
-        key = (os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+        key = (
+            os.environ.get("SUPABASE_SECRET_KEY")
+            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+            or ""
+        ).strip()
         if url and key:
             try:
                 response = requests.get(
@@ -109,7 +130,9 @@ def load_inventory() -> list[dict] | None:
 def save_inventory(rows: list[dict]) -> None:
     """Persist holdings to the private Supabase cache bucket and local cache."""
     url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
-    key = (os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+    key = (
+        os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or ""
+    ).strip()
     if not url or not key:
         raise RuntimeError("Supabase private storage is not configured.")
     payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
@@ -119,7 +142,9 @@ def save_inventory(rows: list[dict]) -> None:
         "Content-Type": "application/json",
         "x-upsert": "true",
     }
-    response = requests.put(f"{url}/storage/v1/object/{BUCKET}/{OBJECT}", headers=headers, data=payload, timeout=30)
+    response = requests.put(
+        f"{url}/storage/v1/object/{BUCKET}/{OBJECT}", headers=headers, data=payload, timeout=30
+    )
     if response.status_code not in {200, 201}:
         raise RuntimeError(f"Supabase inventory save failed ({response.status_code}).")
     CACHE.mkdir(parents=True, exist_ok=True)

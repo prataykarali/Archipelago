@@ -16,7 +16,7 @@
   <header class="border-b border-emerald-300/10 bg-black/40">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
       <a href="/chat" class="font-semibold tracking-wide text-emerald-200">Archipelago <span class="text-white/50">/ Knowledge Graph</span></a>
-      <nav class="flex gap-4 text-sm text-white/70"><a href="/chat" class="hover:text-white">Chat</a><a href="/library" class="hover:text-white">Library</a></nav>
+      <nav class="flex gap-4 text-sm text-white/70"><a href="/chat" class="hover:text-white">Chat</a><a href="/library" class="hover:text-white">Library</a><a href="/library#librarian-panel" class="hover:text-white">Ingestion</a></nav>
     </div>
   </header>
   <main class="mx-auto max-w-7xl px-5 py-8">
@@ -31,6 +31,11 @@
     <div class="grid gap-4 lg:grid-cols-[1fr_18rem]">
       <section class="overflow-hidden rounded-2xl border border-emerald-300/15 bg-[#06110e] shadow-2xl"><div id="graph" aria-label="Interactive library knowledge graph"></div></section>
       <aside class="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <div class="flex flex-wrap gap-2" aria-label="Graph controls">
+          <button id="zoom-in" type="button" class="rounded-lg border border-white/20 px-3 py-2" aria-label="Zoom in">+</button>
+          <button id="zoom-out" type="button" class="rounded-lg border border-white/20 px-3 py-2" aria-label="Zoom out">−</button>
+          <button id="zoom-fit" type="button" class="rounded-lg border border-white/20 px-3 py-2">Fit graph</button>
+        </div>
         <p id="graph-status" role="status" class="text-sm text-white/60">Loading graph…</p>
         <h2 id="node-title" class="mt-4 text-lg font-semibold text-emerald-200">Select a node</h2>
         <p id="node-summary" class="mt-2 text-sm leading-6 text-white/70">Node descriptions appear here. Double click or select a node to recenter the graph.</p>
@@ -84,6 +89,9 @@
       event.preventDefault();
       loadGraph({ q: queryInput.value.trim(), max_nodes: '36' }).catch(showError);
     });
+    document.getElementById('zoom-in').addEventListener('click', () => cy?.zoom({ level: Math.min(cy.maxZoom(), cy.zoom() * 1.25), renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    document.getElementById('zoom-out').addEventListener('click', () => cy?.zoom({ level: Math.max(cy.minZoom(), cy.zoom() / 1.25), renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    document.getElementById('zoom-fit').addEventListener('click', () => cy?.fit(undefined, 36));
     window.addEventListener('load', async () => {
       const { config } = await window.archipelagoAuthReady;
       if (config?.required) {

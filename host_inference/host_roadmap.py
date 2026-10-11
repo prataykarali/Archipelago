@@ -5,6 +5,7 @@ chat UI renders.  Roadmaps walk *backwards* through REQUIRES/UNLOCKS edges so
 the stages read foundation → prerequisites → target; quizzes reuse the
 diagnostic MCQ builder so a topic always yields real catalogue-backed options.
 """
+
 from __future__ import annotations
 
 from engine.constants import KILL_SWITCH
@@ -95,15 +96,17 @@ def build_roadmap(graph, topic: str) -> dict:
         levels.append(nxt)
         frontier = nxt
 
-    groups = list(reversed(levels)) + [[target]]
+    groups = [*list(reversed(levels)), [target]]
     last_index = len(groups) - 1
     stages = []
     for index, group in enumerate(groups):
-        stages.append({
-            "stage": _stage_name(graph, index, last_index, target, len(group)),
-            "index": index,
-            "items": [_roadmap_item(graph, cid) for cid in group],
-        })
+        stages.append(
+            {
+                "stage": _stage_name(graph, index, last_index, target, len(group)),
+                "index": index,
+                "items": [_roadmap_item(graph, cid) for cid in group],
+            }
+        )
     return {
         "topic": graph.label(target),
         "target_id": target,
@@ -125,14 +128,16 @@ def build_quiz(engine, topic: str, count: int = DEFAULT_QUIZ_QUESTIONS) -> dict:
         mcq = engine.mcq_for(target, slot)
         options = mcq.get("options") or {}
         correct = mcq.get("correct_option") or "A"
-        questions.append({
-            "concept_id": mcq.get("concept_id") or target,
-            "question": mcq.get("question") or "",
-            "options": [options.get(key, "") for key in QUIZ_OPTION_KEYS],
-            "answer": options.get(correct, ""),
-            "explanation": mcq.get("explanation") or "",
-            "citation": mcq.get("citation") or "",
-        })
+        questions.append(
+            {
+                "concept_id": mcq.get("concept_id") or target,
+                "question": mcq.get("question") or "",
+                "options": [options.get(key, "") for key in QUIZ_OPTION_KEYS],
+                "answer": options.get(correct, ""),
+                "explanation": mcq.get("explanation") or "",
+                "citation": mcq.get("citation") or "",
+            }
+        )
     return {
         "quiz": {
             "topic": engine.graph.label(target),

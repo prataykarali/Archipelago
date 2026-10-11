@@ -5,10 +5,11 @@ The chat UI POSTs ``/api/roadmap`` and expects ``data.stages[].items[]`` with
 shape against a small deterministic fake graph so a change to the builder
 cannot silently break the roadmap modal again.
 """
+
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 
 import pytest
 

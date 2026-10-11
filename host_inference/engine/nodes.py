@@ -3,6 +3,7 @@
 The UI and the API contract speak in terms of a small, stable node shape.  This
 module is the single place that decides which internal fields are exposed.
 """
+
 from __future__ import annotations
 
 DEFAULT_DIFFICULTY = "intermediate"

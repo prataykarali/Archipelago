@@ -32,6 +32,68 @@ function displayBooks() {
     }
 
     container.innerHTML = '';
+
+    // Render Query-Connected Literature Section if metadata citations exist
+    const qMeta = state.currentQueryMetadata;
+    const citations = (qMeta && Array.isArray(qMeta.citations)) ? qMeta.citations : [];
+    if (citations.length > 0) {
+        const querySec = document.createElement('div');
+        querySec.className = "mb-4 p-3 rounded-2xl bg-accentPurple/10 border border-accentPurple/30 space-y-2.5";
+        querySec.innerHTML = `
+            <div class="flex items-center justify-between pb-1.5 border-b border-accentPurple/20">
+                <span class="text-xs font-black uppercase tracking-wider text-accentPurple flex items-center gap-1.5">
+                    <i class="fa-solid fa-bookmark"></i> Query-Connected Literature
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-accentPurple/20 text-accentPurple font-mono font-bold">${citations.length} cited</span>
+            </div>
+        `;
+        const qList = document.createElement('div');
+        qList.className = "space-y-2";
+        citations.forEach(cite => {
+            const title = cite.doc_title || cite.title || (cite.doc_id ? cite.doc_id.split('/').pop() : 'Cited Resource');
+            const page = cite.page_number || cite.printed_page || 1;
+            const hfUrl = cite.hf_url || (cite.doc_id && cite.doc_id.endsWith('.pdf') ? `https://huggingface.co/datasets/Prataykarali/graphier/blob/main/${cite.doc_id}` : null);
+            const openUrl = cite.url || cite.reader_url || `/read/${encodeURIComponent(cite.doc_id || '')}?page=${page}#page=${page}`;
+            const shelfLoc = cite.shelf || (cite.call_number ? `Shelf: ${cite.call_number}` : (cite.location || null));
+            const isPearson = !!(cite.is_pearson || (cite.book_id && !isNaN(Number(cite.book_id))));
+
+            const cCard = document.createElement('div');
+            cCard.className = "p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-accentPurple/50 transition-all text-xs space-y-1.5";
+            cCard.innerHTML = `
+                <div class="flex items-start justify-between gap-2">
+                    <div class="font-bold text-gray-100 hover:text-white flex-1 leading-snug">
+                        ${escapeHTML(title)}
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                        p. ${page}
+                    </span>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[10px]">
+                    <a href="${openUrl}" target="_blank" class="px-2 py-0.5 rounded bg-accentPurple/25 hover:bg-accentPurple/40 text-purple-200 border border-accentPurple/40 font-semibold flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-book-open text-[9px]"></i> Open Exact Page
+                    </a>
+                    ${hfUrl ? `
+                        <a href="${hfUrl}" target="_blank" class="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 font-semibold flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-cube text-[9px]"></i> HF Dataset
+                        </a>
+                    ` : ''}
+                    ${isPearson ? `
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
+                            🏛️ Pearson
+                        </span>
+                    ` : ''}
+                    ${shelfLoc ? `
+                        <span class="px-2 py-0.5 rounded bg-white/10 text-gray-300 border border-white/10 flex items-center gap-1" title="Physical Library Location">
+                            <i class="fa-solid fa-location-dot text-[9px] text-amber-400"></i> ${escapeHTML(shelfLoc)}
+                        </span>
+                    ` : ''}
+                </div>
+            `;
+            qList.appendChild(cCard);
+        });
+        querySec.appendChild(qList);
+        container.appendChild(querySec);
+    }
     DOM_SECTIONS.forEach(sec => {
         const secEntries = entries.filter(d => d.dom === sec.key);
         if (!secEntries.length) return;
@@ -210,4 +272,12 @@ function resolveLibraryReaderLink(book) {
     return buildHref('doc', rawPdf || undefined);
 }
 
-export { displayBooks, renderBookStack, resolveLibraryReaderLink };
+function updateBookStackForQuery(metadata) {
+    if (!metadata) return;
+    state.currentQueryMetadata = metadata;
+    displayBooks();
+}
+
+window.updateBookStackForQuery = updateBookStackForQuery;
+
+export { displayBooks, renderBookStack, resolveLibraryReaderLink, updateBookStackForQuery };

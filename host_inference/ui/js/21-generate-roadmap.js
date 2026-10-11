@@ -2,7 +2,7 @@
 // Feature module 22 of 22.
 import { API_CONTRACT, API_HOST } from './00-current-origin.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
-import { citationPageUrl, copyPearsonCreds, getPearsonBookEntry } from './02--kw-highlights.js';
+import { citationPageUrl, getPearsonBookEntry } from './02--kw-highlights.js';
 import { setChatAvailability } from './03-wrap-library-inventory-secti.js';
 import { updateGraphToggleUI } from './11-populate-topology.js';
 import { setupFilterButtons } from './04-start-new-chat.js';
@@ -155,12 +155,9 @@ import { renderChatHistory } from './20--compact-history.js';
             if (href.includes('pearson.com')) {
                 e.preventDefault();
                 e.stopPropagation();
-                copyPearsonCreds();
                 const match = href.match(/#book\/([^/]+)(?:\/page\/(\d+))?/);
-                const targetUrl = match
-                    ? `/open/${encodeURIComponent(match[1])}?page=${match[2] || 1}`
-                    : href;
-                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                const handoff = match ? `/open/${encodeURIComponent(match[1])}?page=${match[2] || 1}` : '/open';
+                window.open(match ? handoff : 'https://ebooks.elibrary.in.pearson.com/', '_blank', 'noopener,noreferrer');
                 return;
             }
 
@@ -221,17 +218,15 @@ import { renderChatHistory } from './20--compact-history.js';
             // Direct Pearson match
             const pEntry = typeof getPearsonBookEntry === 'function' ? getPearsonBookEntry(doc_id) : null;
             if (pEntry) {
-                copyPearsonCreds();
-                const bId = pEntry.id;
-                if (!bId) return;
-                window.open(`/open/${encodeURIComponent(bId)}?page=${page || 1}`, '_blank', 'noopener,noreferrer');
+                window.open(`/open/${encodeURIComponent(pEntry.id)}?page=${page || 1}`, '_blank', 'noopener,noreferrer');
                 return;
             }
 
             const targetUrl = citationPageUrl({ doc_id: doc_id, page_number: page });
             if (targetUrl) {
-                if (targetUrl.includes('pearson.com') || targetUrl.startsWith('/open/')) copyPearsonCreds();
-                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                const match = targetUrl.match(/#book\/([^/]+)(?:\/page\/(\d+))?/);
+                const destination = match ? `/open/${encodeURIComponent(match[1])}?page=${match[2] || 1}` : targetUrl;
+                window.open(destination, '_blank', 'noopener,noreferrer');
             } else {
                 window.open(href, '_blank', 'noopener,noreferrer');
             }

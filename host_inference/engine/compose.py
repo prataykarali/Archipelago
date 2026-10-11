@@ -3,6 +3,7 @@
 One concern: turning graph facts into the specific prose protocols
 (synthesis, relation chain, comparative matrix, shelf card, auth card).
 """
+
 from __future__ import annotations
 
 import re
@@ -80,11 +81,13 @@ def synthesis(engine, cid: str) -> str:
     ]
     if formula:
         lines.extend(["", f"**LaTeX derivation.** {formula}"])
-    lines.extend([
-        "",
-        "### 3. Grounded Synthesis & Page Provenance",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "### 3. Grounded Synthesis & Page Provenance",
+            "",
+        ]
+    )
     if formula:
         lines.append(f"The derivation above is the indexed form for {graph.label(cid)}.")
     else:
@@ -116,7 +119,9 @@ def relation(engine, a: str, b: str, path: list[tuple[str, str]]) -> str:
     return "\n".join(lines)
 
 
-def matrix(engine, a: str, b: str, left_name: str | None = None, right_name: str | None = None) -> str:
+def matrix(
+    engine, a: str, b: str, left_name: str | None = None, right_name: str | None = None
+) -> str:
     """Render the comparative matrix for two concepts."""
     graph = engine.graph
     left = left_name or graph.label(a)
@@ -142,7 +147,7 @@ def matrix(engine, a: str, b: str, left_name: str | None = None, right_name: str
         recall_l = recall_r = "Limited to indexed chunks; no unstated guarantee."
         cites = f"{graph.citation(a, 1)} {graph.citation(b, 2)}"
     lines = [
-        f"**Comparative matrix: {left} × {right}**",
+        f"**Comparative matrix: {left} × {right}**",  # noqa: RUF001
         "",
         "| Axis | " + left + " | " + right + " |",
         "| --- | --- | --- |",
@@ -173,15 +178,17 @@ def shelf(engine, cid: str) -> str:
     graph = engine.graph
     card = SHELF[cid]
     cite = graph.citation(cid)
-    return "\n".join([
-        f"**{graph.label(cid)}.** {card['definition']} {cite}",
-        "",
-        f"**Title & author.** {card['title']}, {card['author']}.",
-        f"**Call number.** {card['call_number']}.",
-        f"**Shelf.** {card['place']}.",
-        f"**System barcode.** {card['barcode']}.",
-        f"**Live availability.** {card['available']} physical copies currently on shelf (out of {card['total']} total).",
-    ])
+    return "\n".join(
+        [
+            f"**{graph.label(cid)}.** {card['definition']} {cite}",
+            "",
+            f"**Title & author.** {card['title']}, {card['author']}.",
+            f"**Call number.** {card['call_number']}.",
+            f"**Shelf.** {card['place']}.",
+            f"**System barcode.** {card['barcode']}.",
+            f"**Live availability.** {card['available']} physical copies currently on shelf (out of {card['total']} total).",
+        ]
+    )
 
 
 def shelf_generic(engine, cid: str) -> str:
@@ -195,18 +202,26 @@ def shelf_generic(engine, cid: str) -> str:
 
 
 def auth_card(query: str) -> str:
-    """Render the institutional-access portal card."""
-    lines = [
-        "[RENDER_AUTH_CARD]",
-        "**Institutional access.** Sign in with your own campus account. This assistant does not store or reveal passwords.",
-        "",
-    ]
-    lines.extend(_portal_lines(query))
-    lines.append(
-        "If a title is paywalled outside these portals, borrow a reciprocal membership card "
-        "(British Council Library or American Library) from the Central Library front desk."
+    """Render sign-in links without exposing shared institutional credentials."""
+    del query
+    return "\n".join(
+        [
+            "[RENDER_AUTH_CARD]",
+            "### Central Library E-Resource Access",
+            "",
+            "Open the institutional portal and sign in with your own campus account. "
+            "This assistant does not store or reveal shared passwords.",
+            "",
+            "| Portal | Sign-in page |",
+            "| :--- | :--- |",
+            "| Pearson eLibrary | [Open Pearson](https://elibrary.in.pearson.com/) |",
+            "| IEEE Xplore | [Open IEEE Xplore](https://ieeexplore.ieee.org) |",
+            "| Scopus and ScienceDirect | [Open ScienceDirect](https://www.sciencedirect.com) |",
+            "| SpringerLink | [Open SpringerLink](https://link.springer.com) |",
+            "| National Digital Library of India | [Open NDLI](https://ndl.iitkgp.ac.in/) |",
+            "| OPAC Catalogue | [Open OPAC](https://uemk-opac.l2c2.co.in) |",
+        ]
     )
-    return "\n".join(lines)
 
 
 def admin_card(query: str, wants_hours: bool, wants_access: bool) -> str:
@@ -258,4 +273,3 @@ def _portal_lines(query: str) -> list[str]:
     if not chosen:
         chosen = PORTALS[:4]
     return [f"**{name}.** {url} — {how}." for name, url, how in chosen]
-

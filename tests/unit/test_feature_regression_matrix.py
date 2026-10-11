@@ -12,11 +12,12 @@ Two halves:
    exercises each surface: graph subgraph, chat stream + citations, roadmap/quiz,
    cache metrics, auth boundary, rate-limit 429 and request validation.
 """
+
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -222,7 +223,11 @@ def test_graph_subgraph_contract(public_app):
 
 
 def test_chat_stream_contract_carries_metadata_and_citations(public_app):
-    body = public_app.test_client().post("/api/chat", json={"query": "explain graph retrieval"}).get_data(as_text=True)
+    body = (
+        public_app.test_client()
+        .post("/api/chat", json={"query": "explain graph retrieval"})
+        .get_data(as_text=True)
+    )
     assert CACHE_MARKER in body
     meta = json.loads(body.split(CACHE_MARKER, 1)[0].strip())
     assert meta["target_id"] == "graph_retrieval"
@@ -276,7 +281,7 @@ def test_protected_api_is_unauthorised_when_auth_required(guarded_app):
 def test_public_api_stays_open_when_auth_required(guarded_app):
     client = guarded_app.test_client()
     assert client.get("/api/readiness").status_code == 200
-    assert client.post("/api/chat", json={"query": "explain graph retrieval"}).status_code == 200
+    assert client.post("/api/chat", json={"query": "explain graph retrieval"}).status_code == 401
 
 
 def test_chat_rate_limit_returns_429_with_retry_after():
@@ -311,7 +316,7 @@ def test_reader_redirect_is_not_burst_blocked():
     """Two consecutive /open reader redirects must both resolve."""
     from hostapp.security import RateLimiter
 
-    app, engine = _build_app(auth_required=False, limiter=RateLimiter())
+    app, _engine = _build_app(auth_required=False, limiter=RateLimiter())
     client = app.test_client()
     statuses = [client.get("/open/book/abc?page=1").status_code for _ in range(3)]
     assert 429 not in statuses

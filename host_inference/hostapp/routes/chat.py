@@ -8,10 +8,8 @@ from __future__ import annotations
 
 import json
 import re
-import secrets
 
-from engine.patterns import DIAG_RE, INGEST_RE
-from flask import Flask, current_app, jsonify, request, stream_with_context
+from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
 from ..context import AppContext
@@ -52,6 +50,13 @@ def _withdrawn_notice(sources: list) -> str:
 def register(app: Flask, ctx: AppContext) -> None:
     """Register chat-family routes on ``app``."""
 
+    @app.get("/api/chat/quota")
+    def chat_quota():
+        principal = getattr(request, "archipelago_principal", None)
+        if principal is None:
+            return jsonify({"error": "unauthorized"}), 401
+        return jsonify(ctx.limiter.quota_status(principal["id"]))
+
     @app.post("/api/chat")
     def api_chat():
         body = request.get_json(silent=True)
@@ -67,13 +72,8 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "Query cannot be empty"}), 400
 
         ctx.cache_metrics.record_request()
-        # Never share query results carrying a login or learner state.
-        personal = bool(
-            request.headers.get("Authorization") or request.cookies.get("archipelago_token")
-            or any(body.get(key) for key in ("session_id", "mastery", "learning_state", "preference"))
-        )
-        cacheable = not personal and not DIAG_RE.search(query) and not INGEST_RE.search(query)
-        norm_query = ctx.cache_service.normalize_query(query) if cacheable else secrets.token_urlsafe(24)
+        principal = getattr(request, "archipelago_principal", None) or {}
+        norm_query = f"{principal.get('id', 'guest')}:{ctx.cache_service.normalize_query(query)}"
 
         # Only simultaneous requests share work. Completed answers are regenerated.
         if ctx.request_dedup.is_in_flight(norm_query):
@@ -109,7 +109,38 @@ def register(app: Flask, ctx: AppContext) -> None:
                 if is_leader:
                     ctx.request_dedup.cleanup(norm_query)
 
-        return current_app.response_class(stream_with_context(generate()), mimetype=STREAM_MIME)
+        return current_app.response_class(generate(), mimetype=STREAM_MIME)
+
+    @app.get("/api/chat/diagnostic-mcqs")
+    def diagnostic_mcqs():
+        concept = request.args.get("concept") or ""
+        principal = getattr(request, "archipelago_principal", None)
+        if principal:
+            saved = ctx.limiter.completed_quiz(principal["id"], concept)
+            if saved:
+                return jsonify(
+                    {
+                        "success": True,
+                        "completed": True,
+                        "evaluation": saved.get("evaluation"),
+                        "target_concept": concept,
+                    }
+                )
+        return jsonify(ctx.engine.diagnostic_payload(concept))
+
+    @app.post("/api/chat/adaptive-step")
+    def adaptive_step():
+        body = request.get_json(silent=True) or {}
+        principal = getattr(request, "archipelago_principal", None)
+        target = str(body.get("target_concept") or "")
+        if principal and target:
+            saved = ctx.limiter.completed_quiz(principal["id"], target)
+            if saved:
+                return jsonify(saved)
+        result = ctx.engine.adaptive_step(body)
+        if principal and target and result.get("completed"):
+            ctx.limiter.save_completed_quiz(principal["id"], target, result)
+        return jsonify(result)
 
     @app.post("/api/chat/telemetry")
     def telemetry():

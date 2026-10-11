@@ -1,9 +1,11 @@
 """Load the concept graph and Pearson catalog from Supabase, then disk cache."""
+
 from __future__ import annotations
 
 import json
 import os
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 
@@ -14,19 +16,30 @@ FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
 
 
 def _production_mode() -> bool:
-    return os.environ.get("ARCHIPELAGO_ENV", "development").strip().lower() in {"production", "prod"}
+    return os.environ.get("ARCHIPELAGO_ENV", "development").strip().lower() in {
+        "production",
+        "prod",
+    }
 
 
 def _headers() -> dict[str, str] | None:
     url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
-    key = os.environ.get("SUPABASE_SECRET_KEY", "").strip() or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    key = (
+        os.environ.get("SUPABASE_SECRET_KEY", "").strip()
+        or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
     if not url or not key:
         return None
     return {"url": url, "Authorization": f"Bearer {key}", "apikey": key}
 
 
 def _fallback(name: str) -> Path | None:
-    for candidate in (ROOT / name, ROOT / "data" / name, ROOT.parent / name, ROOT.parent / "data" / "catalogs" / name):
+    for candidate in (
+        ROOT / name,
+        ROOT / "data" / name,
+        ROOT.parent / name,
+        ROOT.parent / "data" / "catalogs" / name,
+    ):
         if candidate.is_file():
             return candidate
     return None
@@ -74,17 +87,30 @@ def hydrate() -> dict[str, str]:
         src = _fallback(name)
         if src is not None:
             target.write_bytes(src.read_bytes())
-    return {"source": "local" if (CACHE / "okf_graph.json").is_file() else "missing", "cache": str(CACHE)}
+    return {
+        "source": "local" if (CACHE / "okf_graph.json").is_file() else "missing",
+        "cache": str(CACHE),
+    }
 
 
 def pearson_page_url(book: dict, page: int = 1) -> str:
-    """Book-specific Pearson URL. Requested pages require a manual reader handoff."""
+    """Pearson reader URL with a page hint; Pearson can restore last-read position."""
+    page_n = max(1, int(page or 1))
+    if book.get("page_count") and int(book["page_count"]) > 1:
+        page_n = min(page_n, int(book["page_count"]))
     viewer = "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "index.html"
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
-    page_part = ""
+    page_part = f"/page/{page_n}"
+    return f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
+
+
+def pearson_login_url(book: dict, page: int = 1) -> str:
+    """Let Pearson check its own browser session before opening a selected title."""
+    target = pearson_page_url(book, page)
     return (
-        f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
+        "https://admin.elibrary.in.pearson.com/sso/login?service="
+        f"{quote(target, safe='')}&eulogin=true"
     )
 
 
@@ -96,7 +122,7 @@ def public_book(book: dict) -> dict:
         "author": book.get("author") or "Institutional collection",
         "year": "",
         "domain": book.get("domain") or "CS & AI",
-        "desc": "Institutional e-book. Open the book, then select the cited page in Pearson.",
+        "desc": "Institutional e-book. Pearson may ask you to sign in before opening the title.",
         "isbn": book.get("isbn") or "",
         "isPearson": True,
         "page_count": book.get("page_count") or 1,

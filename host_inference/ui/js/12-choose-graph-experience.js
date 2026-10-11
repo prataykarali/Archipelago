@@ -1,8 +1,7 @@
-import { renderLearningMemoryControls, rememberParameter } from './learning-memory.js';
-import { renderQueryInspector } from './query-inspector.js';
+import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 12-choose-graph-experience.js
 // Feature module 13 of 22.
-import { dismissGraphChoiceModal, getOrCreateInteractiveZone } from './11-populate-topology.js';
+import { dismissGraphChoiceModal, getOrCreateInteractiveZone, showGraphChoiceModal } from './11-populate-topology.js';
 import { _nodeId, _nodeLabel } from './10-populate-pipeline.js';
 import { renderHorizontalGraphCard } from './13-render-horizontal-graph-card.js';
 import { renderAdaptiveMCQCard } from './14-render-adaptive-mcqcard.js';
@@ -21,7 +20,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             const anchorId = _nodeId(anchor);
 
             try {
-                localStorage.setItem('archipelago_choice_' + anchorId, choice);
+                localStorage.setItem(storageKey('archipelago_choice_' + anchorId), choice);
             } catch (_) {}
 
             try {
@@ -50,70 +49,35 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
 
         function renderGraphExperiencePrompt(msgId, metadata, options = {}) {
             if (window.showGraphCards === false) return;
-            renderQueryInspector(msgId, metadata);
-            if (!metadata) return;
-            if (!metadata.anchor_concept || metadata.render_graph === false) {
-                const zone = getOrCreateInteractiveZone(msgId);
-                if (!zone) return;
-                const citations = Array.isArray(metadata.citations) ? metadata.citations.slice(0, 6) : [];
-                const title = document.createElement('h3');
-                title.className = 'text-sm font-semibold text-violet-200 mb-3';
-                title.textContent = 'Answer and source graph';
-                const graph = document.createElement('div');
-                graph.className = 'flex flex-wrap items-center gap-3 rounded-xl border border-violet-500/30 bg-violet-950/20 p-4';
-                const answer = document.createElement('span');
-                answer.className = 'rounded-full bg-violet-600/40 border border-violet-400/50 px-3 py-1 text-sm text-white';
-                answer.textContent = 'Answer';
-                graph.appendChild(answer);
-                citations.forEach((citation, index) => {
-                    const edge = document.createElement('span');
-                    edge.className = 'text-amber-300';
-                    edge.textContent = '→';
-                    const node = document.createElement('span');
-                    node.className = 'rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs text-amber-100';
-                    node.textContent = citation.title || citation.doc_title || `Source ${index + 1}`;
-                    graph.append(edge, node);
-                });
-                if (!citations.length) {
-                    const note = document.createElement('span');
-                    note.className = 'text-xs text-gray-400';
-                    note.textContent = 'No cited source was available for this reply.';
-                    graph.appendChild(note);
-                }
-                zone.replaceChildren(title, graph);
+            if (!metadata || !metadata.anchor_concept) return;
+            const route = (metadata.routing && metadata.routing.route) || metadata.contract || '';
+            // Administrative, inventory, or guardrail queries remain uncluttered without concept graphs
+            if (route === 'CATALOG_SHELF_ROUTING' || route === 'AUTH_GATEWAY' || route === 'GUARDRAIL_INTERCEPT') {
+                dismissGraphChoiceModal();
                 return;
             }
-            if (metadata.contract === 'MCQ_DIAGNOSTIC') {
-                window._activeChoiceContext = { msgId, metadata };
-                const zone = getOrCreateInteractiveZone(msgId);
-                if (!zone) return;
-                zone.innerHTML = '';
-                const heading = document.createElement('p');
-                heading.className = 'text-sm text-gray-200 mb-3';
-                heading.textContent = 'Choose your learning mode. Normal mode needs no quiz.';
-                zone.appendChild(heading);
-                for (const [choice, label] of [
-                    ['personalized', 'Personalized Graph + Adaptive Q&A'],
-                    ['normal', 'Normal Concept Graph']
-                ]) {
-                    const button = document.createElement('button');
-                    button.type = 'button';
-                    button.className = 'px-4 py-2 m-1 rounded-xl bg-accentPurple/20 border border-accentPurple/40 text-sm';
-                    button.textContent = label;
-                    button.addEventListener('click', () => {
-                        window._activeChoiceContext = { msgId, metadata };
-                        chooseGraphExperience(choice, msgId);
-                    });
-                    zone.appendChild(button);
+
+            const anchorId = _nodeId(metadata.anchor_concept);
+            let savedChoice = null;
+            try { savedChoice = localStorage.getItem(storageKey('archipelago_choice_' + anchorId)); } catch (_) {}
+            const isDiagnostic = route === 'MCQ_DIAGNOSTIC' || options.forceDiagnostic || metadata.wants_quiz || metadata.query_mode === 'personalized';
+
+            if (isDiagnostic) {
+                if (savedChoice === 'personalized') {
+                    dismissGraphChoiceModal();
+                    startPersonalizedQnA(msgId, metadata);
+                } else if (savedChoice === 'normal') {
+                    dismissGraphChoiceModal();
+                    renderHorizontalGraphCard(msgId, metadata);
+                } else {
+                    showGraphChoiceModal(msgId, metadata);
                 }
-                renderLearningMemoryControls(zone);
                 return;
             }
-            // Render the graph directly after an answer.  The old choice card
-            // hid the graph behind an unrelated diagnostic/roadmap decision.
+
+            // Pure GRAPH_SYNTHESIS or standard exploratory queries render Graph 2 directly
             dismissGraphChoiceModal();
             renderHorizontalGraphCard(msgId, metadata);
-            renderLearningMemoryControls(getOrCreateInteractiveZone(msgId));
         }
 
         window.renderGraphExperiencePrompt = renderGraphExperiencePrompt;
@@ -124,6 +88,14 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             const anchorLabel = _nodeLabel(anchor) || 'Target Concept';
             const zone = getOrCreateInteractiveZone(msgId);
             if (!zone) return;
+            try {
+                const saved = localStorage.getItem(storageKey('archipelago_eval_' + anchorId));
+                if (saved) {
+                    const { renderPersonalizedGraphCard } = await import('./16-render-personalized-graph-ca.js');
+                    renderPersonalizedGraphCard(msgId, JSON.parse(saved), metadata);
+                    return;
+                }
+            } catch (_) {}
 
             zone.innerHTML = `
                 <div id="skel-mcq-${msgId}" class="diagnostic-mcq-card p-5 space-y-4 animate-pulse border border-accentPurple/30 rounded-2xl bg-panelBg/95 swipe-in-right">
@@ -153,17 +125,21 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             `;
 
             try {
-                const preference = sessionStorage.getItem('archipelago_learning_preference') || 'conceptual';
-                const resp = await fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(anchorId)}&preference=${encodeURIComponent(preference)}${rememberParameter()}`);
+                const resp = await fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(anchorId)}`);
                 const data = await resp.json();
+
+                if (resp.ok && data.completed && data.evaluation) {
+                    const { renderPersonalizedGraphCard } = await import('./16-render-personalized-graph-ca.js');
+                    try { localStorage.setItem(storageKey('archipelago_eval_' + anchorId), JSON.stringify(data.evaluation)); } catch (_) {}
+                    renderPersonalizedGraphCard(msgId, data.evaluation, metadata);
+                    return;
+                }
 
                 if (data && data.success !== false && (data.initial_question || (data.mcqs && data.mcqs.length))) {
                     window._adaptiveState = window._adaptiveState || {};
                     const initialQ = data.initial_question || data.mcqs[0];
                     window._adaptiveState[msgId] = {
                         metadata: metadata,
-                        session_id: data.session_id,
-                        preference: data.preference || 'conceptual',
                         target_concept: data.target_concept || anchorId,
                         target_label: anchorLabel,
                         chain: data.chain || [],
@@ -183,7 +159,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
                         submitted: false
                     };
                     try {
-                        sessionStorage.setItem('archipelago_adaptive_' + msgId, JSON.stringify(window._adaptiveState[msgId]));
+                        sessionStorage.setItem(storageKey('archipelago_adaptive_' + msgId), JSON.stringify(window._adaptiveState[msgId]));
                     } catch (_) {}
 
                     // Hide evidence rail (resources) while quiz is active
@@ -208,11 +184,20 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
         window.startPersonalizedQnA = startPersonalizedQnA;
 
         function switchToPersonalizedGraph(msgId) {
+            const completed = window._adaptiveState && window._adaptiveState[msgId];
+            if (completed && completed.finished) {
+                startPersonalizedQnA(msgId, completed.metadata);
+                return;
+            }
+            if (completed && completed.submitted && completed.next_question) {
+                window.advanceAdaptiveStep(msgId);
+                return;
+            }
             // 1. Check if an active quiz state exists in memory — RESUME without resetting to Q1!
             const state = (window._adaptiveState && window._adaptiveState[msgId]);
             if (state && state.current_mcq) {
                 const anchorId = state.target_concept || (state.metadata && _nodeId(state.metadata.anchor_concept));
-                try { localStorage.setItem('archipelago_choice_' + anchorId, 'personalized'); } catch (_) {}
+                try { localStorage.setItem(storageKey('archipelago_choice_' + anchorId), 'personalized'); } catch (_) {}
                 const zone = getOrCreateInteractiveZone(msgId);
                 if (zone) {
                     zone.innerHTML = '';
@@ -231,12 +216,16 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
 
             // 2. Check sessionStorage for persisted quiz progress
             try {
-                const saved = sessionStorage.getItem('archipelago_adaptive_' + msgId);
+                const saved = sessionStorage.getItem(storageKey('archipelago_adaptive_' + msgId));
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     if (parsed && parsed.current_mcq) {
                         window._adaptiveState = window._adaptiveState || {};
                         window._adaptiveState[msgId] = parsed;
+                        if (parsed.submitted && parsed.next_question) {
+                            window.advanceAdaptiveStep(msgId);
+                            return;
+                        }
                         const zone = getOrCreateInteractiveZone(msgId);
                         if (zone) {
                             zone.innerHTML = '';
@@ -258,7 +247,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             const meta = (state && state.metadata) || window._lastChatMetadata;
             if (meta) {
                 const anchorId = _nodeId(meta.anchor_concept);
-                try { localStorage.setItem('archipelago_choice_' + anchorId, 'personalized'); } catch (_) {}
+                try { localStorage.setItem(storageKey('archipelago_choice_' + anchorId), 'personalized'); } catch (_) {}
                 startPersonalizedQnA(msgId, meta);
             }
         }
@@ -270,7 +259,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             const meta = (state && state.metadata) || window._lastChatMetadata;
             if (meta) {
                 const anchorId = _nodeId(meta.anchor_concept);
-                try { localStorage.setItem('archipelago_choice_' + anchorId, 'normal'); } catch (_) {}
+                try { localStorage.setItem(storageKey('archipelago_choice_' + anchorId), 'normal'); } catch (_) {}
                 // Unhide resources when viewing full normal graph
                 const msgEl = document.getElementById(`msg-body-${msgId}`);
                 if (msgEl) {

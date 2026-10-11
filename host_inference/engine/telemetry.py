@@ -11,6 +11,7 @@ once however often it is asked — a frequency signal, not a hit counter.
 Never raises and never blocks the chat path: telemetry must not be able to fail
 a student's question.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -133,9 +134,7 @@ def log_demand(
         return False
 
 
-def unmet_titles(
-    min_count: int = 1, base_dir: Path | str | None = None
-) -> list[dict[str, Any]]:
+def unmet_titles(min_count: int = 1, base_dir: Path | str | None = None) -> list[dict[str, Any]]:
     """Unmet requests, most-requested first — the acquisition-order digest."""
     titles = load_digest(base_dir)["titles"]
     rows = [row for row in titles.values() if isinstance(row, dict)]

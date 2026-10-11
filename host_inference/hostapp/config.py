@@ -4,6 +4,7 @@ One concern: every literal the app needs at wiring time — filesystem roots,
 public-API policy, rate-limit policy, allowed origins and role sets — as named
 constants.  No magic numbers live in the route modules.
 """
+
 from __future__ import annotations
 
 import os
@@ -16,9 +17,11 @@ ROOT = HOST_ROOT
 UI = ROOT / "ui"
 ASSET = ROOT / "ui_assets"
 
-# Reading and asking stay open; staff surfaces remain role-gated.
-OPEN_READING_ALLOWED = os.getenv("ARCHIPELAGO_OPEN_READING", "1").strip().lower() not in {
-    "0", "false", "no",
+# Reading and asking require a personal session by default.
+OPEN_READING_ALLOWED = os.getenv("ARCHIPELAGO_OPEN_READING", "0").strip().lower() not in {
+    "0",
+    "false",
+    "no",
 }
 
 MAX_CONTENT_LENGTH_BYTES = 5 * 1024 * 1024
@@ -26,19 +29,16 @@ MAX_CONTENT_LENGTH_BYTES = 5 * 1024 * 1024
 # Endpoints reachable without a Supabase session.  Library browsing, the reader
 # routes and chat are intentionally public so an exact book/page link never
 # bounces a reader to the login page.
-PUBLIC_API = frozenset({
-    "/api/auth/config",
-    "/api/auth/session",
-    "/api/health",
-    "/api/readiness",
-        "/api/chat/telemetry",
-    "/api/catalog/all",
-    "/api/page-view",
-    "/api/graph/subgraph",
-    "/api/roadmap",
-    "/api/quiz",
-})
-PUBLIC_API_PREFIXES = ("/api/reader/info/",)
+PUBLIC_API = frozenset(
+    {
+        "/api/auth/config",
+        "/api/auth/session",
+        "/api/ingest/capabilities",
+        "/api/health",
+        "/api/readiness",
+    }
+)
+PUBLIC_API_PREFIXES: tuple[str, ...] = ()
 
 # Ingestion only ever runs on the local library workstation.
 INGESTION_PREFIXES = ("/api/ingest", "/api/documents", "/api/manual")
@@ -50,15 +50,17 @@ API_RATE_MAX_PER_MIN = 120
 API_RATE_MIN_GAP_SEC = 0.05
 RATE_WINDOW_SEC = 60.0
 
-ALLOWED_ORIGINS = frozenset({
-    "https://archipelago.antideploy.com",
-    "https://archipelago-2.antideploy.com",
-    "https://archipelago3.antideploy.com",
-    "http://localhost:5152",
-    "http://127.0.0.1:5152",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-})
+ALLOWED_ORIGINS = frozenset(
+    {
+        "https://archipelago.antideploy.com",
+        "https://archipelago-2.antideploy.com",
+        "https://archipelago3.antideploy.com",
+        "http://localhost:5152",
+        "http://127.0.0.1:5152",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    }
+)
 
 AUTH_ROLES = frozenset({"student", "faculty", "librarian", "administrator"})
 # Roles permitted to open the graph page and import library holdings.

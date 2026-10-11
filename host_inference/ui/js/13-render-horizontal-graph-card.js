@@ -1,3 +1,4 @@
+import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 13-render-horizontal-graph-card.js
 // Feature module 14 of 22.
 import { getOrCreateInteractiveZone } from './11-populate-topology.js';
@@ -37,6 +38,8 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
             const unlockNames = formatConceptList(unlocks, 3);
 
             const existingAdaptive = (window._adaptiveState && window._adaptiveState[msgId]);
+            let quizCompleted = Boolean(existingAdaptive && existingAdaptive.submitted);
+            try { quizCompleted ||= Boolean(localStorage.getItem(storageKey('archipelago_eval_' + _nodeId(anchor)))); } catch (_) {}
             const hasOngoingQuiz = existingAdaptive && existingAdaptive.current_mcq && !existingAdaptive.submitted;
             const quizBtnLabel = hasOngoingQuiz
                 ? `Resume Quiz (Q${existingAdaptive.question_count}/${existingAdaptive.max_questions})`
@@ -75,9 +78,9 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <button onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
+                            ${quizCompleted ? '' : `<button id="quiz-start-${msgId}" onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-graduation-cap text-xs"></i> <span>${quizBtnLabel}</span>
-                            </button>
+                            </button>`}
                             <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">Normal Graph</span>
                             <i id="toggle-icon-${cardId}" class="fa-solid fa-chevron-up text-xs text-amber-300 transition-transform"></i>
                         </div>
@@ -206,6 +209,14 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                     <div class="graph-card-lightgrid" id="lightgrid-${cardId}"></div>
                 </div>
             `;
+
+            if (!quizCompleted) {
+                fetch(`/api/chat/diagnostic-mcqs?concept=${encodeURIComponent(_nodeId(anchor))}`)
+                    .then(response => response.ok ? response.json() : null)
+                    .then(data => {
+                        if (data?.completed) document.getElementById(`quiz-start-${msgId}`)?.remove();
+                    }).catch(() => {});
+            }
 
             // Compute effective prerequisites (do not leave empty if curriculum chain or defaults exist)
             let effectivePrereqs = (prereqs && prereqs.length) ? prereqs.slice() : [];

@@ -49,6 +49,9 @@ def test_inventory_csv_rejects_invalid_rows(payload):
 def hosted_app(monkeypatch):
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
     import engine as hosted_engine
+    import hostapp.factory as factory
+
+    monkeypatch.setattr(factory, "provision", lambda: None)
 
     class Graph:
         nodes = {
@@ -135,17 +138,20 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     )
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
-    assert response.status_code == 200
-    assert b"Open book in Pearson" in response.data
-    assert b"page 7" in response.data
-    assert b"password" not in response.data.lower()
+    assert response.status_code == 302
+    assert "admin.elibrary.in.pearson.com/sso/login" in response.headers["Location"]
+    assert "password" not in response.headers["Location"].lower()
+    steps = hosted_app.app.test_client().get("/open/book-1?page=7&steps=1")
+    assert steps.status_code == 200
+    assert b"Sign in to Pearson" in steps.data
+    assert b"password" not in steps.data.lower()
 
 
 def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     import engine as hosted_engine
+    import hostapp.factory as factory
 
-    answer_module = importlib.import_module("engine.answer")
-    monkeypatch.setattr(answer_module, "inference_context", lambda *_: "Grounded evidence")
+    monkeypatch.setattr(factory, "provision", lambda: None)
 
     class RateLimitedResponse:
         status_code = 429
@@ -160,10 +166,8 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
         return RateLimitedResponse()
 
     monkeypatch.setenv("XKIRO_API_KEY", "configured-test-key")
-    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     monkeypatch.setattr(hosted_engine.requests, "post", fake_post)
     instance = hosted_engine.Engine.__new__(hosted_engine.Engine)
-    instance.graph = object()
     instance.answer = lambda query: {
         "route": "GRAPH_SYNTHESIS",
         "text": "Grounded fallback with [citation].",
