@@ -52,8 +52,7 @@
       document.getElementById('page-help').textContent = `In Pearson, enter ${page} in the page box at the bottom of the reader and press Enter. Pearson may restore your last-read page when the book opens.`;
       const link = document.getElementById('exact-page');
       link.href = book.reader_url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.removeAttribute('target');
       link.classList.remove('disabled');
       link.removeAttribute('aria-disabled');
     })().catch(() => {

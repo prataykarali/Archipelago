@@ -5,6 +5,7 @@ import { CATALOG_55, DOM_SECTIONS, getCategory, getDocCollection } from './04-st
 import { openBookOrUnavailable } from './06-open-book-or-unavailable.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_HOST } from './00-current-origin.js';
+import { citationPageUrl } from './02--kw-highlights.js';
 
 function displayBooks() {
     const container = document.getElementById('books-list');
@@ -53,7 +54,7 @@ function displayBooks() {
             const title = cite.doc_title || cite.title || (cite.doc_id ? cite.doc_id.split('/').pop() : 'Cited Resource');
             const page = cite.page_number || cite.printed_page || 1;
             const hfUrl = cite.hf_url || (cite.doc_id && cite.doc_id.endsWith('.pdf') ? `https://huggingface.co/datasets/Prataykarali/graphier/blob/main/${cite.doc_id}` : null);
-            const openUrl = cite.url || cite.reader_url || `/read/${encodeURIComponent(cite.doc_id || '')}?page=${page}#page=${page}`;
+            const openUrl = citationPageUrl(cite) || `/read/${encodeURIComponent(cite.doc_id || '')}?page=${page}#page=${page}`;
             const shelfLoc = cite.shelf || (cite.call_number ? `Shelf: ${cite.call_number}` : (cite.location || null));
             const isPearson = !!(cite.is_pearson || (cite.book_id && !isNaN(Number(cite.book_id))));
 
@@ -131,6 +132,9 @@ function displayBooks() {
                 type: doc.cat || 'paper',
                 year: doc.year || 2025,
                 pdf: hasPdf ? doc.pdf : null,
+                is_pearson: doc.is_pearson,
+                open_url: doc.open_url,
+                page_number: doc.page_number,
                 topics: doc.topics || []
             });
             
@@ -193,6 +197,10 @@ async function renderBookStack() {
                     cat: doc.cat,
                     dom: getCategory(doc.id),
                     pdf: doc.pdf,
+                    collection: doc.is_pearson ? 'library_pearson' : 'open_source',
+                    is_pearson: doc.is_pearson,
+                    open_url: doc.open_url,
+                    page_count: doc.page_count,
                     topics: doc.topics,
                     pages: []
                 };

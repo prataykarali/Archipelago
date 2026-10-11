@@ -203,10 +203,17 @@ import { state } from './00-state.js';
             if (!Number.isFinite(page) || page < 1) page = 1;
             page = Math.floor(page);
 
-            const directUrl = citation.reader_url || citation.url || citation.pdf_url || '';
+            const directUrl = citation.reader_url || citation.url || citation.open_url || citation.pdf_url || '';
 
-            if (typeof directUrl === 'string' && (directUrl.startsWith('/open/') || directUrl.startsWith('/read?'))) {
-                return directUrl;
+            if (typeof directUrl === 'string' && directUrl.startsWith('/open/')) {
+                const target = new URL(directUrl, window.location.origin);
+                target.searchParams.set('page', String(page));
+                return target.pathname + target.search;
+            }
+            if (typeof directUrl === 'string' && directUrl.startsWith('/read?')) {
+                const target = new URL(directUrl, window.location.origin);
+                target.searchParams.set('page', String(page));
+                return target.pathname + target.search + `#page=${page}`;
             }
             if (typeof directUrl === 'string' && (directUrl.startsWith('/papers/') || directUrl.includes('/papers/'))) {
                 const clean = directUrl.split('#')[0];
@@ -215,9 +222,8 @@ import { state } from './00-state.js';
 
             // 1. Direct Pearson URL already present
             if (typeof directUrl === 'string' && directUrl.includes('pearson.com')) {
-                // Reader URLs carry the book in their hash. Appending /page after
-                // a query string produces a white Pearson viewer.
-                return directUrl;
+                const bookInHash = directUrl.match(/#book\/([^/?#]+)/);
+                if (bookInHash) return `/open/${encodeURIComponent(bookInHash[1])}?page=${page}`;
             }
 
             // 2. Identify Pearson book from catalog using any candidate ID or title
@@ -240,7 +246,7 @@ import { state } from './00-state.js';
             const isPearson = Boolean(pEntry || citation.is_pearson || citation.subscription_id || citation.source === 'pearson');
 
             if (isPearson) {
-                const bId = (pEntry && pEntry.id) || citation.book_id;
+                const bId = (pEntry && pEntry.id) || citation.book_id || citation.doc_id;
                 if (bId) return `/open/${encodeURIComponent(bId)}?page=${page || 1}`;
                 return `/api/page-view?doc_id=${encodeURIComponent(citation.doc_id || '')}&page=${page}`;
 

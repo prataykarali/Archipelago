@@ -99,3 +99,22 @@ Deferred: the production deploy remains gated by the repository-wide quality
 failures and independent review. Actual OAuth provider sign-in needs a provider
 client ID, secret and redirect configuration; this repair concerns the current
 Supabase password login.
+
+## 2026-10-11 — complete shelf and Pearson source links
+
+Built: the hosted chat catalog now uses the same 91-entry Supabase shelf as the
+library page (40 Pearson and 51 dataset entries), including each title's real
+reader target. Book-stack and citation links preserve the requested page and
+send Pearson titles through `/open/<book>?page=N`. Library deep links set the
+requested Pearson page in the handoff control. The handoff opens Pearson in the
+same tab after the separate sign-in step, avoiding a second Pearson reader tab.
+
+Verified: 70 focused regression tests passed. A production-cache test client
+returned 91 catalog entries, 40 Pearson entries, a page-7 reader hint, a
+working handoff response, and a page-7 redirect. All 51 non-Pearson shelf
+entries resolved to dataset files. In the real Pearson UI, changing a reader
+URL from page 7 to page 9 left the displayed page at 7; Pearson's page box
+must be used when it restores a saved position.
+
+Deferred: AntDeploy production remains unchanged pending the repository's
+five failing quality gates and independent review.

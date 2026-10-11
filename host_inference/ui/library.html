@@ -900,9 +900,12 @@
           });
           if (matchIdx >= 0) {
             currentBookIndex = matchIdx;
+            const matchedBook = filteredEbooks[matchIdx];
+            if (matchedBook.isPearson && Number.isFinite(targetPage) && targetPage > 0) {
+              matchedBook.page_number = targetPage;
+            }
             if (window.LibraryShowcase3D) window.LibraryShowcase3D.openBook(matchIdx);
             renderBookDetails(matchIdx, true);
-            const matchedBook = filteredEbooks[matchIdx];
             if (!matchedBook.isPearson && targetPdf) {
               let pdfSrc = targetPdf.startsWith('/') || targetPdf.startsWith('http') ? targetPdf : `/pdfs/${encodeURIComponent(targetPdf)}`;
               if (!pdfSrc.includes('#page=')) pdfSrc += `#page=${targetPage}`;

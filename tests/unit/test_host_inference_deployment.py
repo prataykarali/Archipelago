@@ -91,6 +91,24 @@ def test_graph_page_and_bounded_graph_api_work(hosted_app):
     assert all("data" in edge for edge in data["edges"])
 
 
+def test_catalog_preserves_full_library_shelf_and_reader_links(hosted_app, monkeypatch):
+    import hostapp.routes.library as library_routes
+
+    shelf = [
+        {"id": "pearson-book", "title": "Signal Processing", "isPearson": True},
+        {"id": "paper.pdf", "title": "Research Paper", "isPearson": False},
+    ]
+    monkeypatch.setattr(library_routes, "load_library_manifest", lambda: {"ebook_shelf": shelf})
+    monkeypatch.setattr(library_routes, "resolve_hf_path", lambda value: "books/papers/paper.pdf" if value == "paper.pdf" else "")
+
+    response = hosted_app.app.test_client().get("/api/catalog/all")
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["total"] == len(shelf)
+    assert payload["documents"][0]["open_url"] == "/open/pearson-book?page=1"
+    assert payload["documents"][1]["pdf"] == "books/papers/paper.pdf"
+
+
 def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_app, monkeypatch):
     client = hosted_app.app.test_client()
     saved = {}

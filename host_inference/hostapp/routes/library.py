@@ -8,7 +8,7 @@ document for the UI.
 from __future__ import annotations
 
 from flask import Flask, current_app, jsonify, request
-from library_index import hf_title, load_hf_paths, paper_url
+from library_index import hf_title, load_hf_paths, paper_url, resolve_hf_path
 from library_inventory import inventory_stats, load_inventory, sample_inventory
 from remote_cache import load_books, load_library_manifest, public_book
 import requests
@@ -135,6 +135,33 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.get("/api/catalog/all")
     def catalog_all():
+        shelf = load_library_manifest().get("ebook_shelf")
+        if isinstance(shelf, list) and shelf:
+            docs = []
+            for book in shelf:
+                if not isinstance(book, dict) or not book.get("id"):
+                    continue
+                book_id = str(book["id"])
+                is_pearson = bool(book.get("isPearson"))
+                path = "" if is_pearson else resolve_hf_path(book_id)
+                title = str(book.get("title") or hf_title(book_id))
+                docs.append(
+                    {
+                        "id": book_id,
+                        "title": title,
+                        "authors": book.get("author") or CATALOG_AUTHOR,
+                        "year": book.get("year") or CATALOG_YEAR,
+                        "cat": "paper" if "paper" in str(book.get("domain") or "").lower() else "textbook",
+                        "dom": _catalog_document_domain(title),
+                        "pdf": path,
+                        "is_pearson": is_pearson,
+                        "open_url": f"/open/{book_id}?page=1" if is_pearson else paper_url(path, 1) if path else "",
+                        "page_count": book.get("page_count") or 1,
+                        "topics": [book.get("domain") or PEARSON_DOMAIN],
+                    }
+                )
+            return jsonify({"documents": docs, "total": len(docs)})
+
         docs = []
         existing = set()
         for book in load_books():
