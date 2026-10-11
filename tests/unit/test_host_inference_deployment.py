@@ -156,12 +156,11 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     )
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
-    assert response.status_code == 200
-    assert b"Sign in to Pearson" in response.data
-    assert b"password" not in response.data.lower()
-    direct = hosted_app.app.test_client().get("/open/book-1?page=7&direct=1")
-    assert direct.status_code == 302
-    assert direct.headers["Location"].endswith("#book/book-1/page/7")
+    assert response.status_code == 302
+    from urllib.parse import parse_qs, urlsplit
+
+    params = parse_qs(urlsplit(response.headers["Location"]).query)
+    assert params["service"][0].endswith("#book/book-1/page/7")
 
 
 def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):

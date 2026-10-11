@@ -6,6 +6,8 @@ can build an app around fakes and production gets the real graph-backed engine.
 
 from __future__ import annotations
 
+import os
+
 from flask import Flask
 
 from .config import MAX_CONTENT_LENGTH_BYTES, load_env
@@ -64,7 +66,7 @@ def create_app(ctx: AppContext | None = None) -> Flask:
     load_env()
     # Scrub tokens/credentials from access logs before any record is emitted.
     install_log_redaction()
-    if ctx is None:
+    if ctx is None and not os.environ.get("VERCEL"):
         provision()
     context = ctx or build_context()
     app = Flask(__name__)

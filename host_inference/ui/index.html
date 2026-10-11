@@ -40,6 +40,18 @@
     <!-- Cytoscape & Archipelago Graphify Component -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
     <script src="/graphify.js"></script>
+    <script defer src="/scene_background_3d.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!window.matchMedia('(max-width: 767px)').matches) return;
+        for (const id of ['left-sidebar', 'pipeline-panel']) {
+          const panel = document.getElementById(id);
+          panel?.classList.add('panel-closed');
+          panel?.setAttribute('aria-hidden', 'true');
+        }
+      }, { once: true });
+    </script>
     <!-- Chromatic Waves (Originkit) welcome background -->
     <script type="module" src="/chromatic_waves.js"></script>
     <script type="module" src="/auth_bridge.js"></script>
@@ -129,23 +141,12 @@
     <!-- Main Layout Container -->
     <div class="flex flex-col h-full">
 
-        <!-- Top chrome: video covers the full band; header floats on top (no solid bars) -->
+        <!-- The character and the 3D vortex lead the chat workspace. -->
         <div id="top-chrome">
-        <section id="chat-hero-band" aria-label="Archipelago hero">
+        <section id="chat-hero-band" aria-label="Archipelago 3D vortex">
             <div id="hero-video-card">
-                <video id="hero-video"
-                       src="/ui/assets/final_archi.mp4"
-                       autoplay muted loop playsinline webkit-playsinline
-                       preload="auto"
-                       poster="/ui/assets/final_archi_poster.jpg">
-                    Your browser does not support the video tag.
-                </video>
-                <!-- Title overlay removed — final_archi plays full-bleed -->
-
-            </div>
-            <!-- switchboard strip removed — video owns this region -->
-            <div id="switchboard-lights" class="hidden" aria-hidden="true" hidden>
-                <div class="sw-grid" id="sw-grid"></div>
+                <canvas data-archipelago-scene aria-hidden="true"></canvas>
+                <span class="hero-vortex-wordmark">ARCHIPELAGO</span>
             </div>
         </section>
 

@@ -1,0 +1,6 @@
+.env*
+.vercel/
+cache/
+__pycache__/
+*.pyc
+ui/assets/archi_main.mp4

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import re
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from engine import _hf_doc_path
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
@@ -27,6 +27,7 @@ HF_STREAM_CHUNK_BYTES = 65536
 HF_STREAM_TIMEOUT_SEC = 30
 MIN_PAGE = 1
 MAX_BOOK_ID_LEN = 128
+PEARSON_SSO_LOGIN_URL = "https://admin.elibrary.in.pearson.com/sso/login"
 
 BOOK_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\. ]+$")
 SAFE_DOC_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\./]+$")
@@ -235,7 +236,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/open/<book_id>")
     @app.get("/open/book/<book_id>")
     def open_pearson(book_id: str):
-        """Guide the browser through Pearson sign-in and its selected reader."""
+        """Let Pearson restore or create its session before opening the selected book."""
         # Citations and legacy links may carry the `book/` prefix.
         clean_id = (book_id or "").strip()
         if clean_id.startswith("book/"):
@@ -252,6 +253,6 @@ def register(app: Flask, ctx: AppContext) -> None:
             page = max(MIN_PAGE, int(request.args.get("page") or 1))
         except (ValueError, TypeError):
             page = MIN_PAGE
-        if request.args.get("direct") == "1":
-            return redirect(pearson_page_url(book, page), code=302)
-        return send_from_directory(UI, "pearson-handoff.html")
+        reader_url = pearson_page_url(book, page)
+        login_url = f"{PEARSON_SSO_LOGIN_URL}?{urlencode({'service': reader_url, 'eulogin': 'true'})}"
+        return redirect(login_url, code=302)

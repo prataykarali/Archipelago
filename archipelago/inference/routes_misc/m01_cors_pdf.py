@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
-from urllib.parse import quote
 
 from flask import jsonify, redirect, request, send_from_directory
 
@@ -15,6 +14,11 @@ def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
     response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Archipelago-Token,X-Librarian-Token,X-API-Token")
     response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+    if (
+        request.headers.get("Origin") == "https://archipelago-blond.vercel.app"
+        and request.headers.get("Access-Control-Request-Private-Network") == "true"
+    ):
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
     return response
 
 

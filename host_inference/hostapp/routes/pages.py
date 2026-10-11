@@ -6,9 +6,9 @@ is computed from the live graph, never hard-coded.
 
 from __future__ import annotations
 
-from flask import Flask, jsonify, redirect, send_from_directory
+from flask import Flask, jsonify, redirect, request, send_from_directory
 
-from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
+from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, LIBRARIAN_ROLES, PAGE_FILES, UI
 from ..context import AppContext
 from .ingest import _worker_available
 
@@ -49,7 +49,29 @@ def register(app: Flask, ctx: AppContext) -> None:
                 return redirect("/login?next=/graph")
             if principal.get("role") not in ELEVATED_ROLES:
                 return redirect("/chat")
+            if request.args.get("source") == "local" and principal.get("role") not in LIBRARIAN_ROLES:
+                return redirect("/chat")
         return send_from_directory(UI, GRAPH_PAGE_FILE)
+
+    @app.get("/local-console")
+    @app.get("/local-graph")
+    def local_staff_tools():
+        principal, _error = ctx.auth.principal()
+        if principal is None:
+            return redirect(f"/login?next={request.path}")
+        if principal.get("role") not in LIBRARIAN_ROLES:
+            return redirect("/chat")
+        target = "/graph?source=local" if request.path == "/local-graph" else "/staff"
+        return redirect(target)
+
+    @app.get("/staff")
+    def staff_page():
+        principal, _error = ctx.auth.principal()
+        if principal is None:
+            return redirect("/login?next=/staff")
+        if principal.get("role") not in LIBRARIAN_ROLES:
+            return redirect("/chat")
+        return send_from_directory(UI, "staff.html")
 
     @app.get("/library")
     @app.get("/library/")

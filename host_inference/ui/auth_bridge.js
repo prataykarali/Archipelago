@@ -6,7 +6,7 @@ const LOGIN_PATH = "/login";
 const OPEN_PATHS = new Set(["/", "/landing"]);
 const IDLE_TIMEOUT_MS = 300000;
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
-const STAFF_ROUTES = new Set(["/chat", "/library", "/graph"]);
+const STAFF_ROUTES = new Set(["/chat", "/library", "/graph", "/staff"]);
 
 async function loadConfig() {
   try {
@@ -66,7 +66,7 @@ window.archipelagoRequireSession = async () => {
   return null;
 };
 
-if (["/chat", "/library", "/graph"].includes(window.location.pathname.replace(/\/$/, ""))) {
+if (["/chat", "/library", "/graph", "/staff"].includes(window.location.pathname.replace(/\/$/, ""))) {
   let idleTimer;
   const expire = async () => {
     try {
@@ -156,7 +156,7 @@ window.archipelagoMountNavigation = async () => {
     ? [["Chat", "/chat"], ["Library", "/library"]]
     : [["Chat", "/chat"], ["Library", "/library"], ["Graph", "/graph"]];
   if (["librarian", "administrator"].includes(principal.role)) {
-    routes.push(["Librarian", "/library#librarian-panel"]);
+    routes.push(["Librarian", "/staff"]);
   }
   for (const [label, href] of routes) {
     const link = document.createElement("a");

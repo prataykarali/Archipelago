@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Librarian workspace — Archipelago</title>
+  <script type="module" src="/auth_bridge.js"></script>
+  <style>
+    body { margin:0; background:#090613; color:#e9e3f5; font:16px/1.5 system-ui,sans-serif; }
+    header { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:1rem clamp(1rem,4vw,3rem); background:#120b20; border-bottom:1px solid #514075; }
+    header a { color:#e8d9ff; }
+    header nav { display:flex; flex-wrap:wrap; gap:1rem; }
+    main { max-width:1100px; margin:auto; padding:2rem 1rem 4rem; }
+    h1 { font-size:clamp(2rem,5vw,3.5rem); margin:0; }
+    .intro { color:#bdb1d0; max-width:60rem; }
+    .graph-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin:2rem 0; }
+    .graph-links a { border:1px solid #75599e; border-radius:1rem; padding:1rem; background:#1a1030; color:#d5ffec; font-weight:650; text-decoration:none; }
+    #librarian-panel { max-width:none; padding:1.5rem; background:#171026; border:1px solid #5d477f; border-radius:1rem; }
+    #librarian-panel a { color:#a7f3d0; }
+    #librarian-panel input, #librarian-panel textarea { box-sizing:border-box; max-width:100%; }
+    button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline:3px solid #b88aff; outline-offset:3px; }
+    button:disabled { cursor:not-allowed; }
+    @media(max-width:640px) { header { align-items:flex-start; flex-direction:column; } main { padding-top:1rem; } #librarian-panel { padding:1rem; } }
+  </style>
+</head>
+<body>
+  <header><a href="/landing">Archipelago</a><nav aria-label="Main navigation"><a href="/chat">Chat</a><a href="/library">Library</a><a href="/graph">Graph</a></nav></header>
+  <main>
+    <h1>Librarian workspace</h1>
+    <p class="intro">Review the ingested graph and manage library imports. Document ingestion runs on your local library workstation; the hosted app connects only when that workstation is available.</p>
+    <nav class="graph-links" aria-label="Graph views"><a href="/graph?source=local">View local ingested graph →</a><a href="/graph">View published graph →</a><a href="http://127.0.0.1:5150/archipelago_graph.html" target="_blank" rel="noopener">Open workstation graph and ingestion console ↗</a><a href="/library">Browse reader books →</a></nav>
+  <!-- Librarian Management Panel -->
+  <div id="librarian-panel">
+    <h2 style="color: #a78bfa; font-size: 1.3rem; margin-bottom: 1rem;">📚 Librarian Management Console</h2>
+    <p style="margin-bottom:1rem;color:#c4b5fd"><a href="/graph" style="color:#a7f3d0;text-decoration:underline">Open knowledge graph →</a></p>
+    <nav aria-label="Local librarian tools" style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem">
+      <a href="#upload-form" style="color:#a7f3d0;text-decoration:underline">Go to local ingestion →</a>
+      <a href="/graph?source=local" style="color:#a7f3d0;text-decoration:underline">Open local graph →</a>
+    </nav>
+    <p id="ingest-capability" role="status" style="margin-bottom:1rem;color:#cbd5e1"></p>
+
+    <div style="background:rgba(0,0,0,0.3);border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem;">
+      <h3 style="color:#93c5fd;font-size:1rem;margin-bottom:0.75rem;">Import Library Holdings (CSV)</h3>
+      <form id="inventory-import-form" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+        <input id="inventory-import-file" type="file" accept=".csv,text/csv" required aria-label="Library holdings CSV" style="flex:1;min-width:200px;padding:0.5rem;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:0.5rem;color:#e2e8f0;">
+        <button type="submit" style="padding:0.5rem 1.5rem;background:#059669;color:white;border:0;border-radius:0.5rem;font-weight:600;cursor:pointer;">Import Holdings</button>
+      </form>
+      <p id="inventory-import-status" role="status" style="margin-top:0.5rem;font-size:0.85rem;color:#cbd5e1;"></p>
+    </div>
+
+    <!-- Upload Card -->
+    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
+      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Upload Document (PDF/MD/TXT)</h3>
+      <form id="upload-form" enctype="multipart/form-data" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input type="file" id="upload-file" accept=".pdf,.md,.txt,.markdown" style="flex: 1; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
+        <button type="submit" style="padding: 0.5rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Upload & Ingest</button>
+      </form>
+      <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
+    </div>
+
+    <!-- Chapter Index Card -->
+    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
+      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Submit Chapter Index (TOC-only Ingestion)</h3>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <input id="index-book-id" placeholder="Book ID or slug" style="flex: 1; min-width: 150px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
+        <input id="index-title" placeholder="Book title" style="flex: 2; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
+      </div>
+      <textarea id="index-chapters" placeholder='Chapter titles (one per line)' rows="4" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0; resize: vertical;"></textarea>
+      <button id="submit-index" style="margin-top: 0.5rem; padding: 0.5rem 1.5rem; background: #059669; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Submit Index</button>
+      <div id="index-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
+    </div>
+
+    <!-- Active Jobs -->
+    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem;">
+      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Active Ingestion Jobs</h3>
+      <div id="jobs-list" style="font-size: 0.85rem; color: #94a3b8;">Loading...</div>
+      <div id="job-detail" role="status" style="margin-top:.5rem;font-size:.85rem;color:#cbd5e1"></div>
+      <button id="refresh-jobs" style="margin-top: 0.5rem; padding: 0.4rem 1rem; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); border-radius: 0.4rem; cursor: pointer; font-size: 0.8rem;">Refresh</button>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const LOCAL_INGESTION_ORIGIN = 'http://127.0.0.1:5151';
+    let ingestionOrigin = '';
+
+    async function localIngestionRequest(path, options = {}) {
+      if (!ingestionOrigin) throw new Error('The local ingestion workstation is unavailable.');
+      const { supabase } = await window.archipelagoAuthReady;
+      const { data } = await supabase.auth.getSession();
+      if (!data.session?.access_token) throw new Error('Sign in again to access local ingestion.');
+      const headers = new Headers(options.headers || {});
+      headers.set('Authorization', `Bearer ${data.session.access_token}`);
+      return fetch(`${ingestionOrigin}${path}`, { ...options, headers, signal: options.signal || AbortSignal.timeout(6000) });
+    }
+
+    async function showStaffIngestionPanel() {
+      try {
+        const principal = await window.archipelagoAuthorizePage(['librarian', 'administrator']);
+        if (!principal) return;
+        window.archipelagoMountNavigation?.();
+
+        const capability = document.getElementById('ingest-capability');
+        const uploadButton = document.querySelector('#upload-form button');
+        const indexButton = document.getElementById('submit-index');
+        capability.textContent = 'Checking the local library workstation…';
+        uploadButton.disabled = true;
+        indexButton.disabled = true;
+
+          try {
+            const response = await fetch(`${LOCAL_INGESTION_ORIGIN}/api/ingest/capabilities`, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+            const capabilities = await response.json();
+            if (response.ok && capabilities.upload_api_enabled) {
+              ingestionOrigin = LOCAL_INGESTION_ORIGIN;
+              uploadButton.disabled = false;
+              indexButton.disabled = false;
+            }
+          } catch (_) {}
+          if (!ingestionOrigin) {
+            capability.textContent = 'The local workstation is unavailable from this browser. Start its service on this device (port 5151) and allow local network access, then reload this page.';
+          } else {
+            capability.textContent = 'Connected to the local library workstation. Uploads and indexing run there; the hosted app does not ingest files.';
+          }
+        loadJobs();
+      } catch (_) {}
+    }
+    window.addEventListener('DOMContentLoaded', showStaffIngestionPanel);
+
+    document.getElementById('inventory-import-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = document.getElementById('inventory-import-file').files[0];
+      if (!file) return;
+      const status = document.getElementById('inventory-import-status');
+      status.textContent = 'Importing holdings…';
+      const body = new FormData();
+      body.append('file', file);
+      try {
+        const response = await fetch('/api/library/import', { method: 'POST', body });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || result.error || 'Import failed');
+        status.textContent = 'Holdings imported. Refresh the library to see the updated table.';
+
+      } catch (error) {
+        status.textContent = `Import failed: ${error.message}`;
+      }
+    });
+
+    // Upload form
+    const uploadForm = document.getElementById('upload-form');
+    if (uploadForm) uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('upload-file');
+      if (!fileInput.files.length) return;
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+      document.getElementById('upload-status').textContent = 'Uploading...';
+      try {
+        const resp = await localIngestionRequest('/api/ingest', { method: 'POST', body: fd });
+        const data = await resp.json();
+        document.getElementById('upload-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id} created (${data.status})`;
+      } catch (err) {
+        document.getElementById('upload-status').textContent = 'Upload failed: ' + err.message;
+      }
+    });
+
+    // Index submit
+    const indexBtn = document.getElementById('submit-index');
+    if (indexBtn) indexBtn.addEventListener('click', async () => {
+      const bookId = document.getElementById('index-book-id').value.trim();
+      const title = document.getElementById('index-title').value.trim();
+      const chaptersRaw = document.getElementById('index-chapters').value.trim();
+      if (!bookId) { document.getElementById('index-status').textContent = 'Book ID required'; return; }
+      const chapters = chaptersRaw.split('\n').map(l => l.trim()).filter(Boolean);
+      document.getElementById('index-status').textContent = 'Submitting...';
+      try {
+        const resp = await localIngestionRequest('/api/ingest/index', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doc_id: bookId, title: title || bookId, chapters })
+        });
+        const data = await resp.json();
+        document.getElementById('index-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id}: ${data.status}`;
+      } catch (err) {
+        document.getElementById('index-status').textContent = 'Submit failed: ' + err.message;
+      }
+    });
+
+    // Refresh jobs
+    async function loadJobs() {
+      try {
+        const resp = await localIngestionRequest('/api/ingest');
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || data.error || 'Could not load jobs.');
+        const jobs = data.jobs || [];
+        if (!jobs.length) {
+          document.getElementById('jobs-list').textContent = 'No active jobs.';
+          return;
+        }
+        const list = document.getElementById('jobs-list');
+        list.replaceChildren();
+        for (const job of jobs.slice(0, 10)) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.style.cssText = 'display:block;width:100%;padding:.45rem;text-align:left;color:#c4b5fd;border:0;border-bottom:1px solid #ffffff22;background:transparent;cursor:pointer';
+          button.textContent = `${String(job.job_id || '?').slice(0, 8)} — ${job.source_filename || '?'} — ${job.status || '?'}`;
+          button.addEventListener('click', async () => {
+            const detail = document.getElementById('job-detail');
+            try {
+              const response = await localIngestionRequest(`/api/ingest/${encodeURIComponent(job.job_id)}`);
+              const current = await response.json();
+              if (!response.ok) throw new Error(current.detail || current.error || 'Job unavailable');
+              detail.textContent = `${current.source_filename || job.source_filename}: ${current.status || 'unknown'} · ${current.progress || 0}%${current.error ? ` · ${current.error}` : ''}`;
+            } catch (error) { detail.textContent = error.message; }
+          });
+          list.append(button);
+        }
+      } catch (err) {
+        document.getElementById('jobs-list').textContent = err.message || 'Failed to load local jobs.';
+      }
+    }
+    const refreshBtn = document.getElementById('refresh-jobs');
+    if (refreshBtn) refreshBtn.addEventListener('click', loadJobs);
+  })();
+  </script>
+  </main>
+</body>
+</html>

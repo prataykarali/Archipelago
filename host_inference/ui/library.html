@@ -12,7 +12,6 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="/library_showcase_3d.js"></script>
-  <script defer src="/scene_background_3d.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
     body {
@@ -66,15 +65,20 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-left: 3px solid #3b82f6;
     }
+    @keyframes library-fade-up {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #sec-overview, #sec-ebook { animation: library-fade-up .8s cubic-bezier(.16,1,.3,1) both; }
+    #sec-ebook { animation-delay: .18s; }
   </style>
 </head>
 <body class="bg-black text-white min-h-screen relative">
 
-  <!-- Restored procedural 3D scene behind the library content. -->
+  <!-- Vortx-inspired cinematic backdrop; the interactive book shelf stays above it. -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <canvas data-archipelago-scene aria-hidden="true" class="w-full h-full"></canvas>
-    <!-- Soft Vignette Gradient -->
-    <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80"></div>
+    <video src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260717_120352_eb988725-1351-43b3-8095-16e4a1005e3d.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true" class="absolute inset-0 w-full h-full object-cover"></video>
+    <div class="absolute inset-0 bg-black/45"></div>
   </div>
 
   <!-- Sticky Top Bar Navigation -->
@@ -208,10 +212,6 @@
                 <i data-lucide="external-link" class="w-4 h-4"></i>
                 <span id="book-action-text">Open PDF Reader</span>
               </button>
-              <button id="copy-creds-btn" class="w-full py-2 px-3 rounded-lg bg-white/10 border border-white/20 text-white font-mono text-[11px] hover:bg-white/20 transition-colors flex items-center justify-center gap-2">
-                <i data-lucide="key" class="w-3.5 h-3.5 text-amber-400"></i>
-                Pearson sign-in steps
-              </button>
             </div>
           </div>
         </div>
@@ -338,14 +338,14 @@
             <span class="text-xs font-mono text-white/50 block mt-1">Springer Nature Publishing</span>
           </a>
 
-          <div onclick="openPearsonModal()" class="p-5 rounded-xl bg-gradient-to-br from-amber-950/60 to-black border border-amber-500/40 hover:border-amber-400 cursor-pointer transition-all group">
+          <a href="https://elibrary.in.pearson.com/" target="_blank" rel="noopener noreferrer" class="block p-5 rounded-xl bg-gradient-to-br from-amber-950/60 to-black border border-amber-500/40 hover:border-amber-400 cursor-pointer transition-all group">
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs font-mono text-amber-300 font-semibold">elibrary.in.pearson.com</span>
               <i data-lucide="key" class="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform"></i>
             </div>
             <h4 class="text-base font-bold text-white">Pearson eLibrary</h4>
-            <span class="text-xs font-mono text-amber-200/70 block mt-1">Sign in to Pearson and open a selected book</span>
-          </div>
+            <span class="text-xs font-mono text-amber-200/70 block mt-1">Open Pearson eLibrary</span>
+          </a>
 
         </div>
       </div>
@@ -511,54 +511,6 @@
   </div>
 
   <!-- Pearson reader handoff -->
-  <div id="pearson-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
-    <div class="bg-zinc-900 border border-amber-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
-      <button onclick="closePearsonModal()" class="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-
-      <div class="flex items-center gap-3">
-        <div class="p-3 rounded-xl bg-amber-500/20 text-amber-300">
-          <i data-lucide="key" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <h3 class="font-bold text-lg text-white">Pearson eLibrary Access</h3>
-          <p class="text-xs text-white/60">Open the approved institutional reader</p>
-        </div>
-      </div>
-
-      <div class="space-y-3 text-xs bg-black/60 p-4 rounded-xl border border-white/10">
-        <div>
-          <span class="text-white/40 block text-[10px] uppercase">Portal Link</span>
-          <a href="https://elibrary.in.pearson.com/" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:underline">https://elibrary.in.pearson.com/</a>
-        </div>
-      </div>
-
-      <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-200 text-xs leading-relaxed space-y-1">
-        <p>1. Click <strong>Sign In to Pearson</strong> and authenticate with your authorized institutional account.</p>
-        <p>2. Return here and click <strong>Open Book Reader</strong>. Pearson checks your session and opens the selected title.</p>
-        <p>Pearson may restore your last-read page. Use its page box to go to the page shown in Archipelago.</p>
-      </div>
-
-      <div class="flex flex-col gap-2 pt-2">
-        <div class="flex items-center gap-3">
-          <button onclick="openPearsonLoginPortal()" class="flex-1 py-2.5 rounded-lg bg-amber-500 text-black font-bold text-xs hover:bg-amber-400 transition-colors flex items-center justify-center gap-2 shadow">
-            <i data-lucide="log-in" class="w-4 h-4"></i>
-            1. Sign In to Pearson
-          </button>
-          <button id="modal-pearson-direct-btn" class="flex-1 py-2.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-white/90 transition-colors flex items-center justify-center gap-2 shadow">
-            <i data-lucide="book-open" class="w-4 h-4"></i>
-            2. Open Book Reader
-          </button>
-        </div>
-      <button onclick="showPearsonAccessHelp()" class="w-full py-1.5 rounded-lg bg-white/10 text-white/70 hover:text-white hover:bg-white/20 font-mono text-[11px] transition-colors flex items-center justify-center gap-1.5">
-          <i data-lucide="info" class="w-3.5 h-3.5"></i>
-          Access Help
-      </button>
-      </div>
-    </div>
-  </div>
-
   <script>
     if (window.lucide) lucide.createIcons();
 
@@ -582,31 +534,6 @@
     let subjCountsData = [];
     let subjTitlesData = [];
 
-    function openPearsonModal(book) {
-      document.getElementById('pearson-modal').classList.remove('hidden');
-      const directBtn = document.getElementById('modal-pearson-direct-btn');
-      directBtn.onclick = () => {
-        const bookId = book && (book.id || book.pearson_book_id || book.isbn);
-        const page = Math.max(1, Number(document.getElementById('pearson-page-number')?.value || book?.page || book?.page_number || 1));
-        if (bookId) window.open(`/open/${encodeURIComponent(bookId)}?page=${page}`, '_blank', 'noopener,noreferrer');
-        else window.open('https://elibrary.in.pearson.com/', '_blank', 'noopener,noreferrer');
-      };
-    }
-
-    function closePearsonModal() {
-      document.getElementById('pearson-modal').classList.add('hidden');
-    }
-
-    function openPearsonLoginPortal() {
-      window.open('https://elibrary.in.pearson.com/', '_blank', 'noopener,noreferrer');
-    }
-
-    function showPearsonAccessHelp() {
-      if (typeof showToast === 'function') {
-        showToast('Use your authorized institutional Pearson account in the portal.');
-      }
-    }
-
     function handleBookAction(book) {
       if (!book) return;
       if (book.isCatalogOnly) {
@@ -620,7 +547,6 @@
       }
       const isPearson = !!(book.isPearson || book.subscription_id || (book.pearsonUrl && book.pearsonUrl.includes('pearson.com')));
       if (isPearson) {
-        showPearsonAccessHelp();
         const bookId = book.id || book.pearson_book_id || book.isbn || '';
         const page = Math.max(1, Number(document.getElementById('pearson-page-number')?.value || book.page || book.page_number || 1));
         window.open(`/open/${encodeURIComponent(bookId)}?page=${page}`, '_blank', 'noopener,noreferrer');
@@ -674,7 +600,6 @@
       const badge = document.getElementById('book-type-badge');
       const actionBtn = document.getElementById('book-action-btn');
       const actionText = document.getElementById('book-action-text');
-      const credsBtn = document.getElementById('copy-creds-btn');
       const pagePicker = document.getElementById('pearson-page-picker');
       pagePicker.classList.toggle('hidden', !b.isPearson);
       document.getElementById('pearson-page-number').value = Math.max(1, Number(b.page || b.page_number || 1));
@@ -685,32 +610,24 @@
         badge.onclick = null;
         actionText.innerText = 'View Holding Details ↓';
         actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-slate-700 text-white font-semibold text-xs hover:bg-slate-600 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) credsBtn.classList.add('hidden');
       } else if (b.isPearson) {
         badge.innerText = 'Pearson eBook';
         badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 font-bold cursor-pointer hover:bg-amber-500/30';
-        badge.onclick = () => openPearsonModal(b);
+        badge.onclick = () => handleBookAction(b);
         actionText.innerText = 'Open Pearson Reader ↗';
         actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-amber-400 to-amber-300 text-black font-extrabold text-xs hover:from-amber-300 hover:to-amber-200 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) {
-          credsBtn.classList.remove('hidden');
-          credsBtn.innerText = '🔑 Pearson sign-in steps';
-          credsBtn.onclick = () => openPearsonModal(b);
-        }
       } else if (b.isPaper) {
         badge.innerText = 'Research Paper';
         badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-300 font-bold';
         badge.onclick = null;
         actionText.innerText = 'Read Research Paper ↗';
         actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-white text-black font-bold text-xs hover:bg-white/90 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) credsBtn.classList.add('hidden');
       } else {
         badge.innerText = 'Textbook PDF';
         badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 font-bold';
         badge.onclick = null;
         actionText.innerText = 'Open PDF Reader ↗';
         actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-white text-black font-semibold text-xs hover:bg-white/90 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) credsBtn.classList.add('hidden');
       }
 
       actionBtn.onclick = () => handleBookAction(b);
@@ -954,163 +871,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', loadData);
-  </script>
-  <!-- Librarian Management Panel -->
-  <div id="librarian-panel" style="display:none; margin: 2rem auto; max-width: 900px; padding: 1.5rem; background: rgba(30,41,59,0.95); border: 1px solid rgba(139,92,246,0.3); border-radius: 1rem;">
-    <h2 style="color: #a78bfa; font-size: 1.3rem; margin-bottom: 1rem;">📚 Librarian Management Console</h2>
-    <p style="margin-bottom:1rem;color:#c4b5fd"><a href="/graph" style="color:#a7f3d0;text-decoration:underline">Open knowledge graph →</a></p>
-    <p id="ingest-capability" role="status" style="margin-bottom:1rem;color:#cbd5e1"></p>
-
-    <div style="background:rgba(0,0,0,0.3);border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem;">
-      <h3 style="color:#93c5fd;font-size:1rem;margin-bottom:0.75rem;">Import Library Holdings (CSV)</h3>
-      <form id="inventory-import-form" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
-        <input id="inventory-import-file" type="file" accept=".csv,text/csv" required aria-label="Library holdings CSV" style="flex:1;min-width:200px;padding:0.5rem;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:0.5rem;color:#e2e8f0;">
-        <button type="submit" style="padding:0.5rem 1.5rem;background:#059669;color:white;border:0;border-radius:0.5rem;font-weight:600;cursor:pointer;">Import Holdings</button>
-      </form>
-      <p id="inventory-import-status" role="status" style="margin-top:0.5rem;font-size:0.85rem;color:#cbd5e1;"></p>
-    </div>
-
-    <!-- Upload Card -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Upload Document (PDF/MD/TXT)</h3>
-      <form id="upload-form" enctype="multipart/form-data" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-        <input type="file" id="upload-file" accept=".pdf,.md,.txt,.markdown" style="flex: 1; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-        <button type="submit" style="padding: 0.5rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Upload & Ingest</button>
-      </form>
-      <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
-    </div>
-
-    <!-- Chapter Index Card -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Submit Chapter Index (TOC-only Ingestion)</h3>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <input id="index-book-id" placeholder="Book ID or slug" style="flex: 1; min-width: 150px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-        <input id="index-title" placeholder="Book title" style="flex: 2; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-      </div>
-      <textarea id="index-chapters" placeholder='Chapter titles (one per line)' rows="4" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0; resize: vertical;"></textarea>
-      <button id="submit-index" style="margin-top: 0.5rem; padding: 0.5rem 1.5rem; background: #059669; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Submit Index</button>
-      <div id="index-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
-    </div>
-
-    <!-- Active Jobs -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Active Ingestion Jobs</h3>
-      <div id="jobs-list" style="font-size: 0.85rem; color: #94a3b8;">Loading...</div>
-      <button id="refresh-jobs" style="margin-top: 0.5rem; padding: 0.4rem 1rem; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); border-radius: 0.4rem; cursor: pointer; font-size: 0.8rem;">Refresh</button>
-    </div>
-  </div>
-
-  <script>
-  (function() {
-    async function showStaffIngestionPanel() {
-      try {
-        const response = await fetch('/api/auth/me', { cache: 'no-store' });
-        if (!response.ok) return;
-        const principal = await response.json();
-        if (principal.authenticated && ['librarian', 'administrator'].includes(principal.role)) {
-          const panel = document.getElementById('librarian-panel');
-          panel.style.display = 'block';
-          if (window.location.hash === '#librarian-panel') {
-            panel.scrollIntoView({ block: 'start' });
-          }
-          const capabilities = await fetch('/api/ingest/capabilities').then(r => r.json());
-          if (!capabilities.upload_api_enabled) {
-            document.getElementById('ingest-capability').textContent = 'Hosted ingestion is unavailable on this deployment. Graph exploration and the library catalog remain available.';
-            document.querySelector('#upload-form button').disabled = true;
-            document.querySelector('#upload-form button').style.opacity = '.5';
-            document.getElementById('submit-index').disabled = true;
-            document.getElementById('submit-index').style.opacity = '.5';
-          }
-          loadJobs();
-        }
-      } catch (_) {}
-    }
-    showStaffIngestionPanel();
-
-    function getAuthHeaders() { return {}; }
-
-    document.getElementById('inventory-import-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const file = document.getElementById('inventory-import-file').files[0];
-      if (!file) return;
-      const status = document.getElementById('inventory-import-status');
-      status.textContent = 'Importing holdings…';
-      const body = new FormData();
-      body.append('file', file);
-      try {
-        const response = await fetch('/api/library/import', { method: 'POST', body });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.detail || result.error || 'Import failed');
-        status.textContent = 'Holdings imported. Refresh the library to see the updated table.';
-        await loadData();
-      } catch (error) {
-        status.textContent = `Import failed: ${error.message}`;
-      }
-    });
-
-    // Upload form
-    const uploadForm = document.getElementById('upload-form');
-    if (uploadForm) uploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fileInput = document.getElementById('upload-file');
-      if (!fileInput.files.length) return;
-      const fd = new FormData();
-      fd.append('file', fileInput.files[0]);
-      document.getElementById('upload-status').textContent = 'Uploading...';
-      try {
-        const resp = await fetch('/api/ingest', { method: 'POST', body: fd, headers: getAuthHeaders() });
-        const data = await resp.json();
-        document.getElementById('upload-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id} created (${data.status})`;
-      } catch (err) {
-        document.getElementById('upload-status').textContent = 'Upload failed: ' + err.message;
-      }
-    });
-
-    // Index submit
-    const indexBtn = document.getElementById('submit-index');
-    if (indexBtn) indexBtn.addEventListener('click', async () => {
-      const bookId = document.getElementById('index-book-id').value.trim();
-      const title = document.getElementById('index-title').value.trim();
-      const chaptersRaw = document.getElementById('index-chapters').value.trim();
-      if (!bookId) { document.getElementById('index-status').textContent = 'Book ID required'; return; }
-      const chapters = chaptersRaw.split('\n').map(l => l.trim()).filter(Boolean);
-      document.getElementById('index-status').textContent = 'Submitting...';
-      try {
-        const resp = await fetch('/api/ingest/index', {
-          method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-          body: JSON.stringify({ doc_id: bookId, title: title || bookId, chapters })
-        });
-        const data = await resp.json();
-        document.getElementById('index-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id}: ${data.status}`;
-      } catch (err) {
-        document.getElementById('index-status').textContent = 'Submit failed: ' + err.message;
-      }
-    });
-
-    // Refresh jobs
-    async function loadJobs() {
-      try {
-        const resp = await fetch('/api/ingest', { headers: getAuthHeaders() });
-        const data = await resp.json();
-        const jobs = data.jobs || [];
-        if (!jobs.length) {
-          document.getElementById('jobs-list').textContent = 'No active jobs.';
-          return;
-        }
-        document.getElementById('jobs-list').innerHTML = jobs.slice(0, 10).map(j =>
-          `<div style="padding: 0.3rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <span style="color: #a78bfa;">${j.job_id?.slice(0,8) || '?'}</span> —
-            <span>${j.source_filename || '?'}</span> —
-            <span style="color: ${j.status === 'complete' ? '#10b981' : j.status === 'failed' ? '#ef4444' : '#f59e0b'};">${j.status || '?'}</span>
-          </div>`
-        ).join('');
-      } catch (err) {
-        document.getElementById('jobs-list').textContent = 'Failed to load jobs.';
-      }
-    }
-    const refreshBtn = document.getElementById('refresh-jobs');
-    if (refreshBtn) refreshBtn.addEventListener('click', loadJobs);
-  })();
   </script>
 </body>
 </html>

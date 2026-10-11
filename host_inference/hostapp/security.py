@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+import tempfile
 import threading
 import time
 
@@ -43,7 +44,28 @@ DAILY_QUERY_LIMIT = 35
 QUERY_COOLDOWN_AFTER = 7
 QUERY_COOLDOWN_SECONDS = 3600
 QUERY_DAY_SECONDS = 86400
-DEFAULT_QUOTA_DB = Path(__file__).resolve().parent.parent / "cache" / "query_quota.sqlite3"
+DEFAULT_QUOTA_DB = (
+    Path(tempfile.gettempdir()) / "archipelago-cache" / "query_quota.sqlite3"
+    if os.environ.get("VERCEL")
+    else Path(__file__).resolve().parent.parent / "cache" / "query_quota.sqlite3"
+)
+RUNTIME_RPC_TIMEOUT_SEC = 10
+
+
+def _runtime_rpc(name: str, payload: dict) -> object:
+    """Call a service-only Supabase RPC for durable serverless state."""
+    url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+    key = (os.getenv("SUPABASE_SECRET_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+    if not url or not key:
+        raise RuntimeError("Supabase runtime state is not configured.")
+    response = requests.post(
+        f"{url}/rest/v1/rpc/{name}",
+        json=payload,
+        headers={"apikey": key, "Authorization": f"Bearer {key}"},
+        timeout=RUNTIME_RPC_TIMEOUT_SEC,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 class AuthGuard:
@@ -58,6 +80,8 @@ class AuthGuard:
         """Invalidate the current bearer token locally after logout."""
         if token:
             token_id = hashlib.sha256(token.encode()).hexdigest()
+            if os.environ.get("VERCEL"):
+                _runtime_rpc("archipelago_runtime_touch_session", {"p_token_id": token_id, "p_end": True})
             with self._lock:
                 self._last_activity.pop(token_id, None)
                 self._expired.add(token_id)
@@ -99,17 +123,25 @@ class AuthGuard:
             return None, "A Supabase session is required."
         token_id = hashlib.sha256(token.encode()).hexdigest()
         now = time.monotonic()
-        with self._lock:
-            last_active = self._last_activity.get(token_id)
-            if token_id in self._expired or (
-                last_active is not None and now - last_active >= IDLE_TIMEOUT_SECONDS
-            ):
-                self._expired.add(token_id)
-                self._last_activity.pop(token_id, None)
-                return (
-                    None,
-                    "Your session timed out after five minutes of inactivity. Sign in again.",
-                )
+        if os.environ.get("VERCEL"):
+            try:
+                active = _runtime_rpc("archipelago_runtime_touch_session", {"p_token_id": token_id})
+            except (RuntimeError, requests.RequestException, ValueError):
+                return None, "Session verification is temporarily unavailable."
+            if active is not True:
+                return None, "Your session timed out after five minutes of inactivity. Sign in again."
+        if not os.environ.get("VERCEL"):
+            with self._lock:
+                last_active = self._last_activity.get(token_id)
+                if token_id in self._expired or (
+                    last_active is not None and now - last_active >= IDLE_TIMEOUT_SECONDS
+                ):
+                    self._expired.add(token_id)
+                    self._last_activity.pop(token_id, None)
+                    return (
+                        None,
+                        "Your session timed out after five minutes of inactivity. Sign in again.",
+                    )
         headers = {"apikey": key, "Authorization": f"Bearer {token}"}
         try:
             user_response = requests.get(
@@ -183,6 +215,11 @@ class RateLimiter:
 
     def completed_quiz(self, user_id: str, target: str) -> dict | None:
         """Return this account's first completed diagnostic, if present."""
+        if os.environ.get("VERCEL"):
+            result = _runtime_rpc("archipelago_runtime_quiz_result", {
+                "p_user_id": user_id, "p_target": target,
+            })
+            return result if isinstance(result, dict) else None
         with closing(self._quota_connection()) as connection:
             row = connection.execute(
                 "SELECT result FROM completed_quiz WHERE user_id = ? AND target = ?",
@@ -192,6 +229,11 @@ class RateLimiter:
 
     def save_completed_quiz(self, user_id: str, target: str, result: dict) -> None:
         """Persist the first result so repeated starts cannot issue a new quiz."""
+        if os.environ.get("VERCEL"):
+            _runtime_rpc("archipelago_runtime_quiz_result", {
+                "p_user_id": user_id, "p_target": target, "p_result": result,
+            })
+            return
         with closing(self._quota_connection()) as connection, connection:
             connection.execute(
                 "INSERT OR IGNORE INTO completed_quiz (user_id, target, result) VALUES (?, ?, ?)",
@@ -200,6 +242,13 @@ class RateLimiter:
 
     def check_daily_chat(self, user_id: str) -> tuple[bool, dict]:
         """Count accepted AI queries per account and enforce hourly pauses."""
+        if os.environ.get("VERCEL"):
+            result = _runtime_rpc("archipelago_runtime_query", {
+                "p_user_id": user_id, "p_consume": True,
+            })
+            if not isinstance(result, dict):
+                raise RuntimeError("Invalid query quota response.")
+            return bool(result.get("limited")), result
         now = time.time()
         with self._daily_lock, closing(self._quota_connection()) as connection, connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -237,6 +286,11 @@ class RateLimiter:
 
     def quota_status(self, user_id: str) -> dict:
         """Read this account's query count without consuming a request."""
+        if os.environ.get("VERCEL"):
+            result = _runtime_rpc("archipelago_runtime_query", {"p_user_id": user_id})
+            if not isinstance(result, dict):
+                raise RuntimeError("Invalid query quota response.")
+            return result
         now = time.time()
         with closing(self._quota_connection()) as connection:
             row = connection.execute(

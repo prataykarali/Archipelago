@@ -1,5 +1,26 @@
 Production ship complete on Sun Aug  9 09:01:58 AM IST 2026
 
+## 2026-10-11 — Vercel staff workspace and landing handoff
+
+Built: moved librarian/admin ingestion controls from the bottom of the public
+library to the role-guarded `/staff` page. Added local and published graph
+links, workstation status and bounded local API waits. The landing page is
+static black with animated text, a large Archipelago wordmark, and IEM/UEM
+logos in opposite top corners. Chat librarian clips and scene remain intact.
+The workstation services now answer private-network preflights for the public
+Vercel origin. The hosted corpus and book inventory still hydrate from the
+Graphier and Library_books datasets; ingestion remains local.
+
+Verified: 53 focused hosted tests, changed Python lint, JavaScript syntax,
+live Vercel readiness, the landing layout, librarian `/staff` access, and
+unauthenticated redirect. Local workstation preflight responses were checked
+on both ports. The in-app browser blocks direct loopback navigation, so a
+browser-to-workstation ingestion action remains unverified there.
+
+Deferred: test a real upload and the local graph link from a regular browser
+on the library workstation. Pearson may restore the previous reader page
+despite a page fragment in the link.
+
 ## 2026-10-06 — inference reply and hosted chat handoff
 
 Built: disabled completed-answer cache replay in both inference chat routes; kept
@@ -130,3 +151,23 @@ tests reached 11 passes, then stopped because this checkout has no root
 The draft release PR has no independent review and no CI run on its base
 branch. The live AntDeploy catalog still reports 83 titles; the 91-title fix
 has not deployed. Do not describe production as verified for this revision.
+## 2026-10-11 — Vercel release handoff
+
+Built: Vercel reads the graph and Pearson catalog from Hugging Face datasets and
+keeps ingestion local. Supabase persists per-account quota, quiz completion, and
+idle-session state. The landing and library pages use the requested CloudFront
+videos; chat keeps its separate 3D scene and librarian clips. Librarian and
+administrator accounts can open the hosted management panel and guarded links
+to the workstation ingestion console and graph. Pearson links use one automatic
+CAS redirect to the selected title and requested page hint.
+
+Verified: 69 focused hosted tests passed; live Vercel returned 537 graph
+concepts, 40 Pearson titles, and ingestion disabled. The library loaded 91
+reader-backed titles, the librarian panel and graph, and a grounded chat reply.
+The browser played both new videos. Pearson signed in and opened the chosen
+book, but its reader restored page 9 when page 7 was requested.
+
+Deferred: Pearson's reader must honor the initial page itself or expose an
+approved integration for exact-page landing. The full repository unit suite
+has 67 failures and 5 setup errors, mostly from old contracts and missing
+local fixtures; the five existing quality-gate failures remain.

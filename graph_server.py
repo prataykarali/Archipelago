@@ -57,6 +57,11 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = allowed_origin
     response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
     response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,POST,OPTIONS"
+    if (
+        request.headers.get("Origin") == "https://archipelago-blond.vercel.app"
+        and request.headers.get("Access-Control-Request-Private-Network") == "true"
+    ):
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     return response

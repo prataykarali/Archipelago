@@ -16,7 +16,7 @@
   <header class="border-b border-emerald-300/10 bg-black/40">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
       <a href="/chat" class="font-semibold tracking-wide text-emerald-200">Archipelago <span class="text-white/50">/ Knowledge Graph</span></a>
-      <nav class="flex gap-4 text-sm text-white/70"><a href="/chat" class="hover:text-white">Chat</a><a href="/library" class="hover:text-white">Library</a><a href="/library#librarian-panel" class="hover:text-white">Ingestion</a></nav>
+      <nav class="flex gap-4 text-sm text-white/70"><a href="/chat" class="hover:text-white">Chat</a><a href="/library" class="hover:text-white">Library</a><a href="/staff" class="hover:text-white">Ingestion</a></nav>
     </div>
   </header>
   <main class="mx-auto max-w-7xl px-5 py-8">
@@ -39,7 +39,7 @@
         <p id="graph-status" role="status" class="text-sm text-white/60">Loading graph…</p>
         <h2 id="node-title" class="mt-4 text-lg font-semibold text-emerald-200">Select a node</h2>
         <p id="node-summary" class="mt-2 text-sm leading-6 text-white/70">Node descriptions appear here. Double click or select a node to recenter the graph.</p>
-        <p class="mt-6 text-xs leading-5 text-white/45">Graph data comes from the deployed library inventory. This explorer is read-only; catalog and graph updates are handled by the librarian ingestion workflow.</p>
+        <p id="graph-source-note" class="mt-6 text-xs leading-5 text-white/45">Graph data comes from the deployed library inventory. This explorer is read-only; catalog and graph updates are handled by the librarian ingestion workflow.</p>
       </aside>
     </div>
   </main>
@@ -49,6 +49,47 @@
     const title = document.getElementById('node-title');
     const summary = document.getElementById('node-summary');
     const queryInput = document.getElementById('query');
+    const localSource = new URLSearchParams(location.search).get('source') === 'local';
+
+    async function localGraph(params) {
+      const { supabase } = await window.archipelagoAuthReady;
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.access_token) throw new Error('Sign in again to view the local graph.');
+      const response = await fetch('http://127.0.0.1:5150/api/graph', {
+        headers: { Authorization: `Bearer ${session.session.access_token}` }, cache: 'no-store',
+        signal: AbortSignal.timeout(6000)
+      });
+      if (!response.ok) throw new Error('The local graph workstation is unavailable or this account lacks access.');
+      const graph = await response.json();
+      const nodes = (graph.nodes || []).map(node => ({
+        id: String(node.id || node.concept_id || ''),
+        name: String(node.name || node.label || node.title || node.id || ''),
+        summary: String(node.summary || node.description || ''),
+        kind: String(node.kind || node.type || 'concept')
+      })).filter(node => node.id);
+      const query = String(params.q || '').toLowerCase();
+      const target = nodes.find(node => node.id === params.target_id) ||
+        nodes.find(node => node.name.toLowerCase().includes(query)) || nodes[0];
+      if (!target) throw new Error('The local graph has no concepts yet.');
+      const selected = new Set([target.id]);
+      const maxNodes = 36;
+      for (const edge of graph.edges || []) {
+        if (selected.size >= maxNodes) break;
+        if (edge.source === target.id) selected.add(edge.target);
+        if (edge.target === target.id) selected.add(edge.source);
+      }
+      const chosen = nodes.filter(node => selected.has(node.id));
+      const visible = new Set(chosen.map(node => node.id));
+      return {
+        target_id: target.id,
+        nodes: chosen.map(node => ({ data: node })),
+        edges: (graph.edges || []).filter(edge => visible.has(edge.source) && visible.has(edge.target))
+          .map((edge, index) => ({ data: {
+            id: String(edge.id || `local-edge-${index}`), source: edge.source,
+            target: edge.target, rel_label: String(edge.relation || edge.edge_type || 'CONNECTS')
+          } }))
+      };
+    }
 
     function showNode(node) {
       title.textContent = node.name || node.id;
@@ -57,9 +98,14 @@
 
     async function loadGraph(params) {
       status.textContent = 'Loading graph…';
-      const response = await fetch('/api/graph/subgraph?' + new URLSearchParams(params), { cache: 'no-store' });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || 'Could not load this graph neighborhood.');
+      let data;
+      if (localSource) {
+        data = await localGraph(params);
+      } else {
+        const response = await fetch('/api/graph/subgraph?' + new URLSearchParams(params), { cache: 'no-store' });
+        data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'Could not load this graph neighborhood.');
+      }
       if (cy) cy.destroy();
       cy = cytoscape({
         container: document.getElementById('graph'),
@@ -95,9 +141,10 @@
     window.addEventListener('load', async () => {
       const { config } = await window.archipelagoAuthReady;
       if (config?.required) {
-        const principal = await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']);
+        const principal = await window.archipelagoAuthorizePage(localSource ? ['librarian', 'administrator'] : ['faculty', 'librarian', 'administrator']);
         if (!principal) return;
       }
+      if (localSource) document.getElementById('graph-source-note').textContent = 'This graph reads directly from the library workstation on this device. The hosted copy remains in the Graphier dataset.';
       const initial = new URLSearchParams(location.search).get('q') || 'graph retrieval';
       queryInput.value = initial;
       loadGraph({ q: initial, max_nodes: '36' }).catch(showError);

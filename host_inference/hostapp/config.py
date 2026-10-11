@@ -55,6 +55,8 @@ ALLOWED_ORIGINS = frozenset(
         "https://archipelago.antideploy.com",
         "https://archipelago-2.antideploy.com",
         "https://archipelago3.antideploy.com",
+        "https://archipelago-blond.vercel.app",
+        "https://archipelago-archipelago-6383.vercel.app",
         "http://localhost:5152",
         "http://127.0.0.1:5152",
         "http://localhost:8080",

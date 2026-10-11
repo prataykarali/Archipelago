@@ -70,10 +70,13 @@
 
     function destinationForRole(role, config) {
       const fallback = new URL(
-        ["librarian", "administrator"].includes(role) ? "/library#librarian-panel" : "/chat",
+        ["librarian", "administrator"].includes(role) ? "/staff" : "/chat",
         window.location.origin,
       );
       if (!requestedNext) return fallback.href;
+      if (["librarian", "administrator"].includes(role) && requestedNext === "/chat") {
+        return fallback.href;
+      }
       let target;
       try {
         target = new URL(requestedNext, window.location.origin);
@@ -89,7 +92,7 @@
         return fallback.href;
       }
 
-      const allowedPrefixes = ["/chat", "/library", "/read", "/open", "/reader.html"];
+      const allowedPrefixes = ["/chat", "/library", "/read", "/open", "/reader.html", "/staff", "/graph", "/local-console", "/local-graph"];
       const isAllowed = allowedPrefixes.some(prefix => target.pathname.startsWith(prefix));
       if (!isAllowed) {
         return fallback.href;

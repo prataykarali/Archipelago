@@ -87,15 +87,84 @@ def test_librarian_sign_in_opens_management_console() -> None:
     landing = (HOST / "ui" / "landing.html").read_text(encoding="utf-8")
     bridge = (HOST / "ui" / "auth_bridge.js").read_text(encoding="utf-8")
     library = (HOST / "ui" / "library.html").read_text(encoding="utf-8")
+    staff = (HOST / "ui" / "staff.html").read_text(encoding="utf-8")
 
-    assert '["librarian", "administrator"].includes(role) ? "/library#librarian-panel"' in login
-    assert '"/library#librarian-panel"' in landing
-    assert 'routes.push(["Librarian", "/library#librarian-panel"])' in bridge
-    assert "window.location.hash === '#librarian-panel'" in library
+    assert '["librarian", "administrator"].includes(role) ? "/staff"' in login
+    assert '"/staff"' in landing
+    assert 'routes.push(["Librarian", "/staff"])' in bridge
+    assert 'id="librarian-panel"' in staff
+    assert 'id="librarian-panel"' not in library
+
+
+def test_cinematic_pages_and_local_staff_links() -> None:
+    """Keep the requested video backdrops and workstation tools in place."""
+    ui = HOST / "ui"
+    landing = (ui / "landing.html").read_text(encoding="utf-8")
+    library = (ui / "library.html").read_text(encoding="utf-8")
+    chat = (ui / "index.html").read_text(encoding="utf-8")
+    assert "<video" not in landing
+    assert 'src="/assets/iem-logo.png"' in landing
+    assert 'src="/assets/uem-logo.png"' in landing
+    assert "@keyframes reveal-text" in landing
+    assert 'data-avatar-clip="hi"' in chat
+    assert 'data-archipelago-scene' in chat
+    assert "hf_20260717_120352_eb988725-1351-43b3-8095-16e4a1005e3d.mp4" in library
+    assert 'data-archipelago-scene' not in landing
+    assert 'data-archipelago-scene' not in library
+    staff = (ui / "staff.html").read_text(encoding="utf-8")
+    assert 'href="/graph?source=local"' in staff
+    assert 'http://127.0.0.1:5151' in staff
+    graph = (ui / "graph.html").read_text(encoding="utf-8")
+    assert 'http://127.0.0.1:5150/api/graph' in graph
+    from hostapp.middleware import CONTENT_SECURITY_POLICY
+
+    assert "media-src 'self' https://d8j0ntlcm91z4.cloudfront.net" in CONTENT_SECURITY_POLICY
+
+
+def test_local_tools_require_staff_role(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A student cannot use a hosted redirect to open the local console."""
+    import engine as hosted_engine
+    import hostapp.factory as factory
+    from hostapp.factory import CONTEXT_KEY
+
+    real_engine = hosted_engine.Engine
+    monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
+    monkeypatch.setattr(factory, "provision", lambda: None)
+    monkeypatch.setattr(
+        hosted_engine,
+        "Engine",
+        lambda: real_engine(graph_path=HOST / "fixtures" / "okf_graph.json"),
+    )
+    app = factory.create_app()
+    client = app.test_client()
+    assert client.get("/local-console").headers["Location"].startswith("/login?")
+
+    class RoleAuth:
+        role = "student"
+
+        def principal(self):
+            return {"role": self.role, "username": "test"}, None
+
+        def required(self):
+            return True
+
+    auth = RoleAuth()
+    app.extensions[CONTEXT_KEY].auth = auth
+    assert client.get("/local-console").headers["Location"] == "/chat"
+    assert client.get("/staff").headers["Location"] == "/chat"
+    auth.role = "faculty"
+    assert client.get("/local-graph").headers["Location"] == "/chat"
+    assert client.get("/graph?source=local").headers["Location"] == "/chat"
+    auth.role = "librarian"
+    assert client.get("/local-console").headers["Location"] == "/staff"
+    assert client.get("/staff").status_code == 200
+    assert client.get("/local-graph").headers["Location"] == "/graph?source=local"
+    auth.role = "administrator"
+    assert client.get("/local-console").status_code == 302
 
 
 def test_pearson_gateway_preserves_book_after_sign_in(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The handoff retains a direct reader link after Pearson sign-in."""
+    """The automatic Pearson sign-in retains the selected book and page."""
     import engine as hosted_engine
     import hostapp.factory as factory
     import hostapp.routes.reader as reader
@@ -119,8 +188,12 @@ def test_pearson_gateway_preserves_book_after_sign_in(monkeypatch: pytest.Monkey
     client = factory.create_app().test_client()
     response = client.get("/open/fixture-book?page=7")
 
-    assert response.status_code == 200
-    assert b"Sign in to Pearson" in response.data
-    direct = client.get("/open/fixture-book?page=7&direct=1")
-    assert direct.status_code == 302
-    assert direct.headers["Location"] == pearson_page_url(book, 7)
+    assert response.status_code == 302
+    assert response.headers["Location"].startswith(
+        "https://admin.elibrary.in.pearson.com/sso/login?"
+    )
+    from urllib.parse import parse_qs, urlsplit
+
+    params = parse_qs(urlsplit(response.headers["Location"]).query)
+    assert params["service"] == [pearson_page_url(book, 7)]
+    assert params["eulogin"] == ["true"]

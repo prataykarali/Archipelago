@@ -1,96 +1,74 @@
-/* Restored procedural Three.js galaxy from the original library scene. */
+/* Smooth, animated Three.js vortex for the chat workspace. */
 (() => {
     if (!window.THREE || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let fpScene, fpCamera, fpRenderer, fpInstancedMesh;
-    const FP_PARTICLE_COUNT = 14000;
-    let fpClock = new THREE.Clock();
-    let fpMouseX = 0, fpMouseY = 0;
-    let fpScrollY = window.scrollY || 0;
-        function initFullPage3D() {
-            const canvas = document.querySelector('[data-archipelago-scene]');
-            if (!canvas) return;
+    const canvas = document.querySelector('[data-archipelago-scene]');
+    if (!canvas) return;
 
-            fpScene = new THREE.Scene();
-            fpScene.fog = new THREE.FogExp2(0x000000, 0.008);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 500);
+    camera.position.set(0, 0, 94);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.setSize(innerWidth, innerHeight);
 
-            fpCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1500);
-            fpCamera.position.set(0, 0, 95);
-
-            fpRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-            fpRenderer.setSize(window.innerWidth, window.innerHeight);
-            fpRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-
-            const geom = new THREE.TetrahedronGeometry(0.32);
-            const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            fpInstancedMesh = new THREE.InstancedMesh(geom, mat, FP_PARTICLE_COUNT);
-            fpInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-            fpScene.add(fpInstancedMesh);
-
-            const dummy = new THREE.Object3D();
-            const color = new THREE.Color();
-
-            for (let i = 0; i < FP_PARTICLE_COUNT; i++) {
-                const arm = i % 3;
-                const armOffset = (arm * Math.PI * 2) / 3;
-                const radius = Math.pow(Math.random(), 0.6) * 75;
-                const angle = radius * 0.18 + armOffset + (Math.random() - 0.5) * 0.45;
-                const heightSpread = (Math.random() - 0.5) * (20 + (75 - radius) * 0.35);
-
-                const x = Math.cos(angle) * radius;
-                const y = heightSpread;
-                const z = Math.sin(angle) * radius;
-
-                dummy.position.set(x, y, z);
-                dummy.scale.setScalar(0.2 + Math.random() * 0.9);
-                dummy.updateMatrix();
-                fpInstancedMesh.setMatrixAt(i, dummy.matrix);
-
-                const hue = 0.55 + Math.random() * 0.35;
-                color.setHSL(hue, 0.85, 0.65);
-                fpInstancedMesh.setColorAt(i, color);
-            }
-            fpInstancedMesh.instanceMatrix.needsUpdate = true;
-            if (fpInstancedMesh.instanceColor) fpInstancedMesh.instanceColor.needsUpdate = true;
-
-            window.addEventListener('mousemove', (e) => {
-                fpMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-                fpMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-            }, { passive: true });
-
-            window.addEventListener('scroll', () => {
-                fpScrollY = window.scrollY || 0;
-            }, { passive: true });
-
-            window.addEventListener('resize', () => {
-                fpCamera.aspect = window.innerWidth / window.innerHeight;
-                fpCamera.updateProjectionMatrix();
-                fpRenderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            function animateFP() {
-                requestAnimationFrame(animateFP);
-                const elapsedTime = fpClock.getElapsedTime();
-
-                fpInstancedMesh.rotation.y = elapsedTime * 0.045;
-                fpInstancedMesh.rotation.x = Math.sin(elapsedTime * 0.02) * 0.08;
-
-                const targetX = fpMouseX * 22;
-                const targetY = -fpMouseY * 16 - (fpScrollY * 0.04);
-                const targetZ = 95 + Math.sin(elapsedTime * 0.2) * 4;
-
-                fpCamera.position.x += (targetX - fpCamera.position.x) * 0.04;
-                fpCamera.position.y += (targetY - fpCamera.position.y) * 0.04;
-                fpCamera.position.z += (targetZ - fpCamera.position.z) * 0.04;
-                fpCamera.lookAt(0, -fpScrollY * 0.025, 0);
-
-                fpRenderer.render(fpScene, fpCamera);
-            }
-            animateFP();
+    const vortex = new THREE.Group();
+    const colors = [0x9b5cff, 0x04c9d7, 0xeb3ed7, 0x6866ff];
+    const arms = 6;
+    for (let arm = 0; arm < arms; arm++) {
+        const points = [];
+        for (let step = 0; step <= 90; step++) {
+            const progress = step / 90;
+            const radius = 3 + progress * 70;
+            const angle = progress * Math.PI * 3.5 + arm * Math.PI * 2 / arms;
+            points.push(new THREE.Vector3(
+                Math.cos(angle) * radius,
+                Math.sin(angle) * radius * 0.7,
+                -28 + progress * 24
+            ));
         }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initFullPage3D, { once: true });
-    } else {
-        initFullPage3D();
+        const curve = new THREE.CatmullRomCurve3(points);
+        const geometry = new THREE.TubeGeometry(curve, 220, arm % 2 ? 0.24 : 0.38, 6, false);
+        const material = new THREE.MeshBasicMaterial({
+            color: colors[arm % colors.length],
+            transparent: true,
+            opacity: arm % 2 ? 0.42 : 0.6,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending
+        });
+        vortex.add(new THREE.Mesh(geometry, material));
     }
+    for (let ring = 0; ring < 5; ring++) {
+        const mesh = new THREE.Mesh(
+            new THREE.TorusGeometry(8 + ring * 10, 0.13, 6, 120),
+            new THREE.MeshBasicMaterial({
+                color: colors[ring % colors.length], transparent: true,
+                opacity: 0.26, depthWrite: false, blending: THREE.AdditiveBlending
+            })
+        );
+        mesh.scale.y = 0.68;
+        mesh.position.z = -20 - ring * 2;
+        vortex.add(mesh);
+    }
+    scene.add(vortex);
+
+    let pointerX = 0;
+    let pointerY = 0;
+    addEventListener('pointermove', event => {
+        pointerX = event.clientX / innerWidth - 0.5;
+        pointerY = event.clientY / innerHeight - 0.5;
+    }, { passive: true });
+    addEventListener('resize', () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+    });
+    const clock = new THREE.Clock();
+    function animate() {
+        requestAnimationFrame(animate);
+        vortex.rotation.z = clock.getElapsedTime() * 0.045;
+        vortex.rotation.x += ((pointerY * 0.16) - vortex.rotation.x) * 0.025;
+        vortex.rotation.y += ((pointerX * 0.16) - vortex.rotation.y) * 0.025;
+        renderer.render(scene, camera);
+    }
+    animate();
 })();

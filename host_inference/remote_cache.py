@@ -5,13 +5,42 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import tempfile
 
 import requests
 
 ROOT = Path(__file__).resolve().parent
-CACHE = ROOT / "cache"
+CACHE = Path(os.environ.get("ARCHIPELAGO_CACHE_DIR") or (
+    Path(tempfile.gettempdir()) / "archipelago-cache" if os.environ.get("VERCEL") else ROOT / "cache"
+))
 BUCKET = "archipelago-cache"
 FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
+HF_GRAPH_URL = "https://huggingface.co/datasets/Prataykarali/graphier/resolve/main/graph/okf_graph.json"
+HF_BOOKS_URL = "https://huggingface.co/datasets/Prataykarali/Library_books/resolve/main/catalogs/pearson_bookshelf.json"
+HF_SOURCE_FILES = {"okf_graph.json": HF_GRAPH_URL, "pearson_bookshelf.json": HF_BOOKS_URL}
+
+
+def _hydrate_from_hugging_face() -> int:
+    """Fetch the graph and Pearson shelf from their published datasets."""
+    token = os.environ.get("HF_TOKEN", "").strip()
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    loaded = 0
+    for name, url in HF_SOURCE_FILES.items():
+        target = CACHE / name
+        if target.is_file():
+            loaded += 1
+            continue
+        try:
+            response = requests.get(url, headers=headers, timeout=45)
+            response.raise_for_status()
+            payload = response.json()
+            field = "books" if name == "pearson_bookshelf.json" else "concepts"
+            if isinstance(payload, dict) and payload.get(field):
+                target.write_bytes(response.content)
+                loaded += 1
+        except (requests.RequestException, ValueError, OSError):
+            continue
+    return loaded
 
 
 def _production_mode() -> bool:
@@ -54,11 +83,17 @@ def hydrate() -> dict[str, str]:
     CACHE.mkdir(parents=True, exist_ok=True)
     source = "unavailable"
     loaded = 0
+    if os.environ.get("VERCEL"):
+        loaded = _hydrate_from_hugging_face()
+        if loaded == len(HF_SOURCE_FILES) and (CACHE / "library_manifest.json").is_file():
+            return {"source": "huggingface", "cache": str(CACHE)}
     auth = _headers()
     if auth:
         base = auth.pop("url")
         for name in FILES:
             target = CACHE / name
+            if target.is_file() and os.environ.get("VERCEL"):
+                continue
             try:
                 response = requests.get(
                     f"{base}/storage/v1/object/{BUCKET}/{name}",
@@ -70,10 +105,10 @@ def hydrate() -> dict[str, str]:
                     loaded += 1
             except requests.RequestException:
                 pass
-        if loaded == len(FILES):
-            source = "supabase"
+        if all((CACHE / name).is_file() for name in FILES):
+            source = "huggingface" if os.environ.get("VERCEL") else "supabase"
 
-    if source == "supabase":
+    if source in {"supabase", "huggingface"}:
         return {"source": source, "cache": str(CACHE)}
 
     if _production_mode():
