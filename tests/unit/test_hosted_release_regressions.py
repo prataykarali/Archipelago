@@ -102,7 +102,10 @@ def test_cinematic_pages_and_local_staff_links() -> None:
     landing = (ui / "landing.html").read_text(encoding="utf-8")
     library = (ui / "library.html").read_text(encoding="utf-8")
     chat = (ui / "index.html").read_text(encoding="utf-8")
-    assert "<video" not in landing
+    assert 'id="bg-hero-video"' in landing
+    assert 'src="/landing_video.js"' in landing
+    assert 'translate-y-[17%]' in landing
+    assert (ui / "landing_video.js").is_file()
     assert 'src="/assets/iem-logo.png"' in landing
     assert 'src="/assets/uem-logo.png"' in landing
     assert "@keyframes reveal-text" in landing

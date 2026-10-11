@@ -1,5 +1,20 @@
 Production ship complete on Sun Aug  9 09:01:58 AM IST 2026
 
+## 2026-10-12 — landing cinematic scene handoff
+
+Built: restored the requested ACME girl clip as the landing background, with
+a requestAnimationFrame fade at the start and end of each loop. Kept the
+Archipelago wordmark, corner logos, institutional links, auth modal, and chat
+visuals. Added the specified four-pixel liquid-glass treatment.
+
+Verified: 20 landing and hosted deployment regression tests passed. The landing
+video URL returned HTTP 200 with a video/mp4 content type. The production page
+showed active video playback, readable text and links, and no horizontal
+overflow at a 390-pixel phone viewport. Chat and library still redirect
+unauthenticated visitors to login; readiness returned 537 concepts.
+
+Deferred: no changes to the rest of the product.
+
 ## 2026-10-11 — Vercel staff workspace and landing handoff
 
 Built: moved librarian/admin ingestion controls from the bottom of the public
