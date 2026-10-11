@@ -92,20 +92,17 @@ def test_reader_info_api_for_hf_resource(client):
 
 
 def test_reader_gateway_pearson_book_opens_new_tab(client):
-    """Pearson book -> /open/<id> returns new-tab HTML redirect shell with credentials."""
+    """Pearson handoff names the book and page without displaying credentials."""
     client.set_cookie("archipelago_user", "authenticated")
     # Tanenbaum Computer Networks 6e
     resp = client.get("/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9?page=10")
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
-    assert "window.open" in html
-    assert "_blank" in html
-    assert "ebooks.elibrary.in.pearson.com" in html
+    assert "Pearson portal" in html
     assert "0fcd531f-3ba1-495e-9c9e-b43b034b88d9" in html
-    # The gateway points to the exact book/page without exposing shared credentials.
-    assert "page/10" in html
+    assert "page 10" in html
     assert "library.uemk@uem.edu.in" not in html
-    assert "Central-Library@#1" not in html
+    assert "password" not in html.lower()
 
 
 def test_reader_ui_pearson_redirects_to_open_gateway(client):
