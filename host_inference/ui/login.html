@@ -33,7 +33,8 @@
         <option value="administrator">Administrator</option>
       </select>
       <label for="username">Username / enrollment number</label>
-      <input id="username" autocomplete="username" maxlength="64" placeholder="Username or enrollment number" required>
+      <input id="username" autocomplete="username" maxlength="64" placeholder="Your assigned username or enrollment number" required>
+      <p id="username-hint" class="hint" style="margin:6px 0 0;">Students use their individual enrollment number.</p>
       <label for="password">Password</label>
       <input id="password" type="password" autocomplete="current-password" placeholder="Your password" required>
       <div id="message" role="status" aria-live="polite"></div>
@@ -49,8 +50,19 @@
     const roleSelect = document.querySelector("#role");
     const usernameInput = document.querySelector("#username");
     const passwordInput = document.querySelector("#password");
+    const usernameHint = document.querySelector("#username-hint");
     const submitBtn = form.querySelector("button[type='submit']");
     const requestedNext = new URLSearchParams(window.location.search).get("next");
+
+    const roleHints = {
+      student: "Students use their individual enrollment number.",
+      faculty: "Faculty use their assigned username (for example, faculty.cs).",
+      librarian: "Librarians use their assigned username (for example, librarian).",
+      administrator: "Administrators use their assigned username (for example, admin).",
+    };
+    roleSelect.addEventListener("change", () => {
+      usernameHint.textContent = roleHints[roleSelect.value];
+    });
 
     function accountEmail(username, role) {
       return `${username.trim().toLowerCase()}@${role}${EMAIL_DOMAIN}`;

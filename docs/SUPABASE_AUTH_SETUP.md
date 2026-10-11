@@ -13,8 +13,8 @@ Archipelago's live project records these migrations in order:
 
 They create:
 
-- `profiles` — each user’s username and one of `student`, `librarian`, or
-  `administrator`.
+- `profiles` — each user’s username and one of `student`, `faculty`,
+  `librarian`, or `administrator` after applying the faculty role migration.
 - `credential_import_permissions` — an administrator’s time-limited approval
   for a specific librarian and source.
 - `credential_import_audits` — counts and file hash only; never passwords.
@@ -56,6 +56,10 @@ Students sign in with the 14-digit enrollment number; staff sign in with their
 assigned username. Use a unique temporary password per import where possible,
 require a password change after first sign-in, and never use one shared password
 for a real student or staff rollout.
+
+The app uses Supabase email/password authentication behind the username form.
+An OAuth provider requires separate provider credentials and redirect setup in
+Supabase; choosing an account type in the form does not create an account.
 
 ## Local login check
 

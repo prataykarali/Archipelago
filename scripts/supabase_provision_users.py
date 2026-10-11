@@ -17,7 +17,7 @@ from typing import Any
 from dotenv import load_dotenv
 import requests
 
-ALLOWED_ROLES = frozenset({"student", "librarian", "administrator"})
+ALLOWED_ROLES = frozenset({"student", "faculty", "librarian", "administrator"})
 REQUIRED_FIELDS = frozenset({"username", "role"})
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9._-]{3,64}$")
 STUDENT_ENROLLMENT_PATTERN = re.compile(r"^\d{14}$")
