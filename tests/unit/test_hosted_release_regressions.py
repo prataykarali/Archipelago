@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
-from urllib.parse import parse_qs, urlparse
 
 import pytest
 
@@ -82,8 +81,8 @@ def test_public_auth_pages_have_no_shared_login_shortcut() -> None:
         assert "doLandingQuickLogin(" not in html
 
 
-def test_pearson_gateway_uses_sso_return_to_selected_book(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A reader link asks Pearson to validate its session and preserve the book."""
+def test_pearson_gateway_preserves_book_after_sign_in(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The handoff retains a direct reader link after Pearson sign-in."""
     import engine as hosted_engine
     import hostapp.factory as factory
     import hostapp.routes.reader as reader
@@ -104,9 +103,11 @@ def test_pearson_gateway_uses_sso_return_to_selected_book(monkeypatch: pytest.Mo
         lambda: real_engine(graph_path=HOST / "fixtures" / "okf_graph.json"),
     )
     monkeypatch.setattr(reader, "load_books", lambda: [book])
-    response = factory.create_app().test_client().get("/open/fixture-book?page=7")
+    client = factory.create_app().test_client()
+    response = client.get("/open/fixture-book?page=7")
 
-    assert response.status_code == 302
-    login = urlparse(response.headers["Location"])
-    assert login.netloc == "admin.elibrary.in.pearson.com"
-    assert parse_qs(login.query)["service"] == [pearson_page_url(book, 7)]
+    assert response.status_code == 200
+    assert b"Sign in to Pearson" in response.data
+    direct = client.get("/open/fixture-book?page=7&direct=1")
+    assert direct.status_code == 302
+    assert direct.headers["Location"] == pearson_page_url(book, 7)

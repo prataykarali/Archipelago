@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from urllib.parse import quote
 
 import requests
 
@@ -103,15 +102,6 @@ def pearson_page_url(book: dict, page: int = 1) -> str:
     sub_query = f"&subscriptionId={sub}" if sub else ""
     page_part = f"/page/{page_n}"
     return f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
-
-
-def pearson_login_url(book: dict, page: int = 1) -> str:
-    """Let Pearson check its own browser session before opening a selected title."""
-    target = pearson_page_url(book, page)
-    return (
-        "https://admin.elibrary.in.pearson.com/sso/login?service="
-        f"{quote(target, safe='')}&eulogin=true"
-    )
 
 
 def public_book(book: dict) -> dict:

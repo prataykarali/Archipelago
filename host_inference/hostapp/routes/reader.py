@@ -14,7 +14,7 @@ from urllib.parse import quote
 from engine import _hf_doc_path
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
 from library_index import hf_title, resolve_hf_path
-from remote_cache import load_books, pearson_login_url
+from remote_cache import load_books, pearson_page_url
 import requests
 
 from ..config import UI
@@ -77,7 +77,7 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         book = _find_pearson_book(doc_id)
         if book is not None:
-            pearson_url = pearson_login_url(book, page)
+            pearson_url = pearson_page_url(book, page)
             if not _wants_json():
                 return redirect(f"/open/{book.get('id')}?page={page}")
             return jsonify(
@@ -130,7 +130,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "title": book.get("title", ""),
                     "author": book.get("author", "Pearson Education"),
                     "provider": "pearson",
-                    "reader_url": pearson_login_url(book, page),
+                    "reader_url": pearson_page_url(book, page),
                     "page_count": book.get("page_count", 0),
                 }
             )
@@ -179,7 +179,7 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         book = _find_pearson_book(clean_path)
         if book is not None:
-            return redirect(pearson_login_url(book, 1))
+            return redirect(f"/open/{book.get('id')}?page=1")
 
         mapped = _hf_doc_path(clean_path)
         candidates = []
@@ -235,7 +235,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/open/<book_id>")
     @app.get("/open/book/<book_id>")
     def open_pearson(book_id: str):
-        """Ask Pearson to validate its session and open the selected title."""
+        """Guide the browser through Pearson sign-in and its selected reader."""
         # Citations and legacy links may carry the `book/` prefix.
         clean_id = (book_id or "").strip()
         if clean_id.startswith("book/"):
@@ -252,6 +252,6 @@ def register(app: Flask, ctx: AppContext) -> None:
             page = max(MIN_PAGE, int(request.args.get("page") or 1))
         except (ValueError, TypeError):
             page = MIN_PAGE
-        if request.args.get("steps") == "1":
-            return send_from_directory(UI, "pearson-handoff.html")
-        return redirect(pearson_login_url(book, page), code=302)
+        if request.args.get("direct") == "1":
+            return redirect(pearson_page_url(book, page), code=302)
+        return send_from_directory(UI, "pearson-handoff.html")

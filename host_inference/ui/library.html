@@ -179,7 +179,7 @@
             </div>
           </div>
 
-          <div class="lg:col-span-5 flex flex-col justify-between h-[440px] p-6 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
+          <div class="lg:col-span-5 flex flex-col justify-between min-h-[440px] p-6 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
             <div>
               <div class="flex items-center gap-2 mb-2">
                 <span id="book-domain-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300">CS & AI</span>
@@ -196,6 +196,10 @@
                 <span id="book-isbn-txt" class="text-[10px]">ISBN: N/A</span>
               </div>
               <div id="book-toc-list" class="space-y-1.5 max-h-[110px] overflow-y-auto custom-scrollbar pr-2 text-xs"></div>
+              <label id="pearson-page-picker" class="hidden mt-3 text-xs text-white/70" for="pearson-page-number">
+                Pearson page number
+                <input id="pearson-page-number" type="number" min="1" value="1" inputmode="numeric" class="mt-1 w-full rounded-lg border border-amber-500/40 bg-black/50 px-3 py-2 text-white">
+              </label>
             </div>
 
             <!-- Action Buttons for PDF Reader vs Pearson Direct Redirect -->
@@ -206,7 +210,7 @@
               </button>
               <button id="copy-creds-btn" class="w-full py-2 px-3 rounded-lg bg-white/10 border border-white/20 text-white font-mono text-[11px] hover:bg-white/20 transition-colors flex items-center justify-center gap-2">
                 <i data-lucide="key" class="w-3.5 h-3.5 text-amber-400"></i>
-                Copy Pearson Staff Credentials
+                Pearson sign-in steps
               </button>
             </div>
           </div>
@@ -340,7 +344,7 @@
               <i data-lucide="key" class="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform"></i>
             </div>
             <h4 class="text-base font-bold text-white">Pearson eLibrary</h4>
-            <span class="text-xs font-mono text-amber-200/70 block mt-1">Click to view staff credentials & redirect</span>
+            <span class="text-xs font-mono text-amber-200/70 block mt-1">Sign in to Pearson and open a selected book</span>
           </div>
 
         </div>
@@ -532,7 +536,8 @@
 
       <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-200 text-xs leading-relaxed space-y-1">
         <p>1. Click <strong>Sign In to Pearson</strong> and authenticate with your authorized institutional account.</p>
-        <p>2. Then click <strong>Open Book Reader</strong> to navigate directly to the target book and page.</p>
+        <p>2. Return here and click <strong>Open Book Reader</strong>. Pearson checks your session and opens the selected title.</p>
+        <p>Pearson may restore your last-read page. Use its page box to go to the page shown in Archipelago.</p>
       </div>
 
       <div class="flex flex-col gap-2 pt-2">
@@ -582,7 +587,7 @@
       const directBtn = document.getElementById('modal-pearson-direct-btn');
       directBtn.onclick = () => {
         const bookId = book && (book.id || book.pearson_book_id || book.isbn);
-        const page = Math.max(1, Number(book?.page || book?.page_number || 1));
+        const page = Math.max(1, Number(document.getElementById('pearson-page-number')?.value || book?.page || book?.page_number || 1));
         if (bookId) window.open(`/open/${encodeURIComponent(bookId)}?page=${page}`, '_blank', 'noopener,noreferrer');
         else window.open('https://elibrary.in.pearson.com/', '_blank', 'noopener,noreferrer');
       };
@@ -617,7 +622,7 @@
       if (isPearson) {
         showPearsonAccessHelp();
         const bookId = book.id || book.pearson_book_id || book.isbn || '';
-        const page = Math.max(1, Number(book.page || book.page_number || 1));
+        const page = Math.max(1, Number(document.getElementById('pearson-page-number')?.value || book.page || book.page_number || 1));
         window.open(`/open/${encodeURIComponent(bookId)}?page=${page}`, '_blank', 'noopener,noreferrer');
       } else {
         const bookId = book.id || book.pdf || book.title || '';
@@ -670,6 +675,9 @@
       const actionBtn = document.getElementById('book-action-btn');
       const actionText = document.getElementById('book-action-text');
       const credsBtn = document.getElementById('copy-creds-btn');
+      const pagePicker = document.getElementById('pearson-page-picker');
+      pagePicker.classList.toggle('hidden', !b.isPearson);
+      document.getElementById('pearson-page-number').value = Math.max(1, Number(b.page || b.page_number || 1));
 
       if (b.isCatalogOnly) {
         badge.innerText = 'Catalog Holding';
@@ -686,7 +694,7 @@
         actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-amber-400 to-amber-300 text-black font-extrabold text-xs hover:from-amber-300 hover:to-amber-200 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
         if (credsBtn) {
           credsBtn.classList.remove('hidden');
-          credsBtn.innerText = '🔑 Pearson Login & Credentials';
+          credsBtn.innerText = '🔑 Pearson sign-in steps';
           credsBtn.onclick = () => openPearsonModal(b);
         }
       } else if (b.isPaper) {
@@ -709,18 +717,13 @@
 
 
       const tocContainer = document.getElementById('book-toc-list');
-      const tocItems = b.toc || [
-        { title: 'Chapter 1: Overview & Theoretical Foundations', page: 1 },
-        { title: 'Chapter 2: Methods & Analytical Formulation', page: 45 },
-        { title: 'Chapter 3: Experimental Evaluation', page: 92 },
-        { title: 'Chapter 4: Synthesis & Conclusions', page: 148 }
-      ];
-      tocContainer.innerHTML = tocItems.map(c => `
+      const tocItems = Array.isArray(b.toc) ? b.toc : [];
+      tocContainer.innerHTML = tocItems.length ? tocItems.map(c => `
         <div onclick="openChapterPage('${encodeURIComponent(b.id || b.pdf || '')}', ${c.page}, ${b.isPearson ? 'true' : 'false'})" class="flex items-center justify-between p-2 rounded bg-white/5 border border-white/5 hover:border-purple-500/30 hover:bg-white/10 transition-colors text-xs text-white/80 cursor-pointer group" title="Open Chapter (Page ${c.page})">
           <span class="font-medium truncate pr-2 group-hover:text-purple-300 transition-colors">${c.title}</span>
           <span class="font-mono text-purple-400/80 text-[10px] shrink-0 font-semibold">p. ${c.page} ↗</span>
         </div>
-      `).join('');
+      `).join('') : '<p class="text-white/50">Chapter page references are unavailable for this title. Enter a page number below.</p>';
     }
 
     document.getElementById('book-prev-btn').onclick = () => {
