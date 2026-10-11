@@ -996,7 +996,11 @@
         if (!response.ok) return;
         const principal = await response.json();
         if (principal.authenticated && ['librarian', 'administrator'].includes(principal.role)) {
-          document.getElementById('librarian-panel').style.display = 'block';
+          const panel = document.getElementById('librarian-panel');
+          panel.style.display = 'block';
+          if (window.location.hash === '#librarian-panel') {
+            panel.scrollIntoView({ block: 'start' });
+          }
           const capabilities = await fetch('/api/ingest/capabilities').then(r => r.json());
           if (!capabilities.upload_api_enabled) {
             document.getElementById('ingest-capability').textContent = 'Hosted ingestion is unavailable on this deployment. Graph exploration and the library catalog remain available.';

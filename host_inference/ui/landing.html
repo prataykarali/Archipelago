@@ -321,21 +321,27 @@
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
+        if (!data?.session) throw new Error("Sign-in did not create a session.");
         // Establish session cookie with backend
-        if (data?.session) {
+        let verified;
+        if (data.session) {
           const sessionResponse = await fetch("/api/auth/session", {
             method: "POST",
             headers: { Authorization: `Bearer ${data.session.access_token}` },
             credentials: "same-origin"
           });
-          const verified = await sessionResponse.json().catch(() => ({}));
+          verified = await sessionResponse.json().catch(() => ({}));
           if (!sessionResponse.ok || verified.authenticated !== true || verified.role !== role) {
             await supabase.auth.signOut();
             throw new Error("Your verified account role does not match the selected role.");
           }
         }
 
-        window.location.assign(targetDestination);
+        window.location.assign(
+          ["librarian", "administrator"].includes(verified.role) && targetDestination === "/chat"
+            ? "/library#librarian-panel"
+            : targetDestination
+        );
       } catch (err) {
         if (msg) msg.textContent = err?.message || "Sign-in failed. Please try again.";
       }

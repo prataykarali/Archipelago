@@ -155,6 +155,9 @@ window.archipelagoMountNavigation = async () => {
   const routes = principal.role === "student"
     ? [["Chat", "/chat"], ["Library", "/library"]]
     : [["Chat", "/chat"], ["Library", "/library"], ["Graph", "/graph"]];
+  if (["librarian", "administrator"].includes(principal.role)) {
+    routes.push(["Librarian", "/library#librarian-panel"]);
+  }
   for (const [label, href] of routes) {
     const link = document.createElement("a");
     link.href = href;

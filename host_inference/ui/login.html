@@ -50,14 +50,18 @@
     const usernameInput = document.querySelector("#username");
     const passwordInput = document.querySelector("#password");
     const submitBtn = form.querySelector("button[type='submit']");
-    const requestedNext = new URLSearchParams(window.location.search).get("next") || "/chat";
+    const requestedNext = new URLSearchParams(window.location.search).get("next");
 
     function accountEmail(username, role) {
       return `${username.trim().toLowerCase()}@${role}${EMAIL_DOMAIN}`;
     }
 
     function destinationForRole(role, config) {
-      const fallback = new URL("/chat", window.location.origin);
+      const fallback = new URL(
+        ["librarian", "administrator"].includes(role) ? "/library#librarian-panel" : "/chat",
+        window.location.origin,
+      );
+      if (!requestedNext) return fallback.href;
       let target;
       try {
         target = new URL(requestedNext, window.location.origin);

@@ -81,6 +81,19 @@ def test_public_auth_pages_have_no_shared_login_shortcut() -> None:
         assert "doLandingQuickLogin(" not in html
 
 
+def test_librarian_sign_in_opens_management_console() -> None:
+    """Both sign-in surfaces must take staff to the existing console."""
+    login = (HOST / "ui" / "login.html").read_text(encoding="utf-8")
+    landing = (HOST / "ui" / "landing.html").read_text(encoding="utf-8")
+    bridge = (HOST / "ui" / "auth_bridge.js").read_text(encoding="utf-8")
+    library = (HOST / "ui" / "library.html").read_text(encoding="utf-8")
+
+    assert '["librarian", "administrator"].includes(role) ? "/library#librarian-panel"' in login
+    assert '"/library#librarian-panel"' in landing
+    assert 'routes.push(["Librarian", "/library#librarian-panel"])' in bridge
+    assert "window.location.hash === '#librarian-panel'" in library
+
+
 def test_pearson_gateway_preserves_book_after_sign_in(monkeypatch: pytest.MonkeyPatch) -> None:
     """The handoff retains a direct reader link after Pearson sign-in."""
     import engine as hosted_engine
