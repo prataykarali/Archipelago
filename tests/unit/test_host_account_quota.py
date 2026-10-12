@@ -14,7 +14,7 @@ if str(HOST) not in sys.path:
 from hostapp.security import AuthGuard, RateLimiter  # noqa: E402
 
 
-def test_daily_quota_pauses_after_seven_and_keeps_accounts_separate(monkeypatch, tmp_path):
+def test_daily_quota_uses_full_allowance_and_resets_after_24_hours(monkeypatch, tmp_path):
     now = [100_000.0]
     monkeypatch.setattr("hostapp.security.time.time", lambda: now[0])
     monkeypatch.setenv("ARCHIPELAGO_QUOTA_DB", str(tmp_path / "quota.sqlite3"))
@@ -24,21 +24,21 @@ def test_daily_quota_pauses_after_seven_and_keeps_accounts_separate(monkeypatch,
         assert not limited
     assert quota["remaining"] == 28
     limited, quota = limiter.check_daily_chat("student-a")
-    assert limited
-    assert quota["remaining"] == 28
+    assert not limited
+    assert quota["remaining"] == 27
     assert limiter.check_daily_chat("student-b")[0] is False
 
-    now[0] += 3601
     assert limiter.check_daily_chat("student-a")[0] is False
-    assert RateLimiter().check_daily_chat("student-a")[1]["used"] == 9
-    for _ in range(10, 36):
+    assert RateLimiter().check_daily_chat("student-a")[1]["used"] == 10
+    for _ in range(11, 36):
         limited, quota = limiter.check_daily_chat("student-a")
-        if limited:
-            now[0] += 3601
-            limited, quota = limiter.check_daily_chat("student-a")
         assert not limited
     assert quota["remaining"] == 0
     assert limiter.check_daily_chat("student-a")[0] is True
+    now[0] += 86401
+    limited, quota = limiter.check_daily_chat("student-a")
+    assert not limited
+    assert quota["used"] == 1
 
 
 def test_idle_session_expires_and_logout_revokes_token(monkeypatch):

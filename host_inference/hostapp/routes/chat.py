@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 
+from engine.answer import POLISHABLE_ROUTES
 from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
@@ -91,6 +92,26 @@ def register(app: Flask, ctx: AppContext) -> None:
                     generate_dedup(), mimetype=STREAM_MIME, headers={"Cache-Control": "no-store"}
                 )
 
+        auth_required = ctx.auth.required()
+        result = ctx.engine.answer(query) if auth_required else None
+        if result is not None and result["route"] in POLISHABLE_ROUTES:
+            if not principal:
+                return jsonify({"error": "unauthorized"}), 401
+            limited, quota = ctx.limiter.check_daily_chat(principal["id"])
+            if limited:
+                response = jsonify(
+                    {
+                        "error": "query_limit",
+                        "detail": "The daily AI query allowance is exhausted. Saved conversations remain available.",
+                        "remaining": quota["remaining"],
+                        "retry_after": quota["retry_after"],
+                    }
+                )
+                response.status_code = 429
+                response.headers["Retry-After"] = str(quota["retry_after"])
+                return response
+            request.archipelago_quota = quota  # type: ignore[attr-defined]
+
         # Fresh retrieval and inference for each request.
         ctx.cache_metrics.record_miss()
         is_leader = ctx.request_dedup.start_flight(norm_query)
@@ -98,7 +119,12 @@ def register(app: Flask, ctx: AppContext) -> None:
         def generate():
             collected_chunks = []
             try:
-                for chunk in ctx.engine.stream_chat(query):
+                stream = (
+                    ctx.engine.stream_chat(query, result=result)
+                    if result is not None
+                    else ctx.engine.stream_chat(query)
+                )
+                for chunk in stream:
                     collected_chunks.append(chunk)
                     yield chunk
 

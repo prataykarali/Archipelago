@@ -184,12 +184,12 @@ class Engine(RoutingMixin):
             "extra": extra,
         }
 
-    def stream_chat(self, query: str):
+    def stream_chat(self, query: str, result: dict | None = None):
         """Yield the metadata frame immediately, then stream tokens from XKIRO.
 
         Try NVIDIA when XKIRO produces no answer. Show when both are unavailable.
         """
-        result = self.answer(query)
+        result = result if result is not None else self.answer(query)
         route = result["route"]
         grounded_text = result["text"]
         payload = result["payload"]

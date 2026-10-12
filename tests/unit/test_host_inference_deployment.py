@@ -264,6 +264,42 @@ def test_stream_chat_sends_question_and_shows_page_links_first(monkeypatch):
     assert "Fixed evidence." not in "".join(chunks[1:])
 
 
+def test_greeting_does_not_spend_ai_quota(hosted_app, monkeypatch):
+    """Only requests sent to a model spend the daily AI allowance."""
+    ctx = hosted_app.app.extensions["archipelago"]
+    charges = []
+    monkeypatch.setattr(ctx.auth, "required", lambda: True)
+    monkeypatch.setattr(
+        ctx.auth, "principal", lambda: ({"id": "student-a", "role": "student"}, None)
+    )
+    monkeypatch.setattr(ctx.limiter, "check_chat", lambda: (False, 0))
+    monkeypatch.setattr(
+        ctx.limiter,
+        "check_daily_chat",
+        lambda user_id: (charges.append(user_id) or False, {"remaining": 34, "used": 1}),
+    )
+    monkeypatch.setattr(
+        ctx.engine,
+        "answer",
+        lambda query: {"route": "GREETING" if query == "hi" else "GRAPH_SYNTHESIS"},
+        raising=False,
+    )
+    monkeypatch.setattr(
+        ctx.engine,
+        "stream_chat",
+        lambda _query, result=None: iter(
+            [json.dumps({"routing": result}) + "\n[STREAM_START]\n", "reply"]
+        ),
+        raising=False,
+    )
+
+    client = hosted_app.app.test_client()
+    assert client.post("/api/chat", json={"query": "hi"}).status_code == 200
+    assert charges == []
+    assert client.post("/api/chat", json={"query": "explain attention"}).status_code == 200
+    assert charges == ["student-a"]
+
+
 def test_server_is_a_thin_shim_over_the_hostapp_factory(hosted_app):
     from hostapp import CONTEXT_KEY
 

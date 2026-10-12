@@ -31,7 +31,7 @@ try {
     const quota = await response.json();
     const label = document.getElementById('query-limit-status');
     if (label) label.textContent = quota.retry_after
-      ? `AI paused for about ${Math.ceil(quota.retry_after / 60)} minutes. ${quota.remaining} of 35 daily queries remain.`
-      : `${quota.remaining} of 35 AI queries remain today. A one-hour cooldown follows each 7 queries.`;
+      ? `Daily AI limit reached. Resets in about ${Math.ceil(quota.retry_after / 3600)} hours.`
+      : `${quota.remaining} of 35 AI queries remain in this 24-hour period.`;
   }
 } catch (_) {}

@@ -40,7 +40,7 @@
             { key: 'think', src: '/ui/assets/library_think.mp4' },
             { key: 'type', src: '/ui/assets/library_type.mp4' },
             { key: 'goit', src: '/ui/assets/library_goit.mp4' },
-            { key: 'success', src: '/ui/assets/library_sucess%20(1).mp4' },
+            { key: 'success', src: '/ui/assets/library_success.mp4' },
         ];
 
         const AVATAR_THINK_KEY = 'think';
@@ -295,6 +295,21 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
         wireAvatarVideos(document.getElementById('welcome-avatar'), false);
 
         hideStickyAvatar();
+
+        // Browsers suspend muted media in background tabs. Resume the visible
+        // librarian when the tab returns, including after back/forward cache.
+        function resumeVisibleAvatar() {
+            if (document.visibilityState !== 'visible') return;
+            const dock = document.getElementById('sticky-avatar-dock');
+            const root = dock && dock.classList.contains('is-visible')
+                ? getStickyAvatar()
+                : document.getElementById('welcome-avatar');
+            if (!root || root.dataset.avatarMode === 'paused') return;
+            const active = root.querySelector('video:not(.is-hidden)');
+            if (active && (active.paused || active.ended)) playAvatarVideo(active);
+        }
+        document.addEventListener('visibilitychange', resumeVisibleAvatar);
+        window.addEventListener('pageshow', resumeVisibleAvatar);
 
         // Wire graph browse link (students may browse; only librarians upload there)
         // ═══════════════════════════════════════════════════════════════

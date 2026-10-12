@@ -41,8 +41,6 @@ CLIENT_IP_HEADERS = ("CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 IDLE_TIMEOUT_SECONDS = 300
 DAILY_QUERY_LIMIT = 35
-QUERY_COOLDOWN_AFTER = 7
-QUERY_COOLDOWN_SECONDS = 3600
 QUERY_DAY_SECONDS = 86400
 DEFAULT_QUOTA_DB = (
     Path(tempfile.gettempdir()) / "archipelago-cache" / "query_quota.sqlite3"
@@ -81,7 +79,9 @@ class AuthGuard:
         if token:
             token_id = hashlib.sha256(token.encode()).hexdigest()
             if os.environ.get("VERCEL"):
-                _runtime_rpc("archipelago_runtime_touch_session", {"p_token_id": token_id, "p_end": True})
+                _runtime_rpc(
+                    "archipelago_runtime_touch_session", {"p_token_id": token_id, "p_end": True}
+                )
             with self._lock:
                 self._last_activity.pop(token_id, None)
                 self._expired.add(token_id)
@@ -129,7 +129,10 @@ class AuthGuard:
             except (RuntimeError, requests.RequestException, ValueError):
                 return None, "Session verification is temporarily unavailable."
             if active is not True:
-                return None, "Your session timed out after five minutes of inactivity. Sign in again."
+                return (
+                    None,
+                    "Your session timed out after five minutes of inactivity. Sign in again.",
+                )
         if not os.environ.get("VERCEL"):
             with self._lock:
                 last_active = self._last_activity.get(token_id)
@@ -216,9 +219,13 @@ class RateLimiter:
     def completed_quiz(self, user_id: str, target: str) -> dict | None:
         """Return this account's first completed diagnostic, if present."""
         if os.environ.get("VERCEL"):
-            result = _runtime_rpc("archipelago_runtime_quiz_result", {
-                "p_user_id": user_id, "p_target": target,
-            })
+            result = _runtime_rpc(
+                "archipelago_runtime_quiz_result",
+                {
+                    "p_user_id": user_id,
+                    "p_target": target,
+                },
+            )
             return result if isinstance(result, dict) else None
         with closing(self._quota_connection()) as connection:
             row = connection.execute(
@@ -230,9 +237,14 @@ class RateLimiter:
     def save_completed_quiz(self, user_id: str, target: str, result: dict) -> None:
         """Persist the first result so repeated starts cannot issue a new quiz."""
         if os.environ.get("VERCEL"):
-            _runtime_rpc("archipelago_runtime_quiz_result", {
-                "p_user_id": user_id, "p_target": target, "p_result": result,
-            })
+            _runtime_rpc(
+                "archipelago_runtime_quiz_result",
+                {
+                    "p_user_id": user_id,
+                    "p_target": target,
+                    "p_result": result,
+                },
+            )
             return
         with closing(self._quota_connection()) as connection, connection:
             connection.execute(
@@ -241,11 +253,15 @@ class RateLimiter:
             )
 
     def check_daily_chat(self, user_id: str) -> tuple[bool, dict]:
-        """Count accepted AI queries per account and enforce hourly pauses."""
+        """Count accepted AI queries per account until the daily reset."""
         if os.environ.get("VERCEL"):
-            result = _runtime_rpc("archipelago_runtime_query", {
-                "p_user_id": user_id, "p_consume": True,
-            })
+            result = _runtime_rpc(
+                "archipelago_runtime_query",
+                {
+                    "p_user_id": user_id,
+                    "p_consume": True,
+                },
+            )
             if not isinstance(result, dict):
                 raise RuntimeError("Invalid query quota response.")
             return bool(result.get("limited")), result
@@ -256,32 +272,26 @@ class RateLimiter:
                 "SELECT day_start, used, cooldown_until FROM quota WHERE user_id = ?",
                 (user_id,),
             ).fetchone()
-            start, count, cooldown = row if row else (now, 0, 0.0)
+            start, count, _cooldown = row if row else (now, 0, 0.0)
             if now - start >= QUERY_DAY_SECONDS:
-                start, count, cooldown = now, 0, 0.0
+                start, count = now, 0
             if count >= DAILY_QUERY_LIMIT:
                 return True, {
                     "remaining": 0,
                     "retry_after": int(start + QUERY_DAY_SECONDS - now) + 1,
                 }
-            if cooldown > now:
-                return True, {
-                    "remaining": DAILY_QUERY_LIMIT - count,
-                    "retry_after": int(cooldown - now) + 1,
-                }
             count += 1
-            cooldown = now + QUERY_COOLDOWN_SECONDS if count % QUERY_COOLDOWN_AFTER == 0 else 0.0
             connection.execute(
                 "INSERT INTO quota (user_id, day_start, used, cooldown_until) "
                 "VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET "
                 "day_start=excluded.day_start, used=excluded.used, "
                 "cooldown_until=excluded.cooldown_until",
-                (user_id, start, count, cooldown),
+                (user_id, start, count, 0.0),
             )
             return False, {
                 "remaining": DAILY_QUERY_LIMIT - count,
                 "used": count,
-                "cooldown_after_this_query": cooldown > now,
+                "cooldown_after_this_query": False,
             }
 
     def quota_status(self, user_id: str) -> dict:
@@ -299,8 +309,8 @@ class RateLimiter:
             ).fetchone()
         if not row or now - row[0] >= QUERY_DAY_SECONDS:
             return {"used": 0, "remaining": DAILY_QUERY_LIMIT, "retry_after": 0}
-        start, used, cooldown = row
-        retry = int(cooldown - now) + 1 if cooldown > now else 0
+        start, used, _cooldown = row
+        retry = 0
         if used >= DAILY_QUERY_LIMIT:
             retry = int(start + QUERY_DAY_SECONDS - now) + 1
         return {"used": used, "remaining": DAILY_QUERY_LIMIT - used, "retry_after": retry}

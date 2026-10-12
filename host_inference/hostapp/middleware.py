@@ -74,23 +74,6 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
             limited, retry_after = ctx.limiter.check_chat()
             if limited:
                 return _rate_limited_response(retry_after)
-            principal = getattr(request, "archipelago_principal", None)
-            if principal is None:
-                return jsonify({"error": "unauthorized"}), 401
-            limited, quota = ctx.limiter.check_daily_chat(principal["id"])
-            if limited:
-                response = jsonify(
-                    {
-                        "error": "query_limit",
-                        "detail": "AI queries are paused. Your saved conversations remain available.",
-                        "remaining": quota["remaining"],
-                        "retry_after": quota["retry_after"],
-                    }
-                )
-                response.status_code = 429
-                response.headers["Retry-After"] = str(quota["retry_after"])
-                return response
-            request.archipelago_quota = quota  # type: ignore[attr-defined]
             return None
         if path.startswith("/api/chat"):
             return _apply_limit(ctx.limiter.check_chat())
