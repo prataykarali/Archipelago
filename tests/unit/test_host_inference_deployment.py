@@ -99,7 +99,11 @@ def test_catalog_preserves_full_library_shelf_and_reader_links(hosted_app, monke
         {"id": "paper.pdf", "title": "Research Paper", "isPearson": False},
     ]
     monkeypatch.setattr(library_routes, "load_library_manifest", lambda: {"ebook_shelf": shelf})
-    monkeypatch.setattr(library_routes, "resolve_hf_path", lambda value: "books/papers/paper.pdf" if value == "paper.pdf" else "")
+    monkeypatch.setattr(
+        library_routes,
+        "resolve_hf_path",
+        lambda value: "books/papers/paper.pdf" if value == "paper.pdf" else "",
+    )
 
     response = hosted_app.app.test_client().get("/api/catalog/all")
     assert response.status_code == 200
@@ -195,6 +199,10 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
 
     assert captured["payload"]["max_tokens"] == 700
     assert "two or three substantial paragraphs" in captured["payload"]["messages"][0]["content"]
+    assert (
+        json.loads(captured["payload"]["messages"][1]["content"])["user_question"]
+        == "explain graph retrieval"
+    )
     assert metadata["model"]["provider"] == "xkiro"
     assert chunks[-1] == "Grounded fallback with [citation]."
     assert "Live AI is temporarily unavailable" in chunks[-2]
@@ -208,7 +216,7 @@ def test_stream_chat_uses_nvidia_when_xkiro_is_empty(monkeypatch):
     monkeypatch.setenv("NVIDIA_API_KEY", "test-n")
     calls = []
 
-    def fake_response(config, _text):
+    def fake_response(config, _text, _query):
         calls.append(config["provider"])
         if config["provider"] == "nvidia":
             yield "Live NVIDIA answer."
@@ -226,6 +234,34 @@ def test_stream_chat_uses_nvidia_when_xkiro_is_empty(monkeypatch):
     assert calls == ["xkiro", "nvidia"]
     assert "Live NVIDIA answer." in chunks
     assert "Grounded draft." not in chunks[1:]
+
+
+def test_stream_chat_sends_question_and_shows_page_links_first(monkeypatch):
+    """A live reply uses the user's question and shows sources above the prose."""
+    import engine.answer as answer_module
+
+    monkeypatch.setenv("XKIRO_API_KEY", "test-x")
+    seen = []
+
+    def fake_response(_config, _text, query):
+        seen.append(query)
+        yield "A tailored explanation."
+
+    monkeypatch.setattr(answer_module, "provider_response", fake_response)
+    instance = answer_module.Engine.__new__(answer_module.Engine)
+    instance.answer = lambda _query: {
+        "route": "DEMO",
+        "text": "Fixed evidence.\n\n**Paper page.** [Attention p.3](/read?doc=attention.pdf&page=3)",
+        "payload": {"logs": []},
+    }
+
+    chunks = list(instance.stream_chat("How does attention mechanism work?"))
+
+    assert seen == ["How does attention mechanism work?"]
+    assert chunks[1].startswith("**Sources and pages**")
+    assert "/read?doc=attention.pdf&page=3" in chunks[1]
+    assert chunks[2] == "A tailored explanation."
+    assert "Fixed evidence." not in "".join(chunks[1:])
 
 
 def test_server_is_a_thin_shim_over_the_hostapp_factory(hosted_app):

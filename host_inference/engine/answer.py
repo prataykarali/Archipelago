@@ -213,25 +213,29 @@ class Engine(RoutingMixin):
 
         safe_text = redact_for_model(grounded_text)
         link_lines = [
-            line for line in grounded_text.splitlines() if line.startswith(CITATION_LINE_PREFIXES)
+            line
+            for line in grounded_text.splitlines()
+            if line.startswith(CITATION_LINE_PREFIXES) and "](" in line
         ]
+        sources = "**Sources and pages**\n" + "\n".join(link_lines) + "\n\n" if link_lines else ""
 
         streamed_tokens = 0
-        for delta in provider_response(config, safe_text):
+        for delta in provider_response(config, safe_text, query):
+            if streamed_tokens == 0 and sources:
+                yield sources
             streamed_tokens += 1
             yield delta
 
         if streamed_tokens == 0:
             fallback = fallback_config(config)
             if fallback:
-                for delta in provider_response(fallback, safe_text):
+                for delta in provider_response(fallback, safe_text, query):
+                    if streamed_tokens == 0 and sources:
+                        yield sources
                     streamed_tokens += 1
                     yield delta
 
-        if streamed_tokens > 0:
-            if link_lines:
-                yield "\n\n" + "\n".join(link_lines)
-        else:
+        if streamed_tokens == 0:
             yield "Live AI is temporarily unavailable. Here is the source-grounded answer.\n\n"
             yield grounded_text
 
