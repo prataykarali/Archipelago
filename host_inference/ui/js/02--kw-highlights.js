@@ -323,6 +323,12 @@ import { state } from './00-state.js';
                 rail.appendChild(link);
 
             });
+            if (citations.some(citation => citationPageUrl(citation).startsWith('/open/'))) {
+                const guide = document.createElement('span');
+                guide.className = 'basis-full text-[11px] text-amber-200/90';
+                guide.textContent = 'Pearson: sign in with your institutional account (your browser may autofill saved details), search the cited title, then enter its page number in Pearson’s reader.';
+                rail.appendChild(guide);
+            }
             messageBody.appendChild(rail);
         }
 
