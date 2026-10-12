@@ -39,7 +39,7 @@ from .constants import (
 from .contract import contract_for, graph_decision
 from .graph import LibraryGraph
 from .links import source_links
-from .llm import provider_config, stream_completion
+from .llm import fallback_config, provider_config, stream_completion
 from .nodes import node_public
 from .patterns import (
     AUTH_RE,
@@ -236,9 +236,14 @@ class Engine:
         ]
 
         streamed_tokens = 0
-        for delta in stream_completion(config, safe_text):
-            streamed_tokens += 1
-            yield delta
+        for candidate in (config, fallback_config(config)):
+            if candidate is None:
+                continue
+            for delta in stream_completion(candidate, safe_text):
+                streamed_tokens += 1
+                yield delta
+            if streamed_tokens:
+                break
 
         if streamed_tokens > 0:
             if link_lines:
