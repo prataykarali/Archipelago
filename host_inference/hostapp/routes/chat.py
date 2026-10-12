@@ -13,6 +13,7 @@ from engine.answer import POLISHABLE_ROUTES
 from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
+from ..config import LIBRARIAN_ROLES
 from ..context import AppContext
 
 # Query hygiene: strip null bytes and ASCII control characters, keep whitespace.
@@ -56,6 +57,8 @@ def register(app: Flask, ctx: AppContext) -> None:
         principal = getattr(request, "archipelago_principal", None)
         if principal is None:
             return jsonify({"error": "unauthorized"}), 401
+        if principal.get("role") in LIBRARIAN_ROLES:
+            return jsonify({"unlimited": True, "limited": False, "retry_after": 0})
         return jsonify(ctx.limiter.quota_status(principal["id"]))
 
     @app.post("/api/chat")
@@ -94,7 +97,11 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         auth_required = ctx.auth.required()
         result = ctx.engine.answer(query) if auth_required else None
-        if result is not None and result["route"] in POLISHABLE_ROUTES:
+        if (
+            result is not None
+            and result["route"] in POLISHABLE_ROUTES
+            and principal.get("role") not in LIBRARIAN_ROLES
+        ):
             if not principal:
                 return jsonify({"error": "unauthorized"}), 401
             limited, quota = ctx.limiter.check_daily_chat(principal["id"])
@@ -102,8 +109,14 @@ def register(app: Flask, ctx: AppContext) -> None:
                 response = jsonify(
                     {
                         "error": "query_limit",
-                        "detail": "The daily AI query allowance is exhausted. Saved conversations remain available.",
+                        "detail": (
+                            "The hourly AI query allowance is exhausted. Saved conversations remain available."
+                            if quota.get("limit_reason") == "hourly"
+                            else "The daily AI query allowance is exhausted. Saved conversations remain available."
+                        ),
+                        "limit_reason": quota.get("limit_reason", "daily"),
                         "remaining": quota["remaining"],
+                        "hourly_remaining": quota.get("hourly_remaining", 0),
                         "retry_after": quota["retry_after"],
                     }
                 )

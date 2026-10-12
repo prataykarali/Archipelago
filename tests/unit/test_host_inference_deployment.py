@@ -164,7 +164,37 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     from urllib.parse import parse_qs, urlsplit
 
     params = parse_qs(urlsplit(response.headers["Location"]).query)
-    assert params["service"][0].endswith("#book/book-1/page/7")
+    assert params["service"][0].endswith("&skipLastRead=true#book/book-1/page/7")
+
+
+def test_librarian_chat_does_not_spend_quota(hosted_app, monkeypatch):
+    ctx = hosted_app.app.extensions["archipelago"]
+    monkeypatch.setattr(ctx.auth, "required", lambda: True)
+    monkeypatch.setattr(
+        ctx.auth, "principal", lambda: ({"id": "staff-a", "role": "librarian"}, None)
+    )
+    monkeypatch.setattr(
+        ctx.limiter,
+        "check_chat",
+        lambda: (_ for _ in ()).throw(AssertionError("rate limited")),
+    )
+    monkeypatch.setattr(
+        ctx.limiter,
+        "check_daily_chat",
+        lambda _user: (_ for _ in ()).throw(AssertionError("quota charged")),
+    )
+    monkeypatch.setattr(
+        ctx.engine, "answer", lambda _query: {"route": "GRAPH_SYNTHESIS"}, raising=False
+    )
+    monkeypatch.setattr(
+        ctx.engine,
+        "stream_chat",
+        lambda _query, result=None: iter(["{}\n[STREAM_START]\n", "reply"]),
+        raising=False,
+    )
+    client = hosted_app.app.test_client()
+    assert client.get("/api/chat/quota").json["unlimited"] is True
+    assert client.post("/api/chat", json={"query": "Explain attention"}).status_code == 200
 
 
 def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
@@ -262,6 +292,34 @@ def test_stream_chat_sends_question_and_shows_page_links_first(monkeypatch):
     assert "/read?doc=attention.pdf&page=3" in chunks[1]
     assert chunks[2] == "A tailored explanation."
     assert "Fixed evidence." not in "".join(chunks[1:])
+
+
+def test_stream_chat_uses_citation_metadata_when_draft_has_no_page_link(monkeypatch):
+    import engine.answer as answer_module
+
+    monkeypatch.setenv("XKIRO_API_KEY", "test-x")
+    monkeypatch.setattr(
+        answer_module, "provider_response", lambda _config, _text, _query: iter(["Live answer."])
+    )
+    instance = answer_module.Engine.__new__(answer_module.Engine)
+    instance.answer = lambda _query: {
+        "route": "CROSS_DOMAIN",
+        "text": "Grounded evidence without a link line.",
+        "payload": {
+            "logs": [],
+            "citations": [
+                {
+                    "doc_title": "A Paper",
+                    "page_number": 4,
+                    "url": "https://huggingface.co/datasets/example/papers/a.pdf",
+                }
+            ],
+        },
+    }
+    chunks = list(instance.stream_chat("Explain gradient descent"))
+    assert "A Paper — page 4" in chunks[1]
+    assert "huggingface.co" in chunks[1]
+    assert chunks[2] == "Live answer."
 
 
 def test_greeting_does_not_spend_ai_quota(hosted_app, monkeypatch):

@@ -218,3 +218,11 @@ video zoom values. The authenticated production chat UI still needs a signed-in
 user session for a browser request.
 
 Deferred: verify a complete chat exchange in the signed-in production UI.
+
+## 2026-10-12 — Hourly allowance and Pearson page handoff
+
+Built: the hosted chat allowance is 40 per rolling 24 hours and 10 per rolling hour for students and faculty. Librarian and administrator chat requests bypass both query quotas and the chat rate limiter. The quota API and UI report both remaining counts. Live answers show a source page from citation metadata when the grounded draft has no link line. Pearson reader links carry its `skipLastRead=true` flag through the existing SSO service redirect so the selected page takes priority over the user's saved position; credentials remain with Pearson.
+
+Verified: focused hosted quota, reader redirect, provider fallback, and chat tests pass. The database migration returns 40 daily and 10 hourly slots for a new account.
+
+Deferred: confirm the Pearson post-login page in an authenticated Pearson browser session; the reader is controlled by Pearson. Confirm a fresh production chat request after deployment with a signed-in Archipelago account.

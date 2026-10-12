@@ -125,14 +125,15 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                 const quotaLabel = document.getElementById('query-limit-status');
                 const remaining = response.headers.get('X-Queries-Remaining');
                 if (quotaLabel && remaining !== null) {
-                    quotaLabel.textContent = `${remaining} of 35 AI queries remain in this 24-hour period.`;
+                    const hourly = response.headers.get('X-Hourly-Remaining');
+                    quotaLabel.textContent = `${remaining} of 40 daily AI queries remain; ${hourly ?? '10'} of 10 remain this hour.`;
                 }
 
                 if (!response.ok) {
                     const problem = await response.json().catch(() => ({}));
                     if (response.status === 429 && quotaLabel) {
-                        const hours = Math.ceil(Number(problem.retry_after || 3600) / 3600);
-                        quotaLabel.textContent = `Daily AI limit reached. Resets in about ${hours} hour${hours === 1 ? '' : 's'}. Saved chats remain available.`;
+                        const minutes = Math.ceil(Number(problem.retry_after || 3600) / 60);
+                        quotaLabel.textContent = `${problem.limit_reason === 'hourly' ? 'Hourly' : 'Daily'} AI limit reached. Resets in about ${minutes} minutes. Saved chats remain available.`;
                     }
                     throw new Error(problem.detail || `HTTP Error ${response.status}`);
                 }

@@ -40,8 +40,10 @@ CLIENT_IP_HEADERS = ("CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
 # per-minute ceiling still applies to every method.
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 IDLE_TIMEOUT_SECONDS = 300
-DAILY_QUERY_LIMIT = 35
+DAILY_QUERY_LIMIT = 40
+HOURLY_QUERY_LIMIT = 10
 QUERY_DAY_SECONDS = 86400
+QUERY_HOUR_SECONDS = 3600
 DEFAULT_QUOTA_DB = (
     Path(tempfile.gettempdir()) / "archipelago-cache" / "query_quota.sqlite3"
     if os.environ.get("VERCEL")
@@ -210,6 +212,10 @@ class RateLimiter:
             "used INTEGER NOT NULL, cooldown_until REAL NOT NULL)"
         )
         connection.execute(
+            "CREATE TABLE IF NOT EXISTS hourly_quota "
+            "(user_id TEXT PRIMARY KEY, hour_start REAL NOT NULL, used INTEGER NOT NULL)"
+        )
+        connection.execute(
             "CREATE TABLE IF NOT EXISTS completed_quiz "
             "(user_id TEXT NOT NULL, target TEXT NOT NULL, result TEXT NOT NULL, "
             "PRIMARY KEY (user_id, target))"
@@ -273,14 +279,32 @@ class RateLimiter:
                 (user_id,),
             ).fetchone()
             start, count, _cooldown = row if row else (now, 0, 0.0)
+            hour_row = connection.execute(
+                "SELECT hour_start, used FROM hourly_quota WHERE user_id = ?", (user_id,)
+            ).fetchone()
+            hour_start, hour_count = hour_row if hour_row else (now, 0)
             if now - start >= QUERY_DAY_SECONDS:
                 start, count = now, 0
+            if now - hour_start >= QUERY_HOUR_SECONDS:
+                hour_start, hour_count = now, 0
             if count >= DAILY_QUERY_LIMIT:
                 return True, {
+                    "limit_reason": "daily",
+                    "used": count,
                     "remaining": 0,
+                    "hourly_remaining": HOURLY_QUERY_LIMIT - hour_count,
                     "retry_after": int(start + QUERY_DAY_SECONDS - now) + 1,
                 }
+            if hour_count >= HOURLY_QUERY_LIMIT:
+                return True, {
+                    "limit_reason": "hourly",
+                    "used": count,
+                    "remaining": DAILY_QUERY_LIMIT - count,
+                    "hourly_remaining": 0,
+                    "retry_after": int(hour_start + QUERY_HOUR_SECONDS - now) + 1,
+                }
             count += 1
+            hour_count += 1
             connection.execute(
                 "INSERT INTO quota (user_id, day_start, used, cooldown_until) "
                 "VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET "
@@ -288,10 +312,17 @@ class RateLimiter:
                 "cooldown_until=excluded.cooldown_until",
                 (user_id, start, count, 0.0),
             )
+            connection.execute(
+                "INSERT INTO hourly_quota (user_id, hour_start, used) VALUES (?, ?, ?) "
+                "ON CONFLICT(user_id) DO UPDATE SET "
+                "hour_start=excluded.hour_start, used=excluded.used",
+                (user_id, hour_start, hour_count),
+            )
             return False, {
                 "remaining": DAILY_QUERY_LIMIT - count,
                 "used": count,
-                "cooldown_after_this_query": False,
+                "hourly_used": hour_count,
+                "hourly_remaining": HOURLY_QUERY_LIMIT - hour_count,
             }
 
     def quota_status(self, user_id: str) -> dict:
@@ -307,13 +338,44 @@ class RateLimiter:
                 "SELECT day_start, used, cooldown_until FROM quota WHERE user_id = ?",
                 (user_id,),
             ).fetchone()
-        if not row or now - row[0] >= QUERY_DAY_SECONDS:
-            return {"used": 0, "remaining": DAILY_QUERY_LIMIT, "retry_after": 0}
-        start, used, _cooldown = row
-        retry = 0
-        if used >= DAILY_QUERY_LIMIT:
-            retry = int(start + QUERY_DAY_SECONDS - now) + 1
-        return {"used": used, "remaining": DAILY_QUERY_LIMIT - used, "retry_after": retry}
+            hour_row = connection.execute(
+                "SELECT hour_start, used FROM hourly_quota WHERE user_id = ?", (user_id,)
+            ).fetchone()
+        start, used, _cooldown = row if row else (now, 0, 0.0)
+        hour_start, hour_used = hour_row if hour_row else (now, 0)
+        if now - start >= QUERY_DAY_SECONDS:
+            start, used = now, 0
+        if now - hour_start >= QUERY_HOUR_SECONDS:
+            hour_start, hour_used = now, 0
+        reason = (
+            "daily"
+            if used >= DAILY_QUERY_LIMIT
+            else "hourly"
+            if hour_used >= HOURLY_QUERY_LIMIT
+            else ""
+        )
+        retry = (
+            int(
+                (
+                    start + QUERY_DAY_SECONDS
+                    if reason == "daily"
+                    else hour_start + QUERY_HOUR_SECONDS
+                )
+                - now
+            )
+            + 1
+            if reason
+            else 0
+        )
+        return {
+            "limited": bool(reason),
+            "limit_reason": reason,
+            "used": used,
+            "remaining": DAILY_QUERY_LIMIT - used,
+            "hourly_used": hour_used,
+            "hourly_remaining": HOURLY_QUERY_LIMIT - hour_used,
+            "retry_after": retry,
+        }
 
     @staticmethod
     def client_ip() -> str:

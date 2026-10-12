@@ -71,11 +71,17 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
                 return jsonify({"error": "unauthorized", "detail": error}), 401
             request.archipelago_principal = principal  # type: ignore[attr-defined]
         if path == "/api/chat" and request.method == "POST" and ctx.auth.required():
+            principal = getattr(request, "archipelago_principal", None)
+            if principal and principal.get("role") in LIBRARIAN_ROLES:
+                return None
             limited, retry_after = ctx.limiter.check_chat()
             if limited:
                 return _rate_limited_response(retry_after)
             return None
         if path.startswith("/api/chat"):
+            principal = getattr(request, "archipelago_principal", None)
+            if principal and principal.get("role") in LIBRARIAN_ROLES:
+                return None
             return _apply_limit(ctx.limiter.check_chat())
         if path.startswith("/api/") or path.startswith("/open/") or path.startswith("/papers/"):
             return _apply_limit(ctx.limiter.check_api())
@@ -98,6 +104,7 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         if quota:
             response.headers["X-Queries-Remaining"] = str(quota["remaining"])
             response.headers["X-Queries-Used"] = str(quota["used"])
+            response.headers["X-Hourly-Remaining"] = str(quota.get("hourly_remaining", 0))
         origin = request.headers.get("Origin", "")
         if origin in ALLOWED_ORIGINS:
             response.headers["Access-Control-Allow-Origin"] = origin

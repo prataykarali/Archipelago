@@ -30,8 +30,10 @@ try {
   if (response.ok) {
     const quota = await response.json();
     const label = document.getElementById('query-limit-status');
-    if (label) label.textContent = quota.retry_after
-      ? `Daily AI limit reached. Resets in about ${Math.ceil(quota.retry_after / 3600)} hours.`
-      : `${quota.remaining} of 35 AI queries remain in this 24-hour period.`;
+    if (label) label.textContent = quota.unlimited
+      ? 'Unlimited AI queries for librarian and admin accounts.'
+      : quota.retry_after
+        ? `${quota.limit_reason === 'hourly' ? 'Hourly' : 'Daily'} AI limit reached. Resets in about ${Math.ceil(quota.retry_after / 60)} minutes.`
+        : `${quota.remaining} of 40 daily AI queries remain; ${quota.hourly_remaining} of 10 remain this hour.`;
   }
 } catch (_) {}

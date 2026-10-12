@@ -176,7 +176,9 @@ def pearson_page_url(book: dict, page: int = 1) -> str:
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
     page_part = f"/page/{page_n}"
-    return f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
+    # Pearson's reader otherwise restores its saved position after SSO. Its
+    # skipLastRead query flag makes the page in the fragment take precedence.
+    return f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}&skipLastRead=true#book/{book.get('id')}{page_part}"
 
 
 def public_book(book: dict) -> dict:

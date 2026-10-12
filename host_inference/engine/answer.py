@@ -56,6 +56,25 @@ SOURCE_LOOKUP_RE = re.compile(
 WHERE_IS_RE = re.compile(r"^where\s+(?:is|are)\s+", re.I)
 
 
+def _citation_source_lines(citations: list[dict]) -> list[str]:
+    """Render exact links from retrieval metadata when a draft omits them."""
+    lines: list[str] = []
+    for citation in citations:
+        if not isinstance(citation, dict) or citation.get("withdrawn"):
+            continue
+        url = str(citation.get("url") or "")
+        if not url.startswith(("https://huggingface.co/", "/papers/")):
+            continue
+        page = int(citation.get("page_number") or 1)
+        title = str(
+            citation.get("doc_title") or citation.get("title") or citation.get("doc_id") or "Source"
+        )
+        line = f"[{title} — page {page}]({url})"
+        if line not in lines:
+            lines.append(line)
+    return lines
+
+
 class Engine(RoutingMixin):
     """Load the exported graph and answer library questions from it."""
 
@@ -217,7 +236,11 @@ class Engine(RoutingMixin):
             for line in grounded_text.splitlines()
             if line.startswith(CITATION_LINE_PREFIXES) and "](" in line
         ]
-        sources = "**Sources and pages**\n" + "\n".join(link_lines) + "\n\n" if link_lines else ""
+        metadata_lines = _citation_source_lines(payload.get("citations") or [])
+        source_lines = link_lines or metadata_lines
+        sources = (
+            "**Sources and pages**\n" + "\n".join(source_lines) + "\n\n" if source_lines else ""
+        )
 
         streamed_tokens = 0
         for delta in provider_response(config, safe_text, query):
