@@ -146,7 +146,7 @@ import { state } from './00-state.js';
             }
         }).catch(() => {});
 
-        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/graphier/blob/main';
+        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/Library_books/blob/main';
 
         const HF_CANONICAL_DOCS = {
             'deisenroth_math_for_ml.pdf': 'textbooks/Deisenroth_Math_For_ML.pdf',

@@ -53,7 +53,9 @@ function displayBooks() {
         citations.forEach(cite => {
             const title = cite.doc_title || cite.title || (cite.doc_id ? cite.doc_id.split('/').pop() : 'Cited Resource');
             const page = cite.page_number || cite.printed_page || 1;
-            const hfUrl = cite.hf_url || (cite.doc_id && cite.doc_id.endsWith('.pdf') ? `https://huggingface.co/datasets/Prataykarali/graphier/blob/main/${cite.doc_id}` : null);
+            const hfUrl = cite.doc_id && cite.doc_id.endsWith('.pdf')
+                ? `/papers/${String(cite.doc_id).split('/').map(encodeURIComponent).join('/')}#page=${page}`
+                : null;
             const openUrl = citationPageUrl(cite) || `/read/${encodeURIComponent(cite.doc_id || '')}?page=${page}#page=${page}`;
             const shelfLoc = cite.shelf || (cite.call_number ? `Shelf: ${cite.call_number}` : (cite.location || null));
             const isPearson = !!(cite.is_pearson || (cite.book_id && !isNaN(Number(cite.book_id))));
@@ -75,7 +77,7 @@ function displayBooks() {
                     </a>
                     ${hfUrl ? `
                         <a href="${hfUrl}" target="_blank" class="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 font-semibold flex items-center gap-1 transition-colors">
-                            <i class="fa-solid fa-cube text-[9px]"></i> HF Dataset
+                            <i class="fa-solid fa-file-pdf text-[9px]"></i> Open PDF
                         </a>
                     ` : ''}
                     ${isPearson ? `

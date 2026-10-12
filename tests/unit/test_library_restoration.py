@@ -1,4 +1,5 @@
 """Restoration retries missing independent artifacts without destroying real data."""
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,11 @@ pytestmark = pytest.mark.unit
 def graph(path: Path, fixture: bool = False) -> None:
     """Write a deliberately synthetic 84-node export."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"nodes": [{"id": f"test-{i}"} for i in range(84)], "stats": {"fixture": fixture}}))
+    path.write_text(
+        json.dumps(
+            {"nodes": [{"id": f"test-{i}"} for i in range(84)], "stats": {"fixture": fixture}}
+        )
+    )
 
 
 def test_large_fixture_still_requires_restoration(tmp_path):
@@ -35,7 +40,11 @@ def test_missing_catalog_fetched_even_with_complete_graph(tmp_path, monkeypatch)
     def fetch(repo, remote, destination, token):
         calls.append(remote)
         destination.parent.mkdir(parents=True, exist_ok=True)
-        data = {"books": [{"id": "synthetic", "title": "Synthetic"}]} if "pearson" in remote else {"hf_paths": ["papers/synthetic.pdf"]}
+        data = (
+            {"books": [{"id": "synthetic", "title": "Synthetic"}]}
+            if "pearson" in remote
+            else {"hf_paths": ["papers/synthetic.pdf"]}
+        )
         destination.write_text(json.dumps(data))
         return True
 
@@ -89,9 +98,20 @@ def test_corrupt_graph_restored_to_explicit_fixture(tmp_path, monkeypatch):
 
 
 def test_ambiguous_basename_is_not_guessed(monkeypatch):
-    monkeypatch.setattr(library_index, "load_hf_paths", lambda: ["papers/same.pdf", "textbooks/same.pdf"])
+    monkeypatch.setattr(
+        library_index, "load_hf_paths", lambda: ["papers/same.pdf", "textbooks/same.pdf"]
+    )
     assert library_index.resolve_hf_path("same.pdf") == ""
     assert library_index.resolve_hf_path("papers/same.pdf") == "papers/same.pdf"
+
+
+def test_ostep_graph_citation_resolves_to_library_books_file(monkeypatch):
+    canonical = "archipelago-books-cs/ostep_three_easy_pieces/03_Process_API.pdf"
+    monkeypatch.setattr(library_index, "load_hf_paths", lambda: [canonical])
+    assert (
+        library_index.resolve_hf_path("papers/ostep_three_easy_pieces/03_Process_API.pdf")
+        == canonical
+    )
 
 
 def test_non_object_json_cannot_crash_stub_detection(tmp_path):

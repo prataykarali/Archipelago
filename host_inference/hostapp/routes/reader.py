@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import re
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 from engine import _hf_doc_path
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
@@ -21,13 +21,12 @@ from ..config import UI
 from ..context import AppContext
 
 READER_PAGE_FILE = "reader.html"
-HF_REPO_NAME = os.environ.get("HF_DATASET_REPO", "Prataykarali/graphier")
+HF_REPO_NAME = os.environ.get("HF_LIBRARY_REPO", "Prataykarali/Library_books")
 HF_DATASET_RESOLVE_BASE = f"https://huggingface.co/datasets/{HF_REPO_NAME}/resolve/main"
 HF_STREAM_CHUNK_BYTES = 65536
 HF_STREAM_TIMEOUT_SEC = 30
 MIN_PAGE = 1
 MAX_BOOK_ID_LEN = 128
-PEARSON_SSO_LOGIN_URL = "https://admin.elibrary.in.pearson.com/sso/login"
 
 BOOK_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\. ]+$")
 SAFE_DOC_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\./]+$")
@@ -236,7 +235,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/open/<book_id>")
     @app.get("/open/book/<book_id>")
     def open_pearson(book_id: str):
-        """Let Pearson restore or create its session before opening the selected book."""
+        """Open the reader directly; Pearson prompts only when its session needs login."""
         # Citations and legacy links may carry the `book/` prefix.
         clean_id = (book_id or "").strip()
         if clean_id.startswith("book/"):
@@ -254,5 +253,4 @@ def register(app: Flask, ctx: AppContext) -> None:
         except (ValueError, TypeError):
             page = MIN_PAGE
         reader_url = pearson_page_url(book, page)
-        login_url = f"{PEARSON_SSO_LOGIN_URL}?{urlencode({'service': reader_url, 'eulogin': 'true'})}"
-        return redirect(login_url, code=302)
+        return redirect(reader_url, code=302)

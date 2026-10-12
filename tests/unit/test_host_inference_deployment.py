@@ -161,10 +161,10 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
     assert response.status_code == 302
-    from urllib.parse import parse_qs, urlsplit
-
-    params = parse_qs(urlsplit(response.headers["Location"]).query)
-    assert params["service"][0].endswith("&skipLastRead=true#book/book-1/page/7")
+    assert response.headers["Location"].startswith(
+        "https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?"
+    )
+    assert response.headers["Location"].endswith("&skipLastRead=true#book/book-1/page/7")
 
 
 def test_reflowable_pearson_book_opens_reader_instead_of_bookshelf():
@@ -173,6 +173,46 @@ def test_reflowable_pearson_book_opens_reader_instead_of_bookshelf():
     url = pearson_page_url({"id": "reflow-1", "book_type": "reflowable"}, 9)
     assert "/wr/viewer.html?" in url
     assert url.endswith("&skipLastRead=true#book/reflow-1/page/9")
+
+
+def test_hosted_pdf_fetches_from_library_books_dataset(hosted_app, monkeypatch):
+    import hostapp.routes.reader as reader_routes
+
+    canonical = "archipelago-books-cs/ostep_three_easy_pieces/03_Process_API.pdf"
+    requested = "papers/ostep_three_easy_pieces/03_Process_API.pdf"
+    monkeypatch.setattr(
+        reader_routes,
+        "resolve_hf_path",
+        lambda value: canonical if value in {canonical, requested} else "",
+    )
+    monkeypatch.setattr(reader_routes, "_hf_doc_path", lambda value: value)
+    monkeypatch.setenv("HF_TOKEN", "test-token")
+    seen = []
+
+    class Response:
+        status_code = 200
+
+        def iter_content(self, _size):
+            yield b"%PDF-1.7\nsynthetic"
+
+        def close(self):
+            pass
+
+    def fetch(url, **_kwargs):
+        seen.append(url)
+        return Response()
+
+    monkeypatch.setattr(reader_routes.requests, "get", fetch)
+    client = hosted_app.app.test_client()
+    info = client.get(f"/api/reader/info/{requested}?page=3")
+    assert info.status_code == 200
+    assert info.json["pdf_url"] == f"/papers/{canonical}"
+    response = client.get(info.json["pdf_url"])
+    assert response.status_code == 200
+    assert response.data.startswith(b"%PDF-")
+    assert seen == [
+        f"https://huggingface.co/datasets/Prataykarali/Library_books/resolve/main/{canonical}"
+    ]
 
 
 def test_librarian_chat_does_not_spend_quota(hosted_app, monkeypatch):

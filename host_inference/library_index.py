@@ -87,15 +87,26 @@ def resolve_hf_path(value: str) -> str:
         return raw
     base = raw.rsplit("/", 1)[-1]
     candidates = (
-        raw.removeprefix("papers/"),
-        f"books/papers/{base}",
-        f"textbooks/{base}",
-        f"books/textbooks/{base}",
-        f"archipelago-books-cs/{raw}",
+        (
+            raw.removeprefix("papers/"),
+            raw.removeprefix("textbooks/"),
+            f"books/papers/{base}",
+            f"books/textbooks/{base}",
+            f"archipelago-books-cs/{raw}",
+            f"archipelago-books-cs/{raw.removeprefix('papers/')}",
+            f"archipelago-books-cs/{raw.removeprefix('textbooks/')}",
+        )
+        if "/" in raw
+        else ()
     )
     for candidate in candidates:
         if candidate in paths:
             return candidate
+    # Graph citations can omit a collection prefix. Resolve only a unique
+    # filename; a duplicate must be named by its full manifest path.
+    matches = [path for path in paths if path.rsplit("/", 1)[-1] == base]
+    if len(matches) == 1:
+        return matches[0]
     return ""
 
 
