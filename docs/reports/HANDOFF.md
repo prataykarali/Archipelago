@@ -242,3 +242,9 @@ Deferred: Pearson post-login exact-page behavior requires a signed-in Pearson br
 Built: the chat book stack now waits for `/api/catalog/all` and displays only the dataset-backed catalog instead of merging legacy placeholder cards. Private Hugging Face citation URLs route through the app's authenticated `/read` reader at the requested page.
 
 Verified: JavaScript syntax checks and 32 focused hosted and library tests pass. The live build still needs an authenticated browser check after promotion. Pearson's exact reader page can only be verified with an active Pearson account session.
+
+## 2026-10-12 — Hosted conversation and Pearson sign-in
+
+Built: hosted chat now uses bounded recent conversation for model replies and resolves short follow-up references during graph retrieval. On-topic questions that miss the graph threshold go to the live provider chain; provider failure is explicit instead of silently replaying a static draft. The XKIRO output allowance and browser idle timeout were raised so a complete reply can finish. Pearson links now lead to Pearson's sign-in page with the selected reader URL as the return service; the chat book stack and library page explain manual title and page navigation. Browser password managers may fill previously saved Pearson credentials, but the application never handles them.
+
+Verified: XKIRO and NVIDIA both returned direct completions using the working configured keys. A local hosted-engine follow-up returned a fresh XKIRO completion with its prior question included. Focused hosted tests and JavaScript syntax checks pass. Production browser verification remains after deployment.

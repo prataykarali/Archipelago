@@ -183,6 +183,15 @@ def pearson_page_url(book: dict, page: int = 1) -> str:
     return f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}&skipLastRead=true#book/{book.get('id')}{page_part}"
 
 
+def pearson_login_url(book: dict, page: int = 1) -> str:
+    """Open Pearson sign-in with its own reader URL as the return service."""
+    from urllib.parse import urlencode
+
+    return "https://admin.elibrary.in.pearson.com/sso/login?" + urlencode(
+        {"service": pearson_page_url(book, page), "eulogin": "true"}
+    )
+
+
 def public_book(book: dict) -> dict:
     """Browser payload. Subscription ids stay on the server."""
     return {

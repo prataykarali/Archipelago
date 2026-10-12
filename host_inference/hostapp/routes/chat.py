@@ -23,6 +23,34 @@ STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
 TOKENS_SAVED_PER_HIT = 350
 TELEMETRY_NO_CONTENT = 204
+HISTORY_TURN_LIMIT = 6
+HISTORY_CONTENT_LIMIT = 1200
+FOLLOWUP_PATTERN = re.compile(r"\b(?:it|its|that|this|those|they|them|more|elaborate)\b", re.I)
+
+
+def _recent_history(value: object) -> list[dict[str, str]]:
+    """Keep only bounded user/assistant turns as untrusted model context."""
+    if not isinstance(value, list):
+        return []
+    turns = []
+    for turn in value[-HISTORY_TURN_LIMIT:]:
+        if not isinstance(turn, dict) or turn.get("role") not in ("user", "assistant"):
+            continue
+        content = turn.get("content")
+        if not isinstance(content, str):
+            continue
+        clean = CONTROL_CHARS.sub("", content).strip()[:HISTORY_CONTENT_LIMIT]
+        if clean:
+            turns.append({"role": turn["role"], "content": clean})
+    return turns
+
+
+def _retrieval_query(query: str, history: list[dict[str, str]]) -> str:
+    """Resolve short follow-up references against the last user question."""
+    if not history or len(query) > 100 or not FOLLOWUP_PATTERN.search(query):
+        return query
+    prior = next((turn["content"] for turn in reversed(history) if turn["role"] == "user"), "")
+    return f"{prior} {query}" if prior else query
 
 
 def _metadata_frame(chunks: list[str]) -> dict:
@@ -75,6 +103,8 @@ def register(app: Flask, ctx: AppContext) -> None:
         if not query:
             return jsonify({"error": "Query cannot be empty"}), 400
 
+        history = _recent_history(body.get("history"))
+
         ctx.cache_metrics.record_request()
         principal = getattr(request, "archipelago_principal", None) or {}
         norm_query = f"{principal.get('id', 'guest')}:{ctx.cache_service.normalize_query(query)}"
@@ -96,7 +126,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                 )
 
         auth_required = ctx.auth.required()
-        result = ctx.engine.answer(query) if auth_required else None
+        result = ctx.engine.answer(_retrieval_query(query, history)) if auth_required else None
         if (
             result is not None
             and result["route"] in POLISHABLE_ROUTES
@@ -132,11 +162,10 @@ def register(app: Flask, ctx: AppContext) -> None:
         def generate():
             collected_chunks = []
             try:
-                stream = (
-                    ctx.engine.stream_chat(query, result=result)
-                    if result is not None
-                    else ctx.engine.stream_chat(query)
-                )
+                kwargs = {"result": result} if result is not None else {}
+                if history:
+                    kwargs["history"] = history
+                stream = ctx.engine.stream_chat(query, **kwargs)
                 for chunk in stream:
                     collected_chunks.append(chunk)
                     yield chunk

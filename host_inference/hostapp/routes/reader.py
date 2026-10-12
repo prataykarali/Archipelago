@@ -14,7 +14,7 @@ from urllib.parse import quote
 from engine import _hf_doc_path
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
 from library_index import hf_title, resolve_hf_path
-from remote_cache import load_books, pearson_page_url
+from remote_cache import load_books, pearson_login_url, pearson_page_url
 import requests
 
 from ..config import UI
@@ -235,7 +235,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/open/<book_id>")
     @app.get("/open/book/<book_id>")
     def open_pearson(book_id: str):
-        """Open the reader directly; Pearson prompts only when its session needs login."""
+        """Start at Pearson sign-in and retain the selected reader page."""
         # Citations and legacy links may carry the `book/` prefix.
         clean_id = (book_id or "").strip()
         if clean_id.startswith("book/"):
@@ -252,5 +252,4 @@ def register(app: Flask, ctx: AppContext) -> None:
             page = max(MIN_PAGE, int(request.args.get("page") or 1))
         except (ValueError, TypeError):
             page = MIN_PAGE
-        reader_url = pearson_page_url(book, page)
-        return redirect(reader_url, code=302)
+        return redirect(pearson_login_url(book, page), code=302)

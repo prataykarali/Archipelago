@@ -183,10 +183,14 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     response = hosted_app.app.test_client().get("/open/book-1?page=7")
 
     assert response.status_code == 302
-    assert response.headers["Location"].startswith(
-        "https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?"
-    )
-    assert response.headers["Location"].endswith("&skipLastRead=true#book/book-1/page/7")
+    from urllib.parse import parse_qs, urlsplit
+
+    target = urlsplit(response.headers["Location"])
+    assert target.netloc == "admin.elibrary.in.pearson.com"
+    assert target.path == "/sso/login"
+    service = parse_qs(target.query)["service"][0]
+    assert service.startswith("https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?")
+    assert service.endswith("&skipLastRead=true#book/book-1/page/7")
 
 
 def test_reflowable_pearson_book_opens_reader_instead_of_bookshelf():
@@ -297,15 +301,15 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     chunks = list(instance.stream_chat("explain graph retrieval"))
     metadata = json.loads(chunks[0].split("\n[STREAM_START]\n", 1)[0])
 
-    assert captured["payload"]["max_tokens"] == 700
-    assert "two or three substantial paragraphs" in captured["payload"]["messages"][0]["content"]
+    assert captured["payload"]["max_tokens"] == 900
+    assert "answer the current user_question conversationally" in captured["payload"]["messages"][0]["content"]
     assert (
         json.loads(captured["payload"]["messages"][1]["content"])["user_question"]
         == "explain graph retrieval"
     )
     assert metadata["model"]["provider"] == "xkiro"
-    assert chunks[-1] == "Grounded fallback with [citation]."
-    assert "Live AI is temporarily unavailable" in chunks[-2]
+    assert chunks[-1].startswith("Live AI is temporarily unavailable")
+    assert "Grounded fallback with [citation]." not in "".join(chunks[1:])
 
 
 def test_stream_chat_uses_nvidia_when_xkiro_is_empty(monkeypatch):
@@ -426,6 +430,48 @@ def test_greeting_does_not_spend_ai_quota(hosted_app, monkeypatch):
     assert charges == []
     assert client.post("/api/chat", json={"query": "explain attention"}).status_code == 200
     assert charges == ["student-a"]
+
+
+def test_followup_uses_previous_question_for_retrieval_and_model(hosted_app, monkeypatch):
+    """A follow-up must carry context through both retrieval and generation."""
+    ctx = hosted_app.app.extensions["archipelago"]
+    seen = {}
+    monkeypatch.setattr(ctx.auth, "required", lambda: True)
+    monkeypatch.setattr(
+        ctx.auth, "principal", lambda: ({"id": "student-a", "role": "student"}, None)
+    )
+    monkeypatch.setattr(
+        ctx.limiter, "check_daily_chat", lambda _user: (False, {"remaining": 39, "used": 1})
+    )
+
+    def answer(query):
+        seen["retrieval"] = query
+        return {"route": "GRAPH_SYNTHESIS"}
+
+    def stream_chat(query, *, result, history):
+        seen["question"] = query
+        seen["history"] = history
+        yield "{}\n[STREAM_START]\n"
+        yield "Fresh model answer."
+
+    monkeypatch.setattr(ctx.engine, "answer", answer, raising=False)
+    monkeypatch.setattr(ctx.engine, "stream_chat", stream_chat, raising=False)
+    response = hosted_app.app.test_client().post(
+        "/api/chat",
+        json={
+            "query": "How does it affect training?",
+            "history": [
+                {"role": "user", "content": "Why scale attention scores?"},
+                {"role": "assistant", "content": "To avoid softmax saturation."},
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Fresh model answer." in response.data
+    assert seen["retrieval"] == "Why scale attention scores? How does it affect training?"
+    assert seen["question"] == "How does it affect training?"
+    assert seen["history"][0]["content"] == "Why scale attention scores?"
 
 
 def test_server_is_a_thin_shim_over_the_hostapp_factory(hosted_app):

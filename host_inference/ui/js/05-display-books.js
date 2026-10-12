@@ -34,6 +34,13 @@ function displayBooks() {
 
     container.innerHTML = '';
 
+    if (entries.some(doc => doc.is_pearson)) {
+        const guide = document.createElement('p');
+        guide.className = 'mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-100';
+        guide.textContent = 'Pearson books: open a title, sign in on Pearson with your institutional account (your browser may autofill saved credentials), then search the shown title and use Pearson’s page control for the cited page.';
+        container.appendChild(guide);
+    }
+
     // Render Query-Connected Literature Section if metadata citations exist
     const qMeta = state.currentQueryMetadata;
     const citations = (qMeta && Array.isArray(qMeta.citations)) ? qMeta.citations : [];

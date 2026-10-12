@@ -44,7 +44,17 @@ SHORTEST_PATH_LIMIT = 6
 BOOK_TITLE_MIN_OVERLAP = 2
 BOOK_TITLE_TOKEN_MIN_LEN = 5
 # Grounded routes whose draft is worth sending to the LLM for phrasing.
-POLISHABLE_ROUTES = frozenset({"GRAPH_SYNTHESIS", "RELATION", "CROSS_DOMAIN", "BOOK_PAGE", "DEMO"})
+POLISHABLE_ROUTES = frozenset(
+    {
+        "GRAPH_SYNTHESIS",
+        "RELATION",
+        "CROSS_DOMAIN",
+        "BOOK_PAGE",
+        "DEMO",
+        "GUARDRAIL_INTERCEPT",
+        "CURRICULUM_UNINDEXED",
+    }
+)
 # Comparison cue words that flip a relation reply into a comparative matrix.
 COMPARE_CUES = ("compare", "versus", "vs", "difference")
 COMPARE_CUES_DBMS = ("compare", "versus", "vs", "difference", "dbms", "b+")
@@ -203,7 +213,12 @@ class Engine(RoutingMixin):
             "extra": extra,
         }
 
-    def stream_chat(self, query: str, result: dict | None = None):
+    def stream_chat(
+        self,
+        query: str,
+        result: dict | None = None,
+        history: list[dict[str, str]] | None = None,
+    ):
         """Yield the metadata frame immediately, then stream tokens from XKIRO.
 
         Try NVIDIA when XKIRO produces no answer. Show when both are unavailable.
@@ -226,11 +241,16 @@ class Engine(RoutingMixin):
 
         if not config:
             if can_polish:
-                yield "Live AI is unavailable because no provider is configured. Here is the source-grounded answer.\n\n"
-            yield grounded_text
+                yield "Live AI is unavailable because no provider is configured. Please retry later."
+            else:
+                yield grounded_text
             return
 
-        safe_text = redact_for_model(grounded_text)
+        safe_text = (
+            ""
+            if route in {"GREETING", "GUARDRAIL_INTERCEPT", "CURRICULUM_UNINDEXED"}
+            else redact_for_model(grounded_text)
+        )
         link_lines = [
             line
             for line in grounded_text.splitlines()
@@ -243,7 +263,8 @@ class Engine(RoutingMixin):
         )
 
         streamed_tokens = 0
-        for delta in provider_response(config, safe_text, query):
+        history_kw = {"history": history} if history else {}
+        for delta in provider_response(config, safe_text, query, **history_kw):
             if streamed_tokens == 0 and sources:
                 yield sources
             streamed_tokens += 1
@@ -252,15 +273,14 @@ class Engine(RoutingMixin):
         if streamed_tokens == 0:
             fallback = fallback_config(config)
             if fallback:
-                for delta in provider_response(fallback, safe_text, query):
+                for delta in provider_response(fallback, safe_text, query, **history_kw):
                     if streamed_tokens == 0 and sources:
                         yield sources
                     streamed_tokens += 1
                     yield delta
 
         if streamed_tokens == 0:
-            yield "Live AI is temporarily unavailable. Here is the source-grounded answer.\n\n"
-            yield grounded_text
+            yield "Live AI is temporarily unavailable from both providers. Please retry your question."
 
     def _route_shelf_query(
         self, query: str, best_score: float

@@ -11,7 +11,7 @@ function openBookOrUnavailable(book) {
     // Direct launch to external Pearson or HuggingFace dataset PDF (NOWHERE ELSE!)
     const directUrl = citationPageUrl(book);
     if (directUrl) {
-        if (directUrl.includes('pearson.com')) copyPearsonCreds();
+        if (book.is_pearson || directUrl.includes('pearson.com')) copyPearsonCreds();
         window.open(directUrl, '_blank', 'noopener,noreferrer');
         return;
     }

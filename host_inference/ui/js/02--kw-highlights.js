@@ -109,7 +109,7 @@ import { state } from './00-state.js';
             }
             t.innerHTML = `
                 <span style="color:#fbbf24;font-weight:700">Pearson eLibrary:</span>
-                <span>Sign in with your own institutional account to open licensed books.</span>
+                <span>Sign in on Pearson with your institutional account. Your browser may autofill saved credentials. Search the book title and use Pearson’s page control for the cited page.</span>
             `;
             t.style.opacity = '1';
             t.style.transform = 'translateX(-50%) translateY(0)';
