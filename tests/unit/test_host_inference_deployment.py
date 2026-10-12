@@ -197,6 +197,35 @@ def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
     assert "two or three substantial paragraphs" in captured["payload"]["messages"][0]["content"]
     assert metadata["model"]["provider"] == "xkiro"
     assert chunks[-1] == "Grounded fallback with [citation]."
+    assert "Live AI is temporarily unavailable" in chunks[-2]
+
+
+def test_stream_chat_uses_nvidia_when_xkiro_is_empty(monkeypatch):
+    """A failed primary must reach the backup before serving a static draft."""
+    import engine.answer as answer_module
+
+    monkeypatch.setenv("XKIRO_API_KEY", "test-x")
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-n")
+    calls = []
+
+    def fake_response(config, _text):
+        calls.append(config["provider"])
+        if config["provider"] == "nvidia":
+            yield "Live NVIDIA answer."
+
+    monkeypatch.setattr(answer_module, "provider_response", fake_response)
+    instance = answer_module.Engine.__new__(answer_module.Engine)
+    instance.answer = lambda _query: {
+        "route": "GRAPH_SYNTHESIS",
+        "text": "Grounded draft.",
+        "payload": {"logs": []},
+    }
+
+    chunks = list(instance.stream_chat("explain retrieval"))
+
+    assert calls == ["xkiro", "nvidia"]
+    assert "Live NVIDIA answer." in chunks
+    assert "Grounded draft." not in chunks[1:]
 
 
 def test_server_is_a_thin_shim_over_the_hostapp_factory(hosted_app):

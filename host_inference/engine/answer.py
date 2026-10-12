@@ -31,7 +31,7 @@ from .constants import (
 from .contract import contract_for, graph_decision
 from .graph import LibraryGraph
 from .links import source_links
-from .llm import provider_config, stream_completion
+from .llm import fallback_config, provider_config, provider_response
 from .nodes import node_public
 
 # Routing thresholds and caps.
@@ -187,8 +187,7 @@ class Engine(RoutingMixin):
     def stream_chat(self, query: str):
         """Yield the metadata frame immediately, then stream tokens from XKIRO.
 
-        Falls back to the grounded draft when no provider is configured or the
-        stream produced no tokens.
+        Try NVIDIA when XKIRO produces no answer. Show when both are unavailable.
         """
         result = self.answer(query)
         route = result["route"]
@@ -200,13 +199,15 @@ class Engine(RoutingMixin):
         if config:
             payload["model"] = {"provider": config["provider"], "model": config["model"]}
             payload["logs"].append(
-                {"step": config["provider"], "status": "ok", "details": config["model"]}
+                {"step": config["provider"], "status": "attempted", "details": config["model"]}
             )
 
         # Yield metadata frame immediately (< 10ms) to satisfy client watchdog and populate evidence/graph
         yield json.dumps(payload) + "\n[STREAM_START]\n"
 
         if not config:
+            if can_polish:
+                yield "Live AI is unavailable because no provider is configured. Here is the source-grounded answer.\n\n"
             yield grounded_text
             return
 
@@ -216,15 +217,22 @@ class Engine(RoutingMixin):
         ]
 
         streamed_tokens = 0
-        for delta in stream_completion(config, safe_text):
+        for delta in provider_response(config, safe_text):
             streamed_tokens += 1
             yield delta
+
+        if streamed_tokens == 0:
+            fallback = fallback_config(config)
+            if fallback:
+                for delta in provider_response(fallback, safe_text):
+                    streamed_tokens += 1
+                    yield delta
 
         if streamed_tokens > 0:
             if link_lines:
                 yield "\n\n" + "\n".join(link_lines)
         else:
-            # Fallback to grounded text if stream connection failed or produced 0 tokens
+            yield "Live AI is temporarily unavailable. Here is the source-grounded answer.\n\n"
             yield grounded_text
 
     def _route_shelf_query(

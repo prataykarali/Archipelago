@@ -87,7 +87,9 @@ def register(app: Flask, ctx: AppContext) -> None:
                     else:
                         yield str(wait_result)
 
-                return current_app.response_class(generate_dedup(), mimetype=STREAM_MIME)
+                return current_app.response_class(
+                    generate_dedup(), mimetype=STREAM_MIME, headers={"Cache-Control": "no-store"}
+                )
 
         # Fresh retrieval and inference for each request.
         ctx.cache_metrics.record_miss()
@@ -109,7 +111,9 @@ def register(app: Flask, ctx: AppContext) -> None:
                 if is_leader:
                     ctx.request_dedup.cleanup(norm_query)
 
-        return current_app.response_class(generate(), mimetype=STREAM_MIME)
+        return current_app.response_class(
+            generate(), mimetype=STREAM_MIME, headers={"Cache-Control": "no-store"}
+        )
 
     @app.get("/api/chat/diagnostic-mcqs")
     def diagnostic_mcqs():

@@ -213,7 +213,7 @@
         .avatar-shell {
             --avatar-size: 9.5rem;
             /* Fill the purple ring — character shoulders/face, not empty studio */
-            --avatar-zoom: 1.62;
+            --avatar-zoom: 1.42;
             --avatar-pos-x: 50%;
             --avatar-pos-y: 42%;
             width: var(--avatar-size);
@@ -249,13 +249,13 @@
         }
         /* success: tiny circular subject on large white plate — zoom hard to fill shell */
         .avatar-shell video[data-avatar-clip="success"] {
-            --avatar-zoom: 3.05;
-            transform: translate(-50%, -50%) scale(3.05);
+            --avatar-zoom: 2.7;
+            transform: translate(-50%, -50%) scale(2.7);
             object-position: 50% 48%;
         }
         /* goit also has a bit more outer padding than hi/think */
         .avatar-shell video[data-avatar-clip="goit"] {
-            transform: translate(-50%, -50%) scale(1.72);
+            transform: translate(-50%, -50%) scale(1.52);
             object-position: 50% 45%;
         }
         .avatar-shell video.is-hidden {

@@ -90,7 +90,7 @@ def provider_config() -> ProviderConfig | None:
     pinned = os.environ.get("ARCHIPELAGO_LLM_PROVIDER", "").strip().lower()
     if pinned and pinned not in PROVIDER_KEY_ENV:
         return None
-    for name in ((pinned,) if pinned else PROVIDER_ORDER):
+    for name in (pinned,) if pinned else PROVIDER_ORDER:
         if pinned and name != pinned:
             continue
         config = _build_config(name)
@@ -182,6 +182,24 @@ def stream_completion(config: ProviderConfig, text: str) -> Iterator[str]:
     finally:
         if resp is not None:
             resp.close()
+
+
+def provider_response(config: ProviderConfig, text: str) -> Iterator[str]:
+    """Yield visible text from a provider, including NVIDIA's nonstreaming reply.
+
+    NVIDIA's reasoning stream can finish with no content even when its normal
+    completion endpoint returns a visible answer. A single complete response is
+    preferable to silently replaying the grounded draft in that case.
+    """
+    if config["provider"] == "nvidia":
+        try:
+            answer = complete(config, text)
+        except (requests.RequestException, ValueError, KeyError, IndexError, TypeError):
+            return
+        if answer:
+            yield answer
+        return
+    yield from stream_completion(config, text)
 
 
 def fallback_config(current: ProviderConfig) -> ProviderConfig | None:
