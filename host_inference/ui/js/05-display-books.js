@@ -1,7 +1,7 @@
 // Auto-split from ui/chat/index.html — 05-display-books.js
 // Feature module 6 of 22.
 import { state } from './00-state.js';
-import { CATALOG_55, DOM_SECTIONS, getCategory, getDocCollection } from './04-start-new-chat.js';
+import { DOM_SECTIONS, getCategory, getDocCollection } from './04-start-new-chat.js';
 import { openBookOrUnavailable } from './06-open-book-or-unavailable.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_HOST } from './00-current-origin.js';
@@ -169,27 +169,16 @@ function displayBooks() {
 }
 
 async function renderBookStack() {
-    CATALOG_55.forEach(doc => {
-        state.GLOBAL_DOC_MAP[doc.id] = {
-            id: doc.id,
-            title: doc.title,
-            authors: doc.authors,
-            year: doc.year,
-            cat: doc.cat,
-            dom: doc.dom || getCategory(doc.id),
-            pdf: doc.pdf,
-            topics: doc.topics,
-            pages: []
-        };
-    });
-    
-    displayBooks();
+    const container = document.getElementById('books-list');
+    if (container) container.innerHTML = '<p class="text-xs text-gray-400 p-2">Loading verified library catalog…</p>';
 
     try {
         const res = await fetch(API_HOST + '/api/catalog/all');
         if (res.ok) {
             const data = await res.json();
             const docs = data.documents || data || [];
+            if (!Array.isArray(docs) || docs.length === 0) throw new Error('Empty catalog');
+            state.GLOBAL_DOC_MAP = {};
             docs.forEach(doc => {
                 state.GLOBAL_DOC_MAP[doc.id] = {
                     id: doc.id,
@@ -208,9 +197,12 @@ async function renderBookStack() {
                 };
             });
             displayBooks();
+        } else {
+            throw new Error(`Catalog HTTP ${res.status}`);
         }
     } catch (err) {
         console.error("Failed to load catalog from API:", err);
+        if (container) container.innerHTML = '<p class="text-xs text-amber-300 p-2">Library catalog is temporarily unavailable. Please retry later.</p>';
     }
 }
 

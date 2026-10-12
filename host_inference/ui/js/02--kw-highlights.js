@@ -215,7 +215,7 @@ import { state } from './00-state.js';
                 target.searchParams.set('page', String(page));
                 return target.pathname + target.search + `#page=${page}`;
             }
-            if (typeof directUrl === 'string' && (directUrl.startsWith('/papers/') || directUrl.includes('/papers/'))) {
+            if (typeof directUrl === 'string' && directUrl.startsWith('/papers/')) {
                 const clean = directUrl.split('#')[0];
                 return `${clean}#page=${page}`;
             }
@@ -252,8 +252,14 @@ import { state } from './00-state.js';
 
             }
 
-            // 3. Direct external URL (Hugging Face, arXiv, etc.)
-            if (typeof directUrl === 'string' && (directUrl.startsWith('https://huggingface.co') || directUrl.startsWith('https://arxiv.org'))) {
+            // Private dataset files must open through the authenticated app reader.
+            if (typeof directUrl === 'string' && directUrl.startsWith('https://huggingface.co/datasets/')) {
+                const datasetPath = new URL(directUrl).pathname.match(/^\/datasets\/[^/]+\/[^/]+\/(?:blob|resolve)\/[^/]+\/(.+)$/);
+                if (datasetPath) return `/read?doc=${encodeURIComponent(decodeURIComponent(datasetPath[1]))}&page=${page}`;
+            }
+
+            // 3. Public external URL
+            if (typeof directUrl === 'string' && directUrl.startsWith('https://arxiv.org')) {
                 return directUrl.includes('#page=') ? directUrl : `${directUrl}#page=${page}`;
             }
 

@@ -236,3 +236,9 @@ The Stack of Books fallback catalog now marks Pearson titles explicitly and supp
 Verified: the OSTEP `03_Process_API.pdf` citation resolved to its canonical dataset path, and a local reader request returned HTTP 200 with PDF bytes from the private dataset. Focused reader and hosted tests pass.
 
 Deferred: Pearson post-login exact-page behavior requires a signed-in Pearson browser session; no cross-origin app can complete an unauthenticated Pearson login on a reader's behalf.
+
+## 2026-10-12 — Verified catalog links
+
+Built: the chat book stack now waits for `/api/catalog/all` and displays only the dataset-backed catalog instead of merging legacy placeholder cards. Private Hugging Face citation URLs route through the app's authenticated `/read` reader at the requested page.
+
+Verified: JavaScript syntax checks and 32 focused hosted and library tests pass. The live build still needs an authenticated browser check after promotion. Pearson's exact reader page can only be verified with an active Pearson account session.
