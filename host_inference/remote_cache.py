@@ -10,14 +10,23 @@ import tempfile
 import requests
 
 ROOT = Path(__file__).resolve().parent
-CACHE = Path(os.environ.get("ARCHIPELAGO_CACHE_DIR") or (
-    Path(tempfile.gettempdir()) / "archipelago-cache" if os.environ.get("VERCEL") else ROOT / "cache"
-))
+CACHE = Path(
+    os.environ.get("ARCHIPELAGO_CACHE_DIR")
+    or (
+        Path(tempfile.gettempdir()) / "archipelago-cache"
+        if os.environ.get("VERCEL")
+        else ROOT / "cache"
+    )
+)
 BUCKET = "archipelago-cache"
 FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
-HF_GRAPH_URL = "https://huggingface.co/datasets/Prataykarali/graphier/resolve/main/graph/okf_graph.json"
+HF_GRAPH_URL = (
+    "https://huggingface.co/datasets/Prataykarali/graphier/resolve/main/graph/okf_graph.json"
+)
 HF_BOOKS_URL = "https://huggingface.co/datasets/Prataykarali/Library_books/resolve/main/catalogs/pearson_bookshelf.json"
 HF_SOURCE_FILES = {"okf_graph.json": HF_GRAPH_URL, "pearson_bookshelf.json": HF_BOOKS_URL}
+HF_LIBRARY_REPO = "Prataykarali/Library_books"
+HF_TREE_TIMEOUT_SECONDS = 20
 
 
 def _hydrate_from_hugging_face() -> int:
@@ -41,6 +50,41 @@ def _hydrate_from_hugging_face() -> int:
         except (requests.RequestException, ValueError, OSError):
             continue
     return loaded
+
+
+def _hydrate_hf_manifest() -> bool:
+    """Build the PDF shelf from the private Hugging Face dataset file list."""
+    target = CACHE / "library_manifest.json"
+    if target.is_file():
+        return True
+    token = os.environ.get("HF_TOKEN", "").strip()
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    try:
+        response = requests.get(
+            f"https://huggingface.co/api/datasets/{HF_LIBRARY_REPO}/tree/main",
+            headers=headers,
+            params={"recursive": "true"},
+            timeout=HF_TREE_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+        files = response.json()
+        if not isinstance(files, list):
+            return False
+        paths = sorted(
+            {
+                item["path"]
+                for item in files
+                if isinstance(item, dict)
+                and isinstance(item.get("path"), str)
+                and item["path"].lower().endswith(".pdf")
+            }
+        )
+        if not paths:
+            return False
+        target.write_text(json.dumps({"hf_paths": paths}), encoding="utf-8")
+        return True
+    except (requests.RequestException, ValueError, OSError):
+        return False
 
 
 def _production_mode() -> bool:
@@ -74,17 +118,13 @@ def _fallback(name: str) -> Path | None:
 
 
 def hydrate() -> dict[str, str]:
-    """Refresh the disposable runtime cache from the Supabase source of truth.
-
-    Production must not silently serve a graph or catalog bundled into an image
-    after Supabase has become unavailable. Local fallback remains available for
-    the ingestion workstation and development-only workflows.
-    """
+    """Load the graph and library shelf from Hugging Face into runtime storage."""
     CACHE.mkdir(parents=True, exist_ok=True)
     source = "unavailable"
     loaded = 0
     if os.environ.get("VERCEL"):
         loaded = _hydrate_from_hugging_face()
+        _hydrate_hf_manifest()
         if loaded == len(HF_SOURCE_FILES) and (CACHE / "library_manifest.json").is_file():
             return {"source": "huggingface", "cache": str(CACHE)}
     auth = _headers()
