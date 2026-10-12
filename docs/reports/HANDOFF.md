@@ -231,6 +231,8 @@ Deferred: confirm the Pearson post-login page in an authenticated Pearson browse
 
 Built: the hosted PDF reader now resolves legacy graph paths against the private `Library_books` manifest and fetches PDF bytes from that dataset. Chat evidence links use the hosted PDF endpoint so private dataset files open through Archipelago. Pearson links now open the book reader directly, allowing an existing Pearson session to go straight to the book while Pearson's own reader handles sign-in when needed.
 
+The Stack of Books fallback catalog now marks Pearson titles explicitly and supplies `/open/<id>?page=1`; dataset entries supply their canonical `/read?doc=...&page=1` link.
+
 Verified: the OSTEP `03_Process_API.pdf` citation resolved to its canonical dataset path, and a local reader request returned HTTP 200 with PDF bytes from the private dataset. Focused reader and hosted tests pass.
 
 Deferred: Pearson post-login exact-page behavior requires a signed-in Pearson browser session; no cross-origin app can complete an unauthenticated Pearson login on a reader's behalf.

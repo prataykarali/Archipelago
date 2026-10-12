@@ -151,11 +151,17 @@ def register(app: Flask, ctx: AppContext) -> None:
                         "title": title,
                         "authors": book.get("author") or CATALOG_AUTHOR,
                         "year": book.get("year") or CATALOG_YEAR,
-                        "cat": "paper" if "paper" in str(book.get("domain") or "").lower() else "textbook",
+                        "cat": "paper"
+                        if "paper" in str(book.get("domain") or "").lower()
+                        else "textbook",
                         "dom": _catalog_document_domain(title),
                         "pdf": path,
                         "is_pearson": is_pearson,
-                        "open_url": f"/open/{book_id}?page=1" if is_pearson else paper_url(path, 1) if path else "",
+                        "open_url": f"/open/{book_id}?page=1"
+                        if is_pearson
+                        else paper_url(path, 1)
+                        if path
+                        else "",
                         "page_count": book.get("page_count") or 1,
                         "topics": [book.get("domain") or PEARSON_DOMAIN],
                     }
@@ -178,7 +184,10 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "year": book.get("year", CATALOG_FALLBACK_YEAR),
                     "cat": "textbook",
                     "dom": _catalog_document_domain(title),
-                    "pdf": book_id,
+                    "pdf": "",
+                    "is_pearson": True,
+                    "open_url": f"/open/{book_id}?page=1",
+                    "page_count": book.get("page_count") or 1,
                     "topics": [book.get("domain")] if book.get("domain") else [PEARSON_DOMAIN],
                 }
             )
@@ -196,6 +205,8 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "cat": "paper" if is_paper else "textbook",
                     "dom": _catalog_document_domain(path),
                     "pdf": path,
+                    "is_pearson": False,
+                    "open_url": paper_url(path, 1),
                     "topics": ["Research Paper"],
                 }
             )

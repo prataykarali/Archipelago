@@ -113,6 +113,28 @@ def test_catalog_preserves_full_library_shelf_and_reader_links(hosted_app, monke
     assert payload["documents"][1]["pdf"] == "books/papers/paper.pdf"
 
 
+def test_catalog_fallback_keeps_pearson_and_dataset_open_links(hosted_app, monkeypatch):
+    import hostapp.routes.library as library_routes
+
+    monkeypatch.setattr(library_routes, "load_library_manifest", lambda: {})
+    monkeypatch.setattr(
+        library_routes, "load_books", lambda: [{"id": "pearson-1", "title": "A Book"}]
+    )
+    monkeypatch.setattr(
+        library_routes,
+        "load_hf_paths",
+        lambda: ["archipelago-books-cs/ostep_three_easy_pieces/03_Process_API.pdf"],
+    )
+    response = hosted_app.app.test_client().get("/api/catalog/all")
+    assert response.status_code == 200
+    book, pdf = response.json["documents"]
+    assert book["is_pearson"] is True
+    assert book["open_url"] == "/open/pearson-1?page=1"
+    assert book["pdf"] == ""
+    assert pdf["is_pearson"] is False
+    assert pdf["open_url"].startswith("/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces")
+
+
 def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_app, monkeypatch):
     client = hosted_app.app.test_client()
     saved = {}
