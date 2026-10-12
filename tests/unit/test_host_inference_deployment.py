@@ -167,6 +167,14 @@ def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_a
     assert params["service"][0].endswith("&skipLastRead=true#book/book-1/page/7")
 
 
+def test_reflowable_pearson_book_opens_reader_instead_of_bookshelf():
+    from remote_cache import pearson_page_url
+
+    url = pearson_page_url({"id": "reflow-1", "book_type": "reflowable"}, 9)
+    assert "/wr/viewer.html?" in url
+    assert url.endswith("&skipLastRead=true#book/reflow-1/page/9")
+
+
 def test_librarian_chat_does_not_spend_quota(hosted_app, monkeypatch):
     ctx = hosted_app.app.extensions["archipelago"]
     monkeypatch.setattr(ctx.auth, "required", lambda: True)

@@ -172,7 +172,9 @@ def pearson_page_url(book: dict, page: int = 1) -> str:
     page_n = max(1, int(page or 1))
     if book.get("page_count") and int(book["page_count"]) > 1:
         page_n = min(page_n, int(book["page_count"]))
-    viewer = "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "index.html"
+    viewer = (
+        "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "viewer.html"
+    )
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
     page_part = f"/page/{page_n}"
