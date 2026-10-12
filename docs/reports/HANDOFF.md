@@ -200,3 +200,21 @@ Deferred: Pearson's reader must honor the initial page itself or expose an
 approved integration for exact-page landing. The full repository unit suite
 has 67 failures and 5 setup errors, mostly from old contracts and missing
 local fixtures; the five existing quality-gate failures remain.
+
+## 2026-10-12 — Vercel chat provider release
+
+Built: production now uses the hosted inference branch with XKIRO chat
+streaming and NVIDIA completion failover. Vercel stores both provider keys as
+sensitive environment variables. The graph, Pearson catalog, and PDF file list
+are loaded from private Hugging Face datasets into runtime temporary storage;
+book and graph fixtures are excluded from the deployment. Librarian clips have
+slightly wider framing.
+
+Verified: both provider endpoints returned completions with the configured
+keys; a local hosted-engine chat request produced 120 streamed chunks of model
+text. The promoted Vercel deployment reports 537 concepts, the full corpus,
+40 Pearson books, and `cache: huggingface`. The live stylesheet has the revised
+video zoom values. The authenticated production chat UI still needs a signed-in
+user session for a browser request.
+
+Deferred: verify a complete chat exchange in the signed-in production UI.
