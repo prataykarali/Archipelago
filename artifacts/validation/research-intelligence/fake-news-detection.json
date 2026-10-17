@@ -1,0 +1,2178 @@
+{
+  "candidate_pool": {
+    "canonical_candidates": 47,
+    "duplicates_removed": 0,
+    "evidence_validated": 0,
+    "fulltext_attempted": 4,
+    "fulltext_deferred": 0,
+    "fulltext_eligible": 4,
+    "fulltext_fetch_failed": 0,
+    "fulltext_parse_failed": 0,
+    "fulltext_parsed": 4,
+    "identity_conflicts": 0,
+    "metadata_only": 43,
+    "metadata_validated": 47,
+    "raw_candidates": 47
+  },
+  "completed_at": "2026-10-17T02:20:58.449909+00:00",
+  "coverage_gaps": [
+    "arxiv",
+    "extractor_version_not_recorded_in_initial_run",
+    "fewer_than_three_identity_merges",
+    "no_human_validated_evidence",
+    "semantic_scholar"
+  ],
+  "displayed_papers": [
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Arianna D\u2019Ulizia",
+        "Maria Chiara Caschera",
+        "Fernando Ferri",
+        "Patrizia Grifoni"
+      ],
+      "doi": "10.7717/peerj-cs.518",
+      "paper_id": "0064c6c7-cdb8-5b95-8173-e987e00af3f7",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 1,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Fake news detection: a survey of evaluation datasets",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "PeerJ Computer Science",
+      "year": "2021"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Xinyi Zhou",
+        "Reza Zafarani"
+      ],
+      "doi": "10.1145/3373464.3373473",
+      "paper_id": "2050a1c0-4770-5764-9b37-939e928a49d3",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 2,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Network-based Fake News Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "ACM SIGKDD Explorations Newsletter",
+      "year": "2019"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Youssef Daoud"
+      ],
+      "doi": "10.36227/techrxiv.173687875.54963646/v1",
+      "paper_id": "3545ef9a-c696-592b-84a6-52d32c269738",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 3,
+      "source_identities": [
+        "crossref"
+      ],
+      "title": "AI for Automatic Detection of Fake News and Misinformation",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "year": "2025"
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "Kai Shu",
+        "Amy L. Sliva",
+        "Suhang Wang",
+        "Jiliang Tang",
+        "Huan Liu"
+      ],
+      "doi": "10.48550/arxiv.1708.01967",
+      "paper_id": "49d822e5-d7c4-58a4-9a90-ab968a44c63f",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 4,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Fake News Detection on Social Media: A Data Mining Perspective",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2017"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "J\u00falio C. S. Reis",
+        "Andr\u00e9 Correia",
+        "Fabr\u00edcio Murai",
+        "Adriano Veloso",
+        "Fabr\u00ed\u00adcio Benevenuto"
+      ],
+      "doi": "10.1109/mis.2019.2899143",
+      "paper_id": "4b51b26d-dec5-5a37-8523-143e52d2328b",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 5,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Supervised Learning for Fake News Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE Intelligent Systems",
+      "year": "2019"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Miguel \u00c1. Alonso",
+        "David Vilares",
+        "Carlos G\u00f3mez\u2010Rodr\u00edguez",
+        "Jes\u00fas Vilares"
+      ],
+      "doi": "10.3390/electronics10111348",
+      "paper_id": "55454136-542a-5e2e-9589-954c13584401",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 6,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Sentiment Analysis for Fake News Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Electronics",
+      "year": "2021"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Dun Li",
+        "Haimei Guo",
+        "Zhenfei Wang",
+        "Zhiyun Zheng"
+      ],
+      "doi": "10.1109/access.2021.3058809",
+      "paper_id": "64fcc9ba-11bb-5ab3-b5cf-fc5a0cf37bda",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 7,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Unsupervised Fake News Detection Based on Autoencoder",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE Access",
+      "year": "2021"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Sahil Chawla",
+        "nitin mamtani",
+        "rohan jadhav"
+      ],
+      "doi": "10.21203/rs.3.rs-1533870/v1",
+      "paper_id": "7397570a-16e3-5459-bf0e-46f44fed93eb",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 8,
+      "source_identities": [
+        "crossref"
+      ],
+      "title": "Fake News Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Research Square Platform LLC",
+      "year": "2022"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "M. F. Mridha",
+        "Ashfia Jannat Keya",
+        "Md. Abdul Hamid",
+        "Muhammad Mostafa Monowar",
+        "Md. Saifur Rahman"
+      ],
+      "doi": "10.1109/access.2021.3129329",
+      "paper_id": "81e0e455-baae-53f7-95b6-fefaa723257e",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 9,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "A Comprehensive Review on Fake News Detection With Deep Learning",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE Access",
+      "year": "2021"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Qing Liao",
+        "Heyan Chai",
+        "Hao Han",
+        "Xiang Zhang",
+        "Xuan Wang",
+        "Wen Xia",
+        "Ye Ding"
+      ],
+      "doi": "10.1109/tkde.2021.3054993",
+      "paper_id": "8380b8f2-7092-5d10-b121-80539315aada",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 10,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "An Integrated Multi-Task Model for Fake News Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE Transactions on Knowledge and Data Engineering",
+      "year": "2021"
+    }
+  ],
+  "environment": "local-isolated",
+  "evidence_examples": [
+    {
+      "artifact_sha256": "acff39937bcd754041bd8080190334e90a41ee2ae7d54eaff7ba15f7ae4a5309",
+      "assertion": {
+        "claim_id": "claim_726cd593",
+        "claim_type": "methodological",
+        "confidence": 0.92,
+        "extractor_name": "scientific-extractor-v1.0",
+        "extractor_version": "1.0.0",
+        "polarity": "positive",
+        "provenance_ids": [
+          "prov_a4bae340"
+        ],
+        "status": "observed",
+        "text": "Abstract Social media are nowadays one of the main news sources for millions of people\naround the globe due to their low cost, easy access, and rapid dissemination"
+      },
+      "evidence_pointers": [
+        {
+          "artifact_sha256": "acff39937bcd754041bd8080190334e90a41ee2ae7d54eaff7ba15f7ae4a5309",
+          "bbox": [
+            283.76,
+            282.55,
+            328.24,
+            294.5
+          ],
+          "char_end": null,
+          "char_start": null,
+          "column": null,
+          "fetched_at": "2026-10-17T02:20:54.574204Z",
+          "json_pointer": null,
+          "page": 1,
+          "provenance_id": "prov_a4bae340",
+          "row": null,
+          "section_id": "abstract",
+          "source_record_id": null,
+          "source_type": "pdf",
+          "source_url": null,
+          "table_id": null,
+          "tei_xpath": null
+        }
+      ],
+      "extractor_version": null,
+      "paper_id": "f7acfd64-a1d5-59b3-ae48-248515ab88cd",
+      "verification_state": "pending_review"
+    },
+    {
+      "artifact_sha256": "a403268f57cd4097aad2efa58303220a0aff101b91759204246f5ff58a51d3e3",
+      "assertion": {
+        "claim_id": "claim_b0fecb2a",
+        "claim_type": "methodological",
+        "confidence": 0.92,
+        "extractor_name": "scientific-extractor-v1.0",
+        "extractor_version": "1.0.0",
+        "polarity": "positive",
+        "provenance_ids": [
+          "prov_bb66c195"
+        ],
+        "status": "observed",
+        "text": "ABSTRACT Social media for news consumption is a double-edged sword"
+      },
+      "evidence_pointers": [
+        {
+          "artifact_sha256": "a403268f57cd4097aad2efa58303220a0aff101b91759204246f5ff58a51d3e3",
+          "bbox": [
+            53.8,
+            224.67,
+            118.24,
+            236.62
+          ],
+          "char_end": null,
+          "char_start": null,
+          "column": null,
+          "fetched_at": "2026-10-17T02:20:53.500554Z",
+          "json_pointer": null,
+          "page": 1,
+          "provenance_id": "prov_bb66c195",
+          "row": null,
+          "section_id": "abstract",
+          "source_record_id": null,
+          "source_type": "pdf",
+          "source_url": null,
+          "table_id": null,
+          "tei_xpath": null
+        }
+      ],
+      "extractor_version": null,
+      "paper_id": "49d822e5-d7c4-58a4-9a90-ab968a44c63f",
+      "verification_state": "provenance_checked"
+    }
+  ],
+  "evidence_state_counts": {
+    "pending_review": 1,
+    "provenance_checked": 3
+  },
+  "feature_examples": [
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:20:53.671181Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:20:53.671248Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Fake news detection has gained increasing importance among the research community due to the widespread diffusion of fake news through media platforms. Many dataset have been released in the last few years, aiming to assess the performance of fake news detection methods. In this survey, we systematically review twenty-seven popular datasets for fake news detection by providing insights into the characteristics of each dataset and comparative analysis among them. A fake news detection datasets characterization composed of eleven characteristics extracted from the surveyed datasets is provided, along with a set of requirements for comparing and building new datasets. Due to the ongoing interest in this research topic, the results of the analysis are valuable to many researchers to guide the selection or definition of suitable datasets for evaluating their fake news detection methods.",
+              "query": "fake news detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:20:53.671153Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:20:53.671192Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:20:53.671229Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:20:53.671201Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:20:53.671208Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:20:53.671161Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 103
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:20:53.671188Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:20:53.671212Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:20:53.671264Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:20:53.671285Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:20:53.671185Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:20:53.671298Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:20:53.671244Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:20:53.671267Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:20:53.671223Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:20:53.671226Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:20:53.671235Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:20:53.671205Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:20:53.671216Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:20:53.671251Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:20:53.671254Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:20:53.671195Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:20:53.671177Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:20:53.671241Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:20:53.671280Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:20:53.671273Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:20:53.671257Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:20:53.671291Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 103
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:20:53.671170Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 4.6444
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:20:53.671288Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:20:53.671219Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:20:53.671198Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:20:53.671283Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:20:53.671232Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:20:53.671261Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:20:53.671294Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:20:53.671238Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:20:53.671276Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Fake news detection: a survey of evaluation datasets",
+              "query": "fake news detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:20:53.671070Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:20:53.671300Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:20:53.671270Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "0064c6c7-cdb8-5b95-8173-e987e00af3f7"
+    },
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:20:52.155593Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:20:52.155744Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Fake news gains has gained significant momentum, strongly motivating the need for fake news research. Many fake news detection approaches have thus been proposed, where most of them heavily rely on news content. However, networkbased clues revealed when analyzing news propagation on social networks is an information that has hardly been comprehensively explored or used for fake news detection. We bridge this gap by proposing a network-based pattern-driven fake news detection approach. We aim to study the patterns of fake news in social networks, which refer to the news being spread, spreaders of the news and relationships among the spreaders. Empirical evidence and interpretations on the existence of such patterns are provided based on social psychological theories. These patterns are then represented at various network levels (i.e., node-level, ego-level, triad-level, community-level and the overall network) for being further utilized to detect fake news. The proposed approach enhances the explainability in fake news feature engineering. Experiments conducted on real-world data demonstrate that the proposed approach can outperform the state of the arts.",
+              "query": "fake news detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:20:52.155541Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:20:52.155616Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:20:52.155696Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:20:52.155638Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:20:52.155653Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:20:52.155554Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 199
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:20:52.155608Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:20:52.155660Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:20:52.155783Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:20:52.155840Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:20:52.155601Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:20:52.155872Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:20:52.155737Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:20:52.155791Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:20:52.155681Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:20:52.155688Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:20:52.155714Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:20:52.155645Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:20:52.155667Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:20:52.155751Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:20:52.155759Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:20:52.155624Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:20:52.155584Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:20:52.155729Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:20:52.155824Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:20:52.155809Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:20:52.155767Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:20:52.155855Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 199
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:20:52.155570Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 5.2983
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:20:52.155847Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:20:52.155674Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:20:52.155631Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:20:52.155832Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:20:52.155703Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:20:52.155774Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:20:52.155864Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:20:52.155721Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:20:52.155817Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Network-based Fake News Detection",
+              "query": "fake news detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:20:52.155442Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:20:52.155879Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:20:52.155801Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "2050a1c0-4770-5764-9b37-939e928a49d3"
+    },
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:20:56.398072Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:20:56.398148Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "<jats:p>The spread of fake news and misinformation has become a global challenge, undermining public trust, causing political polarization, and facilitating the dissemination of harmful ideologies. This study explores the use of advanced AI models, specifically transformers such as BERT and GPT, for the automatic detection of fake news. Leveraging natural language processing (NLP) techniques like Named Entity Recognition (NER), Sentiment Analysis, and Topic Modeling, we aim to identify patterns unique to misinformation. Our model demonstrates high accuracy in experimental trials on benchmark datasets, highlighting the potential of AI to combat disinformation and improve media literacy.</jats:p>",
+              "query": "fake news detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:20:56.398044Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:20:56.398090Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:20:56.398128Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:20:56.398101Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:20:56.398108Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:20:56.398051Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 0
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:20:56.398085Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:20:56.398112Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:20:56.398165Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:20:56.398188Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:20:56.398076Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:20:56.398201Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:20:56.398145Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:20:56.398168Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:20:56.398122Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:20:56.398125Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:20:56.398135Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:20:56.398104Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:20:56.398115Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:20:56.398151Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:20:56.398154Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:20:56.398094Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:20:56.398067Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:20:56.398141Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:20:56.398182Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:20:56.398175Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:20:56.398158Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:20:56.398195Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 0
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:20:56.398060Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 0.0
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:20:56.398191Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:20:56.398119Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:20:56.398097Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:20:56.398185Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:20:56.398132Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:20:56.398161Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:20:56.398198Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:20:56.398138Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:20:56.398179Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "AI for Automatic Detection of Fake News and Misinformation",
+              "query": "fake news detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:20:56.397994Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:20:56.398205Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:20:56.398172Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "3545ef9a-c696-592b-84a6-52d32c269738"
+    }
+  ],
+  "identity_merge_examples": [],
+  "job_id": "0ffe8a19-3adb-46d8-887e-96e90ee92525",
+  "job_status": "partial",
+  "pipeline_stage": "SHORTLIST_READY",
+  "pipeline_version": "2.0.0",
+  "requested_by_role": "faculty",
+  "requested_by_user_id": "local-validation-faculty",
+  "result": "PARTIAL",
+  "source_evidence": [
+    {
+      "error": null,
+      "http_status": 200,
+      "record_count": 23,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:20:31.500953+00:00",
+      "response_sha256": "bb301592b17730c4f26a5970a7c0bc4f21e960064d45ea9385a46381c1cbbd9b",
+      "source": "openalex",
+      "status": "live"
+    },
+    {
+      "error": null,
+      "http_status": 200,
+      "record_count": 24,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:20:34.144607+00:00",
+      "response_sha256": "789e78c0a615a19d5f24d31827e583a3e6467418963caffdb07db98648928077",
+      "source": "crossref",
+      "status": "live"
+    },
+    {
+      "error": "ReadTimeout",
+      "http_status": null,
+      "record_count": 0,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:20:35.452660+00:00",
+      "response_sha256": null,
+      "source": "arxiv",
+      "status": "request_failed"
+    },
+    {
+      "error": "HTTP 429",
+      "http_status": 429,
+      "record_count": 0,
+      "request_id": "6fec80e8-1647-4227-b427-aa12ac96548a",
+      "requested_at": "2026-10-17T02:20:50.739171+00:00",
+      "response_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+      "source": "semantic_scholar",
+      "status": "rate_limited"
+    }
+  ],
+  "started_at": "2026-10-17T02:19:00.398136+00:00",
+  "topic": "fake news detection"
+}

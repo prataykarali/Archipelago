@@ -19,6 +19,7 @@ import time
 
 from flask import request
 import requests
+from runtime_paths import cache_dir
 
 from .config import (
     API_RATE_MAX_PER_MIN,
@@ -43,7 +44,7 @@ DAILY_QUERY_LIMIT = 35
 QUERY_COOLDOWN_AFTER = 7
 QUERY_COOLDOWN_SECONDS = 3600
 QUERY_DAY_SECONDS = 86400
-DEFAULT_QUOTA_DB = Path(__file__).resolve().parent.parent / "cache" / "query_quota.sqlite3"
+DEFAULT_QUOTA_DB = cache_dir() / "query_quota.sqlite3"
 
 
 class AuthGuard:

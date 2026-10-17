@@ -1,0 +1,80 @@
+{
+  "environment": "local-isolated",
+  "job": {
+    "job_id": "4f19cdc9-a508-4137-92ab-4c73a2168bd0",
+    "topic": "optical character recognition",
+    "status": "partial",
+    "stage": "SHORTLIST_READY",
+    "counts": {
+      "metadata_only": 46,
+      "raw_candidates": 46,
+      "fulltext_parsed": 0,
+      "fulltext_deferred": 1,
+      "fulltext_eligible": 1,
+      "duplicates_removed": 0,
+      "evidence_validated": 0,
+      "fulltext_attempted": 0,
+      "identity_conflicts": 0,
+      "metadata_validated": 46,
+      "canonical_candidates": 46,
+      "fulltext_fetch_failed": 0,
+      "fulltext_parse_failed": 0
+    },
+    "created_at": "2026-10-17 02:27:54.284325+00:00",
+    "updated_at": "2026-10-17 02:28:20.016270+00:00"
+  },
+  "tracked_topic": {
+    "topic": "optical character recognition",
+    "next_refresh_at": "2026-10-18 02:27:54.284325+00:00",
+    "pinned": true,
+    "refresh_hours": 24
+  },
+  "sources": [
+    {
+      "source": "arxiv",
+      "status": "rate_limited",
+      "http_status": 429,
+      "record_count": 0,
+      "response_sha256": "467622e2f17f01d302d6c790b13078569f17d71cd83910558535019a594e07c1"
+    },
+    {
+      "source": "crossref",
+      "status": "live",
+      "http_status": 200,
+      "record_count": 21,
+      "response_sha256": "701a8b26dd5715dae9c61006e27b040f0b4131fc1219839b989a4ee5bab5521f"
+    },
+    {
+      "source": "openalex",
+      "status": "live",
+      "http_status": 200,
+      "record_count": 25,
+      "response_sha256": "20c459e25851205042a0712dfaa210108b18e2a48c500772adc018aa1b409092"
+    },
+    {
+      "source": "semantic_scholar",
+      "status": "rate_limited",
+      "http_status": 429,
+      "record_count": 0,
+      "response_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148"
+    }
+  ],
+  "projection_generation": "research-445032ee25674a1ea19a867371ac03de",
+  "projection_counts": {
+    "authors": 849,
+    "claims": 0,
+    "datasets": 0,
+    "evidence": 0,
+    "papers": 314,
+    "venues": 196
+  },
+  "vector": {
+    "count": 314,
+    "dimensions": 768,
+    "model": "Snowflake/snowflake-arctic-embed-m-v1.5",
+    "path": "/tmp/archipelago-ri-validation/projections/research-445032ee25674a1ea19a867371ac03de.vector-inputs.npz",
+    "sha256": "90da8cd82db0c85ba66272c862990eff9165a05bbff854840263b035baf90a5a",
+    "state": "ready"
+  },
+  "automatic_cycle_executed": true
+}

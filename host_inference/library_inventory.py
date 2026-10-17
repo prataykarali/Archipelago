@@ -9,9 +9,10 @@ import os
 from pathlib import Path
 
 import requests
+from runtime_paths import cache_dir
 
 ROOT = Path(__file__).resolve().parent
-CACHE = ROOT / "cache"
+CACHE = cache_dir()
 BUCKET = "archipelago-cache"
 OBJECT = "library_inventory.json"
 SAMPLE_INVENTORY = ROOT / "sample_inventory.csv"

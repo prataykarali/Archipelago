@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Archipelago · Knowledge Graph</title>
+<meta name="description" content="Interactive knowledge graph explorer — Books, concepts, cross-book connections."/>
+    <link rel="stylesheet" href="/studio/assets/styles/01-button-icons.css">
+    <link rel="stylesheet" href="/studio/assets/styles/02-edges-hidden-by-default.css">
+</head>
+<body>
+
+<!-- RBAC Access Restriction Gate for Port 5150 (Staff Only) -->
+<div id="staff-auth-gate" style="display:none;position:fixed;inset:0;z-index:999999;background:rgba(10,8,20,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);align-items:center;justify-content:center;padding:24px;font-family:'Outfit','Inter',sans-serif;color:#ffffff;">
+  <div style="background:#15102a;border:1px solid rgba(255,255,255,0.18);border-radius:24px;max-width:520px;width:100%;padding:40px 36px;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.8);">
+    <div style="width:64px;height:64px;border-radius:20px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <img src="/ui/assets/settings_btn.png" style="width:34px;height:34px;object-fit:contain;" alt="Access Restricted">
+    </div>
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:0.2em;text-transform:uppercase;color:#a78bfa;font-weight:700;margin-bottom:8px;">STAFF RESTRICTED ACCESS</div>
+    <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.5px;color:#ffffff;margin-bottom:12px;">Staff Knowledge Graph</h2>
+    <p style="font-size:14px;line-height:1.6;color:rgba(255,255,255,0.75);margin-bottom:28px;">
+      The knowledge studio is available to campus <strong>Faculty</strong>, <strong>Librarians</strong>, and <strong>Administrators</strong>.<br><br>
+      Students and unauthenticated guests are not permitted to inspect raw graph topology.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <a href="/login?next=/studio" style="display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#f97316);color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 4px 18px rgba(139,92,246,0.35);">
+        Staff Sign In &rarr;
+      </a>
+      <a href="/chat" style="display:inline-flex;align-items:center;justify-content:center;padding:11px 24px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;text-decoration:none;">
+        Return to Student Chat
+      </a>
+    </div>
+  </div>
+</div>
+
+<canvas id="stars"></canvas>
+<div id="loader"><div class="spin"></div><div class="ltxt">Loading knowledge graph…</div><div class="lsub">Fetching the hosted staff projection</div></div>
+
+<div id="highlight-banner" class="hidden">
+  <span id="highlight-banner-text"></span>
+  <button id="highlight-banner-close">✕</button>
+</div>
+
+<header id="hdr">
+  <div class="brand" id="home-btn">
+    <div class="brand-ico">
+      <img src="/ui/assets/graph_btn.png" class="btn-icon-md" alt="Archipelago">
+    </div>
+    <div class="brand-name">Archipelago</div>
+    <div class="brand-tag">KNOWLEDGE GRAPH</div>
+    <div class="brand-tag" id="studio-corpus-badge" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25);color:#d97706">CORPUS STATUS LOADING</div>
+  </div>
+
+  <div id="nav-tabs">
+    <button class="nav-tab active" id="tab-books" data-view="books">
+      <img src="/ui/assets/book_btn.png" class="btn-icon" alt="Resources"> Resources
+    </button>
+    <button class="nav-tab" id="tab-concepts" data-view="concepts">
+      <img src="/ui/assets/brain_btn.png" class="btn-icon" alt="Concepts"> Concepts
+    </button>
+    <button class="nav-tab" id="tab-crossbook" data-view="crossbook">
+      <img src="/ui/assets/network_btn.png" class="btn-icon" alt="Cross-Book"> Cross-Book
+    </button>
+    <button class="nav-tab lib-tab" id="tab-librarian" data-view="librarian">
+      <img src="/ui/assets/library_btn.png" class="btn-icon" alt="Librarian"> Staff Console
+    </button>
+  </div>
+
+  <button id="back-btn">
+    <img src="/ui/assets/book_btn.png" class="btn-icon" alt="Back"> ← Books
+  </button>
+  <div id="book-label"></div>
+
+  <div id="sw">
+    <span class="sico">
+      <img src="/ui/assets/search_btn.png" class="btn-icon-sm" style="opacity:0.65;" alt="Search">
+    </span>
+    <input id="srch" type="text" placeholder="Search concepts…" autocomplete="off"/>
+  </div>
+</header>
+
+<div id="search-results"></div>
+
+<div id="chip-bar" class="hidden">
+  <div class="chip on" data-r="all">All</div>
+  <div class="chip" data-r="requires">Requires</div>
+  <div class="chip" data-r="enables">Enables</div>
+  <div class="chip" data-r="uses">Uses</div>
+  <div class="chip" data-r="extends">Extends</div>
+  <div class="chip" data-r="part_of">Part Of</div>
+  <div class="chip" data-r="contrasts_with">Contrasts</div>
+  <div class="chip" data-r="evaluated_by">Eval By</div>
+</div>
+
+<!-- ═══ 1. BOOKS VIEW: MODERN RESPONSIVE LIST / GRID ═══ -->
+<div id="books-view">
+  <div class="books-container">
+    <div class="books-hero">
+      <div>
+        <h2 class="books-hero-title">
+          <img src="/ui/assets/book_btn.png" class="btn-icon-lg" alt="Library">
+          Graph Sources
+        </h2>
+        <p class="books-hero-sub">Indexed books and papers that support the concept graph. This is not a live holdings catalogue.</p>
+      </div>
+      <div class="books-hero-badge" id="books-total-badge">
+        <img src="/ui/assets/graph_btn.png" class="btn-icon-sm" alt="Stats">
+        <span id="books-total-count">0 indexed sources</span>
+      </div>
+    </div>
+    <div class="books-grid" id="books-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ 2. GRAPH VIEW: D3 SVG CANVAS ═══ -->
+<div id="graph-wrap">
+  <svg id="graph-svg"><defs></defs></svg>
+</div>
+
+<!-- ═══ 3. FLASHCARD INSPECTOR PANEL ═══ -->
+<aside id="flashcard">
+  <div class="fc-hero" id="fc-hero">
+    <button class="fc-close" id="fc-close">✕</button>
+    <div id="fc-badges" class="fc-badges"></div>
+    <div id="fc-title" class="fc-title"></div>
+    <div id="fc-summary" class="fc-summary"></div>
+  </div>
+  <div class="fc-body" id="fc-body">
+    <div class="fc-stats">
+      <div class="fc-stat"><div class="fc-stat-label">Degree</div><div id="fc-degree" class="fc-stat-val">—</div></div>
+      <div class="fc-stat"><div class="fc-stat-label">Sources</div><div id="fc-sources" class="fc-stat-val">—</div></div>
+    </div>
+    <div class="okf-section">
+      <div class="okf-title">
+        <img src="/ui/assets/flash_card_btn.png" class="btn-icon" alt="OKF">
+        OKF Extraction Details
+      </div>
+      <div class="okf-group"><div class="okf-lbl">Prerequisites</div><div id="fc-prereqs" class="okf-pills"></div></div>
+      <div class="okf-group"><div class="okf-lbl">Unlocks</div><div id="fc-unlocks" class="okf-pills"></div></div>
+    </div>
+    <div id="fc-tags-sec" style="display:none">
+      <div class="fc-section-title">
+        <img src="/ui/assets/note_btn.png" class="btn-icon-sm" alt="Tags"> Tags
+      </div>
+      <div id="fc-tags" class="fc-tags"></div>
+      <div class="fc-divider"></div>
+    </div>
+
+    <!-- OKF RELATION CATEGORIES -->
+    <div id="sec-requires" style="display:none">
+      <div class="fc-section-title" style="color:var(--purple)">Requires <span id="cnt-requires" class="fc-cnt"></span></div>
+      <ul id="list-requires" class="edge-list"></ul>
+    </div>
+    <div id="sec-enables" style="display:none">
+      <div class="fc-section-title" style="color:var(--green)">Enables <span id="cnt-enables" class="fc-cnt"></span></div>
+      <ul id="list-enables" class="edge-list"></ul>
+    </div>
+    <div id="sec-uses" style="display:none">
+      <div class="fc-section-title" style="color:var(--blue)">Uses <span id="cnt-uses" class="fc-cnt"></span></div>
+      <ul id="list-uses" class="edge-list"></ul>
+    </div>
+    <div id="sec-extends" style="display:none">
+      <div class="fc-section-title" style="color:var(--orange)">Extends <span id="cnt-extends" class="fc-cnt"></span></div>
+      <ul id="list-extends" class="edge-list"></ul>
+    </div>
+    <div id="sec-part_of" style="display:none">
+      <div class="fc-section-title" style="color:var(--pink)">Part Of <span id="cnt-part_of" class="fc-cnt"></span></div>
+      <ul id="list-part_of" class="edge-list"></ul>
+    </div>
+    <div id="sec-contrasts_with" style="display:none">
+      <div class="fc-section-title" style="color:var(--red)">Contrasts <span id="cnt-contrasts_with" class="fc-cnt"></span></div>
+      <ul id="list-contrasts_with" class="edge-list"></ul>
+    </div>
+    <div id="sec-evaluated_by" style="display:none">
+      <div class="fc-section-title" style="color:var(--yellow)">Eval By <span id="cnt-evaluated_by" class="fc-cnt"></span></div>
+      <ul id="list-evaluated_by" class="edge-list"></ul>
+    </div>
+    <div id="sec-variant_of" style="display:none">
+      <div class="fc-section-title" style="color:var(--cyan)">Variant Of <span id="cnt-variant_of" class="fc-cnt"></span></div>
+      <ul id="list-variant_of" class="edge-list"></ul>
+    </div>
+
+    <div id="fc-src-sec" style="display:none">
+      <div class="fc-divider"></div>
+      <div class="fc-section-title">
+        <img src="/ui/assets/cite_btn.png" class="btn-icon-sm" alt="Citations"> Grounded Sources
+      </div>
+      <div id="fc-src"></div>
+    </div>
+  </div>
+</aside>
+
+<div id="tip"><div id="tip-name"></div><div id="tip-type"></div><div id="tip-summ"></div></div>
+<div id="zoom-ctrls"><button class="zb" id="z-in">+</button><button class="zb" id="z-out">−</button><button class="zb" id="z-reset" style="font-size:11px">⊙</button></div>
+<div id="stats-bar">
+  <div class="sb-item"><div class="live-dot"></div>&nbsp;SNAPSHOT</div>
+  <div class="sb-item"><strong id="st-n">—</strong>&nbsp;concepts</div>
+  <div class="sb-item"><strong id="st-e">—</strong>&nbsp;edges</div>
+  <div class="sb-item"><strong id="st-view">—</strong></div>
+  <div class="sb-item" style="color:var(--dm);font-size:9px" title="Hosted graph projection">hosted graph</div>
+</div>
+
+<!-- Staff console uses the same visual language as the original graph studio. -->
+<div id="librarian-panel">
+  <div style="max-width:980px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div class="lib-card-icon purple"><img src="/ui/assets/library_btn.png" class="btn-icon-md" alt=""></div>
+      <div>
+        <h1 style="font-size:22px;font-weight:900;color:var(--tx)">Knowledge Studio</h1>
+        <p style="font-size:12px;color:var(--mu)">Staff view of the hosted graph and its source-backed resources.</p>
+      </div>
+    </div>
+    <div class="lib-grid">
+      <section class="lib-card" aria-labelledby="studio-snapshot-title">
+        <div class="lib-card-head"><div class="lib-card-icon purple"><img src="/ui/assets/graph_btn.png" class="btn-icon-md" alt=""></div>
+          <div><h2 class="lib-card-title" id="studio-snapshot-title">Graph snapshot</h2><p class="lib-card-sub">This page reads the currently deployed graph projection.</p></div>
+        </div>
+        <p id="studio-snapshot" class="lib-status info" role="status">Loading corpus details…</p>
+        <a href="/graph" class="lib-btn secondary" style="display:block;text-align:center;text-decoration:none">Open focused graph explorer</a>
+      </section>
+      <section class="lib-card" aria-labelledby="studio-resources-title">
+        <div class="lib-card-head"><div class="lib-card-icon green"><img src="/ui/assets/book_btn.png" class="btn-icon-md" alt=""></div>
+          <div><h2 class="lib-card-title" id="studio-resources-title">Institutional resources</h2><p class="lib-card-sub">Browse the public book and journal discovery page.</p></div>
+        </div>
+        <a href="/library" class="lib-btn secondary" style="display:block;text-align:center;text-decoration:none">Open library resources</a>
+        <a href="/chat" class="lib-btn secondary" style="display:block;text-align:center;text-decoration:none;margin-top:8px">Return to chat</a>
+      </section>
+      <section class="lib-card" id="studio-ingest-card" aria-labelledby="studio-ingest-title" hidden>
+        <div class="lib-card-head"><div class="lib-card-icon orange"><img src="/ui/assets/pdf_btn.png" class="btn-icon-md" alt=""></div>
+          <div><h2 class="lib-card-title" id="studio-ingest-title">Document ingestion</h2><p class="lib-card-sub">Available to librarians and administrators when an ingestion worker is running.</p></div>
+        </div>
+        <form id="studio-upload-form">
+          <label class="lib-label" for="studio-file">PDF, Markdown, or text</label>
+          <input class="lib-input" id="studio-file" type="file" accept=".pdf,.md,.markdown,.txt" required>
+          <button class="lib-btn primary" id="studio-upload-button" type="submit" disabled>Start ingestion</button>
+        </form>
+        <p id="studio-ingest-status" class="lib-status info" role="status">Checking worker availability…</p>
+      </section>
+      <section class="lib-card" id="studio-faculty-card" hidden>
+        <div class="lib-card-head"><div class="lib-card-icon purple"><img src="/ui/assets/brain_btn.png" class="btn-icon-md" alt=""></div>
+          <div><h2 class="lib-card-title">Faculty access</h2><p class="lib-card-sub">Explore the graph and sources. Librarian approval is required for corpus changes.</p></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script type="module" src="/auth_bridge.js"></script>
+<script type="module" src="/studio/assets/js/index.js"></script>
+</body>
+</html>

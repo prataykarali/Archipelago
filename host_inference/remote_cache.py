@@ -7,9 +7,10 @@ import os
 from pathlib import Path
 
 import requests
+from runtime_paths import cache_dir
 
 ROOT = Path(__file__).resolve().parent
-CACHE = ROOT / "cache"
+CACHE = cache_dir()
 BUCKET = "archipelago-cache"
 FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
 

@@ -14,10 +14,11 @@ from .config import (
     PUBLIC_API_PREFIXES,
 )
 from .context import AppContext
+from .research_access import audit_access, staff_allowed
 
 OPTIONS_NO_CONTENT = 204
 
-CORS_METHODS = "GET,POST,DELETE,OPTIONS"
+CORS_METHODS = "GET,POST,PATCH,DELETE,OPTIONS"
 CORS_HEADERS = "Content-Type,Authorization,X-Requested-With"
 
 # Runtime assets are built with the Tailwind Play CDN, so the policy allows the
@@ -25,7 +26,7 @@ CORS_HEADERS = "Content-Type,Authorization,X-Requested-With"
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; "
     "form-action 'self'; "
-    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh; "
+    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://d3js.org; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
     "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; "
     "connect-src 'self' https://spllaastejfwclllfndp.supabase.co https://esm.sh; "
@@ -49,6 +50,19 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         if request.method == "OPTIONS":
             return ("", OPTIONS_NO_CONTENT)
         path = request.path
+        if path.startswith("/api/research/") or path == "/api/scholarly/snapshot":
+            principal, _error = ctx.auth.principal()
+            if principal is None or not principal.get("id"):
+                audit_access(user_id=None, role=None, result="unauthorized")
+                return jsonify({"error": "unauthorized"}), 401
+            if not staff_allowed(principal.get("role")):
+                audit_access(
+                    user_id=str(principal["id"]),
+                    role=principal.get("role"),
+                    result="forbidden",
+                )
+                return jsonify({"error": "forbidden"}), 403
+            request.archipelago_principal = principal  # type: ignore[attr-defined]
         if path.startswith("/api/ingest") and path != "/api/ingest/capabilities":
             principal, error = ctx.auth.principal()
             if principal is None:

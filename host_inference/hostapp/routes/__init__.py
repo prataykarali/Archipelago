@@ -9,9 +9,9 @@ from __future__ import annotations
 from flask import Flask
 
 from ..context import AppContext
-from . import auth, chat, graph, ingest, library, pages, reader, static
+from . import auth, chat, graph, ingest, library, pages, reader, scholarly, static, studio
 
-MODULES = (pages, graph, auth, library, reader, static, chat, ingest)
+MODULES = (pages, graph, auth, library, reader, static, chat, ingest, scholarly, studio)
 
 
 def register_routes(app: Flask, ctx: AppContext) -> None:

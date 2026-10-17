@@ -14,7 +14,7 @@ import re
 
 from demo_cards import match_demo, redact_for_model
 from library_index import Catalog
-from remote_cache import hydrate, load_books
+from remote_cache import CACHE, hydrate, load_books
 
 from . import (
     catalogue,
@@ -81,9 +81,11 @@ class Engine:
 
     def __init__(self, graph_path: Path | None = None):
         self.cache_info = hydrate()
-        path = graph_path or (HERE / "cache" / "okf_graph.json")
+        path = graph_path or (CACHE / "okf_graph.json")
         if not path.is_file():
             path = HERE.parent / "okf_graph.json"
+        if not path.is_file():
+            path = HERE / "fixtures" / "okf_graph.json"
         self.graph = LibraryGraph(path)
         self.books = load_books()
         self.catalog = Catalog(self.graph.nodes, self.books)

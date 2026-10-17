@@ -1,0 +1,2263 @@
+{
+  "candidate_pool": {
+    "canonical_candidates": 57,
+    "duplicates_removed": 7,
+    "evidence_validated": 0,
+    "fulltext_attempted": 8,
+    "fulltext_deferred": 1,
+    "fulltext_eligible": 9,
+    "fulltext_fetch_failed": 0,
+    "fulltext_parse_failed": 0,
+    "fulltext_parsed": 8,
+    "identity_conflicts": 0,
+    "metadata_only": 49,
+    "metadata_validated": 57,
+    "raw_candidates": 64
+  },
+  "completed_at": "2026-10-17T02:20:06.326326+00:00",
+  "coverage_gaps": [
+    "arxiv",
+    "extractor_version_not_recorded_in_initial_run",
+    "fulltext_processing_deferred",
+    "no_human_validated_evidence",
+    "semantic_scholar"
+  ],
+  "displayed_papers": [
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "Kabir, Shariar",
+        "Nahar, Nazmun",
+        "Shyamasree Saha",
+        "Mamunur Rashid"
+      ],
+      "doi": "10.48550/arxiv.2406.12931",
+      "paper_id": "1bc13457-b174-599c-a891-451f4c25f346",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 1,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Automatic Speech Recognition for Biomedical Data in Bengali Language",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2024"
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "Sayan Mandal",
+        "Sarthak Yadav",
+        "Rai, Atul"
+      ],
+      "doi": "10.48550/arxiv.2009.09615",
+      "paper_id": "29052296-4a35-5203-adfc-0c5ce8033fde",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 2,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "End-to-End Bengali Speech Recognition",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2020"
+    },
+    {
+      "access_state": "FULLTEXT_ELIGIBLE",
+      "arxiv_id": null,
+      "authors": [
+        "Md. Nazmus Sakib",
+        "Golam Mahmud",
+        "Md. Maruf Bangabashi",
+        "Umme Ara Mahinur Istia",
+        "Md. Jahidul Islam",
+        "Partha Sarker",
+        "Afra Yeamini Prity"
+      ],
+      "doi": "10.48550/arxiv.2601.09710",
+      "paper_id": "2cb11f19-915c-56a7-a060-a303ad5169d9",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 3,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Multi-Level Embedding Conformer Framework for Bengali Automatic Speech Recognition",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2025"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Arman Hossain",
+        "Kathak Das",
+        "Protima Khan",
+        "Md. Fazlul Kader"
+      ],
+      "doi": "10.1016/j.mlwa.2023.100486",
+      "paper_id": "35f5b272-4397-592f-be0b-d8d136cbd697",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 4,
+      "source_identities": [
+        "openalex",
+        "crossref"
+      ],
+      "title": "A BCI system for imagined Bengali speech recognition",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Machine Learning with Applications",
+      "year": "2023"
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "Mir Sayeed Mohammad",
+        "Azizul Zahid",
+        "Iqbal, Md Asif"
+      ],
+      "doi": "10.48550/arxiv.2403.13465",
+      "paper_id": "5813cc12-fc1a-5ef9-b339-4fe4aa134af8",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 5,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "BanglaNum -- A Public Dataset for Bengali Digit Recognition from Speech",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2024"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Md Rakibul Hasan",
+        "Md Rakibul Hasan",
+        "Md Zakir Hossain"
+      ],
+      "doi": "10.1111/exsy.13045",
+      "paper_id": "66c2fc12-6d4e-5a40-b005-0e0e582bf1ad",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 6,
+      "source_identities": [
+        "openalex",
+        "crossref"
+      ],
+      "title": "Effect of vocal tract dynamics on neural network\u2010based speech recognition: A Bengali language\u2010based study",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Expert Systems",
+      "year": "2022"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Abrar Zawad",
+        "Shamim Kaiser",
+        "S.  S. Binita",
+        "M.  A. A. Mim"
+      ],
+      "doi": "10.2139/ssrn.7371999",
+      "paper_id": "7ec6a73d-0f54-5645-9dfb-cd8c0712a9a8",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 7,
+      "source_identities": [
+        "crossref"
+      ],
+      "title": "Lightweight Machine Learning Model for Speech Emotion Recognition in English and Bengali Language",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Elsevier BV",
+      "year": "2026"
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "Samiul Alam",
+        "Asif Shahriyar Sushmit",
+        "Zaowad Abdullah",
+        "Shahrin Nakkhatra",
+        "Md. Nazmuddoha Ansary",
+        "Syed Mobassir Hossen",
+        "Sazia Mehnaz",
+        "Tahsin Reasat",
+        "Ahmed Imtiaz Humayun"
+      ],
+      "doi": "10.48550/arxiv.2206.14053",
+      "paper_id": "8e737f6a-1425-58f8-8d04-938df0ed3306",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 8,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Bengali Common Voice Speech Dataset for Automatic Speech Recognition",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2022"
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "M. F. Mridha",
+        "Abu Quwsar Ohi",
+        "Md. Abdul Hamid",
+        "Muhammad Mostafa Monowar"
+      ],
+      "doi": "10.48550/arxiv.2109.13217",
+      "paper_id": "9e1e477d-c0c3-5975-a8ec-247284885ad1",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 9,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Challenges and Opportunities of Speech Recognition for Bengali Language",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2021"
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "Tushar Talukder Showrav"
+      ],
+      "doi": "10.48550/arxiv.2209.08119",
+      "paper_id": "be7bf9dd-ec1e-532a-a66c-c81a206637f3",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 10,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "An Automatic Speech Recognition System for Bengali Language based on Wav2Vec2 and Transfer Learning",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2022"
+    }
+  ],
+  "environment": "local-isolated",
+  "evidence_examples": [
+    {
+      "artifact_sha256": "00554f8fb10ccf2616aa2834c1759417c8280c871b69c864b643e49ffcaf90c4",
+      "assertion": {
+        "claim_id": "claim_9e6cfe1b",
+        "claim_type": "methodological",
+        "confidence": 0.92,
+        "extractor_name": "scientific-extractor-v1.0",
+        "extractor_version": "1.0.0",
+        "polarity": "positive",
+        "provenance_ids": [
+          "prov_398a9c49"
+        ],
+        "status": "observed",
+        "text": "Abstract Bengali is one of the most spoken languages in the\nworld with over 300 million speakers globally"
+      },
+      "evidence_pointers": [
+        {
+          "artifact_sha256": "00554f8fb10ccf2616aa2834c1759417c8280c871b69c864b643e49ffcaf90c4",
+          "bbox": [
+            145.27,
+            223.59,
+            196.7,
+            235.54
+          ],
+          "char_end": null,
+          "char_start": null,
+          "column": null,
+          "fetched_at": "2026-10-17T02:19:57.883976Z",
+          "json_pointer": null,
+          "page": 1,
+          "provenance_id": "prov_398a9c49",
+          "row": null,
+          "section_id": "abstract",
+          "source_record_id": null,
+          "source_type": "pdf",
+          "source_url": null,
+          "table_id": null,
+          "tei_xpath": null
+        }
+      ],
+      "extractor_version": null,
+      "paper_id": "8e737f6a-1425-58f8-8d04-938df0ed3306",
+      "verification_state": "pending_review"
+    },
+    {
+      "artifact_sha256": "ed14302f01879bad94c167637a3a3b5d49dd51aae4882e0c268843ad6faba0f5",
+      "assertion": {
+        "claim_id": "claim_c0b0cbfd",
+        "claim_type": "methodological",
+        "confidence": 0.92,
+        "extractor_name": "scientific-extractor-v1.0",
+        "extractor_version": "1.0.0",
+        "polarity": "positive",
+        "provenance_ids": [
+          "prov_067457b6"
+        ],
+        "status": "observed",
+        "text": "Abstract Speech recognition is a fascinating process that offers the opportunity to interact and\ncommand the machine in the field of human-computer interactions"
+      },
+      "evidence_pointers": [
+        {
+          "artifact_sha256": "ed14302f01879bad94c167637a3a3b5d49dd51aae4882e0c268843ad6faba0f5",
+          "bbox": [
+            280.28,
+            369.07,
+            331.72,
+            381.03
+          ],
+          "char_end": null,
+          "char_start": null,
+          "column": null,
+          "fetched_at": "2026-10-17T02:19:57.104321Z",
+          "json_pointer": null,
+          "page": 1,
+          "provenance_id": "prov_067457b6",
+          "row": null,
+          "section_id": "abstract",
+          "source_record_id": null,
+          "source_type": "pdf",
+          "source_url": null,
+          "table_id": null,
+          "tei_xpath": null
+        }
+      ],
+      "extractor_version": null,
+      "paper_id": "9e1e477d-c0c3-5975-a8ec-247284885ad1",
+      "verification_state": "pending_review"
+    }
+  ],
+  "evidence_state_counts": {
+    "pending_review": 3,
+    "provenance_checked": 5
+  },
+  "feature_examples": [
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:19:59.166378Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:19:59.166465Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "This paper presents the development of a prototype Automatic Speech Recognition (ASR) system specifically designed for Bengali biomedical data. Recent advancements in Bengali ASR are encouraging, but a lack of domain-specific data limits the creation of practical healthcare ASR models. This project bridges this gap by developing an ASR system tailored for Bengali medical terms like symptoms, severity levels, and diseases, encompassing two major dialects: Bengali and Sylheti. We train and evaluate two popular ASR frameworks on a comprehensive 46-hour Bengali medical corpus. Our core objective is to create deployable health-domain ASR systems for digital health applications, ultimately increasing accessibility for non-technical users in the healthcare sector.",
+              "query": "bengali speech recognition"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:19:59.166275Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:19:59.166393Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:19:59.166434Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:19:59.166407Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:19:59.166416Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:19:59.166291Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 1
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:19:59.166388Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:19:59.166420Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:19:59.166486Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:19:59.166515Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:19:59.166383Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:19:59.166531Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:19:59.166460Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:19:59.166490Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:19:59.166326Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 1
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "distinct_dataset_names",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "dataset_names": [
+                "Synthetic"
+              ]
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:19:59.166350Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:19:59.166446Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:19:59.166412Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:19:59.166424Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:19:59.166470Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:19:59.166474Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:19:59.166397Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:19:59.166372Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:19:59.166455Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:19:59.166506Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:19:59.166497Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:19:59.166478Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:19:59.166524Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 1
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:19:59.166312Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 0.6931
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:19:59.166520Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:19:59.166430Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:19:59.166402Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:19:59.166510Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:19:59.166438Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:19:59.166482Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:19:59.166528Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:19:59.166451Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:19:59.166501Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Automatic Speech Recognition for Biomedical Data in Bengali Language",
+              "query": "bengali speech recognition"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:19:59.166142Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:19:59.166535Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:19:59.166493Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "1bc13457-b174-599c-a891-451f4c25f346"
+    },
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:19:55.203802Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:19:55.204001Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Bengali is a prominent language of the Indian subcontinent. However, while many state-of-the-art acoustic models exist for prominent languages spoken in the region, research and resources for Bengali are few and far between. In this work, we apply CTC based CNN-RNN networks, a prominent deep learning based end-to-end automatic speech recognition technique, to the Bengali ASR task. We also propose and evaluate the applicability and efficacy of small 7x3 and 3x3 convolution kernels which are prominently used in the computer vision domain primarily because of their FLOPs and parameter efficient nature. We propose two CNN blocks, 2-layer Block A and 4-layer Block B, with the first layer comprising of 7x3 kernel and the subsequent layers comprising solely of 3x3 kernels. Using the publicly available Large Bengali ASR Training data set, we benchmark and evaluate the performance of seven deep neural network configurations of varying complexities and depth on the Bengali ASR task. Our best model, with Block B, has a WER of 13.67, having an absolute reduction of 1.39% over comparable model with larger convolution kernels of size 41x11 and 21x11.",
+              "query": "bengali speech recognition"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:19:55.203685Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:19:55.203836Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:19:55.203934Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:19:55.203869Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:19:55.203891Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:19:55.203706Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 3
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:19:55.203825Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:19:55.203901Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:19:55.204055Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:19:55.204149Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:19:55.203813Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:19:55.204200Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:19:55.203990Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:19:55.204065Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:19:55.203744Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 2
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "distinct_dataset_names",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "dataset_names": [
+                "COCO",
+                "ImageNet"
+              ]
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:19:55.203769Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 2
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:19:55.203956Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:19:55.203880Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:19:55.203912Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:19:55.204012Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:19:55.204022Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:19:55.203847Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:19:55.203789Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:19:55.203979Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:19:55.204125Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:19:55.204101Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:19:55.204033Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:19:55.204175Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 3
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:19:55.203729Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.3863
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:19:55.204162Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:19:55.203922Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:19:55.203858Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:19:55.204137Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:19:55.203945Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:19:55.204044Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:19:55.204187Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:19:55.203969Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:19:55.204114Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "End-to-End Bengali Speech Recognition",
+              "query": "bengali speech recognition"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:19:55.203549Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:19:55.204213Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:19:55.204076Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "29052296-4a35-5203-adfc-0c5ce8033fde"
+    },
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:20:01.644289Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:20:01.644408Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Bengali, spoken by over 300 million people, is a morphologically rich and lowresource language, posing challenges for automatic speech recognition (ASR). This research presents an end-to-end framework for Bengali ASR, building on a Conformer-CTC backbone with a multi-level embedding fusion mechanism that incorporates phoneme, syllable, and wordpiece representations. By enriching acoustic features with these linguistic embeddings, the model captures fine-grained phonetic cues and higher-level contextual patterns. The architecture employs early and late Conformer stages, with preprocessing steps including silence trimming, resampling, Log-Mel spectrogram extraction, and SpecAugment augmentation. The experimental results demonstrate the strong potential of the model, achieving a word error rate (WER) of 10.01% and a character error rate (CER) of 5.03%. These results demonstrate the effectiveness of combining multi-granular linguistic information with acoustic modeling, providing a scalable approach for low-resource ASR development.",
+              "query": "bengali speech recognition"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:20:01.644235Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:20:01.644309Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:20:01.644376Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:20:01.644327Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:20:01.644341Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:20:01.644246Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 0
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:20:01.644302Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:20:01.644347Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:20:01.644434Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:20:01.644470Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:20:01.644296Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:20:01.644487Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:20:01.644403Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:20:01.644439Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:20:01.644364Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:20:01.644370Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:20:01.644385Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:20:01.644333Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:20:01.644352Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:20:01.644412Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:20:01.644417Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:20:01.644315Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:20:01.644282Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:20:01.644397Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:20:01.644461Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:20:01.644449Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:20:01.644423Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:20:01.644479Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 0
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:20:01.644264Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 0.0
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:20:01.644474Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:20:01.644358Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:20:01.644322Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:20:01.644465Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:20:01.644380Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:20:01.644428Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:20:01.644483Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:20:01.644391Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:20:01.644454Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Multi-Level Embedding Conformer Framework for Bengali Automatic Speech Recognition",
+              "query": "bengali speech recognition"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:20:01.644105Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:20:01.644491Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:20:01.644444Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "2cb11f19-915c-56a7-a060-a303ad5169d9"
+    }
+  ],
+  "identity_merge_examples": [
+    {
+      "canonical_paper_id": "c27a2b29-c508-551f-881f-831171ecc717",
+      "dedup_decision": "MERGED",
+      "identifiers": {
+        "doi": "10.5958/j.0975-8070.2.3.018",
+        "openalex_id": "https://openalex.org/W2039409845"
+      },
+      "identity_review": [],
+      "merge_history": [
+        {
+          "signals": {
+            "decision": "merge",
+            "doi": "10.5958/j.0975-8070.2.3.018",
+            "reason": "exact_doi_match"
+          },
+          "source": "crossref"
+        }
+      ],
+      "source_records": 2,
+      "title": "Peak based clustering of continuous Bengali speech for medium vocabulary speech recognition system"
+    },
+    {
+      "canonical_paper_id": "66c2fc12-6d4e-5a40-b005-0e0e582bf1ad",
+      "dedup_decision": "MERGED",
+      "identifiers": {
+        "doi": "10.1111/exsy.13045",
+        "openalex_id": "https://openalex.org/W4286208582"
+      },
+      "identity_review": [],
+      "merge_history": [
+        {
+          "signals": {
+            "decision": "merge",
+            "doi": "10.1111/exsy.13045",
+            "reason": "exact_doi_match"
+          },
+          "source": "crossref"
+        }
+      ],
+      "source_records": 2,
+      "title": "Effect of vocal tract dynamics on neural network\u2010based speech recognition: A Bengali language\u2010based study"
+    },
+    {
+      "canonical_paper_id": "35f5b272-4397-592f-be0b-d8d136cbd697",
+      "dedup_decision": "MERGED",
+      "identifiers": {
+        "doi": "10.1016/j.mlwa.2023.100486",
+        "openalex_id": "https://openalex.org/W4385431739"
+      },
+      "identity_review": [],
+      "merge_history": [
+        {
+          "signals": {
+            "decision": "merge",
+            "doi": "10.1016/j.mlwa.2023.100486",
+            "reason": "exact_doi_match"
+          },
+          "source": "crossref"
+        }
+      ],
+      "source_records": 2,
+      "title": "A BCI system for imagined Bengali speech recognition"
+    }
+  ],
+  "job_id": "0dcc9ab7-b4e4-4b3a-99dc-e3fa871f9ed2",
+  "job_status": "partial",
+  "pipeline_stage": "SHORTLIST_READY",
+  "pipeline_version": "2.0.0",
+  "requested_by_role": "faculty",
+  "requested_by_user_id": "local-validation-faculty",
+  "result": "PARTIAL",
+  "source_evidence": [
+    {
+      "error": null,
+      "http_status": 200,
+      "record_count": 19,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:19:48.645302+00:00",
+      "response_sha256": "54c9955c4215abff5a0fd68eb33ad7779015a23d3f8802a053e28c7a7e7ce269",
+      "source": "openalex",
+      "status": "live"
+    },
+    {
+      "error": null,
+      "http_status": 200,
+      "record_count": 45,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:19:50.668629+00:00",
+      "response_sha256": "f1a0c4e44c958f5bd078f38557e99d26971ad730afc7d6d897a1f3c5c23ff4ed",
+      "source": "crossref",
+      "status": "live"
+    },
+    {
+      "error": "HTTP 429",
+      "http_status": 429,
+      "record_count": 0,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:19:52.234359+00:00",
+      "response_sha256": "467622e2f17f01d302d6c790b13078569f17d71cd83910558535019a594e07c1",
+      "source": "arxiv",
+      "status": "rate_limited"
+    },
+    {
+      "error": "HTTP 429",
+      "http_status": 429,
+      "record_count": 0,
+      "request_id": "173d5fca-d939-40ac-b1b4-0042be825169",
+      "requested_at": "2026-10-17T02:19:52.824161+00:00",
+      "response_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+      "source": "semantic_scholar",
+      "status": "rate_limited"
+    }
+  ],
+  "started_at": "2026-10-17T02:19:00.329745+00:00",
+  "topic": "bengali speech recognition"
+}

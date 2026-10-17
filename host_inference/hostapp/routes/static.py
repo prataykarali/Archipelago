@@ -28,7 +28,11 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.get("/<path:filename>")
     def static_files(filename):
-        if filename.startswith(".") or filename.startswith(API_PREFIX) or ".." in filename:
+        if (
+            filename.startswith(".")
+            or filename.startswith((API_PREFIX, "studio/"))
+            or ".." in filename
+        ):
             return jsonify({"error": "not_found"}), 404
         if (UI / filename).is_file():
             return send_from_directory(UI, filename)

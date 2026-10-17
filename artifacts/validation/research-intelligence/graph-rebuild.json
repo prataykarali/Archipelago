@@ -1,0 +1,22 @@
+{
+  "postgres_papers": 314,
+  "first_build": {
+    "papers": 314,
+    "authors": 849,
+    "venues": 196,
+    "datasets": 0,
+    "claims": 0,
+    "evidence": 0
+  },
+  "second_build": {
+    "papers": 314,
+    "authors": 849,
+    "venues": 196,
+    "datasets": 0,
+    "claims": 0,
+    "evidence": 0
+  },
+  "first_nodes": 314,
+  "second_nodes": 314,
+  "pass": true
+}

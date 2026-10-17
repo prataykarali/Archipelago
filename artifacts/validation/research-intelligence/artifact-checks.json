@@ -1,0 +1,57 @@
+{
+  "optical-character-recognition": {
+    "displayed_count": 10,
+    "unique_displayed_ids": true,
+    "source_status_count": 4,
+    "live_sources_have_hash": true,
+    "feature_examples": 3,
+    "feature_registry_nonempty": true,
+    "missing_feature_values_null": true,
+    "merge_reasons_exact_ids": true,
+    "pass": true
+  },
+  "pedestrian-detection": {
+    "displayed_count": 10,
+    "unique_displayed_ids": true,
+    "source_status_count": 4,
+    "live_sources_have_hash": true,
+    "feature_examples": 3,
+    "feature_registry_nonempty": true,
+    "missing_feature_values_null": true,
+    "merge_reasons_exact_ids": true,
+    "pass": true
+  },
+  "bengali-speech-recognition": {
+    "displayed_count": 10,
+    "unique_displayed_ids": true,
+    "source_status_count": 4,
+    "live_sources_have_hash": true,
+    "feature_examples": 3,
+    "feature_registry_nonempty": true,
+    "missing_feature_values_null": true,
+    "merge_reasons_exact_ids": true,
+    "pass": true
+  },
+  "skin-cancer-detection": {
+    "displayed_count": 10,
+    "unique_displayed_ids": true,
+    "source_status_count": 4,
+    "live_sources_have_hash": true,
+    "feature_examples": 3,
+    "feature_registry_nonempty": true,
+    "missing_feature_values_null": true,
+    "merge_reasons_exact_ids": true,
+    "pass": true
+  },
+  "fake-news-detection": {
+    "displayed_count": 10,
+    "unique_displayed_ids": true,
+    "source_status_count": 4,
+    "live_sources_have_hash": true,
+    "feature_examples": 3,
+    "feature_registry_nonempty": true,
+    "missing_feature_values_null": true,
+    "merge_reasons_exact_ids": true,
+    "pass": true
+  }
+}

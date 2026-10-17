@@ -1,0 +1,47 @@
+{
+  "optical character recognition": {
+    "paper_id": "05b5baf2-d84c-5aff-b28c-a91fba599f84",
+    "title": "A Review: Optical Character Recognition",
+    "postgres_authoritative": true,
+    "kuzu_paper_nodes": 1,
+    "authored_by_edges": 1,
+    "published_in_edges": 1,
+    "projection_generation": "research-445032ee25674a1ea19a867371ac03de"
+  },
+  "pedestrian detection": {
+    "paper_id": "00b98ffd-37b3-5385-89b7-ba36bb09713b",
+    "title": "When Pedestrian Detection Meets Multi-Modal Learning: Generalist Model and Benchmark Dataset",
+    "postgres_authoritative": true,
+    "kuzu_paper_nodes": 1,
+    "authored_by_edges": 6,
+    "published_in_edges": 1,
+    "projection_generation": "research-445032ee25674a1ea19a867371ac03de"
+  },
+  "bengali speech recognition": {
+    "paper_id": "1bc13457-b174-599c-a891-451f4c25f346",
+    "title": "Automatic Speech Recognition for Biomedical Data in Bengali Language",
+    "postgres_authoritative": true,
+    "kuzu_paper_nodes": 1,
+    "authored_by_edges": 4,
+    "published_in_edges": 1,
+    "projection_generation": "research-445032ee25674a1ea19a867371ac03de"
+  },
+  "skin cancer detection": {
+    "paper_id": "06be372a-72ab-5670-9c56-406f639443b6",
+    "title": "Skin Cancer Detection: A Survey",
+    "postgres_authoritative": true,
+    "kuzu_paper_nodes": 1,
+    "authored_by_edges": 1,
+    "published_in_edges": 1,
+    "projection_generation": "research-445032ee25674a1ea19a867371ac03de"
+  },
+  "fake news detection": {
+    "paper_id": "0064c6c7-cdb8-5b95-8173-e987e00af3f7",
+    "title": "Fake news detection: a survey of evaluation datasets",
+    "postgres_authoritative": true,
+    "kuzu_paper_nodes": 1,
+    "authored_by_edges": 4,
+    "published_in_edges": 1,
+    "projection_generation": "research-445032ee25674a1ea19a867371ac03de"
+  }
+}

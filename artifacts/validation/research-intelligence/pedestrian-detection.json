@@ -1,0 +1,2226 @@
+{
+  "candidate_pool": {
+    "canonical_candidates": 100,
+    "duplicates_removed": 2,
+    "evidence_validated": 0,
+    "fulltext_attempted": 8,
+    "fulltext_deferred": 7,
+    "fulltext_eligible": 15,
+    "fulltext_fetch_failed": 0,
+    "fulltext_parse_failed": 0,
+    "fulltext_parsed": 8,
+    "identity_conflicts": 0,
+    "metadata_only": 92,
+    "metadata_validated": 100,
+    "raw_candidates": 106
+  },
+  "completed_at": "2026-10-17T02:19:48.557380+00:00",
+  "coverage_gaps": [
+    "arxiv",
+    "extractor_version_not_recorded_in_initial_run",
+    "fewer_than_three_identity_merges",
+    "fulltext_processing_deferred",
+    "no_human_validated_evidence"
+  ],
+  "displayed_papers": [
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": "2407.10125",
+      "authors": [
+        "Yi Zhang",
+        "Wang Zeng",
+        "Sheng Jin",
+        "Chen Qian",
+        "Ping Luo",
+        "Wentao Liu"
+      ],
+      "doi": "10.48550/arXiv.2407.10125",
+      "paper_id": "00b98ffd-37b3-5385-89b7-ba36bb09713b",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 1,
+      "source_identities": [
+        "semantic_scholar"
+      ],
+      "title": "When Pedestrian Detection Meets Multi-Modal Learning: Generalist Model and Benchmark Dataset",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "European Conference on Computer Vision",
+      "year": "2024"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Ning Chen",
+        "Menglu Li",
+        "Hao Yuan",
+        "Xueping Su",
+        "Yunhong Li"
+      ],
+      "doi": "10.1007/s40747-020-00206-8",
+      "paper_id": "032a4e63-a184-552a-818f-144d31b34e01",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 2,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Survey of pedestrian detection with occlusion",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Complex & Intelligent Systems",
+      "year": "2020"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": "2404.19299",
+      "authors": [
+        "Sungjune Park",
+        "Hyunjun Kim",
+        "Man-Ro Yong"
+      ],
+      "doi": "10.1016/j.patcog.2024.110539",
+      "paper_id": "07462e62-b1cb-583d-91ff-97232818d7c9",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 3,
+      "source_identities": [
+        "semantic_scholar"
+      ],
+      "title": "Robust Pedestrian Detection via Constructing Versatile Pedestrian Knowledge Bank",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Pattern Recognition",
+      "year": "2024"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Chunjie Ma",
+        "L. Zhuo",
+        "Jia-Feng Li",
+        "Yutong Zhang",
+        "Jing Zhang"
+      ],
+      "doi": "10.1109/TMM.2023.3251100",
+      "paper_id": "0760ce7a-430e-58ff-ba1e-cc2fde665ad1",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 4,
+      "source_identities": [
+        "semantic_scholar"
+      ],
+      "title": "Cascade Transformer Decoder Based Occluded Pedestrian Detection With Dynamic Deformable Convolution and Gaussian Projection Channel Attention Mechanism",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE transactions on multimedia",
+      "year": "2023"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Xiang-Yang Li",
+        "Shi-Guo Chen",
+        "Chun-Na Tian",
+        "Heng Zhou",
+        "Zhenxi Zhang"
+      ],
+      "doi": "10.1109/TMM.2024.3381377",
+      "paper_id": "12835b8e-f758-5ea3-b65b-b941384c59ba",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 5,
+      "source_identities": [
+        "semantic_scholar"
+      ],
+      "title": "M2FNet: Mask-Guided Multi-Level Fusion for RGB-T Pedestrian Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE transactions on multimedia",
+      "year": "2024"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Unknown",
+        "Wittawin Susutti"
+      ],
+      "doi": "10.58837/chula.the.2014.888",
+      "paper_id": "1e48a872-1686-5274-bbcb-daf9345726cc",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 6,
+      "source_identities": [
+        "crossref"
+      ],
+      "title": "Pedestrian detection by using weighted channel features with hierarchical region reduction",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "Office of Academic Resources, Chulalongkorn University",
+      "year": null
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": null,
+      "authors": [
+        "Chengyang Li",
+        "Dan Song",
+        "Ruofeng Tong",
+        "Min Tang"
+      ],
+      "doi": "10.48550/arxiv.1808.04818",
+      "paper_id": "1f693a6a-8b45-5701-9667-6fcd678879d1",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 7,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Multispectral Pedestrian Detection via Simultaneous Detection and Segmentation",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "arXiv (Cornell University)",
+      "year": "2018"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "Jung Uk Kim",
+        "Sungjune Park",
+        "Yong Man Ro"
+      ],
+      "doi": "10.1109/TCSVT.2021.3076466",
+      "paper_id": "24607c0a-f91a-579b-bca2-68e4baf1d4bb",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 8,
+      "source_identities": [
+        "semantic_scholar"
+      ],
+      "title": "Uncertainty-Guided Cross-Modal Learning for Robust Multispectral Pedestrian Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE transactions on circuits and systems for video technology (Print)",
+      "year": "2022"
+    },
+    {
+      "access_state": "FULLTEXT_PARSED",
+      "arxiv_id": "2305.16580",
+      "authors": [
+        "Xue Zhang",
+        "Xiao-Han Zhang",
+        "Jiang-Tao Wang",
+        "Jiacheng Ying",
+        "Ze-Hua Sheng",
+        "Heng Yu",
+        "Chun-Guang Li",
+        "Hui Shen"
+      ],
+      "doi": "10.1109/TNNLS.2024.3443455",
+      "paper_id": "25528aac-2e98-5083-bd4c-09f5a5acc498",
+      "pipeline_state": "FULLTEXT_PARSED",
+      "rank": 9,
+      "source_identities": [
+        "semantic_scholar"
+      ],
+      "title": "TFDet: Target-Aware Fusion for RGB-T Pedestrian Detection",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE Transactions on Neural Networks and Learning Systems",
+      "year": "2023"
+    },
+    {
+      "access_state": "METADATA_ONLY",
+      "arxiv_id": null,
+      "authors": [
+        "David Ger\u00f3nimo",
+        "Antonio Manuel L\u00f3pez",
+        "Angel Domingo Sappa",
+        "Thorsten Graf"
+      ],
+      "doi": "10.1109/tpami.2009.122",
+      "paper_id": "2b1f0ec4-7428-57a3-bf23-48ae625ec19c",
+      "pipeline_state": "METADATA_VALIDATED",
+      "rank": 10,
+      "source_identities": [
+        "openalex"
+      ],
+      "title": "Survey of Pedestrian Detection for Advanced Driver Assistance Systems",
+      "topic_relevance_reason": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "topic_relevance_score": 1.0,
+      "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+      "year": "2009"
+    }
+  ],
+  "environment": "local-isolated",
+  "evidence_examples": [
+    {
+      "artifact_sha256": "4a7f2787715f4f32a3408dd5d2951657c6fb282e6082f370a9b0dc34e45808cf",
+      "assertion": {
+        "claim_id": "claim_4995dc58",
+        "claim_type": "methodological",
+        "confidence": 0.92,
+        "extractor_name": "scientific-extractor-v1.0",
+        "extractor_version": "1.0.0",
+        "polarity": "positive",
+        "provenance_ids": [
+          "prov_df847627"
+        ],
+        "status": "observed",
+        "text": "Abstract Multispectral pedestrian detection has attracted increasing attention from the research\ncommunity due to its crucial competence for many around-the-clock applications (e.g.,\nvideo surveillance and autonomous driving), especially under insuf\ufb01cient illumination\nconditions"
+      },
+      "evidence_pointers": [
+        {
+          "artifact_sha256": "4a7f2787715f4f32a3408dd5d2951657c6fb282e6082f370a9b0dc34e45808cf",
+          "bbox": [
+            191.8,
+            233.69,
+            225.17,
+            242.66
+          ],
+          "char_end": null,
+          "char_start": null,
+          "column": null,
+          "fetched_at": "2026-10-17T02:19:27.834447Z",
+          "json_pointer": null,
+          "page": 1,
+          "provenance_id": "prov_df847627",
+          "row": null,
+          "section_id": "abstract",
+          "source_record_id": null,
+          "source_type": "pdf",
+          "source_url": null,
+          "table_id": null,
+          "tei_xpath": null
+        }
+      ],
+      "extractor_version": null,
+      "paper_id": "1f693a6a-8b45-5701-9667-6fcd678879d1",
+      "verification_state": "pending_review"
+    },
+    {
+      "artifact_sha256": "577a28ab3775f0ecedb9169208262a910af2a667e6aa2c30528543fec48cb8a1",
+      "assertion": {
+        "claim_id": "claim_677c0adf",
+        "claim_type": "methodological",
+        "confidence": 0.92,
+        "extractor_name": "scientific-extractor-v1.0",
+        "extractor_version": "1.0.0",
+        "polarity": "positive",
+        "provenance_ids": [
+          "prov_5c76cbda"
+        ],
+        "status": "observed",
+        "text": "Abstract\u2014Pedestrian detection plays a critical role in com-\nputer vision as it contributes to ensuring traffic safety"
+      },
+      "evidence_pointers": [
+        {
+          "artifact_sha256": "577a28ab3775f0ecedb9169208262a910af2a667e6aa2c30528543fec48cb8a1",
+          "bbox": [
+            48.96,
+            189.06,
+            300.02,
+            556.68
+          ],
+          "char_end": null,
+          "char_start": null,
+          "column": null,
+          "fetched_at": "2026-10-17T02:19:40.498886Z",
+          "json_pointer": null,
+          "page": 1,
+          "provenance_id": "prov_5c76cbda",
+          "row": null,
+          "section_id": "abstract",
+          "source_record_id": null,
+          "source_type": "pdf",
+          "source_url": null,
+          "table_id": null,
+          "tei_xpath": null
+        }
+      ],
+      "extractor_version": null,
+      "paper_id": "25528aac-2e98-5083-bd4c-09f5a5acc498",
+      "verification_state": "pending_review"
+    }
+  ],
+  "evidence_state_counts": {
+    "pending_review": 8
+  },
+  "feature_examples": [
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:19:31.357609Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:19:31.357735Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Recent years have witnessed increasing research attention towards pedestrian detection by taking the advantages of different sensor modalities (e.g. RGB, IR, Depth, LiDAR and Event). However, designing a unified generalist model that can effectively process diverse sensor modalities remains a challenge. This paper introduces MMPedestron, a novel generalist model for multimodal perception. Unlike previous specialist models that only process one or a pair of specific modality inputs, MMPedestron is able to process multiple modal inputs and their dynamic combinations. The proposed approach comprises a unified encoder for modal representation and fusion and a general head for pedestrian detection. We introduce two extra learnable tokens, i.e. MAA and MAF, for adaptive multi-modal feature fusion. In addition, we construct the MMPD dataset, the first large-scale benchmark for multi-modal pedestrian detection. This benchmark incorporates existing public datasets and a newly collected dataset called EventPed, covering a wide range of sensor modalities including RGB, IR, Depth, LiDAR, and Event data. With multi-modal joint training, our model achieves state-of-the-art performance on a wide range of pedestrian detection benchmarks, surpassing leading models tailored for specific sensor modality. For example, it achieves 71.1 AP on COCO-Persons and 72.6 AP on LLVIP. Notably, our model achieves comparable performance to the InternImage-H model on CrowdHuman with 30x smaller parameters. Codes and data are available at https://github.com/BubblyYi/MMPedestron.",
+              "query": "pedestrian detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:19:31.357544Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:19:31.357632Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:19:31.357703Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:19:31.357653Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:19:31.357666Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:19:31.357560Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 39
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:19:31.357623Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:19:31.357673Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:19:31.357761Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:19:31.357799Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:19:31.357617Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:19:31.357823Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:19:31.357729Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:19:31.357766Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:19:31.357693Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:19:31.357698Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:19:31.357714Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:19:31.357661Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:19:31.357679Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:19:31.357740Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:19:31.357745Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:19:31.357639Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:19:31.357600Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:19:31.357724Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:19:31.357788Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:19:31.357777Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:19:31.357751Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:19:31.357811Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 39
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:19:31.357580Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 3.6889
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:19:31.357805Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:19:31.357687Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:19:31.357647Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:19:31.357793Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:19:31.357708Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:19:31.357755Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:19:31.357816Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:19:31.357719Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:19:31.357783Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "When Pedestrian Detection Meets Multi-Modal Learning: Generalist Model and Benchmark Dataset",
+              "query": "pedestrian detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:19:31.357346Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:19:31.357828Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:19:31.357771Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "00b98ffd-37b3-5385-89b7-ba36bb09713b"
+    },
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:19:24.906733Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:19:24.906971Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Abstract Pedestrian detection is widely applied in surveillance, autonomous robotic navigation, and automotive safety. However, there are many occlusion problems in real life. This paper summarizes the research progress of pedestrian detection technology with occlusion. First, according to different occlusion, it can be divided into two categories: inter-class occlusion and intra-class occlusion. Second, it summarizes the traditional method and deep learning method to deal with occlusion. Furthermore, the main ideas and core problems of each method model are analyzed and discussed. Finally, the paper gives an outlook on the problems to be solved in the future development of pedestrian detection technology with occlusion.",
+              "query": "pedestrian detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:19:24.906635Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:19:24.906772Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:19:24.906903Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:19:24.906809Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:19:24.906832Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:19:24.906657Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 76
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:19:24.906759Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:19:24.906845Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:19:24.907027Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:19:24.907129Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:19:24.906746Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:19:24.907174Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:19:24.906959Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:19:24.907038Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:19:24.906880Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:19:24.906891Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:19:24.906925Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:19:24.906820Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:19:24.906857Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:19:24.906982Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:19:24.906994Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:19:24.906784Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:19:24.906719Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:19:24.906948Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:19:24.907103Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:19:24.907061Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:19:24.907005Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:19:24.907152Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 76
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:19:24.906693Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 4.3438
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:19:24.907141Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:19:24.906868Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:19:24.906797Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:19:24.907117Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:19:24.906914Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:19:24.907015Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:19:24.907163Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:19:24.906937Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:19:24.907072Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Survey of pedestrian detection with occlusion",
+              "query": "pedestrian detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:19:24.906506Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:19:24.907186Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:19:24.907049Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "032a4e63-a184-552a-818f-144d31b34e01"
+    },
+    {
+      "features": {
+        "BM25": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "BM25",
+          "observed_at": "2026-10-17T02:19:34.477216Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "ablation_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "ablation_coverage",
+          "observed_at": "2026-10-17T02:19:34.477410Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "abstract_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Pedestrian detection is a crucial field of computer vision research which can be adopted in various real-world applications (e.g., self-driving systems). However, despite noticeable evolution of pedestrian detection, pedestrian representations learned within a detection framework are usually limited to particular scene data in which they were trained. Therefore, in this paper, we propose a novel approach to construct versatile pedestrian knowledge bank containing representative pedestrian knowledge which can be applicable to various detection frameworks and adopted in diverse scenes. We extract generalized pedestrian knowledge from a large-scale pretrained model, and we curate them by quantizing most representative features and guiding them to be distinguishable from background scenes. Finally, we construct versatile pedestrian knowledge bank which is composed of such representations, and then we leverage it to complement and enhance pedestrian features within a pedestrian detection framework. Through comprehensive experiments, we validate the effectiveness of our method, demonstrating its versatility and outperforming state-of-the-art detection performances.",
+              "query": "pedestrian detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "abstract_query_similarity",
+          "observed_at": "2026-10-17T02:19:34.477119Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "age_normalized_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "age_normalized_citations",
+          "observed_at": "2026-10-17T02:19:34.477248Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "baseline_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "baseline_count",
+          "observed_at": "2026-10-17T02:19:34.477355Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "betweenness_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "betweenness_centrality",
+          "observed_at": "2026-10-17T02:19:34.477278Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "bibliographic_coupling": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "bibliographic_coupling",
+          "observed_at": "2026-10-17T02:19:34.477297Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "citation_count_snapshot": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_count_snapshot",
+          "observed_at": "2026-10-17T02:19:34.477145Z",
+          "provenance_ids": [],
+          "status": "observed",
+          "value": 24
+        },
+        "citation_velocity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "citation_velocity",
+          "observed_at": "2026-10-17T02:19:34.477238Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "co_citation_strength": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "co_citation_strength",
+          "observed_at": "2026-10-17T02:19:34.477306Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "code_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "code_available",
+          "observed_at": "2026-10-17T02:19:34.477455Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "compute_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "compute_efficiency",
+          "observed_at": "2026-10-17T02:19:34.477514Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "concept_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "concept_coverage",
+          "observed_at": "2026-10-17T02:19:34.477227Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "correction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "correction_status",
+          "observed_at": "2026-10-17T02:19:34.477550Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "cross_dataset_eval": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "cross_dataset_eval",
+          "observed_at": "2026-10-17T02:19:34.477401Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "data_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "data_available",
+          "observed_at": "2026-10-17T02:19:34.477463Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_count",
+          "observed_at": "2026-10-17T02:19:34.477335Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "dataset_diversity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "dataset_diversity",
+          "observed_at": "2026-10-17T02:19:34.477346Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "effect_size": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "effect_size",
+          "observed_at": "2026-10-17T02:19:34.477375Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "eigenvector_centrality": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "eigenvector_centrality",
+          "observed_at": "2026-10-17T02:19:34.477288Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "embedding_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "embedding_novelty",
+          "observed_at": "2026-10-17T02:19:34.477315Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_backed_claim_ratio": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_backed_claim_ratio",
+          "observed_at": "2026-10-17T02:19:34.477419Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "evidence_coverage": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "evidence_coverage",
+          "observed_at": "2026-10-17T02:19:34.477428Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "field_normalized_citation_impact": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "field_normalized_citation_impact",
+          "observed_at": "2026-10-17T02:19:34.477258Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "fulltext_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "fulltext_query_similarity",
+          "observed_at": "2026-10-17T02:19:34.477203Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "generalization_gap": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "generalization_gap",
+          "observed_at": "2026-10-17T02:19:34.477392Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hardware_disclosure": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hardware_disclosure",
+          "observed_at": "2026-10-17T02:19:34.477498Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "hyperparameter_completeness": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "hyperparameter_completeness",
+          "observed_at": "2026-10-17T02:19:34.477481Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "independent_support_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "independent_support_count",
+          "observed_at": "2026-10-17T02:19:34.477438Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "latency_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "latency_efficiency",
+          "observed_at": "2026-10-17T02:19:34.477532Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "log_citations": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "ln(1 + citation_count)",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "citation_count": 24
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "log_citations",
+          "observed_at": "2026-10-17T02:19:34.477177Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 3.2189
+        },
+        "memory_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "memory_efficiency",
+          "observed_at": "2026-10-17T02:19:34.477523Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "method_novelty": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "method_novelty",
+          "observed_at": "2026-10-17T02:19:34.477326Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "pagerank": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "pagerank",
+          "observed_at": "2026-10-17T02:19:34.477268Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "parameter_efficiency": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "parameter_efficiency",
+          "observed_at": "2026-10-17T02:19:34.477506Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "relative_improvement": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "relative_improvement",
+          "observed_at": "2026-10-17T02:19:34.477365Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "replication_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "replication_count",
+          "observed_at": "2026-10-17T02:19:34.477447Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "retraction_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "retraction_status",
+          "observed_at": "2026-10-17T02:19:34.477541Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "run_variance": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "run_variance",
+          "observed_at": "2026-10-17T02:19:34.477384Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "seed_count": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "seed_count",
+          "observed_at": "2026-10-17T02:19:34.477490Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "title_query_similarity": {
+          "comparability_reasons": null,
+          "comparability_status": "comparable",
+          "confidence": 1.0,
+          "derivation_json": {
+            "formula": "query_token_coverage_v1",
+            "formula_version": "2.0.0",
+            "inputs": {
+              "field": "Robust Pedestrian Detection via Constructing Versatile Pedestrian Knowledge Bank",
+              "query": "pedestrian detection"
+            }
+          },
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "title_query_similarity",
+          "observed_at": "2026-10-17T02:19:34.476892Z",
+          "provenance_ids": [],
+          "status": "derived",
+          "value": 1.0
+        },
+        "version_status": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "version_status",
+          "observed_at": "2026-10-17T02:19:34.477558Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        },
+        "weights_available": {
+          "comparability_reasons": null,
+          "comparability_status": "insufficient_evidence",
+          "confidence": 1.0,
+          "derivation_json": null,
+          "extractor": "feature-engine-v1.1",
+          "extractor_version": "2.0.0",
+          "feature_name": "weights_available",
+          "observed_at": "2026-10-17T02:19:34.477471Z",
+          "provenance_ids": [],
+          "status": "unknown",
+          "value": null
+        }
+      },
+      "paper_id": "07462e62-b1cb-583d-91ff-97232818d7c9"
+    }
+  ],
+  "identity_merge_examples": [
+    {
+      "canonical_paper_id": "7923540d-8864-5d41-80eb-41679577b4d4",
+      "dedup_decision": "MERGED",
+      "identifiers": {
+        "doi": "10.1109/tpami.2011.155",
+        "openalex_id": "https://openalex.org/W2031454541",
+        "semantic_scholar_id": "34e0ba2daabfa4d3d22913ade8265aff50b5f917"
+      },
+      "identity_review": [],
+      "merge_history": [
+        {
+          "signals": {
+            "decision": "merge",
+            "doi": "10.1109/TPAMI.2011.155",
+            "reason": "exact_doi_match"
+          },
+          "source": "semantic_scholar"
+        }
+      ],
+      "source_records": 2,
+      "title": "Pedestrian Detection: An Evaluation of the State of the Art"
+    },
+    {
+      "canonical_paper_id": "7f0cd907-1f2c-5fb5-8549-3b0b21584dcc",
+      "dedup_decision": "MERGED",
+      "identifiers": {
+        "doi": "10.1109/iceeict61591.2024.10718372",
+        "semantic_scholar_id": "4f861c0222b54c698d198d36b810d9aade1e5d5a"
+      },
+      "identity_review": [],
+      "merge_history": [
+        {
+          "signals": {
+            "decision": "merge",
+            "doi": "10.1109/ICEEICT61591.2024.10718372",
+            "reason": "exact_doi_match"
+          },
+          "source": "semantic_scholar"
+        }
+      ],
+      "source_records": 2,
+      "title": "YOLOv8 for Pedestrian Detection: A Comparative Study for Pedestrian Detection"
+    }
+  ],
+  "job_id": "841b6883-83b9-495c-8af1-00dd7723d5db",
+  "job_status": "partial",
+  "pipeline_stage": "SHORTLIST_READY",
+  "pipeline_version": "2.0.0",
+  "requested_by_role": "faculty",
+  "requested_by_user_id": "local-validation-faculty",
+  "result": "PARTIAL",
+  "source_evidence": [
+    {
+      "error": null,
+      "http_status": 200,
+      "record_count": 19,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:19:00.471440+00:00",
+      "response_sha256": "46b370e47a0751765c255f0ddc06443157fe3ca9ded9ae99930b4036dde2c4a6",
+      "source": "openalex",
+      "status": "live"
+    },
+    {
+      "error": null,
+      "http_status": 200,
+      "record_count": 37,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:19:03.078113+00:00",
+      "response_sha256": "b57bc394afdc8a801f0c46a295e0c17f3e27b0c58be94d3f2b7ac536c6827b6a",
+      "source": "crossref",
+      "status": "live"
+    },
+    {
+      "error": "ReadTimeout",
+      "http_status": null,
+      "record_count": 0,
+      "request_id": null,
+      "requested_at": "2026-10-17T02:19:04.782481+00:00",
+      "response_sha256": null,
+      "source": "arxiv",
+      "status": "request_failed"
+    },
+    {
+      "error": null,
+      "http_status": 200,
+      "record_count": 50,
+      "request_id": "01f3d339-e51b-42f4-8d8a-bfd0a6072694",
+      "requested_at": "2026-10-17T02:19:20.150616+00:00",
+      "response_sha256": "f8b56e316dda93b37283112695cbe79cd066d3e17a6b4dbee5210203028797d5",
+      "source": "semantic_scholar",
+      "status": "live"
+    }
+  ],
+  "started_at": "2026-10-17T02:19:00.296306+00:00",
+  "topic": "pedestrian detection"
+}

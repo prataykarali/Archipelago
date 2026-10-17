@@ -1,0 +1,153 @@
+{
+  "environment": "local-isolated",
+  "authentication": "simulated verified principals; no live Supabase tokens",
+  "requests": [
+    {
+      "label": "student_job",
+      "role": "student",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b",
+      "status": 403,
+      "error": "forbidden"
+    },
+    {
+      "label": "student_create",
+      "role": "student",
+      "method": "POST",
+      "path": "/api/research/jobs",
+      "status": 403,
+      "error": "forbidden"
+    },
+    {
+      "label": "student_features",
+      "role": "student",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b/papers/05b5baf2-d84c-5aff-b28c-a91fba599f84/features",
+      "status": 403,
+      "error": "forbidden"
+    },
+    {
+      "label": "student_evidence",
+      "role": "student",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b/papers/05b5baf2-d84c-5aff-b28c-a91fba599f84/evidence",
+      "status": 403,
+      "error": "forbidden"
+    },
+    {
+      "label": "student_track",
+      "role": "student",
+      "method": "POST",
+      "path": "/api/research/topics",
+      "status": 403,
+      "error": "forbidden"
+    },
+    {
+      "label": "faculty_job",
+      "role": "faculty",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b",
+      "status": 200,
+      "error": "arxiv, semantic_scholar"
+    },
+    {
+      "label": "faculty_features",
+      "role": "faculty",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b/papers/05b5baf2-d84c-5aff-b28c-a91fba599f84/features",
+      "status": 200,
+      "error": null
+    },
+    {
+      "label": "faculty_evidence",
+      "role": "faculty",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b/papers/05b5baf2-d84c-5aff-b28c-a91fba599f84/evidence",
+      "status": 200,
+      "error": null
+    },
+    {
+      "label": "faculty_source_health_denied",
+      "role": "faculty",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b/sources",
+      "status": 403,
+      "error": "forbidden"
+    },
+    {
+      "label": "faculty_track",
+      "role": "faculty",
+      "method": "POST",
+      "path": "/api/research/topics",
+      "status": 201,
+      "error": null
+    },
+    {
+      "label": "faculty_refresh_denied",
+      "role": "faculty",
+      "method": "PATCH",
+      "path": "/api/research/topics/ce9ced7b-72eb-4fa7-a49f-fd80c16629f2/refresh",
+      "status": 403,
+      "error": "forbidden"
+    },
+    {
+      "label": "faculty_create",
+      "role": "faculty",
+      "method": "POST",
+      "path": "/api/research/jobs",
+      "status": 202,
+      "error": null
+    },
+    {
+      "label": "librarian_source_health",
+      "role": "librarian",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b/sources",
+      "status": 200,
+      "error": null
+    },
+    {
+      "label": "librarian_refresh",
+      "role": "librarian",
+      "method": "PATCH",
+      "path": "/api/research/topics/ce9ced7b-72eb-4fa7-a49f-fd80c16629f2/refresh",
+      "status": 200,
+      "error": null
+    },
+    {
+      "label": "admin_source_health",
+      "role": "administrator",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b/sources",
+      "status": 200,
+      "error": null
+    },
+    {
+      "label": "admin_job",
+      "role": "administrator",
+      "method": "GET",
+      "path": "/api/research/jobs/d4fe9685-7a52-43a7-93f0-47222ab5ce4b",
+      "status": 200,
+      "error": "arxiv, semantic_scholar"
+    }
+  ],
+  "audit_rows": [
+    {
+      "action": "job_create",
+      "result": "accepted",
+      "role": "faculty",
+      "research_job_id": "9307700f-a97c-47e7-b60c-848e374bf70d",
+      "topic": "local access-control probe",
+      "timestamp": "2026-10-17 02:24:00.988468+00:00"
+    },
+    {
+      "action": "refresh_control",
+      "result": "updated",
+      "role": "librarian",
+      "research_job_id": null,
+      "topic": "ce9ced7b-72eb-4fa7-a49f-fd80c16629f2",
+      "timestamp": "2026-10-17 02:24:01.047600+00:00"
+    }
+  ],
+  "pass": true
+}
