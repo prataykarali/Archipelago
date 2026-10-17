@@ -146,6 +146,10 @@ def provision(root: Path | None = None) -> dict[str, object]:
     which ``/api/readiness`` surfaces, so an operator can see from outside
     whether the deployment is actually answering from the full corpus.
     """
+    if root is None and (os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV")):
+        # The function bundle is read-only. Engine.hydrate() fetches into /tmp
+        # and Engine falls back to the packaged, explicitly labelled fixture.
+        return {"source": "runtime_cache", "ok": True}
     repo_root = Path(root) if root else Path(__file__).resolve().parents[2]
     graph_json = repo_root / "okf_graph.json"
     cache_graph = repo_root / "host_inference" / "cache" / "okf_graph.json"
