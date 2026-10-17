@@ -29,7 +29,11 @@ checkGraphStaffAccess().then((hasStaffAccess) => {
     document.getElementById('loader').classList.add('gone');
     setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
     processData(data);
-    const corpusLabel = data.corpus_source === 'fixture' ? 'limited fixture' : 'hosted corpus';
+    const corpusLabel = data.corpus_source === 'full'
+      ? 'full hosted corpus'
+      : data.corpus_source === 'fixture' ? 'limited fixture' : 'unknown corpus source';
+    document.getElementById('studio-corpus-badge').textContent =
+      data.corpus_source === 'full' ? 'FULL CORPUS' : 'LIMITED CORPUS';
     document.getElementById('studio-snapshot').textContent =
       `${state.allNodes.length} concepts · ${state.allEdges.length} edges · ${corpusLabel}. This is the deployed snapshot, not live circulation data.`;
 

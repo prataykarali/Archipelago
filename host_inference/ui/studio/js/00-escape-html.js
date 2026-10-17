@@ -110,7 +110,7 @@ function bk(id){
   return {
     name: clean.length > 28 ? clean.slice(0, 26) + '…' : clean,
     full: clean || 'Document',
-    author: 'Archipelago Scholar',
+    author: 'Author metadata unavailable',
     year: '',
     color: '#8b5cf6',
     shelf: shelf,

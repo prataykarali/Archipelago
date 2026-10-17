@@ -48,12 +48,12 @@
     </div>
     <div class="brand-name">Archipelago</div>
     <div class="brand-tag">KNOWLEDGE GRAPH</div>
-    <div class="brand-tag" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25);color:#d97706" title="Pilot build: limited AI/ML corpus (~450 concepts); niche topics may be sparse.">PILOT · LIMITED CORPUS</div>
+    <div class="brand-tag" id="studio-corpus-badge" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25);color:#d97706">CORPUS STATUS LOADING</div>
   </div>
 
   <div id="nav-tabs">
     <button class="nav-tab active" id="tab-books" data-view="books">
-      <img src="/ui/assets/book_btn.png" class="btn-icon" alt="Books"> Books
+      <img src="/ui/assets/book_btn.png" class="btn-icon" alt="Resources"> Resources
     </button>
     <button class="nav-tab" id="tab-concepts" data-view="concepts">
       <img src="/ui/assets/brain_btn.png" class="btn-icon" alt="Concepts"> Concepts
@@ -99,13 +99,13 @@
       <div>
         <h2 class="books-hero-title">
           <img src="/ui/assets/book_btn.png" class="btn-icon-lg" alt="Library">
-          Library Catalog
+          Graph Sources
         </h2>
-        <p class="books-hero-sub">Select any book or paper to explore its grounded OKF topological knowledge graph</p>
+        <p class="books-hero-sub">Indexed books and papers that support the concept graph. This is not a live holdings catalogue.</p>
       </div>
       <div class="books-hero-badge" id="books-total-badge">
         <img src="/ui/assets/graph_btn.png" class="btn-icon-sm" alt="Stats">
-        <span id="books-total-count">0 books in corpus</span>
+        <span id="books-total-count">0 indexed sources</span>
       </div>
     </div>
     <div class="books-grid" id="books-grid"></div>

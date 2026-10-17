@@ -47,7 +47,7 @@ const BooksModule = {
     });
 
     const bookKeys = Object.keys(bs);
-    document.getElementById('books-total-count').textContent = `${bookKeys.length} books in catalog`;
+    document.getElementById('books-total-count').textContent = `${bookKeys.length} indexed sources`;
 
     // Group books by domain/shelf
     const domainGroups = {};
