@@ -26,7 +26,7 @@ CORS_HEADERS = "Content-Type,Authorization,X-Requested-With"
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; "
     "form-action 'self'; "
-    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh; "
+    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://d3js.org; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
     "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; "
     "connect-src 'self' https://spllaastejfwclllfndp.supabase.co https://esm.sh; "

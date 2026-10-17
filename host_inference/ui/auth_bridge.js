@@ -6,7 +6,7 @@ const LOGIN_PATH = "/login";
 const OPEN_PATHS = new Set(["/", "/landing"]);
 const IDLE_TIMEOUT_MS = 300000;
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
-const STAFF_ROUTES = new Set(["/chat", "/library", "/graph"]);
+const STAFF_ROUTES = new Set(["/chat", "/library", "/graph", "/studio"]);
 
 async function loadConfig() {
   try {
@@ -66,7 +66,7 @@ window.archipelagoRequireSession = async () => {
   return null;
 };
 
-if (["/chat", "/library", "/graph"].includes(window.location.pathname.replace(/\/$/, ""))) {
+if (["/chat", "/library", "/graph", "/studio"].includes(window.location.pathname.replace(/\/$/, ""))) {
   let idleTimer;
   const expire = async () => {
     try {
@@ -154,7 +154,7 @@ window.archipelagoMountNavigation = async () => {
 
   const routes = principal.role === "student"
     ? [["Chat", "/chat"], ["Library", "/library"]]
-    : [["Chat", "/chat"], ["Library", "/library"], ["Graph", "/graph"]];
+    : [["Chat", "/chat"], ["Library", "/library"], ["Graph", "/graph"], ["Studio", "/studio"]];
   for (const [label, href] of routes) {
     const link = document.createElement("a");
     link.href = href;

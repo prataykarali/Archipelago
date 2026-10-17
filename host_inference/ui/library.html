@@ -993,7 +993,8 @@
         if (!response.ok) return;
         const principal = await response.json();
         if (principal.authenticated && ['librarian', 'administrator'].includes(principal.role)) {
-          document.getElementById('librarian-panel').style.display = 'block';
+          // The staff graph studio replaces the old inline librarian console.
+          document.getElementById('librarian-panel').style.display = 'none';
           const capabilities = await fetch('/api/ingest/capabilities').then(r => r.json());
           if (!capabilities.upload_api_enabled) {
             document.getElementById('ingest-capability').textContent = 'Hosted ingestion is unavailable on this deployment. Graph exploration and the library catalog remain available.';
@@ -1006,7 +1007,7 @@
         }
       } catch (_) {}
     }
-    showStaffIngestionPanel();
+    // Staff tools now live in /studio; keep the legacy panel inactive.
 
     function getAuthHeaders() { return {}; }
 
