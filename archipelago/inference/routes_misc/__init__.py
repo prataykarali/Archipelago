@@ -80,5 +80,7 @@ from .m10_probes import (  # noqa: F401
     ready,
     api_health,
 )
+from .m11_scholarly import scholarly_discover  # noqa: F401
 
 __all__ = ["add_cors_headers", "serve_pdf", "REMOTE_PDF_SOURCES", "SHARES_DIR", "_SHARE_MAX_BYTES", "_SHARE_ID_RE", "create_share", "get_share", "readiness", "close_graph_internal", "reload_graph_internal", "ingestion_capabilities", "ingest_upload", "ingest_status", "ingest_cancel", "ingest_list", "SlidingWindowLimiter", "_ingest_limiter", "ingest_index", "list_graph_documents", "delete_graph_document", "manual_add_concept", "manual_add_edge", "server_root", "api_roadmap_quiz", "api_roadmap_plan", "api_roadmap_between", "resolve_pdf_file", "pdf_available", "estimate_ingestion_time", "api_auth_config", "api_auth_me", "manage_users_api_backend", "ingest_mention", "ingest_page_image", "ingest_page_text", "ingest_spreadsheet_plan", "ingest_spreadsheet_apply", "intake_capabilities", "health", "ready", "api_health"]
+__all__.append("scholarly_discover")

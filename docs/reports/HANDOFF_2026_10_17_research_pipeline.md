@@ -1,0 +1,29 @@
+# Research Intelligence pipeline handoff — 2026-10-17
+
+## Built in this session
+
+- Staff capabilities are checked on the server. `student` is denied Research Intelligence routes; `faculty`, `librarian`, and stored role `administrator` receive the requested graduated permissions. Research routes still require a verified session when ordinary library reading is public.
+- Research jobs use a private PostgreSQL schema for source snapshots, canonical paper records, identifiers, job states, evidence, feature observations, audits, tracked topics, and projection events. An idempotency key prevents duplicate job creation. Interrupted jobs can be resumed, and the worker requeues jobs abandoned beyond its lease.
+- The worker requests OpenAlex, Crossref, arXiv, and Semantic Scholar through official machine-readable APIs. Each response records its timestamp, actual status, request identifier where present, HTTP status, raw bytes, and SHA-256. A failed source is never turned into a successful empty source. Exact DOI/arXiv identity is required for automatic merging; title similarity creates review candidates only.
+- Rights decisions gate PDF fetches. PDF extraction can produce provenance-checked assertions, but only librarian/admin adjudication marks evidence `validated`. Only reviewed evidence enters the claim/evidence graph projection. Unavailable features keep explicit missing states and derivations record their inputs and formula version. The displayed shortlist uses topic relevance, without reputation or citation scores.
+- Tracked topics are queued on an active daily or inactive weekly schedule. Each successful job queues a projection event. The worker builds a new Kùzu generation from PostgreSQL and atomically publishes a `current.json` pointer. It emits vector input text and, when `ARCHIPELAGO_RESEARCH_EMBEDDING_MODEL` names an available local model, a normalized `.npz` embedding matrix. The pointer reports `not_configured` until actual vectors exist. The research projection is not yet connected to chat retrieval.
+- Applying librarian spreadsheets still updates the current institutional Kùzu resource graph and clears inventory caches after real writes. Institutional PostgreSQL canonical storage and approved OPAC/IEM connectors remain next-session work; no live holding or availability claim is inferred from research metadata.
+- The former direct discovery-to-SLM-dataset CLI path is removed. Research Intelligence remains disabled by default with `ARCHIPELAGO_RESEARCH_ENABLED` unset. No Vercel changes or deployment were made.
+
+## Read-only connector check
+
+One `optical character recognition` request per source from this workspace (not a staging end-to-end run): OpenAlex HTTP 200 with one paper record; arXiv HTTP 200 with one paper record; Semantic Scholar HTTP 429; Crossref HTTP 200 with zero paper records for a one-record request, then three paper records for a ten-record request. These results establish only local connector reachability at that moment.
+
+## Tests and remaining release gates
+
+Focused unit tests cover role access, source failure, identity, rights, missing features, relevance ordering, audit fields, and graph rebuild. The auth and focused research suite passed 37 tests before the final identity/provenance tests were added; the focused research suite subsequently passed 15 tests. Repository-wide Ruff lint and formatting pass, and strict mypy passes for the targeted new research modules. The repository quality gate still reports its existing broad strict-mypy baseline errors outside this work. No PostgreSQL service or staging environment was available in this local session, so the SQL schema, worker, and endpoint path still need live integration validation.
+
+Next session: obtain approved Koha OPAC and IEM CRP API/export paths and auth type; ingest institutional snapshots and librarian submissions into PostgreSQL; build approved connector adapters and change reports; configure the local embedding model and wire the derived research projection into authorized retrieval; run all five mandated topics end to end on staging with real staff accounts, rights-gated full text, source and provenance traces, graph regeneration, and the requested report/artifacts. Keep the feature flag off until that release gate passes. Do not report this local smoke check as staging validation.
+
+## Continuation: isolated live-source integration and Apify public probes
+
+An isolated PostgreSQL 17 container on `127.0.0.1:15432` was started for this continuation. All five required topics ran against official scholarly APIs. The local database now contains 314 canonical research papers; 21 permitted PDFs were parsed. All five jobs remain `PARTIAL`. The graph rebuild reproduced 314 Paper nodes, and one due-topic worker cycle refreshed source metadata and published a second Kùzu/vector generation. The detailed local report and five JSON traces are in `docs/validation/research-intelligence-e2e.md` and `artifacts/validation/research-intelligence/`.
+
+The user requested Apify Actor probes for the public OPAC and IEM pages. Three capped, single-page `apify/website-content-crawler` runs used the local `APIFY_TOKEN` without persisting it: OPAC HTTPS timed out, OPAC HTTP was stopped after two minutes with zero pages, and IEM's public portal returned HTTP 403. All three datasets contained zero records; no institutional book or holding was ingested. Reusable bounded probe code and source-linked record extraction now live in `archipelago/ingestion/institutional_apify.py`, with `scripts/ops/institutional_apify_probe.py` for reruns. Actor `SUCCEEDED` status is never treated as source success when its dataset is empty or its page failed.
+
+The validation remains local, not staging. No live role accounts, approved authenticated IEM export, OPAC machine-readable export, or continuous scheduler is configured. Research Intelligence remains disabled. No Vercel changes were made.

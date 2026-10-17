@@ -1,0 +1,140 @@
+{
+  "vector_sha256": "90da8cd82db0c85ba66272c862990eff9165a05bbff854840263b035baf90a5a",
+  "results": {
+    "optical character recognition": [
+      {
+        "paper_id": "810b2421-4791-5be4-a425-a9238b83281e",
+        "title": "Optical character recognition",
+        "cosine": 1.0
+      },
+      {
+        "paper_id": "8bbe18ea-c6b1-5d6a-8a8a-189d765b8bbc",
+        "title": "Optical Character Recognition",
+        "cosine": 1.0
+      },
+      {
+        "paper_id": "0c1dea62-8503-5605-be3e-3ac106d5f4a6",
+        "title": "Optical character recognition",
+        "cosine": 1.0
+      },
+      {
+        "paper_id": "ec0a8d1c-72da-5c98-9322-a8689359c4f4",
+        "title": "Optical character recognition by a neural network",
+        "cosine": 0.8452710509300232
+      },
+      {
+        "paper_id": "56b5781b-e058-5280-a2b4-1a0d144ad1ec",
+        "title": "Optical Character Recognition Using Morphological Attributes.",
+        "cosine": 0.8182064890861511
+      }
+    ],
+    "pedestrian detection": [
+      {
+        "paper_id": "12b451ef-db95-5ef4-88a5-273bb351e03a",
+        "title": "Pedestrian detection and tracking at crossroads",
+        "cosine": 0.7864717245101929
+      },
+      {
+        "paper_id": "a9b4f1ab-ce3a-5168-a022-e8b0798a9df4",
+        "title": "Detection of pedestrian crossing road: A study on pedestrian pose recognition",
+        "cosine": 0.773029625415802
+      },
+      {
+        "paper_id": "9cd70a50-1aab-5fdc-9486-7d5d6ff8c336",
+        "title": "Fast and accurate vision-based pedestrian detection",
+        "cosine": 0.7681177258491516
+      },
+      {
+        "paper_id": "e887d0e9-4f75-55c4-9ffb-0aabeb8052f7",
+        "title": "Pedestrian detection and counting in surveillance videos",
+        "cosine": 0.7322365045547485
+      },
+      {
+        "paper_id": "3f9a99a5-3985-549e-9a28-c0c689e7dca1",
+        "title": "Pedestrian Safety - Exploring the Different Applications for Pedestrian Sensing Detection",
+        "cosine": 0.7309715747833252
+      }
+    ],
+    "bengali speech recognition": [
+      {
+        "paper_id": "0df862ae-a281-5664-a20d-c1debf49ef45",
+        "title": "State of art Research in Bengali Speech Recognition",
+        "cosine": 0.8115164041519165
+      },
+      {
+        "paper_id": "beaea3f4-7a06-5b54-bfd9-5266744f68df",
+        "title": "Improved Speech Emotion Recognition in Bengali Language using Deep Learning",
+        "cosine": 0.802687406539917
+      },
+      {
+        "paper_id": "dd8e2fec-07de-59aa-80c0-bd925b4e3849",
+        "title": "Elevating Bengali Speech Recognition with Phonological Harmony",
+        "cosine": 0.8026268482208252
+      },
+      {
+        "paper_id": "66ffbb69-a2fd-5096-93a0-89c36c48e6bd",
+        "title": "Continuous Bengali Speech Recognition Based On Deep Neural Network",
+        "cosine": 0.8007612228393555
+      },
+      {
+        "paper_id": "83765f50-615d-5693-9ac8-c82d177e62b2",
+        "title": "A Speech Recognition System for Bengali Language using Recurrent Neural Network",
+        "cosine": 0.7968212962150574
+      }
+    ],
+    "skin cancer detection": [
+      {
+        "paper_id": "d45cd512-a1d3-513d-b506-61778bb747cc",
+        "title": "Skin Cancer Detection Technology",
+        "cosine": 0.9525140523910522
+      },
+      {
+        "paper_id": "35585b26-f265-5882-8cbc-50443533d251",
+        "title": "Skin cancer detection using laser imaging",
+        "cosine": 0.8586505651473999
+      },
+      {
+        "paper_id": "3af6ecf1-958d-560f-b424-07151b688da8",
+        "title": "Skin Cancer Detection Using Digital Image Processing",
+        "cosine": 0.848614513874054
+      },
+      {
+        "paper_id": "b2b72ee6-c568-50fa-8895-91dd21e6da6a",
+        "title": "Skin cancer detection using dermoscope images",
+        "cosine": 0.828387975692749
+      },
+      {
+        "paper_id": "bcd971fc-2325-50d3-bd22-d7b282b084ec",
+        "title": "Skin cancer detection and classification using machine learning",
+        "cosine": 0.811023473739624
+      }
+    ],
+    "fake news detection": [
+      {
+        "paper_id": "73136182-fb50-5d25-b203-1502c4134fdc",
+        "title": "Online Fake News Detection",
+        "cosine": 0.9374803304672241
+      },
+      {
+        "paper_id": "5fcaa39c-5fb1-5506-9729-ce0f0f4e85b0",
+        "title": "FAKE NEWS AND FAKE PROFILE DETECTION",
+        "cosine": 0.8987388014793396
+      },
+      {
+        "paper_id": "4913d223-5381-5e7f-9703-830af1a1ad31",
+        "title": "Fake News Detection Using Machine Learning",
+        "cosine": 0.8744081854820251
+      },
+      {
+        "paper_id": "2563c5e3-b94a-5748-b2a9-42ed69cd7454",
+        "title": "Fake News Detection on Social Networks",
+        "cosine": 0.8721391558647156
+      },
+      {
+        "paper_id": "61191df5-e566-5ad0-9f31-41c6304dad80",
+        "title": "Fake News Detection Using Machine Learning Techniques",
+        "cosine": 0.856453537940979
+      }
+    ]
+  }
+}

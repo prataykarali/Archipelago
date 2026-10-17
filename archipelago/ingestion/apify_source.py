@@ -11,16 +11,18 @@ Follows ``https://apify.com/agents.md``:
 Nothing here scrapes a site by itself: it is the transport an operator or the
 ingestion worker calls after a source has been approved.
 """
+
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 import json
 import logging
 import os
+from typing import Any
 import urllib.parse
 import urllib.request
-from datetime import timedelta
-from decimal import Decimal, InvalidOperation
-from typing import Any
 
 logger = logging.getLogger("archipelago.ingestion.apify")
 
@@ -107,7 +109,7 @@ def _get_json(url: str) -> Any:
         return json.loads(response.read().decode("utf-8"))
 
 
-def search_actors(keywords: str, limit: int = STORE_SEARCH_DEFAULT_LIMIT) -> list[dict]:
+def search_actors(keywords: str, limit: int = STORE_SEARCH_DEFAULT_LIMIT) -> list[dict[str, Any]]:
     """Search the public Apify Store — works without an account or Actor run.
 
     Search by platform/product name (e.g. ``"openlibrary"``) rather than an end
@@ -120,10 +122,10 @@ def search_actors(keywords: str, limit: int = STORE_SEARCH_DEFAULT_LIMIT) -> lis
     params = urllib.parse.urlencode({"search": query, "limit": bounded})
     payload = _get_json(f"{STORE_SEARCH_URL}?{params}")
     items = payload.get("data", {}).get("items", [])
-    return items if isinstance(items, list) else []
+    return [item for item in items if isinstance(item, dict)] if isinstance(items, list) else []
 
 
-def _as_mapping(run: Any) -> dict:
+def _as_mapping(run: Any) -> dict[str, Any]:
     """Normalise an apify-client Run object (or dict) to a plain mapping."""
     for attr in ("model_dump", "dict"):
         method = getattr(run, attr, None)
@@ -137,12 +139,12 @@ def _as_mapping(run: Any) -> dict:
 
 
 def gate_start_urls(
-    start_urls: list[str] | None,
+    start_urls: Sequence[str | Mapping[str, object]] | None,
     *,
     allowed_hosts: set[str] | None = None,
     actor: str = "",
     host_delay_sec: float = 0.0,
-) -> list[dict]:
+) -> list[dict[str, str]]:
     """Run every ``startUrls`` entry through the compliance gate.
 
     An Actor run is still a fetch of those pages, so the same robots/ToS and
@@ -155,10 +157,10 @@ def gate_start_urls(
     """
     from archipelago.ingestion.fetch_policy import check_fetch
 
-    allowed: list[dict] = []
+    allowed: list[dict[str, str]] = []
     refused: list[str] = []
     for entry in start_urls or []:
-        url = entry.get("url") if isinstance(entry, dict) else entry
+        url = entry.get("url") if isinstance(entry, Mapping) else entry
         if not isinstance(url, str) or not url:
             continue
         decision = check_fetch(
@@ -176,21 +178,19 @@ def gate_start_urls(
             refused.append(f"{url} ({decision.reason})")
 
     if refused:
-        raise FetchRefused(
-            "Apify startUrls blocked by the fetch policy: " + "; ".join(refused)
-        )
+        raise FetchRefused("Apify startUrls blocked by the fetch policy: " + "; ".join(refused))
     return allowed
 
 
 def run_actor(
     actor_id: str,
-    run_input: dict | None = None,
+    run_input: dict[str, Any] | None = None,
     *,
     approved: bool,
     max_total_charge_usd: Decimal | None = None,
     max_items: int | None = None,
     allowed_hosts: set[str] | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Start an Actor run with a hard bill cap; requires explicit approval.
 
     Args:
@@ -225,9 +225,7 @@ def run_actor(
         )
     client = _client()
 
-    logger.info(
-        "Apify Actor run %s (cap %s USD, max_items=%s)", actor_id, cap, max_items
-    )
+    logger.info("Apify Actor run %s (cap %s USD, max_items=%s)", actor_id, cap, max_items)
     run = client.actor(actor_id).call(
         run_input=input_payload,
         max_total_charge_usd=cap,
@@ -246,7 +244,9 @@ def run_actor(
     }
 
 
-def fetch_dataset_items(dataset_id: str, limit: int = DEFAULT_DATASET_LIMIT) -> list[dict]:
+def fetch_dataset_items(
+    dataset_id: str, limit: int = DEFAULT_DATASET_LIMIT
+) -> list[dict[str, Any]]:
     """Read the items an Actor run produced (the only place the data lives)."""
     if not dataset_id:
         return []
@@ -255,7 +255,49 @@ def fetch_dataset_items(dataset_id: str, limit: int = DEFAULT_DATASET_LIMIT) -> 
     items = getattr(page, "items", None)
     if items is None and isinstance(page, dict):
         items = page.get("items")
-    return list(items or [])
+    return [item for item in (items or []) if isinstance(item, dict)]
+
+
+def actor_run_status(run_id: str) -> dict[str, Any]:
+    """Read a run and its actual dataset count after a bounded Actor call."""
+    if not run_id:
+        raise ValueError("run_id is required")
+    run = _client().run(run_id).get()
+    if run is None:
+        return {"status": "NOT_FOUND", "run_id": run_id, "dataset_id": None}
+    data = _as_mapping(run)
+    stats = data.get("stats") or {}
+    return {
+        "status": data.get("status"),
+        "run_id": run_id,
+        "dataset_id": data.get("default_dataset_id") or data.get("defaultDatasetId"),
+        "status_message": data.get("status_message") or data.get("statusMessage"),
+        "usage_total_usd": data.get("usage_total_usd"),
+        "started_at": str(data.get("started_at")) if data.get("started_at") else None,
+        "finished_at": str(data.get("finished_at")) if data.get("finished_at") else None,
+        "requests_finished": stats.get("requests_finished") or stats.get("requestsFinished") or 0,
+        "requests_failed": stats.get("requests_failed") or stats.get("requestsFailed") or 0,
+    }
+
+
+def actor_failure_state(run_id: str) -> str | None:
+    """Classify a failed source request from Actor logs without exposing log text."""
+    if not run_id:
+        return None
+    try:
+        message = _client().log(run_id).get() or ""
+    except Exception as exc:
+        logger.warning("Could not inspect Apify Actor log: %s", type(exc).__name__)
+        return "log_unavailable"
+    if "Received blocked status code: 403" in message:
+        return "http_403"
+    if "Received blocked status code: 429" in message:
+        return "http_429"
+    if "Timeout" in message or "timeout" in message or "ETIMEDOUT" in message:
+        return "timeout"
+    if "0 succeeded, 1 failed" in message:
+        return "source_request_failed"
+    return None
 
 
 def _wait_duration() -> timedelta:

@@ -1,0 +1,22 @@
+{
+  "actor_id": "apify/website-content-crawler",
+  "actor_run": {
+    "dataset_id": "Hi2yVegPMkhwhspz0",
+    "finished_at": "2026-10-17 02:36:28.296000+00:00",
+    "requests_failed": 0,
+    "requests_finished": 0,
+    "run_id": "YKNRwgpevtNoZPsJ9",
+    "started_at": "2026-10-17 02:36:21.197000+00:00",
+    "status": "SUCCEEDED",
+    "status_message": "Finished! Total 1 requests: 0 succeeded, 1 failed.",
+    "usage_total_usd": 0.003257455906447437
+  },
+  "checked_at": "2026-10-17T02:41:11.026524+00:00",
+  "dataset_items": 0,
+  "failure_state": "http_403",
+  "raw_snapshot_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "records": [],
+  "source": "iemcrp",
+  "source_status": "source_request_failed",
+  "target_url": "https://www.iemcrp.com/iemEn/aerp_libreay_chy20200726.jsp"
+}

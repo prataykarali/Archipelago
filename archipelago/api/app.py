@@ -33,6 +33,7 @@ from archipelago.api.engine_state import (
     load_concepts_data,
 )
 from archipelago.middleware.log_redaction import install_log_redaction
+from archipelago.scholarly.pipeline.routes import register_research_routes
 
 logger = logging.getLogger("archipelago.api")
 logging.basicConfig(level=logging.INFO)
@@ -41,9 +42,10 @@ install_log_redaction()
 
 # Build runtime components before any route can serve a request.
 init_engine()
+register_research_routes(app)
 
 # Importing these modules registers their routes and request hooks on ``app``.
-from archipelago.api import (
+from archipelago.api import (  # noqa: E402
     middleware,
     routes_acquisition,  # noqa: F401 - imported for route registration
     routes_auth,

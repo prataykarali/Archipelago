@@ -1,0 +1,23 @@
+{
+  "actor_id": "apify/website-content-crawler",
+  "actor_run": {
+    "dataset_id": "UaYJ3E5hHNoJgdSEM",
+    "finished_at": "2026-10-17 02:41:00.101000+00:00",
+    "requests_failed": 0,
+    "requests_finished": 0,
+    "run_id": "SMzqsf9JDsgriGDpW",
+    "started_at": "2026-10-17 02:38:52.921000+00:00",
+    "status": "ABORTED",
+    "status_message": "Crawled 0/1 pages, 0 failed requests, desired concurrency 1.",
+    "usage_total_usd": 0.05106394351489346
+  },
+  "checked_at": "2026-10-17T02:41:10.974251+00:00",
+  "dataset_items": 0,
+  "failure_state": null,
+  "operator_stop_reason": "no_pages_after_120_seconds",
+  "raw_snapshot_sha256": null,
+  "records": [],
+  "source": "opac",
+  "source_status": "unavailable",
+  "target_url": "http://uemk-opac.l2c2.co.in/cgi-bin/koha/opac-search.pl?q=computer%20science"
+}

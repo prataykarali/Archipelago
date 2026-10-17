@@ -1,0 +1,16 @@
+{
+  "opac": {
+    "url": "https://uemk-opac.l2c2.co.in/",
+    "checked_at": "2026-10-17T02:25:38.475385+00:00",
+    "http_status": null,
+    "state": "request_failed",
+    "error": "ConnectTimeout"
+  },
+  "iemcrp": {
+    "url": "https://iemcrp.com/",
+    "checked_at": "2026-10-17T02:25:49.053486+00:00",
+    "http_status": 403,
+    "location": null,
+    "state": "http_error"
+  }
+}
