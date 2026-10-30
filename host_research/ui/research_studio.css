@@ -32,7 +32,7 @@ body[data-research-page="papers"] .research-page-heading { display: none; }
 .research-hero-art {
   position: absolute;
   inset: 0;
-  background: url('/assets/research_archipelago_v2.png') center 47% / cover no-repeat;
+  background: url('/assets/research_archipelago_v2.webp') center 47% / cover no-repeat;
   transform: scale(1.02);
 }
 .research-hero::after {

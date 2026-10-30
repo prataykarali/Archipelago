@@ -93,7 +93,7 @@ def require_auth() -> tuple[object, int] | None:
         return None
     if request.path in {"/", "/login"} or request.path.lstrip("/") in ASSETS:
         return None
-    if request.path == "/assets/research_archipelago_v2.png":
+    if request.path == "/assets/research_archipelago_v2.webp":
         return None
     if request.path.startswith("/research") or request.path == "/academic/graph":
         return None
@@ -157,10 +157,10 @@ def research_asset(name: str) -> Response | tuple[object, int]:
     return send_from_directory(UI, name)
 
 
-@app.get("/assets/research_archipelago_v2.png")
+@app.get("/assets/research_archipelago_v2.webp")
 def research_hero_image() -> Response:
     """Serve the original research hero artwork."""
-    return send_from_directory(UI / "assets", "research_archipelago_v2.png")
+    return send_from_directory(UI / "assets", "research_archipelago_v2.webp")
 
 
 @app.get("/api/library/koha")
