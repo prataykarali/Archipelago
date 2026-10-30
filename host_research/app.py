@@ -160,7 +160,7 @@ def research_asset(name: str) -> Response | tuple[object, int]:
 @app.get("/assets/research_archipelago_v2.webp")
 def research_hero_image() -> Response:
     """Serve the original research hero artwork."""
-    return send_from_directory(UI / "assets", "research_archipelago_v2.webp")
+    return send_from_directory(UI / "assets", "research_archipelago_v2.webp", mimetype="image/webp")
 
 
 @app.get("/api/library/koha")
