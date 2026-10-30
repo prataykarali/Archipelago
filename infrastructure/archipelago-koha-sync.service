@@ -1,0 +1,7 @@
+[Unit]
+Description=Publish changed authorized Koha ODS metadata to Archipelago
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Desktop/archipelago/Archipelago
+ExecStart=/usr/bin/python3 %h/Desktop/archipelago/Archipelago/scripts/ops/sync_koha_snapshot.py

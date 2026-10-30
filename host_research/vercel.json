@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {"app.py": {"maxDuration": 60}},
   "crons": [
-    {"path": "/api/research/intake/scheduled", "schedule": "0 3 * * *"}
+    {"path": "/api/research/intake/scheduled", "schedule": "0 3 * * *"},
+    {"path": "/api/library/koha/scheduled", "schedule": "30 3 * * *"}
   ]
 }

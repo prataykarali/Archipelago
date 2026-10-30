@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 import importlib
+import os
 from pathlib import Path
 import sys
 from unittest.mock import Mock
+import zipfile
 
 import pytest
 
@@ -60,12 +63,48 @@ def test_auth_and_cron_boundary(transport: object, monkeypatch: pytest.MonkeyPat
     assert client.get("/api/research/intake/scheduled").status_code == 503
     monkeypatch.setenv("CRON_SECRET", "test-only-secret")
     assert client.get("/api/research/intake/scheduled").status_code == 401
-    monkeypatch.setattr(module, "verify_user", lambda token: token == "valid")
-    monkeypatch.setattr(module, "recent_records", lambda topic="": [{"title": "Saved paper"}])
+    monkeypatch.setattr(
+        module,
+        "verify_user",
+        lambda token: (
+            {"id": "staff-id", "role": "faculty", "username": "staff"} if token == "valid" else None
+        ),
+    )
+    upstream = Mock()
+    upstream.status_code = 200
+    upstream.content = b'{"records":[{"title":"Saved paper"}]}'
+    upstream.headers = {"Content-Type": "application/json"}
+    request_upstream = Mock(return_value=upstream)
+    monkeypatch.setattr(module.requests, "request", request_upstream)
     response = client.get("/api/research/intake/records", headers={"Authorization": "Bearer valid"})
     assert response.status_code == 200
     assert response.json["records"][0]["title"] == "Saved paper"
     assert response.headers["Cache-Control"] == "private, no-store"
+    assert request_upstream.call_args.kwargs["headers"]["Authorization"] == "Bearer valid"
+    assert (
+        client.get("/api/auth/me", headers={"Authorization": "Bearer valid"}).json["role"]
+        == "faculty"
+    )
+    assert b"Ingest 25 papers locally" in client.get("/research").data
+    assert client.get("/research/progress").status_code == 200
+    assert client.get("/research/paper").status_code == 200
+    assert client.get("/research_home.js").status_code == 200
+    assert client.get("/academic/graph").status_code == 200
+    assert (
+        client.post("/api/research/jobs", headers={"Authorization": "Bearer valid"}).status_code
+        == 200
+    )
+    assert request_upstream.call_args.args[0] == "POST"
+
+
+def test_students_cannot_read_research(transport: object, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A valid account without a staff profile is denied research data."""
+    module = transport
+    monkeypatch.setattr(module, "verify_user", lambda token: None)
+    response = module.app.test_client().get(
+        "/api/research/topics", headers={"Authorization": "Bearer student-token"}
+    )
+    assert response.status_code == 401
 
 
 def test_cron_reports_proposals_without_persisting(
@@ -84,3 +123,35 @@ def test_cron_reports_proposals_without_persisting(
     assert response.status_code == 200
     assert response.json["ingestion_status"] == "not_started"
     discover.assert_called_once()
+
+
+def test_koha_snapshot_is_dated_and_keeps_all_four_exports(
+    transport: object, tmp_path: Path
+) -> None:
+    """A valid ODS set becomes metadata with a visible stale-source flag."""
+    koha = importlib.import_module("koha_snapshot")
+    table_ns = "urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+    text_ns = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+    old = (datetime.now(UTC) - timedelta(days=4)).timestamp()
+
+    def cells(values: list[str] | tuple[str, ...]) -> str:
+        return "".join(
+            f"<table:table-cell><text:p>{value}</text:p></table:table-cell>" for value in values
+        )
+
+    for kind, filename in koha.FILES.items():
+        xml = (
+            f'<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
+            f'xmlns:table="{table_ns}" xmlns:text="{text_ns}">'
+            f"<table:table><table:table-row>{cells(koha.HEADERS[kind])}</table:table-row>"
+            f"<table:table-row>{cells(['Example'] * len(koha.HEADERS[kind]))}</table:table-row>"
+            "</table:table></office:document-content>"
+        )
+        path = tmp_path / filename
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("content.xml", xml)
+        os.utime(path, (old, old))
+    snapshot = koha.build_snapshot(tmp_path)
+    assert snapshot["stale"] is True
+    assert all(len(snapshot[kind]) == 1 for kind in koha.FILES)
+    assert all(snapshot["exports"][kind]["sha256"] for kind in koha.FILES)

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — Archipelago Research</title>
+  <link rel="stylesheet" href="/research_signin.css">
+  <script type="module" src="/signin.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/research"><span aria-hidden="true">✳</span> Archipelago <small>RESEARCH</small></a><nav aria-label="Primary"><a href="https://archipelago-blond.vercel.app/library">Library</a><a href="/academic/graph">Academic</a><a href="/research">Research</a></nav></header>
+  <main>
+    <section id="login-panel" class="login card" aria-labelledby="login-title">
+      <p class="eyebrow">SHARED ARCHIPELAGO ACCOUNT</p><h1 id="login-title">Sign in to research</h1>
+      <p>Use the same staff account as the main Archipelago site.</p>
+      <form id="login-form">
+        <label for="role">Account type</label><select id="role" required><option value="faculty">Faculty</option><option value="librarian">Librarian</option><option value="administrator">Administrator</option></select>
+        <label for="username">Username</label><input id="username" autocomplete="username" maxlength="64" required>
+        <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+        <button type="submit">Sign in</button>
+      </form>
+      <p id="login-status" role="status"></p>
+    </section>
+  </main>
+</body>
+</html>

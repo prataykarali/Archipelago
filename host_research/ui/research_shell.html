@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>__TITLE__ — Archipelago Research</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/research.css">
+  <link rel="stylesheet" href="/research_layout.css">
+  <link rel="stylesheet" href="/research_simple.css">
+  <link rel="stylesheet" href="/research_studio.css?v=20261026e">
+  <link rel="stylesheet" href="/research_atlas.css?v=20261026i">
+  <link rel="stylesheet" href="/research_paper.css?v=20261026k">
+  <link rel="stylesheet" href="/research_topic.css?v=20261026k">
+  <style>body[data-research-page="paper"] .research-page-heading, body[data-research-page="topic"] .research-page-heading { display: none; }</style>
+  <script type="module" src="/auth_bridge.js"></script>
+  <script src="/research_common.js" defer></script>
+  __SCRIPTS__
+</head>
+<body data-research-page="__PAGE__">
+  <header class="topbar">
+    <a class="brand" href="https://archipelago-blond.vercel.app/library"><span class="brand-mark" aria-hidden="true">✳</span> Archipelago <span class="brand-tag">RESEARCH</span></a>
+    <nav aria-label="Primary">
+      <a href="https://archipelago-blond.vercel.app/library">Library</a>
+      <a href="https://archipelago-blond.vercel.app/chat">Chat</a>
+      <a href="/academic/graph#library-details">Academic</a>
+      <a href="/research" aria-current="page">Research</a>
+    </nav>
+  </header>
+  <main class="workspace">
+    <header class="research-page-heading">
+      <p class="eyebrow">RESEARCH INTELLIGENCE / ARCHIPELAGO</p>
+      <h1>__TITLE__</h1>
+      <p>__SUBTITLE__</p>
+    </header>
+    __CONTENT__
+  </main>
+</body>
+</html>

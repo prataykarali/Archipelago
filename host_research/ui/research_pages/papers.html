@@ -1,0 +1,26 @@
+<section class="research-hero" aria-labelledby="research-hero-title">
+  <div class="research-hero-art" aria-hidden="true"></div>
+  <div class="research-hero-copy"><p class="eyebrow">ARCHIPELAGO / RESEARCH ATLAS</p><h1 id="research-hero-title">Ideas are islands.<br><span>Find the connections.</span></h1><p>Explore a topic, uncover the papers behind it, and turn verified evidence into connected research knowledge.</p><a href="#topic-form" class="research-hero-action">Explore a topic <span aria-hidden="true">↗</span></a></div>
+  <div class="research-hero-foot" aria-hidden="true"><span>DISCOVER</span><i></i><span>READ</span><i></i><span>CONNECT</span></div>
+</section>
+<section class="research-journey" aria-label="Research pipeline">
+  <div><span>01</span><strong>Discover</strong><small>Scholarly APIs</small></div><div><span>02</span><strong>Verify access</strong><small>Open full text only</small></div><div><span>03</span><strong>Read with Indra</strong><small>Page-linked OCR</small></div><div><span>04</span><strong>Extract with SLM</strong><small>Quote checked</small></div><div><span>05</span><strong>Publish OKF</strong><small>Graph + HF dataset</small></div>
+</section>
+<section class="research-simple" aria-label="Research workspace">
+  <form id="topic-form" class="research-search">
+    <label for="topic-input">What question are you exploring?</label>
+    <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="160" required placeholder="e.g. graph neural networks for drug discovery" autocomplete="off"><button type="submit" disabled>Explore sources</button></div>
+    <p id="discovery-status" role="status">Search sources first. Then start a 25-paper run on your local workstation.</p>
+  </form>
+  <section id="discovery-panel" class="research-card" hidden aria-labelledby="discovery-heading">
+    <div class="research-section-head"><div><p class="eyebrow">SOURCE DISCOVERY</p><h2 id="discovery-heading">A research landscape</h2></div><span id="discovery-count" class="research-count">0 found</span></div>
+    <p>A quick map of the available literature. The workstation verifies the final sources before reading permitted PDFs.</p>
+    <details class="research-source-drawer"><summary>Inspect source previews</summary><div id="discovery-list" class="research-discovery-list"></div></details>
+    <div class="research-readiness"><div class="research-readiness-head"><div><p class="eyebrow">LOCAL WORKSTATION</p><h3>Ready to read deeper?</h3><p>Your workstation will ask for approval before the run begins.</p></div><button id="ingest-local" type="button">Ingest 25 papers locally ↗</button></div><ul id="ingestion-checks"><li id="check-worker">○ Workstation connection is being checked</li><li id="check-model">○ Local SLM is being checked</li><li id="check-ocr">○ Indra OCR is checked when the workstation starts</li><li id="check-access">✓ Only permitted full text is downloaded</li></ul><p>Up to 100 waiting or running jobs can be queued across staff accounts. The server rejects new requests when the queue is full.</p></div>
+  </section>
+  <section class="research-card research-atlas-entry" aria-labelledby="atlas-heading">
+    <p class="eyebrow">EXPLORE / CONNECT</p><h2 id="atlas-heading">Research atlas</h2>
+    <p>Start with a topic. Explore its circular paper network, then open a paper’s complete source-backed OKF.</p>
+    <a class="research-hero-action" href="/research/topics">Open the full-screen graph <span aria-hidden="true">↗</span></a>
+  </section>
+</section>
