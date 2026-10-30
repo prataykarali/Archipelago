@@ -64,6 +64,7 @@ def test_auth_and_cron_boundary(transport: object, monkeypatch: pytest.MonkeyPat
     response = client.get("/api/research/intake/records", headers={"Authorization": "Bearer valid"})
     assert response.status_code == 200
     assert response.json["records"][0]["title"] == "Saved paper"
+    assert response.headers["Cache-Control"] == "private, no-store"
 
 
 def test_cron_reports_proposals_without_persisting(

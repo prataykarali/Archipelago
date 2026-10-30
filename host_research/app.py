@@ -46,6 +46,7 @@ def browser_origin(response: Response) -> Response:
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Vary"] = "Origin"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Cache-Control"] = "private, no-store"
     return response
 
 
@@ -58,7 +59,10 @@ def require_auth() -> tuple[object, int] | None:
         return None
     if request.path not in {"/api/research/intake/records", "/api/research/discover"}:
         return jsonify({"error": "not_found"}), 404
-    token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+    authorization = request.headers.get("Authorization", "")
+    token = (
+        authorization.removeprefix("Bearer ").strip() if authorization.startswith("Bearer ") else ""
+    )
     try:
         valid = verify_user(token)
     except (requests.RequestException, ValueError):

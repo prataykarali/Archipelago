@@ -32,7 +32,10 @@ def verify_user(token: str) -> bool:
         headers={"apikey": public_key, "Authorization": f"Bearer {token}"},
         timeout=STORE_TIMEOUT_SECONDS,
     )
-    return response.status_code == 200 and bool(response.json().get("id"))
+    if response.status_code != 200:
+        return False
+    user = response.json()
+    return isinstance(user, dict) and bool(user.get("id"))
 
 
 def recent_records(limit: int = MAX_ROWS) -> list[dict[str, object]]:
