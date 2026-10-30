@@ -38,19 +38,22 @@ def verify_user(token: str) -> bool:
     return isinstance(user, dict) and bool(user.get("id"))
 
 
-def recent_records(limit: int = MAX_ROWS) -> list[dict[str, object]]:
+def recent_records(limit: int = MAX_ROWS, topic: str = "") -> list[dict[str, object]]:
     """Read saved paper metadata for an authenticated research view."""
     url, _public_key, secret_key = _config()
     if not url or not secret_key:
         raise RuntimeError("shared_storage_unconfigured")
+    params: dict[str, str | int] = {
+        "select": "record_key,title,source_url,source_name,topic,published_at,updated_at,metadata",
+        "kind": "eq.paper",
+        "order": "updated_at.desc",
+        "limit": min(max(limit, 1), MAX_ROWS),
+    }
+    if topic:
+        params["topic"] = f"eq.{topic}"
     response = requests.get(
         url + SUPABASE_RECORDS_PATH,
-        params={
-            "select": "record_key,title,source_url,source_name,topic,published_at,updated_at,metadata",
-            "kind": "eq.paper",
-            "order": "updated_at.desc",
-            "limit": min(max(limit, 1), MAX_ROWS),
-        },
+        params=params,
         headers={"apikey": secret_key, "Authorization": f"Bearer {secret_key}"},
         timeout=STORE_TIMEOUT_SECONDS,
     )

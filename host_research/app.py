@@ -75,8 +75,11 @@ def require_auth() -> tuple[object, int] | None:
 @app.get("/api/research/intake/records")
 def records() -> tuple[object, int]:
     """Serve the current shared paper index at request time."""
+    topic = (request.args.get("topic") or "").strip()
+    if request.args.get("kind", "paper") != "paper" or len(topic) > 160:
+        return jsonify({"error": "invalid_filter"}), 400
     try:
-        rows = recent_records()
+        rows = recent_records(topic=topic)
     except (requests.RequestException, RuntimeError, ValueError):
         return jsonify({"error": "storage_unavailable"}), 503
     return jsonify({"records": rows, "count": len(rows)}), 200

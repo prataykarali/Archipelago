@@ -65,6 +65,16 @@ def discover(topic: str) -> dict[str, object]:
     return {
         "topic": topic,
         "candidates": candidates,
+        "papers": [
+            {
+                "title": item["title"],
+                "source_url": item["source_url"],
+                "source_name": item["provider"],
+                "abstract": item["abstract"],
+            }
+            for item in candidates
+        ],
+        "sources": {"OpenAlex": f"ok: {len(candidates)} candidates"},
         "scholar_review_url": SCHOLAR_URL + quote(topic),
         "discovered_at": datetime.now(UTC).isoformat(),
         "ingestion_status": "not_started",

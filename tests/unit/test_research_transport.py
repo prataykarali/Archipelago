@@ -48,6 +48,7 @@ def test_discovery_has_review_links_and_does_not_write(
     assert report["ingestion_status"] == "not_started"
     assert report["scholar_review_url"] == "https://scholar.google.com/scholar?q=graph%20systems"
     assert report["candidates"][0]["source_url"] == "https://doi.org/10.1/example"
+    assert report["papers"][0]["source_name"] == "OpenAlex"
     get.assert_called_once()
 
 
@@ -60,7 +61,7 @@ def test_auth_and_cron_boundary(transport: object, monkeypatch: pytest.MonkeyPat
     monkeypatch.setenv("CRON_SECRET", "test-only-secret")
     assert client.get("/api/research/intake/scheduled").status_code == 401
     monkeypatch.setattr(module, "verify_user", lambda token: token == "valid")
-    monkeypatch.setattr(module, "recent_records", lambda: [{"title": "Saved paper"}])
+    monkeypatch.setattr(module, "recent_records", lambda topic="": [{"title": "Saved paper"}])
     response = client.get("/api/research/intake/records", headers={"Authorization": "Bearer valid"})
     assert response.status_code == 200
     assert response.json["records"][0]["title"] == "Saved paper"
