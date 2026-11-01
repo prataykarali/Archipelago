@@ -60,6 +60,15 @@
         <p id="node-summary" class="mt-2 text-sm leading-6 text-white/70">Select a concept to reveal its neighborhood.</p>
         <dl id="node-facts" class="mt-5 grid grid-cols-2 gap-2 text-xs" hidden></dl>
         <div id="node-sources" class="mt-5 text-xs leading-5 text-violet-100"></div>
+        <form id="graph-annotation-form" class="mt-5 space-y-2 border-t border-white/10 pt-4" hidden>
+          <h3 class="font-semibold text-violet-100">Curate this concept</h3>
+          <label for="graph-annotation-summary" class="block text-xs text-white/70">Source-backed summary</label>
+          <textarea id="graph-annotation-summary" required maxlength="2000" rows="4" class="w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-sm text-white"></textarea>
+          <label for="graph-annotation-source" class="block text-xs text-white/70">HTTPS source URL</label>
+          <input id="graph-annotation-source" type="url" maxlength="500" placeholder="https://…" class="w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-sm text-white">
+          <button type="submit" class="rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-500">Save annotation</button>
+          <p id="graph-annotation-status" role="status" class="text-xs text-amber-200"></p>
+        </form>
         <p class="mt-6 text-xs leading-5 text-white/45">Graph data comes from the deployed library inventory. This explorer is read-only; catalog and graph updates are handled by the librarian ingestion workflow.</p>
       </aside>
     </div>
@@ -106,14 +115,62 @@
   <script>
     let cy;
     let currentTarget = '';
+    let selectedConceptId = '';
+    let canEditGraph = false;
     const status = document.getElementById('graph-status');
     const title = document.getElementById('node-title');
     const summary = document.getElementById('node-summary');
     const facts = document.getElementById('node-facts');
     const sourceList = document.getElementById('node-sources');
     const queryInput = document.getElementById('query');
+    const annotationForm = document.getElementById('graph-annotation-form');
+    const annotationSummary = document.getElementById('graph-annotation-summary');
+    const annotationSource = document.getElementById('graph-annotation-source');
+    const annotationStatus = document.getElementById('graph-annotation-status');
+
+    async function loadAnnotation(conceptId) {
+      annotationForm.hidden = !canEditGraph || !conceptId;
+      annotationSummary.value = '';
+      annotationSource.value = '';
+      annotationStatus.textContent = '';
+      if (!conceptId) return;
+      try {
+        const response = await fetch('/api/research/graph/annotation?' + new URLSearchParams({ concept_id: conceptId }), { cache: 'no-store' });
+        if (!response.ok || selectedConceptId !== conceptId) return;
+        const { annotation } = await response.json();
+        if (!annotation) return;
+        summary.textContent = annotation.summary;
+        annotationSummary.value = annotation.summary;
+        annotationSource.value = annotation.source_url || '';
+        if (annotation.source_url) {
+          const link = document.createElement('a');
+          link.href = annotation.source_url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.className = 'mt-2 block text-violet-200 underline';
+          link.textContent = 'Curated source ↗';
+          sourceList.append(link);
+        }
+      } catch (_) { annotationStatus.textContent = 'Curated details are temporarily unavailable.'; }
+    }
+
+    annotationForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!canEditGraph || !selectedConceptId) return;
+      annotationStatus.textContent = 'Saving…';
+      try {
+        const response = await fetch('/api/research/graph/annotation', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ concept_id: selectedConceptId, summary: annotationSummary.value.trim(), source_url: annotationSource.value.trim() })
+        });
+        if (!response.ok) throw new Error(`Save returned ${response.status}`);
+        annotationStatus.textContent = 'Annotation saved.';
+        summary.textContent = annotationSummary.value.trim();
+      } catch (error) { annotationStatus.textContent = `Could not save: ${error.message}`; }
+    });
 
     function showNode(node) {
+      selectedConceptId = node.kind === 'source_document' ? '' : node.id;
       title.textContent = node.name || node.id;
       summary.textContent = node.summary || 'No summary is available for this graph node.';
       facts.replaceChildren();
@@ -149,6 +206,7 @@
           sourceList.append(item);
         });
       }
+      loadAnnotation(selectedConceptId);
     }
 
     function renderGraph(data, overview = false) {
@@ -219,6 +277,8 @@
         explore.onclick = () => loadGraph({ target_id: node.id, max_nodes: '20' }).catch(showError);
       });
       if (overview) {
+        selectedConceptId = '';
+        annotationForm.hidden = true;
         title.textContent = 'Main concepts';
         summary.textContent = 'Select any concept card to reveal its stored relationships and source-grounded description.';
         facts.replaceChildren();
@@ -262,6 +322,7 @@
       if (config?.required) {
         const principal = await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']);
         if (!principal) return;
+        canEditGraph = ['librarian', 'administrator'].includes(principal.role);
       }
       const initial = new URLSearchParams(location.search).get('q');
       if (initial) {
