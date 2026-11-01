@@ -31,7 +31,17 @@ function renderKoha() {
     for (const name of headers) {
       const cell = document.createElement("td");
       cell.className = "p-3 text-white/75";
-      cell.textContent = row[name] || "—";
+      if (name === "opac_url" && row[name]) {
+        const link = document.createElement("a");
+        link.href = row[name];
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "text-violet-200 underline";
+        link.textContent = "Open OPAC record";
+        cell.append(link);
+      } else {
+        cell.textContent = row[name] || "—";
+      }
       tr.append(cell);
     }
     tbody.append(tr);
@@ -49,10 +59,74 @@ async function loadKoha() {
     }
     if (!response.ok) throw new Error(`Metadata service returned ${response.status}.`);
     snapshot = await response.json();
+    const daily = snapshot.opac_daily;
+    const dailyStatus = document.querySelector("#daily-opac-status");
+    const sectionRoot = document.querySelector("#daily-opac-sections");
+    const arrivalRoot = document.querySelector("#daily-opac-arrivals");
+    sectionRoot.replaceChildren();
+    arrivalRoot.replaceChildren();
+    if (daily && Array.isArray(daily.sections)) {
+      dailyStatus.textContent = `Public OPAC pages checked ${new Date(daily.checked_at).toLocaleString()}. First arrivals results page only.`;
+      for (const section of daily.sections) {
+        const card = document.createElement("article");
+        card.className = "rounded-xl border border-white/15 bg-[#100a2c] p-4";
+        const heading = document.createElement("h4");
+        heading.className = "font-semibold text-white";
+        heading.textContent = section.title;
+        const summary = document.createElement("p");
+        summary.className = "mt-2 text-xs leading-5 text-white/70";
+        summary.textContent = section.summary;
+        card.append(heading, summary);
+        const source = document.createElement("a");
+        source.href = section.source_url;
+        source.target = "_blank";
+        source.rel = "noopener noreferrer";
+        source.className = "mt-2 inline-block text-xs text-violet-200 underline";
+        source.textContent = "Open OPAC section";
+        card.append(source);
+        sectionRoot.append(card);
+      }
+      for (const arrival of daily.new_arrivals || []) {
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = arrival.source_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "text-violet-200 underline";
+        link.textContent = arrival.title;
+        item.append(link);
+        arrivalRoot.append(item);
+      }
+    } else {
+      dailyStatus.textContent = "No daily OPAC check has been published yet.";
+    }
     const updated = new Date(snapshot.source_updated_at).toLocaleString();
     status.textContent = snapshot.stale
       ? `Last export: ${updated}. This snapshot is stale; a new authorized Koha export is needed.`
       : `Last export: ${updated}. Updated automatically when the local export folder changes.`;
+    const identity = snapshot.catalog_identity_status;
+    if (identity) {
+      status.textContent += ` Identifier coverage: ${identity.covered_holdings}/${identity.total_holdings} exported holdings. This is a keyword-filtered inventory, not the full campus catalogue.`;
+    }
+    const repository = document.querySelector("#repository-candidates");
+    repository.replaceChildren();
+    const candidates = Array.isArray(snapshot.repository_candidates) ? snapshot.repository_candidates : [];
+    if (!candidates.length) {
+      const item = document.createElement("li");
+      item.textContent = "No repository updates are available yet.";
+      repository.append(item);
+    }
+    for (const candidate of candidates) {
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      link.href = candidate.source_url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.className = "text-violet-200 underline";
+      link.textContent = candidate.title;
+      item.append(link);
+      repository.append(item);
+    }
     const counts = document.querySelector("#koha-counts");
     counts.replaceChildren();
     for (const [key, label] of Object.entries(kinds)) {

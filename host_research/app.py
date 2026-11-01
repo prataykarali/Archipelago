@@ -9,6 +9,7 @@ from secrets import compare_digest
 from discovery import discover
 from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
 from koha_snapshot import load_snapshot
+from opac_live import lookup_book, search_books
 import requests
 from research_pages import PAGE_DETAILS, UI, render_research_page
 from storage import topic_inventory, verify_user
@@ -48,6 +49,7 @@ ASSETS = frozenset(
         "research_signin.css",
         "signin.js",
         "academic_koha.js",
+        "academic_opac_live.js",
     }
 )
 app.config["MAX_CONTENT_LENGTH"] = MAX_REQUEST_BYTES
@@ -99,7 +101,8 @@ def require_auth() -> tuple[object, int] | None:
         return None
     if not (
         request.path.startswith("/api/research/")
-        or request.path in {"/api/auth/me", "/api/graph/hubs", "/api/graph/subgraph"}
+        or request.path
+        in {"/api/auth/me", "/api/graph/hubs", "/api/graph/subgraph", "/api/library/opac/live"}
     ):
         return jsonify({"error": "not_found"}), 404
     authorization = request.headers.get("Authorization", "")
@@ -173,6 +176,22 @@ def library_koha() -> tuple[object, int]:
     if snapshot is None:
         return jsonify({"error": "export_not_available"}), 404
     return jsonify(snapshot), 200
+
+
+@app.get("/api/library/opac/live")
+def library_opac_live() -> tuple[object, int]:
+    """Fetch one public OPAC query on demand for an authenticated staff user."""
+    biblionumber = request.args.get("biblionumber", "").strip()
+    query = request.args.get("q", "").strip()
+    if bool(biblionumber) == bool(query):
+        return jsonify({"error": "provide_book_id_or_query"}), 400
+    try:
+        result = lookup_book(biblionumber) if biblionumber else search_books(query)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except requests.RequestException:
+        return jsonify({"error": "opac_unavailable"}), 503
+    return jsonify(result), 200
 
 
 @app.get("/api/library/koha/scheduled")
