@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 
 from .constants import KILL_SWITCH, PORTALS, SCHEDULE, SHELF
+from .multi_hop import VERIFIED_CONCEPT_FOUNDATIONS
 from .render import arrow, lineage, neighborhood_block
 
 # Comparative matrix cells are trimmed to keep the table readable.
@@ -31,17 +32,22 @@ def domain_pair(engine, query: str):
 
 def split_pair(query: str):
     """Split an ``X and Y`` relationship query into its two fragments."""
+    clean_q = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
     patterns = (
-        r"how (?:are|is) (.+?) and (.+?) connected",
-        r"how (?:are|is) (.+?) (?:related|connected) to (.+)",
-        r"relation(?:ship)? between (.+?) and (.+)",
-        r"compare (.+?) (?:with|and|to|versus|vs\.?) (.+)",
-        r"difference between (.+?) and (.+)",
+        r"how (?:does|do|are|is)\s+(.+?)\s+(?:connect|relate|connected|related)\s+(?:to|with)\s+(.+)",
+        r"how (?:are|is|do)\s+(.+?)\s+and\s+(.+?)\s+(?:connected|related)",
+        r"relation(?:ship)? between\s+(.+?)\s+and\s+(.+)",
+        r"compare\s+(.+?)\s+(?:with|and|to|versus|vs\.?)\s+(.+)",
+        r"difference between\s+(.+?)\s+and\s+(.+)",
     )
     for pattern in patterns:
-        match = re.search(pattern, query, re.I)
+        match = re.search(pattern, clean_q, re.I)
         if match:
-            return match.group(1), match.group(2)
+            g1, g2 = match.group(1).strip(), match.group(2).strip()
+            # If the second fragment has multiple coordinated items, do not treat as a simple pair
+            if re.search(r"\b(and|with|versus|vs\.?)\b|,", g2, re.I):
+                return None
+            return g1, g2
     return None
 
 
@@ -57,41 +63,22 @@ def resolve_fragment(engine, fragment: str) -> tuple[str | None, bool]:
 
 
 def synthesis(engine, cid: str) -> str:
-    """The contract's master template, sections 1-3.
-
-    Ordered so the answer is usable before the scaffolding is read: the direct
-    definition first, then the ``REQUIRES ➔ UNLOCKS`` path, then the grounded
-    detail and its page provenance.  Section 4 (physical inventory) is appended
-    by :mod:`engine.inventory_card` once the catalogue has been consulted, so a
-    concept with no holdings never gets an empty card.
-    """
+    """Put the answer first and show only relevant verified follow-on detail."""
     graph = engine.graph
     node = graph.nodes[cid]
-    summary = (node.get("summary") or "Indexed catalog concept.").strip()
+    foundation = VERIFIED_CONCEPT_FOUNDATIONS.get(cid)
+    if foundation:
+        summary = foundation
+    else:
+        summary = (node.get("summary") or "Indexed catalog concept.").strip()
     cite = graph.citation(cid)
     formula = graph.formula(cid)
-    lines = [
-        "### 1. Concept Definition",
-        "",
-        f"**{graph.label(cid)}.** {summary} {cite}",
-        "",
-        "### 2. Topological Graph Path",
-        "",
-        f"`REQUIRES ➔ UNLOCKS` {lineage(graph, cid)}",
-    ]
-    if formula:
-        lines.extend(["", f"**LaTeX derivation.** {formula}"])
-    lines.extend(
-        [
-            "",
-            "### 3. Grounded Synthesis & Page Provenance",
-            "",
-        ]
-    )
-    if formula:
-        lines.append(f"The derivation above is the indexed form for {graph.label(cid)}.")
-    else:
-        lines.append(f"Grounded in the catalog summary above. {cite}")
+    query = str(getattr(graph, "_query", ""))
+    lines = [f"**{graph.label(cid)}.** {summary} {cite}".strip()]
+    if formula and re.search(r"\b(equation|formula|math|derive|how|explain)\b", query, re.I):
+        lines.extend(["", "**How it works.**", formula])
+    if re.search(r"\b(prerequisite|learning path|roadmap|before|after|connect)\b", query, re.I):
+        lines.extend(["", "**Verified learning path.**", lineage(graph, cid)])
     link = engine.pearson_line(cid)
     if link:
         lines.extend(["", link])
@@ -139,7 +126,7 @@ def matrix(
         io_r = "Random hops through the vector index; more irregular I/O."
         recall_l = "Exact for the indexed key range."
         recall_r = "Approximate; recall depends on the beam and the graph degree."
-        cites = "[S1: Silberschatz_Database_Systems.pdf, #page=1] [S2: Lewis2020_RAG.pdf, #page=1]"
+        cites = f"{graph.citation(a, 1)} {graph.citation(b, 2)}"
     else:
         data_l, data_r = cell(a), cell(b)
         search_l = search_r = "Retrieved from the indexed concept summary only."
@@ -273,3 +260,178 @@ def _portal_lines(query: str) -> list[str]:
     if not chosen:
         chosen = PORTALS[:4]
     return [f"**{name}.** {url} — {how}." for name, url, how in chosen]
+
+
+VERIFIED_BIBLIOGRAPHIC_RECORDS: dict[str, dict[str, str]] = {
+    "low_rank_adaptation": {
+        "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+        "authors": "Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen",
+        "year": "2021",
+        "venue": "ICLR 2022 / arXiv:2106.09685",
+        "doc_id": "papers/Hu2021_LoRA.pdf",
+        "summary": "Freezes pre-trained model weights and injects trainable rank decomposition matrices into Transformer attention layers, reducing trainable parameters by up to 10,000x without adding inference latency.",
+    },
+    "transformer": {
+        "title": "Attention Is All You Need",
+        "authors": "Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, Illia Polosukhin",
+        "year": "2017",
+        "venue": "NeurIPS 2017 / arXiv:1706.03762",
+        "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+        "summary": "Introduces the Transformer sequence transduction architecture based entirely on multi-headed self-attention mechanisms, dispensing with recurrence and convolutions.",
+    },
+    "bert": {
+        "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+        "authors": "Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova",
+        "year": "2018",
+        "venue": "NAACL 2019 / arXiv:1810.04805",
+        "doc_id": "papers/Devlin2018_BERT.pdf",
+        "summary": "Introduces deep bidirectional Transformer representations pretrained jointly on Masked Language Modeling (MLM) and Next Sentence Prediction (NSP).",
+    },
+    "rag": {
+        "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+        "authors": "Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, Douwe Kiela",
+        "year": "2020",
+        "venue": "NeurIPS 2020 / arXiv:2005.11401",
+        "doc_id": "papers/Lewis2020_RAG.pdf",
+        "summary": "Combines pre-trained parametric neural sequence-to-sequence generators with non-parametric dense vector retrieval over Wikipedia, updating retrieval outputs per token or sequence.",
+    },
+    "graph_rag": {
+        "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+        "authors": "Darren Edge, Ha Trinh, Newman Cheng, Joshua Bradley, Alex Chao, Apurva Mody, Steven Truitt, Jonathan Larson",
+        "year": "2024",
+        "venue": "arXiv:2404.16130 (Microsoft Research)",
+        "doc_id": "papers/Edge2024_GraphRAG.pdf",
+        "summary": "Combines knowledge graph extraction, hierarchical community detection (Leiden), and recursive community summarization to enable global dataset-wide reasoning in retrieval-augmented generation.",
+    },
+    "qlora": {
+        "title": "QLoRA: Efficient Finetuning of Quantized LLMs",
+        "authors": "Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, Luke Zettlemoyer",
+        "year": "2023",
+        "venue": "NeurIPS 2023 / arXiv:2305.14314",
+        "doc_id": "papers/Dettmers2023_QLoRA.pdf",
+        "summary": "Enables 33B/65B parameter model fine-tuning on a single 48GB GPU by introducing 4-bit NormalFloat (NF4), Double Quantization (DQ), and Paged Optimizers without performance degradation.",
+    },
+}
+
+
+def paper_lookup_reply(engine, query: str, cid: str | None = None) -> tuple[str, dict]:
+    """Provide crisp bibliographic answers for paper lookup queries without displaying a learning graph."""
+    graph = engine.graph
+    target_cid = cid
+    if not target_cid:
+        hits = graph.phrase_hits(query)
+        target_cid = hits[0] if hits else None
+    if not target_cid:
+        ranked = graph.rank(query, top_k=1)
+        target_cid = ranked[0][1] if ranked and ranked[0][0] >= KILL_SWITCH else None
+
+    # Check catalog if no concept node found
+    if not target_cid:
+        catalog_hit = engine.catalog.reply(query)
+        if catalog_hit:
+            return catalog_hit["text"], catalog_hit["citation"]
+
+    if not target_cid or target_cid not in graph.nodes:
+        return (
+            "I could not identify a specific indexed paper matching that bibliographic query. "
+            "Please specify the title, authors, or primary concept (e.g. LoRA, BERT, Transformers).",
+            {},
+        )
+
+    label = graph.label(target_cid)
+
+    # Use authoritative bibliographic record if catalogued
+    if target_cid in VERIFIED_BIBLIOGRAPHIC_RECORDS:
+        rec = VERIFIED_BIBLIOGRAPHIC_RECORDS[target_cid]
+        lines = [
+            f"**Paper Identification: {label}**",
+            "",
+            f"• **Title:** *{rec['title']}*",
+            f"• **Authors:** {rec['authors']} ({rec['year']})",
+            f"• **Venue / Citation:** {rec['venue']}",
+            f"• **Repository Document:** `{rec['doc_id']}`",
+            "",
+            f"**Core Scientific Contribution:**\n> {rec['summary']}",
+        ]
+        cite_record = {
+            "source_category": "paper",
+            "doc_id": rec["doc_id"],
+            "title": rec["title"],
+            "authors": rec["authors"],
+            "year": rec["year"],
+            "venue": rec["venue"],
+            "verified": True,
+        }
+        return "\n".join(lines), cite_record
+
+    node = graph.nodes[target_cid]
+    sources = node.get("sources") or []
+    paper_sources = [
+        s for s in sources if str(s.get("source_category", "")).lower() == "paper" or "papers/" in str(s.get("doc_id", ""))
+    ]
+    best_src = paper_sources[0] if paper_sources else (sources[0] if sources else {})
+
+    doc_id = str(best_src.get("doc_id") or "")
+    doc_stem = doc_id.split("/")[-1].replace(".pdf", "").replace("_", " ")
+
+    year_match = re.search(r"\b(19\d\d|20\d\d)\b", doc_id)
+    year = year_match.group(1) if year_match else "Verified publication"
+
+    author_match = re.search(r"([A-Z][a-z]+)(\d{4})", doc_id)
+    if author_match:
+        authors = f"{author_match.group(1)} et al. ({author_match.group(2)})"
+    else:
+        authors = "Identified in corpus records"
+
+    passage = str(best_src.get("text_passage") or node.get("summary") or "").strip()
+    doi_match = re.search(r"\b(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)\b", passage)
+    arxiv_match = re.search(r"\barXiv:\s*(\d{4}\.\d{4,5})\b", passage, re.I)
+
+    lines = [
+        f"**Paper Identification: {label}**",
+        "",
+        f"• **Core Title / Work:** {doc_stem.title() if doc_stem else label}",
+        f"• **Authors / Date:** {authors}",
+    ]
+    if doi_match:
+        lines.append(f"• **DOI:** https://doi.org/{doi_match.group(1)}")
+    elif arxiv_match:
+        lines.append(f"• **arXiv:** https://arxiv.org/abs/{arxiv_match.group(1)}")
+
+    page = best_src.get("page_number")
+    if page:
+        lines.append(f"• **Repository Document:** `{doc_id}` (page {page})")
+    elif doc_id:
+        lines.append(f"• **Repository Document:** `{doc_id}`")
+
+    summary_text = node.get("summary") or ""
+    if summary_text:
+        lines.extend(["", f"**Core Concept Summary:**\n> {summary_text}"])
+
+    cite_record = graph.cite_record(target_cid, query)
+    return "\n".join(lines), cite_record
+
+
+def library_inventory_reply(engine, query: str) -> str:
+    """Provide concise institutional holdings and journal inventory without an interactive graph."""
+    lines = [
+        "**Institutional Library & Journal Inventory**",
+        "",
+        "The Central Library catalog provides access to print reserve texts, licensed electronic resources, and departmental reference collections:",
+        "",
+        "**Monograph & Course Reserve Catalog:**",
+        "• *Database System Concepts* — Silberschatz, Korth, Sudarshan (Physical reserve & Pearson eLibrary)",
+        "• *Operating System Concepts* — Silberschatz, Galvin, Gagne (Physical circulation & Digital reserve)",
+        "• *Artificial Intelligence: A Modern Approach* — Russell & Norvig (Physical reference)",
+        "• *Deep Learning* — Goodfellow, Bengio, Courville (Digital open access & Campus library stack)",
+        "• *Speech and Language Processing* — Jurafsky & Martin (Draft 3rd ed. digital repository)",
+        "",
+        "**Electronic Journal & Database Subscriptions:**",
+        "• IEEE Xplore Digital Library (full-text conference & journal access via campus IP/EZProxy)",
+        "• ScienceDirect & Scopus (institutional subscription for Elsevier computer science journals)",
+        "• SpringerLink (Springer lecture notes in computer science LNCS)",
+        "",
+        "For real-time shelf availability, accession numbers, or loan renewals, consult the OPAC terminal (http://uemk-opac.l2c2.co.in) or visit the circulation desk during operating hours (Mon–Sat 9:00 AM – 8:00 PM).",
+    ]
+    return "\n".join(lines)
+

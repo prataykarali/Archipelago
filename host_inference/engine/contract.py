@@ -53,17 +53,23 @@ CONTRACT_TITLES = {
 ROUTE_CONTRACT = {
     # 1. Pedagogical graph traversal.
     "GRAPH_SYNTHESIS": GRAPH_SYNTHESIS,
+    "GENERAL_EXPLANATION": GRAPH_SYNTHESIS,
     "RELATION": GRAPH_SYNTHESIS,
     "CROSS_DOMAIN": GRAPH_SYNTHESIS,
     "DISCONNECTED": GRAPH_SYNTHESIS,
+    "MULTI_CONCEPT": GRAPH_SYNTHESIS,
+    "RESEARCH_TOPIC": GRAPH_SYNTHESIS,
     # 2. Physical shelf and catalog routing.
     "CATALOG_SHELF": CATALOG_SHELF_ROUTING,
     "CATALOG_SHELF_ROUTING": CATALOG_SHELF_ROUTING,
+    "PAPER_LOOKUP": CATALOG_SHELF_ROUTING,
+    "LIBRARY_LOOKUP": CATALOG_SHELF_ROUTING,
     # 3. Administrative schedules and e-resource authentication.
     "SCHEDULE": AUTH_GATEWAY,
     "AUTH_GATEWAY": AUTH_GATEWAY,
     # 4. Diagnostic and adaptive learning.
     "MCQ_DIAGNOSTIC": MCQ_DIAGNOSTIC,
+    "PERSONALIZED_LEARNING": MCQ_DIAGNOSTIC,
     # A curriculum request for a topic we have not ingested is still a curriculum
     # intent — the honest answer is "not indexed", not "you are off topic", and it
     # is still contract type 4 rather than a scope deflection.
@@ -72,6 +78,7 @@ ROUTE_CONTRACT = {
     "INGESTION_ANALYSIS": INGESTION_ANALYSIS,
     # 6. Guardrail and scope intercept.
     "GUARDRAIL_INTERCEPT": GUARDRAIL_INTERCEPT,
+    "RESEARCH_UNVERIFIED": GUARDRAIL_INTERCEPT,
     # Refusals are contract type 6 by definition: the spec lists code generation
     # and prompt-injection attempts as GUARDRAIL_INTERCEPT examples, so a
     # dedicated code-trap route is a *reason* under type 6, not a seventh type.

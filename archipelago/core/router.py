@@ -23,6 +23,19 @@ import logging
 import re
 from typing import Any
 
+from archipelago.core.intent import IntentCategory, classify_query_intent
+from archipelago.core.multi_hop import extract_concept_mentions
+from archipelago.core.router_patterns import (
+    _AUTH_GATEWAY_PATTERNS,
+    _CATALOG_SHELF_PATTERNS,
+    _DEGREASE_PATTERNS,
+    _DUAL_ENTITY_PATTERNS,
+    _GUARDRAIL_PATTERNS,
+    _INGESTION_ANALYSIS_PATTERNS,
+    _INJECTION_PATTERNS,
+    _MCQ_PATTERNS,
+)
+
 logger = logging.getLogger(__name__)
 
 # ── Security Boundary Constants ───────────────────────────────────────────────
@@ -39,13 +52,13 @@ OUT_OF_SCOPE_MESSAGE = (
 MAX_QUERY_LENGTH = 500
 
 
-class RoutingTier(str, enum.Enum):
-    TIER_1_EXECUTE = "tier_1_execute"    # cos >= 0.75 or verified dual-anchor
-    TIER_2_SUGGEST = "tier_2_suggest"    # 0.50 <= cos < 0.75 or ambiguous term
-    TIER_3_REJECT = "tier_3_reject"      # cos < 0.50 or malicious/out-of-scope
+class RoutingTier(enum.StrEnum):
+    TIER_1_EXECUTE = "tier_1_execute"  # cos >= 0.75 or verified dual-anchor
+    TIER_2_SUGGEST = "tier_2_suggest"  # 0.50 <= cos < 0.75 or ambiguous term
+    TIER_3_REJECT = "tier_3_reject"  # cos < 0.50 or malicious/out-of-scope
 
 
-class QueryIntent(str, enum.Enum):
+class QueryIntent(enum.StrEnum):
     MCQ_DIAGNOSTIC = "MCQ_DIAGNOSTIC"
     CATALOG_SHELF_ROUTING = "CATALOG_SHELF_ROUTING"
     AUTH_GATEWAY = "AUTH_GATEWAY"
@@ -53,127 +66,6 @@ class QueryIntent(str, enum.Enum):
     GRAPH_SYNTHESIS = "GRAPH_SYNTHESIS"
     TOPIC_SUGGESTION = "TOPIC_SUGGESTION"
     GUARDRAIL_INTERCEPT = "GUARDRAIL_INTERCEPT"
-
-
-# ── Malicious / Prompt Injection Patterns ─────────────────────────────────────
-_INJECTION_PATTERNS = [
-    re.compile(r"\bignore\s+(?:all\s+)?(?:previous|prior)\s+instructions\b", re.I),
-    re.compile(r"\bsystem\s+prompt\b", re.I),
-    re.compile(r"\bprint\s+(?:your\s+)?(?:rules|instructions|api\s*keys?|secrets?)\b", re.I),
-    re.compile(r"\b(?:exfiltrate|leak|dump)\b", re.I),
-    re.compile(r"\bcat\s+/etc/passwd\b", re.I),
-    re.compile(r"\b(sudo|rm\s+-rf|chmod\s+\d+|bash\s+-c)\b", re.I),
-    re.compile(r"\bwrite\s+(?:a\s+)?(?:python|c\+\+|javascript|code)\s+(?:script|program|function)\s+to\b", re.I),
-    re.compile(r"\b(jailbreak|dan\s+mode|unrestricted\s+mode)\b", re.I),
-]
-
-# ── Conversational De-greasing Patterns ───────────────────────────────────────
-_DEGREASE_PATTERNS = [
-    re.compile(r"^(?:hey\s+(?:assistant|archipelago|there|bot)[\s,]+|hello[\s,]+|hi[\s,]+|greetings[\s,]+)", re.I),
-    re.compile(r"^(?:(?:could|can|would)\s+you\s+)?(?:please\s+)?(?:give\s+(?:me\s+)?(?:an\s+)?overview\s+of|explain(?:\s+to\s+me)?|tell\s+me\s+about|show\s+me|help\s+me\s+with|define|describe)\s*", re.I),
-    re.compile(r"^(?:what\s+(?:is|are|was|were)|how\s+does)\s*", re.I),
-    re.compile(r"^(?:something\s+(?:vaguely\s+)?(?:related\s+to|about)\s+)", re.I),
-]
-
-
-# ── Dual-Entity Bridge Patterns (Fixing TC-04 Bug) ─────────────────────────────
-_DUAL_ENTITY_PATTERNS = [
-    re.compile(r"(?:how\s+does\s+)?(.+?)\s+(?:connect(?:s|ed)?\s+to|relate(?:s|d)?\s+to|bridge\s+to)\s+(.+)", re.I),
-    re.compile(r"(?:path\s+between\s+|bridge\s+between\s+|relationship\s+between\s+)(.+?)\s+and\s+(.+)", re.I),
-    re.compile(r"(.+?)\s+(?:vs\.?|versus)\s+(.+)", re.I),
-    re.compile(r"(?:difference\s+between\s+|compare\s+)(.+?)\s+and\s+(.+)", re.I),
-    re.compile(r"(?:how\s+do\s+)(.+?)\s+and\s+(.+?)\s+(?:differ|compare|interact)", re.I),
-]
-
-
-# ── Intent Patterns ───────────────────────────────────────────────────────────
-_MCQ_PATTERNS = [
-    re.compile(r"\b(quiz|diagnostic|assessment|test\s+my\s+knowledge|practice\s+questions?|mcqs?)\b", re.I),
-    re.compile(r"\b(roadmap\s+quiz|prerequisite\s+test|knowledge\s+check)\b", re.I),
-    # Curriculum requests are contract type 4 in their own right. They matched
-    # nothing before, so "I want to learn RAG" fell through to GRAPH_SYNTHESIS
-    # and answered a definition instead of offering the learning path.
-    re.compile(
-        r"\b(i\s+want\s+to\s+learn|i'?d\s+like\s+to\s+learn|teach\s+me|"
-        r"show\s+(?:me\s+)?(?:the\s+)?learning\s+(?:roadmap|path)|"
-        r"learning\s+roadmap|what\s+should\s+i\s+study\s+first|"
-        r"prepare\s+me\s+for|revision\s+plan|study\s+plan)\b",
-        re.I,
-    ),
-]
-
-_CATALOG_SHELF_PATTERNS = [
-    re.compile(r"\b(shelf|stacks?|call\s+number|floor|aisle|barcode|holdings?|physical\s+copy|borrow|checkout|copies\s+available)\b", re.I),
-    re.compile(r"\b(where\s+is\s+the\s+book|find\s+on\s+shelf|library\s+shelf|catalog\s+search)\b", re.I),
-    # "How many copies of X are available" and "Where are the lab manuals" are
-    # location questions. Neither matched, so both were answered as concept
-    # queries and scored against the curriculum kill-switch.
-    re.compile(r"\bhow\s+many\s+(?:physical\s+)?copies\b", re.I),
-    re.compile(r"\b(?:lab\s+manuals?|xerox|reprography)\b", re.I),
-    re.compile(r"\bwhere\s+(?:are|is|do\s+i\s+find|can\s+i\s+find)\b.*\b(?:manual|handbook|textbook|book)\b", re.I),
-]
-
-_AUTH_GATEWAY_PATTERNS = [
-    re.compile(r"\b(ndli|ieee(?:\s+explore)?|scopus|sciencedirect|springer|acm\s+digital\s+library)\b", re.I),
-    re.compile(r"\b(e-?resources?|portal\s+link|passkey|credentials?|institutional\s+login|proxy\s+access)\b", re.I),
-    # Contract type 3 covers operating hours as well as database access. Hours
-    # had no pattern at all, so "what are the library Sunday hours" was scored as
-    # an out-of-corpus concept question and deflected.
-    re.compile(r"\b(opac\s+link|off-?campus|remote\s+access|proxy\s+login)\b", re.I),
-    re.compile(
-        r"\b(?:(?:library|reading\s+room|circulation|lending|reference)\s+)?"
-        r"(?:opening\s+hours|working\s+hours|timetable)\b",
-        re.I,
-    ),
-    # Day-scoped hours: "library Sunday hours", "Monday timings", "is the library
-    # open on weekends". Requiring the two words to be adjacent meant any day or
-    # status qualifier broke the match.
-    re.compile(
-        r"\b(?:library|reading\s+room|circulation\s+desk)?\s*"
-        r"(sun(?:day)?|mon(?:day)?|tues(?:day)?|wed(?:nesday)?|thur(?:sday)?|"
-        r"fri(?:day)?|sat(?:urday)?|weekend|weekday|holiday)\s+"
-        r"(?:hours?|timings?|schedule|open(?:ing)?)\b",
-        re.I,
-    ),
-    re.compile(r"\b(?:is|are)\s+the\s+(?:library|reading\s+room|circulation\s+desk)\s+open\b", re.I),
-    re.compile(r"\bwhat\s+time\s+(?:does|do|is)\b.*\b(?:library|desk|open|close)\b", re.I),
-]
-
-_INGESTION_ANALYSIS_PATTERNS = [
-    re.compile(r"\b(uploaded|newly\s+ingested|uploaded\s+paper|theorem\s+\d+|formula|equation\s+\d+|deep\s*link|#page=\d+)\b", re.I),
-    re.compile(r"\b(pdf\s+page|view\s+passage|cite\s+paper|paper\s+analysis)\b", re.I),
-    # "Analyze this uploaded PDF" already matched the previous upload pattern, but
-    # "extract the OKF nodes from my uploaded paper" did not, because the pattern
-    # demanded the literal word "uploaded" and these phrasings say "this PDF" or
-    # "my uploaded manuscript".
-    re.compile(
-        r"\b(?:analy[sz]e|extract|ingest|index|project)\b[^.?!]{0,40}\b"
-        r"(?:this|my|the|attached|uploaded)?\s*"
-        r"(?:pdf|paper|document|file|okf|manuscript)\b",
-        re.I,
-    ),
-    re.compile(r"\b(?:okf\s+nodes?|ingestion\s+graph|new\s+nodes?\s+from)\b", re.I),
-]
-
-# Contract type 6, checked before the curriculum/concept patterns: a request to
-# write code is a scope deflection even when it is dressed as coursework
-# ("write a Python script to solve B+ tree insertions").
-_GUARDRAIL_PATTERNS = [
-    # "write a Python web scraper" names the language, then a *thing being
-    # built*. Requiring the implementation noun immediately after the language
-    # missed every phrasing that inserted a descriptor, which is most of them.
-    re.compile(
-        r"\b(?:write|create|generate|give|show)\s+(?:me\s+)?(?:a\s+|an\s+)?"
-        r"(?:\w+\s+){0,3}?(?:python|java|c\+\+|c#|javascript|js|typescript|ts|sql|"
-        r"bash|shell|go|rust|ruby|php|scala|kotlin|react)\b",
-        re.I,
-    ),
-    re.compile(r"\b(?:python|java|javascript|node)\s+(?:web\s+)?(?:scraper|crawler|bot|spider)\b", re.I),
-    re.compile(r"\bwrite\s+(?:me\s+)?(?:the\s+|a\s+|an\s+)?\w+\s+script\s+to\b", re.I),
-    re.compile(r"\b(?:pip\s+install|npm\s+install|yarn\s+add|dockerfile|docker\s+compose|apt-get\s+install)\b", re.I),
-    re.compile(r"\b(?:recipe|cook|bake|lasagna|pasta\s+recipe|what'?s\s+for\s+dinner)\b", re.I),
-    re.compile(r"\b(?:tell\s+me\s+a\s+)?(?:joke|horoscope|astrological\s+sign)\b", re.I),
-]
 
 
 class QueryRouter:
@@ -202,7 +94,11 @@ class QueryRouter:
 
         # Enforce length bound
         if len(cleaned) > self.max_query_len:
-            return False, "", f"Payload overflow: {len(cleaned)} chars exceeds limit of {self.max_query_len}."
+            return (
+                False,
+                "",
+                f"Payload overflow: {len(cleaned)} chars exceeds limit of {self.max_query_len}.",
+            )
 
         # Check for malicious / injection patterns
         for pattern in _INJECTION_PATTERNS:
@@ -229,6 +125,14 @@ class QueryRouter:
         final_query = norm if norm else cleaned
         return True, final_query, None
 
+    def extract_concepts(self, query: str) -> list[str]:
+        """Extract 1, 2, 3, 4+ concepts from the query."""
+        concepts = extract_concept_mentions(query)
+        if not concepts:
+            # Fallback to dual entities if extractor found nothing
+            return self.detect_dual_entities(query)
+        return concepts
+
     def detect_dual_entities(self, query: str) -> list[str]:
         """Detect bridge queries containing two distinct entities (Fixes TC-04 bug).
 
@@ -236,7 +140,19 @@ class QueryRouter:
             'How does Latent Variables connect to BERT?' -> ['Latent Variables', 'BERT']
         """
         q = query.strip()
-        generic_noise = {"something", "anything", "nothing", "vaguely", "somewhat", "stuff", "concept", "topic", "someone", "tell", "explain"}
+        generic_noise = {
+            "something",
+            "anything",
+            "nothing",
+            "vaguely",
+            "somewhat",
+            "stuff",
+            "concept",
+            "topic",
+            "someone",
+            "tell",
+            "explain",
+        }
 
         for pat in _DUAL_ENTITY_PATTERNS:
             m = pat.search(q)
@@ -254,7 +170,6 @@ class QueryRouter:
                 if w1 and w2 and ent1.lower() != ent2.lower():
                     return [ent1, ent2]
         return []
-
 
     def classify_intent(self, query: str, dual_entities: list[str] | None = None) -> QueryIntent:
         """Classify normalized query into one of the contract types.
@@ -328,21 +243,25 @@ class QueryRouter:
         evaluates semantic tiers, and returns routing directive dictionary.
         """
         is_valid, norm_q, err_msg = self.validate_and_normalize(raw_query)
+        is_malicious = err_msg == SECURITY_BOUNDARY_MESSAGE
         if not is_valid:
-            is_malicious = err_msg == SECURITY_BOUNDARY_MESSAGE
             return {
                 "route": "rejected",
                 "tier": RoutingTier.TIER_3_REJECT.value,
                 "intent": None,
+                "intent_category": IntentCategory.UNSUPPORTED.value,
                 "normalized_query": "",
                 "dual_entities": [],
+                "concepts": [],
                 "error": err_msg,
                 "is_malicious": is_malicious,
                 "message": err_msg,
             }
 
-        dual_ents = self.detect_dual_entities(norm_q)
+        concepts = self.extract_concepts(norm_q)
+        dual_ents = self.detect_dual_entities(norm_q) or concepts[:2]
         intent = self.classify_intent(norm_q, dual_entities=dual_ents)
+        intent_category = classify_query_intent(norm_q, extracted_concepts=concepts)
 
         # Scope refusals are contract type 6, reported through the pipeline's
         # existing out_of_scope stage so every consumer keeps working unchanged.
@@ -353,8 +272,10 @@ class QueryRouter:
                 "route": "out_of_scope",
                 "tier": RoutingTier.TIER_3_REJECT.value,
                 "intent": intent.value,
+                "intent_category": IntentCategory.UNSUPPORTED.value,
                 "normalized_query": norm_q,
                 "dual_entities": dual_ents,
+                "concepts": concepts,
                 "similarity": 0.0,
                 "error": "Out of scope",
                 "message": OUT_OF_SCOPE_MESSAGE,
@@ -365,18 +286,28 @@ class QueryRouter:
         # hours" has no semantic similarity to any concept node, and scoring it
         # against the corpus was the original cause of hours being deflected as
         # out-of-scope.
-        if intent in (
-            QueryIntent.CATALOG_SHELF_ROUTING,
-            QueryIntent.AUTH_GATEWAY,
-            QueryIntent.MCQ_DIAGNOSTIC,
-            QueryIntent.INGESTION_ANALYSIS,
+        if (
+            intent in (
+                QueryIntent.CATALOG_SHELF_ROUTING,
+                QueryIntent.AUTH_GATEWAY,
+                QueryIntent.MCQ_DIAGNOSTIC,
+                QueryIntent.INGESTION_ANALYSIS,
+            )
+            or intent_category in (
+                IntentCategory.PAPER_LOOKUP,
+                IntentCategory.LIBRARY_LOOKUP,
+                IntentCategory.ACADEMIC_INFO,
+                IntentCategory.MULTI_CONCEPT,
+            )
         ):
             return {
                 "route": "execute",
                 "tier": RoutingTier.TIER_1_EXECUTE.value,
-                "intent": intent.value,
+                "intent": intent.value if intent else "METADATA_LOOKUP",
+                "intent_category": intent_category.value,
                 "normalized_query": norm_q,
                 "dual_entities": dual_ents,
+                "concepts": concepts,
                 "similarity": 1.0,
                 "error": None,
                 "message": None,
@@ -393,7 +324,9 @@ class QueryRouter:
                     score1, hit1 = retriever_fn(dual_ents[0])
                     score2, hit2 = retriever_fn(dual_ents[1])
                     # If both entities exist or have decent individual similarity, promote to Tier 1
-                    if (score1 >= self.tier2_threshold or hit1) and (score2 >= self.tier2_threshold or hit2):
+                    if (score1 >= self.tier2_threshold or hit1) and (
+                        score2 >= self.tier2_threshold or hit2
+                    ):
                         is_dual_valid = True
                         sim_score = max(score1, score2)
                     else:
@@ -406,15 +339,19 @@ class QueryRouter:
                 logger.error("Error during similarity calculation in router: %s", exc)
                 sim_score = 0.0
 
-        tier = self.evaluate_tier(sim_score, is_dual_entity_valid=is_dual_valid, has_exact_alias=exact_alias)
+        tier = self.evaluate_tier(
+            sim_score, is_dual_entity_valid=is_dual_valid, has_exact_alias=exact_alias
+        )
 
         if tier == RoutingTier.TIER_3_REJECT:
             return {
                 "route": "out_of_scope",
                 "tier": tier.value,
                 "intent": None,
+                "intent_category": IntentCategory.UNSUPPORTED.value,
                 "normalized_query": norm_q,
                 "dual_entities": dual_ents,
+                "concepts": concepts,
                 "similarity": sim_score,
                 "error": "Out of scope",
                 "message": OUT_OF_SCOPE_MESSAGE,
@@ -425,8 +362,10 @@ class QueryRouter:
                 "route": "suggest_topics",
                 "tier": tier.value,
                 "intent": QueryIntent.TOPIC_SUGGESTION.value,
+                "intent_category": intent_category.value,
                 "normalized_query": norm_q,
                 "dual_entities": dual_ents,
+                "concepts": concepts,
                 "similarity": sim_score,
                 "error": None,
                 "message": None,
@@ -436,8 +375,10 @@ class QueryRouter:
             "route": "execute",
             "tier": tier.value,
             "intent": intent.value,
+            "intent_category": intent_category.value,
             "normalized_query": norm_q,
             "dual_entities": dual_ents,
+            "concepts": concepts,
             "similarity": sim_score,
             "error": None,
             "message": None,

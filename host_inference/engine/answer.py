@@ -12,68 +12,68 @@ import json
 from pathlib import Path
 import re
 
-from demo_cards import match_demo, redact_for_model
+from demo_cards import redact_for_model
 from library_index import Catalog
-from remote_cache import hydrate, load_books
+from remote_cache import CACHE, hydrate, load_books
 
 from . import (
     catalogue,
-    compose,
     diagnostics,
-    ingestion_view,
     inventory,
     inventory_card,
+    route_logic,
     telemetry,
 )
 from .constants import (
     CITATION_LINE_PREFIXES,
-    CODE_MESSAGE,
     HERE,
-    HIJACK_MESSAGE,
-    KILL_SWITCH,
-    OOD_MESSAGE,
-    PASSING_MENTIONS,
-    SHELF,
-    UNINDEXED_CURRICULUM_MESSAGE,
 )
 from .contract import contract_for, graph_decision
 from .graph import LibraryGraph
 from .links import source_links
 from .llm import fallback_config, provider_config, stream_completion
 from .nodes import node_public
-from .patterns import (
-    AUTH_RE,
-    CODE_TRAP,
-    DIAG_RE,
-    INGEST_RE,
-    INJECTION,
-    PARAM_RE,
-    RELATE_RE,
-    SCHEDULE_RE,
-    SHELF_RE,
+from .reply_evidence import expanded_concept_context
+from .reply_plan import build_reply_plan
+from .routing_constants import (
+    ANCHOR_LIMIT as ANCHOR_LIMIT,
 )
-from .render import neighborhood_block
-
-# Routing thresholds and caps.
-MIN_QUERY_LEN = 2
-RANK_TOP_K = 6
-ANCHOR_LIMIT = 3
-NEIGHBOUR_NODE_LIMIT = 6
-SHORTEST_PATH_LIMIT = 6
-# Book-title token match: at least this many distinctive tokens must overlap.
-BOOK_TITLE_MIN_OVERLAP = 2
-BOOK_TITLE_TOKEN_MIN_LEN = 5
-# Grounded routes whose draft is worth sending to the LLM for phrasing.
-POLISHABLE_ROUTES = frozenset({"GRAPH_SYNTHESIS", "RELATION", "CROSS_DOMAIN", "BOOK_PAGE", "DEMO"})
-# Comparison cue words that flip a relation reply into a comparative matrix.
-COMPARE_CUES = ("compare", "versus", "vs", "difference")
-COMPARE_CUES_DBMS = ("compare", "versus", "vs", "difference", "dbms", "b+")
-SOURCE_LOOKUP_RE = re.compile(
-    r"\b(?:open|download|page|pages|chapter|book|textbook|paper|pdf|"
-    r"dataset|pearson|hugging\s*face|source|citation)\b",
-    re.I,
+from .routing_constants import (
+    BOOK_TITLE_MIN_OVERLAP as BOOK_TITLE_MIN_OVERLAP,
 )
-WHERE_IS_RE = re.compile(r"^where\s+(?:is|are)\s+", re.I)
+from .routing_constants import (
+    BOOK_TITLE_TOKEN_MIN_LEN as BOOK_TITLE_TOKEN_MIN_LEN,
+)
+from .routing_constants import (
+    COMPARE_CUES as COMPARE_CUES,
+)
+from .routing_constants import (
+    COMPARE_CUES_DBMS as COMPARE_CUES_DBMS,
+)
+from .routing_constants import (
+    MIN_QUERY_LEN as MIN_QUERY_LEN,
+)
+from .routing_constants import (
+    NEIGHBOUR_NODE_LIMIT as NEIGHBOUR_NODE_LIMIT,
+)
+from .routing_constants import (
+    POLISHABLE_ROUTES as POLISHABLE_ROUTES,
+)
+from .routing_constants import (
+    RANK_TOP_K as RANK_TOP_K,
+)
+from .routing_constants import (
+    SHORT_DEFINITION_RE as SHORT_DEFINITION_RE,
+)
+from .routing_constants import (
+    SHORTEST_PATH_LIMIT as SHORTEST_PATH_LIMIT,
+)
+from .routing_constants import (
+    SOURCE_LOOKUP_RE as SOURCE_LOOKUP_RE,
+)
+from .routing_constants import (
+    WHERE_IS_RE as WHERE_IS_RE,
+)
 
 
 class Engine:
@@ -81,7 +81,7 @@ class Engine:
 
     def __init__(self, graph_path: Path | None = None):
         self.cache_info = hydrate()
-        path = graph_path or (HERE / "cache" / "okf_graph.json")
+        path = graph_path or (CACHE / "okf_graph.json")
         if not path.is_file():
             path = HERE.parent / "okf_graph.json"
         self.graph = LibraryGraph(path)
@@ -158,15 +158,36 @@ class Engine:
             payload["anchor_concept"] = None
             payload["prerequisites"] = []
             payload["unlocks"] = []
+            if extra.get("hide_graph"):
+                payload["render_graph"] = False
+                payload["render_rule"] = "no_verified_graph_for_answer"
+
+        if extra.get("intent_category"):
+            payload["intent_category"] = extra["intent_category"]
+        if extra.get("multi_hop"):
+            payload["multi_hop"] = extra["multi_hop"]
 
         # Contract type 5 carries its projection alongside the reply text.
         if extra.get("projection"):
             payload.update(extra["projection"])
+        shelf_record = extra.get("inventory") or {}
+        if shelf_record.get("digital_available"):
+            payload["digital_resources"] = [
+                {
+                    "title": shelf_record["title"],
+                    "isbn": shelf_record.get("isbn", ""),
+                    "reader_url": shelf_record.get("reader_url", ""),
+                    "resource_type": "institutional_e_book",
+                }
+            ]
 
-        # Contract: a grounded concept answer closes with the physical holdings.
-        # Skipped for administrative and location-only answers, which must not
-        # carry a concept card (see the graph-render protocol).
-        if anchor_ok and decision.render:
+        # Pearson catalogue records describe licensed digital books. Attach
+        # them only when the user asks for reading resources, never as physical
+        # shelf holdings on every concept explanation.
+        wants_resources = bool(
+            re.search(r"\b(books?|textbooks?|reading|library|study)\b", query, re.I)
+        )
+        if anchor_ok and decision.render and wants_resources:
             concept = graph.nodes[anchor]
             cards = inventory_card.attach_inventory(
                 payload,
@@ -175,9 +196,6 @@ class Engine:
                 str(concept.get("summary") or ""),
                 catalogue.load_catalogue(),
             )
-            # Append section 4 of the master template to the reply text itself,
-            # so the holdings survive as prose for any client that renders plain
-            # text. The card is never allowed to displace the explanation.
             if cards:
                 text = text + "\n" + inventory_card.render_inventory_section(cards)
 
@@ -202,55 +220,111 @@ class Engine:
             "payload": payload,
             "anchor": anchor,
             "extra": extra,
+            "intent_category": extra.get("intent_category") or route,
         }
 
-    def stream_chat(self, query: str):
-        """Yield the metadata frame immediately, then stream tokens from XKIRO.
-
-        Falls back to the grounded draft when no provider is configured or the
-        stream produced no tokens.
-        """
-        result = self.answer(query)
+    def stream_chat(
+        self,
+        query: str,
+        previous_answer: str = "",
+        prepared: dict | None = None,
+        reply_template_id: str = "",
+        reply_detail: str = "standard",
+    ):
+        """Stream a provider answer for grounded questions and report failures."""
+        result = prepared if prepared is not None else self.answer(query)
         route = result["route"]
         grounded_text = result["text"]
         payload = result["payload"]
+        plan = build_reply_plan(query, route, payload, reply_template_id)
+        payload["reply_plan"] = plan
+        payload["reply_template"] = plan["primary_template"]
 
-        can_polish = route in POLISHABLE_ROUTES
+        can_polish = route in POLISHABLE_ROUTES or (
+            bool(result.get("research_overlay"))
+            and (reply_detail == "expanded" or bool(reply_template_id))
+        )
         config = provider_config() if can_polish else None
-        if config:
-            payload["model"] = {"provider": config["provider"], "model": config["model"]}
-            payload["logs"].append(
-                {"step": config["provider"], "status": "ok", "details": config["model"]}
-            )
 
-        # Yield metadata frame immediately (< 10ms) to satisfy client watchdog and populate evidence/graph
-        yield json.dumps(payload) + "\n[STREAM_START]\n"
-
-        if not config:
+        if not can_polish:
+            yield json.dumps(payload) + "\n[STREAM_START]\n"
             yield grounded_text
             return
 
         safe_text = redact_for_model(grounded_text)
+        if reply_detail != "expanded" and SHORT_DEFINITION_RE.match(query) and result["anchor"]:
+            anchor_node = self.graph.nodes[result["anchor"]]
+            safe_text = redact_for_model(str(anchor_node.get("summary") or grounded_text))
+        if reply_detail == "expanded":
+            concept_context = expanded_concept_context(payload)
+            if concept_context:
+                safe_text += "\n\nVerified concept context:\n" + concept_context
         link_lines = [
             line for line in grounded_text.splitlines() if line.startswith(CITATION_LINE_PREFIXES)
         ]
+        if result.get("research_overlay"):
+            link_lines.extend(
+                line
+                for line in grounded_text.splitlines()
+                if line.startswith("[") and " Source: https://" in line
+            )
+        source_ids = [result["anchor"]] if result.get("anchor") else []
+        source_ids.extend(
+            node["id"] for node in payload.get("prerequisites", [])[:2] if node.get("id")
+        )
+        for cid in dict.fromkeys(source_ids):
+            link_lines.extend(self.pearson_line(cid).splitlines())
+        link_lines = list(dict.fromkeys(line for line in link_lines if line))
 
-        streamed_tokens = 0
-        for candidate in (config, fallback_config(config)):
+        selected = None
+        first_token = None
+        stream = None
+        candidates = (config, fallback_config(config)) if config else ()
+        for candidate in candidates:
             if candidate is None:
                 continue
-            for delta in stream_completion(candidate, safe_text):
-                streamed_tokens += 1
-                yield delta
-            if streamed_tokens:
+            if reply_detail == "expanded" or reply_template_id:
+                attempt = iter(
+                    stream_completion(
+                        candidate,
+                        safe_text,
+                        query,
+                        previous_answer,
+                        plan["primary_template"]["id"],
+                        reply_detail,
+                        reply_plan=plan,
+                    )
+                )
+            elif previous_answer:
+                attempt = iter(stream_completion(candidate, safe_text, query, previous_answer))
+            else:
+                attempt = iter(stream_completion(candidate, safe_text, query))
+            first = next(attempt, None)
+            if first:
+                selected = candidate
+                first_token = first
+                stream = attempt
                 break
 
-        if streamed_tokens > 0:
-            if link_lines:
-                yield "\n\n" + "\n".join(link_lines)
-        else:
-            # Fallback to grounded text if stream connection failed or produced 0 tokens
+        if selected is None:
+            payload["model"] = {"provider": "unavailable", "model": ""}
+            payload["logs"].append(
+                {"step": "AI provider", "status": "error", "details": "No live reply received"}
+            )
+            yield json.dumps(payload) + "\n[STREAM_START]\n"
             yield grounded_text
+            return
+
+        payload["model"] = {"provider": selected["provider"], "model": selected["model"]}
+        payload["logs"].append(
+            {"step": selected["provider"], "status": "ok", "details": selected["model"]}
+        )
+        yield json.dumps(payload) + "\n[STREAM_START]\n"
+        yield first_token
+        if stream is not None:
+            yield from stream
+        if link_lines:
+            yield "\n\n" + "\n".join(link_lines)
 
     def _route_shelf_query(
         self, query: str, best_score: float
@@ -298,9 +372,8 @@ class Engine:
                 "inventory": {
                     "title": record.get("title", ""),
                     "isbn": record.get("isbn", ""),
-                    "available": record.get("available_copies", 0),
-                    "total": record.get("total_copies", 0),
-                    "held": True,
+                    "held": False,
+                    "digital_available": True,
                     "confidence": confidence,
                     "reader_url": catalogue.reader_link(record),
                 },
@@ -308,323 +381,8 @@ class Engine:
         )
 
     def _route(self, query: str) -> tuple[str, str, str | None, dict]:
-        graph = self.graph
-        if not query or len(query) < MIN_QUERY_LEN:
-            return (
-                "EMPTY",
-                "Ask a library question of at least two characters.",
-                None,
-                {"hide_graph": True, "reason": "empty"},
-            )
-        if INJECTION.search(query):
-            return "PERSONA_LOCK", HIJACK_MESSAGE, None, {"hide_graph": True, "reason": "injection"}
-        if CODE_TRAP.search(query):
-            return "CODE_TRAP", CODE_MESSAGE, None, {"hide_graph": True, "reason": "procedural"}
-
-        # ── Conversational greetings ──────────────────────────────────────
-        _GREETING_RE = re.compile(
-            r"^(h(i|ey|ello|owdy)|good\s*(morning|afternoon|evening|day)|"
-            r"yo\b|sup\b|what'?s?\s*up|who are you|help|what can you do|"
-            r"thanks?|thank\s*you|bye|goodbye|see ya)[\s?!.]*$",
-            re.I,
-        )
-        if _GREETING_RE.match(query):
-            text = (
-                "Hello! I'm **Archipelago**, your AI librarian and academic tutor. "
-                "I can explain concepts from the indexed CS/AI/ML corpus, show "
-                "prerequisite graphs, find textbook pages, check library hours, "
-                "look up e-resource credentials, and build personalized learning "
-                "roadmaps.\n\n"
-                "Try asking about **LoRA**, **RAG**, **BERT**, **Attention**, "
-                "**3NF**, or any indexed topic!"
-            )
-            return "GREETING", text, None, {"hide_graph": True, "reason": "greeting"}
-
-        # Contract type 3: schedule + access portals.
-        wants_hours = bool(SCHEDULE_RE.search(query))
-        wants_access = bool(AUTH_RE.search(query)) and not SHELF_RE.search(query)
-        if wants_hours or wants_access:
-            route = "SCHEDULE" if wants_hours and not wants_access else "AUTH_GATEWAY"
-            return (
-                route,
-                compose.admin_card(query, wants_hours, wants_access),
-                None,
-                {
-                    "hide_graph": True,
-                    "reason": "schedule_sheet" if wants_hours else "auth_gateway",
-                },
-            )
-
-        # Contract type 5: uploaded-paper flow.
-        if INGEST_RE.search(query) and not SHELF_RE.search(query):
-            text, projection = ingestion_view.ingestion_reply(query, graph)
-            return (
-                "INGESTION_ANALYSIS",
-                text,
-                None,
-                {
-                    "reason": "uploaded_okf_projection",
-                    "projection": projection,
-                    "hide_graph": False,
-                },
-            )
-
-        demo = match_demo(query, self.books)
-        if demo and not DIAG_RE.search(query):
-            # Resolve anchor so the in-chat graph card renders for demo replies.
-            hits = graph.phrase_hits(query)
-            demo_anchor = hits[0] if hits else None
-            if not demo_anchor:
-                ranked = graph.rank(query, top_k=1)
-                if ranked and ranked[0][0] >= 0.5:
-                    demo_anchor = ranked[0][1]
-            return (
-                "DEMO",
-                demo["text"],
-                demo_anchor,
-                {
-                    "reason": "demo_prompt",
-                    "citations": demo["citations"],
-                    "score": 1.0,
-                },
-            )
-        if any(term in query.lower() for term in PASSING_MENTIONS):
-            entity = next(term.strip() for term in PASSING_MENTIONS if term in query.lower())
-            text = (
-                f"The library texts mention {entity} in passing as a dataset benchmark or infrastructure instance, "
-                "but do not contain the theoretical documentation required to explain it. "
-                "I cannot use external knowledge to fill in the gaps."
-            )
-            return "PASSING_MENTION", text, None, {"hide_graph": True, "reason": "passing_mention"}
-
-        catalog_hit = self.catalog.reply(query)
-        # A learning request ("I want to learn X", "Teach me Y") is a
-        # curriculum intent, not a book lookup. The catalog matcher fires on
-        # the title words alone, so it used to swallow every curriculum prompt
-        # before the diagnostic check could see it. Curriculum wins.
-        # A relational prompt ("how does Softmax connect to Self-Attention?")
-        # is the same story: the matcher saw "Attention" in a catalogue title
-        # and answered with a book page instead of a traversal path.
-        learning_request = bool(DIAG_RE.search(query))
-        relational_request = bool(RELATE_RE.search(query))
-        if (
-            catalog_hit
-            and SOURCE_LOOKUP_RE.search(query)
-            and not SHELF_RE.search(query)
-            and not learning_request
-            and not relational_request
-        ):
-            return (
-                "BOOK_PAGE",
-                catalog_hit["text"],
-                None,
-                {
-                    "hide_graph": True,
-                    "reason": "catalog_book",
-                    "citation": catalog_hit["citation"],
-                    "score": 0.9,
-                },
-            )
-
-        ranked = graph.rank(query, top_k=RANK_TOP_K)
-        best_score, best_id = ranked[0]
-        hits = graph.phrase_hits(query)
-        anchors = []
-        for cid in hits:
-            if cid not in anchors:
-                anchors.append(cid)
-        for score, cid in ranked:
-            if score >= KILL_SWITCH and cid not in anchors:
-                anchors.append(cid)
-            if len(anchors) >= ANCHOR_LIMIT:
-                break
-
-        if WHERE_IS_RE.search(query):
-            requested_title = inventory.extract_title(query)
-            _record, title_score = inventory.best_record(
-                catalogue.load_catalogue(), requested_title
-            )
-            if inventory.match_confidence(title_score) != "none":
-                return self._route_shelf_query(query, best_score)
-
-        if SHELF_RE.search(query):
-            shelf_id = (
-                anchors[0] if anchors else ("third_normal_form" if "3nf" in query.lower() else None)
-            )
-            if shelf_id and shelf_id in SHELF:
-                return (
-                    "CATALOG_SHELF",
-                    compose.shelf(self, shelf_id),
-                    shelf_id,
-                    {"score": best_score, "reason": "shelf"},
-                )
-            if shelf_id:
-                return (
-                    "CATALOG_SHELF",
-                    compose.shelf_generic(self, shelf_id),
-                    shelf_id,
-                    {"score": best_score, "reason": "shelf_generic"},
-                )
-            # No concept anchor: the question is about a *book*, not a concept.
-            # Consult the institutional catalogue before giving up, otherwise
-            # every "where is a physical copy of X" hit the OOD kill switch even
-            # with the title catalogued.
-            return self._route_shelf_query(query, best_score)
-
-        domains = compose.domain_pair(self, query)
-        if domains and any(
-            token in query.lower() for token in ("compare", "versus", "vs", "difference", "with")
-        ):
-            (left_id, left_name), (right_id, right_name) = domains
-            return (
-                "CROSS_DOMAIN",
-                compose.matrix(self, left_id, right_id, left_name, right_name),
-                left_id,
-                {"score": max(best_score, 0.8), "reason": "cross_domain"},
-            )
-
-        pair = compose.split_pair(query)
-        if pair:
-            left_text, right_text = pair
-            left_id, left_ok = compose.resolve_fragment(self, left_text)
-            right_id, right_ok = compose.resolve_fragment(self, right_text)
-            if left_ok and right_ok and left_id != right_id:
-                path = graph.shortest(left_id, right_id, limit=SHORTEST_PATH_LIMIT)
-                if path is None:
-                    return (
-                        "DISCONNECTED",
-                        compose.disconnected(self, left_id, right_id),
-                        left_id,
-                        {"score": best_score, "reason": "no_path"},
-                    )
-                if any(token in query.lower() for token in COMPARE_CUES):
-                    return (
-                        "CROSS_DOMAIN",
-                        compose.matrix(self, left_id, right_id),
-                        left_id,
-                        {"score": best_score, "reason": "cross_domain"},
-                    )
-                return (
-                    "RELATION",
-                    compose.relation(self, left_id, right_id, path),
-                    left_id,
-                    {"score": best_score, "reason": "shortest_path"},
-                )
-            if left_ok ^ right_ok:
-                known = left_id if left_ok else right_id
-                missing = right_text if left_ok else left_text
-                text = (
-                    f"**{graph.label(known)}** is an indexed catalog node. "
-                    f"**{missing.strip(' ?.')}** is not. "
-                    "No pedagogical prerequisite connects them, and I will not invent a bridge.\n\n"
-                    f"{neighborhood_block(graph, known)}"
-                )
-                return "DISCONNECTED", text, known, {"score": best_score, "reason": "one_sided"}
-
-        if PARAM_RE.search(query):
-            target = anchors[0] if anchors and anchors[0] in graph.nodes else None
-            if target is None:
-                text = (
-                    "The active catalog does not contain a concept node for that implementation parameter. "
-                    "I will not invent a memory formula or version-specific constant. "
-                    "Ask for a concept that is indexed, such as LoRA, BERT, or third normal form."
-                )
-                return (
-                    "CATALOG_DEPTH",
-                    text,
-                    None,
-                    {"hide_graph": True, "score": best_score, "reason": "missing_parameter"},
-                )
-            summary = (graph.nodes.get(target) or {}).get("summary") or ""
-            if not re.search(r"\d", summary):
-                parent = graph.prereqs(target, 1)
-                parent_name = graph.label(parent[0]) if parent else graph.label(target)
-                text = (
-                    f"**{graph.label(target)}** is an indexed catalog node. "
-                    "The active catalog chunks do not contain the specific implementation parameter you asked for. "
-                    "I will not guess a number that is not in the retrieved text. "
-                    f"The closest indexed prerequisite is **{parent_name}**."
-                )
-                return (
-                    "CATALOG_DEPTH",
-                    text,
-                    target,
-                    {"score": best_score, "reason": "missing_parameter"},
-                )
-
-        if best_score < KILL_SWITCH and not hits:
-            # Distinguish "we have not indexed this syllabus topic" from "you are
-            # off-topic". Both are below the similarity threshold, but only the
-            # second deserves a scope deflection.
-            if DIAG_RE.search(query):
-                subject = inventory.extract_title(query) or "That topic"
-                return (
-                    "CURRICULUM_UNINDEXED",
-                    UNINDEXED_CURRICULUM_MESSAGE.format(subject=subject),
-                    None,
-                    {"hide_graph": True, "score": best_score, "reason": "curriculum_not_indexed"},
-                )
-            return (
-                "GUARDRAIL_INTERCEPT",
-                OOD_MESSAGE,
-                None,
-                {
-                    "hide_graph": True,
-                    "score": best_score,
-                    "reason": "cosine_below_0.75",
-                },
-            )
-
-        if DIAG_RE.search(query) and anchors:
-            target = anchors[0]
-            return (
-                "MCQ_DIAGNOSTIC",
-                diagnostics.diagnostic_intro(self, target),
-                target,
-                {"score": best_score, "reason": "diagnostic"},
-            )
-
-        if RELATE_RE.search(query) and len(anchors) >= 2:
-            a, b = anchors[0], anchors[1]
-            path = graph.shortest(a, b, limit=SHORTEST_PATH_LIMIT)
-            if path is None:
-                return (
-                    "DISCONNECTED",
-                    compose.disconnected(self, a, b),
-                    a,
-                    {"score": best_score, "reason": "no_path", "hide_graph": False},
-                )
-            if any(token in query.lower() for token in COMPARE_CUES_DBMS):
-                return (
-                    "CROSS_DOMAIN",
-                    compose.matrix(self, a, b),
-                    a,
-                    {"score": best_score, "reason": "cross_domain"},
-                )
-            return (
-                "RELATION",
-                compose.relation(self, a, b, path),
-                a,
-                {"score": best_score, "reason": "shortest_path"},
-            )
-
-        if len(anchors) >= 2 and any(
-            token in query.lower() for token in ("compare", "versus", "vs", "difference", "and")
-        ):
-            return (
-                "CROSS_DOMAIN",
-                compose.matrix(self, anchors[0], anchors[1]),
-                anchors[0],
-                {"score": best_score, "reason": "multi_anchor"},
-            )
-
-        target = anchors[0] if anchors else best_id
-        return (
-            "GRAPH_SYNTHESIS",
-            compose.synthesis(self, target),
-            target,
-            {"score": max(best_score, 0.93 if hits else best_score), "reason": "graph_synthesis"},
-        )
+        """Choose a grounded route and its graph payload."""
+        return route_logic.route(self, query)
 
     # ── diagnostics / personalized-QnA (implemented in engine.diagnostics) ──
 

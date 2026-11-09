@@ -108,18 +108,42 @@ REPLY_STYLES: list[str] = [
     "Adapt detail level to whether the student is exploring or revising.",
 ]
 
-assert len(REPLY_STYLES) == 100, f"Expected 100 styles, got {len(REPLY_STYLES)}"  # noqa: S101
+assert len(REPLY_STYLES) == 100, f"Expected 100 styles, got {len(REPLY_STYLES)}"
 
 
-def select_reply_style(query: str) -> str:
-    """Select a deterministic reply style based on the query hash.
+def select_reply_style(query: str, intent: str | None = None) -> str:
+    """Select an appropriate reply style based on query semantics and intent.
 
     Args:
         query: The user query string.
+        intent: Optional intent category string.
 
     Returns:
         A style instruction string chosen from REPLY_STYLES.
     """
+    ql = (query or "").lower()
+    
+    # 1. Comparison / Contrast
+    if any(k in ql for k in ("compare", "versus", "vs", "difference", "contrasting")):
+        return "Use contrast (A vs B) where relevant. Highlight trade-offs explicitly."
+    
+    # 2. Mechanism / How it works
+    if any(k in ql for k in ("how does", "how do", "mechanism", "how it works")):
+        return "Explain the intuition, then the mechanics. Structure as: What, Why, How."
+    
+    # 3. Research literature / state of the art
+    if any(k in ql for k in ("research", "literature", "recent", "findings", "studies", "sota")):
+        return "Highlight what changed in recent research. Distinguish between theory and practice."
+        
+    # 4. Lookup / factual bibliographic query
+    if any(k in ql for k in ("who wrote", "which paper", "call number", "where is", "copies", "shelf")):
+        return "Be concise and precise. Start with the most important fact."
+        
+    # 5. Learning / beginner introduction
+    if any(k in ql for k in ("teach me", "i want to learn", "beginner", "introduce", "what is")):
+        return "Explain like the student is new to the topic. Lead with the definition, then examples."
+
+    # Fallback deterministic choice
     return REPLY_STYLES[hash(query) % len(REPLY_STYLES)]
 
 
@@ -135,14 +159,27 @@ def strip_style_artifacts(text: str) -> str:
     return text.strip()
 
 
-def style_instruction(query: str) -> str:
-    """Return a combined style + citation instruction for the given query."""
-    style = select_reply_style(query)
+def style_instruction(query: str, intent: str | None = None) -> str:
+    """Return a combined style + citation instruction for the given query,
+    with word count adapted to intent rather than a rigid universal limit.
+    """
+    ql = (query or "").lower()
+    style = select_reply_style(query, intent=intent)
+
+    # Adaptive length guidance
+    if any(k in ql for k in ("where is", "who wrote", "call number", "how many copies", "hours", "schedule")):
+        length_guidance = "Provide a direct, concise response (about 40-120 words)."
+    elif any(k in ql for k in ("compare", "versus", "vs", "difference", "relate", "connect", "detailed", "in depth", "literature review", "synthesis")):
+        length_guidance = "Provide a comprehensive, detailed scientific explanation (about 250-550 words)."
+    else:
+        length_guidance = "Provide a clear, well-structured explanation (about 150-350 words)."
+
     return (
         f"{style} "
-        f"Be CONCISE (about 90–220 words). "
+        f"{length_guidance} "
         f"Cite sources using bare [S#] markers — at least {_MIN_INLINE_CITATIONS_REQUESTED}, "
         f"at most {_MAX_INLINE_CITATIONS_REQUESTED} inline markers from different [S#] evidence IDs. "
+        f"Synthesize scientific connections naturally without forcing an artificial topological boilerplate. "
         f"Never add a Sources section or invent pages. "
         f"Never print style labels or control tokens."
     )

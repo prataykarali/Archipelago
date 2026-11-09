@@ -12,6 +12,7 @@ from archipelago.inference.citations import (
     _resolve_printed_page,
     build_citation_payloads,
     build_concept_citation_map,
+    render_citation_from_payload,
 )
 from archipelago.inference.curriculum import (
     find_curriculum_chains,
@@ -23,13 +24,14 @@ from archipelago.inference.neighborhood import get_graph_neighborhood
 from archipelago.inference.reply_inventory import inventory_suffix
 from archipelago.inference.routes.chat.part00_shared import with_holdings
 from archipelago.inference.synthesis import (
-    OLLAMA_UNAVAILABLE_MSG,
     build_graph_notes,
     enforce_sterile_prose,
     format_natural_fallback,
     general_chat_reply,
     stream_synthesis_with_ollama,
 )
+
+MAX_SOURCE_LINKS = 6
 
 
 def handle_graph_path(query, history, routing, wants_synthesis):
@@ -79,7 +81,7 @@ def handle_graph_path(query, history, routing, wants_synthesis):
 
         citation_map = build_concept_citation_map(target_concept, prereqs, unlocks)
         citation_payloads = build_citation_payloads(target_concept, prereqs, unlocks, citation_map)
-        citation_payloads = merge_demo_citations(query, citation_payloads)
+        citation_payloads = merge_demo_citations(query, citation_payloads)[:MAX_SOURCE_LINKS]
         evidence_ids = {
             payload["evidence_id"] for payload in citation_payloads if payload["evidence_id"]
         }
@@ -122,7 +124,7 @@ def handle_graph_path(query, history, routing, wants_synthesis):
                 ),
                 "details": (
                     f"Route={routing['route']}; anchor=**{_node_name(target_concept)}** "
-                    f"(score={match_score if isinstance(match_score, (int, float)) else match_score}); "
+                    f"(score={match_score}); "
                     f"reason={routing.get('reason')}; top related="
                     f"{', '.join(r.get('label', '') for r in related[:3])}"
                 ),
@@ -163,28 +165,53 @@ def handle_graph_path(query, history, routing, wants_synthesis):
             mode=query_mode,
         )
 
-        diagnostic_mcqs = []
-        try:
-            from archipelago.inference.diagnostic_mcq import generate_diagnostic_mcqs
+        # Diagnostic MCQs and personalized graphs should ONLY be generated for:
+        # - Concept-learning or tutoring questions where personalization is appropriate.
+        # - Explicit roadmap or prerequisite requests.
+        # - Explicit learning assessment or quiz requests.
+        # Do NOT automatically produce MCQs or personalized graphs for paper/library/admin lookups.
+        import re
 
-            prereq_ids = [p["id"] for p in prereqs if isinstance(p, dict) and p.get("id")]
-            diagnostic_mcqs = generate_diagnostic_mcqs(
-                anchor_id,
-                prereq_ids=prereq_ids,
-                num_questions=3,
+        wants_mcq = bool(
+            re.search(
+                r"\b(quiz|test my|diagnostic|roadmap|assessment|evaluat|study plan|how to learn|teach me|i want to learn)\b",
+                query,
+                re.I,
             )
-        except Exception as exc:
-            print(f"Pre-cached MCQ generation fallback triggered: {exc}")
-            diagnostic_mcqs = []
+        ) or routing.get("intent") == "MCQ_DIAGNOSTIC"
+
+        intent = routing.get("intent")
+        is_lookup = bool(
+            re.search(
+                r"\b(who (?:wrote|authored)|which paper|citations? of this paper|call number|where (?:is|can i find)|books? in the library|journal holdings|show journal inventory|doi for|references of this paper|identify (?:the )?paper)\b",
+                query,
+                re.I,
+            )
+        ) or intent in ("PAPER_LOOKUP", "LIBRARY_LOOKUP", "ADMIN_SCHEDULE", "AUTH_PORTAL")
+
+        diagnostic_mcqs = []
+        if wants_mcq and not is_lookup:
+            try:
+                from archipelago.inference.diagnostic_mcq import generate_diagnostic_mcqs
+
+                prereq_ids = [p["id"] for p in prereqs if isinstance(p, dict) and p.get("id")]
+                diagnostic_mcqs = generate_diagnostic_mcqs(
+                    anchor_id,
+                    prereq_ids=prereq_ids,
+                    num_questions=3,
+                )
+            except Exception as exc:
+                print(f"Pre-cached MCQ generation fallback triggered: {exc}")
+                diagnostic_mcqs = []
 
         def generate_graph():
             init_payload = {
-                "anchor_concept": target_concept,
+                "anchor_concept": None if is_lookup else target_concept,
                 "query_mode": query_mode,
-                "subgraph": bounded_subgraph.to_dict(),
+                "subgraph": None if is_lookup else bounded_subgraph.to_dict(),
                 "diagnostic_mcqs": diagnostic_mcqs,
-                "prerequisites": prereqs,
-                "unlocks": unlocks,
+                "prerequisites": [] if is_lookup else prereqs,
+                "unlocks": [] if is_lookup else unlocks,
                 "related_concepts": related_nodes,
                 "curriculum_paths": curriculum_paths,
                 "citations": citation_payloads,
@@ -228,6 +255,19 @@ def handle_graph_path(query, history, routing, wants_synthesis):
                         accumulated.append(token)
                         yield token
 
+                    generated_text = "".join(accumulated)
+                    has_grounded_marker = any(
+                        f"[{evidence_id}]" in generated_text or f"[{evidence_id}:" in generated_text
+                        for evidence_id in evidence_ids
+                    )
+                    if had_tokens and citation_payloads and not has_grounded_marker:
+                        source_lines = [
+                            f"- {render_citation_from_payload(payload)}"
+                            for payload in citation_payloads[:4]
+                        ]
+                        if source_lines:
+                            yield "\n\n**Sources:**\n" + "\n".join(source_lines)
+
                     if not had_tokens:
                         fallback_prose = (
                             enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
@@ -236,11 +276,11 @@ def handle_graph_path(query, history, routing, wants_synthesis):
                     else:
                         yield inventory_suffix(query, citations=citation_payloads)
                     return
-                except RuntimeError:
-                    yield with_holdings(query, OLLAMA_UNAVAILABLE_MSG, citations=citation_payloads)
-                    return
-                except Exception:
-                    yield with_holdings(query, OLLAMA_UNAVAILABLE_MSG, citations=citation_payloads)
+                except (RuntimeError, Exception):
+                    fallback_prose = (
+                        enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
+                    )
+                    yield with_holdings(query, fallback_prose, citations=citation_payloads)
                     return
             fallback_prose = (
                 enforce_sterile_prose(natural_fallback) if sterile else natural_fallback
