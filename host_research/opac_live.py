@@ -19,6 +19,7 @@ MAX_QUERY_CHARS = 100
 MAX_RESULTS = 20
 MAX_HOLDINGS = 300
 MAX_REDIRECTS = 3
+MAX_SEARCH_OFFSET = 10000
 USER_AGENT = "ArchipelagoAcademic/1.0 (user-triggered catalogue lookup)"
 BIB_PATTERN = re.compile(r"^\d{1,9}$")
 
@@ -126,16 +127,21 @@ def lookup_book(biblionumber: str) -> dict[str, object]:
     return record
 
 
-def search_books(query: str) -> dict[str, object]:
-    """Search one public results page and return source-linked book candidates."""
+def search_books_page(query: str, offset: int = 0) -> dict[str, object]:
+    """Search one bounded OPAC page and expose the next verified cursor."""
     query = " ".join(query.split())
     if not 2 <= len(query) <= MAX_QUERY_CHARS:
         raise ValueError("Search query must be 2-100 characters")
-    soup, source_url = _fetch(SEARCH_PATH, {"q": query})
+    if offset < 0 or offset > MAX_SEARCH_OFFSET or offset % MAX_RESULTS:
+        raise ValueError("Invalid OPAC search offset")
+    params = {"q": query, "count": str(MAX_RESULTS)}
+    if offset:
+        params["offset"] = str(offset)
+    soup, source_url = _fetch(SEARCH_PATH, params)
     redirected_id = _book_id(source_url)
     if redirected_id:
         record = _record(soup, source_url)
-        return {"query": query, "results": [record], "fetched_at": record["fetched_at"]}
+        return {"query": query, "results": [record], "fetched_at": record["fetched_at"], "next_offset": None}
     results: list[dict[str, str]] = []
     seen: set[str] = set()
     for anchor in soup.select(".searchresults a.title")[:MAX_RESULTS]:
@@ -153,4 +159,26 @@ def search_books(query: str) -> dict[str, object]:
                 "source_url": f"{OPAC_ORIGIN}{DETAIL_PATH}?biblionumber={identifier}",
             }
         )
-    return {"query": query, "results": results, "fetched_at": datetime.now(UTC).isoformat()}
+    next_offset = None
+    for anchor in soup.select("a[href]"):
+        if _text(anchor).casefold() != "next":
+            continue
+        next_url = urlparse(urljoin(OPAC_ORIGIN, str(anchor.get("href") or "")))
+        next_params = parse_qs(next_url.query)
+        proposed = next_params.get("offset", [""])[0]
+        if (
+            next_url.scheme == "https"
+            and next_url.hostname == OPAC_HOST
+            and next_url.path == SEARCH_PATH
+            and next_params.get("q", [""])[0] == query
+            and proposed.isdigit()
+            and offset < int(proposed) <= MAX_SEARCH_OFFSET
+        ):
+            next_offset = int(proposed)
+            break
+    return {"query": query, "results": results, "fetched_at": datetime.now(UTC).isoformat(), "next_offset": next_offset}
+
+
+def search_books(query: str) -> dict[str, object]:
+    """Preserve the original first-page search API."""
+    return search_books_page(query)
