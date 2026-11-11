@@ -15,15 +15,15 @@ from .store import AcademicStore
 MAX_CANDIDATE_CHARS = 50_000
 MIN_CANDIDATE_CHARS = 40
 PROVIDER_HOSTS = {
-    "open_library": "openlibrary.org",
     "europe_pmc": "europepmc.org",
+    "d2l_open_textbook": "d2l.ai",
 }
 
 
 def queue_verified_source(
     store: AcademicStore, root: Path, record_key: str, source: dict[str, Any]
 ) -> str | None:
-    """Queue TOC metadata or licensed article text without pretending it is a full book."""
+    """Queue licensed body text; catalog contents never become extractable text."""
     provider = str(source.get("provider") or "")
     source_url = str(source.get("source_url") or "")
     parsed = urlparse(source_url)
@@ -34,20 +34,10 @@ def queue_verified_source(
         or source.get("license") not in ALLOWED_LICENSES
     ):
         raise ValueError("Source host or rights not eligible for ingestion")
-    if provider == "open_library":
-        headings = [str(item["title"]) for item in source.get("table_of_contents") or []]
-        if not headings:
-            return None
-        text = (
-            "Source kind: table of contents. These headings show topic coverage only; "
-            "they do not explain the chapters or establish prerequisite relationships.\n"
-            f"Book: {source['title']}\nISBN: {source['isbn']}\nContents:\n"
-            + "\n".join(f"- {heading}" for heading in headings)
-        )
-        source_kind = "table_of_contents"
-    else:
-        text = str(source.get("text") or "")
-        source_kind = "open_article_text"
+    text = str(source.get("text") or "")
+    source_kind = (
+        "open_textbook_chapter" if provider == "d2l_open_textbook" else "open_article_text"
+    )
     text = text[:MAX_CANDIDATE_CHARS]
     if len(text) < MIN_CANDIDATE_CHARS:
         return None
@@ -68,6 +58,8 @@ def queue_verified_source(
                 "source_id": source.get("source_id"),
                 "source_url": source_url,
                 "source_kind": source_kind,
+                "doc_title": source.get("title"),
+                "edition": source.get("edition"),
                 "license": source["license"],
                 "license_url": source.get("license_url"),
                 "retrieved_at": source.get("retrieved_at"),

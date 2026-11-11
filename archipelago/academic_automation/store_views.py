@@ -37,6 +37,9 @@ def provider_result(store: AcademicStore, name: str, *, error: str | None = None
 
 def dashboard(store: AcademicStore) -> dict[str, Any]:
     """Return status and recent work without claiming unrun synchronization."""
+    from .open_books import ensure_schema
+
+    ensure_schema(store)
     with store._connect() as db:
         providers = [dict(row) for row in db.execute("SELECT * FROM providers ORDER BY name")]
         jobs = [
@@ -62,6 +65,12 @@ def dashboard(store: AcademicStore) -> dict[str, Any]:
             )
         ]
         match_count = db.execute("SELECT count(*) FROM source_matches").fetchone()[0]
+        evidence = [
+            dict(row)
+            for row in db.execute(
+                "SELECT * FROM source_evidence ORDER BY retrieved_at DESC LIMIT 100"
+            )
+        ]
     return {
         "providers": providers,
         "jobs": jobs,
@@ -70,7 +79,21 @@ def dashboard(store: AcademicStore) -> dict[str, Any]:
         "grants": grants,
         "audit": audits,
         "external_matches": match_count,
+        "source_evidence": evidence,
     }
+
+
+def save_evidence(store: AcademicStore, evidence: dict[str, Any]) -> None:
+    """Upsert verified source facts shared by all discovery providers."""
+    from .open_books import ensure_schema
+
+    ensure_schema(store)
+    with store._connect() as db:
+        db.execute(
+            f"INSERT OR REPLACE INTO source_evidence({','.join(evidence)}) "
+            f"VALUES({','.join('?' * len(evidence))})",
+            list(evidence.values()),
+        )
 
 
 def match_rows(store: AcademicStore) -> list[dict[str, Any]]:

@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import re
 from typing import Any
-from urllib.parse import urlparse
 
 from defusedxml import ElementTree as ET
 import requests  # type: ignore[import-untyped]
@@ -28,6 +27,92 @@ ALLOWED_ARTICLE_LICENSES = {
     "cc-by-sa-4.0": "CC-BY-SA-4.0",
     "cc0-1.0": "CC0-1.0",
 }
+D2L_CHAPTER = "https://raw.githubusercontent.com/d2l-ai/d2l-en/master/chapter_linear-regression/linear-regression.md"
+D2L_LICENSE = "https://raw.githubusercontent.com/d2l-ai/d2l-en/master/LICENSE"
+OPEN_TEXTBOOKS = {
+    "9781009389433": (
+        "Dive into Deep Learning",
+        "d2l_open_textbook",
+        "https://d2l.ai/chapter_linear-regression/linear-regression.html",
+    ),
+    "9780262046824": (
+        "Probabilistic Machine Learning: An Introduction",
+        "probml_preprint",
+        "https://probml.github.io/pml-book/book1.html",
+    ),
+    "9781009098403": (
+        "Fairness and Machine Learning",
+        "fairml_preprint",
+        "https://fairmlbook.org/",
+    ),
+    "9780262044820": (
+        "Fairness and Machine Learning",
+        "fairml_preprint",
+        "https://fairmlbook.org/",
+    ),
+}
+MAX_TEXTBOOK_CHARS = 50_000
+
+
+def open_textbook_edition(isbn: str, expected_title: str) -> dict[str, Any] | None:
+    """Resolve a curated ISBN and title; fetch the chapter only after license verification."""
+    isbn = re.sub(r"[^0-9X]", "", isbn.upper())
+    entry = OPEN_TEXTBOOKS.get(isbn)
+    if (
+        entry is None
+        or len(_tokens(expected_title) & _tokens(entry[0])) / len(_tokens(entry[0])) < 0.8
+    ):
+        return None
+    title, provider, source_url = entry
+    common = {
+        "provider": provider,
+        "source_url": source_url,
+        "title": title,
+        "isbn": isbn,
+        "retrieved_at": datetime.now(UTC).isoformat(),
+    }
+    if provider != "d2l_open_textbook":
+        page = _get(source_url)
+        if page.status_code == 404 or "BY-NC-ND" not in page.text.upper():
+            return None
+        return {
+            **common,
+            "source_id": f"isbn:{isbn}:author_preprint",
+            "status": "restricted_license",
+            "license": "CC-BY-NC-ND-4.0",
+            "license_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+            "source_kind": "restricted_preprint",
+            "text": "",
+        }
+    license_response = _get(D2L_LICENSE)
+    if "Creative Commons Attribution-ShareAlike 4.0" not in license_response.text:
+        raise ValueError("D2L license could not be verified")
+    chapter = _get(D2L_CHAPTER)
+    if chapter.status_code == 404:
+        return None
+    lines: list[str] = []
+    in_code = False
+    for line in chapter.text.splitlines():
+        if line.startswith("```"):
+            in_code = not in_code
+            continue
+        if not in_code and not line.startswith(":label:"):
+            lines.append(line)
+    text = "\n".join(lines).lstrip()[:MAX_TEXTBOOK_CHARS]
+    if (
+        not text.startswith("# Linear Regression")
+        or "Normal Distribution and Squared Loss" not in text
+    ):
+        raise ValueError("D2L chapter structure changed")
+    return {
+        **common,
+        "source_id": f"isbn:{isbn}:ch3_linear_regression",
+        "status": "open_permitted",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_kind": "open_textbook_chapter",
+        "text": text,
+    }
 
 
 def _tokens(value: str) -> set[str]:
@@ -37,10 +122,16 @@ def _tokens(value: str) -> set[str]:
 def title_matches(wanted: str, found: str) -> bool:
     """Require a strong title overlap before joining two providers."""
     a, b = _tokens(wanted), _tokens(found)
-    return len(a) >= MIN_TITLE_TOKENS and len(b) >= MIN_TITLE_TOKENS and len(a & b) / max(len(a), len(b)) >= 0.8
+    return (
+        len(a) >= MIN_TITLE_TOKENS
+        and len(b) >= MIN_TITLE_TOKENS
+        and len(a & b) / max(len(a), len(b)) >= 0.8
+    )
 
 
-def _get(url: str, *, params: dict[str, str] | None = None, max_bytes: int = MAX_JSON_BYTES) -> requests.Response:
+def _get(
+    url: str, *, params: dict[str, str] | None = None, max_bytes: int = MAX_JSON_BYTES
+) -> requests.Response:
     """Fetch only configured HTTPS provider endpoints without redirecting elsewhere."""
     response = requests.get(
         url,
@@ -73,7 +164,9 @@ def open_library_edition(isbn: str, expected_title: str) -> dict[str, Any] | Non
         return None
     details = entry.get("details") or {}
     title = str(details.get("title") or "")
-    known_isbns = {str(value) for value in (details.get("isbn_10") or []) + (details.get("isbn_13") or [])}
+    known_isbns = {
+        str(value) for value in (details.get("isbn_10") or []) + (details.get("isbn_13") or [])
+    }
     expected_tokens, found_tokens = _tokens(expected_title), _tokens(title)
     if isbn not in known_isbns or len(expected_tokens & found_tokens) < min(2, len(found_tokens)):
         return None
@@ -111,7 +204,10 @@ def crossref_article(title: str) -> dict[str, Any] | None:
     if response.status_code == 404:
         return None
     for row in response.json().get("message", {}).get("items", []):
-        if not isinstance(row, dict) or row.get("type") not in {"journal-article", "proceedings-article"}:
+        if not isinstance(row, dict) or row.get("type") not in {
+            "journal-article",
+            "proceedings-article",
+        }:
             continue
         found_title = str((row.get("title") or [""])[0])
         doi = str(row.get("DOI") or "")
@@ -152,7 +248,10 @@ def europe_pmc_open_article(doi: str, expected_title: str) -> dict[str, Any] | N
     for row in response.json().get("resultList", {}).get("result", []):
         if not isinstance(row, dict) or str(row.get("doi") or "").casefold() != doi.casefold():
             continue
-        if not title_matches(expected_title, str(row.get("title") or "")) or row.get("isOpenAccess") != "Y":
+        if (
+            not title_matches(expected_title, str(row.get("title") or ""))
+            or row.get("isOpenAccess") != "Y"
+        ):
             continue
         pmcid = str(row.get("pmcid") or "")
         if not PMCID_PATTERN.fullmatch(pmcid):

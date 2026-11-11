@@ -4,4 +4,5 @@ Description=Reconcile authorized academic catalog metadata
 [Service]
 Type=oneshot
 WorkingDirectory=%h/Desktop/archipelago/Archipelago
-ExecStart=/usr/bin/python3 %h/Desktop/archipelago/Archipelago/scripts/ops/academic_automation.py sync
+PassEnvironment=DISPLAY WAYLAND_DISPLAY XAUTHORITY
+ExecStart=%h/Desktop/archipelago/Archipelago/.venv/bin/python %h/Desktop/archipelago/Archipelago/scripts/ops/academic_automation.py daily-cycle

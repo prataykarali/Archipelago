@@ -146,6 +146,12 @@ def stage_job(store: AcademicStore, job: dict[str, Any], root: Path) -> dict[str
             or provenance.get("record_key") != job["record_key"]
         ):
             raise ValueError("Source provenance does not match the candidate")
+        if provenance.get("source_kind") == "table_of_contents":
+            raise ValueError("A table of contents is not extractable chapter text")
+        with store._connect() as db:
+            catalog = db.execute(
+                "SELECT title,edition FROM records WHERE record_key=?", (job["record_key"],)
+            ).fetchone()
         for row in incoming:
             row.update(
                 {
@@ -154,6 +160,8 @@ def stage_job(store: AcademicStore, job: dict[str, Any], root: Path) -> dict[str
                     "source_kind": provenance["source_kind"],
                     "source_license": provenance["license"],
                     "retrieved_at": provenance.get("retrieved_at"),
+                    "doc_title": provenance.get("doc_title") or row.get("doc_title") or (catalog["title"] if catalog else ""),
+                    "edition": provenance.get("edition") or row.get("edition") or (catalog["edition"] if catalog else ""),
                 }
             )
     prepare_staging_database(stage_path, graph_path)
@@ -176,7 +184,7 @@ def stage_job(store: AcademicStore, job: dict[str, Any], root: Path) -> dict[str
         raise RuntimeError("Canonical graph changed during staging")
     if (store.job(job_id) or {}).get("status") == "cancelled":
         raise PipelineAborted("Academic job cancelled")
-    (job_dir / "results.json").write_text(json.dumps(results, ensure_ascii=False), encoding="utf-8")
+    (job_dir / "results.json").write_text(json.dumps(incoming, ensure_ascii=False), encoding="utf-8")
     (job_dir / "validation.json").write_text(
         json.dumps(validation, sort_keys=True), encoding="utf-8"
     )
@@ -207,8 +215,20 @@ def run_once(store: AcademicStore, root: Path) -> dict[str, Any] | None:
         if job["mode"] == "gpu" and not gpu_snapshot().get("available"):
             store.defer(job_id, reason="Local GPU worker or occupancy probe unavailable")
             return {"job_id": job_id, "status": "awaiting_approval"}
+        if job["mode"] == "gpu":
+            assert_exclusive_occupancy(_model())
         if job["mode"] == "gpu" and not store.has_grant(job_id):
-            action = desktop_consent(job["record_key"], model=_model())
+            with store._connect() as db:
+                pending = db.execute(
+                    "SELECT count(*) FROM jobs WHERE status IN ('awaiting_approval','approved','cpu_requested','claimed')"
+                ).fetchone()[0]
+                record = db.execute(
+                    "SELECT title FROM records WHERE record_key=?", (job["record_key"],)
+                ).fetchone()
+            title = str(record["title"]) if record else str(job["record_key"])
+            action = desktop_consent(
+                f"{job['record_key']} — {title}", model=_model(), pending_count=pending
+            )
             if action == "cancel":
                 store.cancel(job_id, "local_operator")
                 return {"job_id": job_id, "status": "cancelled"}

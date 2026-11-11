@@ -21,6 +21,7 @@ def create_concept_id(name: str) -> str:
 def _source_record(result: dict[str, Any]) -> dict[str, Any]:
     return {
         "doc_id": result.get("doc_id", ""),
+        "doc_title": result.get("doc_title", ""),
         "source_category": result.get("source_category")
         or infer_source_category(result.get("doc_id", "")),
         "chunk_id": result.get("chunk_id", ""),

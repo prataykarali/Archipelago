@@ -431,3 +431,11 @@ Deferred: The hosted JSON export still contains only concepts, so deploying
 the Kùzu-backed global service is necessary to expose non-concept entities.
 The remote deployed artifact was not inspected. Two pre-existing research page
 tests fail outside the graph scope. No graph persistence or OPAC sync changed.
+
+## 2026-11-11 — S4 academic daily cycle and D2L staging
+
+Built: the 09:00 Asia/Kolkata daily cycle, durable source evidence across external providers, a verified D2L chapter candidate, strict contents-only separation, CPU Ollama option, and the dashboard evidence view. DOAB XOAI parsing populated licenses and ISBNs. The approved D2L job is staged with 7 added concepts and 21 edges; all 610 prior concepts and 1,988 edges remain intact. A controlled rollback copy restored the exact current graph SHA.
+
+Verified: 35 focused S4 tests passed; changed-module Ruff lint passed; systemd units verified; two isolated daily cycles ended with zero jobs and unchanged records on the repeat. The graph's actual pre-staging SHA differs from the plan while counts match. See `docs/reports/S4_ACADEMIC_AUTOMATION.md` for evidence and limits.
+
+Next pair: obtain independent librarian approval for review-ready job `bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe`; then publish, capture post-swap graph counts and hashes, verify chat citations and idempotency, and retain a browser screenshot. Keep timers disabled until explicitly enabled by the operator. Do not touch S5 research files or load another Ollama model.

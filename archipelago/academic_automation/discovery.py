@@ -9,8 +9,14 @@ from typing import Any
 import requests  # type: ignore[import-untyped]
 
 from .candidate_from_source import queue_verified_source
+from .evidence import record_source_evidence
+from .external_sources import (
+    crossref_article,
+    europe_pmc_open_article,
+    open_library_edition,
+    open_textbook_edition,
+)
 from .open_books import find_open_book, queue_open_book
-from .external_sources import crossref_article, europe_pmc_open_article, open_library_edition
 from .reconcile import reconcile
 from .store import AcademicStore
 
@@ -38,20 +44,45 @@ def hunt_record(store: AcademicStore, root: Path, record: dict[str, Any]) -> dic
         try:
             book = open_library_edition(str(record["isbn"]), title)
             if book:
-                job_id = queue_verified_source(store, root, record_key, book)
-                status = "toc_queued" if job_id else "catalog_metadata_only"
-                store.save_match(record_key, "open_library", book["source_id"], book["source_url"], status)
-                found.append({"provider": "open_library", "status": status, "url": book["source_url"]})
-                if job_id:
-                    jobs.append(job_id)
+                evidence = record_source_evidence(store, record_key, record, book)
+                status = evidence["content_status"]
+                found.append(
+                    {"provider": "open_library", "status": status, "url": book["source_url"]}
+                )
         except (OSError, ValueError, KeyError, requests.RequestException) as exc:
             errors.append(f"open_library:{type(exc).__name__}")
+        try:
+            textbook = open_textbook_edition(str(record["isbn"]), title)
+            if textbook:
+                evidence = record_source_evidence(store, record_key, record, textbook)
+                found.append(
+                    {
+                        "provider": textbook["provider"],
+                        "status": evidence["content_status"],
+                        "url": textbook["source_url"],
+                    }
+                )
+                if evidence["eligible_extraction"]:
+                    job_id = queue_verified_source(store, root, record_key, textbook)
+                    if job_id:
+                        jobs.append(job_id)
+        except (OSError, ValueError, KeyError, requests.RequestException) as exc:
+            errors.append(f"open_textbook:{type(exc).__name__}")
         try:
             for hit in find_open_book(
                 store, record_key, title, str(record["isbn"]), str(record.get("author") or "")
             ):
-                found.append({"provider": hit["provider"], "status": hit["content_status"], "url": hit["source_url"]})
-                if hit["eligible_extraction"] and os.getenv("ARCHIPELAGO_ACADEMIC_AUTO_DOWNLOAD") == "1":
+                found.append(
+                    {
+                        "provider": hit["provider"],
+                        "status": hit["content_status"],
+                        "url": hit["source_url"],
+                    }
+                )
+                if (
+                    hit["eligible_extraction"]
+                    and os.getenv("ARCHIPELAGO_ACADEMIC_AUTO_DOWNLOAD") == "1"
+                ):
                     jobs.append(queue_open_book(store, root, hit))
         except (OSError, ValueError, KeyError, requests.RequestException) as exc:
             errors.append(f"open_books:{type(exc).__name__}")
@@ -59,19 +90,27 @@ def hunt_record(store: AcademicStore, root: Path, record: dict[str, Any]) -> dic
         try:
             article = crossref_article(title)
             if article:
-                store.save_match(
-                    record_key, "crossref", article["source_id"], article["source_url"], "metadata_only"
+                record_source_evidence(store, record_key, record, article)
+                found.append(
+                    {
+                        "provider": "crossref",
+                        "status": "metadata_only",
+                        "url": article["source_url"],
+                    }
                 )
-                found.append({"provider": "crossref", "status": "metadata_only", "url": article["source_url"]})
                 try:
                     full_text = europe_pmc_open_article(article["doi"], title)
                     if full_text:
+                        record_source_evidence(store, record_key, record, full_text)
                         job_id = queue_verified_source(store, root, record_key, full_text)
                         if job_id:
-                            store.save_match(
-                                record_key, "europe_pmc", full_text["source_id"], full_text["source_url"], "open_text_queued"
+                            found.append(
+                                {
+                                    "provider": "europe_pmc",
+                                    "status": "open_text_queued",
+                                    "url": full_text["source_url"],
+                                }
                             )
-                            found.append({"provider": "europe_pmc", "status": "open_text_queued", "url": full_text["source_url"]})
                             jobs.append(job_id)
                 except (OSError, ValueError, KeyError, requests.RequestException) as exc:
                     errors.append(f"europe_pmc:{type(exc).__name__}")
@@ -113,7 +152,23 @@ def discover_opac_query(
             lookup_errors.append({"biblionumber": identifier, "error": type(exc).__name__})
     if details:
         reconciliation = reconcile(store, "opac_live", details)
-        outcomes = [hunt_record(store, root, record) for record in details]
+        outcomes = []
+        from .open_books import ensure_schema
+
+        ensure_schema(store)
+        for record in details:
+            key = f"opac_live:{record['biblionumber']}"
+            with store._connect() as db:
+                state = db.execute(
+                    "SELECT status FROM records WHERE record_key=?", (key,)
+                ).fetchone()
+                prior = db.execute(
+                    "SELECT 1 FROM source_evidence WHERE record_key=? LIMIT 1", (key,)
+                ).fetchone()
+            if state and state["status"] == "unchanged" and prior:
+                outcomes.append({"record_key": key, "status": "unchanged_evidence_retained"})
+            else:
+                outcomes.append(hunt_record(store, root, record))
     else:
         store.provider_result("opac_live", error="no_detail_records")
         reconciliation = {"provider": "opac_live", "status": "unavailable", "counts": {}}

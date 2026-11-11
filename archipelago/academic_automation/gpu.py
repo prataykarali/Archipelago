@@ -85,7 +85,7 @@ def exclusive_gpu(model: str, *, lock_path: Path = GPU_LOCK_PATH) -> Iterator[No
         raise GPUUnavailable(str(exc)) from exc
 
 
-def desktop_consent(title: str, *, model: str) -> str:
+def desktop_consent(title: str, *, model: str, pending_count: int = 1) -> str:
     """Ask the local operator once; return a fixed action, never implicit consent."""
     if not (os.getenv("DISPLAY") or os.getenv("WAYLAND_DISPLAY")):
         return "defer"
@@ -96,7 +96,7 @@ def desktop_consent(title: str, *, model: str) -> str:
                 "zenity",
                 "--list",
                 "--title=Archipelago academic GPU request",
-                f"--text=Academic OKF extraction for {title[:160]}\nModel: {model}\nChoose one action.",
+                f"--text={pending_count} eligible academic job(s) pending.\n{title[:160]}\nModel: {model}\nVRAM budget: 4096 MiB; at most 40 pages / 50 KB per candidate.\nChoose one action.",
                 "--column=Action",
                 *choices,
                 f"--timeout={CONSENT_TIMEOUT}",

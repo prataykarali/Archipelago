@@ -1,47 +1,55 @@
-# S4 academic catalog automation validation
+# S4 academic automation acceptance, 2026-11-11
 
-Date: 2026-11-11. Scope: the existing local checkout and UEM Kolkata OPAC connector. This report records the code and checks; it does not authorize production graph publication.
+Branch: `codex/s4-academic-automation`. Starting remote commit: `ac56b212877ea3b82aef005ac93b8d269a30802a`. The final pushed commit is reported in the task handoff because a commit cannot contain its own SHA.
 
-## Source reconciliation
+## Live source evidence
 
-The persistent ledger is `data/academic_automation/state.sqlite3` (ignored runtime data). A live `sync` and an identical repeat ran against the configured UEM Kolkata OPAC URL, the authorized local Koha export, Pearson bookshelf metadata, and the institutional repository feed.
+The ledger contains 178 catalog records after the five live OPAC detail checks. Every source match is retained in `source_evidence` with the OPAC URL, provider URL, match method, license, content status, eligibility, reason, and retrieval time. The dashboard API and UI expose these rows. No restricted or contents-only text is queued for concept extraction.
 
-| Provider | First observed records | Repeated run | Availability claim |
-| --- | ---: | ---: | --- |
-| Koha export | 109 | 109 unchanged | Catalog snapshot; not current stock |
-| Pearson bookshelf | 40 | 40 unchanged | Licensed metadata only |
-| UEM Kolkata OPAC arrivals | 20 | 20 unchanged | Arrival metadata only |
-| Institutional repository | 0 strong catalog matches | 0 | No full text eligibility inferred |
+| Catalog item | Observed evidence | Extraction |
+| --- | --- | --- |
+| `opac_live:4150`, Dive into Deep Learning | Open Library `OL48193224M` metadata; official D2L chapter, CC-BY-SA-4.0 | Eligible; job `bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe` |
+| `opac_live:4021`, Probabilistic Machine Learning | Open Library `OL34192800M`; author preprint CC-BY-NC-ND-4.0 | Blocked |
+| `opac_live:4151`, How to Think about Algorithms | Open Library `OL48686803M` metadata | Blocked |
+| `opac_live:588`, Operating System Concepts | No verified external full text | Blocked |
+| `opac_live:576`, OPERATING SYSTEMS | No ISBN or verified external match | Blocked |
+| OAPEN index proof, Scalable Data Management for Future Hardware, ISBN `9783031740961` | OAI ID `oai:library.oapen.org:20.500.12657/98554`, CC-BY-4.0, 11,189,926-byte PDF with MD5 | Eligible in index only; not claimed as a UEMK match |
+| OAPEN restricted index proof, Liberalism against Liberalism, ISBN `9780203016886` | CC-BY-NC-ND rights | Blocked; not claimed as a UEMK match |
 
-The dashboard reports 169 provider records and preserves provider provenance even when ISBNs match. The repeat creates no new record versions. Failed or empty responses do not withdraw prior records. Withdrawal requires an explicit verified action. The OPAC check covers the existing arrivals connector, not the entire live OPAC catalog or current item availability.
+A fresh five-page DOAB harvest indexed 403 books; 135 have a parsed permissive license and 646 ISBN links were populated. The `name="*"` XOAI parser fix is retained. OAPEN and DOAB index evidence is resolved by exact ISBN plus verified title overlap. Open Library contributes metadata and contents, Crossref contributes DOI metadata, and Europe PMC may contribute licensed JATS body text when its OA and license checks pass. Only the D2L chapter and verified Europe PMC body text can be queued from these text providers. OAPEN PDF download additionally checks per-file license, size, and MD5.
 
-## Graph before and after
+| License | Decision |
+| --- | --- |
+| CC-BY-4.0, CC-BY-SA-4.0, CC-BY-3.0, CC0-1.0 | Eligible only with verified body text and provider checks |
+| CC-BY-NC-ND-4.0, commercial copyright, unknown per-file rights | No extraction |
 
-| Artifact | Before S4 sync | After S4 sync |
+## Daily cycle and consent
+
+The daily command reconciles Koha, Pearson, OPAC arrivals, and institutional repository metadata; advances the nine-query live OPAC cursor; and harvests five pages each from DOAB and OAPEN. It then runs at most one pending consent-gated job. An empty queue records `daily_cycle_noop` and returns without probing GPU, starting Ollama, or opening a dialog. The timer is configured for `09:00:00 Asia/Kolkata`, and both systemd units passed `systemd-analyze verify`. The timers remain disabled.
+
+Two controlled `daily-cycle --skip-live-opac` runs used an isolated temporary ledger. The first found 109 Koha and 40 Pearson records, with zero eligible jobs. The second reported 109 and 40 unchanged, zero queued jobs, and `status=noop`. Both exited 0 without a popup or GPU job.
+
+A repeat live `discover --query "Dive into Deep Learning" --max-records 1` returned `unchanged: 1` and `unchanged_evidence_retained`; it did not hunt or queue the record again.
+
+The live GPU snapshot before extraction reported available=true, 4096 MiB total, 14 MiB used, zero loaded Ollama models, and zero compute PIDs. The local operator selected `approve_class` in the five-choice desktop dialog, creating a revocable 24-hour `trusted_academic_open_content` grant. Controlled tests cover defer, cancel, model conflict, shared lease, and CPU `num_gpu=0`; these branches were not exercised against the production job. The worker did not load a second model.
+
+## D2L staging trace
+
+OPAC 4150 matched the official D2L repository by ISBN and title. The source license file declared CC-BY-SA-4.0. The fetched `chapter_linear-regression/linear-regression.md` was bounded, stripped of code tabs, hashed into `data/academic_candidates/`, and recorded with its official chapter URL in a `.source.json` sidecar. After desktop consent, `lib-qwen:latest` extracted 12 source-linked concept rows into the isolated job directory. The cleaned rows include Linear Regression, Loss Function, Minibatch Stochastic Gradient Descent, and Normal Distribution, each with a summary and section title. Markdown has no printed page numbers, so rows correctly carry page number 0 and must be cited by chapter URL and section, not a fabricated page.
+
+Staging contains 617 concepts, 80 documents, 826 chunks, and 2,009 typed edges. Validation reports 7 added concepts, 21 added edges, zero missing prior concepts, zero missing prior edges, and `valid=true`. A cleanup removed two unrelated scratch rows from `results.json` and rebuilt the staged graph from the 12 source-linked rows; `Document.title` is now Dive into Deep Learning. The canonical graph is still untouched.
+
+| Canonical graph | Before staging | Current |
 | --- | ---: | ---: |
-| Canonical Kùzu concepts | 610 | 610 |
-| Canonical documents | 79 | 79 |
-| Canonical chunks | 808 | 808 |
-| Canonical typed concept edges | 1,988 | 1,988 |
-| Exported graph JSON nodes | 610 | 610 |
-| Exported graph JSON edges | 1,988 | 1,988 |
-| Canonical DB SHA-256 | `df3943eeebd6a541ba83dde0cb7f0ed606a46deb40aecc9ff3db4d7888923cc8` | same |
+| SHA-256 | `3ee305138a4a3661b505c30a1f782baeddd7e0779eef634720392821c0eb46ed` | same |
+| Concepts / documents / chunks / typed edges | 610 / 79 / 808 / 1,988 | same |
 
-No eligible content was queued from these sources, so no extraction, GPU execution, or production graph publication occurred. The publication path was tested with staged fixtures and a simulated failure; it requires a named local reviewer before swapping a validated graph.
+The plan quoted `df3943eeebd6a541ba83dde0cb7f0ed606a46deb40aecc9ff3db4d7888923cc8`, but the actual canonical file was already `3ee305...` when checked before the GPU job. Its node and edge counts still matched the plan. A controlled rollback test on a byte-for-byte copy restored the exact `3ee305...` SHA after simulated corruption. The existing publication failure tests also passed.
 
-## GPU and resource policy
+## Verification and outstanding gates
 
-Academic extraction uses the existing configured OKF/Ollama model (`lib-qwen:latest` unless locally configured otherwise). It never selects a second model for the academic job. The academic worker takes a local file lease. The existing research worker in this checkout also takes that lease, but its source is part of the separate uncommitted research pipeline and is not in this S4 commit. The academic worker rejects another loaded Ollama model or an unrelated NVIDIA compute process before starting and checks occupancy during progress callbacks. The local operator may approve one job, grant a revocable 24-hour trusted-open-content class, choose CPU, defer, or cancel. A job without a valid right, model availability, and consent remains queued. The current live GPU probe returned 14/4096 MiB, 0% utilization, no loaded models, and no compute process; it was not used for extraction.
-
-The worker caps candidate file size at 100 MiB, extraction at 40 pages, and processing at one hour. It serializes jobs, applies retry backoff and dead-letter status, and checks cancellation at progress boundaries. The systemd daily sync and local worker polling units are supplied but not enabled by this change.
-
-## Evidence and tests
-
-- `PYTHONPATH=host_inference:. python3 -m pytest -q tests/unit/test_s4_academic_automation.py tests/unit/test_research_worker_bridge.py tests/integration/test_s4_academic_dashboard.py`: 28 passed.
-- Targeted Ruff lint and format checks: passed.
-- Local browser validation: 9 dashboard cards, 4 source rows, durable state rendered; see `artifacts/validation/s4-academic/dashboard.png`.
-- Repository-wide quality gate: fails on pre-existing Ruff files, hundreds of baseline strict typing errors, and 8 other oversized files. The new S4 `store.py` is 400 lines, within the configured size gate.
-
-## Known limits
-
-No openly licensed full-text candidate was verified from the live catalog, so actual GPU extraction and post-publication academic chat freshness could not be live-tested. The institutional repository match requires a strong title match and rights review; its current live match count is zero. The public OPAC check uses the arrivals feed and cannot certify real-time holdings. An external GPU program can start after an occupancy probe; the worker detects that on its next progress callback and aborts, while the shared lease serializes Archipelago workers immediately. The full repository quality gate remains red from the existing checkout baseline and must pass before merge.
+- **PASS:** Five live OPAC examples, source evidence, DOAB/OAPEN index proofs, strict metadata/body separation, consent-gated GPU staging, preservation validation, rollback copy, and 09:00 timer syntax.
+- **PASS:** Focused S4 suite: 35 tests passed. Changed-module Ruff lint passed. The dashboard API returned HTTP 200 with seven evidence rows, one review-ready job, and one grant; Chromium screenshot: `artifacts/validation/s4-academic/dashboard-full-review-ready.png`.
+- **PARTIAL:** Repository-wide quality gate remains red from unrelated existing Ruff and strict typing failures. New S4 modules are below the gate's 400-line file limit. Full strict mypy is red on hundreds of existing errors.
+- **BLOCKED pending independent human review:** The job is `review_ready`; production publication, after-graph snapshot, idempotent post-publication ingestion, and D2L chat freshness have not happened. `AGENTS.md` requires a different-role human approval as pass 5. The librarian must review the staged results and approve publication. No reviewer identity has been fabricated.
+- **PARTIAL:** Chat end-to-end answers and chat screenshots have not yet been captured against the unpublished D2L graph. The running staff graph API requires a Supabase token; a separate localhost test server was used only for the dashboard screenshot.

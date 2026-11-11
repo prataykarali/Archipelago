@@ -309,7 +309,16 @@ def extract_okf_v15(
                     think=False,
                     # num_predict caps output so a rambling chunk fails in ~3s
                     # instead of generating until the context window fills (~150s).
-                    options={"temperature": 0.1, "top_p": 0.9, "num_predict": 768},
+                    options={
+                        "temperature": 0.1,
+                        "top_p": 0.9,
+                        "num_predict": 768,
+                        **(
+                            {"num_gpu": 0}
+                            if os.getenv("ARCHIPELAGO_ACADEMIC_CPU_ONLY") == "1"
+                            else {}
+                        ),
+                    },
                 )
                 full_response = ""
                 for chunk in response_stream:

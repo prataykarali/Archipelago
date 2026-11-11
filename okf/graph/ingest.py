@@ -76,12 +76,12 @@ def ingest_to_kuzu(
         if _s and len(_s) > len(_summary_lookup.get(_name, "")):
             _summary_lookup[_name] = _s
 
-    def ensure_document(doc_id: str) -> None:
+    def ensure_document(doc_id: str, title: str = "") -> None:
         if not doc_id:
             return
         safe_doc_id = _kuzu_escape(doc_id)
         try:
-            safe_title = _kuzu_escape(Path(doc_id).stem.replace("_", " ").strip() or doc_id)
+            safe_title = _kuzu_escape(title or Path(doc_id).stem.replace("_", " ").strip() or doc_id)
             conn.execute(
                 f"MERGE (d:Document {{id: '{safe_doc_id}'}}) ON CREATE SET d.title = '{safe_title}'"
             )
@@ -261,7 +261,7 @@ def ingest_to_kuzu(
                 continue
 
             # 1. Ensure Document
-            ensure_document(doc_id)
+            ensure_document(doc_id, str(src.get("doc_title") or result.get("doc_title") or ""))
 
             # 2. Ensure Chunk & Link Document -> Chunk
             chunk_db_id = ensure_chunk(
