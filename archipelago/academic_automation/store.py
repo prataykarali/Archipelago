@@ -86,7 +86,57 @@ class AcademicStore:
                     match_status TEXT NOT NULL, observed_at TEXT NOT NULL,
                     PRIMARY KEY(record_key, provider, source_id)
                 );
+                CREATE TABLE IF NOT EXISTS human_reviews (
+                    job_id TEXT PRIMARY KEY, decision TEXT NOT NULL,
+                    reviewer_id TEXT NOT NULL, reviewer_name TEXT NOT NULL,
+                    reviewer_role TEXT NOT NULL, review_digest TEXT NOT NULL,
+                    at TEXT NOT NULL, note TEXT NOT NULL,
+                    concept_count INTEGER NOT NULL, edge_count INTEGER NOT NULL
+                );
             """)
+
+    def review_decision(self, job_id: str) -> dict[str, Any] | None:
+        """Read an attributable decision for one exact staging candidate."""
+        with self._connect() as db:
+            row = db.execute("SELECT * FROM human_reviews WHERE job_id=?", (job_id,)).fetchone()
+        return dict(row) if row else None
+
+    def record_review(self, job_id: str, decision: dict[str, Any]) -> None:
+        """Replace a review only while the staging candidate remains pending."""
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT status FROM jobs WHERE job_id=?", (job_id,)).fetchone()
+            if row is None or row["status"] != "review_ready":
+                raise ValueError("Job is not awaiting human review")
+            db.execute(
+                "INSERT INTO human_reviews(job_id,decision,reviewer_id,reviewer_name,"
+                "reviewer_role,review_digest,at,note,concept_count,edge_count) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(job_id) DO UPDATE SET "
+                "decision=excluded.decision,reviewer_id=excluded.reviewer_id,"
+                "reviewer_name=excluded.reviewer_name,reviewer_role=excluded.reviewer_role,"
+                "review_digest=excluded.review_digest,at=excluded.at,note=excluded.note,"
+                "concept_count=excluded.concept_count,edge_count=excluded.edge_count",
+                (
+                    job_id,
+                    *(
+                        decision[key]
+                        for key in (
+                            "decision",
+                            "reviewer_id",
+                            "reviewer_name",
+                            "reviewer_role",
+                            "review_digest",
+                            "at",
+                            "note",
+                            "concept_count",
+                            "edge_count",
+                        )
+                    ),
+                ),
+            )
+        self.audit(
+            decision["reviewer_id"], "human_review_" + decision["decision"], job_id, decision
+        )
 
     def audit(self, actor: str, action: str, subject: str, detail: dict[str, Any]) -> None:
         """Append a structured audit event."""

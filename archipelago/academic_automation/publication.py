@@ -7,6 +7,7 @@ import json
 import logging
 from pathlib import Path
 import shutil
+from tempfile import TemporaryDirectory
 from typing import Any
 
 from .store import AcademicStore
@@ -46,6 +47,16 @@ def publish_reviewed(
         raise ValueError("Only a reviewed staging candidate can be published")
     if not reviewer.strip():
         raise ValueError("Named independent reviewer required")
+    from .review import review_digest
+
+    decision = store.review_decision(job_id)
+    if (
+        decision is None
+        or decision["decision"] != "approve"
+        or decision["reviewer_id"] != reviewer
+        or decision["review_digest"] != review_digest(job, root)
+    ):
+        raise PermissionError("Exact staging graph lacks attributable human approval")
     canonical = root / "okf_graph.db"
     staging = Path(str(job["staging_path"])).resolve()
     job_dir = root / "data" / "academic_jobs" / job_id
@@ -53,7 +64,10 @@ def publish_reviewed(
         raise ValueError("Staged graph is unavailable")
     if _digest(canonical) != job["baseline_version"]:
         raise RuntimeError("Production graph changed after staging; restage the job")
-    baseline = extract_graph_inventory(canonical)
+    with TemporaryDirectory(prefix="academic-publication-") as scratch:
+        snapshot = Path(scratch) / "baseline.db"
+        shutil.copy2(canonical, snapshot)
+        baseline = extract_graph_inventory(snapshot)
     edges = {(edge["from_id"], edge["to_id"], edge["type"]) for edge in baseline["edges"]}
     validation = validate_staging_against_production(staging, baseline["concept_ids"], edges)
     results_file = job_dir / "results.json"

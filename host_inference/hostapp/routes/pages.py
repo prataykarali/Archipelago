@@ -102,6 +102,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                 "ok": True,
                 "mode": "inference-only",
                 "concepts": concepts,
+                "graph_version": getattr(graph, "graph_version", "unknown"),
                 "corpus": {
                     "concepts": concepts,
                     "full": source == "full",

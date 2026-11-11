@@ -12,6 +12,7 @@ from archipelago.academic_automation import gpu, publication, worker
 from archipelago.academic_automation.candidate import enqueue_manifest
 from archipelago.academic_automation.matching import match_repository
 from archipelago.academic_automation.reconcile import reconcile
+from archipelago.academic_automation.review import review_digest
 from archipelago.academic_automation.scheduler import sync_sources
 from archipelago.academic_automation.store import AcademicStore
 
@@ -258,7 +259,30 @@ def _review_ready(store: AcademicStore, root: Path) -> tuple[str, Path]:
         staging_path=str(staged),
         baseline_version=sha256(canonical.read_bytes()).hexdigest(),
     )
+    store.record_review(
+        job_id,
+        {
+            "decision": "approve",
+            "reviewer_id": "second_librarian",
+            "reviewer_name": "second_librarian",
+            "reviewer_role": "librarian",
+            "review_digest": review_digest(store.job(job_id), root),
+            "at": "2026-11-11T00:00:00+00:00",
+            "note": "Test review",
+            "concept_count": 1,
+            "edge_count": 0,
+        },
+    )
     return job_id, canonical
+
+
+def test_publication_requires_exact_human_approval(store: AcademicStore, tmp_path: Path) -> None:
+    job_id, canonical = _review_ready(store, tmp_path)
+    with store._connect() as db:
+        db.execute("DELETE FROM human_reviews WHERE job_id=?", (job_id,))
+    with pytest.raises(PermissionError, match="human approval"):
+        publication.publish_reviewed(store, job_id, tmp_path, reviewer="second_librarian")
+    assert canonical.read_bytes() == b"old graph"
 
 
 def test_failed_publication_validation_keeps_graph(

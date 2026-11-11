@@ -13,6 +13,7 @@ import requests
 from archipelago import supabase_auth
 from archipelago.academic_automation import AcademicStore
 from archipelago.academic_automation.gpu import gpu_snapshot
+from archipelago.academic_automation.review import decide, review_packet
 from archipelago.graph.explorer import graph_neighborhood, graph_page, graph_snapshot
 from archipelago.middleware.log_redaction import install_log_redaction
 
@@ -198,6 +199,62 @@ def api_academic_automation_status():
     if not state.exists():
         return jsonify({"configured": False, "message": "Academic synchronization has not run."})
     return jsonify({"configured": True, **AcademicStore(state).dashboard(), "gpu": gpu_snapshot()})
+
+
+def _academic_store() -> AcademicStore:
+    state = Path(
+        os.environ.get(
+            "ARCHIPELAGO_ACADEMIC_STATE",
+            str(BASE_DIR / "data" / "academic_automation" / "state.sqlite3"),
+        )
+    )
+    return AcademicStore(state)
+
+
+@app.get("/api/academic-automation/review/<job_id>")
+def api_academic_review(job_id: str):
+    """Present exact staged concepts and graph edges to authenticated staff."""
+    principal, error = supabase_auth.authenticate_request(request)
+    if principal is None:
+        return jsonify({"error": "unauthorized", "detail": error}), 401
+    if (
+        principal.role not in {"librarian", "administrator"}
+        or principal.access_token == "local-dev-token"
+    ):
+        return jsonify({"error": "forbidden", "detail": "Verified librarian session required"}), 403
+    try:
+        return jsonify(review_packet(_academic_store(), job_id, BASE_DIR))
+    except (ValueError, OSError, KeyError) as exc:
+        return jsonify({"error": "review_unavailable", "detail": str(exc)}), 404
+
+
+@app.post("/api/academic-automation/review/<job_id>/decision")
+def api_academic_review_decision(job_id: str):
+    """Accept a decision only from a verified librarian session."""
+    principal, error = supabase_auth.authenticate_request(request)
+    if principal is None:
+        return jsonify({"error": "unauthorized", "detail": error}), 401
+    if (
+        principal.role not in {"librarian", "administrator"}
+        or principal.access_token == "local-dev-token"
+    ):
+        return jsonify({"error": "forbidden", "detail": "Verified librarian session required"}), 403
+    payload = request.get_json(silent=True) or {}
+    try:
+        result = decide(
+            _academic_store(),
+            job_id,
+            BASE_DIR,
+            decision=str(payload.get("decision") or ""),
+            reviewer_id=principal.user_id,
+            reviewer_name=principal.username,
+            role=principal.role,
+            digest=str(payload.get("review_digest") or ""),
+            note=str(payload.get("note") or ""),
+        )
+        return jsonify(result)
+    except (ValueError, PermissionError, OSError, KeyError) as exc:
+        return jsonify({"error": "invalid_review", "detail": str(exc)}), 400
 
 
 @app.route("/api/schema")

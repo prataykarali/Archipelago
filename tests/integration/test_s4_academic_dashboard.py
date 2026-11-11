@@ -43,3 +43,28 @@ def test_status_requires_staff_and_reads_durable_state(
     assert response.status_code == 200
     assert response.json["providers"][0]["name"] == "koha_export"
     assert response.json["jobs"] == []
+
+
+def test_review_decision_requires_verified_librarian(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A missing, student, or local development identity cannot approve."""
+    import graph_server
+
+    monkeypatch.setattr(graph_server.supabase_auth, "is_auth_required", lambda: True)
+    client = graph_server.app.test_client()
+    url = "/api/academic-automation/review/bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe/decision"
+    monkeypatch.setattr(
+        graph_server.supabase_auth, "authenticate_request", lambda _request: (None, "missing token")
+    )
+    assert client.post(url, json={"decision": "approve"}).status_code == 401
+    for role, token in (("student", "verified"), ("librarian", "local-dev-token")):
+        monkeypatch.setattr(
+            graph_server.supabase_auth,
+            "authenticate_request",
+            lambda _request, role=role, token=token: (
+                SimpleNamespace(role=role, access_token=token),
+                None,
+            ),
+        )
+        assert client.post(url, json={"decision": "approve"}).status_code == 403

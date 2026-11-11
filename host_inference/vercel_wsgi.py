@@ -24,6 +24,11 @@ def create_vercel_app() -> Flask:
         or len(engine.books) < MINIMUM_LIVE_PEARSON_BOOKS
     ):
         raise RuntimeError("Release blocked: the full institutional corpus is unavailable")
+    expected_graph = os.environ.get("ARCHIPELAGO_EXPECTED_GRAPH_VERSION", "").strip()
+    if expected_graph and graph.graph_version != expected_graph:
+        raise RuntimeError(
+            "Release blocked: hosted graph version differs from approved publication"
+        )
     app = create_app(context)
 
     @app.after_request
