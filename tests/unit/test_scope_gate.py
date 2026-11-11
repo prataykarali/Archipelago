@@ -1,16 +1,17 @@
 """Unit tests for AIML scope gate and library intent detection."""
+
 from __future__ import annotations
 
 import pytest
 
+from archipelago.inference.routing import _detect_library_intent, resolve_query_routing
 from archipelago.inference.scope_gate import (
-    parse_scope_answer,
-    is_aiml_in_scope,
+    OUT_OF_SCOPE_MESSAGE,
     check_aiml_scope_via_llm,
     clear_scope_cache,
-    OUT_OF_SCOPE_MESSAGE,
+    is_aiml_in_scope,
+    parse_scope_answer,
 )
-from archipelago.inference.routing import _detect_library_intent, resolve_query_routing
 
 
 def test_out_of_scope_message():
@@ -72,12 +73,11 @@ def test_llm_scope_with_mock(monkeypatch):
             return {"message": {"content": ans}}
 
     from archipelago.inference import llm_gateway
+
     monkeypatch.setattr(
         llm_gateway,
         "gateway_chat",
-        lambda messages, **_kwargs: MockClient().chat(
-            "", messages
-        )["message"]["content"],
+        lambda messages, **_kwargs: MockClient().chat("", messages)["message"]["content"],
     )
     assert check_aiml_scope_via_llm("suggest books about stars") is False
     assert check_aiml_scope_via_llm("suggest books about fine-tuning") is True
@@ -121,12 +121,11 @@ def test_routing_library_and_oos(monkeypatch):
             return {"message": {"content": ans}}
 
     from archipelago.inference import llm_gateway
+
     monkeypatch.setattr(
         llm_gateway,
         "gateway_chat",
-        lambda messages, **_kwargs: MockClient().chat(
-            "", messages
-        )["message"]["content"],
+        lambda messages, **_kwargs: MockClient().chat("", messages)["message"]["content"],
     )
 
     r = resolve_query_routing("suggest me top 5 books for the topic: fine-tuning")

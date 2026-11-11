@@ -1,14 +1,17 @@
 """Join cited resources to the latest local Koha holdings export when possible."""
+
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
 import re
 from typing import Any
 
+from archipelago.inference.evidence_contract import catalog_search_url
+
 INVENTORY_DISCLAIMER = "Koha export snapshot — check the OPAC for live circulation status."
 
-DEFAULT_PAGE = 1
 MAX_INVENTORY_ROWS = 6
 
 # Catalog knowledge keys / aliases → path under pdfs/ (empty = metadata only).
@@ -31,9 +34,11 @@ CATALOG_DOC_IDS: dict[str, str] = {
     "peft_survey": "papers/Hu2021_LoRA.pdf",
 }
 
+
 def _populate_pearson_inventory():
     import json
     from pathlib import Path
+
     try:
         repo_root = Path(__file__).resolve().parents[2]
         cat_file = repo_root / "data" / "catalogs" / "pearson_bookshelf.json"
@@ -49,10 +54,12 @@ def _populate_pearson_inventory():
             CATALOG_DOC_IDS[b_id] = reader_url
             if b.get("title"):
                 import re
+
                 doc_k = f"doc_{re.sub(r'[^a-z0-9]+', '_', b['title'].lower()).strip('_')}"
                 CATALOG_DOC_IDS[doc_k] = reader_url
     except Exception:
         pass
+
 
 _populate_pearson_inventory()
 
@@ -65,6 +72,7 @@ _BASENAME_TO_KEY = {
     "08_paging.pdf": "ostep_three_easy_pieces",
     "deisenroth_math_for_ml.pdf": "math_for_ml",
 }
+
 
 def _stock_key(book: dict[str, Any]) -> str:
     for field in ("book_id", "id", "dirname"):
@@ -111,16 +119,24 @@ def _koha_holdings() -> dict[str, dict[str, Any]]:
     """Read actual copy counts/accessions from the locally supplied Koha ODS."""
     filename = "Titles List with specified keyword-reportresults.ods"
     repo = Path(__file__).resolve().parents[2]
-    path = next((p for p in (
-        repo / "data" / "koha" / filename,
-        repo.parent / "data" / "koha" / filename,
-        repo / filename,
-    ) if p.is_file()), None)
+    path = next(
+        (
+            p
+            for p in (
+                repo / "data" / "koha" / filename,
+                repo.parent / "data" / "koha" / filename,
+                repo / filename,
+            )
+            if p.is_file()
+        ),
+        None,
+    )
     if path is None:
         return {}
     from archipelago.inference.library_catalog_api import parse_ods_rows
 
     rows = parse_ods_rows(path)
+    refreshed_at = datetime.fromtimestamp(path.stat().st_mtime, tz=UTC).isoformat()
     result: dict[str, dict[str, Any]] = {}
     for values in rows[1:]:
         if len(values) < 7:
@@ -133,16 +149,24 @@ def _koha_holdings() -> dict[str, dict[str, Any]]:
             total, available = int(values[5] or 0), int(values[6] or 0)
         except (TypeError, ValueError):
             continue
-        record = result.setdefault(key, {
-            "book_title": title,
-            "authors": str(values[2] or "").strip(),
-            "publisher": str(values[3] or "").strip(),
-            "accession": "",
-            "total_copies": 0,
-            "available_copies": 0,
-            "koha_record_verified": True,
-            "inventory_source": path.name,
-        })
+        record = result.setdefault(
+            key,
+            {
+                "book_title": title,
+                "authors": str(values[2] or "").strip(),
+                "publisher": str(values[3] or "").strip(),
+                "accession": "",
+                "total_copies": 0,
+                "available_copies": 0,
+                "koha_record_verified": True,
+                "inventory_source": path.name,
+                "source_type": "opac_snapshot",
+                "verification_status": "Catalog snapshot",
+                "retrieved_at": refreshed_at,
+                "access_status": "Snapshot only",
+                "opac_url": catalog_search_url(title),
+            },
+        )
         record["total_copies"] += total
         record["available_copies"] += available
         accession = str(values[4] or "").strip()
@@ -152,7 +176,7 @@ def _koha_holdings() -> dict[str, dict[str, Any]]:
         record["accession"] = ", ".join(known_accessions)
     for record in result.values():
         record["availability"] = (
-            f"{record['available_copies']} of {record['total_copies']} copies available in Koha export"
+            f"{record['available_copies']} of {record['total_copies']} copies in Koha export ({record['retrieved_at']})"
         )
     return result
 
@@ -164,24 +188,22 @@ def inventory_for_books(books: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for book in books:
         row = dict(book)
         key = _stock_key(row)
-        title = str(row.get("book_title") or row.get("title") or row.get("document_title") or "").strip()
+        title = str(
+            row.get("book_title") or row.get("title") or row.get("document_title") or ""
+        ).strip()
         stock = _koha_holdings().get(_normalize_title(title), {})
         if not row.get("doc_id"):
             row["doc_id"] = CATALOG_DOC_IDS.get(key, "") or row.get("doc_id") or ""
         if not row.get("book_title"):
-            row["book_title"] = (
-                row.get("title")
-                or row.get("document_title")
-                or "Library source"
-            )
+            row["book_title"] = row.get("title") or row.get("document_title") or "Library source"
         if not row.get("authors"):
             row["authors"] = stock.get("authors") or row.get("authors") or ""
         for field in ("total_copies", "available_copies", "availability", "accession", "publisher"):
             row.pop(field, None)
         if stock:
             row.update(stock)
-        if not row.get("page_number"):
-            row["page_number"] = int(row.get("page") or DEFAULT_PAGE)
+        if not row.get("page_number") and row.get("page"):
+            row["page_number"] = int(row["page"])
         if not row.get("book_id"):
             row["book_id"] = key or str(row.get("doc_id") or row["book_title"])
         dedupe = str(row.get("book_title") or row.get("doc_id") or "").strip().lower()
@@ -207,13 +229,13 @@ def books_from_citations(citations: list[dict[str, Any]] | None) -> list[dict[st
             or doc
             or "Source"
         )
-        page = cite.get("page_number") or cite.get("page") or DEFAULT_PAGE
+        page = cite.get("page_number") or cite.get("page")
         try:
-            page_n = int(page)
+            page_n = int(page) if page is not None else None
         except (TypeError, ValueError):
-            page_n = DEFAULT_PAGE
-        if page_n < 1:
-            page_n = DEFAULT_PAGE
+            page_n = None
+        if page_n is not None and page_n < 1:
+            page_n = None
         rows.append(
             {
                 "book_id": doc or title,
@@ -256,7 +278,7 @@ def books_from_catalog_meta(meta: dict[str, Any] | None) -> list[dict[str, Any]]
                 "shelf_location": meta.get("shelf_location") or "",
                 "call_number": meta.get("call_number") or "",
                 "library_scope": meta.get("library_scope") or "",
-                "page_number": DEFAULT_PAGE,
+                "page_number": None,
                 "topic": (meta.get("key_sections") or [""])[0],
                 "is_reference": "reference" in str(meta.get("format") or "").lower(),
                 "is_pearson": is_p,

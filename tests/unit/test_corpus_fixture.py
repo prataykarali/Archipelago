@@ -7,6 +7,7 @@ check over an empty brain.  These tests pin both halves of the remedy: the
 tracked fallback slice must be genuinely usable, and provisioning must never
 turn a missing corpus into a crash.
 """
+
 from __future__ import annotations
 
 import json
@@ -207,7 +208,7 @@ def test_readiness_separates_process_health_from_corpus_depth():
     assert '"full": source == "full"' in source, (
         "readiness must report corpus depth, not just process liveness"
     )
-    assert "getattr(graph, \"corpus_source\"" in source, (
+    assert 'getattr(graph, "corpus_source"' in source, (
         "readiness must tolerate a graph object that does not carry the marker; "
         "a 500 from the health endpoint is how a deploy gets killed"
     )
@@ -254,7 +255,9 @@ def test_fixture_is_not_gitignored():
 
     result = subprocess.run(
         ["git", "check-ignore", "-q", str(FIXTURE.relative_to(REPO_ROOT))],
-        cwd=REPO_ROOT, capture_output=True, check=False,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=False,
     )
     assert result.returncode != 0, (
         "host_inference/fixtures/ is ignored by git; the deployment will build "

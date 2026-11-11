@@ -94,7 +94,11 @@ def test_ranking_is_metadata_driven_and_capped_for_books_and_papers():
 def test_library_books_os_not_killed_by_aiml_scope_gate():
     """Pilot OS ranking must route to library_books, not out_of_scope."""
     from archipelago.inference.routing import resolve_query_routing
+
     r = resolve_query_routing("best books on operating systems")
     assert r.get("route") == "library_books"
     assert r.get("scope") in ("catalog", "yes")
-    assert "seed" in (r.get("reason") or "") or (r.get("slots") or {}).get("seed_subject") == "operating_systems"
+    assert (
+        "seed" in (r.get("reason") or "")
+        or (r.get("slots") or {}).get("seed_subject") == "operating_systems"
+    )

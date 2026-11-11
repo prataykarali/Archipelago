@@ -46,7 +46,9 @@ def test_clean_corrupted_summaries():
 
 def test_strip_link_dump_header():
     sanitizer = ArchipelagoResponseSanitizer()
-    raw = "( Low-Rank Adaptation p.1 ↗ p.8 ↗ p.12 ↗ )\n### Low-Rank Adaptation\nLoRA freezes weights."
+    raw = (
+        "( Low-Rank Adaptation p.1 ↗ p.8 ↗ p.12 ↗ )\n### Low-Rank Adaptation\nLoRA freezes weights."
+    )
     cleaned = sanitizer.sanitize(raw)
     assert not cleaned.startswith("(")
     assert "### Low-Rank Adaptation" in cleaned
@@ -92,9 +94,7 @@ def test_pass_5_format_okf_curriculum_card():
         "target": "LoRA",
         "unlocks": ["QLoRA", "Paged Optimizers"],
     }
-    payloads = [
-        {"doc_id": "Hu2021_LoRA.pdf", "page_number": 3, "evidence_id": "S1"}
-    ]
+    payloads = [{"doc_id": "Hu2021_LoRA.pdf", "page_number": 3, "evidence_id": "S1"}]
     cleaned = sanitizer.sanitize(raw, retrieved_concepts=topology, citation_payloads=payloads)
     # New visual Learning Path chain format.
     assert "### Learning Path" in cleaned
@@ -106,4 +106,3 @@ def test_pass_5_format_okf_curriculum_card():
     assert "### Evidence" in cleaned
     assert "Hu2021 LoRA" in cleaned or "Hu2021_LoRA" in cleaned
     assert "3" in cleaned  # page number present
-

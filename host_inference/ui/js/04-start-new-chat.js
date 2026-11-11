@@ -147,13 +147,13 @@ function startNewChat() {
 
     // Keep left panel open; close right so chat isn't squeezed
     if (typeof setPanelOpen === 'function') {
-        setPanelOpen(document.getElementById('left-sidebar'), true);
+        setPanelOpen(document.getElementById('left-sidebar'), !window.matchMedia('(max-width: 768px)').matches);
         setPanelOpen(document.getElementById('pipeline-panel'), false);
         if (typeof syncPanelToggleUI === 'function') syncPanelToggleUI();
     } else {
         const left = document.getElementById('left-sidebar');
         const right = document.getElementById('pipeline-panel');
-        if (left) left.classList.remove('panel-closed');
+        if (left) left.classList.toggle('panel-closed', window.matchMedia('(max-width: 768px)').matches);
         if (right) {
             right.style.transform = '';
             right.classList.add('panel-closed');

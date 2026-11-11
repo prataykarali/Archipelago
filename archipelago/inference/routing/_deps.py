@@ -12,6 +12,7 @@ Usage inside the package::
 
     ranked = _rt.rank_concepts(query, top_k=10)
 """
+
 from __future__ import annotations
 
 import archipelago.inference.routing as _routing

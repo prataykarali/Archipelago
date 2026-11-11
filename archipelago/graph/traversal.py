@@ -47,7 +47,7 @@ class GraphTraversalEngine:
         max_depth: int = 6,
     ) -> list[str] | None:
         """Find the shortest directed pedagogical path from source to target concept.
-        
+
         Path traverses forward enablement edges (reverse-REQUIRES or UNLOCKS).
         Returns list of node IDs forming the learning sequence, or None if no directed path exists.
         """
@@ -80,9 +80,9 @@ class GraphTraversalEngine:
 
             for neighbor in forward_adj.get(curr, []):
                 if neighbor == target_id:
-                    return path + [neighbor]
+                    return [*path, neighbor]
                 if neighbor not in visited:
                     visited.add(neighbor)
-                    queue.append((neighbor, path + [neighbor]))
+                    queue.append((neighbor, [*path, neighbor]))
 
         return None

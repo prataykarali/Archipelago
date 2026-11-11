@@ -1,18 +1,29 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-import re
 from pathlib import Path
+import re
 from urllib.parse import quote
-from flask import jsonify, send_from_directory, request, redirect
+
+from flask import redirect, request, send_from_directory
+
 from archipelago.inference import state as st
 
 
 @st.app.after_request
 def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Archipelago-Token,X-Librarian-Token,X-API-Token")
+    response.headers.add(
+        "Access-Control-Allow-Headers",
+        "Content-Type,Authorization,X-Archipelago-Token,X-Librarian-Token,X-API-Token",
+    )
     response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+    if (
+        request.headers.get("Origin") == "https://archipelago-blond.vercel.app"
+        and request.headers.get("Access-Control-Request-Private-Network") == "true"
+    ):
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
     return response
 
 
@@ -48,6 +59,7 @@ def serve_pdf(filename):
     # 4.5 Check Pearson eLibrary Catalog resolution
     try:
         from archipelago.resolver.pearson import resolve as pearson_resolve
+
         pearson_url = pearson_resolve(filename)
         if not pearson_url and target_name != filename:
             pearson_url = pearson_resolve(target_name)

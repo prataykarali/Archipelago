@@ -25,7 +25,7 @@ pytestmark = pytest.mark.unit
 class FakeGraph:
     """Minimal concept graph used by the roadmap/quiz builders."""
 
-    nodes = {
+    nodes = {  # noqa: RUF012
         "target": {"summary": "Target concept.", "difficulty": "advanced"},
         "prereq_a": {"summary": "First prerequisite.", "difficulty": "intermediate"},
         "prereq_b": {"summary": "Second prerequisite.", "difficulty": "foundational"},

@@ -1,8 +1,10 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from typing import Any
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def evaluate_diagnostic_mcqs(
@@ -25,6 +27,7 @@ def evaluate_diagnostic_mcqs(
     """
     if concepts_data is None:
         from archipelago.inference import state as st
+
         concepts_data = st.CONCEPTS_DATA or {}
 
     t_id = str(target_concept_id or "").strip()
@@ -75,11 +78,15 @@ def evaluate_diagnostic_mcqs(
 
         # Extract user answer from dictionary by mcq_id, idx, or concept_id
         user_ans = (
-            sanitized_answers.get(mcq_id)
-            or sanitized_answers.get(str(idx))
-            or sanitized_answers.get(cid)
-            or ""
-        ).upper().strip()
+            (
+                sanitized_answers.get(mcq_id)
+                or sanitized_answers.get(str(idx))
+                or sanitized_answers.get(cid)
+                or ""
+            )
+            .upper()
+            .strip()
+        )
 
         is_correct = bool(user_ans and user_ans == correct)
         if is_correct:
@@ -95,24 +102,26 @@ def evaluate_diagnostic_mcqs(
         page_num = first_src.get("page_number") or 1
         printed_page = first_src.get("printed_page") or page_num
 
-        details.append({
-            "mcq_id": mcq_id,
-            "concept_id": cid,
-            "concept_name": cname,
-            "user_answer": user_ans or "Unanswered",
-            "correct_answer": correct,
-            "is_correct": is_correct,
-            "explanation": mcq.get("explanation", ""),
-            "citation": mcq.get("citation", ""),
-            "doc_id": doc_id,
-            "page_number": page_num,
-            "printed_page": printed_page,
-        })
+        details.append(
+            {
+                "mcq_id": mcq_id,
+                "concept_id": cid,
+                "concept_name": cname,
+                "user_answer": user_ans or "Unanswered",
+                "correct_answer": correct,
+                "is_correct": is_correct,
+                "explanation": mcq.get("explanation", ""),
+                "citation": mcq.get("citation", ""),
+                "doc_id": doc_id,
+                "page_number": page_num,
+                "printed_page": printed_page,
+            }
+        )
 
     score_pct = round((correct_count / total) * 100.0, 1) if total else 0.0
     passed = score_pct >= 80.0
-    zero_score = (correct_count == 0)
-    full_score = (correct_count == total and total > 0)
+    zero_score = correct_count == 0
+    full_score = correct_count == total and total > 0
 
     # Determine recommended baseline concept
     baseline = None
@@ -136,6 +145,7 @@ def evaluate_diagnostic_mcqs(
     roadmap: dict[str, Any] = {"hops": 0, "steps": [], "markdown": ""}
     try:
         from archipelago.inference.curriculum import find_roadmap_between
+
         baseline_id = baseline.lower().replace(" ", "_") if baseline else t_id
         for k, v in concepts_data.items():
             if v.get("name") == baseline or v.get("label") == baseline:

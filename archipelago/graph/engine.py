@@ -5,12 +5,14 @@ from __future__ import annotations
 import gc
 import logging
 import os
+from pathlib import Path
 import shutil
 import threading
-from pathlib import Path
 from typing import Any
 
 import kuzu
+
+from okf.query_rows import rows_from_result
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,9 @@ class KuzuGraphEngine:
 
     swap_lock = _swap_lock
 
-    def __init__(self, db_path: str | Path, read_only: bool = False, buffer_pool_size: int = 0) -> None:
+    def __init__(
+        self, db_path: str | Path, read_only: bool = False, buffer_pool_size: int = 0
+    ) -> None:
         self.db_path = Path(db_path)
         self.read_only = read_only
         self.buffer_pool_size = buffer_pool_size
@@ -42,7 +46,9 @@ class KuzuGraphEngine:
             buffer_pool_size=self.buffer_pool_size,
         )
         self._conn = kuzu.Connection(self._db)
-        logger.info("Initialized KùzuDB connection (path=%s, read_only=%s)", self.db_path, self.read_only)
+        logger.info(
+            "Initialized KùzuDB connection (path=%s, read_only=%s)", self.db_path, self.read_only
+        )
 
     @property
     def conn(self) -> kuzu.Connection | None:
@@ -53,19 +59,21 @@ class KuzuGraphEngine:
         """Execute a Cypher query and return results as a list of dicts."""
         if not self._conn:
             raise RuntimeError("Database connection is not open")
-        
-        result = self._conn.execute(query, parameters or {})
+
+        response = self._conn.execute(query, parameters or {})
         rows: list[dict[str, Any]] = []
-        
+
         # In Kùzu, query results are accessed via get_as_df or row-by-row
-        try:
-            df = result.get_as_df()
-            return df.to_dict(orient="records")
-        except Exception:
-            while result.has_next():
-                row = result.get_next()
-                rows.append({"result": row})
-            return rows
+        for result in response if isinstance(response, list) else [response]:
+            try:
+                records = result.get_as_df().to_dict(orient="records")
+                if isinstance(records, list):
+                    rows.extend(record for record in records if isinstance(record, dict))
+                    continue
+            except Exception as exc:
+                logger.debug("Kùzu DataFrame conversion unavailable: %s", exc)
+            rows.extend({"result": row} for row in rows_from_result(result))
+        return rows
 
     def close(self) -> None:
         """Close Kùzu handles so the on-disk file/directory can be replaced."""
@@ -93,10 +101,7 @@ class KuzuGraphEngine:
     def close_all_for_path(cls, db_path: str | Path) -> list[KuzuGraphEngine]:
         """Close every tracked handle on ``db_path``. Returns the closed instances."""
         target = Path(db_path).resolve()
-        matching = [
-            inst for inst in list(_active_instances)
-            if inst.db_path.resolve() == target
-        ]
+        matching = [inst for inst in list(_active_instances) if inst.db_path.resolve() == target]
         for inst in matching:
             try:
                 inst.close()
@@ -114,7 +119,7 @@ class KuzuGraphEngine:
     @classmethod
     def atomic_swap(cls, staging_db_path: str | Path, production_db_path: str | Path) -> None:
         """Atomically replace the production database with the staging database.
-        
+
         Thread-safe connection switch:
         1. Acquires swap_lock.
         2. Closes active handles on staging and production paths to prevent EBUSY/PermissionError.
@@ -134,7 +139,9 @@ class KuzuGraphEngine:
             logger.info("Preparing atomic database swap: %s -> %s", staging_path, prod_path)
 
             # 1. Close active handles on both paths (prevents EBUSY / stale fds)
-            matching_instances = cls.close_all_for_path(prod_path) + cls.close_all_for_path(staging_path)
+            _matching_instances = cls.close_all_for_path(prod_path) + cls.close_all_for_path(
+                staging_path
+            )
             _close_colocated_kuzu_handles()
             gc.collect()
 
@@ -180,12 +187,11 @@ class KuzuGraphEngine:
             gc.collect()
 
 
-
-
 def _close_colocated_kuzu_handles() -> None:
     """Drop process-local Kùzu handles that are not tracked in _active_instances."""
     try:
         import archipelago.inference.state as _st
+
         old = getattr(_st, "_db", None)
         if old is not None:
             try:
@@ -197,6 +203,7 @@ def _close_colocated_kuzu_handles() -> None:
         pass
     try:
         import okf.graph_db as _gdb
+
         gdb = getattr(_gdb, "_DEFAULT_GRAPH_DB", None)
         if gdb is not None and hasattr(gdb, "close"):
             try:

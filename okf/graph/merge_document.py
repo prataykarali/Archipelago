@@ -1,4 +1,5 @@
 """Merge uploaded-document OKF results into the live corpus artifacts."""
+
 from __future__ import annotations
 
 import json
@@ -78,9 +79,7 @@ def assert_merge_safe(
         raise ValueError("upload doc_id is empty")
     lost = prior_doc_ids - merged_ids
     if lost:
-        raise ValueError(
-            f"merge would drop {len(lost)} existing document(s): {sorted(lost)[:8]}"
-        )
+        raise ValueError(f"merge would drop {len(lost)} existing document(s): {sorted(lost)[:8]}")
 
 
 def upsert_upload_inventory_meta(

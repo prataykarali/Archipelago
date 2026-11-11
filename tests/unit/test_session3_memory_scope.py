@@ -6,6 +6,7 @@ Covers the user-reported failures:
 - "hi" (greetings always get a warm reply, never a refusal)
 - "what's the weather" (true off-topic still rejected, with soft suggestions)
 """
+
 from __future__ import annotations
 
 import pytest
@@ -70,12 +71,16 @@ def fake_concepts(monkeypatch):
 def test_followup_uses_assistant_turn_memory(fake_concepts):
     """Assistant turns are mined for the active concept, not only user turns."""
     from archipelago.inference.routing import _get_active_concept_from_history
+
     history = [
         {"role": "user", "content": "hmm interesting"},
-        {"role": "assistant", "content": (
-            "Retrieval-Augmented Generation retrieves relevant documents and "
-            "uses them as context during generation."
-        )},
+        {
+            "role": "assistant",
+            "content": (
+                "Retrieval-Augmented Generation retrieves relevant documents and "
+                "uses them as context during generation."
+            ),
+        },
     ]
     active = _get_active_concept_from_history(history)
     assert active == "retrieval_augmented_generation"
@@ -83,11 +88,13 @@ def test_followup_uses_assistant_turn_memory(fake_concepts):
 
 def test_followup_before_starting_it_routes_to_graph(fake_concepts):
     from archipelago.inference.routing import resolve_query_routing
+
     history = [
         {"role": "user", "content": "Explain RAG to me"},
-        {"role": "assistant", "content": (
-            "Retrieval-Augmented Generation retrieves context and generates text."
-        )},
+        {
+            "role": "assistant",
+            "content": ("Retrieval-Augmented Generation retrieves context and generates text."),
+        },
     ]
     r = resolve_query_routing(
         "can u tell me what I need to know before starting it?", history=history
@@ -96,22 +103,27 @@ def test_followup_before_starting_it_routes_to_graph(fake_concepts):
     assert r["route"] in ("graph_strong", "graph_soft", "low_similarity_reject")
 
 
-@pytest.mark.parametrize("query", [
-    "what is rag",
-    "tell me about RAG",
-    "anything about AI agents?",
-    "what is agentic AI",
-])
+@pytest.mark.parametrize(
+    "query",
+    [
+        "what is rag",
+        "tell me about RAG",
+        "anything about AI agents?",
+        "what is agentic AI",
+    ],
+)
 def test_graph_covered_topics_never_out_of_scope(fake_concepts, query):
     """If the graph has anything related, the query must not be hard-refused."""
     from archipelago.inference.routing import resolve_query_routing
+
     r = resolve_query_routing(query)
     assert r["route"] != "out_of_scope", (query, r)
 
 
 def test_graph_block_override_helper(fake_concepts):
-    from archipelago.inference.routing import _graph_block_override
     from archipelago.inference.ranking import rank_concepts
+    from archipelago.inference.routing import _graph_block_override
+
     ranked = rank_concepts("what is rag", top_k=5)
     assert _graph_block_override("what is rag", ranked) is not None
     ranked2 = rank_concepts("britney spears latest album", top_k=5)
@@ -120,6 +132,7 @@ def test_graph_block_override_helper(fake_concepts):
 
 def test_true_offtopic_still_rejected(fake_concepts):
     from archipelago.inference.routing import resolve_query_routing
+
     r = resolve_query_routing("give me a recipe for chocolate lava cake")
     assert r["route"] == "out_of_scope"
 
@@ -127,6 +140,7 @@ def test_true_offtopic_still_rejected(fake_concepts):
 def test_offtopic_rejects_carry_suggestions(fake_concepts):
     """Reject payloads should carry closest_concepts for the soft bridge."""
     from archipelago.inference.routing import resolve_query_routing
+
     r = resolve_query_routing("give me a recipe for chocolate lava cake")
     if r["route"] == "out_of_scope":
         assert "closest_concepts" in (r.get("slots") or {})
@@ -135,6 +149,7 @@ def test_offtopic_rejects_carry_suggestions(fake_concepts):
 def test_greeting_gets_warm_deterministic_reply(fake_concepts):
     from archipelago.inference.routing import resolve_query_routing
     from archipelago.inference.synthesis import general_chat_reply
+
     r = resolve_query_routing("hi")
     assert r["route"] == "general_chat"
     reply = general_chat_reply("hi")
@@ -145,14 +160,18 @@ def test_greeting_gets_warm_deterministic_reply(fake_concepts):
 
 def test_not_indexed_reply_suggests_graph_related(fake_concepts):
     from archipelago.inference.synthesis import not_indexed_reply
+
     reply = not_indexed_reply("tell me about RAG", [], natural=False)
     assert "Retrieval-Augmented Generation" in reply or "Vector RAG" in reply
 
 
 def test_refusal_messages_are_soft():
     from archipelago.inference.scope_gate import (
-        OUT_OF_SCOPE_MESSAGE, NOT_IN_CORPUS_MESSAGE, IMPLEMENTATION_REFUSAL_MESSAGE,
+        IMPLEMENTATION_REFUSAL_MESSAGE,
+        NOT_IN_CORPUS_MESSAGE,
+        OUT_OF_SCOPE_MESSAGE,
     )
+
     for msg in (OUT_OF_SCOPE_MESSAGE, NOT_IN_CORPUS_MESSAGE, IMPLEMENTATION_REFUSAL_MESSAGE):
         assert "I am designed" not in msg
         assert "I decline" not in msg

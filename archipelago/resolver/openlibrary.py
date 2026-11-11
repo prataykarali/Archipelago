@@ -1,9 +1,11 @@
 """Open Library Link Resolver."""
+
 from __future__ import annotations
 
 import logging
 import re
 from typing import Any
+
 import requests
 
 logger = logging.getLogger("archipelago.resolver.openlibrary")
@@ -55,9 +57,7 @@ def _is_plausible_isbn(isbn: str | None) -> bool:
     digits = re.sub(r"[^0-9Xx]", "", str(isbn)).upper()
     if len(digits) not in (10, 13):
         return False
-    if len(set(digits)) <= 1:
-        return False  # all zeros / all same digit
-    return True
+    return len(set(digits)) > 1
 
 
 def resolve_openlibrary(
@@ -117,7 +117,8 @@ def resolve_openlibrary(
                     }
                 logger.debug(
                     "Open Library search returned %d result(s), none matching %r",
-                    len(docs), title,
+                    len(docs),
+                    title,
                 )
         except Exception as exc:
             logger.debug("Open Library search resolution failed: %s", exc)

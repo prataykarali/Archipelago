@@ -9,10 +9,11 @@ okf_results.json, and Kùzu graph rebuild.
 Usage:
     python scripts/local_ingest_compliant.py [--ollama] [--limit N]
 """
+
 import json
+from pathlib import Path
 import sys
 import time
-from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
@@ -29,11 +30,14 @@ def main():
     import okf.extraction as ex
     from okf.pipeline import finalize_and_build
 
-    chunks = json.load(open(CHUNKS))
+    with open(CHUNKS) as f:
+        chunks = json.load(f)
     if limit:
         chunks = chunks[:limit]
-    print(f"{len(chunks)} compliant chunks "
-          f"({'ollama' if use_ollama else 'local pytorch'} mode)", flush=True)
+    print(
+        f"{len(chunks)} compliant chunks ({'ollama' if use_ollama else 'local pytorch'} mode)",
+        flush=True,
+    )
 
     if not use_ollama:
         ex.load_local_model()
@@ -45,11 +49,12 @@ def main():
     t0 = time.time()
     results, ok = ex.extract_chunks_with_model(chunks)
     dt = time.time() - t0
-    print(f"extracted {len(results)} records from {ok}/{len(chunks)} chunks "
-          f"in {dt/60:.1f} min", flush=True)
+    print(
+        f"extracted {len(results)} records from {ok}/{len(chunks)} chunks in {dt / 60:.1f} min",
+        flush=True,
+    )
 
-    finalize_and_build(results, total_chunks=len(chunks),
-                       successful_chunk_count=ok, chunks=chunks)
+    finalize_and_build(results, total_chunks=len(chunks), successful_chunk_count=ok, chunks=chunks)
     print("INGESTION COMPLETE", flush=True)
 
 

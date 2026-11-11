@@ -7,10 +7,11 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_ROOT"
 
-echo "Building library_showcase_3d.js from books_showcase_src.tsx..."
-npx esbuild books_showcase_src.tsx \
-  --bundle \
-  --outfile=ui/chat/library_showcase_3d.js \
-  --external:three
+echo "Checking the hand-written library showcase assets..."
+for asset in book_cover_canvases.js library_showcase_3d.js; do
+  node --check "ui/chat/$asset"
+  node --check "host_inference/ui/$asset"
+  cmp "ui/chat/$asset" "host_inference/ui/$asset"
+done
 
-echo "Done. Output: ui/chat/library_showcase_3d.js"
+echo "Library showcase assets are valid and in sync."

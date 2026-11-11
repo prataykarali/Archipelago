@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import re
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
@@ -26,7 +27,7 @@ class ContextSerializer:
     """Strict serialization firewall between storage and model prompts."""
 
     # Patterns that must NEVER leak from internal DB metadata into model prompts
-    _LEAKAGE_PATTERNS = [
+    _LEAKAGE_PATTERNS: ClassVar[list[re.Pattern[str]]] = [
         re.compile(r"/api/[^\s]+", re.IGNORECASE),
         re.compile(r"/internal/[^\s]+", re.IGNORECASE),
         re.compile(r"/admin/[^\s]+", re.IGNORECASE),

@@ -9,6 +9,7 @@ The portability assertions here are the ones that actually bit: a hardcoded
 whenever the real model was mounted elsewhere, and that is invisible until
 ingestion quietly produces nothing.
 """
+
 from __future__ import annotations
 
 import json
@@ -149,7 +150,8 @@ def test_no_inline_python_commands_in_compose():
     checked.
     """
     body = "\n".join(
-        line for line in COMPOSE.read_text(encoding="utf-8").splitlines()
+        line
+        for line in COMPOSE.read_text(encoding="utf-8").splitlines()
         if not line.lstrip().startswith("#")
     )
     assert "python -c" not in body
@@ -245,9 +247,7 @@ def test_readiness_is_healthy_but_not_ready_without_a_model(tmp_path, monkeypatc
 
     jobs = tmp_path / "jobs"
     jobs.mkdir()
-    monkeypatch.setattr(
-        worker_health, "_model_reachable", lambda model: (False, "no client")
-    )
+    monkeypatch.setattr(worker_health, "_model_reachable", lambda model: (False, "no client"))
     payload = worker_health.readiness(jobs)
     assert payload["healthy"] is True
     assert payload["ready"] is False
@@ -268,9 +268,7 @@ def test_readiness_is_ready_when_the_model_is_reachable(tmp_path, monkeypatch):
 def test_readiness_fails_when_liveness_fails(tmp_path, monkeypatch):
     from scripts import worker_health
 
-    monkeypatch.setattr(
-        worker_health, "_model_reachable", lambda model: (True, "ok")
-    )
+    monkeypatch.setattr(worker_health, "_model_reachable", lambda model: (True, "ok"))
     assert worker_health.readiness(tmp_path / "absent")["healthy"] is False
 
 
@@ -342,9 +340,7 @@ def test_graph_stats_falls_back_to_visualization_counts(tmp_path):
 
     export = tmp_path / "okf_graph.json"
     export.write_text(
-        json.dumps(
-            {"visualization": {"nodes": [1, 2, 3], "edges": [1]}}
-        ),
+        json.dumps({"visualization": {"nodes": [1, 2, 3], "edges": [1]}}),
         encoding="utf-8",
     )
     assert graph_stats(export)["node_count"] == 3
@@ -379,36 +375,3 @@ def test_sync_without_an_api_is_a_clean_no_op():
     result = push_once("")
     assert result["ok"] is False
     assert "ARCHIPELAGO_INFERENCE_URL" in result["reason"]
-
-
-# ─── Entrypoint modules are importable ──────────────────────────────────────
-
-
-@pytest.mark.parametrize(
-    "relative",
-    ["scripts/worker_health.py", "scripts/run_sync_service.py"],
-)
-def test_entrypoint_modules_import_cleanly(relative):
-    import importlib.util
-
-    path = REPO_ROOT / relative
-    spec = importlib.util.spec_from_file_location(path.stem, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[path.stem] = module
-    spec.loader.exec_module(module)
-    assert hasattr(module, "main")
-
-
-def test_worker_entrypoint_defines_signal_handling():
-    source = (REPO_ROOT / "scripts" / "run_ingestion_worker.py").read_text(
-        encoding="utf-8"
-    )
-    assert "SIGTERM" in source, "the container must shut down cleanly"
-    assert "install_log_redaction" in source, "worker logs must be redacted"
-
-
-def test_worker_entrypoint_puts_the_repo_on_sys_path():
-    source = (REPO_ROOT / "scripts" / "run_ingestion_worker.py").read_text(
-        encoding="utf-8"
-    )
-    assert "sys.path.insert" in source

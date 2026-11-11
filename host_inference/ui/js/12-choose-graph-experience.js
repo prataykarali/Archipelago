@@ -149,7 +149,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
                         current_mcq: initialQ,
                         consecutive_ticks: 0,
                         question_count: 1,
-                        max_questions: 10,
+                        max_questions: 6,
                         min_questions: 3,
                         history: [],
                         eval_stack: data.eval_stack || [],

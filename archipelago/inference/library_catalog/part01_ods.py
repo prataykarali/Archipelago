@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 import re
-from defusedxml import ElementTree as ET  # hardened: untrusted ODS XML
 import zipfile
+
+from defusedxml import ElementTree as ET  # hardened: untrusted ODS XML
 
 logger = logging.getLogger("archipelago.inference.library_catalog_api")
 

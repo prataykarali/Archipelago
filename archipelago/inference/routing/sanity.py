@@ -1,4 +1,5 @@
 """Sanity gate: foreign-token detection and the absurd-mix LLM guard."""
+
 from __future__ import annotations
 
 import re
@@ -63,41 +64,45 @@ def _run_sanity_guard(query: str) -> bool:
     """
     import os
     import sys
+
     if "pytest" in sys.modules or os.environ.get("PYTEST_CURRENT_TEST"):
         return False
     try:
         from archipelago.inference.llm_gateway import gateway_chat
 
-        ans = gateway_chat(
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Answer YES only if this question can be answered purely with "
-                        "mathematics and machine learning theory from a textbook. "
-                        "Answer NO if answering would require knowledge about: food, sports, "
-                        "sports predictions or winners, movies, fictional or famous people, "
-                        "magic, law, history, gardening, personal life, anyone's opinions or "
-                        "stance or ethics views, companies, hardware, software or library "
-                        "versions, prices, energy or carbon footprints, patents, downloads, "
-                        "or replication logistics.\n"
-                        "Examples:\n"
-                        "Q: Can a hidden Markov model predict who wins the World Cup? -> NO (sports prediction)\n"
-                        "Q: Which framework version do the authors recommend? -> NO (software version)\n"
-                        "Q: What is the stance of the authors on ethics? -> NO (opinions/ethics stance)\n"
-                        "Q: Compare energy usage of training two models. -> NO (energy/carbon)\n"
-                        "Q: What is the chain rule used for in backpropagation? -> YES\n"
-                        "Q: Which concepts are prerequisites for attention? -> YES\n"
-                        "Answer YES or NO only."
-                    ),
-                },
-                {"role": "user", "content": query},
-            ],
-            purpose="routing",
-            temperature=0.0,
-            max_tokens=8,
-            timeout=8,
-        ) or ""
+        ans = (
+            gateway_chat(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Answer YES only if this question can be answered purely with "
+                            "mathematics and machine learning theory from a textbook. "
+                            "Answer NO if answering would require knowledge about: food, sports, "
+                            "sports predictions or winners, movies, fictional or famous people, "
+                            "magic, law, history, gardening, personal life, anyone's opinions or "
+                            "stance or ethics views, companies, hardware, software or library "
+                            "versions, prices, energy or carbon footprints, patents, downloads, "
+                            "or replication logistics.\n"
+                            "Examples:\n"
+                            "Q: Can a hidden Markov model predict who wins the World Cup? -> NO (sports prediction)\n"
+                            "Q: Which framework version do the authors recommend? -> NO (software version)\n"
+                            "Q: What is the stance of the authors on ethics? -> NO (opinions/ethics stance)\n"
+                            "Q: Compare energy usage of training two models. -> NO (energy/carbon)\n"
+                            "Q: What is the chain rule used for in backpropagation? -> YES\n"
+                            "Q: Which concepts are prerequisites for attention? -> YES\n"
+                            "Answer YES or NO only."
+                        ),
+                    },
+                    {"role": "user", "content": query},
+                ],
+                purpose="routing",
+                temperature=0.0,
+                max_tokens=8,
+                timeout=8,
+            )
+            or ""
+        )
         ans = ans.strip().upper()
         return not ans.startswith("YES")
     except Exception:

@@ -1,13 +1,17 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import hashlib
+
 import kuzu
-from archipelago.inference.graph_lock import graph_lock
+
 from archipelago.inference import state as st
-from archipelago.inference.aliases import _node_name, pdf_page_url, markdown_pdf_link
-from archipelago.inference.neighborhood import get_concept_citations, is_plausible_prereq
-from . import _deps as _rt  # noqa: F401
+from archipelago.inference.aliases import _node_name, markdown_pdf_link
+from archipelago.inference.graph_lock import graph_lock
+from archipelago.inference.neighborhood import is_plausible_prereq
+
+from . import _deps as _rt
 
 
 def find_roadmap_between(
@@ -31,7 +35,13 @@ def find_roadmap_between(
     target_id = str(target_concept_id or "").strip()
 
     if not start_id or not target_id:
-        return {"found": False, "hops": 0, "steps": [], "markdown": "", "error": "Missing concept IDs"}
+        return {
+            "found": False,
+            "hops": 0,
+            "steps": [],
+            "markdown": "",
+            "error": "Missing concept IDs",
+        }
 
     if start_id == target_id:
         node = st.CONCEPTS_DATA.get(start_id) or {}
@@ -113,7 +123,7 @@ def find_roadmap_between(
             nid = neighbor["id"]
             if nid not in visited:
                 visited.add(nid)
-                queue.append(path + [nid])
+                queue.append([*path, nid])
 
     # If no strict forward path found, try reverse search (in case target was entered as prerequisite)
     if not found_path:
@@ -131,7 +141,7 @@ def find_roadmap_between(
                 nid = neighbor["id"]
                 if nid not in rev_visited:
                     rev_visited.add(nid)
-                    rev_queue.append(path + [nid])
+                    rev_queue.append([*path, nid])
 
     # If still not found, check if a multi-hop curriculum chain from target_id already includes start_id
     if not found_path:
@@ -194,7 +204,9 @@ def find_roadmap_between(
     )
     for s in steps:
         difficulty_badge = f"`[{s['difficulty'].upper()}]`" if s.get("difficulty") else ""
-        markdown_output += f"- **Step {s['hop'] + 1}: {s['name']}** {difficulty_badge}: {s['summary']}\n"
+        markdown_output += (
+            f"- **Step {s['hop'] + 1}: {s['name']}** {difficulty_badge}: {s['summary']}\n"
+        )
 
     return {
         "found": True,
@@ -244,12 +256,16 @@ def generate_diagnostic_quiz(
     if len(prereq_ids) < num_questions:
         target_tags = set(target_node.get("tags") or [])
         for cid, c in st.CONCEPTS_DATA.items():
-            if cid not in seen and (c.get("summary") or len(c.get("summary", "")) > 20):
-                if target_tags and target_tags.intersection(set(c.get("tags") or [])):
-                    seen.add(cid)
-                    prereq_ids.append(cid)
-                    if len(prereq_ids) >= num_questions + 2:
-                        break
+            if (
+                cid not in seen
+                and (c.get("summary") or len(c.get("summary", "")) > 20)
+                and target_tags
+                and target_tags.intersection(set(c.get("tags") or []))
+            ):
+                seen.add(cid)
+                prereq_ids.append(cid)
+                if len(prereq_ids) >= num_questions + 2:
+                    break
 
     if len(prereq_ids) < num_questions:
         for cid, c in st.CONCEPTS_DATA.items():
@@ -265,7 +281,7 @@ def generate_diagnostic_quiz(
         return order.get(diff, 1)
 
     prereq_ids.sort(key=_diff_key)
-    selected_cids = prereq_ids[:max(num_questions, 5)]
+    selected_cids = prereq_ids[: max(num_questions, 5)]
 
     distractor_pool = [
         (c.get("summary") or "").strip()
@@ -279,7 +295,9 @@ def generate_diagnostic_quiz(
     for q_idx, cid in enumerate(selected_cids, 1):
         c_node = st.CONCEPTS_DATA.get(cid) or {}
         c_name = _node_name(c_node) if c_node else cid
-        correct_summary = (c_node.get("summary") or f"A fundamental technique used in {c_name}.").strip()
+        correct_summary = (
+            c_node.get("summary") or f"A fundamental technique used in {c_name}."
+        ).strip()
         difficulty = c_node.get("difficulty") or "intermediate"
 
         # Deterministic distractor selection using hash
@@ -290,24 +308,30 @@ def generate_diagnostic_quiz(
         distractors = []
         for d_offset in range(3):
             d_idx = (h_val + d_offset * 17) % max(1, len(distractor_pool))
-            distractors.append(distractor_pool[d_idx] if distractor_pool else "Alternative machine learning method.")
+            distractors.append(
+                distractor_pool[d_idx]
+                if distractor_pool
+                else "Alternative machine learning method."
+            )
 
-        all_options = [correct_summary] + distractors[:3]
+        all_options = [correct_summary, *distractors[:3]]
         perm_idx = h_val % 4
         shuffled = all_options[perm_idx:] + all_options[:perm_idx]
         correct_letter = choice_letters[shuffled.index(correct_summary)]
         options_dict = {choice_letters[i]: opt for i, opt in enumerate(shuffled)}
 
-        questions.append({
-            "q_index": q_idx,
-            "concept_id": cid,
-            "concept_name": c_name,
-            "difficulty": difficulty,
-            "question": f"Which of the following best describes the core role or definition of **{c_name}**?",
-            "options": options_dict,
-            "correct_option": correct_letter,
-            "explanation": f"**{c_name}**: {correct_summary}",
-        })
+        questions.append(
+            {
+                "q_index": q_idx,
+                "concept_id": cid,
+                "concept_name": c_name,
+                "difficulty": difficulty,
+                "question": f"Which of the following best describes the core role or definition of **{c_name}**?",
+                "options": options_dict,
+                "correct_option": correct_letter,
+                "explanation": f"**{c_name}**: {correct_summary}",
+            }
+        )
 
     return {
         "target_concept": {

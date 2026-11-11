@@ -51,6 +51,9 @@
     const passwordInput = document.querySelector("#password");
     const submitBtn = form.querySelector("button[type='submit']");
     const requestedNext = new URLSearchParams(window.location.search).get("next") || "/chat";
+    if (new URLSearchParams(window.location.search).has("timeout")) {
+      message.textContent = "Session expired due to inactivity.";
+    }
 
     function accountEmail(username, role) {
       return `${username.trim().toLowerCase()}@${role}${EMAIL_DOMAIN}`;
@@ -74,6 +77,9 @@
       }
 
       const allowedPrefixes = ["/chat", "/library", "/read", "/open", "/reader.html"];
+      if (["faculty", "librarian", "administrator"].includes(role)) {
+        allowedPrefixes.push("/research", "/graph");
+      }
       const isAllowed = allowedPrefixes.some(prefix => target.pathname.startsWith(prefix));
       if (!isAllowed) {
         return fallback.href;

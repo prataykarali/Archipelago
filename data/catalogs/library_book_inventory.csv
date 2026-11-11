@@ -1,0 +1,7 @@
+book_id,title,authors,publisher,subject,publication_year,category,total_copies,available_copies,availability,take_home
+ostep_three_easy_pieces,Operating Systems: Three Easy Pieces (OSTEP),"Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau",Arpaci-Dusseau Books,Operating Systems,2018,Circulating,7,4,Available,Yes
+operating_system_concepts_silberschatz,Operating System Concepts (The Dinosaur Book),"Abraham Silberschatz, Peter B. Galvin, Greg Gagne",Wiley,Operating Systems,2018,Reference,4,4,Available in library,No
+data_structures_algorithm_analysis_weiss,Data Structures and Algorithm Analysis in C++/Java,Mark Allen Weiss,Pearson,Data Structures and Algorithms,2014,Reference,3,3,Available in library,No
+introduction_to_algorithms_clrs,Introduction to Algorithms (CLRS),"Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, Clifford Stein",MIT Press / McGraw Hill,Data Structures and Algorithms,2022,Reference,6,6,Available in library,No
+database_management_systems_ramakrishnan,Database Management Systems,"Raghu Ramakrishnan, Johannes Gehrke",McGraw Hill,Database Management Systems,2002,Reference,5,5,Available in library,No
+database_system_concepts_silberschatz,Database System Concepts,"Abraham Silberschatz, Henry F. Korth, S. Sudarshan",McGraw Hill,Database Management Systems,2019,Reference,4,4,Available in library,No

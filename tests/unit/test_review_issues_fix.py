@@ -1,10 +1,9 @@
 """Unit tests for review issues fixes (Session closeout)."""
 
 import pytest
-from pathlib import Path
-from okf.cleanup_parts.dedupe import merge_duplicate_results, deduplicate_concepts
+
+from okf.cleanup_parts.dedupe import merge_duplicate_results
 from okf.cleanup_parts.grounding import prune_unresolved_references
-from scripts.download_pilot_corpus import _download_file
 
 
 @pytest.mark.unit
@@ -67,7 +66,7 @@ def test_prune_unresolved_references_preserves_valid_cross_doc_refs():
 
 @pytest.mark.unit
 def test_pdf_download_validation_rejects_html(tmp_path):
-    dest = tmp_path / "fake.pdf"
+    tmp_path / "fake.pdf"
     # Even if size > 1000, non-PDF data should be rejected by PDF header validation
     fake_html = b"<html><body>" + b"Error 404 Page Not Found " * 50 + b"</body></html>"
 

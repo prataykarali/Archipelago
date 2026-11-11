@@ -1,8 +1,10 @@
 """Embedding + optional Aura model loading."""
+
 from __future__ import annotations
 
-import os
+from collections import OrderedDict
 import json
+import os
 
 import torch
 import torch.nn.functional as F
@@ -23,9 +25,13 @@ def _load_transformers() -> bool:
         return True
     try:
         from transformers import (
-            AutoTokenizer as _Tok,
             AutoModel as _Mod,
+        )
+        from transformers import (
             AutoModelForCausalLM as _Causal,
+        )
+        from transformers import (
+            AutoTokenizer as _Tok,
         )
     except Exception as exc:
         print(f"transformers unavailable ({exc}); embeddings disabled.")
@@ -34,6 +40,7 @@ def _load_transformers() -> bool:
     AutoModel = _Mod
     AutoModelForCausalLM = _Causal
     return True
+
 
 def _embed_device_preference() -> str:
     """Pick embedder device. Prefer CPU when CUDA is broken or forced off."""
@@ -75,8 +82,12 @@ def load_embedding_model():
             build_concept_embeddings()
             return
         print(f"Loading embedding model {st.EMBED_MODEL_NAME}...")
-        st.embed_tokenizer = AutoTokenizer.from_pretrained(st.EMBED_MODEL_NAME, trust_remote_code=True)
-        st.embed_model = AutoModel.from_pretrained(st.EMBED_MODEL_NAME, trust_remote_code=True, add_pooling_layer=False)
+        st.embed_tokenizer = AutoTokenizer.from_pretrained(
+            st.EMBED_MODEL_NAME, trust_remote_code=True
+        )
+        st.embed_model = AutoModel.from_pretrained(
+            st.EMBED_MODEL_NAME, trust_remote_code=True, add_pooling_layer=False
+        )
         device = _embed_device_preference()
         st.embed_model = st.embed_model.to(device)
         st.embed_model.eval()
@@ -98,7 +109,9 @@ def load_aura_model():
             st.aura_loaded = False
             return
         print(f"Loading generator model from {st.AURA_MODEL_PATH}...")
-        st.aura_tokenizer = AutoTokenizer.from_pretrained(st.AURA_MODEL_PATH, trust_remote_code=True, fix_mistral_regex=True)
+        st.aura_tokenizer = AutoTokenizer.from_pretrained(
+            st.AURA_MODEL_PATH, trust_remote_code=True, fix_mistral_regex=True
+        )
         st.aura_model = AutoModelForCausalLM.from_pretrained(
             st.AURA_MODEL_PATH,
             dtype=torch.float16,
@@ -126,14 +139,14 @@ def build_concept_embeddings(*, force: bool = False):
                 c_node.setdefault("label", c_node.get("name", cid))
                 nodes.append(c_node)
         st.CONCEPTS_DATA = {n["id"]: n for n in nodes}
-        
+
         if not st.use_embeddings:
             print("Skipping embedding pre-computation.")
             return
-            
+
         print(f"Pre-computing embeddings for {len(nodes)} concepts in batches...")
         device = next(st.embed_model.parameters()).device
-        
+
         texts = []
         cids = []
         for node in nodes:
@@ -148,27 +161,27 @@ def build_concept_embeddings(*, force: bool = False):
         for i in range(0, len(texts), batch_size):
             batch_texts = texts[i : i + batch_size]
             batch_cids = cids[i : i + batch_size]
-            inputs = st.embed_tokenizer(batch_texts, padding=True, truncation=True, return_tensors='pt', max_length=512).to(device)
+            inputs = st.embed_tokenizer(
+                batch_texts, padding=True, truncation=True, return_tensors="pt", max_length=512
+            ).to(device)
             with torch.no_grad():
                 model_output = st.embed_model(**inputs)
                 embeddings = model_output[0][:, 0]
                 embeddings = F.normalize(embeddings, p=2, dim=1)
-                for cid, emb in zip(batch_cids, embeddings):
+                for cid, emb in zip(batch_cids, embeddings, strict=False):
                     st.CONCEPT_EMBEDDINGS[cid] = emb.cpu()
-                    
+
         st.CONCEPT_IDS = list(st.CONCEPT_EMBEDDINGS.keys())
         if st.CONCEPT_IDS:
             tensors_list = [st.CONCEPT_EMBEDDINGS[cid] for cid in st.CONCEPT_IDS]
             # Keep the lookup tensor on the same device as the embedder.
             st.CONCEPT_EMBEDDINGS_TENSOR = torch.stack(tensors_list).to(device)
-            
+
         print("✓ Pre-computed concept embeddings and built fast lookup tensor!")
     except Exception as e:
         print(f"Error pre-computing concept embeddings: {e}")
         _disable_embeddings(str(e))
 
-
-from collections import OrderedDict
 
 _EMB_CACHE: OrderedDict[str, torch.Tensor] = OrderedDict()
 _EMB_CACHE_MAX = 512
@@ -190,12 +203,17 @@ def get_snowflake_embedding(text: str | list[str]) -> torch.Tensor | None:
             try:
                 device = next(st.embed_model.parameters()).device
                 prefix = "Represent this sentence for searching relevant passages: "
-                inputs = st.embed_tokenizer([prefix + item for item in missing], padding=True,
-                                            truncation=True, return_tensors="pt", max_length=512).to(device)
+                inputs = st.embed_tokenizer(
+                    [prefix + item for item in missing],
+                    padding=True,
+                    truncation=True,
+                    return_tensors="pt",
+                    max_length=512,
+                ).to(device)
                 with torch.no_grad():
                     output = st.embed_model(**inputs)
                     vectors = F.normalize(output[0][:, 0], p=2, dim=1).cpu()
-                for item, vector in zip(missing, vectors):
+                for item, vector in zip(missing, vectors, strict=False):
                     _EMB_CACHE[item.lower()] = vector
                     while len(_EMB_CACHE) > _EMB_CACHE_MAX:
                         _EMB_CACHE.popitem(last=False)
@@ -214,7 +232,9 @@ def get_snowflake_embedding(text: str | list[str]) -> torch.Tensor | None:
         device = next(st.embed_model.parameters()).device
         prefix = "Represent this sentence for searching relevant passages: "
         full_text = prefix + text
-        inputs = st.embed_tokenizer(full_text, padding=True, truncation=True, return_tensors='pt', max_length=512).to(device)
+        inputs = st.embed_tokenizer(
+            full_text, padding=True, truncation=True, return_tensors="pt", max_length=512
+        ).to(device)
         with torch.no_grad():
             model_output = st.embed_model(**inputs)
             embeddings = model_output[0][:, 0]

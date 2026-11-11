@@ -1,7 +1,9 @@
 """Unit tests for SynthesisService, citation retention, and topic suggestions."""
+
 from __future__ import annotations
 
 import pytest
+
 from archipelago.core.synthesis_service import SynthesisService
 
 

@@ -3,11 +3,11 @@
 Restored to the unit-test contract (test_grounded_fallback.py,
 test_production_citation_hygiene.py) and the QA harness.
 """
+
 from __future__ import annotations
 
 import re
 from typing import Any
-
 
 GROUNDED_PREAMBLE: str = "Based on the retrieved knowledge graph evidence:"
 
@@ -170,9 +170,7 @@ def looks_garbled_or_template_leaky(text: str) -> bool:
         return True
     # Dropped-letter pattern: "byparing", "tndition" — a vowel-followed-by-
     # consonant cluster that shouldn't occur in normal English tokens.
-    if re.search(r"\b\w*(?:by|tn|fr|ss)[a-z]{0,2}par(?:e|ed|ing)|\bmodelsine\b", t, re.I):
-        return True
-    return False
+    return bool(re.search(r"\b\w*(?:by|tn|fr|ss)[a-z]{0,2}par(?:e|ed|ing)|\bmodelsine\b", t, re.I))
 
 
 def true_out_of_scope_message() -> str:

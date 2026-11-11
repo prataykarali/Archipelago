@@ -1,9 +1,10 @@
 """Unit tests for Resource Sync and Reconciliation command."""
+
 from __future__ import annotations
 
 import pytest
+
 from archipelago.resolver.sync import sync_all_resources
-from archipelago.resolver.resource_registry import get_registry
 
 pytestmark = pytest.mark.unit
 
@@ -28,7 +29,7 @@ def test_sync_all_resources_reconciliation_numbers():
 
 def test_sync_details_contain_required_fields():
     """Verify each sync detail entry contains id, source, symbol, title, and status."""
-    stats, details = sync_all_resources(verbose=False)
+    _stats, details = sync_all_resources(verbose=False)
 
     for entry in details:
         assert "id" in entry

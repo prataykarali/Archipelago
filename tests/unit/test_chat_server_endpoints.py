@@ -1,8 +1,10 @@
 """Unit tests for chat_server endpoints and video asset serving."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from chat_server import ASSETS_DIR, _STREAM_CHUNK_BYTES, app
+
+from chat_server import _STREAM_CHUNK_BYTES, ASSETS_DIR, app
 
 pytestmark = pytest.mark.usefixtures("verified_student_auth")
 
@@ -22,7 +24,9 @@ def test_chat_server_serves_video_assets_200():
     for asset in ["library_hi.mp4", "library_think.mp4", "archi_main.mp4"]:
         resp = client.get(f"/ui/assets/{asset}")
         assert resp.status_code == 200, f"Failed for {asset}"
-        assert "video/mp4" in resp.content_type.lower(), f"Expected video/mp4 for {asset}, got {resp.content_type}"
+        assert "video/mp4" in resp.content_type.lower(), (
+            f"Expected video/mp4 for {asset}, got {resp.content_type}"
+        )
 
 
 @pytest.mark.unit
@@ -31,7 +35,9 @@ def test_chat_server_serves_video_assets_206_range():
     client = app.test_client()
     for asset in ["library_hi.mp4", "library_think.mp4"]:
         resp = client.get(f"/ui/assets/{asset}", headers={"Range": "bytes=0-100"})
-        assert resp.status_code == 206, f"Expected 206 Partial Content for {asset}, got {resp.status_code}"
+        assert resp.status_code == 206, (
+            f"Expected 206 Partial Content for {asset}, got {resp.status_code}"
+        )
         assert "video/mp4" in resp.content_type.lower()
         assert "bytes 0-100/" in resp.headers.get("Content-Range", "")
 
@@ -67,9 +73,7 @@ def test_chat_server_api_chat_proxy_success():
         assert resp.status_code == 200
         assert resp.data == b"data: hello\n\n"
         mock_post.assert_called_once()
-        mock_upstream.iter_content.assert_called_once_with(
-            chunk_size=_STREAM_CHUNK_BYTES
-        )
+        mock_upstream.iter_content.assert_called_once_with(chunk_size=_STREAM_CHUNK_BYTES)
 
 
 @pytest.mark.unit

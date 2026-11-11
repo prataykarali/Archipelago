@@ -1,7 +1,5 @@
 """Unit tests for Query Mode Classification (Mode A, Mode B, Mode C)."""
 
-import pytest
-
 from archipelago.inference.query_classifier import QueryMode, classify_query_mode
 
 
@@ -57,7 +55,13 @@ def test_classify_mode_c_curriculum_queries():
 def test_routing_result_overrides():
     # Out of scope / small talk routes default to Mode A regardless of phrasing
     routing_res = {"route": "out_of_scope"}
-    assert classify_query_mode("teach me from scratch how to cook pasta", routing_result=routing_res) == QueryMode.MODE_A
+    assert (
+        classify_query_mode("teach me from scratch how to cook pasta", routing_result=routing_res)
+        == QueryMode.MODE_A
+    )
 
     small_talk = {"route": "small_talk"}
-    assert classify_query_mode("hello, tell me a roadmap", routing_result=small_talk) == QueryMode.MODE_A
+    assert (
+        classify_query_mode("hello, tell me a roadmap", routing_result=small_talk)
+        == QueryMode.MODE_A
+    )

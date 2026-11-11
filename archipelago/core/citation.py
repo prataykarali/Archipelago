@@ -37,7 +37,9 @@ class SourceCitation:
         return {
             "source_id": self.source_id,
             "document_title": self.document_title or SOURCE_METADATA_UNAVAILABLE,
-            "page_number": self.page_number if self.page_number > 0 else SOURCE_METADATA_UNAVAILABLE,
+            "page_number": self.page_number
+            if self.page_number > 0
+            else SOURCE_METADATA_UNAVAILABLE,
             "content_hash": self.content_hash or SOURCE_METADATA_UNAVAILABLE,
             "authors": self.authors or SOURCE_METADATA_UNAVAILABLE,
             "edition": self.edition or SOURCE_METADATA_UNAVAILABLE,

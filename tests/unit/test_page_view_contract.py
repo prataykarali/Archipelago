@@ -1,7 +1,7 @@
 """Citation page links must never silently show an unrelated chunk."""
 
-from archipelago.inference.state import app
 import archipelago.inference.routes_page_view as page_view_routes
+from archipelago.inference.state import app
 
 
 class _NoRows:

@@ -57,9 +57,7 @@ def resolve_local_model_path() -> Path:
             p = (BASE_DIR / p).resolve()
         return p
 
-    search: list[Path] = [
-        BASE_DIR / "models" / name for name in LOCAL_MODEL_NAMES
-    ]
+    search: list[Path] = [BASE_DIR / "models" / name for name in LOCAL_MODEL_NAMES]
     search += [BASE_DIR.parent / name for name in LOCAL_MODEL_NAMES]
     for root in os.environ.get(EXTERNAL_MODEL_ROOTS_ENV, "").split(os.pathsep):
         if root.strip():
@@ -76,7 +74,7 @@ _local_path = resolve_local_model_path()
 # Optional UNIFORM page cap applied to every PDF (not per-file). None = read the
 # whole document. Override with the --max-pages CLI flag for quick test runs on
 # very large books; production ingestion leaves it at None so any doc works.
-MAX_PAGES_PER_DOC = None
+MAX_PAGES_PER_DOC: int | None = None
 
 # We NEVER feed a whole page/book to the SLM. Ingestion produces section- and
 # paragraph-scale chunks; each SLM call is additionally capped to this many

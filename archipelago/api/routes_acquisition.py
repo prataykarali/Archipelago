@@ -11,13 +11,16 @@ against the Pearson catalogue the institution already pays for.  Neither route
 purchases anything or writes to the OPAC: every candidate carries
 ``action_required: librarian_review``.
 """
+
 from __future__ import annotations
 
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
-from flask import Response, jsonify, request
+from flask import jsonify, request
+from flask.typing import ResponseReturnValue
 
 from archipelago.api.engine_state import app
 
@@ -38,7 +41,7 @@ DEFAULT_MIN_DEMAND_COUNT = 2
 MAX_PLAN_ROWS = 25
 
 
-def _digest_rows(min_count: int = 1) -> list[dict]:
+def _digest_rows(min_count: int = 1) -> list[dict[str, Any]]:
     """Unmet-demand rows, most requested first. Empty when none are recorded.
 
     Read here rather than imported from ``host_inference``: the hosted engine is
@@ -63,7 +66,7 @@ def _digest_rows(min_count: int = 1) -> list[dict]:
 
 
 @app.route("/api/librarian/demand-digest", methods=["GET"])
-def librarian_demand_digest() -> Response:
+def librarian_demand_digest() -> ResponseReturnValue:
     """Unmet titles the students keep asking for, most requested first."""
     try:
         raw_min = request.args.get("min_count", "")
@@ -84,7 +87,7 @@ def librarian_demand_digest() -> Response:
 
 
 @app.route("/api/librarian/acquisition-plan", methods=["GET"])
-def librarian_acquisition_plan() -> Response:
+def librarian_acquisition_plan() -> ResponseReturnValue:
     """Unmet demand matched against buyable sources, for librarian review."""
     from archipelago.ingestion.acquisition_discovery import discovery_plan
 

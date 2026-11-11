@@ -17,6 +17,24 @@ import os
 from pathlib import Path
 import sys
 
+from archipelago.cli_library import (
+    DEFAULT_BOOKSHELF as DEFAULT_BOOKSHELF,
+)
+from archipelago.cli_library import (
+    DEFAULT_GRAPH_DB as DEFAULT_GRAPH_DB,
+)
+from archipelago.cli_library import (
+    DEFAULT_KOHA_DIR as DEFAULT_KOHA_DIR,
+)
+from archipelago.cli_library import (
+    _graph_db_path as _graph_db_path,
+)
+from archipelago.cli_library import (
+    cmd_library_populate,
+    cmd_library_propose,
+    cmd_library_sources,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 GRAPH_FILE = ROOT / "okf_graph.json"
 SUPPORTED_EXTENSIONS = {".csv", ".ods", ".pdf", ".md", ".txt"}
@@ -73,19 +91,15 @@ def cmd_ingest(args: argparse.Namespace) -> int:
         from ingestion_jobs import JobStore
 
         store = JobStore(str(ROOT / "jobs"))
-        job = store.create(
-            filename=source.name,
-            title=source.stem.replace("_", " ").title(),
-        )
+        job = store.create_job(source.name)
         # Copy file to quarantine
         import shutil
 
-        dest = Path(store.jobs_dir) / job["id"]
-        dest.mkdir(parents=True, exist_ok=True)
+        dest = store.job_dir(job.job_id)
         shutil.copy2(source, dest / f"upload{source.suffix}")
 
-        print(f"Job ID:     {job['id']}")
-        print(f"Status:     {job['status']}")
+        print(f"Job ID:     {job.job_id}")
+        print(f"Status:     {job.status.value}")
         print("\nJob enqueued. Start the ingestion worker to process.")
     except ImportError:
         print("\nWARNING: JobStore not available. File validated but not enqueued.")
@@ -267,108 +281,6 @@ def cmd_model_download(args: argparse.Namespace) -> int:
         return 1
 
 
-# ─── Library: catalog population + source lifecycle ────────────
-
-DEFAULT_GRAPH_DB = "okf_graph.db"
-DEFAULT_KOHA_DIR = "data/koha"
-DEFAULT_BOOKSHELF = "data/catalogs/pearson_bookshelf.json"
-
-
-def _graph_db_path(args: argparse.Namespace) -> Path:
-    """Resolve the graph database path from the CLI args or the repo default."""
-    return Path(getattr(args, "db", None) or ROOT / DEFAULT_GRAPH_DB)
-
-
-def cmd_library_populate(args: argparse.Namespace) -> int:
-    """Merge the institutional catalog (Koha + eLibrary) into the graph."""
-    from catalog_populate import ingest_catalog, ingest_pearson_bookshelf
-
-    db_path = str(_graph_db_path(args))
-    if not Path(db_path).exists():
-        print(f"ERROR: graph database not found: {db_path}", file=sys.stderr)
-        return 1
-
-    total_resources = 0
-    koha_dir = getattr(args, "koha_dir", None) or str(ROOT / DEFAULT_KOHA_DIR)
-    if Path(koha_dir).is_dir():
-        counts = ingest_catalog(db_path, koha_dir)
-        print(f"Koha catalog: {counts['resources']} resources, {counts['subjects']} subjects")
-        total_resources += counts["resources"]
-
-    bookshelf = getattr(args, "bookshelf", None) or str(ROOT / DEFAULT_BOOKSHELF)
-    if Path(bookshelf).is_file():
-        counts = ingest_pearson_bookshelf(db_path, bookshelf)
-        print(f"Pearson eLibrary: {counts['resources']} resources, {counts['subjects']} subjects")
-        total_resources += counts["resources"]
-
-    if not total_resources:
-        print("No catalog sources found; pass --koha-dir and/or --bookshelf.", file=sys.stderr)
-        return 1
-    print(f"\nCatalog now holds {total_resources} searchable resources.")
-    return 0
-
-
-def cmd_library_propose(args: argparse.Namespace) -> int:
-    """Propose entitled-but-unheld books for the librarian to approve."""
-    from archipelago.resolver.ingest_proposals import (
-        discover_from_provider_bookshelf,
-        load_queue,
-    )
-
-    bookshelf = getattr(args, "bookshelf", None) or str(ROOT / DEFAULT_BOOKSHELF)
-    if not Path(bookshelf).is_file():
-        print(f"ERROR: bookshelf export not found: {bookshelf}", file=sys.stderr)
-        return 1
-
-    graph_file = ROOT / "okf_graph.json"
-    held: set[str] = set()
-    if graph_file.is_file():
-        try:
-            raw = json.loads(graph_file.read_text(encoding="utf-8"))
-            for node in raw.get("nodes") or []:
-                held.add(str(node.get("name") or "").strip().lower())
-        except (OSError, json.JSONDecodeError) as exc:
-            print(f"WARNING: unreadable {graph_file.name}: {exc}", file=sys.stderr)
-
-    result = discover_from_provider_bookshelf(bookshelf, held)
-    print(f"New proposals: {len(result['proposed'])}")
-    print(f"Already held:  {result['already_held']}")
-    for proposal in result["proposed"]:
-        print(f"  + {proposal['title']}  [{proposal['license_mode']}]")
-
-    pending = sum(1 for p in load_queue().values() if p.actionable)
-    print(f"\nAwaiting librarian review: {pending}")
-    return 0
-
-
-def cmd_library_sources(args: argparse.Namespace) -> int:
-    """Print source availability from the lifecycle ledger."""
-    from archipelago.resolver.source_lifecycle import load_ledger
-
-    states = load_ledger()
-    if not states:
-        print("No source lifecycle records yet. Run a provider check first.")
-        return 0
-
-    withdrawn_only = getattr(args, "withdrawn_only", False)
-    for source_id, state in sorted(states.items()):
-        if withdrawn_only and state.status != "withdrawn":
-            continue
-        label = state.tombstone.get("title") or source_id
-        print(f"[{state.status:9}] {label}  ({state.provider or 'unknown'}) {source_id}")
-        if state.message:
-            print(f"            {state.message}")
-
-    counts: dict[str, int] = {}
-    for state in states.values():
-        counts[state.status] = counts.get(state.status, 0) + 1
-    print("\n" + ", ".join(f"{k}: {v}" for k, v in sorted(counts.items())))
-    return 0
-
-
-# ─── Main parser ──────────────────────────────────────────────
-
-
 def main() -> None:
     """Archipelago CLI main entry point."""
     parser = argparse.ArgumentParser(
@@ -403,9 +315,7 @@ def main() -> None:
     dl_p.add_argument("--dest", help="Download destination directory")
 
     # library — catalog population and source-lifecycle commands
-    library_p = subparsers.add_parser(
-        "library", help="Library catalog and source lifecycle"
-    )
+    library_p = subparsers.add_parser("library", help="Library catalog and source lifecycle")
     library_sub = library_p.add_subparsers(dest="library_command", help="Library subcommands")
 
     populate_p = library_sub.add_parser(
@@ -423,9 +333,7 @@ def main() -> None:
     status_p = library_sub.add_parser(
         "sources", help="Show source availability (verified / withdrawn)"
     )
-    status_p.add_argument(
-        "--withdrawn-only", action="store_true", help="Only withdrawn sources"
-    )
+    status_p.add_argument("--withdrawn-only", action="store_true", help="Only withdrawn sources")
 
     args = parser.parse_args()
 

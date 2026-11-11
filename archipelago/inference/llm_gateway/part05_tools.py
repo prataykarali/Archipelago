@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Dict, List, Optional, Tuple
 
 from archipelago.inference.llm_gateway import part01_config as config
 from archipelago.inference.llm_gateway.part01_config import (
@@ -24,9 +23,9 @@ TOOLS_TIMEOUT_SECONDS = 30
 TOOLS_TEMPERATURE = 0.0
 
 
-def _normalize_openai_tools(tools: List[Dict]) -> List[Dict]:
+def _normalize_openai_tools(tools: list[dict]) -> list[dict]:
     """Accept both chat-completions tool specs and bare function specs."""
-    oa_tools: List[Dict] = []
+    oa_tools: list[dict] = []
     for t in tools:
         if isinstance(t, dict) and t.get("type") == "function":
             oa_tools.append(t)
@@ -38,11 +37,11 @@ def _normalize_openai_tools(tools: List[Dict]) -> List[Dict]:
 
 
 def gateway_chat_with_tools(
-    messages: List[Dict],
-    tools: List[Dict],
+    messages: list[dict],
+    tools: list[dict],
     purpose: str = "agent",
-    model: Optional[str] = None,
-) -> Tuple[str, List[Dict]]:
+    model: str | None = None,
+) -> tuple[str, list[dict]]:
     """Execute chat with function calling. Returns (text, tool_calls)."""
     config.configure_gateway()
     provider = config.get_active_provider()

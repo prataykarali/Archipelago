@@ -1,20 +1,22 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from archipelago.inference import state as st
 import torch
+
+from archipelago.inference import state as st
 
 
 @st.app.route("/")
 def server_root():
-    
+
     gpu_info = "N/A"
     if torch.cuda.is_available():
         try:
-            gpu_info = f"Active ({torch.cuda.get_device_name(0)}, Memory: {torch.cuda.memory_allocated(0)/(1024**2):.1f}MB allocated)"
+            gpu_info = f"Active ({torch.cuda.get_device_name(0)}, Memory: {torch.cuda.memory_allocated(0) / (1024**2):.1f}MB allocated)"
         except Exception as e:
             gpu_info = f"Available but inactive: {e}"
-            
+
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -171,13 +173,13 @@ def server_root():
         <div class="container">
             <h1>Archipelago Inference Server</h1>
             <div class="subtitle">Diagnostic & Local RAG Control Panel (Port 5051)</div>
-            
+
             <div class="grid">
                 <div class="card">
                     <div class="card-title">Embedding Model</div>
                     <div class="card-value">
-                        <span class="status-dot {'active' if st.use_embeddings else 'inactive'}"></span>
-                        <span>{'Active (Snowflake)' if st.use_embeddings else 'Loading / Standby'}</span>
+                        <span class="status-dot {"active" if st.use_embeddings else "inactive"}"></span>
+                        <span>{"Active (Snowflake)" if st.use_embeddings else "Loading / Standby"}</span>
                     </div>
                 </div>
                 <div class="card">
@@ -195,7 +197,7 @@ def server_root():
                     </div>
                 </div>
             </div>
-            
+
             <div class="explain-section">
                 <div class="explain-title">💨 Why is my computer's fan spinning?</div>
                 <div>
@@ -208,7 +210,7 @@ def server_root():
                     Because these models run locally, loading model weights into memory and compiling tensors creates a temporary CPU/GPU load, which spins the system fan to cool down the processor.
                 </div>
             </div>
-            
+
             <div class="test-form">
                 <div class="card-title" style="margin-bottom:16px;">Test Inference Directly</div>
                 <input type="text" id="query" placeholder="Enter a concept (e.g. What is LoRA?)..." value="What is LoRA?">
@@ -219,7 +221,7 @@ def server_root():
                 </div>
             </div>
         </div>
-        
+
         <script>
             function runTest() {{
                 const query = document.getElementById('query').value;
@@ -227,7 +229,7 @@ def server_root():
                 const outSec = document.getElementById('output-section');
                 outSec.style.display = 'block';
                 output.textContent = 'Initializing stream...';
-                
+
                 fetch('/api/chat', {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
@@ -240,7 +242,7 @@ def server_root():
                     let buffer = '';
                     let metadataParsed = false;
                     output.textContent = '';
-                    
+
                     function read() {{
                         return reader.read().then(({{ done, value }}) => {{
                             if (done) {{
@@ -250,24 +252,24 @@ def server_root():
                                 return;
                             }}
                             buffer += decoder.decode(value, {{ stream: true }});
-                            
+
                             if (!metadataParsed) {{
                                 const index = buffer.indexOf('\n[STREAM_START]\n');
                                 if (index !== -1) {{
                                     const metaStr = buffer.substring(0, index);
                                     buffer = buffer.substring(index + 16);
                                     metadataParsed = true;
-                                    output.textContent += "--- RETRIEVAL METADATA ---\n" + 
-                                        JSON.stringify(JSON.parse(metaStr), null, 2) + 
+                                    output.textContent += "--- RETRIEVAL METADATA ---\n" +
+                                        JSON.stringify(JSON.parse(metaStr), null, 2) +
                                         "\n\n--- ARCHIPELAGO GENERATION ---\n";
                                 }}
                             }}
-                            
+
                             if (metadataParsed) {{
                                 output.textContent += buffer;
                                 buffer = '';
                             }}
-                            
+
                             return read();
                         }});
                     }}

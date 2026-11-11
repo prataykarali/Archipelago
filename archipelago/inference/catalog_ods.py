@@ -1,11 +1,12 @@
 """Jul 21 institutional catalog — ODS reports + book METADATA (no full book body)."""
+
 from __future__ import annotations
 
-import json
 import csv
-import re
 from functools import lru_cache
+import json
 from pathlib import Path
+import re
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -80,7 +81,11 @@ def load_ods_index() -> dict[str, Any]:
                         continue
                     title = str(r[1] if "title" in header[1].lower() else r[0]).strip()
                     author = str(r[2]).strip() if len(r) > 2 else ""
-                    copies = str(r[6]).strip() if len(r) > 6 else (str(r[5]).strip() if len(r) > 5 else "")
+                    copies = (
+                        str(r[6]).strip()
+                        if len(r) > 6
+                        else (str(r[5]).strip() if len(r) > 5 else "")
+                    )
                     out["titles"].append(
                         {
                             "title": title,
@@ -122,17 +127,18 @@ def load_book_shelf() -> list[dict[str, Any]]:
                 "authors": meta.get("authors") or meta.get("author") or "",
                 "subject": meta.get("subject") or "",
                 "publisher": meta.get("publisher") or "",
-                "call_no": meta.get("call_number") or meta.get("call_no") or f"PILOT/{dirname[:12].upper()}",
+                "call_no": meta.get("call_number")
+                or meta.get("call_no")
+                or f"PILOT/{dirname[:12].upper()}",
                 "rack": meta.get("rack") or "Pilot shelf (metadata index)",
                 "publication_year": stock.get("publication_year") or "—",
-                "category": stock.get("category") or ("Circulating" if meta.get("open_access") else "Reference"),
+                "category": stock.get("category")
+                or ("Circulating" if meta.get("open_access") else "Reference"),
                 "total_copies": int(stock.get("total_copies") or 0),
                 "available_copies": int(stock.get("available_copies") or 0),
                 "availability": stock.get("availability") or "Available in library",
                 "take_home": str(stock.get("take_home") or "No").lower() == "yes",
                 "open_access": bool(meta.get("open_access")),
-                "id": dirname,
-                "doc_id": dirname,
                 "toc_sample": toc[:12],
                 "compliance": meta.get("compliance_note")
                 or "Index/TOC/authors only — no full book body (Jul 21).",
@@ -146,9 +152,29 @@ def _book_search_score(query: str, book: dict[str, Any]) -> int:
     title = str(book.get("title") or "").lower()
     blob = f"{title} {book.get('authors', '')} {book.get('subject', '')} {book.get('dirname', '')}".lower()
     ignored = {
-        "the", "and", "for", "with", "what", "where", "find", "book", "books",
-        "about", "from", "library", "pilot", "physical", "copy", "copies", "take",
-        "home", "borrow", "checkout", "check", "available", "availability",
+        "the",
+        "and",
+        "for",
+        "with",
+        "what",
+        "where",
+        "find",
+        "book",
+        "books",
+        "about",
+        "from",
+        "library",
+        "pilot",
+        "physical",
+        "copy",
+        "copies",
+        "take",
+        "home",
+        "borrow",
+        "checkout",
+        "check",
+        "available",
+        "availability",
     }
     tokens = set(re.findall(r"[a-z0-9]{3,}", query)) - ignored
     score = sum(1 for token in tokens if token in blob)
@@ -220,7 +246,6 @@ def _take_home_reply(query: str, books: list[dict[str, Any]]) -> str | None:
     return f"{answer}\n\n**Book details**\n\n{_inventory_table([book])}"
 
 
-
 def format_catalog_reply(query: str) -> str | None:
     """Answer catalog and circulation questions from local spreadsheet data."""
     q = (query or "").lower().strip()
@@ -231,13 +256,29 @@ def format_catalog_reply(query: str) -> str | None:
     books = load_book_shelf()
     take_home_query = any(
         phrase in q
-        for phrase in ("can i take", "take home", "can i borrow", "may i borrow", "check out", "checkout")
+        for phrase in (
+            "can i take",
+            "take home",
+            "can i borrow",
+            "may i borrow",
+            "check out",
+            "checkout",
+        )
     )
     if take_home_query and books:
         return _take_home_reply(q, books)
 
     # Subject-wise title counts
-    if any(k in q for k in ("subject-wise", "subject wise", "title count", "subject leaderboard", "how many titles")):
+    if any(
+        k in q
+        for k in (
+            "subject-wise",
+            "subject wise",
+            "title count",
+            "subject leaderboard",
+            "how many titles",
+        )
+    ):
         lines = ["**Subject-wise title counts** (pilot ODS export):", ""]
         for row in idx["subjects"][:25]:
             if row.get("subject"):
@@ -245,7 +286,9 @@ def format_catalog_reply(query: str) -> str | None:
         if len(lines) <= 2:
             lines.append("_No subject ODS rows loaded — check docs/*.ods._")
         lines.append("")
-        lines.append("_not live against Koha - - Pilot catalog sample from institutional KOHA exports under docs/._")
+        lines.append(
+            "_not live against Koha - - Pilot catalog sample from institutional KOHA exports under docs/._"
+        )
         return "\n".join(lines)
 
     # Journal titles / issues
@@ -254,7 +297,9 @@ def format_catalog_reply(query: str) -> str | None:
         hits = idx["journals"][:20]
         if not hits and idx["titles"]:
             # fall back: titles that look like journals
-            hits = [{"title": t["title"], "extra": [t.get("available", "")]} for t in idx["titles"][:15]]
+            hits = [
+                {"title": t["title"], "extra": [t.get("available", "")]} for t in idx["titles"][:15]
+            ]
         for j in hits:
             extra = ", ".join(x for x in (j.get("extra") or []) if x)
             lines.append(f"- **{j.get('title') or '—'}**" + (f" — {extra}" if extra else ""))
@@ -264,36 +309,81 @@ def format_catalog_reply(query: str) -> str | None:
 
     # Physical book, shelf location, availability, and inventory details.
     shelf_keys = (
-        "shelf", "call number", "call no", "rack", "silberschatz", "ramakrishnan",
-        "physical book", "where is", "available copies", "availability", "borrow",
-        "ostep", "weiss", "clrs", "database system concepts", "operating system concepts",
-        "paging", "segmentation", "virtual memory", "page table", "frame", "tlb",
+        "shelf",
+        "call number",
+        "call no",
+        "rack",
+        "silberschatz",
+        "ramakrishnan",
+        "physical book",
+        "where is",
+        "available copies",
+        "availability",
+        "borrow",
+        "ostep",
+        "weiss",
+        "clrs",
+        "database system concepts",
+        "operating system concepts",
+        "paging",
+        "segmentation",
+        "virtual memory",
+        "page table",
+        "frame",
+        "tlb",
     )
     if any(key in q for key in shelf_keys) or (
         "book" in q
-        and any(key in q for key in ("dbms", "database", "os ", "operating", "dsa", "data structure"))
+        and any(
+            key in q for key in ("dbms", "database", "os ", "operating", "dsa", "data structure")
+        )
     ):
         use = _matching_books(q, books)[:6]
         if not use:
             return "No pilot book metadata was found in the library inventory."
         lines = ["**Library book details**", "", _inventory_table(use)]
-        lines.extend(["", "Reference books are available in the library only; circulating books may be taken home when a copy is available."])
+        lines.extend(
+            [
+                "",
+                "Reference books are available in the library only; circulating books may be taken home when a copy is available.",
+            ]
+        )
         return "\n".join(lines)
 
     # Keyword title search
-    if any(k in q for k in ("search the library", "find book", "title list", "available copies", "catalog")):
+    if any(
+        k in q
+        for k in ("search the library", "find book", "title list", "available copies", "catalog")
+    ):
         # pick a keyword from query
-        stop = {"the", "and", "for", "with", "what", "where", "find", "book", "books", "search", "library", "catalog", "about", "on"}
+        stop = {
+            "the",
+            "and",
+            "for",
+            "with",
+            "what",
+            "where",
+            "find",
+            "book",
+            "books",
+            "search",
+            "library",
+            "catalog",
+            "about",
+            "on",
+        }
         tokens = [t for t in re.findall(r"[a-z0-9]{3,}", q) if t not in stop]
         lines = ["**Catalog title hits** (ODS keyword/titles export):", ""]
         hits = []
         for t in idx["titles"]:
-            blob = f"{t.get('title','')} {t.get('author','')}".lower()
+            blob = f"{t.get('title', '')} {t.get('author', '')}".lower()
             if tokens and any(tok in blob for tok in tokens):
                 hits.append(t)
         for t in (hits or idx["titles"])[:15]:
             avail = t.get("available") or "?"
-            lines.append(f"- **{t.get('title') or '—'}** — {t.get('author') or '—'} (avail: {avail})")
+            lines.append(
+                f"- **{t.get('title') or '—'}** — {t.get('author') or '—'} (avail: {avail})"
+            )
         if len(lines) <= 2:
             lines.append("_No title rows loaded from docs/ ODS._")
         return "\n".join(lines)

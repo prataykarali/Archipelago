@@ -7,7 +7,10 @@ import json
 from flask import Response, jsonify, request
 
 from archipelago.auth import require_student_or_open
+from archipelago.core.intent import IntentCategory, classify_query_intent
+from archipelago.core.multi_hop import extract_concept_mentions
 from archipelago.inference import state as st
+from archipelago.inference.rate_limit import check_chat_rate_limit, rate_limit_response
 from archipelago.inference.routes.chat.part02_simple_routes import (
     handle_identity,
     handle_onboarding,
@@ -77,42 +80,11 @@ def api_chat():
     if len(query) > 500:
         return jsonify({"error": "Query exceeds maximum limit of 500 characters"}), 400
 
-    # Supabase Cache Lookup & Metrics (Zero LLM calls on cache hit)
-    try:
-        from archipelago.inference.cache_metrics import metrics as cache_metrics
-        from archipelago.inference.cache_service import CacheService
-
-        cache_metrics.inc_total_requests()
-        cached_entry = CacheService().get_cached_response(query)
-        if cached_entry:
-            cache_metrics.inc_cache_hit(tokens_saved=300)
-
-            def generate_cached():
-                payload = {
-                    "anchor_concept": None,
-                    "prerequisites": [],
-                    "unlocks": [],
-                    "citations": cached_entry.get("sources") or [],
-                    "related_concepts": [],
-                    "routing": {"route": "cached_response", "score": 1.0, "reason": "cache_hit"},
-                    "graph_data": cached_entry.get("graph_data"),
-                    "roadmap": cached_entry.get("roadmap_data"),
-                    "logs": [
-                        {
-                            "step": "Supabase Cache",
-                            "status": "Hit",
-                            "details": f"Cached response returned (hit #{cached_entry.get('hit_count', 1)}). Zero LLM tokens consumed.",
-                        }
-                    ],
-                }
-                yield json.dumps(payload) + "\n[STREAM_START]\n"
-                yield str(cached_entry.get("response") or "") + "\n"
-
-            return Response(generate_cached(), mimetype="text/plain")
-        else:
-            cache_metrics.inc_cache_miss()
-    except Exception:
-        pass
+    # Every question runs against current retrieval and synthesis. Limit requests
+    # before any provider call; the client supplied session id is not a rate key.
+    allowed, limit_info = check_chat_rate_limit(request)
+    if not allowed:
+        return rate_limit_response(limit_info if isinstance(limit_info, dict) else None)
 
     # Gateway Interceptor & Subagents (Zero LLM API calls for attacks, code-gen, homework)
     from archipelago.inference.orchestration.subagents import AuthGatewayAgent, OrchestratorAgent
@@ -177,7 +149,77 @@ def api_chat():
     # Default product path: embedder ranking + graph traversal + natural reply.
     # conversational_agent uses the same smart router (domain → graph, chitchat → free chat).
     if mode in ("rag_synthesis", "conversational_agent"):
+        from archipelago.inference.multi_anchor import query_anchor_ids, resolve_followup_query
+
+        if history and not st.CONCEPTS_DATA:
+            from archipelago.inference.routes.chat.part07_init import init_concepts_data
+
+            init_concepts_data()
+        resolved_query = resolve_followup_query(query, history)
+        intent_category = classify_query_intent(
+            resolved_query, extracted_concepts=extract_concept_mentions(resolved_query)
+        )
+        if intent_category == IntentCategory.RESEARCH_INTELLIGENCE:
+
+            def generate_research_handoff():
+                yield (
+                    json.dumps(
+                        {
+                            "anchor_concept": None,
+                            "subgraph": None,
+                            "prerequisites": [],
+                            "unlocks": [],
+                            "diagnostic_mcqs": [],
+                            "citations": [],
+                            "routing": {
+                                "route": "research_intelligence",
+                                "reason": "delegated_to_research_pipeline",
+                            },
+                            "intent_category": IntentCategory.RESEARCH_INTELLIGENCE.value,
+                            "logs": [
+                                {
+                                    "step": "Research intelligence",
+                                    "status": "Delegated",
+                                    "details": "Authorized research pipeline",
+                                }
+                            ],
+                        }
+                    )
+                    + "\n[STREAM_START]\n"
+                )
+                yield "Research intelligence runs in the authorized [research pipeline](/research). Open a topic or author record there to request bibliometric analysis. This chat has not calculated metrics for the request."
+
+            return Response(generate_research_handoff(), mimetype="text/plain")
+        if intent_category in (
+            IntentCategory.PAPER_LOOKUP,
+            IntentCategory.MULTI_CONCEPT,
+            IntentCategory.RESEARCH_TOPIC,
+        ):
+            if not st.CONCEPTS_DATA:
+                from archipelago.inference.routes.chat.part07_init import init_concepts_data
+
+                init_concepts_data()
+            anchors = query_anchor_ids(resolved_query)
+            if anchors or intent_category == IntentCategory.PAPER_LOOKUP:
+                return handle_graph_path(
+                    resolved_query,
+                    history,
+                    {
+                        "route": "graph_strong",
+                        "anchor_id": anchors[0] if anchors else None,
+                        "related": [],
+                        "score": 1.0 if anchors else 0.0,
+                        "reason": "intent_aware_exact_match",
+                        "slots": {},
+                    },
+                    wants_synthesis=False,
+                )
         routing = resolve_query_routing(query, history=history)
+        if intent_category == IntentCategory.LIBRARY_LOOKUP and routing.get("route") in (
+            "out_of_scope",
+            "low_similarity_reject",
+        ):
+            return handle_library_holdings(query, history, {"route": "library_holdings"}, False)
         route = ROUTE_ALIASES.get(routing["route"], routing["route"])
         if route == "library_info":
             slots = routing.get("slots") or {}

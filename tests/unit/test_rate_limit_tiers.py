@@ -8,10 +8,11 @@ Asserts the per-tier ceilings, the 429 + ``Retry-After`` contract, client
 isolation (keyed on ``X-Forwarded-For`` first hop), the operator kill-switch,
 and that ``g.user_tier`` overrides the decorator default.
 """
+
 from __future__ import annotations
 
-import pytest
 from flask import Flask, g
+import pytest
 
 from archipelago.middleware.rate_limiter import (
     DEFAULT_LIMIT,

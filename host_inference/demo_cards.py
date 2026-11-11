@@ -7,7 +7,8 @@ from __future__ import annotations
 import re
 from urllib.parse import quote
 
-from engine.withdrawal import withdrawal_notice_for_doc, withdrawn_documents
+# from engine.withdrawal import withdrawal_notice_for_doc, withdrawn_documents deferred to break cycle
+
 
 # Longer needles first so "lora vs bert" is not swallowed by "lora".
 DEMOS: list[tuple[tuple[str, ...], dict]] = [
@@ -221,8 +222,10 @@ def _mark_withdrawn(citations: list[dict]) -> list[dict]:
     from "false".
     """
     try:
+        from engine.withdrawal import withdrawal_notice_for_doc, withdrawn_documents
         retired = withdrawn_documents()
     except Exception:
+        withdrawal_notice_for_doc = lambda doc_id: ""  # type: ignore
         retired = set()
 
     marked = []

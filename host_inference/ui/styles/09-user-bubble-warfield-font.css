@@ -96,8 +96,20 @@
         letter-spacing: 0.05em !important;
         opacity: 0.7 !important;
     }
-    /* Remove awkward banner video */
+    /* Keep the animated identity visible in its own shallow, uncropped frame. */
     #chat-hero-band {
+        display: block !important;
+    }
+    #hero-video-card {
+        height: clamp(7rem, 15vh, 10rem) !important;
+        background-color: #060312;
+    }
+    #hero-video-card video {
+        object-fit: contain !important;
+        object-position: center !important;
+        opacity: 1 !important;
+    }
+    #hero-video-card::before, #hero-video-card::after {
         display: none !important;
     }
 
@@ -147,6 +159,7 @@
 
     /* Sleek Apple VisionOS Liquid Glass Topbar */
     #top-chrome {
+        height: 3.5rem;
         background: transparent !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
         backdrop-filter: blur(24px) saturate(1.8) !important;
@@ -154,10 +167,14 @@
         background: rgba(12, 8, 24, 0.65) !important;
     }
     #app-header {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
         height: 3.5rem !important;
         min-height: 3.5rem !important;
     }
-    /* Let chat messages area fill cleanly, offset below floating header */
+    /* Header now takes its own row, so the chat needs only normal top padding. */
     #chat-stage {
         display: flex !important;
         flex: 1 1 auto !important;
@@ -169,7 +186,7 @@
         max-width: 100% !important;
         padding-left: 1.5rem !important;
         padding-right: 1.5rem !important;
-        padding-top: 4.5rem !important;
+        padding-top: 1.5rem !important;
     }
     .message-container {
         max-width: 54rem !important;

@@ -1,7 +1,6 @@
 """Unit tests for Pearson eLibrary Connector & Catalog Engine."""
 
 from pathlib import Path
-import pytest
 
 from archipelago.ingestion.pearson_connector import (
     PearsonBook,
@@ -11,11 +10,23 @@ from archipelago.ingestion.pearson_connector import (
 
 
 def test_classify_academic_domain():
-    assert classify_academic_domain("Artificial Intelligence: A Modern Approach") == "Artificial Intelligence & Machine Learning"
+    assert (
+        classify_academic_domain("Artificial Intelligence: A Modern Approach")
+        == "Artificial Intelligence & Machine Learning"
+    )
     assert classify_academic_domain("Computer Networks 6/e") == "Computer Networks & Security"
-    assert classify_academic_domain("Compilers Principles, Techniques, and Tools") == "Compilers & Algorithms"
-    assert classify_academic_domain("Digital Signal Processing, 4e") == "Signal Processing & Mathematics"
-    assert classify_academic_domain("Operating Systems: Internals and Design") == "Operating Systems & Architecture"
+    assert (
+        classify_academic_domain("Compilers Principles, Techniques, and Tools")
+        == "Compilers & Algorithms"
+    )
+    assert (
+        classify_academic_domain("Digital Signal Processing, 4e")
+        == "Signal Processing & Mathematics"
+    )
+    assert (
+        classify_academic_domain("Operating Systems: Internals and Design")
+        == "Operating Systems & Architecture"
+    )
 
 
 def test_pearson_book_reader_urls():

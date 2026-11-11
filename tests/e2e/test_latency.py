@@ -54,7 +54,7 @@ def _percentile(sorted_vals: list[float], p: float) -> float:
     if len(sorted_vals) == 1:
         return sorted_vals[0]
     # Nearest-rank: index = ceil(p/100 * n) - 1
-    k = max(0, min(len(sorted_vals) - 1, int((p / 100.0) * len(sorted_vals) + 0.999999) - 1))
+    max(0, min(len(sorted_vals) - 1, int((p / 100.0) * len(sorted_vals) + 0.999999) - 1))
     # Use linear interpolation between closest ranks for smoother p95/p99 on n=10
     rank = (p / 100.0) * (len(sorted_vals) - 1)
     lo = int(rank)
@@ -169,6 +169,5 @@ def test_qwen_synthesis_under_8s(INFERENCE_URL, OLLAMA_URL):
         f"synthesis p50={report['p50']:.3f}s >= {SYNTHESIS_BUDGET_S}s budget"
     )
     assert report["p95"] < SYNTHESIS_BUDGET_S, (
-        f"synthesis p95={report['p95']:.3f}s >= {SYNTHESIS_BUDGET_S}s budget; "
-        f"full report={report}"
+        f"synthesis p95={report['p95']:.3f}s >= {SYNTHESIS_BUDGET_S}s budget; full report={report}"
     )

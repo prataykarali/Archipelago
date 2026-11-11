@@ -12,11 +12,12 @@ Safety rails:
 * every block must be copied byte-identically into exactly one module;
 * after writing, the facade must expose the full original top-level name set.
 """
+
 from __future__ import annotations
 
 import ast
-import sys
 from pathlib import Path
+import sys
 
 SRC = Path("archipelago/inference/synthesis.py")
 OUT = Path("archipelago/inference/synthesis_pkg")
@@ -24,38 +25,62 @@ PKG_PATH = "archipelago.inference.synthesis"
 
 GROUPS: dict[str, list[str]] = {
     "constants.py": [
-        "OLLAMA_UNAVAILABLE_MSG", "_STREAM_SYSTEM_PROMPT", "stream_system_prompt",
+        "OLLAMA_UNAVAILABLE_MSG",
+        "_STREAM_SYSTEM_PROMPT",
+        "stream_system_prompt",
     ],
     "reply_checks.py": [
-        "_strip_residual_markers", "_count_words", "_looks_like_citation_spam",
-        "_trim_verbose_study_answer", "_model_answer_is_usable", "_finalize_stream_answer",
+        "_strip_residual_markers",
+        "_count_words",
+        "_looks_like_citation_spam",
+        "_trim_verbose_study_answer",
+        "_model_answer_is_usable",
+        "_finalize_stream_answer",
     ],
     "library_render.py": [
-        "render_catalog_stats", "render_library_info",
+        "render_catalog_stats",
+        "render_library_info",
     ],
     "prose.py": [
-        "_strip_latex", "_EMOJI_RE", "_SLANG_LEAK_RE",
-        "enforce_sterile_prose", "is_readable_synthesis", "_scrub_slm_artifacts",
+        "_strip_latex",
+        "_EMOJI_RE",
+        "_SLANG_LEAK_RE",
+        "enforce_sterile_prose",
+        "is_readable_synthesis",
+        "_scrub_slm_artifacts",
     ],
     "streaming.py": [
-        "is_ollama_available", "stream_synthesis_with_ollama",
+        "is_ollama_available",
+        "stream_synthesis_with_ollama",
         "synthesize_with_ollama_streaming",
     ],
     "render_path.py": [
         "render_indexed_learning_path",
     ],
     "replies.py": [
-        "closed_library_reply", "_extract_missing_topic", "_related_concepts_for_topic",
-        "not_indexed_reply", "general_chat_reply", "identity_reply", "onboarding_reply",
+        "closed_library_reply",
+        "_extract_missing_topic",
+        "_related_concepts_for_topic",
+        "not_indexed_reply",
+        "general_chat_reply",
+        "identity_reply",
+        "onboarding_reply",
     ],
     "graph_notes.py": [
-        "_summarize_evidence", "build_graph_notes", "format_natural_fallback",
-        "generate_aura_synthesis", "run_ollama_agent",
+        "_summarize_evidence",
+        "build_graph_notes",
+        "format_natural_fallback",
+        "generate_aura_synthesis",
+        "run_ollama_agent",
     ],
     "library_books.py": [
-        "DOC_TITLE_MAP", "prettify_doc_title", "render_library_books",
-        "render_library_chapters", "render_library_chapter_lookup",
-        "_FRONTMATTER_RE", "_TOP_LEVEL_CHAPTER_RE",
+        "DOC_TITLE_MAP",
+        "prettify_doc_title",
+        "render_library_books",
+        "render_library_chapters",
+        "render_library_chapter_lookup",
+        "_FRONTMATTER_RE",
+        "_TOP_LEVEL_CHAPTER_RE",
     ],
     "core.py": [
         "synthesize_with_ollama",
@@ -98,12 +123,12 @@ def main() -> int:
     tree = ast.parse(text)
 
     docstring = ast.get_docstring(tree)
-    imports: list[tuple[str, list[str]]] = []   # (source_text, bound_names)
+    imports: list[tuple[str, list[str]]] = []  # (source_text, bound_names)
     blocks: dict[str, tuple[int, int, str]] = {}  # name -> (start, end, text)
     uncovered: list[str] = []
 
     for node in tree.body:
-        if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
             imports.append((ast.get_source_segment(text, node) or "", _bound_names(node)))
             continue
         if (
@@ -115,7 +140,11 @@ def main() -> int:
         name = None
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             name = node.name
-        elif isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+        elif (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+        ):
             name = node.targets[0].id
         elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
             name = node.target.id
@@ -199,10 +228,10 @@ def main() -> int:
         state[node] = 1
         for dep in sorted(graph[node]):
             if state.get(dep, 0) == 1:
-                print(f"ABORT — sibling cycle: {' -> '.join(stack + [node, dep])}")
+                print(f"ABORT — sibling cycle: {' -> '.join([*stack, node, dep])}")
                 sys.exit(1)
             if state.get(dep, 0) == 0:
-                visit(dep, stack + [node])
+                visit(dep, [*stack, node])
         state[node] = 2
 
     for module in GROUPS:
@@ -229,17 +258,18 @@ def main() -> int:
     ]
     for module, names in GROUPS.items():
         stem = module[:-3]
-        facade.append(
-            f"from .{stem} import (  # noqa: F401"
-        )
+        facade.append(f"from .{stem} import (  # noqa: F401")
         facade.extend(f"    {name}," for name in names)
         facade.append(")")
     facade.append(f"from archipelago.inference.{REEXPORTS} import (  # noqa: F401")
     facade.extend(
         f"    {alias},"
         for alias in (
-            "view_page_url", "render_physical_resources", "render_catalog_resources",
-            "render_resource_availability", "render_journal_status",
+            "view_page_url",
+            "render_physical_resources",
+            "render_catalog_resources",
+            "render_resource_availability",
+            "render_journal_status",
         )
     )
     facade.append(")")
@@ -251,6 +281,7 @@ def main() -> int:
     # Post-write facade completeness check (import the real package).
     sys.path.insert(0, ".")
     import importlib
+
     facade_mod = importlib.import_module(PKG_PATH)
     absent = [n for n in all_names if not hasattr(facade_mod, n)]
     if absent:

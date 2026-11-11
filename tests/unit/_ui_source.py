@@ -6,16 +6,15 @@ the markup in the page and move CSS/JS into linked files under ``styles/`` and
 returns the page with every local linked asset inlined, in document order,
 following relative ES-module ``import`` statements so module bodies are visible.
 """
+
 from __future__ import annotations
 
-import re
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
 
-_LINK_RE = re.compile(
-    r'<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>', re.IGNORECASE
-)
+_LINK_RE = re.compile(r'<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>', re.IGNORECASE)
 _SCRIPT_RE = re.compile(r'<script[^>]*src="([^"]+)"[^>]*>\s*</script>', re.IGNORECASE)
 # Matches both `import { x } from './m.js'` and side-effect `import './m.js'`.
 _IMPORT_RE = re.compile(r"""import\s+(?:[^;]*?from\s*)?['"](\./[^'"]+)['"]""")

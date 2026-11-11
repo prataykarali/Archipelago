@@ -6,6 +6,8 @@ can build an app around fakes and production gets the real graph-backed engine.
 
 from __future__ import annotations
 
+import os
+
 from flask import Flask
 
 from .config import MAX_CONTENT_LENGTH_BYTES, load_env
@@ -64,7 +66,10 @@ def create_app(ctx: AppContext | None = None) -> Flask:
     load_env()
     # Scrub tokens/credentials from access logs before any record is emitted.
     install_log_redaction()
-    provision()
+    # Vercel's application directory is read-only. Its packaged graph and the
+    # writable cache populated by Engine.hydrate replace boot-time provisioning.
+    if not os.environ.get("VERCEL"):
+        provision()
     context = ctx or build_context()
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH_BYTES

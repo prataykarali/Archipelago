@@ -1,7 +1,6 @@
 """Librarian intake: mention-a-book, page-image prefill, spreadsheet idempotency."""
-from __future__ import annotations
 
-import io
+from __future__ import annotations
 
 import pytest
 
@@ -9,6 +8,7 @@ pytestmark = pytest.mark.unit
 
 
 # ── Mention-a-book ───────────────────────────────────────────────────────────
+
 
 def test_mention_resolves_known_title_to_exact_source():
     from archipelago.ingestion.mention import mention_book
@@ -21,7 +21,9 @@ def test_mention_resolves_known_title_to_exact_source():
     assert top.source_url.startswith(
         "https://huggingface.co/datasets/Prataykarali/Library_books/blob/main/"
     )
-    assert top.source_url.rstrip("/") != "https://huggingface.co/datasets/Prataykarali/Library_books"
+    assert (
+        top.source_url.rstrip("/") != "https://huggingface.co/datasets/Prataykarali/Library_books"
+    )
 
 
 def test_mention_resolves_isbn_exactly():
@@ -95,6 +97,7 @@ def test_exact_isbn_match_is_trusted():
 
 
 # ── Page image / page text extraction ────────────────────────────────────────
+
 
 def _toc_page_text() -> str:
     return (
@@ -173,6 +176,7 @@ def test_prefill_flags_untrusted_top_match():
 
 # ── Spreadsheet merge ────────────────────────────────────────────────────────
 
+
 def test_column_aliases_map_to_canonical_fields():
     from archipelago.ingestion.spreadsheet import map_columns
 
@@ -249,12 +253,13 @@ def test_retire_is_opt_in(tmp_path):
         encoding="utf-8",
     )
     default_plan = plan_merge(sheet, retire_missing=False)
-    assert default_plan.counts()[  "RETIRE"] == 0, "partial exports must never retire"
+    assert default_plan.counts()["RETIRE"] == 0, "partial exports must never retire"
     opted_in = plan_merge(sheet, retire_missing=True)
     assert opted_in.counts()["CREATE"] == 1
 
 
 # ── Intake routes ────────────────────────────────────────────────────────────
+
 
 @pytest.fixture()
 def librarian_client(monkeypatch):
@@ -265,11 +270,13 @@ def librarian_client(monkeypatch):
     app = create_app()
     app.config["TESTING"] = True
     with app.test_client() as client:
-        client.environ_base.update({
-            "HTTP_X_USER_ROLE": "librarian",
-            "HTTP_X_USER_NAME": "lib",
-            "HTTP_X_USER_ID": "local-librarian-id",
-        })
+        client.environ_base.update(
+            {
+                "HTTP_X_USER_ROLE": "librarian",
+                "HTTP_X_USER_NAME": "lib",
+                "HTTP_X_USER_ID": "local-librarian-id",
+            }
+        )
         yield client
 
 
@@ -283,7 +290,9 @@ def test_intake_capabilities_advertises_helpers(librarian_client):
 
 
 def test_mention_route_returns_prefill(librarian_client):
-    response = librarian_client.post("/api/ingest/mention", json={"query": "Attention Is All You Need"})
+    response = librarian_client.post(
+        "/api/ingest/mention", json={"query": "Attention Is All You Need"}
+    )
     assert response.status_code == 200
     body = response.get_json()
     assert body["found"] is True
@@ -306,7 +315,9 @@ def test_page_text_route_prefills_fields(librarian_client):
 
 
 def test_page_image_route_rejects_missing_file(librarian_client):
-    response = librarian_client.post("/api/ingest/page-image", data={}, content_type="multipart/form-data")
+    response = librarian_client.post(
+        "/api/ingest/page-image", data={}, content_type="multipart/form-data"
+    )
     assert response.status_code == 400
     assert "accepted_formats" in response.get_json()
 

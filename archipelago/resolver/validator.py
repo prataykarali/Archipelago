@@ -1,16 +1,18 @@
 """HTTP URL Validator with SSRF Protection, HEAD, and streaming GET fallback."""
+
 from __future__ import annotations
 
 import datetime
 import ipaddress
 import logging
-import re
 from typing import Any
 from urllib.parse import urlparse
+
 import requests
 
 try:
     import httpx
+
     _HAS_HTTPX = True
 except ImportError:
     _HAS_HTTPX = False
@@ -59,8 +61,8 @@ def is_safe_url(url: str) -> tuple[bool, str | None]:
 
 def check_url_sync(url: str, timeout: float = 8.0) -> dict[str, Any]:
     """Validate a URL synchronously using HEAD with GET stream fallback."""
-    now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    
+    now_str = datetime.datetime.now(datetime.UTC).isoformat()
+
     is_safe, error_msg = is_safe_url(url)
     if not is_safe:
         return {
@@ -75,7 +77,7 @@ def check_url_sync(url: str, timeout: float = 8.0) -> dict[str, Any]:
     headers = {
         "User-Agent": "Mozilla/5.0 (Archipelago Library Resolver/1.0; +https://archipelago.invalid)"
     }
-    
+
     # 1. Try HEAD request first
     try:
         resp = requests.head(url, allow_redirects=True, timeout=timeout, headers=headers)
@@ -94,7 +96,9 @@ def check_url_sync(url: str, timeout: float = 8.0) -> dict[str, Any]:
 
     # 2. Streaming GET fallback (for publishers/CDNs that reject HEAD)
     try:
-        resp = requests.get(url, allow_redirects=True, stream=True, timeout=timeout, headers=headers)
+        resp = requests.get(
+            url, allow_redirects=True, stream=True, timeout=timeout, headers=headers
+        )
         status_code = resp.status_code
         final_url = str(resp.url)
         try:
@@ -126,7 +130,7 @@ def check_url_sync(url: str, timeout: float = 8.0) -> dict[str, Any]:
 
 async def check_url_async(url: str, timeout: float = 8.0) -> dict[str, Any]:
     """Validate a URL asynchronously using httpx."""
-    now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    now_str = datetime.datetime.now(datetime.UTC).isoformat()
 
     is_safe, error_msg = is_safe_url(url)
     if not is_safe:
@@ -144,7 +148,9 @@ async def check_url_async(url: str, timeout: float = 8.0) -> dict[str, Any]:
             "User-Agent": "Mozilla/5.0 (Archipelago Library Resolver/1.0; +https://archipelago.invalid)"
         }
         try:
-            async with httpx.AsyncClient(follow_redirects=True, timeout=timeout, headers=headers) as client:
+            async with httpx.AsyncClient(
+                follow_redirects=True, timeout=timeout, headers=headers
+            ) as client:
                 try:
                     resp = await client.head(url)
                     if resp.status_code < 400:
@@ -168,7 +174,9 @@ async def check_url_async(url: str, timeout: float = 8.0) -> dict[str, Any]:
                         "final_url": str(resp.url),
                         "working": resp.status_code < 400,
                         "redirected": str(resp.url).rstrip("/") != url.rstrip("/"),
-                        "error": None if resp.status_code < 400 else f"HTTP Status {resp.status_code}",
+                        "error": None
+                        if resp.status_code < 400
+                        else f"HTTP Status {resp.status_code}",
                         "checked_at": now_str,
                     }
         except Exception as exc:

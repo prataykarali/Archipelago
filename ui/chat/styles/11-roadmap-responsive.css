@@ -1,0 +1,60 @@
+html,
+body {
+    overflow-x: clip;
+}
+
+.personalized-graph-card-wrapper,
+.personalized-graph-card-wrapper .concept-visualize-card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.personalized-graph-card-wrapper .scrollable-graph-container {
+    touch-action: pan-x;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+}
+
+.personalized-graph-card-wrapper [id^="pers-insp-citation-"] {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+    #app-body > .side-panel.panel-closed {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    #app-header {
+        padding-inline: 0.5rem !important;
+        gap: 0.25rem !important;
+    }
+
+    #app-header > .flex.items-center.gap-2:last-child {
+        gap: 0.125rem;
+        min-width: 0;
+    }
+
+    #app-header .w-10.h-10 {
+        width: 2.15rem;
+        height: 2.15rem;
+        flex-shrink: 0;
+    }
+
+    #app-header #connection-status {
+        padding-inline: 0.25rem;
+    }
+
+    .personalized-graph-card-wrapper .concept-visualize-card > div {
+        padding-inline: 0.75rem;
+    }
+
+    .personalized-graph-card-wrapper .scrollable-graph-container {
+        height: 16rem;
+    }
+
+    .personalized-graph-card-wrapper [id^="pers-inspector-"] {
+        align-items: stretch;
+    }
+}

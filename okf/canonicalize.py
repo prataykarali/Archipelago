@@ -1,6 +1,7 @@
 """Concept name canonicalization: alias resolution and fuzzy merging."""
 
 import re
+from typing import Any
 
 try:
     from thefuzz import fuzz as _fuzz
@@ -46,8 +47,13 @@ ALIAS_MAP = {
 # "Transformer Architecture" must merge into one node or edges land on a
 # placeholder split from the sourced concept.
 _GENERIC_SUFFIXES = (
-    "architecture", "mechanism", "method", "methods",
-    "technique", "techniques", "search",
+    "architecture",
+    "mechanism",
+    "method",
+    "methods",
+    "technique",
+    "techniques",
+    "search",
 )
 
 
@@ -78,7 +84,7 @@ def canonicalize_name(name: str) -> str:
     # Collapse snake_case / underscores the SLM sometimes emits so
     # "my_concept_name" merges with "My Concept Name".
     name = name.replace("_", " ")
-    name = re.sub(r'\s+', ' ', name).strip()
+    name = re.sub(r"\s+", " ", name).strip()
 
     # Remove trailing periods
     name = name.rstrip(".")
@@ -89,7 +95,7 @@ def canonicalize_name(name: str) -> str:
         return ALIAS_MAP[name_lower]
 
     # Remove short parenthetical abbreviations: "Some Concept (SC)" → "Some Concept"
-    name = re.sub(r'\s*\([^)]{1,10}\)\s*$', '', name)
+    name = re.sub(r"\s*\([^)]{1,10}\)\s*$", "", name)
 
     # If it's a full sentence (has a verb-like pattern), truncate
     if len(name) > 60:
@@ -103,15 +109,13 @@ def canonicalize_name(name: str) -> str:
     # Title case — but leave short all-caps acronyms (GPT, BERT, LSTM) alone
     # so they don't become "Gpt"/"Bert".
     name = name.strip()
-    if name == name.lower():
-        name = name.title()
-    elif name == name.upper() and len(name) > 5:
+    if name == name.lower() or (name == name.upper() and len(name) > 5):
         name = name.title()
 
     return name
 
 
-def build_canonical_map(okf_results: list) -> dict:
+def build_canonical_map(okf_results: list[dict[str, Any]]) -> dict[str, str]:
     """
     Build a mapping from raw concept names → canonical names.
     Deduplicates similar concepts via fuzzy matching.
@@ -134,11 +138,9 @@ def build_canonical_map(okf_results: list) -> dict:
     # Canonicalize all names
     canon_map = {}
     canonical_set = {}  # canonical_lower → canonical
-    merge_keys = {}  # merge key (suffix-stripped, depluralized) → canonical
+    merge_keys: dict[str, str] = {}  # merge key (suffix-stripped, depluralized) → canonical
 
     for raw in sorted(raw_names, key=lambda n: len(canonicalize_name(n))):
-        if not raw:
-            continue
         canon = canonicalize_name(raw)
         canon_lower = canon.lower()
 
@@ -191,7 +193,9 @@ def build_canonical_map(okf_results: list) -> dict:
     return canon_map
 
 
-def apply_canonicalization(okf_results: list, canon_map: dict) -> list:
+def apply_canonicalization(
+    okf_results: list[dict[str, Any]], canon_map: dict[str, str]
+) -> list[dict[str, Any]]:
     """Apply canonical name mapping to all concept references in OKF results."""
     for result in okf_results:
         raw_name = result.get("concept_name", "")

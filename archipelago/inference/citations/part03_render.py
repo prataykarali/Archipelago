@@ -7,6 +7,7 @@ import re as _re
 from archipelago.inference import state as st
 from archipelago.inference.aliases import page_view_markdown_link
 from archipelago.inference.citations.part01_evidence import _page_display
+from archipelago.inference.evidence_contract import evidence_record
 
 
 def compile_narrative_recipe(query, target_concept, prereqs, unlocks, citations):
@@ -109,11 +110,11 @@ def render_citation_from_payload(payload):
     This is the ONLY place a bracket shown to the user is built at synthesis
     time — the generator never writes doc names or page numbers itself.
     """
-    eid = payload.get("evidence_id") or "S?"
-    topic = payload.get("topic") or ""
-    doc_id = payload.get("doc_id") or "Unknown document"
-    printed = payload.get("printed_page")
-    page_number = payload.get("page_number")
+    record = evidence_record(payload)
+    eid = record.get("evidence_id") or "S?"
+    title = record.get("title") or record.get("doc_id") or "Source"
+    printed = record.get("printed_page")
+    page_number = record.get("page_number")
     if printed is not None:
         page_disp = f"p.{printed}"
     elif isinstance(page_number, int) and page_number > 0:
@@ -121,22 +122,9 @@ def render_citation_from_payload(payload):
     else:
         page_disp = ""
     page_suffix = f", {page_disp}" if page_disp else ""
-    base = f"[{eid}: {topic} | {doc_id}{page_suffix}]"
-    url = payload.get("url")
-    if not url and doc_id:
-        from urllib.parse import quote
-
-        url = f"/api/page-view?doc_id={quote(doc_id, safe='')}"
-        if isinstance(page_number, int) and page_number > 0:
-            url += f"&page={page_number}"
-        if topic:
-            url += f"&highlight={quote(topic, safe='')}"
-        if isinstance(page_number, int) and page_number > 0:
-            url += f"#page={page_number}"
-
-    if url and page_disp:
-        return f"{base} ([{page_disp}]({url}))"
-    return base
+    base = f"[{eid}: {title}{page_suffix}]"
+    url = record.get("url")
+    return f"{base}({url})" if url else base
 
 
 _MARKER_WITH_TAIL_RE = None  # compiled lazily in cleanse_model_citations
@@ -200,9 +188,14 @@ def cleanse_model_citations(text, citation_payloads):
     cleansed = _re.sub(r"[ \t]{2,}", " ", cleansed)
 
     # 5. Provenance guarantee: no inline citation survived → Sources footer.
-    if seen_inline == 0 and payloads:
+    if payloads:
         lines = ["", "**Sources:**"]
-        for p in payloads[:4]:
+        seen_sources = set()
+        for p in payloads:
+            key = (p.get("doc_id"), p.get("page_number"), p.get("url"), p.get("doi"))
+            if key in seen_sources:
+                continue
+            seen_sources.add(key)
             lines.append(f"- {render_citation_from_payload(p)}")
         cleansed = cleansed.rstrip() + "\n" + "\n".join(lines)
     return cleansed

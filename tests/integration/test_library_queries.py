@@ -1,9 +1,11 @@
 import json
+
 import pytest
-import kuzu
+
 import archipelago.inference.state as inference_server
 
 pytestmark = pytest.mark.integration
+
 
 def _stream_parts(response):
     body = response.get_data(as_text=True)
@@ -12,37 +14,30 @@ def _stream_parts(response):
         return json.loads(metadata), text
     return {}, body
 
+
 @pytest.fixture(autouse=True)
 def mock_ollama_for_library(monkeypatch):
     class MockOllamaClient:
         def __init__(self, host=None):
             pass
+
         def list(self):
-            return {'models': [{'name': 'qwen3.5:0.8b'}]}
+            return {"models": [{"name": "qwen3.5:0.8b"}]}
+
         def chat(self, model, messages, tools=None, options=None, think=None):
             user_msg = messages[-1]["content"] if messages else ""
             user_msg_lower = user_msg.lower()
-            
+
             # If it's about astronomy or stars, return "no" (out of scope)
             if "astronomy" in user_msg_lower or "stars" in user_msg_lower:
-                return {
-                    'message': {
-                        'role': 'assistant',
-                        'content': 'no',
-                        'tool_calls': []
-                    }
-                }
+                return {"message": {"role": "assistant", "content": "no", "tool_calls": []}}
             # Otherwise return "yes" or default mock content
-            return {
-                'message': {
-                    'role': 'assistant',
-                    'content': 'yes',
-                    'tool_calls': []
-                }
-            }
-            
+            return {"message": {"role": "assistant", "content": "yes", "tool_calls": []}}
+
     import ollama
+
     monkeypatch.setattr(ollama, "Client", MockOllamaClient)
+
 
 @pytest.fixture
 def library_setup(tmp_kuzu_db):
@@ -51,11 +46,12 @@ def library_setup(tmp_kuzu_db):
     Also updates inference_server.CONCEPTS_DATA.
     """
     conn = tmp_kuzu_db
-    
+
     import okf.graph_db as graph_db
+
     old_conn = graph_db._DEFAULT_CONN
     graph_db.set_default_connection(conn)
-    
+
     try:
         conn.execute("DROP TABLE HAS_CHUNK")
         conn.execute("DROP TABLE MENTIONS")
@@ -63,7 +59,7 @@ def library_setup(tmp_kuzu_db):
         conn.execute("DROP TABLE Document")
     except Exception:
         pass
-        
+
     conn.execute("""
         CREATE NODE TABLE Document (
             id STRING PRIMARY KEY,
@@ -91,11 +87,15 @@ def library_setup(tmp_kuzu_db):
     """)
     conn.execute("CREATE REL TABLE HAS_CHUNK (FROM Document TO Chunk)")
     conn.execute("CREATE REL TABLE MENTIONS (FROM Chunk TO Concept)")
-    
+
     # 1. Create Documents
-    conn.execute("MERGE (d:Document {id: 'lora_paper.pdf', title: 'Low-Rank Adaptation of Large Language Models'})")
-    conn.execute("MERGE (d:Document {id: 'attention_paper.pdf', title: 'Attention Is All You Need'})")
-    
+    conn.execute(
+        "MERGE (d:Document {id: 'lora_paper.pdf', title: 'Low-Rank Adaptation of Large Language Models'})"
+    )
+    conn.execute(
+        "MERGE (d:Document {id: 'attention_paper.pdf', title: 'Attention Is All You Need'})"
+    )
+
     # 2. Create Chunks
     conn.execute("""
         CREATE (c1:Chunk {
@@ -127,7 +127,7 @@ def library_setup(tmp_kuzu_db):
             block_h: 20.0
         })
     """)
-    
+
     # 3. Create Concepts
     conn.execute("""
         CREATE (c3:Concept {
@@ -147,15 +147,23 @@ def library_setup(tmp_kuzu_db):
             summary: 'Adapting pretrained models on downstream tasks.'
         })
     """)
-    
+
     # 4. Link Chunk -> Document
-    conn.execute("MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper_chunk_001'}) CREATE (d)-[:HAS_CHUNK]->(c)")
-    conn.execute("MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper_chunk_002'}) CREATE (d)-[:HAS_CHUNK]->(c)")
-    
+    conn.execute(
+        "MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper_chunk_001'}) CREATE (d)-[:HAS_CHUNK]->(c)"
+    )
+    conn.execute(
+        "MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper_chunk_002'}) CREATE (d)-[:HAS_CHUNK]->(c)"
+    )
+
     # 5. Link Chunk -> Concept
-    conn.execute("MATCH (c:Chunk {id: 'lora_paper_chunk_001'}), (co:Concept {id: 'low_rank_adaptation'}) CREATE (c)-[:MENTIONS]->(co)")
-    conn.execute("MATCH (c:Chunk {id: 'lora_paper_chunk_002'}), (co:Concept {id: 'fine_tuning'}) CREATE (c)-[:MENTIONS]->(co)")
-    
+    conn.execute(
+        "MATCH (c:Chunk {id: 'lora_paper_chunk_001'}), (co:Concept {id: 'low_rank_adaptation'}) CREATE (c)-[:MENTIONS]->(co)"
+    )
+    conn.execute(
+        "MATCH (c:Chunk {id: 'lora_paper_chunk_002'}), (co:Concept {id: 'fine_tuning'}) CREATE (c)-[:MENTIONS]->(co)"
+    )
+
     # Update inference_server CONCEPTS_DATA
     old_concepts = dict(inference_server.CONCEPTS_DATA)
     inference_server.CONCEPTS_DATA["low_rank_adaptation"] = {
@@ -164,7 +172,7 @@ def library_setup(tmp_kuzu_db):
         "name": "Low-Rank Adaptation",
         "concept_type": "definition",
         "difficulty": "intermediate",
-        "summary": "Parameter-efficient fine-tuning technique using low-rank updates."
+        "summary": "Parameter-efficient fine-tuning technique using low-rank updates.",
     }
     inference_server.CONCEPTS_DATA["fine_tuning"] = {
         "id": "fine_tuning",
@@ -172,13 +180,14 @@ def library_setup(tmp_kuzu_db):
         "name": "Fine-Tuning",
         "concept_type": "definition",
         "difficulty": "intermediate",
-        "summary": "Adapting pretrained models on downstream tasks."
+        "summary": "Adapting pretrained models on downstream tasks.",
     }
-    
+
     yield conn
-    
+
     inference_server.CONCEPTS_DATA = old_concepts
     graph_db._DEFAULT_CONN = old_conn
+
 
 def test_astronomy_out_of_scope(flask_test_client, library_setup):
     """
@@ -193,17 +202,23 @@ def test_astronomy_out_of_scope(flask_test_client, library_setup):
     assert response.status_code == 200
     metadata, text = _stream_parts(response)
     from archipelago.inference.scope_gate import OUT_OF_SCOPE_MESSAGE
+
     assert OUT_OF_SCOPE_MESSAGE.split(".")[0] in text.strip()
     assert metadata["routing"]["route"] == "out_of_scope"
 
     # 2. General non-CS question outside library scope
     response2 = flask_test_client.post(
         "/api/chat",
-        json={"query": "how do stars form in astronomy", "mode": "rag_synthesis", "synthesis": False},
+        json={
+            "query": "how do stars form in astronomy",
+            "mode": "rag_synthesis",
+            "synthesis": False,
+        },
     )
     assert response2.status_code == 200
     _, text2 = _stream_parts(response2)
     assert OUT_OF_SCOPE_MESSAGE.split(".")[0] in text2.strip()
+
 
 def test_suggest_books_for_topic(flask_test_client, library_setup):
     """
@@ -223,6 +238,7 @@ def test_suggest_books_for_topic(flask_test_client, library_setup):
         assert "Hu2021_LoRA.pdf" in text or "lora" in text.lower()
         assert "Low-Rank Adaptation" in text
 
+
 def test_book_chapters_list(flask_test_client, library_setup):
     """
     Verify that "what are the chapters of lora_paper" triggers
@@ -230,13 +246,18 @@ def test_book_chapters_list(flask_test_client, library_setup):
     """
     response = flask_test_client.post(
         "/api/chat",
-        json={"query": "what are the chapters of lora_paper", "mode": "rag_synthesis", "synthesis": False},
+        json={
+            "query": "what are the chapters of lora_paper",
+            "mode": "rag_synthesis",
+            "synthesis": False,
+        },
     )
     assert response.status_code == 200
     metadata, text = _stream_parts(response)
     assert metadata["routing"]["route"] == "library_chapters"
     assert "Problem Statement" in text or "Low-Rank" in text
     assert "page 1" in text.lower() or "page 2" in text.lower()
+
 
 def test_chapter_lookup_discussing_concept(flask_test_client, library_setup):
     """
@@ -245,7 +266,11 @@ def test_chapter_lookup_discussing_concept(flask_test_client, library_setup):
     """
     response = flask_test_client.post(
         "/api/chat",
-        json={"query": "which chapter of lora_paper discusses Fine-Tuning", "mode": "rag_synthesis", "synthesis": False},
+        json={
+            "query": "which chapter of lora_paper discusses Fine-Tuning",
+            "mode": "rag_synthesis",
+            "synthesis": False,
+        },
     )
     assert response.status_code == 200
     metadata, text = _stream_parts(response)

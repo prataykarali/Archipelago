@@ -3,14 +3,13 @@
 Monitors data/catalogs/ and data/koha/ for new/modified files and
 enqueues ingestion jobs via the IngestionWorker pipeline.
 """
+
 from __future__ import annotations
 
 import logging
-import os
-import time
-import threading
 from pathlib import Path
-from typing import Dict, Optional, Set, TYPE_CHECKING
+import threading
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ingestion_jobs import JobStore
@@ -39,21 +38,21 @@ class OKFWatcher(threading.Thread):
 
     def __init__(
         self,
-        job_store: "JobStore",
-        worker: "IngestionWorker",
+        job_store: JobStore,
+        worker: IngestionWorker,
         poll_interval: float = DEFAULT_POLL_INTERVAL,
     ):
         super().__init__(daemon=True, name="OKFWatcher")
         self.job_store = job_store
         self.worker = worker
         self.poll_interval = poll_interval
-        self.file_mtimes: Dict[Path, float] = {}
+        self.file_mtimes: dict[Path, float] = {}
         self._stop_event = threading.Event()
         self._initial_scan()
 
-    def _get_watchable_files(self) -> Set[Path]:
+    def _get_watchable_files(self) -> set[Path]:
         """Scan watched directories for supported file types."""
-        files: Set[Path] = set()
+        files: set[Path] = set()
         for wdir in WATCH_DIRS:
             if not wdir.is_dir():
                 continue
@@ -103,10 +102,7 @@ class OKFWatcher(threading.Thread):
                     try:
                         mtime = fpath.stat().st_mtime
                         last_mtime = self.file_mtimes.get(fpath)
-                        if last_mtime is None:
-                            self.file_mtimes[fpath] = mtime
-                            self._enqueue_file(fpath)
-                        elif mtime > last_mtime:
+                        if last_mtime is None or mtime > last_mtime:
                             self.file_mtimes[fpath] = mtime
                             self._enqueue_file(fpath)
                     except OSError:
@@ -126,10 +122,12 @@ class OKFWatcher(threading.Thread):
         self._stop_event.set()
 
 
-_WATCHER_INSTANCE: Optional[OKFWatcher] = None
+_WATCHER_INSTANCE: OKFWatcher | None = None
 
 
-def start_watcher(job_store: "JobStore", worker: "IngestionWorker", poll_interval: float = DEFAULT_POLL_INTERVAL) -> OKFWatcher:
+def start_watcher(
+    job_store: JobStore, worker: IngestionWorker, poll_interval: float = DEFAULT_POLL_INTERVAL
+) -> OKFWatcher:
     """Boot the OKF Watcher as a background daemon thread."""
     global _WATCHER_INSTANCE
     if _WATCHER_INSTANCE is None or not _WATCHER_INSTANCE.is_alive():
@@ -139,16 +137,18 @@ def start_watcher(job_store: "JobStore", worker: "IngestionWorker", poll_interva
     return _WATCHER_INSTANCE
 
 
-def start_okf_watcher(job_store=None, worker=None, poll_interval: float = DEFAULT_POLL_INTERVAL) -> Optional[OKFWatcher]:
+def start_okf_watcher(
+    job_store=None, worker=None, poll_interval: float = DEFAULT_POLL_INTERVAL
+) -> OKFWatcher | None:
     """Convenience helper to boot watcher with default JobStore and IngestionWorker."""
     if job_store is None or worker is None:
         try:
             from archipelago.ingestion.ingestion_jobs import JobStore
             from archipelago.ingestion.ingestion_worker import IngestionWorker
+
             job_store = job_store or JobStore()
             worker = worker or IngestionWorker(job_store)
         except Exception as err:
             logger.debug("OKF Watcher dependencies not available: %s", err)
             return None
     return start_watcher(job_store, worker, poll_interval)
-

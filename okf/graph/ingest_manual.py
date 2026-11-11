@@ -3,11 +3,9 @@
 Split out of ``okf/graph/ingest.py`` so every module stays under 400 lines.
 Behaviour is unchanged; ``okf.graph.ingest`` re-exports these names.
 """
+
 from __future__ import annotations
 
-import logging
-
-from okf.cleanup import is_valid_concept_name
 from okf.graph.common import _kuzu_escape, logger
 from okf.graph.export import enforce_dag
 from okf.util import create_concept_id
@@ -66,7 +64,9 @@ def ensure_concept(
     return concept_id
 
 
-def create_edge(conn, from_id: str, to_id: str, relation: str, source: str = "manual:librarian") -> bool:
+def create_edge(
+    conn, from_id: str, to_id: str, relation: str, source: str = "manual:librarian"
+) -> bool:
     """Create a structural edge between two concepts.
 
     ``relation`` is a librarian-facing name (requires/enables/uses/…).

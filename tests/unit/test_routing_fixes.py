@@ -3,6 +3,7 @@
 Covers: soft-reject dual gate, surface hits (RAG/RAGS), onboarding/identity,
 query normalization, book pedagogy ranking helpers, prereq plausibility.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -13,18 +14,21 @@ pytestmark = pytest.mark.unit
 @pytest.fixture
 def ranking_mod():
     from archipelago.inference import ranking as r
+
     return r
 
 
 @pytest.fixture
 def routing_mod():
     from archipelago.inference import routing as r
+
     return r
 
 
 @pytest.fixture
 def scope_mod():
     from archipelago.inference import scope_gate as s
+
     return s
 
 
@@ -148,9 +152,10 @@ def test_rags_not_hard_rejected(routing_mod, fake_concepts, monkeypatch):
         "retrieval_augmented_generation",
         "vector_rag",
         None,
-    ) or (r.get("related") and r["related"][0]["id"] in (
-        "retrieval_augmented_generation", "vector_rag"
-    ))
+    ) or (
+        r.get("related")
+        and r["related"][0]["id"] in ("retrieval_augmented_generation", "vector_rag")
+    )
 
 
 def test_surface_hit_helper(routing_mod, fake_concepts):
@@ -165,11 +170,22 @@ def test_surface_hit_helper(routing_mod, fake_concepts):
         }
     ]
     assert routing_mod._has_surface_concept_hit(ranked, "various sorts of RAGS") is True
-    assert routing_mod._has_surface_concept_hit(
-        [{"id": "weather_node", "label": "Weather", "cos": 0.1, "lexical": 0.05,
-          "alias_boost": 0.0, "core_boost": 0.0}],
-        "quantum cooking recipes",
-    ) is False
+    assert (
+        routing_mod._has_surface_concept_hit(
+            [
+                {
+                    "id": "weather_node",
+                    "label": "Weather",
+                    "cos": 0.1,
+                    "lexical": 0.05,
+                    "alias_boost": 0.0,
+                    "core_boost": 0.0,
+                }
+            ],
+            "quantum cooking recipes",
+        )
+        is False
+    )
 
 
 def test_hard_reject_only_on_true_miss(routing_mod, fake_concepts, monkeypatch):
@@ -255,7 +271,7 @@ def test_scope_domain_terms_skip_llm(scope_mod, monkeypatch):
 
 def test_prereq_plausibility():
     from archipelago.inference import state as st
-    from archipelago.inference.neighborhood import is_plausible_prereq, filter_prereqs
+    from archipelago.inference.neighborhood import filter_prereqs, is_plausible_prereq
 
     old = dict(st.CONCEPTS_DATA)
     try:
@@ -302,18 +318,26 @@ def test_rank_prefers_rag_for_rags_query(ranking_mod, fake_concepts):
 
 def test_conversational_memory_expansion(fake_concepts):
     from archipelago.inference.routing import resolve_query_routing
+
     history = [
         {"role": "user", "content": "Explain RAG to me"},
-        {"role": "assistant", "content": "Retrieval-Augmented Generation retrieves context and generates text."}
+        {
+            "role": "assistant",
+            "content": "Retrieval-Augmented Generation retrieves context and generates text.",
+        },
     ]
     # "before starting it" on its own would get rejected, but with memory it resolves to vector_rag or retrieval_augmented_generation
     r = resolve_query_routing("what do I need to know before starting it?", history=history)
     assert r["route"] in ("graph_strong", "graph_soft", "low_similarity_reject")
-    assert r["anchor_id"] in ("vector_rag", "retrieval_augmented_generation") or len(r.get("related", [])) > 0
+    assert (
+        r["anchor_id"] in ("vector_rag", "retrieval_augmented_generation")
+        or len(r.get("related", [])) > 0
+    )
 
 
 def test_semantic_safety_net_ood_override(fake_concepts):
     from archipelago.inference.routing import resolve_query_routing
+
     # "what are diffusion models" is a domain term query but not in graph. Without safety net it might be out_of_scope.
     # With safety net, it must be overridden to low_similarity_reject.
     r = resolve_query_routing("what are diffusion models?")

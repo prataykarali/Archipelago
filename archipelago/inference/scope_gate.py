@@ -3,12 +3,11 @@
 Uses ARCHIPELAGO_OLLAMA_MODEL for a tiny yes/no classify. Never loads the
 ingestion/extraction model (aura-qwen). Keywords are assistive only.
 """
+
 from __future__ import annotations
 
-import re
 from collections import OrderedDict
-
-from archipelago.inference import state as st
+import re
 
 # Three generic refusals only — intent_gate chooses which bucket, not keywords.
 # Contract pins (test_grounded_fallback, test_inference_75_cases,
@@ -88,16 +87,19 @@ def check_aiml_scope_via_llm(query: str) -> bool | None:
     try:
         from archipelago.inference.llm_gateway import gateway_chat
 
-        ans = gateway_chat(
-            messages=[
-                {"role": "system", "content": _SCOPE_SYSTEM},
-                {"role": "user", "content": query},
-            ],
-            purpose="routing",
-            temperature=0.0,
-            max_tokens=8,
-            timeout=8,
-        ) or ""
+        ans = (
+            gateway_chat(
+                messages=[
+                    {"role": "system", "content": _SCOPE_SYSTEM},
+                    {"role": "user", "content": query},
+                ],
+                purpose="routing",
+                temperature=0.0,
+                max_tokens=8,
+                timeout=8,
+            )
+            or ""
+        )
         parsed = parse_scope_answer(ans)
         if parsed is None:
             return None
@@ -122,16 +124,19 @@ def check_library_scope_via_llm(query: str) -> bool | None:
     try:
         from archipelago.inference.llm_gateway import gateway_chat
 
-        ans = gateway_chat(
-            messages=[
-                {"role": "system", "content": _LIBRARY_SCOPE_SYSTEM},
-                {"role": "user", "content": query},
-            ],
-            purpose="routing",
-            temperature=0.0,
-            max_tokens=8,
-            timeout=8,
-        ) or ""
+        ans = (
+            gateway_chat(
+                messages=[
+                    {"role": "system", "content": _LIBRARY_SCOPE_SYSTEM},
+                    {"role": "user", "content": query},
+                ],
+                purpose="routing",
+                temperature=0.0,
+                max_tokens=8,
+                timeout=8,
+            )
+            or ""
+        )
         parsed = parse_scope_answer(ans)
         if parsed is None:
             return None
@@ -185,14 +190,16 @@ def is_aiml_in_scope(
     if best_lex >= 0.70 or best_cos >= 0.70:
         return True, "strong_graph_match"
 
-
     if offtopic_keyword and not has_domain_terms:
         return False, "offtopic_keyword"
 
-    is_study_intent = bool(re.search(
-        r"\b(learn|study|syllabus|curriculum|course|prereq|understand|wanna|want\s+to|explain)\b",
-        query, re.I
-    ))
+    is_study_intent = bool(
+        re.search(
+            r"\b(learn|study|syllabus|curriculum|course|prereq|understand|wanna|want\s+to|explain)\b",
+            query,
+            re.I,
+        )
+    )
 
     # Fast reject completely off-topic queries with no domain signals to avoid brittle LLM calls
     if (
@@ -213,11 +220,7 @@ def is_aiml_in_scope(
         return True, "domain_terms_present"
 
     # High confidence concept hit without calling LLM
-    if (
-        not force_llm
-        and has_domain_terms
-        and (best_cos >= 0.40 or best_lex >= 0.45)
-    ):
+    if not force_llm and has_domain_terms and (best_cos >= 0.40 or best_lex >= 0.45):
         return True, "domain_signal_fast_path"
 
     if not force_llm and has_domain_terms and best_cos >= 0.28:
@@ -225,13 +228,15 @@ def is_aiml_in_scope(
 
     # Learning intents without clear offtopic markers: prefer in-scope
     # (router can still soft-chat if graph is empty)
-    if learning_intent and not offtopic_keyword and not force_llm:
-        if is_study_intent or has_domain_terms:
-            return True, "learning_intent_open"
+    if (
+        learning_intent
+        and not offtopic_keyword
+        and not force_llm
+        and (is_study_intent or has_domain_terms)
+    ):
+        return True, "learning_intent_open"
 
-    needs_llm = force_llm or (
-        not has_domain_terms and best_cos < 0.48 and best_lex < 0.45
-    )
+    needs_llm = force_llm or (not has_domain_terms and best_cos < 0.48 and best_lex < 0.45)
     if not needs_llm and has_domain_terms:
         return True, "domain_terms_present"
 

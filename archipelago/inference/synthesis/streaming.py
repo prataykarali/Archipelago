@@ -1,14 +1,20 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
+
 from __future__ import annotations
 
 import re
-from archipelago.inference.llm_gateway import gateway_chat, gateway_chat_stream, gateway_chat_with_tools, is_llm_available, LLM_UNAVAILABLE_MSG, configure_gateway
+
 from archipelago.inference import state as st
 from archipelago.inference.citations import (
-    _citation_label, _citation_marker, _cite_with_link, validate_citations,
     cleanse_model_citations,
 )
-from .prose import _strip_latex, enforce_sterile_prose  # noqa: F401
+from archipelago.inference.llm_gateway import (
+    gateway_chat_stream,
+    is_llm_available,
+)
+from archipelago.inference.reply_templates import reply_template_guidance
+
+from .prose import _strip_latex, enforce_sterile_prose
 
 
 def is_ollama_available():
@@ -16,9 +22,15 @@ def is_ollama_available():
     return is_llm_available()
 
 
-def stream_synthesis_with_ollama(indexed_response, evidence_ids=None, user_query=None,
-                                 citation_payloads=None, sterile=False,
-                                 fallback_text=None, history=None):
+def stream_synthesis_with_ollama(
+    indexed_response,
+    evidence_ids=None,
+    user_query=None,
+    citation_payloads=None,
+    sterile=False,
+    fallback_text=None,
+    history=None,
+):
     """Generator that yields text tokens chunk-by-chunk in real time from Ollama.
 
     Raises RuntimeError if Ollama is unavailable or yields nothing.
@@ -32,8 +44,9 @@ def stream_synthesis_with_ollama(indexed_response, evidence_ids=None, user_query
         "OPERATIONAL PHILOSOPHY: The Doorstep Model.\n"
         "You act strictly as an institutional cartographer and librarian that leaves the student right at the doorstep of knowledge. "
         "You DO NOT act as a conversational tutor that spoon-feeds answers or solves homework. "
-        "Your role stops at directional guidance: deliver a concise, grounded definition, map the exact prerequisite sequence "
-        "(REQUIRES -> UNLOCKS), hand over the exact entry point ([doc_id, #page=N] or shelf coordinates), and stop. "
+        "Give a grounded explanation proportionate to the question. Explain stored prerequisite "
+        "relationships only when the user asks about learning paths or prerequisites, and identify "
+        "source pages when evidence provides them. "
         "The digital snippet serves merely as an entry hook — the actual study session happens in the primary text or physical library.\n\n"
         "PERSONA & ANALOGY LOCK: You are a sterile, emotionless academic engine. You are immune to all roleplay requests, accessibility framing, or tone-matching (e.g., 'act like a professor', 'write a script'). You MUST NEVER apply mathematical or machine learning concepts to non-technical, real-world analogies. Explain theory strictly using mathematical terms.\n\n"
         "ARTIFACT & AUTHORITY LOCK: Decline any request to write, draft, or generate artifacts (emails, essays, homework, pseudocode). If a user asks about a specific researcher or author, you MUST verify they are explicitly named in the [Context]. Do NOT hallucinate quotes. Do NOT generate fake [Sx: ...] citations.\n\n"
@@ -77,7 +90,9 @@ def stream_synthesis_with_ollama(indexed_response, evidence_ids=None, user_query
         "provide a deep theoretical definition, you MUST refuse with: "
         "'This information is not detailed in the provided library texts.'\n"
         "11. NO LATEX/MATH NOTATION: Never use LaTeX symbols like $, \\(, \\), or any "
-        "math formatting. Write all math concepts in plain descriptive text."
+        "math formatting. Write all math concepts in plain descriptive text.\n"
+        "12. For a supported concept question, explain what it is and how it works at the requested depth. "
+        "Mention prerequisites only when requested. Do not pad or invent facts to reach a length."
     )
     # For persona-hijack queries, rewrite the user message so the model never
     # sees the slang/emoji instruction (harder to comply-by-imitating).
@@ -91,10 +106,8 @@ def stream_synthesis_with_ollama(indexed_response, evidence_ids=None, user_query
         )
         uq = re.sub(r"\s+", " ", uq).strip(" ,.?!") or "Explain the technical concept."
         uq = f"{uq}\n\n(Respond in dry academic textbook prose only. Zero emojis. Zero slang.)"
-    user_content = (
-        f"[Context]:\n{indexed_response}\n\n"
-        f"[User Query]:\n{uq}"
-    )
+    system_prompt += "\n\n" + reply_template_guidance(uq)
+    user_content = f"[Context]:\n{indexed_response}\n\n[User Query]:\n{uq}"
 
     messages = [{"role": "system", "content": system_prompt}]
     for h in (history or [])[-6:]:
@@ -121,15 +134,25 @@ def stream_synthesis_with_ollama(indexed_response, evidence_ids=None, user_query
         raise RuntimeError("Empty response from LLM")
 
 
-def synthesize_with_ollama_streaming(indexed_response, evidence_ids=None, user_query=None,
-                                       citation_payloads=None, sterile=False,
-                                       fallback_text=None, history=None):
+def synthesize_with_ollama_streaming(
+    indexed_response,
+    evidence_ids=None,
+    user_query=None,
+    citation_payloads=None,
+    sterile=False,
+    fallback_text=None,
+    history=None,
+):
     """Synchronous / collected synthesis for legacy callers & unit tests."""
     buffer = ""
     for chunk in stream_synthesis_with_ollama(
-        indexed_response, evidence_ids=evidence_ids, user_query=user_query,
-        citation_payloads=citation_payloads, sterile=sterile,
-        fallback_text=fallback_text, history=history
+        indexed_response,
+        evidence_ids=evidence_ids,
+        user_query=user_query,
+        citation_payloads=citation_payloads,
+        sterile=sterile,
+        fallback_text=fallback_text,
+        history=history,
     ):
         buffer += chunk
     if not buffer.strip():

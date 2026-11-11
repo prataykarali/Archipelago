@@ -1,4 +1,6 @@
+# ruff: noqa: RUF001
 """Convert model LaTeX / math markup into readable plain-text math."""
+
 from __future__ import annotations
 
 import re
@@ -58,7 +60,7 @@ def fix_math_expressions(text: str) -> str:
     Keeps meaning (fractions, subscripts, operators) without requiring KaTeX.
     Safe no-op on already-clean prose.
     """
-    if not text or "\\" not in text and "$" not in text:
+    if not text or ("\\" not in text and "$" not in text):
         # Still normalize bare ^ and _ patterns lightly when $ present only —
         # early exit when neither latex nor dollars.
         if not text or ("$" not in text and "^" not in text and "_" not in text):

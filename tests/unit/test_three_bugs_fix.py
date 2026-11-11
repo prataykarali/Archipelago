@@ -4,16 +4,16 @@
 2. Insufficient page/source links (cleanse + ensure top-up to a useful set)
 3. Intermittent paper-card spawn (payload contract + UI remount contract)
 """
+
 from __future__ import annotations
 
-import re
 from pathlib import Path
 import sys
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _ui_source import chat_ui_source  # noqa: E402
+from _ui_source import chat_ui_source
 
 from archipelago.inference import stream_budget as sb
 from archipelago.inference.citations import (
@@ -112,7 +112,7 @@ def test_style_instruction_requests_concise_citation_budget() -> None:
     assert _MAX_INLINE_CITATIONS_REQUESTED <= 8
     assert f"at least {_MIN_INLINE_CITATIONS_REQUESTED}" in prompt
     assert f"at most {_MAX_INLINE_CITATIONS_REQUESTED}" in prompt
-    assert "CONCISE" in prompt or "concise" in prompt.lower() or "90–220" in prompt
+    assert "CONCISE" in prompt or "concise" in prompt.lower() or "90-220" in prompt
 
 
 def test_cleanse_renders_bare_marker_as_page_view_link() -> None:
@@ -183,7 +183,12 @@ def test_chat_ui_remounts_evidence_rail_after_flush_race() -> None:
     src = chat_ui_source()
     assert "function appendEvidenceRail" in src
     # Must remove prior rail before re-add (no sticky early-return).
-    assert "prior.remove()" in src or "prior) prior.remove()" in src or "existing.remove()" in src or ".evidence-rail')" in src
+    assert (
+        "prior.remove()" in src
+        or "prior) prior.remove()" in src
+        or "existing.remove()" in src
+        or ".evidence-rail')" in src
+    )
     assert "data-evidence-count" in src
     # Terminal stream path re-mounts cards after flush.
     assert "appendEvidenceRail(msgEl, window._lastChatMetadata)" in src

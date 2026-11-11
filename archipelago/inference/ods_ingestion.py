@@ -8,6 +8,7 @@ Implements KùzuDB node table creation and row ingestion for:
 ODS-1: schema validation via ods_parser (ideal + real KOHA exports).
 ODS-2: empty-cell fallbacks + keyword dedup; incomplete rows are dropped + logged.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -16,19 +17,13 @@ from typing import Any
 import kuzu
 
 from archipelago.inference.ods_parser import (
-    ODS_SCHEMA_SUBJECT,
-    ODS_SCHEMA_JOURNAL,
-    ODS_SCHEMA_KEYWORD,
-    build_column_map,
+    ODSParseError,
     build_column_map_for_rows,
     clean_ods_row,
     deduplicate_keywords,
     read_ods_sheet,
-    resolve_schema,
     sniff_schema,
-    ODSParseError,
 )
-
 
 ODS_SCHEMA_DDL: dict[str, str] = {
     "SubjectReport": """
@@ -71,9 +66,7 @@ def ensure_ods_schema(conn: kuzu.Connection) -> None:
 
 def _ods_id(prefix: str, *parts: str) -> str:
     raw = "_".join(str(p) for p in parts if p)
-    hash_digest = hashlib.md5(
-        raw.encode("utf-8"), usedforsecurity=False
-    ).hexdigest()[:12]
+    hash_digest = hashlib.md5(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
     stem = raw[:48].lower().replace(" ", "_").replace("/", "_")
     return f"ods_{prefix}_{stem}_{hash_digest}"
 
@@ -106,11 +99,7 @@ def ingest_ods_subject_report(conn: kuzu.Connection, rows: list[list[str]]) -> d
             continue
         try:
             cleaned = clean_ods_row(row, col_map)
-            dept = (
-                cleaned.get("subject / department")
-                or cleaned.get("subject")
-                or ""
-            ).strip()
+            dept = (cleaned.get("subject / department") or cleaned.get("subject") or "").strip()
             title_count = _parse_int(
                 cleaned.get("title count") or cleaned.get("total titles") or "0"
             )
@@ -365,6 +354,7 @@ def sync_ods_reports_to_graph(
 def default_docs_ods_paths(docs_dir: str | None = None) -> dict[str, str]:
     """Map report types → institutional ODS files under docs/ (excl. guides/reports)."""
     from pathlib import Path
+
     from archipelago.inference import state as st
 
     root = Path(docs_dir) if docs_dir else (st.BASE_DIR / "docs")

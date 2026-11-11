@@ -13,6 +13,7 @@ def render_citation_from_payload(payload: dict[str, Any]) -> str:
         Formatted Markdown citation string.
     """
     from urllib.parse import quote
+
     from archipelago.inference.synthesis import prettify_doc_title
 
     eid = payload.get("evidence_id", "S1")

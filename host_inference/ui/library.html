@@ -11,70 +11,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/book_cover_canvases.js"></script>
   <script src="/library_showcase_3d.js"></script>
-  <script defer src="/scene_background_3d.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #000000;
-      margin: 0;
-      padding: 0;
-      color: #ffffff;
-      overflow-x: hidden;
-    }
-
-    .btn-cut {
-      clip-path: polygon(
-        12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
-        calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
-      );
-    }
-
-    .btn-cut-outline {
-      position: relative;
-      background: rgba(255, 255, 255, 0.15);
-      clip-path: polygon(
-        12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
-        calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
-      );
-    }
-
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.25);
-      border-radius: 4px;
-    }
-
-    /* Glassmorphic Cards so Butterfly Background is Fully Visible */
-    .glass-card {
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-    }
-
-    .scope-box {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-left: 3px solid #3b82f6;
-    }
-  </style>
+  <link rel="stylesheet" href="/library-page.css">
+  <link rel="stylesheet" href="/library-pipeline.css">
 </head>
 <body class="bg-black text-white min-h-screen relative">
 
-  <!-- Restored procedural 3D scene behind the library content. -->
-  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <canvas data-archipelago-scene aria-hidden="true" class="w-full h-full"></canvas>
-    <!-- Soft Vignette Gradient -->
-    <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80"></div>
+  <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <video id="library-bg-video" src="/ui/assets/library_vortex.mp4" poster="/ui/assets/library_vortex_poster.jpg" autoplay loop muted playsinline preload="auto" class="absolute inset-0 w-full h-full object-cover"></video>
+    <div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(4,1,11,.3),rgba(4,1,11,.15) 38%,rgba(4,1,11,.55))"></div>
   </div>
 
   <!-- Sticky Top Bar Navigation -->
@@ -87,6 +34,7 @@
       <a href="#sec-holdings" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="text-white/40 text-[11px]">08</span><span class="text-amber-400/80 text-[10px] font-bold">- -</span><span>HOLDINGS</span></a>
       <a href="#sec-auth" class="hover:text-white transition-colors text-amber-400 flex items-center gap-1.5"><span class="text-amber-400/60 text-[10px] font-bold">- -</span><span>AUTH ROLES</span></a>
       <a href="#sec-ods-reports" class="hover:text-white transition-colors text-blue-400 flex items-center gap-1.5"><span class="text-blue-400/60 text-[10px] font-bold">- -</span><span>ODS REPORTS</span></a>
+      <a href="#sec-research-activity" class="hover:text-white transition-colors text-purple-300">RESEARCH ACTIVITY</a>
     </div>
 
     <div class="flex items-center gap-3 flex-shrink-0">
@@ -115,104 +63,12 @@
 
         <div class="scope-box p-4 rounded-lg text-xs text-white/70 leading-relaxed">
           <strong class="text-white block mb-1">What this section represents:</strong>
-          Entry point and scope note — what data you’ll find below and what is intentionally omitted (credentials, live OPAC sync).
+          Entry point and scope note — what data you’ll find below, including daily public OPAC updates. Credentials are omitted.
         </div>
       </div>
     </section>
 
-    <!-- SECTION 02 · E-BOOK SHELF -->
-    <section id="sec-ebook" class="scroll-mt-20">
-      <div class="glass-card rounded-2xl p-6 md:p-10 space-y-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-white/10 pb-4 gap-4">
-          <div>
-            <div class="text-xs font-mono tracking-widest text-emerald-400 uppercase">&mdash; SECTION 02 &middot; E-BOOK SHELF</div>
-            <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Browse the e-book shelves</h2>
-            <p class="text-xs md:text-sm text-white/70 mt-1">
-              Interactive shelf of e-books only — open PDFs, free online texts, and Pearson institutional titles. Hardcopy stays in the catalogue tables below.
-            </p>
-          </div>
-          <div class="px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono flex items-center gap-2 self-start md:self-auto">
-            <i data-lucide="book-open" class="w-4 h-4"></i>
-            <span id="ebook-stats-pill">46 titles &middot; 33 with PDF &middot; 40 Pearson (read from library)</span>
-          </div>
-        </div>
-
-        <div class="scope-box p-4 rounded-lg text-xs text-white/70 leading-relaxed">
-          <strong class="text-white block mb-1">What this section represents:</strong>
-          Readable / portal-linked e-books for the pilot — not the full offline OPAC.
-        </div>
-
-        <!-- 3D Bookshelf Header & Search Controls -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
-          <div>
-            <h3 class="text-xl font-bold text-white flex items-center gap-2">
-              Library shelves
-              <span id="open-state-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300">3D Interactive Shelf</span>
-            </h3>
-            <p class="text-xs text-white/60">Click any book to <strong>swing open its 3D cover</strong> and inspect table of contents.</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="relative w-full md:w-64">
-              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-white/40"></i>
-              <input type="text" id="ebook-search-input" placeholder="Search 3D books..." class="w-full pl-9 pr-4 py-2 rounded-lg bg-black/50 border border-white/20 text-xs text-white placeholder-white/40 focus:outline-none focus:border-blue-500 transition-colors" />
-            </div>
-            <button id="close-3d-btn" onclick="close3DView()" class="hidden px-3 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 hover:bg-rose-500/30 text-rose-300 text-xs font-mono transition-colors">
-              ✕ Close 3D View
-            </button>
-            <button id="book-prev-btn" class="p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 text-white transition-colors">
-              <i data-lucide="chevron-left" class="w-5 h-5"></i>
-            </button>
-            <span id="book-counter" class="text-xs font-mono text-white/70 px-1 min-w-[65px] text-center">Book 1 of 46</span>
-            <button id="book-next-btn" class="p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 text-white transition-colors">
-              <i data-lucide="chevron-right" class="w-5 h-5"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- 3D Canvas + Book Details Panel -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div class="lg:col-span-7 h-[440px] relative rounded-xl overflow-hidden bg-black/40 border border-white/10 shadow-inner">
-            <div id="library-3d-shelf" class="w-full h-full"></div>
-            <div class="absolute bottom-3 left-3 text-[11px] text-white/60 font-mono flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-sm">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
-              Click 3D book to swing cover open &middot; Drag to rotate
-            </div>
-          </div>
-
-          <div class="lg:col-span-5 flex flex-col justify-between h-[440px] p-6 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
-            <div>
-              <div class="flex items-center gap-2 mb-2">
-                <span id="book-domain-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300">CS & AI</span>
-                <span id="book-type-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300">PDF Document</span>
-              </div>
-              <h3 id="book-title" class="text-xl md:text-2xl font-bold text-white mb-1 leading-snug">Artificial Intelligence: A New Synthesis</h3>
-              <p id="book-author" class="text-xs font-mono text-white/60 mb-3">Nils J. Nilsson (1998)</p>
-              <p id="book-desc" class="text-xs text-white/80 leading-relaxed mb-4 max-h-[80px] overflow-y-auto custom-scrollbar pr-2">
-                Foundational text on agent architectures, state-space search, logic, probabilistic reasoning, and neural networks.
-              </p>
-
-              <div class="flex items-center justify-between text-xs font-mono text-white/50 uppercase mb-2">
-                <span>Chapters & Index</span>
-                <span id="book-isbn-txt" class="text-[10px]">ISBN: N/A</span>
-              </div>
-              <div id="book-toc-list" class="space-y-1.5 max-h-[110px] overflow-y-auto custom-scrollbar pr-2 text-xs"></div>
-            </div>
-
-            <!-- Action Buttons for PDF Reader vs Pearson Direct Redirect -->
-            <div class="pt-4 border-t border-white/10 space-y-2">
-              <button id="book-action-btn" class="w-full py-2.5 px-4 rounded-lg bg-white text-black font-semibold text-xs hover:bg-white/90 transition-colors flex items-center justify-center gap-2 shadow-lg">
-                <i data-lucide="external-link" class="w-4 h-4"></i>
-                <span id="book-action-text">Open PDF Reader</span>
-              </button>
-              <button id="copy-creds-btn" class="w-full py-2 px-3 rounded-lg bg-white/10 border border-white/20 text-white font-mono text-[11px] hover:bg-white/20 transition-colors flex items-center justify-center gap-2">
-                <i data-lucide="key" class="w-3.5 h-3.5 text-amber-400"></i>
-                Copy Pearson Staff Credentials
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+<!-- include: library-ebooks.html -->
 
     <!-- SECTION 04 · ACCESS -->
     <section id="sec-access" class="scroll-mt-20">
@@ -270,82 +126,7 @@
       </div>
     </section>
 
-    <!-- SECTION 05 · DIGITAL PORTALS -->
-    <section id="sec-portals" class="scroll-mt-20">
-      <div class="glass-card rounded-2xl p-6 md:p-10 space-y-6">
-        <div>
-          <div class="text-xs font-mono tracking-widest text-cyan-400 uppercase">&mdash; SECTION 05 &middot; DIGITAL PORTALS</div>
-          <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">E-resources (portals)</h2>
-          <p class="text-xs md:text-sm text-white/70 mt-1">
-            Institutional access via Central Library. Credentials are staff-managed — not listed on this page.
-          </p>
-        </div>
-
-        <div class="scope-box p-4 rounded-lg text-xs text-white/70 leading-relaxed">
-          <strong class="text-white block mb-1">What this section represents:</strong>
-          Quick links to licensed databases and the library catalogue — names and URLs only.
-        </div>
-
-        <!-- Portal Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-          <a href="http://uemk-opac.l2c2.co.in" target="_blank" class="p-5 rounded-xl bg-black/40 border border-white/10 hover:border-blue-500/50 hover:bg-black/60 transition-all group text-decoration-none">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-mono text-blue-400 font-semibold">Catalogue</span>
-              <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
-            </div>
-            <h4 class="text-base font-bold text-white">Library OPAC</h4>
-            <span class="text-xs font-mono text-white/50 block mt-1">uemk-opac.l2c2.co.in</span>
-          </a>
-
-          <a href="https://ndl.iitkgp.ac.in" target="_blank" class="p-5 rounded-xl bg-black/40 border border-white/10 hover:border-emerald-500/50 hover:bg-black/60 transition-all group text-decoration-none">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-mono text-emerald-400 font-semibold">ndl.iitkgp.ac.in</span>
-              <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
-            </div>
-            <h4 class="text-base font-bold text-white">NDLI</h4>
-            <span class="text-xs font-mono text-white/50 block mt-1">National Digital Library of India</span>
-          </a>
-
-          <a href="https://ieeexplore.ieee.org" target="_blank" class="p-5 rounded-xl bg-black/40 border border-white/10 hover:border-purple-500/50 hover:bg-black/60 transition-all group text-decoration-none">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-mono text-purple-400 font-semibold">ieeexplore.ieee.org</span>
-              <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
-            </div>
-            <h4 class="text-base font-bold text-white">IEEE Xplore</h4>
-            <span class="text-xs font-mono text-white/50 block mt-1">IEEE Digital Library Portal</span>
-          </a>
-
-          <a href="https://www.sciencedirect.com" target="_blank" class="p-5 rounded-xl bg-black/40 border border-white/10 hover:border-amber-500/50 hover:bg-black/60 transition-all group text-decoration-none">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-mono text-amber-400 font-semibold">sciencedirect.com</span>
-              <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
-            </div>
-            <h4 class="text-base font-bold text-white">Scopus / ScienceDirect</h4>
-            <span class="text-xs font-mono text-white/50 block mt-1">Elsevier Scientific Holdings</span>
-          </a>
-
-          <a href="https://link.springer.com" target="_blank" class="p-5 rounded-xl bg-black/40 border border-white/10 hover:border-rose-500/50 hover:bg-black/60 transition-all group text-decoration-none">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-mono text-rose-400 font-semibold">link.springer.com</span>
-              <i data-lucide="external-link" class="w-4 h-4 text-white/40 group-hover:text-white transition-colors"></i>
-            </div>
-            <h4 class="text-base font-bold text-white">Springer Link</h4>
-            <span class="text-xs font-mono text-white/50 block mt-1">Springer Nature Publishing</span>
-          </a>
-
-          <div onclick="openPearsonModal()" class="p-5 rounded-xl bg-gradient-to-br from-amber-950/60 to-black border border-amber-500/40 hover:border-amber-400 cursor-pointer transition-all group">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-mono text-amber-300 font-semibold">elibrary.in.pearson.com</span>
-              <i data-lucide="key" class="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform"></i>
-            </div>
-            <h4 class="text-base font-bold text-white">Pearson eLibrary</h4>
-            <span class="text-xs font-mono text-amber-200/70 block mt-1">Click to view staff credentials & redirect</span>
-          </div>
-
-        </div>
-      </div>
-    </section>
+<!-- include: library-portals.html -->
 
     <!-- SECTION 08 · HOLDINGS -->
     <section id="sec-holdings" class="scroll-mt-20">
@@ -355,7 +136,7 @@
             <div class="text-xs font-mono tracking-widest text-indigo-400 uppercase">&mdash; SECTION 08 &middot; HOLDINGS</div>
             <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Holdings & citations</h2>
             <p class="text-xs md:text-sm text-white/70 mt-1">
-              Bibliographic records from the holdings export — title, author, publisher, and copy counts with accession numbers. Journal-heavy: not a full book OPAC.
+              Bibliographic records from the dated holdings export — title, author, publisher, accession numbers, and recorded copy counts. Open a title for its current OPAC record.
             </p>
             <p id="holdings-source-label" class="text-xs text-amber-200 mt-2" aria-live="polite"></p>
           </div>
@@ -364,22 +145,22 @@
 
         <div class="scope-box p-4 rounded-lg text-xs text-white/70 leading-relaxed">
           <strong class="text-white block mb-1">What this section represents:</strong>
-          The citable shelf records behind chat answers — each row is a catalogued holding with its physical copy count and barcodes.
+          Each row links to its source record in UEM Koha. These records identify library holdings; they do not imply that a full book is available to read online.
         </div>
 
         <!-- Holdings Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="p-5 rounded-xl bg-black/40 border border-white/10">
-            <div class="text-3xl md:text-4xl font-black text-white" id="stat-records-num">—</div>
+            <div class="text-3xl md:text-4xl font-black text-white" id="stat-records-num">Loading…</div>
             <div class="text-xs font-mono text-white/50 tracking-widest uppercase mt-1">HOLDING RECORDS</div>
           </div>
           <div class="p-5 rounded-xl bg-black/40 border border-white/10">
-            <div class="text-3xl md:text-4xl font-black text-white" id="stat-copies-num">—</div>
+            <div class="text-3xl md:text-4xl font-black text-white" id="stat-copies-num">Loading…</div>
             <div class="text-xs font-mono text-white/50 tracking-widest uppercase mt-1">TOTAL COPIES</div>
           </div>
           <div class="p-5 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
-            <div class="text-3xl md:text-4xl font-black text-emerald-400" id="stat-avail-num">—</div>
-            <div class="text-xs font-mono text-emerald-300/70 tracking-widest uppercase mt-1">AVAILABLE NOW</div>
+            <div class="text-3xl md:text-4xl font-black text-emerald-400" id="stat-avail-num">Loading…</div>
+            <div class="text-xs font-mono text-emerald-300/70 tracking-widest uppercase mt-1">AVAILABLE IN EXPORT</div>
           </div>
         </div>
 
@@ -403,6 +184,16 @@
       </div>
     </section>
 
+    <section id="sec-opac-updates" class="scroll-mt-20">
+      <div class="glass-card rounded-2xl p-6 md:p-10 space-y-4">
+        <h2 class="text-2xl font-bold text-white">Daily UEM OPAC updates</h2>
+        <p id="opac-daily-status" class="text-xs text-amber-200" role="status">Checking public catalogue pages…</p>
+        <div id="opac-daily-sections" class="grid gap-3 md:grid-cols-2"></div>
+        <h3 class="font-semibold text-white">New arrivals shown by OPAC</h3>
+        <ul id="opac-daily-arrivals" class="grid gap-2 text-sm md:grid-cols-2"></ul>
+      </div>
+    </section>
+
     <!-- INSTITUTIONAL AUTHENTICATION & SUPABASE ROLES -->
     <section id="sec-auth" class="scroll-mt-20">
       <div class="glass-card rounded-2xl p-6 md:p-10 space-y-6 border-amber-500/30">
@@ -422,7 +213,7 @@
           <div>
             <span class="text-xs font-mono tracking-widest text-blue-400 uppercase">&mdash; SUPPLEMENTARY KOHA DATASETS</span>
             <h2 class="text-2xl font-bold text-white mt-1">Complete Institutional ODS Exports</h2>
-            <p class="text-xs text-white/60">1212 Journal Issues &middot; 952 Subject Categories &middot; 2882 Inventory Holdings</p>
+            <p class="text-xs text-white/60">1212 Journal Issues &middot; 952 Subject Categories &middot; 2882 Subject Title Records</p>
           </div>
           <div class="flex items-center gap-2">
             <button onclick="switchTab('journals')" id="tab-btn-journals" class="px-3 py-1.5 rounded text-xs font-mono bg-blue-600 text-white font-semibold">Journals (1212)</button>
@@ -478,6 +269,31 @@
         </div>
       </div>
     </section>
+
+    <section id="sec-research-activity" class="library-pipeline scroll-mt-20" aria-labelledby="library-research-title">
+      <span class="pipeline-kicker">LIVE RESEARCH COLLECTION</span>
+      <h2 id="library-research-title">Topics and paper OKF</h2>
+      <p>Browse topics indexed by the research team and open the original papers. A processed label means the local research worker saved a source-backed OKF record; verified field counts show facts checked against an abstract or PDF.</p>
+      <p id="library-pipeline-status" role="status">Loading live research activity…</p>
+      <div class="pipeline-activity">
+        <div>
+          <h3>Indexed topics</h3>
+          <label for="library-topic-search">Search topics</label>
+          <input id="library-topic-search" type="search" placeholder="Search research topics" autocomplete="off">
+          <ul id="library-topic-list"><li>Loading topics…</li></ul>
+        </div>
+        <div>
+          <h3>Recently saved papers</h3>
+          <ul id="library-recent-papers"><li>Loading papers…</li></ul>
+        </div>
+      </div>
+      <a id="pipeline-research-link" href="/research" hidden>Open staff research workspace</a>
+    </section>
+
+    <nav id="library-graph-links" aria-label="Knowledge graphs">
+      <a href="https://archipelago-librarian.vercel.app/librarian">Librarian Space <span aria-hidden="true">↗</span></a>
+      <a href="/research">Research graph <span aria-hidden="true">↗</span></a>
+    </nav>
 
   </div>
 
@@ -554,525 +370,18 @@
     </div>
   </div>
 
+  <script src="/library-inline-1.js"></script>
+  <script src="/library_pipeline.js" defer></script>
   <script>
-    if (window.lucide) lucide.createIcons();
-
-    // Authenticate user session as student, faculty, librarian, or admin
-    window.archipelagoAuthReady?.then(async ({ config, supabase }) => {
-      if (config && config.required) {
-        const session = await window.archipelagoRequireSession();
-        if (!session) return;
-      }
-      if (window.archipelagoMountNavigation) {
-        window.archipelagoMountNavigation();
-      }
-    });
-
-    let allEbooks = [];
-    let filteredEbooks = [];
-    let currentBookIndex = 0;
-
-    let holdingsData = [];
-    let journalsData = [];
-    let subjCountsData = [];
-    let subjTitlesData = [];
-
-    function openPearsonModal(book) {
-      document.getElementById('pearson-modal').classList.remove('hidden');
-      const directBtn = document.getElementById('modal-pearson-direct-btn');
-      directBtn.onclick = () => {
-        const bookId = book && (book.id || book.pearson_book_id || book.isbn);
-        const page = Math.max(1, Number(book?.page || book?.page_number || 1));
-        if (bookId) window.open(`/open/${encodeURIComponent(bookId)}?page=${page}`, '_blank', 'noopener,noreferrer');
-        else window.open('https://elibrary.in.pearson.com/', '_blank', 'noopener,noreferrer');
-      };
-    }
-
-    function closePearsonModal() {
-      document.getElementById('pearson-modal').classList.add('hidden');
-    }
-
-    function openPearsonLoginPortal() {
-      window.open('https://elibrary.in.pearson.com/', '_blank', 'noopener,noreferrer');
-    }
-
-    function showPearsonAccessHelp() {
-      if (typeof showToast === 'function') {
-        showToast('Use your authorized institutional Pearson account in the portal.');
-      }
-    }
-
-    function handleBookAction(book) {
-      if (!book) return;
-      if (book.isCatalogOnly) {
-        const search = document.getElementById('holdings-search-input');
-        if (search) {
-          search.value = book.title || '';
-          search.dispatchEvent(new Event('input'));
-        }
-        document.getElementById('holdings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-      const isPearson = !!(book.isPearson || book.subscription_id || (book.pearsonUrl && book.pearsonUrl.includes('pearson.com')));
-      if (isPearson) {
-        showPearsonAccessHelp();
-        const bookId = book.id || book.pearson_book_id || book.isbn || '';
-        const page = Math.max(1, Number(book.page || book.page_number || 1));
-        window.open(`/open/${encodeURIComponent(bookId)}?page=${page}`, '_blank', 'noopener,noreferrer');
-      } else {
-        const bookId = book.id || book.pdf || book.title || '';
-        const page = Math.max(1, Number(book.page || book.page_number || 1));
-        const readerUrl = `/read?doc=${encodeURIComponent(bookId)}&page=${page}`;
-        window.open(readerUrl, '_blank', 'noopener,noreferrer');
-      }
-    }
-
-    function openChapterPage(bookId, page, isPearson) {
-      const n = Math.max(1, Number(page) || 1);
-      const target = isPearson
-        ? `/open/${encodeURIComponent(bookId)}?page=${n}`
-        : `/read?doc=${encodeURIComponent(bookId)}&page=${n}`;
-      window.open(target, '_blank', 'noopener,noreferrer');
-    }
-
-
-
-    function close3DView() {
-      if (window.LibraryShowcase3D) {
-        window.LibraryShowcase3D.closeBook();
-      }
-    }
-
-    function renderBookDetails(index, isOpen = false) {
-      if (!filteredEbooks || filteredEbooks.length === 0) return;
-      const b = filteredEbooks[index];
-      document.getElementById('book-title').innerText = b.title;
-      document.getElementById('book-author').innerText = b.author || b.authors || 'Unknown';
-      document.getElementById('book-desc').innerText = b.desc || 'Pearson / Institutional textbook holding.';
-      document.getElementById('book-counter').innerText = `Book ${index + 1} of ${filteredEbooks.length}`;
-      document.getElementById('book-domain-badge').innerText = b.domain || 'Computer Science';
-      document.getElementById('book-isbn-txt').innerText = `ISBN: ${b.isbn || 'N/A'}`;
-
-      const openBadge = document.getElementById('open-state-badge');
-      const closeBtn = document.getElementById('close-3d-btn');
-
-      if (isOpen) {
-        openBadge.innerText = '📖 3D Cover Swung Open';
-        openBadge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 font-bold';
-        closeBtn.classList.remove('hidden');
-      } else {
-        openBadge.innerText = '3D Interactive Shelf';
-        openBadge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300';
-        closeBtn.classList.add('hidden');
-      }
-
-      const badge = document.getElementById('book-type-badge');
-      const actionBtn = document.getElementById('book-action-btn');
-      const actionText = document.getElementById('book-action-text');
-      const credsBtn = document.getElementById('copy-creds-btn');
-
-      if (b.isCatalogOnly) {
-        badge.innerText = 'Catalog Holding';
-        badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-slate-500/20 text-slate-300 font-bold';
-        badge.onclick = null;
-        actionText.innerText = 'View Holding Details ↓';
-        actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-slate-700 text-white font-semibold text-xs hover:bg-slate-600 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) credsBtn.classList.add('hidden');
-      } else if (b.isPearson) {
-        badge.innerText = 'Pearson eBook';
-        badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 font-bold cursor-pointer hover:bg-amber-500/30';
-        badge.onclick = () => openPearsonModal(b);
-        actionText.innerText = 'Open Pearson Reader ↗';
-        actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-amber-400 to-amber-300 text-black font-extrabold text-xs hover:from-amber-300 hover:to-amber-200 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) {
-          credsBtn.classList.remove('hidden');
-          credsBtn.innerText = '🔑 Pearson Login & Credentials';
-          credsBtn.onclick = () => openPearsonModal(b);
-        }
-      } else if (b.isPaper) {
-        badge.innerText = 'Research Paper';
-        badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-300 font-bold';
-        badge.onclick = null;
-        actionText.innerText = 'Read Research Paper ↗';
-        actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-white text-black font-bold text-xs hover:bg-white/90 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) credsBtn.classList.add('hidden');
-      } else {
-        badge.innerText = 'Textbook PDF';
-        badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 font-bold';
-        badge.onclick = null;
-        actionText.innerText = 'Open PDF Reader ↗';
-        actionBtn.className = 'w-full py-2.5 px-4 rounded-lg bg-white text-black font-semibold text-xs hover:bg-white/90 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer';
-        if (credsBtn) credsBtn.classList.add('hidden');
-      }
-
-      actionBtn.onclick = () => handleBookAction(b);
-
-
-      const tocContainer = document.getElementById('book-toc-list');
-      const tocItems = b.toc || [
-        { title: 'Chapter 1: Overview & Theoretical Foundations', page: 1 },
-        { title: 'Chapter 2: Methods & Analytical Formulation', page: 45 },
-        { title: 'Chapter 3: Experimental Evaluation', page: 92 },
-        { title: 'Chapter 4: Synthesis & Conclusions', page: 148 }
-      ];
-      tocContainer.innerHTML = tocItems.map(c => `
-        <div onclick="openChapterPage('${encodeURIComponent(b.id || b.pdf || '')}', ${c.page}, ${b.isPearson ? 'true' : 'false'})" class="flex items-center justify-between p-2 rounded bg-white/5 border border-white/5 hover:border-purple-500/30 hover:bg-white/10 transition-colors text-xs text-white/80 cursor-pointer group" title="Open Chapter (Page ${c.page})">
-          <span class="font-medium truncate pr-2 group-hover:text-purple-300 transition-colors">${c.title}</span>
-          <span class="font-mono text-purple-400/80 text-[10px] shrink-0 font-semibold">p. ${c.page} ↗</span>
-        </div>
-      `).join('');
-    }
-
-    document.getElementById('book-prev-btn').onclick = () => {
-      if (filteredEbooks.length === 0) return;
-      currentBookIndex = (currentBookIndex - 1 + filteredEbooks.length) % filteredEbooks.length;
-      if (window.LibraryShowcase3D) window.LibraryShowcase3D.selectBookIndex(currentBookIndex);
-    };
-
-    document.getElementById('book-next-btn').onclick = () => {
-      if (filteredEbooks.length === 0) return;
-      currentBookIndex = (currentBookIndex + 1) % filteredEbooks.length;
-      if (window.LibraryShowcase3D) window.LibraryShowcase3D.selectBookIndex(currentBookIndex);
-    };
-
-    document.getElementById('ebook-search-input').oninput = (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      if (!q) {
-        filteredEbooks = [...allEbooks];
-      } else {
-        filteredEbooks = allEbooks.filter(b =>
-          (b.title && b.title.toLowerCase().includes(q)) ||
-          (b.author && b.author.toLowerCase().includes(q)) ||
-          (b.domain && b.domain.toLowerCase().includes(q))
-        );
-      }
-      currentBookIndex = 0;
-      if (window.LibraryShowcase3D) window.LibraryShowcase3D.setBooks(filteredEbooks);
-      renderBookDetails(0, false);
-    };
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close3DView();
-    });
-
-    // Holdings Table Render & Search
-    function renderHoldingsTable(items) {
-      const tbody = document.getElementById('holdings-table-body');
-      if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-white/40">No matching holdings records found.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = items.map((h, i) => `
-        <tr class="hover:bg-white/5 transition-colors">
-          <td class="p-3.5 font-medium text-white max-w-xs truncate">${i + 1}. ${h.title}</td>
-          <td class="p-3.5 text-white/70">${h.authors || h.author || 'Unknown'}</td>
-          <td class="p-3.5 text-white/60">${h.publisher || 'Unknown'}</td>
-          <td class="p-3.5 font-mono text-blue-300 text-[11px]">${h.accession || 'N/A'}</td>
-          <td class="p-3.5 text-right font-bold ${h.available_copies > 0 ? 'text-emerald-400' : 'text-rose-400'}">${h.available_ratio || `${h.available_copies} / ${h.no_of_copies}`}</td>
-        </tr>
-      `).join('');
-    }
-
-    document.getElementById('holdings-search-input').oninput = (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      const filtered = holdingsData.filter(h =>
-        (h.title && h.title.toLowerCase().includes(q)) ||
-        (h.author && h.author.toLowerCase().includes(q)) ||
-        (h.publisher && h.publisher.toLowerCase().includes(q)) ||
-        (h.accession && h.accession.toLowerCase().includes(q))
-      );
-      renderHoldingsTable(filtered);
-    };
-
-    // Supplementary Datasets Tabs
-    function switchTab(tabKey) {
-      ['journals', 'subj-counts', 'subj-titles'].forEach(k => {
-        const btn = document.getElementById(`tab-btn-${k}`);
-        const content = document.getElementById(`tab-content-${k}`);
-        if (k === tabKey) {
-          btn.className = 'px-3 py-1.5 rounded text-xs font-mono bg-blue-600 text-white font-semibold';
-          content.classList.remove('hidden');
-        } else {
-          btn.className = 'px-3 py-1.5 rounded text-xs font-mono bg-white/10 text-white/70 hover:bg-white/20';
-          content.classList.add('hidden');
-        }
-      });
-    }
-
-    function renderJournals(items) {
-      const tbody = document.getElementById('journals-table-body');
-      tbody.innerHTML = items.slice(0, 200).map(j => `
-        <tr class="hover:bg-white/5 transition-colors">
-          <td class="p-3 text-white font-medium">${j.title}</td>
-          <td class="p-3 text-white/70">${j.vol}</td>
-          <td class="p-3 text-white/50">${j.date || '—'}</td>
-          <td class="p-3 text-right">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono ${j.status === 'Arrived' ? 'bg-emerald-500/20 text-emerald-300' : j.status === 'Late' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">${j.status || 'Expected'}</span>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    document.getElementById('journals-search').oninput = (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      const filtered = journalsData.filter(j => j.title.toLowerCase().includes(q) || j.vol.toLowerCase().includes(q));
-      renderJournals(filtered);
-    };
-
-    function renderSubjCounts(items) {
-      const container = document.getElementById('subj-summary-cards');
-      container.innerHTML = items.slice(0, 120).map(sc => `
-        <div class="p-3 rounded-lg bg-black/40 border border-white/10">
-          <div class="text-xs text-white/80 font-medium truncate">${sc.subject}</div>
-          <div class="text-lg font-black text-purple-400 mt-1">${sc.total_titles}</div>
-        </div>
-      `).join('');
-    }
-
-    document.getElementById('subj-summary-search').oninput = (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      renderSubjCounts(subjCountsData.filter(sc => sc.subject.toLowerCase().includes(q)));
-    };
-
-    function renderSubjTitles(items) {
-      const tbody = document.getElementById('subj-detail-table-body');
-      tbody.innerHTML = items.slice(0, 200).map(st => `
-        <tr class="hover:bg-white/5 transition-colors">
-          <td class="p-3 text-amber-300/80 font-mono text-[11px]">${st.subject}</td>
-          <td class="p-3 text-white font-medium">${st.title}</td>
-          <td class="p-3 text-white/60">${st.author || '—'}</td>
-          <td class="p-3 text-right text-white/50">${st.year || '—'}</td>
-        </tr>
-      `).join('');
-    }
-
-    document.getElementById('subj-detail-search').oninput = (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      renderSubjTitles(subjTitlesData.filter(st => st.title.toLowerCase().includes(q) || st.subject.toLowerCase().includes(q) || st.author.toLowerCase().includes(q)));
-    };
-
-    // Hydrate Page Data from API
-    async function loadData() {
-      try {
-        const res = await fetch('/api/library/data');
-        const d = await res.json();
-
-        if (d.ebook_shelf && d.ebook_shelf.length > 0) {
-          allEbooks = d.ebook_shelf;
-        } else {
-          allEbooks = [
-            { id: '1', title: 'Artificial Intelligence: A New Synthesis', author: 'Nils J. Nilsson', year: '1998', primaryColor: '#2563eb', accentColor: '#93c5fd', domain: 'AI & ML', desc: 'Foundational text on agent architectures and state space search.' },
-            { id: '2', title: 'Attention Is All You Need', author: 'Vaswani et al.', year: '2017', primaryColor: '#7c3aed', accentColor: '#c4b5fd', domain: 'Transformers', desc: 'Introduces self-attention mechanism for deep sequence models.' }
-          ];
-        }
-
-        filteredEbooks = [...allEbooks];
-        if (d.ebook_stats) {
-          document.getElementById('ebook-stats-pill').innerText = d.ebook_stats;
-        }
-
-        // Init 3D Showcase Engine
-        if (window.LibraryShowcase3D) {
-          window.LibraryShowcase3D.init('library-3d-shelf', filteredEbooks, (book, idx, total, isOpen) => {
-            currentBookIndex = idx;
-            renderBookDetails(idx, isOpen);
-          });
-        }
-
-        renderBookDetails(0, false);
-
-        // Auto-open book and page from URL parameters (?book=...&pdf=...&page=...)
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetBookKey = urlParams.get('book') || '';
-        const targetPdf = urlParams.get('pdf') || '';
-        const targetPage = parseInt(urlParams.get('page') || '1', 10);
-
-        if ((targetBookKey || targetPdf) && filteredEbooks.length > 0) {
-          const searchKey = (targetPdf || targetBookKey).toLowerCase().replace(/\.pdf$/i, '');
-          const matchIdx = filteredEbooks.findIndex(b => {
-            const bId = (b.id || '').toLowerCase();
-            const bPdf = (b.pdfUrl || b.pdf || '').toLowerCase();
-            const bTitle = (b.title || '').toLowerCase();
-            return bId.includes(searchKey) || bPdf.includes(searchKey) || bTitle.includes(searchKey);
-          });
-          if (matchIdx >= 0) {
-            currentBookIndex = matchIdx;
-            if (window.LibraryShowcase3D) window.LibraryShowcase3D.openBook(matchIdx);
-            renderBookDetails(matchIdx, true);
-            const matchedBook = filteredEbooks[matchIdx];
-            if (!matchedBook.isPearson && targetPdf) {
-              let pdfSrc = targetPdf.startsWith('/') || targetPdf.startsWith('http') ? targetPdf : `/pdfs/${encodeURIComponent(targetPdf)}`;
-              if (!pdfSrc.includes('#page=')) pdfSrc += `#page=${targetPage}`;
-              document.getElementById('pdf-modal-title').innerText = `${matchedBook.title} — p.${targetPage}`;
-              document.getElementById('pdf-iframe').src = pdfSrc;
-              document.getElementById('pdf-modal').classList.remove('hidden');
-            }
-          }
-        }
-
-        // Holdings
-        if (d.holdings && d.holdings.length > 0) {
-          holdingsData = d.holdings;
-        } else {
-          holdingsData = [];
-        }
-        document.getElementById('holdings-source-label').textContent = d.holdings_status === 'sample'
-          ? 'Sample spreadsheet values for preview only. These are not live holdings.'
-          : 'Inventory values from the latest library import.';
-
-        if (d.holdings_stats) {
-          document.getElementById('stat-records-num').innerText = d.holdings_stats.total_records ?? '—';
-          document.getElementById('stat-copies-num').innerText = d.holdings_stats.total_copies ?? '—';
-          document.getElementById('stat-avail-num').innerText = d.holdings_stats.available_copies ?? '—';
-        }
-
-        renderHoldingsTable(holdingsData);
-
-        // Supplementary
-        if (d.journal_issues) {
-          journalsData = d.journal_issues;
-          renderJournals(journalsData);
-        }
-        if (d.subject_counts) {
-          subjCountsData = d.subject_counts;
-          renderSubjCounts(subjCountsData);
-        }
-        if (d.subject_titles) {
-          subjTitlesData = d.subject_titles;
-          renderSubjTitles(subjTitlesData);
-        }
-
-      } catch (err) {
-        console.error('Failed to load library data payload:', err);
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', loadData);
-  </script>
-  <!-- Librarian Management Panel -->
-  <div id="librarian-panel" style="display:none; margin: 2rem auto; max-width: 900px; padding: 1.5rem; background: rgba(30,41,59,0.95); border: 1px solid rgba(139,92,246,0.3); border-radius: 1rem;">
-    <h2 style="color: #a78bfa; font-size: 1.3rem; margin-bottom: 1rem;">📚 Librarian Management Console</h2>
-    <p style="margin-bottom:1rem;color:#c4b5fd"><a href="/graph" style="color:#a7f3d0;text-decoration:underline">Open knowledge graph →</a></p>
-    <p id="ingest-capability" role="status" style="margin-bottom:1rem;color:#cbd5e1"></p>
-
-    <!-- Upload Card -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Upload Document (PDF/MD/TXT)</h3>
-      <form id="upload-form" enctype="multipart/form-data" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-        <input type="file" id="upload-file" accept=".pdf,.md,.txt,.markdown" style="flex: 1; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-        <button type="submit" style="padding: 0.5rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Upload & Ingest</button>
-      </form>
-      <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
-    </div>
-
-    <!-- Chapter Index Card -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Submit Chapter Index (TOC-only Ingestion)</h3>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <input id="index-book-id" placeholder="Book ID or slug" style="flex: 1; min-width: 150px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-        <input id="index-title" placeholder="Book title" style="flex: 2; min-width: 200px; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0;">
-      </div>
-      <textarea id="index-chapters" placeholder='Chapter titles (one per line)' rows="4" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: #e2e8f0; resize: vertical;"></textarea>
-      <button id="submit-index" style="margin-top: 0.5rem; padding: 0.5rem 1.5rem; background: #059669; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Submit Index</button>
-      <div id="index-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: #94a3b8;"></div>
-    </div>
-
-    <!-- Active Jobs -->
-    <div style="background: rgba(0,0,0,0.3); border-radius: 0.75rem; padding: 1.25rem;">
-      <h3 style="color: #93c5fd; font-size: 1rem; margin-bottom: 0.75rem;">Active Ingestion Jobs</h3>
-      <div id="jobs-list" style="font-size: 0.85rem; color: #94a3b8;">Loading...</div>
-      <button id="refresh-jobs" style="margin-top: 0.5rem; padding: 0.4rem 1rem; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); border-radius: 0.4rem; cursor: pointer; font-size: 0.8rem;">Refresh</button>
-    </div>
-  </div>
-
-  <script>
-  (function() {
-    async function showStaffIngestionPanel() {
-      try {
-        const response = await fetch('/api/auth/me', { cache: 'no-store' });
-        if (!response.ok) return;
-        const principal = await response.json();
-        if (principal.authenticated && ['librarian', 'administrator'].includes(principal.role)) {
-          document.getElementById('librarian-panel').style.display = 'block';
-          const capabilities = await fetch('/api/ingest/capabilities').then(r => r.json());
-          if (!capabilities.upload_api_enabled) {
-            document.getElementById('ingest-capability').textContent = 'Hosted ingestion is unavailable on this deployment. Graph exploration and the library catalog remain available.';
-            document.querySelector('#upload-form button').disabled = true;
-            document.querySelector('#upload-form button').style.opacity = '.5';
-            document.getElementById('submit-index').disabled = true;
-            document.getElementById('submit-index').style.opacity = '.5';
-          }
-          loadJobs();
-        }
-      } catch (_) {}
-    }
-    showStaffIngestionPanel();
-
-    function getAuthHeaders() { return {}; }
-
-    // Upload form
-    const uploadForm = document.getElementById('upload-form');
-    if (uploadForm) uploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fileInput = document.getElementById('upload-file');
-      if (!fileInput.files.length) return;
-      const fd = new FormData();
-      fd.append('file', fileInput.files[0]);
-      document.getElementById('upload-status').textContent = 'Uploading...';
-      try {
-        const resp = await fetch('/api/ingest', { method: 'POST', body: fd, headers: getAuthHeaders() });
-        const data = await resp.json();
-        document.getElementById('upload-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id} created (${data.status})`;
-      } catch (err) {
-        document.getElementById('upload-status').textContent = 'Upload failed: ' + err.message;
-      }
-    });
-
-    // Index submit
-    const indexBtn = document.getElementById('submit-index');
-    if (indexBtn) indexBtn.addEventListener('click', async () => {
-      const bookId = document.getElementById('index-book-id').value.trim();
-      const title = document.getElementById('index-title').value.trim();
-      const chaptersRaw = document.getElementById('index-chapters').value.trim();
-      if (!bookId) { document.getElementById('index-status').textContent = 'Book ID required'; return; }
-      const chapters = chaptersRaw.split('\n').map(l => l.trim()).filter(Boolean);
-      document.getElementById('index-status').textContent = 'Submitting...';
-      try {
-        const resp = await fetch('/api/ingest/index', {
-          method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-          body: JSON.stringify({ doc_id: bookId, title: title || bookId, chapters })
-        });
-        const data = await resp.json();
-        document.getElementById('index-status').textContent = data.error ? `Error: ${data.error}` : `Job ${data.job_id}: ${data.status}`;
-      } catch (err) {
-        document.getElementById('index-status').textContent = 'Submit failed: ' + err.message;
-      }
-    });
-
-    // Refresh jobs
-    async function loadJobs() {
-      try {
-        const resp = await fetch('/api/ingest', { headers: getAuthHeaders() });
-        const data = await resp.json();
-        const jobs = data.jobs || [];
-        if (!jobs.length) {
-          document.getElementById('jobs-list').textContent = 'No active jobs.';
-          return;
-        }
-        document.getElementById('jobs-list').innerHTML = jobs.slice(0, 10).map(j =>
-          `<div style="padding: 0.3rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <span style="color: #a78bfa;">${j.job_id?.slice(0,8) || '?'}</span> —
-            <span>${j.source_filename || '?'}</span> —
-            <span style="color: ${j.status === 'complete' ? '#10b981' : j.status === 'failed' ? '#ef4444' : '#f59e0b'};">${j.status || '?'}</span>
-          </div>`
-        ).join('');
-      } catch (err) {
-        document.getElementById('jobs-list').textContent = 'Failed to load jobs.';
-      }
-    }
-    const refreshBtn = document.getElementById('refresh-jobs');
-    if (refreshBtn) refreshBtn.addEventListener('click', loadJobs);
-  })();
+    (() => {
+      const video = document.getElementById('library-bg-video');
+      if (!video) return;
+      const play = () => video.play().catch(() => {});
+      video.addEventListener('pause', () => { if (!document.hidden) play(); });
+      video.addEventListener('stalled', play);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
+      play();
+    })();
   </script>
 </body>
 </html>

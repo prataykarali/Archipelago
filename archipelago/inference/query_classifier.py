@@ -8,32 +8,43 @@ Categorizes queries into:
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 import re
 from typing import Any
 
 from archipelago.inference.routing import parse_multi_topic_query
 
 
-class QueryMode(str, Enum):
+class QueryMode(StrEnum):
     MODE_A = "mode_a"
     MODE_B = "mode_b"
     MODE_C = "mode_c"
 
 
 _MODE_C_PATTERNS = [
-    re.compile(r"\b(?:i\s+want\s+to\s+learn|want\s+to\s+learn|teach\s+me\s+about|learn\s+about|guide\s+me\s+through|learning\s+path\s+for)\b", re.I),
-    re.compile(r"\b(learn|study|master|teach\s+me)\b.+\b(from\s+scratch|from\s+the\s+beginning|step\s+by\s+step|roadmap|curriculum|pathway)\b", re.I),
+    re.compile(
+        r"\b(?:i\s+want\s+to\s+learn|want\s+to\s+learn|teach\s+me\s+about|learn\s+about|guide\s+me\s+through|learning\s+path\s+for)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\b(learn|study|master|teach\s+me)\b.+\b(from\s+scratch|from\s+the\s+beginning|step\s+by\s+step|roadmap|curriculum|pathway)\b",
+        re.I,
+    ),
     re.compile(r"\b(from\s+scratch|from\s+the\s+ground\s+up|from\s+the\s+beginning)\b", re.I),
     re.compile(r"\b(roadmap|learning\s+path|learning\s+pathway|curriculum|study\s+plan)\b", re.I),
     re.compile(r"\bhow\s+(?:do|can)\s+i\s+(?:learn|understand|master|start\s+learning)\b", re.I),
     re.compile(r"\b(prerequisites\s+(?:for|to)|what\s+do\s+i\s+need\s+to\s+know\s+before)\b", re.I),
-    re.compile(r"\b(deep\s+dive|comprehensive\s+guide|beginner\s+to\s+advanced|zero\s+to\s+hero)\b", re.I),
+    re.compile(
+        r"\b(deep\s+dive|comprehensive\s+guide|beginner\s+to\s+advanced|zero\s+to\s+hero)\b", re.I
+    ),
     re.compile(r"\bwhere\s+should\s+i\s+start\s+(?:with|to\s+learn)\b", re.I),
 ]
 
 _MODE_B_COMPARATIVE_PATTERNS = [
-    re.compile(r"\b(compare|contrast|difference\s+between|differences\s+between|differ\s+from|versus|\bvs\.?\b)\b", re.I),
+    re.compile(
+        r"\b(compare|contrast|difference\s+between|differences\s+between|differ\s+from|versus|\bvs\.?\b)\b",
+        re.I,
+    ),
     re.compile(r"\bhow\s+does\s+.+\s+(?:differ|connect|relate|compare)\s+(?:to|with|from)\b", re.I),
     re.compile(r"\b(relationship\s+between|connection\s+between|bridge\s+between)\b", re.I),
     re.compile(r"\bwhich\s+is\s+better\b.+\b(?:or|vs)\b", re.I),

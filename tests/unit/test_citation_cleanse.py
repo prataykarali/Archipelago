@@ -1,8 +1,9 @@
 """Provenance cleanse pass: generator markers → deterministic citations."""
-from archipelago.inference.citations import (
-    cleanse_model_citations, render_citation_from_payload,
-)
 
+from archipelago.inference.citations import (
+    cleanse_model_citations,
+    render_citation_from_payload,
+)
 
 PAYLOADS = [
     {

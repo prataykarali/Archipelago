@@ -14,6 +14,7 @@ Two properties matter most:
    count as a *hit*, not a miss, and probes the model errors on must not be
    averaged away.
 """
+
 from __future__ import annotations
 
 import json
@@ -243,13 +244,9 @@ def test_perfect_extractor_passes_the_gate(monkeypatch, tmp_path):
         _probe("p2", "nothing here", []),
     ]
     path = tmp_path / "probes.jsonl"
-    path.write_text(
-        "\n".join(json.dumps(p) for p in probes), encoding="utf-8"
-    )
+    path.write_text("\n".join(json.dumps(p) for p in probes), encoding="utf-8")
 
-    stub = StubExtractor(
-        {"about Adam": [concept("Adam")], "nothing here": []}
-    )
+    stub = StubExtractor({"about Adam": [concept("Adam")], "nothing here": []})
     monkeypatch.setattr(
         "archipelago.ingestion.lib_qwen_extractor.LibQwenConceptExtractor",
         lambda model_name: stub,

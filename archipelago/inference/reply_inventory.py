@@ -1,18 +1,19 @@
-"""Append a fake holdings table + exact-page links to every chat reply."""
+"""Append physical holdings only when a Koha export verifies the title."""
+
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from archipelago.inference.corpus_inventory import (
     books_from_catalog_meta,
     books_from_citations,
-    default_core_inventory,
     inventory_for_books,
 )
 from archipelago.inference.demo_query_books import (
-    books_for_query,
     enrich_reply_with_books,
 )
+from archipelago.inference.evidence_contract import catalog_search_url
 
 _HOLDINGS_MARKERS = (
     "Koha catalogue matches",
@@ -26,19 +27,16 @@ def resolve_reply_books(
     books: list[dict[str, Any]] | None = None,
     meta: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Pick the best book rows for this reply: explicit, cites, demo, or core shelf."""
+    """Return only rows confirmed by the institutional holdings snapshot."""
     if books:
-        return inventory_for_books(list(books))
+        return [row for row in inventory_for_books(list(books)) if row.get("koha_record_verified")]
     from_cites = books_from_citations(citations)
     if from_cites:
-        return from_cites
+        return [row for row in from_cites if row.get("koha_record_verified")]
     from_meta = books_from_catalog_meta(meta)
     if from_meta:
-        return from_meta
-    demo = books_for_query(query)
-    if demo:
-        return inventory_for_books(demo)
-    return default_core_inventory()
+        return [row for row in from_meta if row.get("koha_record_verified")]
+    return []
 
 
 def inventory_suffix(
@@ -47,12 +45,23 @@ def inventory_suffix(
     books: list[dict[str, Any]] | None = None,
     meta: dict[str, Any] | None = None,
 ) -> str:
-    """Markdown suffix: inline page chips + fake inventory table.
+    """Markdown suffix for verified imported holdings only.
 
     Empty when the body already contains a holdings table.
     """
+    if not re.search(
+        r"\b(book|books|library|catalog|catalogue|holdings|copies|available|shelf|inventory)\b",
+        query,
+        re.I,
+    ):
+        return ""
     rows = resolve_reply_books(query, citations=citations, books=books, meta=meta)
     if not rows:
+        title = str((meta or {}).get("title") or "").strip()
+        if title:
+            return (
+                f"\n\nNot verified in the catalog. [Search the OPAC]({catalog_search_url(title)})."
+            )
         return ""
     # enrich_reply_with_books prepends to an empty body → suffix only.
     extra = enrich_reply_with_books(query, "", books=rows)

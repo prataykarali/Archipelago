@@ -8,6 +8,7 @@ integration test) reach for on this module.  It lived only in
 ``archipelago.inference.citations.part01_evidence``, so anything importing the
 documented entrypoint got an ``AttributeError`` instead of the map.
 """
+
 from archipelago.apps.inference_app import main
 from archipelago.inference.citations import build_concept_citation_map
 

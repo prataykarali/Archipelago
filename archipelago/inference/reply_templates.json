@@ -1,0 +1,1069 @@
+{
+  "project": "Archipelago",
+  "module": "Research Intelligence + Institutional Discovery",
+  "version": "1.0",
+  "created_date": "2026-10-23",
+  "purpose": "Reply-template registry (not ranking weights or OKF ingestion schema)",
+  "template_count": 130,
+  "variable_syntax": "{placeholder} must be populated only with verified values or an explicit unknown/not_reported marker",
+  "implementation": "Route intents to 1 primary template, compose optional secondary templates; populate using provenance-backed OKF fields; validate every citation before rendering.",
+  "global_rules": [
+    "Answer the exact user question before adding context; prefer researcher-friendly language, not marketing claims.",
+    "Use real author/title/year/DOI and citations bound to retrieved records only. Never invent titles, pages, links, venues, counts, citations or timings.",
+    "For a verified PDF-backed claim, provide paper identifier, section and actual page and table/figure when available; otherwise state citation granularity truthfully.",
+    "A deep-link of the form #page=N is allowed only when the source PDF URL and PDF page index are verified, and printed page numbering may differ.",
+    "Mark each factual field as reported, API-observed, derived, model-inferred, conflicting, unknown or not_reported as applicable.",
+    "Attach provenance: source ID, provider/time or PDF hash + page/section/span/table, extraction version, and verification status.",
+    "Distinct pipelines: topic relevance ranking, paper-quality or research utility evidence, and library/book matching must not be conflated.",
+    "Citation count, h-index, g-index, i10-index and m-index are source- and time-specific; unavailable metrics must remain unknown, not estimated silently.",
+    "For numerical comparisons, retain dataset, split, metric direction, hardware, inference precision, evaluation protocol and units before claiming superiority.",
+    "Label author claims as claims unless separately verified; graph relation types such as CONTRADICTS require explicit cross-paper comparability checks.",
+    "Use normally 5–10 surfaced papers from a canonical retained candidate pool of up to 100 (configurable to 500); do not claim to have retrieved more than returned.",
+    "Do not block legitimate research, software, or academic questions with an unconditional procedural denial or arbitrary topical cosine-score threshold.",
+    "When rights prohibit full text, answer from permitted metadata/abstract with a clear limitation; never fabricate extracted full-text evidence.",
+    "Prefer concise default answers; expand for comparison, deep paper reading, literature review, or requests for a thorough explanation.",
+    "Internal extraction/model or ranker confidence must not be presented as a calibrated probability unless validated on representative data."
+  ],
+  "templates": [
+    {
+      "id": "RES-001",
+      "family": "01 — Intent and query understanding",
+      "name": "Quick factual answer",
+      "trigger": "specific answerable research question",
+      "reply_template": "**Answer:** {direct_answer} [P1, §{section}, p.{page}]. **Evidence:** {key_finding}. **Caveat:** {scope_limit}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-002",
+      "family": "01 — Intent and query understanding",
+      "name": "Broad domain orientation",
+      "trigger": "user exploring a research domain",
+      "reply_template": "**Research landscape:** {domain_definition} → {subareas}. **Representative works:** {paper_refs}. **Suggested starting point:** {entry_paper}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-003",
+      "family": "01 — Intent and query understanding",
+      "name": "Topic narrowing",
+      "trigger": "user gives broad topic",
+      "reply_template": "**Current scope:** {broad_topic}. **Three researchable directions:** {direction_a}; {direction_b}; {direction_c}. **Distinctions:** {different_objectives}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-004",
+      "family": "01 — Intent and query understanding",
+      "name": "Intent confirmation without blocking",
+      "trigger": "user query supports multiple research intents",
+      "reply_template": "**Interpreted as:** {working_interpretation}. **Answer for that scope:** {initial_result}. **Alternative interpretation:** {alternative}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-005",
+      "family": "01 — Intent and query understanding",
+      "name": "Keyword and synonym expansion",
+      "trigger": "query has sparse vocabulary",
+      "reply_template": "**Search concept:** {topic}. **Synonyms:** {terms}. **Excluded ambiguities:** {false_friends}. **Search expression:** {query_string}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-006",
+      "family": "01 — Intent and query understanding",
+      "name": "Time-bounded research",
+      "trigger": "user asks for research within dates",
+      "reply_template": "**Window:** {start_date}–{end_date}. **Eligible papers:** {count}. **Notable change:** {trend}. **Sources:** {refs}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-007",
+      "family": "01 — Intent and query understanding",
+      "name": "Recent developments",
+      "trigger": "user asks latest developments",
+      "reply_template": "**As of {retrieved_at}:** {recent_papers}. **What changed:** {delta}. **Not yet verified:** {uncertainty}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-008",
+      "family": "01 — Intent and query understanding",
+      "name": "Method-focused search",
+      "trigger": "asks for a particular technical mechanism",
+      "reply_template": "**Mechanism:** {mechanism}. **Papers implementing it:** {papers}. **Approaches compared:** {method_differences}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-009",
+      "family": "01 — Intent and query understanding",
+      "name": "Cross-domain research scope",
+      "trigger": "question bridges unrelated fields",
+      "reply_template": "**Bridge:** {domain_a} ↔ {domain_b}. **Shared concept:** {concept}. **Evidence for transfer:** {papers}. **Limits:** {transfer_caveat}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-010",
+      "family": "01 — Intent and query understanding",
+      "name": "Follow-up with resolved referent",
+      "trigger": "user says it/that paper/these methods",
+      "reply_template": "**Continuing with {resolved_entity}:** {answer}. **Context used:** {conversation_scope}. **Supporting source:** {ref}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-011",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Discovery completion",
+      "trigger": "retrieval returns candidate records",
+      "reply_template": "**Discovered:** {raw_count} records across {sources}. **Canonical unique:** {unique_count}. **Queryable:** {usable_count}. **Date:** {retrieved_at}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-012",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Candidate pool inventory",
+      "trigger": "request for pool before ranking",
+      "reply_template": "**Retained candidate pool ({count}/{cap}):** {coverage_by_domain}. **Included identifiers:** {sample_ids}. **Missing coverage:** {gaps}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-013",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Deduplication report",
+      "trigger": "multiple providers return same paper",
+      "reply_template": "**Merged:** {raw_duplicates} records into {canonical_count} works. **Matching evidence:** {doi_arxiv_title_rules}. **Review queue:** {ambiguous_matches}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-014",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Canonical paper reconciliation",
+      "trigger": "DOI/arXiv versions differ",
+      "reply_template": "**Canonical identity:** {paper_id}. **Linked versions:** {version_records}. **Preferred citation:** {publication_of_record}. **Conflict:** {metadata_conflict}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-015",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Source coverage breakdown",
+      "trigger": "comparing scholarly discovery providers",
+      "reply_template": "**OpenAlex:** {n1}; **Crossref:** {n2}; **arXiv:** {n3}; **Semantic Scholar:** {n4}. **Unique overlap:** {overlap}. **Known gaps:** {gaps}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-016",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Accessible full-text inventory",
+      "trigger": "rights resolution completed",
+      "reply_template": "**Accessible PDFs:** {pdf_count}. **Metadata-only:** {metadata_only_count}. **License restrictions:** {restricted_count}. **Next supported action:** {access_option}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-017",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "PDF ingestion status",
+      "trigger": "parsed PDF successfully",
+      "reply_template": "**Paper:** {title}. **Parsed:** {section_count} sections, {table_count} tables, {figure_count} figures. **Extractor:** {version}. **Review flags:** {flags}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-018",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Metadata-only research response",
+      "trigger": "no permitted full text",
+      "reply_template": "**What is verifiable:** {metadata_and_abstract}. **Unavailable:** {fulltext_claims}. **Evidence level:** metadata/abstract only. **Link:** {publisher_or_repository}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-019",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "Search relaxation summary",
+      "trigger": "initial search yields few papers",
+      "reply_template": "**Original search:** {query}. **Relaxed dimensions:** {synonyms_or_dates}. **Additional results:** {count}. **Relevance trade-off:** {specificity_cost}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-020",
+      "family": "02 — Scholarly discovery and ingestion",
+      "name": "No relevant papers located",
+      "trigger": "all sources yield inadequate support",
+      "reply_template": "**Search outcome:** No sufficiently relevant verified papers in {sources} for {query} on {date}. **Tried:** {query_variants}. **Closest related work:** {near_matches}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-021",
+      "family": "03 — Ranked research result presentations",
+      "name": "Top-five evidence shortlist",
+      "trigger": "user wants concise recommended papers",
+      "reply_template": "**Five relevant papers for {topic}:** {five_paper_cards}. For each: title, authors, year, why matched, result, limitation, PDF/DOI.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-022",
+      "family": "03 — Ranked research result presentations",
+      "name": "Top-ten comprehensive shortlist",
+      "trigger": "user wants a wider review",
+      "reply_template": "**Ten papers by topic match:** {ten_paper_cards}. **Themes covered:** {clusters}. **Coverage caveat:** {missing_area}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-023",
+      "family": "03 — Ranked research result presentations",
+      "name": "Single ranked paper card",
+      "trigger": "present one selected hit",
+      "reply_template": "**#{rank} {title} ({year})** — {author}. **Topic fit:** {matching_features}. **Contribution:** {claim}. **Evidence:** {citation}. **Read:** {link}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-024",
+      "family": "03 — Ranked research result presentations",
+      "name": "Why this paper ranked here",
+      "trigger": "user questions a paper's position",
+      "reply_template": "**Rank explanation:** {topic_similarity}, {method_overlap}, {query_constraints}, {coverage}. **Not part of this rank:** {excluded_quality_signals}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-025",
+      "family": "03 — Ranked research result presentations",
+      "name": "Feature-level rank breakdown",
+      "trigger": "user asks score details",
+      "reply_template": "**Ranking objective:** {ranking_objective}. **Features:** {feature_value_table}. **Weights/version:** {ranker_version}. **Missing values:** {missing_features}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-026",
+      "family": "03 — Ranked research result presentations",
+      "name": "Ranker A/B comparison",
+      "trigger": "evaluating search/ranking systems",
+      "reply_template": "**Ranker A vs B:** {top_k_comparison}. **Agreement:** {overlap_measure}. **Judged relevance:** {evaluation_metrics}. **Conclusion:** {tradeoff}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-027",
+      "family": "03 — Ranked research result presentations",
+      "name": "Fresh papers vs established classics",
+      "trigger": "topic needs recency and historical anchors",
+      "reply_template": "**Recent:** {recent_refs}. **Established background:** {classic_refs}. **Why both:** {research_progression}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-028",
+      "family": "03 — Ranked research result presentations",
+      "name": "Citations versus topic fit",
+      "trigger": "user equates citation count with quality",
+      "reply_template": "**Most cited:** {citation_sorted}. **Most relevant:** {topic_sorted}. **Different objectives:** {reason}. **Do not conflate:** citations ≠ scientific quality.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-029",
+      "family": "03 — Ranked research result presentations",
+      "name": "Diversity-aware shortlist",
+      "trigger": "retrieval overly concentrated on one lab/method",
+      "reply_template": "**Coverage-balanced picks:** {papers_by_method}. **Diversity dimension:** {dimension}. **Rank modification:** {rule}. **Evidence:** {refs}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-030",
+      "family": "03 — Ranked research result presentations",
+      "name": "Near-tied ranking transparency",
+      "trigger": "multiple papers have similar scores",
+      "reply_template": "**Near tie:** {papers}. **Score interval/difference:** {delta}. **Evidence discriminators:** {criteria}. **No false precision:** {ranking_uncertainty}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-031",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Scholarly paper passport",
+      "trigger": "identify paper and metadata",
+      "reply_template": "**{title}** — {authors} ({year}), {venue}. **DOI:** {doi}. **arXiv:** {arxiv_id}. **Version:** {status}. **Access:** {pdf_link}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-032",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Identifier collision resolution",
+      "trigger": "IDs or titles are inconsistent",
+      "reply_template": "**Potential records:** {candidates}. **Agreement:** {matching_fields}. **Disagreement:** {conflicting_fields}. **Resolution:** {verified_or_review}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-033",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Author research profile",
+      "trigger": "user asks author influence",
+      "reply_template": "**Researcher:** {author}, {affiliation}. **h-index:** {h_index}. **Works/citations:** {works}/{citations}. **Source/date:** {provider}/{as_of}. **Coverage caveat:** {note}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-034",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Extended author indices",
+      "trigger": "user asks g-index/i10/m-index",
+      "reply_template": "**h:** {h}; **g:** {g}; **i10:** {i10}; **m:** {m}; **Definition/source:** {definitions_and_sources}. **Unavailable metrics:** {not_available}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-035",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Institution and coauthor analysis",
+      "trigger": "asks where researchers collaborate",
+      "reply_template": "**Affiliations:** {institutions}. **Coauthor network:** {links}. **Observed collaboration pattern:** {pattern}. **Entity-resolution uncertainty:** {flags}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-036",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Venue and review status",
+      "trigger": "asks where published and whether peer-reviewed",
+      "reply_template": "**Venue:** {venue}; **Type:** {type}; **Publication state:** {preprint_or_peer_reviewed}. **Evidence:** {publisher_record}. **Unverified:** {status_gap}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-037",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Citation trajectory",
+      "trigger": "analyze impact over time",
+      "reply_template": "**Citations over time:** {annual_counts}. **Recent velocity:** {computed_velocity}. **Collection source/date:** {source_and_date}. **Coverage caution:** {database_bias}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-038",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Field-normalized impact",
+      "trigger": "compare papers from different fields",
+      "reply_template": "**Comparison group:** {field_and_year}. **Normalized metric:** {metric_name}={value}. **Method:** {normalization_basis}. **Limit:** {comparable_scope}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-039",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Preprint versus journal article",
+      "trigger": "multiple versions of same research",
+      "reply_template": "**Preprint:** {preprint_id}/{date}. **Version of record:** {doi}/{date}. **Changes identified:** {verified_diff}. **Preferred reference:** {selected_version}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-040",
+      "family": "04 — Paper identity and bibliometrics",
+      "name": "Early-career citation fairness",
+      "trigger": "compare authors with unequal career lengths",
+      "reply_template": "**Career-stage context:** {career_lengths}. **Raw vs time-normalized:** {metrics}. **Why rank cautiously:** {career_stage_bias}. **Use:** {appropriate_interpretation}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-041",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Structured paper overview",
+      "trigger": "user uploads/opens a paper",
+      "reply_template": "**Problem → Method → Results → Limits:** {problem}; {method}; {results}; {limits}. **Evidence:** {section_page_refs}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-042",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Contribution extraction",
+      "trigger": "identify exact scientific contributions",
+      "reply_template": "**Claimed contributions:** {contribution_list}. **Evidence locations:** {page_refs}. **Independent verification:** {verification_state}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-043",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Problem and motivation card",
+      "trigger": "asks what problem a paper addresses",
+      "reply_template": "**Problem:** {statement}. **Existing gap:** {baseline_limitation}. **Desired outcome:** {research_objective}. **Citation:** {source_span}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-044",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Step-by-step algorithm explanation",
+      "trigger": "asks how method works",
+      "reply_template": "**Inputs:** {inputs} → **Stages:** {ordered_steps} → **Outputs:** {outputs}. **Key mechanism:** {intuition}. **Algorithm citation:** {page_algo}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-045",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Architecture component breakdown",
+      "trigger": "asks internal model structure",
+      "reply_template": "**Modules:** {components}. **Data flow:** {connections}. **Function of each:** {functions}. **Figure reference:** {figure_page}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-046",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Equation-to-intuition explanation",
+      "trigger": "asks to understand math",
+      "reply_template": "**Equation:** {quoted_equation_or_reference}. **Variables:** {symbols}. **Intuition:** {interpretation}. **Assumptions:** {assumptions}. **Source:** {page}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-047",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Assumption inventory",
+      "trigger": "wants premises or boundary conditions",
+      "reply_template": "**Explicit assumptions:** {assumptions}. **Where stated:** {references}. **Potentially unstated:** {analyst_inferences_labeled}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-048",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Parameter and compute extraction",
+      "trigger": "wants training/inference requirements",
+      "reply_template": "**Parameters:** {model_size}. **Training compute:** {compute}. **Inference hardware:** {hardware}. **Reported vs estimated:** {statuses}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-049",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Dataset mention inventory",
+      "trigger": "paper uses multiple data sources",
+      "reply_template": "**Datasets:** {names}. **Sizes/splits:** {sizes_and_splits}. **Purpose:** {train_dev_test}. **Evidence:** {table_or_section_refs}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-050",
+      "family": "05 — PDF understanding and methods extraction",
+      "name": "Section and page navigator",
+      "trigger": "user wants relevant reading locations",
+      "reply_template": "**Read first:** {sections_with_pages}. **Skip initially:** {optional_sections}. **Key tables/figures:** {references}. **Deep links:** {verified_links}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-051",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Experiment ledger",
+      "trigger": "enumerate paper's experiments",
+      "reply_template": "**Experiments:** {experiment_rows}. Each row: dataset, split, baseline, metric, result, source table, limitations.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-052",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Benchmark comparison matrix",
+      "trigger": "compare results on same benchmark",
+      "reply_template": "**Benchmark:** {name}/{split}/{protocol}. **Methods & values:** {aligned_table}. **Comparability notes:** {conditions}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-053",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "SOTA claim audit",
+      "trigger": "article claims state of the art",
+      "reply_template": "**Claimed SOTA:** {exact_claim}. **Comparator:** {baseline}. **Metric and dataset:** {context}. **Verdict:** {supported_unverified_or_refuted}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-054",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Baseline improvement calculation",
+      "trigger": "quantify improvement over reference",
+      "reply_template": "**Baseline:** {b}. **Proposed:** {p}. **Absolute change:** {delta}. **Relative change:** {percent}. **Direction:** {higher_lower_better}. **Evidence:** {table}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-055",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Dataset split integrity",
+      "trigger": "check train/test/eval comparability",
+      "reply_template": "**Dataset:** {dataset}. **Train/dev/test:** {splits}. **Leakage controls:** {reported_controls}. **Unreported:** {gaps}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-056",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Statistical significance summary",
+      "trigger": "research reports uncertainty measures",
+      "reply_template": "**Statistical test:** {test}. **Effect/CI/p-value:** {reported_values}. **Sample count:** {n}. **Interpretation:** {cautious_conclusion}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-057",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Ablation impact explanation",
+      "trigger": "model includes component removals",
+      "reply_template": "**Ablation:** {removed_components}. **Effect per metric:** {deltas}. **Strongest evidence:** {ablation_table}. **Limits:** {interaction_effects}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-058",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Error analysis findings",
+      "trigger": "paper studies failure cases",
+      "reply_template": "**Observed failures:** {failure_classes}. **Frequency:** {reported_rate}. **Examples:** {supported_examples}. **Implication:** {research_consequence}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-059",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Generalization and OOD evaluation",
+      "trigger": "compare in-domain and out-of-domain",
+      "reply_template": "**In-domain:** {results_a}. **Cross-dataset/OOD:** {results_b}. **Shift:** {delta}. **Interpretation:** {generalization_limit}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-060",
+      "family": "06 — Experiments, benchmarks, and comparisons",
+      "name": "Efficiency-quality frontier",
+      "trigger": "compare latency/memory/quality",
+      "reply_template": "**Quality:** {quality_metric}. **Latency:** {latency_context}. **Peak RAM:** {memory}. **Hardware/precision:** {device_quantization}. **Trade-off:** {pareto_reading}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-061",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Claim-to-evidence card",
+      "trigger": "user asks whether a claim is supported",
+      "reply_template": "**Claim:** {claim}. **Direct evidence:** {quote_or_paraphrase}. **Location:** {paper_page_table}. **Assessment:** {status}. **Uncertainty:** {limits}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-062",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Exact-page research answer",
+      "trigger": "citation precision is important",
+      "reply_template": "**Answer:** {statement}. **Paper:** {title}. **Section/page:** {section}/{page}. **Inspect:** {verified_page_link}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-063",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Table-cell provenance answer",
+      "trigger": "user asks where a metric came from",
+      "reply_template": "**Value:** {value} {unit}. **Table:** {table_name}, p.{page}, row {row}, column {column}. **Experiment context:** {setup}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-064",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Figure-based interpretation",
+      "trigger": "user asks to interpret an image/plot",
+      "reply_template": "**Figure:** {figure_num}, p.{page}. **Observed pattern:** {pattern}. **Not directly established:** {unmeasured_conclusion}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-065",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Strong versus weak evidence",
+      "trigger": "several papers differ in robustness",
+      "reply_template": "**Higher-confidence finding:** {finding_and_support}. **Preliminary finding:** {finding_and_gaps}. **Why confidence differs:** {criteria}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-066",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Corroborating evidence",
+      "trigger": "independent studies find similar result",
+      "reply_template": "**Finding:** {claim}. **Independent supporting sources:** {papers}. **Differences in protocols:** {differences}. **Synthesis:** {bounded_conclusion}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-067",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Conflicting evidence report",
+      "trigger": "studies report incompatible outcomes",
+      "reply_template": "**Disagreement:** {claims}. **Check comparability:** {datasets_metrics_settings}. **Possible explanations:** {hypotheses}. **Unresolved:** {needed_tests}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-068",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Negative or null result",
+      "trigger": "study finds no measurable improvement",
+      "reply_template": "**Tested hypothesis:** {hypothesis}. **Reported null/negative outcome:** {result}. **Scope:** {conditions}. **Research value:** {avoid_repeating}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-069",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Limitations and threats to validity",
+      "trigger": "assess scientific limits",
+      "reply_template": "**Author-acknowledged:** {limitations}. **Additional reviewer concerns:** {inferences_labeled}. **Evidence:** {page_refs}. **Effect on conclusion:** {impact}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-070",
+      "family": "07 — Claims, evidence, and scientific reliability",
+      "name": "Calibrated evidence ledger",
+      "trigger": "output all extracted findings with reliability",
+      "reply_template": "**Claims:** {claim_rows}. Each: status, cited source, extractor, verification, confidence basis, missing data; abstain where unsupported.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-071",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Reproducibility readiness summary",
+      "trigger": "user wants to replicate a paper",
+      "reply_template": "**Artifacts:** code {code_status}, data {data_status}, weights {weights_status}, instructions {instructions_status}. **Gaps:** {gaps}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-072",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Code availability verification",
+      "trigger": "user asks for implementation repository",
+      "reply_template": "**Official/linked repository:** {verified_url}. **Connection to paper:** {evidence}. **Last checked:** {date}. **If unavailable:** {status}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-073",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Dataset availability verification",
+      "trigger": "user needs experimental data",
+      "reply_template": "**Dataset:** {dataset}. **Download/rights:** {link_and_license}. **Preprocessing:** {reported_steps}. **Missing assets:** {gaps}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-074",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Model weights and checkpoint audit",
+      "trigger": "user seeks released weights",
+      "reply_template": "**Weights:** {repository}. **Version/checkpoint:** {revision}. **License:** {license}. **Match to reported experiment:** {match_state}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-075",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Hyperparameter report",
+      "trigger": "reconstruct training setup",
+      "reply_template": "**Training configuration:** {batch_size_lr_epochs_scheduler}. **Source:** {methods_or_appendix}. **Missing hyperparameters:** {unknown_fields}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-076",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Randomness and seed audit",
+      "trigger": "ask reproducibility variance",
+      "reply_template": "**Seeds:** {seeds}. **Runs:** {run_count}. **Variance reported:** {variance}. **Repeatability risk:** {risk}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-077",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Hardware environment sheet",
+      "trigger": "reproduction resource planning",
+      "reply_template": "**Reported hardware:** {gpu_cpu_ram}. **Framework:** {stack}. **Precision:** {dtype}. **Estimated needs (clearly labeled):** {estimate}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-078",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Dependency and environment audit",
+      "trigger": "library versions or environment unclear",
+      "reply_template": "**Dependencies:** {reported_versions}. **Build/system requirements:** {requirements}. **Compatibility uncertainties:** {unknowns}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-079",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "License and permissible-use answer",
+      "trigger": "user asks whether artifacts can be reused",
+      "reply_template": "**Paper license:** {paper_license}. **Code:** {code_license}. **Dataset:** {data_license}. **Permitted actions:** {grounded_permissions}. **Unknown:** {unverified_terms}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-080",
+      "family": "08 — Reproducibility, licensing, and execution",
+      "name": "Reproduction action checklist",
+      "trigger": "user asks what to do next",
+      "reply_template": "**Minimum reproducible path:** obtain {assets} → set up {environment} → run {baseline} → verify {metric}. **Likely blockers:** {missing_artifacts}. **Reference:** {appendix}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-081",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Backward citation trail",
+      "trigger": "user asks where a method originated",
+      "reply_template": "**Paper:** {target}. **Key predecessors:** {references}. **Inherited ideas:** {ideas}. **Evidence:** {citations_and_text}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-082",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Forward citation evolution",
+      "trigger": "user asks what followed paper X",
+      "reply_template": "**Original paper:** {target}. **Later works:** {citing_papers}. **Changes:** {improvements}. **Date constraint:** {as_of}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-083",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Extends relation explanation",
+      "trigger": "claim that B extends A",
+      "reply_template": "**Edge:** {paper_b} EXTENDS {paper_a}. **Technical delta:** {delta}. **Proof:** {explicit_passage}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-084",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Improves-on/variant relationship",
+      "trigger": "compare method variants",
+      "reply_template": "**Lineage:** {ancestor} → {variant}. **Shared core:** {unchanged}. **Improvement claimed:** {delta}. **Measured support:** {experiments}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-085",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Contrasts-with conceptual comparison",
+      "trigger": "ideas have different design assumptions",
+      "reply_template": "**Concept A vs B:** {dimensions}. **Trade-offs:** {strengths_weaknesses}. **Sources:** {refs}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-086",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Uses and part-of graph traversal",
+      "trigger": "user asks components of a method",
+      "reply_template": "**Method:** {whole}. **USES:** {methods}. **PART_OF:** {system}. **What each contributes:** {functions}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-087",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Support graph for research claim",
+      "trigger": "inspect papers supporting a proposition",
+      "reply_template": "**Claim node:** {claim}. **SUPPORTS edges:** {verified_edges}. **Quality of support:** {study_context}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-088",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Contradiction relation caution",
+      "trigger": "cross-paper differences appear to conflict",
+      "reply_template": "**Candidate contradiction:** {pair}. **Comparable task/metric?** {checklist}. **Edge status:** {verified_or_not_established}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-089",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Method–dataset–benchmark subgraph",
+      "trigger": "user asks which works benchmark a method",
+      "reply_template": "**Method:** {method} → **Datasets:** {datasets} → **Metrics:** {metrics} → **Papers:** {papers}. **Evidence:** {table_refs}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-090",
+      "family": "09 — Scholarly graphs and research lineage",
+      "name": "Research genealogy timeline",
+      "trigger": "user wants chronological evolution",
+      "reply_template": "**Timeline:** {year_paper_method_sequence}. **Milestones:** {verified_deltas}. **Open branch:** {unresolved_trend}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-091",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Head-to-head paper comparison",
+      "trigger": "user selects two specific papers",
+      "reply_template": "**Shared task:** {task}. **A vs B:** {architecture_datasets_results_computes}. **Fair comparison?** {comparability}. **Winner only under:** {conditions}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-092",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Multi-paper synthesis",
+      "trigger": "user seeks broad conclusions",
+      "reply_template": "**Overall pattern:** {finding}. **Supporting papers:** {refs}. **Exceptions:** {exceptions}. **Evidence quality:** {strength}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-093",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Methodological clustering",
+      "trigger": "large paper pool has different approaches",
+      "reply_template": "**Clusters:** {families}. **Representative papers:** {examples}. **Distinguishing mechanisms:** {differences}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-094",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Agreement and disagreement matrix",
+      "trigger": "user compares 3+ findings",
+      "reply_template": "**Claims × papers:** {matrix}. **Legend:** supports / disputes / not tested / unclear. **Comparability restrictions:** {notes}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-095",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Dataset-specific leaderboard",
+      "trigger": "rank methods by reported evaluation metric",
+      "reply_template": "**Dataset/split/metric/protocol:** {context}. **Results:** {comparable_rows}. **Excluded noncomparable:** {excluded}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-096",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Literature taxonomy",
+      "trigger": "map subfields of a topic",
+      "reply_template": "**Taxonomy:** {hierarchy}. **Definitions:** {families}. **References per branch:** {papers}. **Boundary cases:** {overlaps}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-097",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Preprint versus peer-reviewed evidence",
+      "trigger": "literature mixes different publication stages",
+      "reply_template": "**Peer-reviewed:** {peer_reviewed}. **Preprints:** {preprints}. **Validation differences:** {quality_notes}. **No blanket quality inference:** {caveat}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-098",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Citation-context synthesis",
+      "trigger": "user asks how a paper is cited",
+      "reply_template": "**Citing contexts:** {contexts}. **Intent:** background/uses/contrasts/extends. **Representative passages:** {evidence}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-099",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Foundational work evidence",
+      "trigger": "user asks what to read first historically",
+      "reply_template": "**Historical anchors:** {papers}. **Why included:** {citation_and_lineage_evidence}. **Not a quality certificate:** {qualifier}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-100",
+      "family": "10 — Cross-paper synthesis and review outputs",
+      "name": "Research gaps and contradictions map",
+      "trigger": "identify gaps in corpus",
+      "reply_template": "**Well-tested:** {established}. **Under-tested:** {gaps}. **Conflicting:** {disagreements}. **Proposed follow-up:** {specific_test}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-101",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "First-paper reading recommendation",
+      "trigger": "user has limited time",
+      "reply_template": "**Read first:** {paper}, because {reason}. **Sections:** {pages}. **Then read:** {next_papers}. **Expected learning outcome:** {outcome}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-102",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Ordered reading roadmap",
+      "trigger": "user needs sequence from foundations to frontier",
+      "reply_template": "**Reading order:** {ordered_papers}. **Prerequisite concepts:** {concepts}. **Time/priority:** {difficulty_or_effort}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-103",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Literature review outline",
+      "trigger": "user drafting a related-work section",
+      "reply_template": "**Suggested structure:** {themes}. **Papers per subsection:** {citations}. **Disputed points:** {uncertainties}. **Missing evidence:** {gaps}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-104",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Annotated bibliography",
+      "trigger": "user wants annotated sources",
+      "reply_template": "**{formatted_citation}** — problem {problem}; method {method}; result {result}; limitations {limits}; usefulness {fit}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-105",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Research proposal foundation",
+      "trigger": "user asks for a proposal outline",
+      "reply_template": "**Gap:** {evidence_based_gap}. **Question:** {question}. **Hypothesis:** {hypothesis}. **Method:** {candidate_design}. **Evaluation:** {metrics}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-106",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Testable hypothesis generator",
+      "trigger": "user wants a falsifiable conjecture",
+      "reply_template": "**Hypothesis:** {testable_statement}. **Motivation:** {supporting_papers}. **Null hypothesis:** {null}. **Falsification:** {test_condition}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-107",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Experimental roadmap",
+      "trigger": "user needs practical evaluation plan",
+      "reply_template": "**Baseline:** {baseline}. **Datasets:** {datasets}. **Metrics:** {metrics}. **Ablations:** {ablations}. **Failure criteria:** {failure_thresholds}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-108",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Novelty checking, not claiming",
+      "trigger": "user asks if idea is novel",
+      "reply_template": "**Closest prior art:** {similar_papers}. **Overlap:** {overlap}. **Potential difference:** {candidate_delta}. **Novelty status:** not established without broader prior-art review.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-109",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Research-question refinement",
+      "trigger": "user's idea not yet measurable",
+      "reply_template": "**Current idea:** {idea}. **Specific research question:** {measurable_question}. **Operational variables:** {variables}. **Success test:** {evaluation}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-110",
+      "family": "11 — Research planning and scholarly writing aids",
+      "name": "Replication candidate selection",
+      "trigger": "user wants feasible reproduction",
+      "reply_template": "**Candidate:** {paper}. **Why feasible:** {artifacts_hardware_benchmark}. **Potential blockers:** {blockers}. **Alternatives:** {backup}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-111",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Executive summary response",
+      "trigger": "user asks short direct answer",
+      "reply_template": "**Bottom line:** {answer}. **Best supporting source:** {citation}. **Important caveat:** {limitation}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-112",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Deep technical research response",
+      "trigger": "user requests full detail",
+      "reply_template": "**Summary → mechanism → equations → experiments → comparisons → limitations → implications**, with source evidence attached to each material claim.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-113",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Side-by-side compact table",
+      "trigger": "user asks multiple options compared quickly",
+      "reply_template": "**Columns:** method, dataset, metric, value, compute, code, evidence. **Note:** {comparability_issues}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-114",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Layered explanation",
+      "trigger": "audience ranges from novice to researcher",
+      "reply_template": "**Plain-language intuition:** {intuition}. **Technical mechanism:** {formal_details}. **Research-grade nuance:** {assumptions_failure_cases}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-115",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Evidence-first response",
+      "trigger": "user distrusts model summaries",
+      "reply_template": "**Primary sources first:** {source_list}. **Supported observations:** {directly_supported}. **Analysis:** {clearly_separated_inferences}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-116",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Traceable extraction answer",
+      "trigger": "user asks how system knows a fact",
+      "reply_template": "**Claim:** {fact} → **source record/PDF:** {source} → **span/cell:** {coordinates} → **extractor/verifier:** {versions}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-117",
+      "family": "12 — User-facing response formats and controls",
+      "name": "One-question follow-up",
+      "trigger": "ambiguity truly blocks the answer",
+      "reply_template": "**One clarification:** {single_question}. **Already established:** {known_scope}. Avoid multi-question forms.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-118",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Export-ready research digest",
+      "trigger": "user wants compact reusable research notes",
+      "reply_template": "**Markdown/CSV/JSON-ready fields:** {title_doi_authors_problem_method_datasets_results_limitations_citations}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-119",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Continuation from previous answer",
+      "trigger": "user says continue/expand",
+      "reply_template": "**Continuing {active_topic}:** {new_depth}. **Previously established:** {brief_context}. **New evidence:** {additional_sources}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-120",
+      "family": "12 — User-facing response formats and controls",
+      "name": "Cross-language technical answer",
+      "trigger": "asks another language or bilingual explanation",
+      "reply_template": "**Requested-language explanation:** {translated_text}. **Keep original technical terms:** {symbols_paper_titles}. **Citation preservation:** {references}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-121",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Prerequisite-to-application pathway",
+      "trigger": "user asks how to learn a concept",
+      "reply_template": "**REQUIRES:** {upstream} → **TARGET:** {concept} → **UNLOCKS:** {downstream}. **Readings:** {pages}. **Only verified graph edges:** {edge_evidence}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-122",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Cross-domain bridge traversal",
+      "trigger": "asks connection between concepts in different fields",
+      "reply_template": "**Path:** {concept_a} → {bridge_nodes} → {concept_b}. **Evidence at each hop:** {sources}. **Unproven analogy:** {qualifier}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-123",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Diagnostic learning quiz",
+      "trigger": "user wants knowledge check",
+      "reply_template": "**Question:** {question}. **Options:** {four_options}. **After attempt:** {feedback_and_source}. Do not expose correct answer before attempt unless requested.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-124",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Physical library holdings locator",
+      "trigger": "asks where to find an actual book",
+      "reply_template": "**Title/edition:** {book}. **Call number:** {verified_call_no}. **Location:** {verified_shelf}. **Copy availability as of:** {timestamp}. Never invent barcodes or live stock.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-125",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Institutional resource gateway",
+      "trigger": "user asks where to access subscription content",
+      "reply_template": "**Resource:** {database}. **Authorized institutional entry:** {verified_portal}. **Access requirements:** {documented_steps}. Never request passwords in chat.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-126",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Catalog scope mismatch",
+      "trigger": "catalog cannot satisfy an academic query",
+      "reply_template": "**Catalog coverage:** {scope}. **Not found:** {requested_subject}. **Closest indexed alternatives:** {matches}. **Optional external search:** {permitted_action}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-127",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "PDF missing or unparseable",
+      "trigger": "ingestion lacks reliable document text",
+      "reply_template": "**Available evidence:** {metadata_or_partial_sections}. **Extraction failure:** {reason}. **Omitted analyses:** {unsupported_fields}. **Next recovery route:** {valid_path}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-128",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Conflicting scholarly metadata",
+      "trigger": "Crossref/OpenAlex/S2 disagree",
+      "reply_template": "**Conflict:** {field}. **Provider values/time:** {observations}. **Preferred authoritative source:** {source_reason}. **Status:** {resolved_or_unresolved}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-129",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "Correction, retraction, or integrity flag",
+      "trigger": "paper has scholarly integrity update",
+      "reply_template": "**Integrity status:** {retraction_or_correction}. **Authority and date:** {source}. **Impact on interpretation:** {consequences}. **Alternate evidence:** {other_papers}.",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    },
+    {
+      "id": "RES-130",
+      "family": "13 — Teaching, catalog access, and failure handling",
+      "name": "No verified graph path",
+      "trigger": "question asks relation not supported by graph",
+      "reply_template": "**No verified path within {k} hops** between {a} and {b} in {graph_snapshot}. **Known neighborhoods:** {neighbors}. **Do not infer unrelatedness outside corpus.**",
+      "evidence_policy": "Use verified [P#] source references and precise PDF page/table citations when available; expose unknown/metadata-only status rather than hallucinating."
+    }
+  ]
+}

@@ -9,7 +9,8 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parent
-CACHE = ROOT / "cache"
+PACKAGED_CACHE = ROOT / "cache"
+CACHE = Path("/tmp/archipelago/cache") if os.environ.get("VERCEL") else PACKAGED_CACHE
 BUCKET = "archipelago-cache"
 FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
 
@@ -34,6 +35,7 @@ def _headers() -> dict[str, str] | None:
 
 def _fallback(name: str) -> Path | None:
     for candidate in (
+        PACKAGED_CACHE / name,
         ROOT / name,
         ROOT / "data" / name,
         ROOT.parent / name,
@@ -66,9 +68,18 @@ def hydrate() -> dict[str, str]:
                     timeout=60,
                 )
                 if response.status_code == 200 and len(response.content) > 200:
+                    if name == "okf_graph.json" and target.is_file():
+                        try:
+                            existing_count = len(json.loads(target.read_text()).get("concepts", {}))
+                            remote_count = len(json.loads(response.content).get("concepts", {}))
+                            if existing_count > remote_count:
+                                loaded += 1
+                                continue
+                        except Exception:
+                            pass
                     target.write_bytes(response.content)
                     loaded += 1
-            except requests.RequestException:
+            except (requests.RequestException, OSError):
                 pass
         if loaded == len(FILES):
             source = "supabase"
@@ -77,6 +88,14 @@ def hydrate() -> dict[str, str]:
         return {"source": source, "cache": str(CACHE)}
 
     if _production_mode():
+        if os.environ.get("VERCEL"):
+            for name in FILES:
+                source_file = PACKAGED_CACHE / name
+                target = CACHE / name
+                if source_file.is_file() and not target.is_file():
+                    target.write_bytes(source_file.read_bytes())
+            if (CACHE / "okf_graph.json").is_file():
+                return {"source": "bundled", "cache": str(CACHE)}
         return {"source": source, "cache": str(CACHE)}
 
     for name in FILES:

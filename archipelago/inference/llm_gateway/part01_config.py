@@ -239,15 +239,21 @@ def is_llm_available() -> bool:
     status = False
     last_provider = provider
 
-    if provider == "xkiro" and _openai_client is not None and _probe_openai_compatible(
-        _openai_client, XKIRO_DEFAULT_MODEL, "xkiro", AVAILABILITY_TIMEOUT_SECONDS
+    if (
+        provider == "xkiro"
+        and _openai_client is not None
+        and _probe_openai_compatible(
+            _openai_client, XKIRO_DEFAULT_MODEL, "xkiro", AVAILABILITY_TIMEOUT_SECONDS
+        )
     ):
         status = True
 
     if not status:
         nvidia_body = nvidia_chat(
-            {"messages": [{"role": "user", "content": AVAILABILITY_PING}],
-             "max_tokens": AVAILABILITY_MAX_TOKENS},
+            {
+                "messages": [{"role": "user", "content": AVAILABILITY_PING}],
+                "max_tokens": AVAILABILITY_MAX_TOKENS,
+            },
             timeout=NVIDIA_AVAILABILITY_TIMEOUT_SECONDS,
         )
         if nvidia_body is not None:

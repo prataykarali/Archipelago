@@ -6,9 +6,10 @@ and 503 Service Unavailable / Shutdown handling.
 
 from __future__ import annotations
 
-import pytest
 from flask import Flask, jsonify
-from archipelago.middleware.rate_limiter import RateLimiter, rate_limit
+import pytest
+
+from archipelago.middleware.rate_limiter import rate_limit
 import archipelago.middleware.shutdown as shutdown_module
 
 
@@ -26,6 +27,7 @@ def test_app() -> Flask:
     @app.route("/api/protected-admin")
     def admin_endpoint():
         from flask import request
+
         auth = request.headers.get("Authorization")
         if not auth:
             return jsonify({"error": "Unauthorized"}), 401

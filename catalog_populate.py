@@ -8,6 +8,7 @@ Koha ODS reports (subject counts + title list) and MERGEs them into the graph.
 
 Idempotent: re-running converges to the same rows (``MERGE`` on a stable id).
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable

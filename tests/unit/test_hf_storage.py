@@ -1,8 +1,7 @@
 """Unit tests for Hugging Face Remote Storage Client."""
 
-import tempfile
 from pathlib import Path
-import pytest
+import tempfile
 
 from archipelago.storage.hf_remote import (
     HFStorageClient,

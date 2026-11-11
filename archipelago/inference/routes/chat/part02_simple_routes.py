@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 import json
+from typing import Any
 
 from flask import Response
 
@@ -19,7 +21,9 @@ from archipelago.inference.synthesis import (
 )
 
 
-def handle_out_of_scope(query, history, routing, wants_synthesis):
+def handle_out_of_scope(
+    query: str, history: list[dict[str, Any]], routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Defusal refusals with a soft 'maybe you meant' bridge."""
     reason = routing.get("reason", "out_of_scope_topic") or ""
     rl = reason.lower()
@@ -56,7 +60,7 @@ def handle_out_of_scope(query, history, routing, wants_synthesis):
             f"concepts on our shelves are: {bridge}."
         )
 
-    def generate_out_of_scope():
+    def generate_out_of_scope() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -78,10 +82,12 @@ def handle_out_of_scope(query, history, routing, wants_synthesis):
     return Response(generate_out_of_scope(), mimetype="text/plain")
 
 
-def handle_identity(query, history, routing, wants_synthesis):
+def handle_identity(
+    query: str, history: list[dict[str, Any]], routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Assistant identity / capabilities question."""
 
-    def generate_identity():
+    def generate_identity() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -103,10 +109,12 @@ def handle_identity(query, history, routing, wants_synthesis):
     return Response(generate_identity(), mimetype="text/plain")
 
 
-def handle_roadmap_quiz(query, history, routing, wants_synthesis):
+def handle_roadmap_quiz(
+    query: str, history: list[dict[str, Any]], routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Generate 5 diagnostic MCQs for the target concept."""
 
-    def generate_quiz_stream():
+    def generate_quiz_stream() -> Iterator[str]:
         from archipelago.inference.curriculum import generate_diagnostic_quiz
 
         target_id = routing.get("slots", {}).get("target_concept") or "low_rank_adaptation"
@@ -153,13 +161,13 @@ def handle_roadmap_quiz(query, history, routing, wants_synthesis):
                         yield chunk
                 yield "\n\n"
             except Exception:
-                yield f"Welcome to the diagnostic assessment for **{target_name}**! Assessing your foundational grasp on prerequisite concepts allows Archipelago to build an optimal, personalized 1–6 hop learning roadmap.\n\n"
+                yield f"Welcome to the diagnostic assessment for **{target_name}**! Assessing your foundational grasp on prerequisite concepts allows Archipelago to build an optimal, personalized 1-6 hop learning roadmap.\n\n"
         else:
-            yield f"Welcome to the diagnostic assessment for **{target_name}**! Assessing your foundational grasp on prerequisite concepts allows Archipelago to build an optimal, personalized 1–6 hop learning roadmap.\n\n"
+            yield f"Welcome to the diagnostic assessment for **{target_name}**! Assessing your foundational grasp on prerequisite concepts allows Archipelago to build an optimal, personalized 1-6 hop learning roadmap.\n\n"
 
         lines = [
             f"### 🎯 Knowledge Assessment: Prerequisites for {target_name}\n",
-            f"Let's assess your prior knowledge to build a personalized 1–6 hop learning roadmap to **{target_name}**.",
+            f"Let's assess your prior knowledge to build a personalized 1-6 hop learning roadmap to **{target_name}**.",
             "Answer these 5 quick diagnostic questions (reply with e.g. *1-A, 2-B, 3-C, 4-D, 5-A* or just your answers):\n",
         ]
         for q in quiz.get("questions", []):
@@ -180,10 +188,12 @@ def handle_roadmap_quiz(query, history, routing, wants_synthesis):
     return Response(generate_quiz_stream(), mimetype="text/plain")
 
 
-def handle_roadmap_quiz_eval(query, history, routing, wants_synthesis):
+def handle_roadmap_quiz_eval(
+    query: str, history: list[dict[str, Any]], routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Evaluate diagnostic quiz answers and stream the personalized roadmap."""
 
-    def generate_quiz_eval_stream():
+    def generate_quiz_eval_stream() -> Iterator[str]:
         from archipelago.inference.curriculum import evaluate_quiz_and_route_roadmap
 
         slots = routing.get("slots", {})
@@ -260,10 +270,12 @@ def handle_roadmap_quiz_eval(query, history, routing, wants_synthesis):
     return Response(generate_quiz_eval_stream(), mimetype="text/plain")
 
 
-def handle_roadmap_between(query, history, routing, wants_synthesis):
+def handle_roadmap_between(
+    query: str, history: list[dict[str, Any]], routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Direct start-to-target personalized roadmap."""
 
-    def generate_roadmap_stream():
+    def generate_roadmap_stream() -> Iterator[str]:
         from archipelago.inference.curriculum import find_roadmap_between
 
         slots = routing.get("slots", {})
@@ -292,10 +304,12 @@ def handle_roadmap_between(query, history, routing, wants_synthesis):
     return Response(generate_roadmap_stream(), mimetype="text/plain")
 
 
-def handle_onboarding(query, history, routing, wants_synthesis):
+def handle_onboarding(
+    query: str, history: list[dict[str, Any]], routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Broad AIML syllabus / start-learning entry path."""
 
-    def generate_onboarding():
+    def generate_onboarding() -> Iterator[str]:
         related = routing.get("related") or []
         payload = {
             "anchor_concept": None,
@@ -318,10 +332,12 @@ def handle_onboarding(query, history, routing, wants_synthesis):
     return Response(generate_onboarding(), mimetype="text/plain")
 
 
-def handle_small_talk(query, history, routing, wants_synthesis):
+def handle_small_talk(
+    query: str, history: list[dict[str, Any]], routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Conversational pleasantry detected."""
 
-    def generate_small_talk():
+    def generate_small_talk() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],

@@ -1,8 +1,10 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import re
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def detect_credentials_query(query: str) -> dict | None:
@@ -24,9 +26,8 @@ def detect_credentials_query(query: str) -> dict | None:
     # Physical membership card counts are public metadata — treat them as
     # library_credentials (they have the `card_count` field that formatters
     # render as "Available Cards").
-    if (
-        "british" in q_lower and "council" in q_lower
-        or "american" in q_lower and "library" in q_lower
+    if ("british" in q_lower and "council" in q_lower) or (
+        "american" in q_lower and "library" in q_lower
     ):
         for resource_key, aliases_iter in _rt._RESOURCE_ALIASES.items():
             if any(alias in q_lower for alias in aliases_iter):

@@ -8,19 +8,24 @@ Flow (all local, no external AI call):
         ↓ mention lookup against every indexed source
         ↓ prefill payload with the EXACT verified source URL
 """
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from archipelago.ingestion.mention import MentionMatch, MentionResult, mention_book, prefill_from_match
+from archipelago.ingestion.mention import (
+    MentionMatch,
+    MentionResult,
+    mention_book,
+    prefill_from_match,
+)
 from archipelago.ingestion.page_image.part01_ocr import (
     OCRUnavailable,
     group_lines,
     is_supported_image,
     line_text,
     ocr_available,
-    ocr_image_bytes,
     ocr_text_blocks,
 )
 from archipelago.ingestion.page_image.part02_parse import (
@@ -36,15 +41,15 @@ MIN_USEFUL_FIELD_HITS = 2
 IMAGE_FORMATS = ("PNG", "JPEG", "TIFF", "BMP", "WEBP")
 
 __all__ = [
-    "MAX_SUGGESTIONS",
     "IMAGE_FORMATS",
+    "MAX_SUGGESTIONS",
     "OCRUnavailable",
     "PageExtraction",
-    "is_supported_image",
-    "ocr_available",
+    "build_prefill",
     "extract_page_from_image",
     "extract_page_from_text",
-    "build_prefill",
+    "is_supported_image",
+    "ocr_available",
 ]
 
 
@@ -60,9 +65,7 @@ def extract_page_from_image(data: bytes) -> PageExtraction:
     blocks = ocr_text_blocks(data)
     text, lines = _lines_from_blocks(blocks)
     if not text.strip():
-        raise OCRUnavailable(
-            "No text was recognised on that image. Try a sharper or larger scan."
-        )
+        raise OCRUnavailable("No text was recognised on that image. Try a sharper or larger scan.")
     extraction = extract_page_fields(text, lines=lines)
     extraction.ocr_confidence = mean_confidence(blocks)
     return extraction
@@ -149,7 +152,16 @@ def build_prefill(
     # bibliographic fields are only adopted when the match is trustworthy, so a
     # fuzzy title hit can never overwrite details read off the page.
     suggested = prefill_from_match(matches[0]) if matches else {}
-    for key in ("title", "author", "isbn", "source_url", "doc_id", "domain", "kind", "license_mode"):
+    for key in (
+        "title",
+        "author",
+        "isbn",
+        "source_url",
+        "doc_id",
+        "domain",
+        "kind",
+        "license_mode",
+    ):
         if not fields.get(key) and suggested.get(key):
             fields[key] = suggested[key]
 

@@ -1,4 +1,5 @@
 """Tests for the Supabase login boundary in the Flask runtime."""
+
 from __future__ import annotations
 
 import pytest
@@ -106,7 +107,11 @@ def test_librarian_can_list_users(client, monkeypatch: pytest.MonkeyPatch):
         access_token="test-token",
     )
     monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _: (principal, None))
-    monkeypatch.setattr(supabase_auth, "list_managed_users", lambda p: ([{"username": "12024002028038", "role": "student"}], None))
+    monkeypatch.setattr(
+        supabase_auth,
+        "list_managed_users",
+        lambda p: ([{"username": "12024002028038", "role": "student"}], None),
+    )
 
     response = client.get("/api/users", headers={"Authorization": "Bearer test-token"})
     assert response.status_code == 200
@@ -121,21 +126,32 @@ def test_librarian_cannot_create_administrator(monkeypatch: pytest.MonkeyPatch):
         access_token="test-token",
     )
     from archipelago import supabase_auth
-    result, err = supabase_auth.create_managed_user(principal, {"username": "new_admin", "password": "password123", "role": "administrator"})
+
+    result, err = supabase_auth.create_managed_user(
+        principal, {"username": "new_admin", "password": "password123", "role": "administrator"}
+    )
     assert result is None
     assert "Librarians may only create student accounts" in err
 
 
-def test_user_updates_fail_closed_without_supabase_service_key(monkeypatch: pytest.MonkeyPatch, tmp_path):
+def test_user_updates_fail_closed_without_supabase_service_key(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+):
     from archipelago import supabase_auth
+
     monkeypatch.setattr(verify, "get_service_role_key", lambda: "")
     monkeypatch.setattr(local_store, "LOCAL_USERS_FILE", tmp_path / "users.json")
-    
+
     # Local JSON fallback must not become an alternate production identity store.
     initial_users = [
         {"id": "lib-01", "username": "librarian", "role": "librarian", "display_name": "Librarian"},
         {"id": "std-01", "username": "student_one", "role": "student", "display_name": "Student 1"},
-        {"id": "adm-01", "username": "admin_one", "role": "administrator", "display_name": "Admin 1"},
+        {
+            "id": "adm-01",
+            "username": "admin_one",
+            "role": "administrator",
+            "display_name": "Admin 1",
+        },
     ]
     supabase_auth._write_local_users(initial_users)
 
@@ -147,11 +163,15 @@ def test_user_updates_fail_closed_without_supabase_service_key(monkeypatch: pyte
     )
 
     # Both student and self updates require the configured Supabase service key.
-    res, err = supabase_auth.update_managed_user(lib_principal, "std-01", {"username": "student_updated"})
+    res, err = supabase_auth.update_managed_user(
+        lib_principal, "std-01", {"username": "student_updated"}
+    )
     assert res is None
     assert "not configured" in err
 
-    res, err = supabase_auth.update_managed_user(lib_principal, "lib-01", {"username": "librarian_new"})
+    res, err = supabase_auth.update_managed_user(
+        lib_principal, "lib-01", {"username": "librarian_new"}
+    )
     assert res is None
     assert "not configured" in err
     assert supabase_auth._read_local_users()[1]["username"] == "student_one"
@@ -159,6 +179,7 @@ def test_user_updates_fail_closed_without_supabase_service_key(monkeypatch: pyte
 
 def test_librarian_can_delete_student_but_not_admin(monkeypatch: pytest.MonkeyPatch, tmp_path):
     from archipelago import supabase_auth
+
     monkeypatch.setattr(verify, "get_service_role_key", lambda: "")
     monkeypatch.setattr(local_store, "LOCAL_USERS_FILE", tmp_path / "users.json")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
@@ -167,7 +188,12 @@ def test_librarian_can_delete_student_but_not_admin(monkeypatch: pytest.MonkeyPa
     initial_users = [
         {"id": "lib-01", "username": "librarian", "role": "librarian", "display_name": "Librarian"},
         {"id": "std-01", "username": "student_one", "role": "student", "display_name": "Student 1"},
-        {"id": "adm-01", "username": "admin_one", "role": "administrator", "display_name": "Admin 1"},
+        {
+            "id": "adm-01",
+            "username": "admin_one",
+            "role": "administrator",
+            "display_name": "Admin 1",
+        },
     ]
     supabase_auth._write_local_users(initial_users)
 
@@ -200,6 +226,7 @@ def test_librarian_can_delete_student_but_not_admin(monkeypatch: pytest.MonkeyPa
 
 def test_administrator_full_crud_permissions(monkeypatch: pytest.MonkeyPatch, tmp_path):
     from archipelago import supabase_auth
+
     monkeypatch.setattr(verify, "get_service_role_key", lambda: "")
     monkeypatch.setattr(local_store, "LOCAL_USERS_FILE", tmp_path / "users.json")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "0")
@@ -219,20 +246,22 @@ def test_administrator_full_crud_permissions(monkeypatch: pytest.MonkeyPatch, tm
     )
 
     # 1. Create a new librarian
-    new_user, err = supabase_auth.create_managed_user(admin_principal, {
-        "username": "new_librarian",
-        "password": "password123",
-        "role": "librarian",
-        "display_name": "New Librarian"
-    })
+    new_user, err = supabase_auth.create_managed_user(
+        admin_principal,
+        {
+            "username": "new_librarian",
+            "password": "password123",
+            "role": "librarian",
+            "display_name": "New Librarian",
+        },
+    )
     assert err is None
     assert new_user["role"] == "librarian"
 
     # 2. Update student username and role to librarian
-    upd_user, err = supabase_auth.update_managed_user(admin_principal, "std-01", {
-        "username": "promoted_student",
-        "role": "librarian"
-    })
+    upd_user, err = supabase_auth.update_managed_user(
+        admin_principal, "std-01", {"username": "promoted_student", "role": "librarian"}
+    )
     assert err is None
     assert upd_user["username"] == "promoted_student"
     assert upd_user["role"] == "librarian"
@@ -241,4 +270,3 @@ def test_administrator_full_crud_permissions(monkeypatch: pytest.MonkeyPatch, tm
     ok, err = supabase_auth.delete_managed_user(admin_principal, "std-01")
     assert ok
     assert err is None
-

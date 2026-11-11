@@ -28,16 +28,16 @@ OAI_NS = "{http://www.openarchives.org/OAI/2.0/}"
 PROVIDERS = {
     "oapen": {
         "endpoint": "https://library.oapen.org/oai/request",
-        "set": "com_20.500.12657_5",
+        "set": "",  # server-side set filtering times out; books are filtered by dc.type
         "host": "library.oapen.org",
     },
     "doab": {
         "endpoint": "https://directory.doabooks.org/oai/request",
-        "set": "com_20.500.12854_5",
+        "set": "",
         "host": "directory.doabooks.org",
     },
 }
-USER_AGENT = "ArchipelagoAcademic/1.0 (OAI-PMH metadata harvest; contact: library operator)"
+USER_AGENT = "ArchipelagoAcademic/1.0"  # longer agent strings are reset by the OAPEN edge
 REQUEST_TIMEOUT_SECONDS = 60
 MAX_OAI_BYTES = 8_000_000
 OAI_PAUSE_SECONDS = 1.0
@@ -254,7 +254,7 @@ def harvest(
                 else {
                     "verb": "ListRecords",
                     "metadataPrefix": "xoai",
-                    "set": PROVIDERS[provider]["set"],
+                    **({"set": PROVIDERS[provider]["set"]} if PROVIDERS[provider]["set"] else {}),
                     **({"from": from_date} if from_date else {}),
                 }
             )

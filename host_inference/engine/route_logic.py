@@ -27,6 +27,8 @@ from .patterns import (
     SHELF_RE,
 )
 from .render import neighborhood_block
+from .route_research import research_topic_reply
+from .route_special_books import special_book_reply
 from .routing_constants import (
     ANCHOR_LIMIT,
     COMPARE_CUES,
@@ -57,6 +59,19 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return "PERSONA_LOCK", HIJACK_MESSAGE, None, {"hide_graph": True, "reason": "injection"}
     if CODE_TRAP.search(query):
         return "CODE_TRAP", CODE_MESSAGE, None, {"hide_graph": True, "reason": "procedural"}
+    if classify_query_intent(query) == IntentCategory.RESEARCH_INTELLIGENCE:
+        return (
+            "RESEARCH_INTELLIGENCE",
+            "Research intelligence runs in the authorized [research pipeline](/research). "
+            "Open a topic or author record there to request bibliometric analysis. "
+            "This chat has not calculated metrics for the request.",
+            None,
+            {
+                "hide_graph": True,
+                "reason": "delegated_to_research_pipeline",
+                "intent_category": IntentCategory.RESEARCH_INTELLIGENCE.value,
+            },
+        )
 
     # ── Conversational greetings ──────────────────────────────────────
     _GREETING_RE = re.compile(
@@ -67,21 +82,25 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     )
     if _GREETING_RE.match(query):
         text = (
-            "Hello! I'm **Archipelago**, your AI librarian and academic tutor. "
-            "I can explain concepts from the indexed CS/AI/ML corpus, show "
-            "prerequisite graphs, find textbook pages, check library hours, "
-            "look up e-resource credentials, and build personalized learning "
-            "roadmaps.\n\n"
-            "Try asking about **LoRA**, **RAG**, **BERT**, **Attention**, "
-            "**3NF**, or any indexed topic!"
+            "Hello! I'm **Archipelago**, your AI academic knowledge assistant. "
+            "I can explain concepts across Computer Science (Operating Systems, DBMS, "
+            "Data Structures & Algorithms, Networks, Compilers, Theory of Computation, "
+            "Mathematics, and AI/ML), show prerequisite roadmaps, check institutional "
+            "library catalog holdings and OPAC availability, look up research papers, "
+            "and verify citations with exact page provenance.\n\n"
+            "Try asking about **Operating Systems** (context switches, semaphores, deadlocks), "
+            "**Database Systems** (B+ trees, ACID, 3NF), **Algorithms** (BFS vs DFS), "
+            "**Computer Networks** (TCP congestion control), or **AI & Deep Learning** (Transformers, BERT, LoRA, RAG)!"
         )
         return "GREETING", text, None, {"hide_graph": True, "reason": "greeting"}
+
+    clean_query = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
 
     # The indexed "Neural Network" node describes graph neural networks.
     # A basic neural-network definition must not cite that narrower passage.
     if re.fullmatch(
         r"(?:what is|define|explain)\s+(?:a|an)?\s*(?:artificial\s+)?neural networks?[?.!]*",
-        query,
+        clean_query,
         re.I,
     ):
         return (
@@ -95,13 +114,13 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         )
 
     # Contract type 3: schedule + access portals.
-    wants_hours = bool(SCHEDULE_RE.search(query))
-    wants_access = bool(AUTH_RE.search(query)) and not SHELF_RE.search(query)
+    wants_hours = bool(SCHEDULE_RE.search(clean_query))
+    wants_access = bool(AUTH_RE.search(clean_query)) and not SHELF_RE.search(clean_query)
     if wants_hours or wants_access:
         route = "SCHEDULE" if wants_hours and not wants_access else "AUTH_GATEWAY"
         return (
             route,
-            compose.admin_card(query, wants_hours, wants_access),
+            compose.admin_card(clean_query, wants_hours, wants_access),
             None,
             {
                 "hide_graph": True,
@@ -110,8 +129,8 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         )
 
     # Contract type 5: uploaded-paper flow.
-    if INGEST_RE.search(query) and not SHELF_RE.search(query):
-        text, projection = ingestion_view.ingestion_reply(query, graph)
+    if INGEST_RE.search(clean_query) and not SHELF_RE.search(clean_query):
+        text, projection = ingestion_view.ingestion_reply(clean_query, graph)
         return (
             "INGESTION_ANALYSIS",
             text,
@@ -123,8 +142,8 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             },
         )
 
-    if any(term in query.lower() for term in PASSING_MENTIONS):
-        entity = next(term.strip() for term in PASSING_MENTIONS if term in query.lower())
+    if any(term in clean_query.lower() for term in PASSING_MENTIONS):
+        entity = next(term.strip() for term in PASSING_MENTIONS if term in clean_query.lower())
         text = (
             f"The library texts mention {entity} in passing as a dataset benchmark or infrastructure instance, "
             "but do not contain the theoretical documentation required to explain it. "
@@ -132,7 +151,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         )
         return "PASSING_MENTION", text, None, {"hide_graph": True, "reason": "passing_mention"}
 
-    catalog_hit = self.catalog.reply(query)
+    catalog_hit = self.catalog.reply(clean_query)
     # A learning request ("I want to learn X", "Teach me Y") is a
     # curriculum intent, not a book lookup. The catalog matcher fires on
     # the title words alone, so it used to swallow every curriculum prompt
@@ -140,14 +159,18 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     # A relational prompt ("how does Softmax connect to Self-Attention?")
     # is the same story: the matcher saw "Attention" in a catalogue title
     # and answered with a book page instead of a traversal path.
-    learning_request = bool(DIAG_RE.search(query))
-    relational_request = bool(RELATE_RE.search(query))
+    learning_request = bool(DIAG_RE.search(clean_query))
+    relational_request = bool(RELATE_RE.search(clean_query))
+    explain_request = bool(
+        re.search(r"\b(?:explain|what\s+is|define|how\s+do|how\s+does)\b", clean_query, re.I)
+    )
     if (
         catalog_hit
-        and SOURCE_LOOKUP_RE.search(query)
-        and not SHELF_RE.search(query)
+        and SOURCE_LOOKUP_RE.search(clean_query)
+        and not SHELF_RE.search(clean_query)
         and not learning_request
         and not relational_request
+        and not explain_request
     ):
         return (
             "BOOK_PAGE",
@@ -195,13 +218,17 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         )
 
     LIB_INVENTORY_RE = re.compile(
-        r"\b(show journal inventory|journal holdings|journal inventory|what books are in the library|which books are in the library|show books in library|library inventory)\b",
+        r"\b(show journal inventory|journal holdings|journal inventory|"
+        r"what books are in the library|which books are in the library|show books in library|library inventory|"
+        r"(?:what|which|show)\s+(?:os|dbms|dsa|algorithm|algorithms|database|databases|network|networks|operating\s+system|operating\s+systems)\s+(?:and\s+\w+\s+)?(?:books?|textbooks?)\b|"
+        r"(?:what|which)\s+(?:os|dbms|dsa|algorithms?|database|databases|network|operating\s+system)s?\s+(?:and\s+\w+\s+)?(?:books?|textbooks?)\s+(?:do we have|are available|in the library)\b|"
+        r"(?:os|dbms|dsa|algorithms?|database|network|operating\s+system)s?\s+(?:and\s+\w+\s+)?(?:books?|textbooks?)\s+(?:available|in\s+the\s+library))\b",
         re.I,
     )
-    if LIB_INVENTORY_RE.search(query):
+    if LIB_INVENTORY_RE.search(clean_query):
         return (
             "LIBRARY_LOOKUP",
-            compose.library_inventory_reply(self, query),
+            compose.library_inventory_reply(self, clean_query),
             None,
             {
                 "hide_graph": True,
@@ -211,73 +238,13 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             },
         )
 
-    RESEARCH_TOPIC_RE = re.compile(
-        r"\b(recent\s+(?:studies|research|papers|advances)|latest\s+(?:findings|literature|works)|state of the art|sota)\b",
-        re.I,
-    )
-    if RESEARCH_TOPIC_RE.search(query):
-        target = anchors[0] if anchors else best_id
-        is_rag = target == "rag" or "rag" in query.lower() or "retrieval" in query.lower()
-        if is_rag:
-            synthesis_text = (
-                f"**Recent Research & Literature Analysis: {graph.label('rag')}**\n\n"
-                "• **Foundational Baseline:** Patrick Lewis et al. (2020), *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks* (`papers/Lewis2020_RAG.pdf`), NeurIPS 2020. Introduced parametric neural sequence generators augmented with dense non-parametric Wikipedia retrieval indices.\n"
-                "• **Recent Milestone:** Darren Edge et al. (2024), *From Local to Global: A Graph RAG Approach to Query-Focused Summarization* (`papers/Edge2024_GraphRAG.pdf`), Microsoft Research (April 2024). Extends vector retrieval to structured knowledge graph communities via Leiden clustering and hierarchical summarization for comprehensive cross-document reasoning.\n\n"
-                "**Key Research Findings & Structural Evolution:**\n"
-                "1. *Local vs. Global Synthesis:* Standard chunk-level vector RAG struggles with corpus-wide thematic queries. Graph-driven architectures (Graph RAG) resolve this by aggregating hierarchical community summaries.\n"
-                "2. *Factuality & Grounding:* Non-parametric retrieval substantially reduces generation hallucination compared to purely parametric sequence-to-sequence language models.\n\n"
-                "*(Verified corpus temporal boundary: Indexed publications in this repository extend through mid-2024. "
-                "For literature published after mid-2024, live scholarly database synchronization is required; "
-                "older indexed papers are not represented as current state-of-the-art without live verification.)*"
-            )
-            citations = [
-                {
-                    "source_category": "paper",
-                    "doc_id": "papers/Lewis2020_RAG.pdf",
-                    "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
-                    "authors": "Lewis et al. (2020)",
-                    "year": "2020",
-                    "verified": True,
-                },
-                {
-                    "source_category": "paper",
-                    "doc_id": "papers/Edge2024_GraphRAG.pdf",
-                    "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
-                    "authors": "Edge et al. (2024)",
-                    "year": "2024",
-                    "verified": True,
-                },
-            ]
-        else:
-            base_synthesis = compose.synthesis(self, target)
-            lit_lines = []
-            if target in compose.VERIFIED_BIBLIOGRAPHIC_RECORDS:
-                rec = compose.VERIFIED_BIBLIOGRAPHIC_RECORDS[target]
-                lit_lines.append(
-                    f"• **Corpus Benchmark Paper:** {rec['authors']} ({rec['year']}), *{rec['title']}* (`{rec['doc_id']}`), {rec['venue']}."
-                )
-            recent_notice = (
-                "\n\n*(Verified corpus temporal boundary: Indexed publications in this repository extend through mid-2024. "
-                "For literature published after mid-2024, live scholarly database synchronization is required; "
-                "older indexed papers are not represented as current state-of-the-art without live verification.)*"
-            )
-            if lit_lines:
-                synthesis_text = base_synthesis + "\n\n**Indexed Literature Foundation:**\n" + "\n".join(lit_lines) + recent_notice
-            else:
-                synthesis_text = base_synthesis + recent_notice
-            citations = [graph.cite_record(target, query)]
+    special_book = special_book_reply(clean_query)
+    if special_book is not None:
+        return special_book
 
-        return (
-            "RESEARCH_TOPIC",
-            synthesis_text,
-            target,
-            {
-                "score": max(best_score, 0.93 if hits else best_score),
-                "reason": "research_topic_verified_dates",
-                "citations": citations,
-                "intent_category": IntentCategory.RESEARCH_TOPIC.value,
-            },
-        )
+    research_topic = research_topic_reply(self, query, anchors, best_id, best_score, hits)
+    if research_topic is not None:
+        return research_topic
 
     extracted_concepts = extract_concept_mentions(query, known_graph=graph)
     if len(extracted_concepts) >= 3:
@@ -296,8 +263,19 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                     "indexed": [c.cid for c in reasoning["indexed_concepts"]],
                     "missing": [c.raw_text for c in reasoning["missing_concepts"]],
                     "is_partial": reasoning["is_partial"],
+                    "paths": [
+                        {
+                            "source": source,
+                            "target": target,
+                            "hops": [hop.__dict__ for hop in path.hops],
+                            "inferred_documents": path.shared_documents,
+                        }
+                        for (source, target), path in reasoning["paths"].items()
+                    ],
                 },
-                "hide_graph": False,
+                "hide_graph": not bool(
+                    re.search(r"\b(prerequisites?|roadmap|learning path|study plan)\b", query, re.I)
+                ),
                 "intent_category": IntentCategory.MULTI_CONCEPT.value,
             },
         )
@@ -327,7 +305,8 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
 
     domains = compose.domain_pair(self, query)
     if domains and any(
-        token in query.lower() for token in ("compare", "versus", "vs", "difference", "with")
+        token in query.lower()
+        for token in ("compare", "versus", "vs", "difference", "differ", "different")
     ):
         (left_id, left_name), (right_id, right_name) = domains
         return (
@@ -343,6 +322,13 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         left_id, left_ok = compose.resolve_fragment(self, left_text)
         right_id, right_ok = compose.resolve_fragment(self, right_text)
         if left_ok and right_ok and left_id != right_id:
+            if any(token in query.lower() for token in COMPARE_CUES):
+                return (
+                    "CROSS_DOMAIN",
+                    compose.matrix(self, left_id, right_id),
+                    left_id,
+                    {"score": best_score, "reason": "cross_domain"},
+                )
             path = graph.shortest(left_id, right_id, limit=SHORTEST_PATH_LIMIT)
             if path is None:
                 return (
@@ -350,13 +336,6 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                     compose.disconnected(self, left_id, right_id),
                     left_id,
                     {"score": best_score, "reason": "no_path"},
-                )
-            if any(token in query.lower() for token in COMPARE_CUES):
-                return (
-                    "CROSS_DOMAIN",
-                    compose.matrix(self, left_id, right_id),
-                    left_id,
-                    {"score": best_score, "reason": "cross_domain"},
                 )
             return (
                 "RELATION",
@@ -389,7 +368,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             text = (
                 "The active catalog does not contain a concept node for that implementation parameter. "
                 "I will not invent a memory formula or version-specific constant. "
-                "Ask for a concept that is indexed, such as LoRA, BERT, or third normal form."
+                "Ask for an indexed academic concept across Operating Systems, DBMS, Algorithms, Networks, or Machine Learning."
             )
             return (
                 "CATALOG_DEPTH",
@@ -479,9 +458,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             {"score": best_score, "reason": "shortest_path"},
         )
 
-    if len(anchors) >= 2 and any(
-        token in query.lower() for token in ("compare", "versus", "vs", "difference", "and")
-    ):
+    if len(anchors) >= 2 and any(token in query.lower() for token in COMPARE_CUES):
         return (
             "CROSS_DOMAIN",
             compose.matrix(self, anchors[0], anchors[1]),
@@ -490,7 +467,11 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         )
 
     target = anchors[0] if anchors else best_id
-    if re.search(r"\b(recent\s+(?:studies|research|papers|advances)|latest\s+(?:findings|literature|works)|state of the art|sota)\b", query, re.I):
+    if re.search(
+        r"\b(recent\s+(?:studies|research|papers|advances)|latest\s+(?:findings|literature|works)|state of the art|sota)\b",
+        query,
+        re.I,
+    ):
         synthesis_text = compose.synthesis(self, target)
         recent_notice = (
             "\n\n*(Verified corpus date coverage: Indexed publications span through 2023/2024. "

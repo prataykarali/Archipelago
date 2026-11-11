@@ -1,14 +1,17 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import json
 import logging
+import os
 import re
+
 from . import _deps as _rt  # noqa: F401
 
-
 try:
-    import ollama
+    import ollama  # noqa: F401
+
     OLLAMA_AVAILABLE = True
 except ImportError:
     OLLAMA_AVAILABLE = False
@@ -17,7 +20,11 @@ except ImportError:
 logger = logging.getLogger("archipelago.ingestion.lib_qwen")
 
 
-DEFAULT_MODEL = "lib-qwen:latest"
+DEFAULT_MODEL = (
+    os.getenv("ARCHIPELAGO_ACADEMIC_MODEL")
+    or os.getenv("ARCHIPELAGO_INGESTION_MODEL")
+    or "lib-qwen:latest"
+)
 
 
 MAX_NEW_CONCEPTS_PER_BATCH = 150

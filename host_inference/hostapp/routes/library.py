@@ -9,12 +9,15 @@ from __future__ import annotations
 
 from flask import Flask, current_app, jsonify, request
 from library_index import hf_title, load_hf_paths, paper_url
-from library_inventory import inventory_stats, load_inventory, sample_inventory
+from library_inventory import inventory_stats, load_inventory
 from remote_cache import load_books, load_library_manifest, public_book
 import requests
 
 from ..config import LIBRARIAN_ROLES
 from ..context import AppContext
+from ..koha_bridge import load_koha_snapshot, public_holdings
+from ..research_intake_store import get_record
+from ..research_library_evidence import RECORD_KEY_PATTERN, library_paper_evidence
 
 INVENTORY_FILENAME_SUFFIX = ".csv"
 PAPER_MARKER = "/papers/"
@@ -59,15 +62,48 @@ def _catalog_document_domain(title_or_path: str) -> str:
 def register(app: Flask, ctx: AppContext) -> None:
     """Register library routes on ``app``."""
 
+    @app.get("/api/library/paper-evidence/<record_key>")
+    def library_paper_evidence_api(record_key: str):
+        """Give signed-in readers the selected private dataset evidence row."""
+        if not RECORD_KEY_PATTERN.fullmatch(record_key):
+            return jsonify({"error": "invalid_record_key"}), 400
+        try:
+            row = get_record(record_key)
+        except (requests.RequestException, RuntimeError, ValueError):
+            current_app.logger.exception("Research paper lookup failed")
+            return jsonify({"error": "storage_unavailable"}), 503
+        if not row or row.get("kind") != "paper":
+            return jsonify({"error": "not_found"}), 404
+        evidence = library_paper_evidence(row)
+        if evidence is None:
+            return jsonify({"error": "evidence_unavailable"}), 404
+        return jsonify(evidence)
+
     @app.get("/api/library/data")
     def library_data():
         manifest = load_library_manifest()
+        opac = load_koha_snapshot()
+        imported = load_inventory()
+        exported = public_holdings(opac) if opac else []
+        existing = manifest.get("holdings") if isinstance(manifest.get("holdings"), list) else []
+        rows = imported if imported is not None else exported or existing
+        holdings_status = (
+            "imported"
+            if imported is not None
+            else "koha_export"
+            if exported
+            else "manifest"
+            if existing
+            else "unavailable"
+        )
         if manifest.get("ebook_shelf"):
-            inventory = load_inventory()
-            rows = inventory if inventory is not None else sample_inventory()
             manifest["holdings"] = rows
             manifest["holdings_stats"] = inventory_stats(rows)
-            manifest["holdings_status"] = "imported" if inventory is not None else "sample"
+            manifest["holdings_status"] = holdings_status
+            if opac:
+                manifest["opac_daily"] = opac.get("opac_daily")
+                manifest["koha_source_updated_at"] = opac.get("source_updated_at")
+                manifest["koha_stale"] = opac.get("stale")
             return jsonify(manifest)
 
         ebooks = [public_book(book) for book in load_books()]
@@ -83,15 +119,16 @@ def register(app: Flask, ctx: AppContext) -> None:
                 }
             )
             ebooks.append(item)
-        inventory = load_inventory()
-        rows = inventory if inventory is not None else sample_inventory()
         return jsonify(
             {
                 "ebook_shelf": ebooks,
                 "ebook_stats": f"{len(ebooks)} institutional e-books · passwords are not shown",
                 "holdings": rows,
                 "holdings_stats": inventory_stats(rows),
-                "holdings_status": "imported" if inventory is not None else "sample",
+                "holdings_status": holdings_status,
+                "opac_daily": opac.get("opac_daily") if opac else None,
+                "koha_source_updated_at": opac.get("source_updated_at") if opac else None,
+                "koha_stale": opac.get("stale") if opac else None,
                 "journal_issues": [],
                 "subject_counts": [],
             }

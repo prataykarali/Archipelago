@@ -1,8 +1,9 @@
 """Catalog bridge linking physical Resources to Document nodes in KùzuDB."""
+
 from __future__ import annotations
 
 import re
-from typing import Any
+
 import kuzu
 from thefuzz import fuzz
 
@@ -73,7 +74,7 @@ def auto_link_resources(db_path: str) -> dict[str, int]:
             # Check match against title or filename
             clean_fname = re.sub(r"[^a-zA-Z0-9 ]+", " ", d_id.replace(".pdf", "").lower()).strip()
             clean_dtitle = re.sub(r"[^a-zA-Z0-9 ]+", " ", d_title.lower()).strip()
-            
+
             score1 = fuzz.token_set_ratio(clean_res, clean_fname)
             score2 = fuzz.token_set_ratio(clean_res, clean_dtitle) if clean_dtitle else 0
             score = max(score1, score2)
@@ -102,7 +103,9 @@ def generate_coverage_report(db_path: str) -> str:
     res_total = conn.execute("MATCH (r:Resource) RETURN COUNT(r)")
     total = res_total.get_next()[0]
 
-    res_linked = conn.execute("MATCH (r:Resource)-[:PROVIDES_TEXT]->(d:Document) RETURN COUNT(DISTINCT r)")
+    res_linked = conn.execute(
+        "MATCH (r:Resource)-[:PROVIDES_TEXT]->(d:Document) RETURN COUNT(DISTINCT r)"
+    )
     linked = res_linked.get_next()[0]
 
     del conn, db

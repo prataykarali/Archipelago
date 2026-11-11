@@ -1,10 +1,13 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
+
+from typing import Any
 
 from . import _deps as _rt  # noqa: F401
 
 
-def print_report(report: dict):
+def print_report(report: dict[str, Any]) -> None:
     """Print a formatted report of the pipeline evaluation metrics."""
     print("\n" + "=" * 70)
     print("OKF PIPELINE EVALUATION REPORT")

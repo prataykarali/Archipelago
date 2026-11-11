@@ -1,4 +1,5 @@
 """Early routing stages: library intent, suggested demos, social short-circuits."""
+
 from __future__ import annotations
 
 from archipelago.inference.intent_gate import (
@@ -27,12 +28,16 @@ def early_route(q_raw: str, library: dict | None) -> dict | None:
         }
 
     from archipelago.inference.demo_query_books import match_demo_query_key
+
     suggested_key = match_demo_query_key(q_raw)
     suggested_anchor = _SUGGESTED_QUERY_ANCHORS.get(suggested_key or "")
     if suggested_anchor:
         from archipelago.inference.intent_gate import classify_intent as classify_suggested_intent
+
         suggested_intent = classify_suggested_intent(q_raw)
-        suggested_block = _rt.intent_to_block_reason(suggested_intent["intent"], suggested_intent["score"])
+        suggested_block = _rt.intent_to_block_reason(
+            suggested_intent["intent"], suggested_intent["score"]
+        )
         if suggested_block:
             return {
                 "anchor_id": None,

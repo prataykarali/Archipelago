@@ -12,15 +12,15 @@ Usage:
     python scripts/run_local_gpu_ingest.py
     python scripts/run_local_gpu_ingest.py --skip-extract   # reuse existing raw JSON
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import logging
-import os
+from pathlib import Path
 import sys
 import time
-from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
@@ -39,13 +39,16 @@ def step1_check_corpus() -> list:
         logger.error(f"Missing {CHUNKS_OUT}. Run scripts/build_compliant_corpus.py first.")
         sys.exit(1)
 
-    chunks = json.load(open(CHUNKS_OUT))
+    with open(CHUNKS_OUT) as f:
+        chunks = json.load(f)
     logger.info(f"Loaded {len(chunks)} chunks from {CHUNKS_OUT.name}")
 
     # Guidelines verification
     books = {c["doc_id"].split("/")[0] for c in chunks if not c["doc_id"].startswith("papers/")}
     papers = {c["doc_id"] for c in chunks if c["doc_id"].startswith("papers/")}
-    logger.info(f"Corpus check: {len(books)} books (metadata only, 0% body prose), {len(papers)} research papers (full text)")
+    logger.info(
+        f"Corpus check: {len(books)} books (metadata only, 0% body prose), {len(papers)} research papers (full text)"
+    )
 
     return chunks
 
@@ -53,7 +56,7 @@ def step1_check_corpus() -> list:
 def step2_extract(chunks: list, use_local_model: bool = True) -> list:
     logger.info("=== [Step 2/5] Concept Extraction (GPU + CPU Multi-Thread) ===")
 
-    from okf.extraction import extract_chunks_with_model, load_local_model, LOCAL_MODE
+    from okf.extraction import extract_chunks_with_model, load_local_model
 
     if use_local_model:
         try:
@@ -68,10 +71,13 @@ def step2_extract(chunks: list, use_local_model: bool = True) -> list:
     results, ok_count = extract_chunks_with_model(chunks)
 
     elapsed_min = (time.time() - t0) / 60.0
-    logger.info(f"Extraction complete in {elapsed_min:.2f} min! Parsed {len(results)} concept records from {ok_count}/{len(chunks)} successful chunks.")
+    logger.info(
+        f"Extraction complete in {elapsed_min:.2f} min! Parsed {len(results)} concept records from {ok_count}/{len(chunks)} successful chunks."
+    )
 
     # Save raw outputs
-    json.dump(results, open(RAW_OUT, "w"), indent=1)
+    with open(RAW_OUT, "w") as f:
+        json.dump(results, f, indent=1)
     logger.info(f"Saved raw extraction to {RAW_OUT.name}")
 
     return results
@@ -96,8 +102,8 @@ def step3_build_graph(results: list, chunks: list):
 
 def step4_reseed_catalog():
     logger.info("=== [Step 4/5] Reseeding Koha Catalog ODS Data & Auto-Bridge ===")
-    from catalog_ingest import _run_all
     from catalog_bridge import auto_link_resources, generate_coverage_report
+    from catalog_ingest import _run_all
 
     _run_all(str(DB_PATH))
 
@@ -124,7 +130,16 @@ def step5_verify_database():
         print(f"    • {t:16s} : {n:,} nodes")
 
     print("\n  Relationship Edges:")
-    for t in ("HAS_CHUNK", "MENTIONS", "REQUIRES", "UNLOCKS", "RELATED", "CATEGORIZES", "HAS_ISSUE", "PROVIDES_TEXT"):
+    for t in (
+        "HAS_CHUNK",
+        "MENTIONS",
+        "REQUIRES",
+        "UNLOCKS",
+        "RELATED",
+        "CATEGORIZES",
+        "HAS_ISSUE",
+        "PROVIDES_TEXT",
+    ):
         try:
             n = conn.execute(f"MATCH ()-[r:{t}]->() RETURN count(r)").get_next()[0]
             print(f"    • {t:16s} : {n:,} edges")
@@ -135,7 +150,9 @@ def step5_verify_database():
 
 def main():
     parser = argparse.ArgumentParser(description="Local GPU + CPU Archipelago Graph Rebuild")
-    parser.add_argument("--skip-extract", action="store_true", help="Reuse existing raw extraction JSON")
+    parser.add_argument(
+        "--skip-extract", action="store_true", help="Reuse existing raw extraction JSON"
+    )
     args = parser.parse_args()
 
     print("=" * 70)
@@ -147,7 +164,8 @@ def main():
 
     if args.skip_extract and RAW_OUT.exists():
         logger.info(f"Reusing existing extraction results from {RAW_OUT.name}")
-        results = json.load(open(RAW_OUT))
+        with open(RAW_OUT) as f:
+            results = json.load(f)
     else:
         results = step2_extract(chunks)
 

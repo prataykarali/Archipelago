@@ -21,7 +21,7 @@ from ..config import UI
 from ..context import AppContext
 
 READER_PAGE_FILE = "reader.html"
-HF_REPO_NAME = os.environ.get("HF_DATASET_REPO", "Prataykarali/graphier")
+HF_REPO_NAME = os.environ.get("HF_LIBRARY_REPO", "Prataykarali/Library_books")
 HF_DATASET_RESOLVE_BASE = f"https://huggingface.co/datasets/{HF_REPO_NAME}/resolve/main"
 HF_STREAM_CHUNK_BYTES = 65536
 HF_STREAM_TIMEOUT_SEC = 30

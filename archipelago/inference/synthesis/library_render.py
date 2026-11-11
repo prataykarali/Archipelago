@@ -1,11 +1,12 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
-from __future__ import annotations
 
+from __future__ import annotations
 
 
 def render_catalog_stats(query: str) -> str:
     """Render catalog statistics and search results based on query intent."""
     from archipelago.inference import catalog_ops as ops
+
     ql = (query or "").lower()
     if "journal" in ql:
         return ops.format_journal_totals()
@@ -59,7 +60,16 @@ def render_library_info(query: str) -> str:
             "- To issue physical books, submit a request letter forwarded by your Head of Department (HOD)."
         )
 
-    if any(k in ql for k in ("library card", "enrolment card", "enrollment library card", "enrollment card", "card")):
+    if any(
+        k in ql
+        for k in (
+            "library card",
+            "enrolment card",
+            "enrollment library card",
+            "enrollment card",
+            "card",
+        )
+    ):
         return (
             "**Library Card & Enrollment Policy**:\n"
             "- Library cards are generated **automatically** upon admission using your **Enrollment Number**.\n"
@@ -99,14 +109,17 @@ def render_library_info(query: str) -> str:
     # 5. Catalog stats queries routed here
     if "journal" in ql and ("title" in ql or "count" in ql or "issue" in ql):
         from archipelago.inference import catalog_ops as ops
+
         return ops.format_journal_totals()
 
     if "subject" in ql and ("title count" in ql or "highest" in ql or "leaderboard" in ql):
         from archipelago.inference import catalog_ops as ops
+
         return ops.format_subject_leaderboard()
 
     if "keyword" in ql or "specified keyword" in ql:
         from archipelago.inference import catalog_ops as ops
+
         return ops.format_keyword_title_search(query)
 
     # 6. E-Resources / Portals / OPAC
@@ -141,7 +154,10 @@ def render_library_info(query: str) -> str:
             "- Security Policy: This chat does not display shared passwords. Ask at the Central Library desk for credentials."
         )
 
-    if any(k in ql for k in ("e-resource", "eresource", "portal list", "delnet", "j-gate", "ebsco", "ndli")):
+    if any(
+        k in ql
+        for k in ("e-resource", "eresource", "portal list", "delnet", "j-gate", "ebsco", "ndli")
+    ):
         return (
             "**Authorized Institutional E-Resources Portals**:\n"
             "- **Scopus / ScienceDirect**: https://www.sciencedirect.com (IP-based access)\n"
@@ -158,17 +174,17 @@ def render_library_info(query: str) -> str:
     if any(k in ql for k in ("weekend", "saturday", "sunday")):
         return (
             "**Central Library Weekend Schedule**:\n"
-            "- The reading hall remains open on Saturdays and Sundays (open 24 hours under the 24 × 7 × 365 policy).\n"
+            "- The reading hall remains open on Saturdays and Sundays (open 24 hours under the 24 × 7 × 365 policy).\n"  # noqa: RUF001 - official library schedule notation
             "- **Notice**: book issue and return services are not available on weekends."
         )
 
     if any(k in ql for k in ("timing", "hours", "night", "open", "schedule", "break")):
         return (
             "**Central Library Operating Hours & Schedule**:\n"
-            "- **Policy**: Open **24 × 7 × 365** (24 hours a day, 7 days a week, 365 days a year).\n"
+            "- **Policy**: Open **24 × 7 × 365** (24 hours a day, 7 days a week, 365 days a year).\n"  # noqa: RUF001 - official library schedule notation
             "- Students may use the reading hall during night hours and academic breaks.\n"
             "- **Circulation Desk (Book Issue & Return)**:\n"
-            "  - **Weekdays (Monday – Friday)**: Full book issue, return, and renewal services available.\n"
+            "  - **Weekdays (Monday - Friday)**: Full book issue, return, and renewal services available.\n"
             "  - **Weekends (Saturdays and Sundays)**: book issue and return services are not available on weekends.\n"
             "- Online Catalogue: https://uemk-opac.l2c2.co.in"
         )
@@ -176,7 +192,7 @@ def render_library_info(query: str) -> str:
     # Fallback / generic query
     return (
         "**Central Library Information**:\n"
-        "- Open **24 × 7 × 365** (open 24 hours daily for study, including night hours and academic breaks).\n"
+        "- Open **24 × 7 × 365** (open 24 hours daily for study, including night hours and academic breaks).\n"  # noqa: RUF001 - official library schedule notation
         "- **Weekdays**: Circulation desk open for issue and return.\n"
         "- **Weekends**: Reading rooms open; book issue and return services are not available on weekends.\n"
         "- OPAC: https://uemk-opac.l2c2.co.in"

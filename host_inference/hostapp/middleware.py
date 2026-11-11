@@ -14,10 +14,11 @@ from .config import (
     PUBLIC_API_PREFIXES,
 )
 from .context import AppContext
+from .research_access import ResearchCapability, allowed, audit_action
 
 OPTIONS_NO_CONTENT = 204
 
-CORS_METHODS = "GET,POST,DELETE,OPTIONS"
+CORS_METHODS = "GET,POST,PATCH,DELETE,OPTIONS"
 CORS_HEADERS = "Content-Type,Authorization,X-Requested-With"
 
 # Runtime assets are built with the Tailwind Play CDN, so the policy allows the
@@ -28,10 +29,33 @@ CONTENT_SECURITY_POLICY = (
     "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
     "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; "
-    "connect-src 'self' https://spllaastejfwclllfndp.supabase.co https://esm.sh; "
+    "connect-src 'self' https://spllaastejfwclllfndp.supabase.co https://esm.sh https://archipelago-librarian.vercel.app; "
     "frame-src 'self' https://ebooks.elibrary.in.pearson.com https://elibrary.in.pearson.com https://huggingface.co; "
     "worker-src 'self' blob: https://cdnjs.cloudflare.com"
 )
+
+
+def _research_capability(path: str, method: str) -> ResearchCapability:
+    """Map hosted research paths to their most privileged action."""
+    if path == "/api/research/graph/annotation" and method != "GET":
+        return ResearchCapability.GRAPH_EDIT
+    if path.endswith("/review"):
+        return ResearchCapability.REVIEW
+    if path.endswith("/refresh"):
+        return ResearchCapability.REFRESH_CONTROL
+    if path.endswith("/sources") or path.startswith("/api/research/admin/"):
+        return ResearchCapability.SOURCE_HEALTH
+    if path.endswith("/features"):
+        return ResearchCapability.FEATURE_READ
+    if path.endswith("/evidence"):
+        return ResearchCapability.EVIDENCE_READ
+    if path.startswith("/api/research/connectors/"):
+        return ResearchCapability.CONNECTOR_CONFIG
+    if path == "/api/research/topics" and method == "POST":
+        return ResearchCapability.TOPIC_TRACK
+    if path == "/api/research/jobs" and method == "POST":
+        return ResearchCapability.JOB_CREATE
+    return ResearchCapability.SEARCH
 
 
 def _rate_limited_response(retry_after: int):
@@ -49,6 +73,25 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         if request.method == "OPTIONS":
             return ("", OPTIONS_NO_CONTENT)
         path = request.path
+        if (
+            path.startswith("/api/research/") and path not in PUBLIC_API
+        ) or path == "/api/scholarly/snapshot":
+            principal, _error = ctx.auth.principal()
+            if principal is None or not principal.get("id"):
+                audit_action(
+                    user_id=None, role=None, action="research_access", result="unauthorized"
+                )
+                return jsonify({"error": "unauthorized"}), 401
+            capability = _research_capability(path, request.method)
+            if not allowed(principal.get("role"), capability):
+                audit_action(
+                    user_id=str(principal["id"]),
+                    role=principal.get("role"),
+                    action=capability.value,
+                    result="forbidden",
+                )
+                return jsonify({"error": "forbidden"}), 403
+            request.archipelago_principal = principal  # type: ignore[attr-defined]
         if path.startswith("/api/ingest") and path != "/api/ingest/capabilities":
             principal, error = ctx.auth.principal()
             if principal is None:
@@ -69,28 +112,6 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
             if principal is None:
                 return jsonify({"error": "unauthorized", "detail": error}), 401
             request.archipelago_principal = principal  # type: ignore[attr-defined]
-        if path == "/api/chat" and request.method == "POST" and ctx.auth.required():
-            limited, retry_after = ctx.limiter.check_chat()
-            if limited:
-                return _rate_limited_response(retry_after)
-            principal = getattr(request, "archipelago_principal", None)
-            if principal is None:
-                return jsonify({"error": "unauthorized"}), 401
-            limited, quota = ctx.limiter.check_daily_chat(principal["id"])
-            if limited:
-                response = jsonify(
-                    {
-                        "error": "query_limit",
-                        "detail": "AI queries are paused. Your saved conversations remain available.",
-                        "remaining": quota["remaining"],
-                        "retry_after": quota["retry_after"],
-                    }
-                )
-                response.status_code = 429
-                response.headers["Retry-After"] = str(quota["retry_after"])
-                return response
-            request.archipelago_quota = quota  # type: ignore[attr-defined]
-            return None
         if path.startswith("/api/chat"):
             return _apply_limit(ctx.limiter.check_chat())
         if path.startswith("/api/") or path.startswith("/open/") or path.startswith("/papers/"):

@@ -1,4 +1,5 @@
 """Production ban: no doc_id lineage or bare p.N ↗ spam in user-facing text."""
+
 from __future__ import annotations
 
 import pytest
@@ -71,12 +72,14 @@ def test_grounded_fallback_uses_s_tags_only():
         anchor_summary="Entity graph retrieval.",
         prerequisites=[{"name": "Dense Embeddings"}],
         unlocks=[{"name": "Global Sensemaking"}],
-        chunks=[{
-            "doc_id": "papers/Edge2024_GraphRAG.pdf",
-            "chunk_id": "chunk_006",
-            "page_number": 2,
-            "text_passage": "Community summaries support global queries.",
-        }],
+        chunks=[
+            {
+                "doc_id": "papers/Edge2024_GraphRAG.pdf",
+                "chunk_id": "chunk_006",
+                "page_number": 2,
+                "text_passage": "Community summaries support global queries.",
+            }
+        ],
     )
     assert "[S1]" in text
     assert "doc_id:" not in text
@@ -86,12 +89,14 @@ def test_grounded_fallback_uses_s_tags_only():
 
 
 def test_render_citation_payload_label_is_s_tag_not_page_arrow():
-    link = render_citation_from_payload({
-        "evidence_id": "S1",
-        "doc_id": "papers/Edge2024_GraphRAG.pdf",
-        "page_number": 2,
-        "topic": "GraphRAG",
-    })
+    link = render_citation_from_payload(
+        {
+            "evidence_id": "S1",
+            "doc_id": "papers/Edge2024_GraphRAG.pdf",
+            "page_number": 2,
+            "topic": "GraphRAG",
+        }
+    )
     assert "S1" in link
     assert "↗" not in link
     assert "page-view" in link or "page=" in link

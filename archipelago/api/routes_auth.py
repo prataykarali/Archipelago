@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from flask import Response, g, jsonify, request
+from flask.typing import ResponseReturnValue
 
 from archipelago import supabase_auth
 from archipelago.api.engine_state import app
@@ -28,7 +29,7 @@ def api_auth_config() -> Response:
 
 
 @app.route("/api/auth/me", methods=["GET"])
-def api_auth_me() -> Response:
+def api_auth_me() -> ResponseReturnValue:
     """Return the authenticated user's Archipelago role."""
     if not supabase_auth.is_auth_required():
         return jsonify({"authenticated": False, "auth_required": False})
@@ -45,7 +46,7 @@ def api_auth_me() -> Response:
     )
 
 
-def _current_principal():
+def _current_principal() -> tuple[supabase_auth.AuthPrincipal | None, str | None]:
     """Return the session principal, authenticating directly when absent."""
     principal = getattr(g, "archipelago_principal", None)
     if principal is not None:
@@ -55,7 +56,7 @@ def _current_principal():
 
 @app.route("/api/users", methods=["GET", "POST", "OPTIONS"])
 @app.route("/api/users/<user_id>", methods=["PUT", "DELETE", "OPTIONS"])
-def api_manage_users(user_id=None) -> Response:
+def api_manage_users(user_id: str | None = None) -> ResponseReturnValue:
     """Manage users with role-based access for librarian and administrator."""
     if request.method == "OPTIONS":
         return Response("", NO_CONTENT_STATUS)
@@ -99,7 +100,7 @@ def api_manage_users(user_id=None) -> Response:
     if request.method == "DELETE":
         if not user_id:
             return jsonify({"error": MISSING_USER_ID}), BAD_REQUEST_STATUS
-        ok, err = supabase_auth.delete_managed_user(principal, user_id)
+        _ok, err = supabase_auth.delete_managed_user(principal, user_id)
         if err:
             return jsonify({"error": "delete_failed", "detail": err}), BAD_REQUEST_STATUS
         return jsonify({"success": True})

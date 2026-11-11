@@ -18,8 +18,9 @@ relations onto matching current records, subject to grounding rules:
   concept's first record anywhere. relation_provenance records the bak2
   record's doc_id:chunk_id so edges cite the asserting chunk.
 """
-import json
+
 from collections import Counter
+import json
 
 import okf
 
@@ -39,8 +40,7 @@ def canon(name: str) -> str:
     return canon_map.get(name, okf.canonicalize_name(name or ""))
 
 
-inventory = {canon(r.get("concept_name", "")).lower()
-             for r in current if r.get("concept_name")}
+inventory = {canon(r.get("concept_name", "")).lower() for r in current if r.get("concept_name")}
 
 # Lookups into current records
 by_doc_chunk_name = {}
@@ -48,15 +48,13 @@ by_doc_name = {}
 by_name = {}
 for r in current:
     key_name = canon(r.get("concept_name", "")).lower()
-    by_doc_chunk_name.setdefault(
-        (r.get("doc_id"), r.get("chunk_id"), key_name), r)
+    by_doc_chunk_name.setdefault((r.get("doc_id"), r.get("chunk_id"), key_name), r)
     by_doc_name.setdefault((r.get("doc_id"), key_name), r)
     by_name.setdefault(key_name, r)
 
 stats = Counter()
 for b in bak2:
-    rels_present = (b.get("prerequisites") or b.get("unlocks")
-                    or b.get("related_to"))
+    rels_present = b.get("prerequisites") or b.get("unlocks") or b.get("related_to")
     if not rels_present:
         continue
     stats["bak2_records_with_relations"] += 1
@@ -66,9 +64,11 @@ for b in bak2:
         stats["skipped_concept_not_in_inventory"] += 1
         continue
 
-    target = (by_doc_chunk_name.get((b.get("doc_id"), b.get("chunk_id"), cname))
-              or by_doc_name.get((b.get("doc_id"), cname))
-              or by_name.get(cname))
+    target = (
+        by_doc_chunk_name.get((b.get("doc_id"), b.get("chunk_id"), cname))
+        or by_doc_name.get((b.get("doc_id"), cname))
+        or by_name.get(cname)
+    )
     if target is None:
         stats["skipped_no_target_record"] += 1
         continue
@@ -106,8 +106,11 @@ for b in bak2:
             rel_prov[f"unlock:{cu.lower()}"] = prov
             stats["imported_unlocks"] += 1
 
-    existing_rel = {(x.get("concept", "").lower(), x.get("relation", ""))
-                    for x in target.get("related_to", []) if isinstance(x, dict)}
+    existing_rel = {
+        (x.get("concept", "").lower(), x.get("relation", ""))
+        for x in target.get("related_to", [])
+        if isinstance(x, dict)
+    }
     for rel in b.get("related_to") or []:
         if not isinstance(rel, dict) or not rel.get("concept"):
             continue
@@ -124,14 +127,12 @@ for b in bak2:
             continue
         key = (cr.lower(), rtype)
         if key not in existing_rel:
-            target.setdefault("related_to", []).append(
-                {"concept": cr, "relation": rtype})
+            target.setdefault("related_to", []).append({"concept": cr, "relation": rtype})
             rel_prov[f"related:{cr.lower()}"] = prov
             existing_rel.add(key)
             stats["imported_related"] += 1
 
-imported = (stats["imported_prerequisites"] + stats["imported_unlocks"]
-            + stats["imported_related"])
+imported = stats["imported_prerequisites"] + stats["imported_unlocks"] + stats["imported_related"]
 print("bak2 relation import summary:")
 for k, v in sorted(stats.items()):
     print(f"  {k}: {v}")

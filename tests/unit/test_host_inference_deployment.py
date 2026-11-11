@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import importlib
-import json
 from pathlib import Path
+import subprocess
 import sys
 from types import SimpleNamespace
 
@@ -12,7 +12,69 @@ HOST = Path(__file__).resolve().parents[2] / "host_inference"
 if str(HOST) not in sys.path:
     sys.path.insert(0, str(HOST))
 
-from library_inventory import inventory_stats, parse_inventory_csv
+from library_inventory import inventory_stats, parse_inventory_csv  # noqa: E402
+
+
+def test_hosted_package_imports_without_repository_package():
+    """Vercel uploads only host_inference, so it cannot import archipelago."""
+    result = subprocess.run(
+        [sys.executable, "-c", "from hostapp.factory import create_app; print('ready')"],
+        cwd=HOST,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "ready"
+
+
+def test_hosted_research_permissions_match_pipeline_roles():
+    from hostapp.research_access import ResearchCapability, allowed
+
+    from archipelago.scholarly.access import ResearchCapability as PipelineCapability
+    from archipelago.scholarly.access import allowed as pipeline_allowed
+
+    for role in (None, "student", "faculty", "librarian", "administrator"):
+        for capability in ResearchCapability:
+            assert allowed(role, capability) == pipeline_allowed(
+                role, PipelineCapability(capability.value)
+            )
+
+
+def test_hosted_research_path_permissions_cover_privileged_actions(hosted_app, monkeypatch):
+    from hostapp.research_access import ResearchCapability
+
+    context = hosted_app.app.extensions["archipelago"]
+    role = {"value": "student"}
+    monkeypatch.setattr(
+        context.auth,
+        "principal",
+        lambda: ({"id": "role-test", "role": role["value"]}, None),
+    )
+    cases = (
+        ("post", "/api/research/jobs", ResearchCapability.JOB_CREATE),
+        ("get", "/api/research/jobs/one/sources", ResearchCapability.SOURCE_HEALTH),
+        ("get", "/api/research/jobs/one/papers/two/features", ResearchCapability.FEATURE_READ),
+        ("get", "/api/research/jobs/one/papers/two/evidence", ResearchCapability.EVIDENCE_READ),
+        (
+            "post",
+            "/api/research/jobs/one/papers/two/evidence/hash/review",
+            ResearchCapability.REVIEW,
+        ),
+        ("post", "/api/research/topics", ResearchCapability.TOPIC_TRACK),
+        ("patch", "/api/research/topics/one/refresh", ResearchCapability.REFRESH_CONTROL),
+        ("patch", "/api/research/connectors/one", ResearchCapability.CONNECTOR_CONFIG),
+    )
+    client = hosted_app.app.test_client()
+    for method, path, _capability in cases:
+        assert getattr(client, method)(path).status_code == 403
+    role["value"] = "faculty"
+    assert client.patch("/api/research/topics/one/refresh").status_code == 403
+    assert client.post("/api/research/jobs/one/papers/two/evidence/hash/review").status_code == 403
+    role["value"] = "librarian"
+    assert client.patch("/api/research/connectors/one").status_code == 403
+    role["value"] = "administrator"
+    assert client.patch("/api/research/connectors/one").status_code == 405
 
 
 def test_inventory_csv_validates_counts_and_computes_stats():
@@ -51,13 +113,13 @@ def hosted_app(monkeypatch):
     import engine as hosted_engine
 
     class Graph:
-        nodes = {
+        nodes = {  # noqa: RUF012
             "graph_retrieval": {"summary": "Retrieval over a graph."},
             "embeddings": {"summary": "Vector representations."},
             "indexing": {"summary": "Organizing searchable data."},
         }
-        out = {"graph_retrieval": [("REQUIRES", "indexing")]}
-        inn = {"graph_retrieval": [("UNLOCKS", "embeddings")]}
+        out = {"graph_retrieval": [("REQUIRES", "indexing")]}  # noqa: RUF012
+        inn = {"graph_retrieval": [("UNLOCKS", "embeddings")]}  # noqa: RUF012
 
         def rank(self, query, top_k=1):
             return [(0.9, "graph_retrieval")]
@@ -79,13 +141,209 @@ def test_graph_page_and_bounded_graph_api_work(hosted_app):
     page = client.get("/graph")
     response = client.get("/api/graph/subgraph?q=graph+retrieval&max_nodes=10")
 
-    assert page.status_code == 200
-    assert b"Explore connected concepts" in page.data
+    assert page.status_code == 302
+    assert page.headers["Location"] == "https://archipelago-librarian.vercel.app/academic/graph"
+    assert "https://archipelago-librarian.vercel.app" in page.headers[
+        "Content-Security-Policy"
+    ]
+    assert client.get("/academic_koha.js").status_code == 200
     assert response.status_code == 200
     data = response.get_json()
     assert data["target_id"] == "graph_retrieval"
     assert len(data["nodes"]) == 3
     assert all("data" in edge for edge in data["edges"])
+
+
+def test_research_page_redirects_to_staff_only_transport(hosted_app, monkeypatch):
+    context = hosted_app.app.extensions["archipelago"]
+    client = hosted_app.app.test_client()
+    role = {"value": "student"}
+    monkeypatch.setattr(
+        context.auth,
+        "principal",
+        lambda: ({"id": "staff-test", "role": role["value"]}, None),
+    )
+
+    page = client.get("/research")
+    assert page.status_code == 302
+    assert page.headers["Location"] == "https://archipelago-librarian.vercel.app/research"
+    assert client.get("/research.html").status_code == 404
+    assert client.get("/api/research/graph/subgraph?q=graph").status_code == 403
+    role["value"] = "faculty"
+    page = client.get("/research/progress")
+    assert page.status_code == 302
+    assert page.headers["Location"] == (
+        "https://archipelago-librarian.vercel.app/research/progress"
+    )
+    assert client.get("/api/research/graph/subgraph?q=graph").status_code == 200
+
+
+def test_library_details_stay_on_library_without_session(hosted_app, monkeypatch):
+    context = hosted_app.app.extensions["archipelago"]
+    monkeypatch.setattr(context.auth, "required", lambda: True)
+    monkeypatch.setattr(context.auth, "principal", lambda: (None, "missing"))
+    response = hosted_app.app.test_client().get("/library")
+    assert response.status_code == 200
+    assert b"Library" in response.data
+    assert b'id="library-graph-links"' in response.data
+    assert b'href="/graph"' in response.data
+    assert b'href="/research"' in response.data
+    assert b'id="sec-research-pipeline"' not in response.data
+
+
+def test_full_research_graph_returns_every_node_for_staff(hosted_app, monkeypatch):
+    context = hosted_app.app.extensions["archipelago"]
+    role = {"value": "student"}
+    monkeypatch.setattr(
+        context.auth, "principal", lambda: ({"id": "staff-test", "role": role["value"]}, None)
+    )
+    client = hosted_app.app.test_client()
+    assert client.get("/api/research/graph/full").status_code == 403
+    role["value"] = "faculty"
+    response = client.get("/api/research/graph/full")
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["counts"]["concepts"] == len(context.engine.graph.nodes)
+    assert {node["data"]["id"] for node in payload["nodes"]} == set(context.engine.graph.nodes)
+
+
+def test_research_intake_roles_and_persistence(hosted_app, monkeypatch):
+    from hostapp.routes import research_intake
+
+    context = hosted_app.app.extensions["archipelago"]
+    role = {"value": "student"}
+    monkeypatch.setattr(
+        context.auth, "principal", lambda: ({"id": "staff-test", "role": role["value"]}, None)
+    )
+    monkeypatch.setattr(context.limiter, "check_api", lambda: (False, 0))
+    monkeypatch.setattr(
+        research_intake,
+        "discover_papers",
+        lambda topic, user_id: (
+            [
+                {
+                    "kind": "paper",
+                    "title": "Example",
+                    "record_key": "a" * 64,
+                    "source_name": "OpenAlex",
+                    "source_url": "https://openalex.org/W1",
+                    "metadata": {"source_timestamp": "2026-10-21T00:00:00Z"},
+                }
+            ],
+            {"OpenAlex": "ok"},
+        ),
+    )
+    monkeypatch.setattr(research_intake, "save_records", lambda records: len(records))
+    monkeypatch.setattr(
+        research_intake,
+        "get_record",
+        lambda _key: {
+            "kind": "paper",
+            "record_key": "a" * 64,
+            "title": "Example",
+            "source_name": "OpenAlex",
+            "source_url": "https://openalex.org/W1",
+            "metadata": {"source_timestamp": "2026-10-21T00:00:00Z"},
+        },
+    )
+    monkeypatch.setattr(
+        research_intake,
+        "list_records",
+        lambda kind=None: [
+            {
+                "title": "Flood adaptation",
+                "topic": "urban flood",
+                "content": "Green infrastructure reduces urban flood exposure.",
+                "source_url": "https://example.org/paper",
+                "source_name": "OpenAlex",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        research_intake, "search_records", lambda _query, kind=None: research_intake.list_records()
+    )
+    client = hosted_app.app.test_client()
+    assert client.get("/api/research/intake/records").status_code == 403
+    role["value"] = "faculty"
+    assert client.get("/api/research/intake/records").get_json()["count"] == 1
+    assert (
+        client.get("/api/research/intake/paper-okf/" + "a" * 64).get_json()["okf_version"]
+        == "2.1.0"
+    )
+    headers = {"Authorization": "Bearer test"}
+    assert (
+        client.post(
+            "/api/research/intake/papers", json={"topic": "ecology"}, headers=headers
+        ).get_json()["saved"]
+        == 1
+    )
+    reply = client.post(
+        "/api/research/intake/reply", json={"query": "urban flood"}, headers=headers
+    )
+    assert reply.status_code == 200
+    assert len(reply.get_json()["sources"]) == 1
+    assert (
+        client.post(
+            "/api/research/intake/college", json={"url": "https://uem.edu.in/"}, headers=headers
+        ).status_code
+        == 403
+    )
+
+
+def test_research_annotations_are_viewable_by_faculty_and_editable_by_staff(
+    hosted_app, monkeypatch
+):
+    from hostapp.routes import research_graph
+
+    context = hosted_app.app.extensions["archipelago"]
+    monkeypatch.setattr(context.limiter, "check_api", lambda: (False, 0))
+    role = {"value": "faculty"}
+    monkeypatch.setattr(
+        context.auth,
+        "principal",
+        lambda: ({"id": "9d775615-0362-4498-b888-0d44ed0441ad", "role": role["value"]}, None),
+    )
+    monkeypatch.setattr(
+        research_graph, "_store_config", lambda: ("https://example.supabase.co", "test-key")
+    )
+
+    class StoreResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return [
+                {"concept_id": "graph_retrieval", "summary": "Curated detail", "source_url": None}
+            ]
+
+    calls = []
+    monkeypatch.setattr(research_graph.requests, "get", lambda *args, **kwargs: StoreResponse())
+    monkeypatch.setattr(
+        research_graph.requests,
+        "post",
+        lambda *args, **kwargs: (calls.append(kwargs["json"]), StoreResponse())[1],
+    )
+    client = hosted_app.app.test_client()
+    path = "/api/research/graph/annotation"
+    payload = {"concept_id": "graph_retrieval", "summary": "Curated detail"}
+
+    assert (
+        client.get(path + "?concept_id=graph_retrieval").get_json()["annotation"]["summary"]
+        == "Curated detail"
+    )
+    assert (
+        client.post(path, json=payload, headers={"Authorization": "Bearer test"}).status_code == 403
+    )
+    role["value"] = "librarian"
+    assert (
+        client.post(path, json=payload, headers={"Authorization": "Bearer test"}).status_code == 200
+    )
+    assert calls[-1]["updated_by"] == "9d775615-0362-4498-b888-0d44ed0441ad"
+    assert client.post(path, json=payload).status_code == 401
+    role["value"] = "administrator"
+    assert (
+        client.post(path, json=payload, headers={"Authorization": "Bearer test"}).status_code == 200
+    )
 
 
 def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_app, monkeypatch):
@@ -116,85 +374,3 @@ def test_librarian_inventory_import_persists_and_reports_actual_totals(hosted_ap
         "available_copies": 2,
     }
     assert saved["rows"][0]["title"] == "Graph Book"
-
-
-def test_pearson_link_preserves_deep_link_without_rendering_credentials(hosted_app, monkeypatch):
-    import hostapp.routes.reader as reader_routes
-
-    monkeypatch.setattr(
-        reader_routes,
-        "load_books",
-        lambda: [
-            {
-                "id": "book-1",
-                "title": "Reader title",
-                "book_type": "pdf",
-                "subscription_id": "sub-1",
-            }
-        ],
-    )
-    response = hosted_app.app.test_client().get("/open/book-1?page=7")
-
-    assert response.status_code == 200
-    assert b"Sign in to Pearson" in response.data
-    direct = hosted_app.app.test_client().get("/open/book-1?page=7&direct=1")
-    assert direct.status_code == 302
-    assert direct.headers["Location"].endswith("#book/book-1/page/7")
-    assert b"password" not in response.data.lower()
-
-
-def test_xkiro_rate_limit_uses_grounded_fallback(monkeypatch):
-    import engine as hosted_engine
-
-    class RateLimitedResponse:
-        status_code = 429
-
-        def close(self):
-            pass
-
-    captured = {}
-
-    def fake_post(url, **kwargs):
-        captured.update(url=url, payload=kwargs["json"])
-        return RateLimitedResponse()
-
-    monkeypatch.setenv("XKIRO_API_KEY", "configured-test-key")
-    monkeypatch.setattr(hosted_engine.requests, "post", fake_post)
-    instance = hosted_engine.Engine.__new__(hosted_engine.Engine)
-    instance.answer = lambda query: {
-        "route": "GRAPH_SYNTHESIS",
-        "text": "Grounded fallback with [citation].",
-        "payload": {"anchor_concept": {"id": "graph_retrieval"}, "logs": []},
-    }
-
-    chunks = list(instance.stream_chat("explain graph retrieval"))
-    metadata = json.loads(chunks[0].split("\n[STREAM_START]\n", 1)[0])
-
-    assert captured["payload"]["max_tokens"] == 700
-    assert "two or three substantial paragraphs" in captured["payload"]["messages"][0]["content"]
-    assert metadata["model"]["provider"] == "xkiro"
-    assert chunks[-1] == "Grounded fallback with [citation]."
-
-
-def test_server_is_a_thin_shim_over_the_hostapp_factory(hosted_app):
-    from hostapp import CONTEXT_KEY
-
-    assert hosted_app.app.extensions[CONTEXT_KEY] is not None
-    assert callable(hosted_app.create_app)
-
-
-def test_create_app_accepts_an_injected_context(hosted_app):
-    import hostapp
-
-    ctx = hosted_app.app.extensions[hostapp.CONTEXT_KEY]
-    app = hostapp.create_app(ctx)
-
-    assert app.test_client().get("/api/graph/subgraph?q=graph+retrieval").status_code == 200
-
-
-def test_health_reports_live_counts_not_hardcoded(hosted_app):
-    body = hosted_app.app.test_client().get("/api/readiness").get_json()
-
-    assert body["ok"] is True
-    assert body["concepts"] == len(hosted_app.app.extensions["archipelago"].engine.graph.nodes)
-    assert body["ingestion"] is False

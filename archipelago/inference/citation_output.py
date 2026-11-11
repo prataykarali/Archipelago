@@ -1,71 +1,50 @@
+"""Clean generated citation markers against supplied evidence records."""
+
 from __future__ import annotations
 
-import os
+import re
 from typing import Any
+
+from archipelago.inference.citations.part03_render import render_citation_from_payload
+
+_MARKER = re.compile(r"\[(S\d+)(?:\s*:[^\]]*)?\](?:\([^)]*\))?")
 
 
 def render_clean_citation_output(body: str, payloads: list[dict[str, Any]]) -> str:
-    """Format body text with plain text citation links and a summary block."""
-    import re
+    """Link valid inline markers and add one deduplicated Sources listing."""
+    by_id = {str(p.get("evidence_id")): p for p in payloads if p.get("evidence_id")}
+    text = re.split(r"\n\s*(?:Source Citations:|\*\*Sources:\*\*)", body, maxsplit=1)[0]
+    counts: dict[str, int] = {}
 
-    # Remove markdown link syntax [S1](...) -> [S1]
-    body_clean = re.sub(r"\[(S\d+)\]\([^)]+\)", r"[\1]", body)
+    def replace(match: re.Match[str]) -> str:
+        eid = match.group(1)
+        if eid not in by_id:
+            return ""
+        counts[eid] = counts.get(eid, 0) + 1
+        return render_citation_from_payload(by_id[eid]) if counts[eid] <= 2 else ""
 
-    # Strip any /api/page-view, doc_id=, chunk_
-    body_clean = re.sub(r"/api/page-view\S*", "", body_clean)
-    body_clean = re.sub(r"doc_id=\S*", "", body_clean)
-    body_clean = re.sub(r"chunk_\S*", "", body_clean)
-
-    # Limit repeat count of [S#] to 2 in the body
-    for p in payloads:
-        eid = p.get("evidence_id")
-        if not eid:
+    text = _MARKER.sub(replace, text).rstrip()
+    lines = []
+    seen = set()
+    for payload in payloads:
+        key = (
+            payload.get("doc_id"),
+            payload.get("page_number"),
+            payload.get("doi"),
+            payload.get("url"),
+        )
+        if key in seen:
             continue
-        pattern = re.compile(rf"\[{eid}\]")
-        matches = list(pattern.finditer(body_clean))
-        if len(matches) > 2:
-            new_body = ""
-            last_idx = 0
-            count = 0
-            for m in matches:
-                start, end = m.span()
-                new_body += body_clean[last_idx:start]
-                if count < 2:
-                    new_body += f"[{eid}]"
-                    count += 1
-                last_idx = end
-            new_body += body_clean[last_idx:]
-            body_clean = new_body
-
-    # Append the "Source Citations:" section
-    cite_lines = ["\n\nSource Citations:"]
-    for p in payloads:
-        eid = p.get("evidence_id", "S1")
-        doc_id = p.get("doc_id", "")
-        doc_name = os.path.basename(doc_id)
-        page = p.get("page_number")
-        if page is None:
-            page = 1
-        cite_lines.append(f"[{eid}] {doc_name}, Page {page}")
-
-    return body_clean + "\n".join(cite_lines)
+        seen.add(key)
+        lines.append(f"- {render_citation_from_payload(payload)}")
+    return text + ("\n\n**Sources:**\n" + "\n".join(lines) if lines else "")
 
 
 def format_citation_block(payloads: list[dict[str, Any]]) -> str:
-    """Format a list of citation payloads into a Markdown reference block."""
-    if not payloads:
-        return ""
-    lines = []
-    for i, p in enumerate(payloads, start=1):
-        topic = p.get("topic", "Source")
-        doc_id = p.get("doc_id", "")
-        page = p.get("page_number", 1)
-        lines.append(f"[S{i}] **{topic}** — {doc_id}, p.{page}")
-    return "\n".join(lines)
+    """Format cited evidence as clickable Markdown lines."""
+    return "\n".join(f"- {render_citation_from_payload(p)}" for p in payloads)
 
 
 def format_inline_citation(payload: dict[str, Any]) -> str:
-    """Format a single citation payload as an inline citation marker."""
-    eid = payload.get("evidence_id", "S1")
-    topic = payload.get("topic", "")
-    return f"[{eid}: {topic}]"
+    """Render one supplied citation beside its claim."""
+    return render_citation_from_payload(payload)

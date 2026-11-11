@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 import uuid
 
@@ -11,13 +11,13 @@ import uuid
 @dataclass(frozen=True)
 class RunManifest:
     """Immutable multi-dimensional version manifest for every executed answer.
-    
+
     Guarantees research reproducibility by binding every output to exact versions
     of the graph, corpus, model, prompt, and retrieval configuration.
     """
 
     run_id: str = field(default_factory=lambda: f"run_{uuid.uuid4().hex[:12]}")
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     graph_version: str = "v5.0.0"
     corpus_version: str = "cs_pilot_v1.0"
     model_version: str = "qwen3.5:0.8b"

@@ -1,4 +1,5 @@
 """Main LinkResolver Service for Archipelago - Dual Mode HF + Pearson Engine."""
+
 from __future__ import annotations
 
 import logging
@@ -87,9 +88,15 @@ class LinkResolver:
 
         # 1.5 Check central ResourceRegistry
         from archipelago.resolver.resource_registry import get_registry
+
         reg_record = get_registry().get_by_id(resource_id)
         if reg_record:
-            if reg_record.reader_url and reg_record.source in ("local", "open_access", "metadata_only", "huggingface"):
+            if reg_record.reader_url and reg_record.source in (
+                "local",
+                "open_access",
+                "metadata_only",
+                "huggingface",
+            ):
                 res_url = reg_record.blob_url or reg_record.reader_url
                 res_local = {
                     "id": resource_id,
@@ -102,17 +109,28 @@ class LinkResolver:
                     "blob_url": reg_record.blob_url,
                     "resolve_url": reg_record.resolve_url,
                     "source": reg_record.source,
-                    "target_blank": reg_record.source in ("open_access", "metadata_only") or reg_record.reader_url.startswith("http"),
+                    "target_blank": reg_record.source in ("open_access", "metadata_only")
+                    or reg_record.reader_url.startswith("http"),
                 }
                 self.cache.set_positive(cache_key, res_local)
                 return res_local
             elif reg_record.source == "pearson" and reg_record.pearson_book_id:
-                if not resource_id or resource_id.startswith("book_") or resource_id.startswith("pearson_"):
+                if (
+                    not resource_id
+                    or resource_id.startswith("book_")
+                    or resource_id.startswith("pearson_")
+                ):
                     resource_id = reg_record.pearson_book_id
 
         # 2. Pearson Strategy (Explicit source or Pearson URL/UUID patterns)
-        if (source and "pearson" in source.lower()) or "pearson.com" in resource_id or (title and "pearson" in title.lower()):
-            res_pearson = resolve_pearson_url(book_id=resource_id, isbn=isbn, title=title, existing_url=resource_id)
+        if (
+            (source and "pearson" in source.lower())
+            or "pearson.com" in resource_id
+            or (title and "pearson" in title.lower())
+        ):
+            res_pearson = resolve_pearson_url(
+                book_id=resource_id, isbn=isbn, title=title, existing_url=resource_id
+            )
             if res_pearson.get("working"):
                 self.cache.set_positive(cache_key, res_pearson)
                 self.bloom.add(resource_id)
@@ -120,8 +138,11 @@ class LinkResolver:
                 return res_pearson
 
         # 3. Hugging Face Strategy
-        if resource_id.startswith("hf://") or (source and source.lower() == "huggingface") or "huggingface.co" in resource_id:
-
+        if (
+            resource_id.startswith("hf://")
+            or (source and source.lower() == "huggingface")
+            or "huggingface.co" in resource_id
+        ):
             res_hf = resolve_huggingface_url(resource_id)
             if res_hf.get("working"):
                 self.cache.set_positive(cache_key, res_hf)
@@ -130,7 +151,9 @@ class LinkResolver:
                 return res_hf
 
         # 4. Check Pearson catalog matching by ID / title / ISBN regardless of source flag
-        res_pearson = resolve_pearson_url(book_id=resource_id, isbn=isbn, title=title, existing_url=resource_id)
+        res_pearson = resolve_pearson_url(
+            book_id=resource_id, isbn=isbn, title=title, existing_url=resource_id
+        )
         if res_pearson.get("working") and res_pearson.get("book_id"):
             self.cache.set_positive(cache_key, res_pearson)
             self.bloom.add(resource_id)
@@ -138,7 +161,13 @@ class LinkResolver:
             return res_pearson
 
         # 5. Check Hugging Face resolution for PDF filenames or papers
-        if resource_id.endswith(".pdf") or "paper_" in resource_id or "book_" in resource_id or "textbooks/" in resource_id or "papers/" in resource_id:
+        if (
+            resource_id.endswith(".pdf")
+            or "paper_" in resource_id
+            or "book_" in resource_id
+            or "textbooks/" in resource_id
+            or "papers/" in resource_id
+        ):
             res_hf = resolve_huggingface_url(resource_id, filename=resource_id)
             if res_hf.get("working"):
                 self.cache.set_positive(cache_key, res_hf)

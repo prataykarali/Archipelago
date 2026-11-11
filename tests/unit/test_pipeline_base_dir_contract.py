@@ -10,6 +10,7 @@ Contract under test: every path in ``finalize_and_build`` is anchored to
 ``okf.pipeline.BASE_DIR`` as resolved dynamically through the package
 namespace (``_rt.BASE_DIR``), not a snapshot taken at import time.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -52,10 +53,11 @@ def test_finalize_and_build_anchors_writes_to_patched_base_dir(tmp_path: Path) -
     """The first write lands under the patched dir — never in the repo root."""
     repo_results_before = _fingerprint("okf_results.json")
 
-    with patch("okf.pipeline.BASE_DIR", tmp_path), \
-         patch("okf.pipeline.cleanup_and_canonicalize", side_effect=lambda x: x), \
-         patch("okf.pipeline.ingest_to_kuzu",
-               side_effect=_StopPipeline("stop before graph build")):
+    with (
+        patch("okf.pipeline.BASE_DIR", tmp_path),
+        patch("okf.pipeline.cleanup_and_canonicalize", side_effect=lambda x: x),
+        patch("okf.pipeline.ingest_to_kuzu", side_effect=_StopPipeline("stop before graph build")),
+    ):
         from okf.pipeline import finalize_and_build
 
         with pytest.raises(_StopPipeline):
@@ -82,14 +84,13 @@ def test_finalize_and_build_threads_base_dir_into_artifact_writer(tmp_path: Path
         "stats": {"total_concepts": 1, "total_edges": 0},
     }
 
-    with patch("okf.pipeline.BASE_DIR", tmp_path), \
-         patch("okf.pipeline.cleanup_and_canonicalize", side_effect=lambda x: x), \
-         patch("okf.pipeline.ingest_to_kuzu",
-               return_value=(MagicMock(), MagicMock(), graph_export)), \
-         patch("okf.evaluate.structural_audit",
-               return_value={"self_edges": [], "cycles": []}), \
-         patch("okf.exports.write_all_artifacts",
-               return_value=(MagicMock(), MagicMock())) as writer:
+    with (
+        patch("okf.pipeline.BASE_DIR", tmp_path),
+        patch("okf.pipeline.cleanup_and_canonicalize", side_effect=lambda x: x),
+        patch("okf.pipeline.ingest_to_kuzu", return_value=(MagicMock(), MagicMock(), graph_export)),
+        patch("okf.evaluate.structural_audit", return_value={"self_edges": [], "cycles": []}),
+        patch("okf.exports.write_all_artifacts", return_value=(MagicMock(), MagicMock())) as writer,
+    ):
         from okf.pipeline import finalize_and_build
 
         try:

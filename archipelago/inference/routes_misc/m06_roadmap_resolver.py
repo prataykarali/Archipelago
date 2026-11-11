@@ -1,22 +1,31 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from flask import jsonify, send_from_directory, request, redirect
+
+from flask import jsonify, request
+
 from archipelago.inference import state as st
-from .m01_cors_pdf import REMOTE_PDF_SOURCES  # noqa: F401
+
+from .m01_cors_pdf import REMOTE_PDF_SOURCES
 
 
 @st.app.route("/api/roadmap/quiz", methods=["GET", "POST"])
 def api_roadmap_quiz():
     """Generate 5-6 diagnostic MCQs to test baseline knowledge for a target concept."""
     from archipelago.inference.curriculum import generate_diagnostic_quiz
+
     if request.method == "POST":
         data = request.get_json(silent=True) or {}
         target = data.get("target") or data.get("target_concept_id") or "low_rank_adaptation"
         num_q = int(data.get("num_questions") or 5)
     else:
-        target = request.args.get("target") or request.args.get("target_concept_id") or "low_rank_adaptation"
+        target = (
+            request.args.get("target")
+            or request.args.get("target_concept_id")
+            or "low_rank_adaptation"
+        )
         num_q = int(request.args.get("num_questions") or 5)
 
     quiz = generate_diagnostic_quiz(target, num_questions=num_q)
@@ -27,6 +36,7 @@ def api_roadmap_quiz():
 def api_roadmap_plan():
     """Evaluate diagnostic quiz responses and compute personalized 1-6 hop roadmap."""
     from archipelago.inference.curriculum import evaluate_quiz_and_route_roadmap
+
     data = request.get_json(silent=True) or {}
     target = data.get("target") or data.get("target_concept_id") or "low_rank_adaptation"
     responses = data.get("responses") or data.get("answers") or {}
@@ -46,6 +56,7 @@ def api_roadmap_plan():
 def api_roadmap_between():
     """Directly compute a 1-6 hop roadmap between start_concept_id and target_concept_id."""
     from archipelago.inference.curriculum import find_roadmap_between
+
     if request.method == "POST":
         data = request.get_json(silent=True) or {}
         start = data.get("start") or data.get("start_concept_id") or ""

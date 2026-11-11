@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Jul 21 2026–compliant GPU ingest (local pdfs/ only, NO HuggingFace).
+"""Jul 21 2026-compliant GPU ingest (local pdfs/ only, NO HuggingFace).
 
 Policy (Meeting Jul 21):
   - BOOKS: index / TOC / content-page listings / authors / subheadings ONLY.
     Never full book body text.
   - PAPERS/JOURNALS: full text allowed — priority content (≤15 papers pilot).
-  - Scope: DBMS, DSA, OS (+ AI/ML pilot papers). 5–6 books via METADATA only.
+  - Scope: DBMS, DSA, OS (+ AI/ML pilot papers). 5-6 books via METADATA only.
 
 Model: Ollama ``lib-qwen`` (from ingest/lib-qwen.gguf) on GPU.
 Merges into okf_graph.db — does not wipe existing pilot nodes.
@@ -13,16 +13,26 @@ Merges into okf_graph.db — does not wipe existing pilot nodes.
   fuser -k 5151/tcp   # free VRAM
   .venv/bin/python scripts/ops/gpu_ingest_local_pdfs.py --model lib-qwen
 """
+
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
+from pathlib import Path
 import re
 import shutil
 import sys
 import time
-from datetime import datetime
-from pathlib import Path
+
+from gpu_ingest_graph import _ensure_doc
+from gpu_ingest_model import (
+    PILOT_BOOK_DIRS,
+    PILOT_PAPERS,
+    _esc,
+    _slug,
+    extract_text_gpu,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -34,115 +44,6 @@ DB_PATH = ROOT / "okf_graph.db"
 JSON_PATH = ROOT / "okf_graph.json"
 MANIFEST = BOOKS_ROOT / "CORPUS_MANIFEST.json"
 
-# Pilot papers (≤15) — full text OK per Jul 21
-PILOT_PAPERS = [
-    "Lewis2020_RAG.pdf",
-    "Hu2021_LoRA.pdf",
-    "Dettmers2023_QLoRA.pdf",
-    "Kwon2023_vLLM.pdf",
-    "Vaswani2017_Attention_Is_All_You_Need.pdf",
-    "Devlin2018_BERT.pdf",
-    "Karpukhin2020_DPR.pdf",
-    "Edge2024_GraphRAG.pdf",
-    "Yao2022_ReAct.pdf",
-    "Wei2022_ChainOfThought.pdf",
-    "Ouyang2022_InstructGPT.pdf",
-    "Rafailov2023_DPO.pdf",
-    "Rumelhart1986_Backpropagation.pdf",
-    "Kipf2016_GCN.pdf",
-    "Bahdanau2014_Attention.pdf",
-]
-
-# Book dirs (METADATA only — no body PDFs in tree for Silberschatz etc.)
-PILOT_BOOK_DIRS = [
-    "database_system_concepts_silberschatz",
-    "database_management_systems_ramakrishnan",
-    "data_structures_algorithm_analysis_weiss",
-    "operating_system_concepts_silberschatz",
-    "ostep_three_easy_pieces",
-    "introduction_to_algorithms_clrs",
-]
-
-# OSTEP: chapter *titles* only (filename = TOC line), never chapter body
-OSTEP_TOC_ONLY = True
-
-EXTRACT_PROMPT = """You are an OKF extraction engine for Archipelago (pilot, copyright-safe).
-From the TEXT (paper abstract/body OR book TOC/index/author metadata only),
-extract 1 to 4 teachable CONCEPTS as a JSON array.
-
-Keys per object:
-- concept_name (Title Case, max 6 words)
-- concept_type: method|metric|technique|theory|tool|dataset|result|definition
-- difficulty: foundational|intermediate|advanced|expert
-- summary: 1-2 sentences
-- prerequisites: [Title Case names]
-- unlocks: [Title Case names]
-- related_to: [{{"concept":"Name","relation":"uses"}}]
-- tags: [lowercase-hyphen]
-
-Rules: only concepts present in the text; CS/AI/OS/DBMS/DSA preferred; JSON array only.
-
-TEXT:
-{text}
-"""
-
-_TOC_HINT = re.compile(
-    r"(?i)\b(contents|table of contents|index|preface|copyright|isbn|"
-    r"about the author|list of figures|chapter\s+\d|part\s+[ivx]+)\b"
-)
-
-
-def _slug(name: str) -> str:
-    s = re.sub(r"[^a-z0-9]+", "_", (name or "").lower()).strip("_")
-    return s[:80] or "concept"
-
-
-def _parse_json_array(raw: str) -> list:
-    s = (raw or "").strip()
-    if s.startswith("```"):
-        s = re.sub(r"^```(?:json)?\s*", "", s)
-        s = re.sub(r"\s*```$", "", s)
-    try:
-        data = json.loads(s)
-        return data if isinstance(data, list) else [data] if isinstance(data, dict) else []
-    except Exception:
-        pass
-    m = re.search(r"\[.*\]", s, re.S)
-    if m:
-        try:
-            data = json.loads(m.group(0))
-            return data if isinstance(data, list) else []
-        except Exception:
-            return []
-    return []
-
-
-def extract_text_gpu(model: str, text: str, keep_alive: str = "30m") -> list[dict]:
-    import ollama
-
-    prompt = EXTRACT_PROMPT.format(text=(text or "")[:1800])
-    kwargs = dict(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        stream=False,
-        keep_alive=keep_alive,
-        options={"temperature": 0.1, "num_predict": 640, "num_ctx": 4096},
-    )
-    try:
-        res = ollama.chat(**kwargs, think=False)
-    except TypeError:
-        res = ollama.chat(**kwargs)
-    msg = res.get("message") if hasattr(res, "get") else getattr(res, "message", None)
-    if isinstance(msg, dict):
-        content = msg.get("content") or msg.get("thinking") or ""
-    else:
-        content = getattr(msg, "content", None) or getattr(msg, "thinking", None) or ""
-    return _parse_json_array(str(content))
-
-
-def _esc(s: str) -> str:
-    return (s or "").replace("\\", "\\\\").replace("'", "\\'")
-
 
 def _ensure_concept(conn, cid: str, name: str, summary: str, ctype: str, diff: str) -> None:
     safe_id = _esc(cid)
@@ -151,8 +52,7 @@ def _ensure_concept(conn, cid: str, name: str, summary: str, ctype: str, diff: s
     ctype, diff = _esc(ctype[:32]), _esc(diff[:32])
     if r.has_next():
         conn.execute(
-            f"MATCH (c:Concept {{id: '{safe_id}'}}) "
-            f"SET c.summary = '{sum_e}', c.name = '{name_e}'"
+            f"MATCH (c:Concept {{id: '{safe_id}'}}) SET c.summary = '{sum_e}', c.name = '{name_e}'"
         )
     else:
         conn.execute(
@@ -164,20 +64,9 @@ def _ensure_concept(conn, cid: str, name: str, summary: str, ctype: str, diff: s
         print(f"    + concept {cid}")
 
 
-def _ensure_doc(conn, doc_id: str, title: str) -> None:
-    safe = _esc(doc_id)
-    r = conn.execute(f"MATCH (d:Document {{id: '{safe}'}}) RETURN d.id")
-    if r.has_next():
-        return
-    conn.execute(
-        "CREATE (d:Document {"
-        f"id: '{safe}', doc_hash: '', page_count: 0, title: '{_esc(title)}', "
-        "edition: '', page_label_map: ''"
-        "})"
-    )
-
-
-def _ensure_chunk(conn, doc_id: str, concept_id: str, page: int, text: str, seq: int, kind: str = "pilot") -> None:
+def _ensure_chunk(
+    conn, doc_id: str, concept_id: str, page: int, text: str, seq: int, kind: str = "pilot"
+) -> None:
     chunk_id = f"{kind}_{concept_id}_{seq:03d}"
     node_id = f"{doc_id}_chunk_{chunk_id}"
     safe_node = _esc(node_id)
@@ -256,18 +145,34 @@ def _apply_items(conn, items, doc_id, page, passage, seq_start, new_nodes, new_e
         for pre in item.get("prerequisites") or []:
             pre_id = _slug(str(pre))
             if pre_id and pre_id != cid:
-                _ensure_concept(conn, pre_id, str(pre), f"Prerequisite of {name}.", "definition", "foundational")
+                _ensure_concept(
+                    conn, pre_id, str(pre), f"Prerequisite of {name}.", "definition", "foundational"
+                )
                 _ensure_edge(conn, cid, pre_id, "REQUIRES")
                 new_edges.append(
-                    {"from_id": cid, "to_id": pre_id, "edge_type": "REQUIRES", "relation": "requires", "source": "jul21"}
+                    {
+                        "from_id": cid,
+                        "to_id": pre_id,
+                        "edge_type": "REQUIRES",
+                        "relation": "requires",
+                        "source": "jul21",
+                    }
                 )
         for un in item.get("unlocks") or []:
             un_id = _slug(str(un))
             if un_id and un_id != cid:
-                _ensure_concept(conn, un_id, str(un), f"Unlocked by {name}.", "method", "intermediate")
+                _ensure_concept(
+                    conn, un_id, str(un), f"Unlocked by {name}.", "method", "intermediate"
+                )
                 _ensure_edge(conn, cid, un_id, "UNLOCKS")
                 new_edges.append(
-                    {"from_id": cid, "to_id": un_id, "edge_type": "UNLOCKS", "relation": "unlocks", "source": "jul21"}
+                    {
+                        "from_id": cid,
+                        "to_id": un_id,
+                        "edge_type": "UNLOCKS",
+                        "relation": "unlocks",
+                        "source": "jul21",
+                    }
                 )
     return seq
 
@@ -286,7 +191,9 @@ def _patch_json(new_nodes, new_edges) -> None:
             by_id[n["id"]] = n
     for e in new_edges:
         if not any(
-            x.get("from_id") == e["from_id"] and x.get("to_id") == e["to_id"] and x.get("edge_type") == e["edge_type"]
+            x.get("from_id") == e["from_id"]
+            and x.get("to_id") == e["to_id"]
+            and x.get("edge_type") == e["edge_type"]
             for x in edges
         ):
             edges.append(e)
@@ -329,7 +236,9 @@ def ingest_book_metadata(conn, model, new_nodes, new_edges) -> int:
             stem = re.sub(r"^\d+[_-]?", "", stem)
             stem = stem.replace("_", " ").replace("-", " ")
             toc_lines.append(stem[:120])
-        toc_block = "\n".join(f"- {t}" for t in toc_lines[:40]) or "(no chapter files; metadata only)"
+        toc_block = (
+            "\n".join(f"- {t}" for t in toc_lines[:40]) or "(no chapter files; metadata only)"
+        )
 
         passage = (
             f"BOOK METADATA (copyright-safe pilot — no body text)\n"
@@ -392,7 +301,9 @@ def ingest_papers(conn, model, pages_per_paper: int, new_nodes, new_edges) -> in
             items = extract_text_gpu(model, text)
             ms = int((time.time() - t0) * 1000)
             print(f"  p{pnum}: {len(items)} concepts {ms}ms")
-            seq = _apply_items(conn, items, doc_id, pnum, text, seq, new_nodes, new_edges, kind="paper")
+            seq = _apply_items(
+                conn, items, doc_id, pnum, text, seq, new_nodes, new_edges, kind="paper"
+            )
             n += len(items)
     return n
 
@@ -422,8 +333,8 @@ def main() -> int:
             shutil.copy2(p, bak / p.name)
     print(f"  backup → {bak.name}")
 
-    import ollama
     import kuzu
+    import ollama
 
     print("  warming lib-qwen on GPU…")
     t0 = time.time()
@@ -444,7 +355,7 @@ def main() -> int:
             keep_alive=args.keep_alive,
             options={"num_predict": 4},
         )
-    print(f"  warm {int((time.time()-t0)*1000)}ms")
+    print(f"  warm {int((time.time() - t0) * 1000)}ms")
 
     try:
         db = kuzu.Database(str(DB_PATH), read_only=False)

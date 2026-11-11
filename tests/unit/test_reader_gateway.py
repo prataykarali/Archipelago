@@ -1,12 +1,14 @@
 """Unit tests for Archipelago Reader Gateway (/open/ and /read/), PDF.js reader, and Pearson redirect."""
+
 from __future__ import annotations
 
 import pytest
-from chat_server import app, _build_redirect_shell
+
 from archipelago import supabase_auth
+from chat_server import app
 
 
-def _fake_student_principal(request):  # noqa: ANN001, ARG001
+def _fake_student_principal(request):
     principal = supabase_auth.AuthPrincipal(
         user_id="test-user-id",
         username="gateway-tester",

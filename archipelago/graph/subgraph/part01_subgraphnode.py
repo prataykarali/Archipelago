@@ -1,8 +1,10 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from typing import Any
+
 from . import _deps as _rt  # noqa: F401
 
 # Upper bound on neighbor rows pulled per graph query, so a hub concept cannot
@@ -17,9 +19,9 @@ class SubgraphNode:
     label: str
     difficulty: str  # "foundational" | "intermediate" | "advanced" | "expert"
     summary: str
-    role: str        # "target" | "prereq" | "unlock" | "bridge" | "context"
+    role: str  # "target" | "prereq" | "unlock" | "bridge" | "context"
     domain: str = ""
-    hop: int = 0     # 0 for target, 1 for 1-hop, 2 for 2-hop
+    hop: int = 0  # 0 for target, 1 for 1-hop, 2 for 2-hop
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -29,7 +31,7 @@ class SubgraphNode:
 class SubgraphEdge:
     from_id: str
     to_id: str
-    relation: str    # "REQUIRES" | "UNLOCKS" | "BRIDGES" | "RELATED"
+    relation: str  # "REQUIRES" | "UNLOCKS" | "BRIDGES" | "RELATED"
     weight: float = 1.0
 
     def to_dict(self) -> dict[str, Any]:
@@ -105,7 +107,9 @@ def _build_name_to_id_index(concepts_data: dict[str, Any]) -> dict[str, str]:
     return idx
 
 
-def _resolve_id(name_or_id: str, name_idx: dict[str, str], concepts_data: dict[str, Any]) -> str | None:
+def _resolve_id(
+    name_or_id: str, name_idx: dict[str, str], concepts_data: dict[str, Any]
+) -> str | None:
     if not name_or_id:
         return None
     if name_or_id in concepts_data:
@@ -278,12 +282,16 @@ def _induce_subgraph_edges(
         u_node = concepts_data.get(u) or {}
         # REQUIRES: u requires p (u -> p)
         for p in u_node.get("prerequisites") or []:
-            pid = _resolve_id(p.get("id") if isinstance(p, dict) else str(p), name_idx, concepts_data)
+            pid = _resolve_id(
+                p.get("id") if isinstance(p, dict) else str(p), name_idx, concepts_data
+            )
             if pid and pid in node_ids:
                 add_edge(u, pid, "REQUIRES")
         # UNLOCKS: u unlocks un (u -> un)
         for un in u_node.get("unlocks") or []:
-            uid = _resolve_id(un.get("id") if isinstance(un, dict) else str(un), name_idx, concepts_data)
+            uid = _resolve_id(
+                un.get("id") if isinstance(un, dict) else str(un), name_idx, concepts_data
+            )
             if uid and uid in node_ids:
                 add_edge(u, uid, "UNLOCKS")
         # RELATED

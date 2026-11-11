@@ -1,10 +1,11 @@
 """Catalog ingestion module for Subject and Resource nodes."""
+
 from __future__ import annotations
 
 import math
-import os
 import re
 from typing import Any
+
 import kuzu
 import pandas as pd
 
@@ -55,7 +56,14 @@ def ingest_subjects(db_path: str, filepath: str) -> dict[str, int]:
 
         raw_count = row[titles_col] if titles_col is not None else 0
         try:
-            total_titles = int(raw_count) if (raw_count is not None and not (isinstance(raw_count, float) and math.isnan(raw_count))) else 0
+            total_titles = (
+                int(raw_count)
+                if (
+                    raw_count is not None
+                    and not (isinstance(raw_count, float) and math.isnan(raw_count))
+                )
+                else 0
+            )
         except Exception:
             total_titles = 0
 
@@ -111,7 +119,14 @@ def ingest_titles(db_path: str, filepath: str, subject_ods: str | None = None) -
 
         raw_year = row[year_col] if year_col else None
         try:
-            year = int(raw_year) if (raw_year is not None and not (isinstance(raw_year, float) and math.isnan(raw_year))) else 0
+            year = (
+                int(raw_year)
+                if (
+                    raw_year is not None
+                    and not (isinstance(raw_year, float) and math.isnan(raw_year))
+                )
+                else 0
+            )
         except Exception:
             year = 0
 
@@ -119,7 +134,9 @@ def ingest_titles(db_path: str, filepath: str, subject_ods: str | None = None) -
         title_esc = title.replace("'", "\\'")
 
         # Ensure Subject exists
-        conn.execute(f"MERGE (s:Subject {{id: '{subj_id}'}}) ON CREATE SET s.subject_name = '{subj_esc}', s.total_titles = 0")
+        conn.execute(
+            f"MERGE (s:Subject {{id: '{subj_id}'}}) ON CREATE SET s.subject_name = '{subj_esc}', s.total_titles = 0"
+        )
 
         # Merge Resource
         res_query = f"""

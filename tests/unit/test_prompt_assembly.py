@@ -1,10 +1,11 @@
 """Unit tests for PromptPayloadAssembler and context boundary isolation."""
+
 from __future__ import annotations
 
 import pytest
+
 from archipelago.core.prompt_assembly import (
     MAX_CHUNKS,
-    MAX_GRAPH_NODES,
     PromptPayloadAssembler,
 )
 
@@ -53,7 +54,12 @@ def test_topological_map_budget_capped(assembler):
 
 def test_full_payload_assembly(assembler):
     chunks = [
-        {"doc_id": "Hu2021_LoRA.pdf", "page_number": 2, "section_title": "Method", "text_passage": "LoRA decomposes weights into low-rank matrices."},
+        {
+            "doc_id": "Hu2021_LoRA.pdf",
+            "page_number": 2,
+            "section_title": "Method",
+            "text_passage": "LoRA decomposes weights into low-rank matrices.",
+        },
     ]
     prereqs = [{"name": "Linear Algebra"}]
     unlocks = [{"name": "QLoRA"}]
@@ -74,4 +80,6 @@ def test_full_payload_assembly(assembler):
     assert payload["citation_lineage"][0]["badge"] == "S1"
     assert payload["citation_lineage"][0]["page_number"] == 2
     assert "Base your answer STRICTLY on the evidence above" in payload["system_prompt"]
-    assert "Every factual assertion MUST end with an inline source badge" in payload["system_prompt"]
+    assert (
+        "Every factual assertion MUST end with an inline source badge" in payload["system_prompt"]
+    )

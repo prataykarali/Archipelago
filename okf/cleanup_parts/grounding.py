@@ -1,4 +1,17 @@
+import re
+from typing import Any
+
 from okf.cleanup_parts._base import *  # noqa: F403
+from okf.cleanup_parts._base import (
+    _FORMULA_OR_VALUE_NAME_RE,
+    _JUNK_NAME_RE,
+    _NUMERIC_NAME_RE,
+    _STOPWORDS,
+    VALID_RELATIONS,
+    canonicalize_name,
+    is_same_concept_reference,
+)
+
 
 def is_valid_concept_name(name: str) -> bool:
     """Reject obvious metadata, numeric artifacts and non-concept names."""
@@ -11,11 +24,10 @@ def is_valid_concept_name(name: str) -> bool:
         return False
     if _JUNK_NAME_RE.search(name):
         return False
-    if _FORMULA_OR_VALUE_NAME_RE.search(name):
-        return False
-    return True
+    return not _FORMULA_OR_VALUE_NAME_RE.search(name)
 
-def prune_invalid_references(okf_results: list) -> dict:
+
+def prune_invalid_references(okf_results: list[dict[str, Any]]) -> dict[str, int]:
     """Remove junk/self references from prerequisites, unlocks and related_to."""
     stats = {
         "invalid_prerequisites": 0,
@@ -79,10 +91,10 @@ def prune_invalid_references(okf_results: list) -> dict:
                 continue
             if relation not in VALID_RELATIONS:
                 relation = "uses"
-            key = (concept.lower(), relation)
-            if key not in seen_related:
+            rel_key = (concept.lower(), relation)
+            if rel_key not in seen_related:
                 clean_related.append({"concept": concept, "relation": relation})
-                seen_related.add(key)
+                seen_related.add(rel_key)
 
         r["prerequisites"] = clean_prereqs
         r["unlocks"] = clean_unlocks
@@ -90,14 +102,19 @@ def prune_invalid_references(okf_results: list) -> dict:
 
     return stats
 
-def _content_words(text: str) -> set:
+
+def _content_words(text: str) -> set[str]:
     """Lowercase content words (len>2, stopword-filtered) of a text."""
     return {
-        w for w in re.split(r"[^a-z0-9]+", (text or "").lower())
+        w
+        for w in re.split(r"[^a-z0-9]+", (text or "").lower())
         if len(w) > 2 and w not in _STOPWORDS
     }
 
-def apply_grounding_filter(okf_results: list) -> tuple[list, dict]:
+
+def apply_grounding_filter(
+    okf_results: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Grounding filter: a record must be anchored in its own source passage.
 
     A record is DROPPED when:
@@ -118,7 +135,7 @@ def apply_grounding_filter(okf_results: list) -> tuple[list, dict]:
         "rescued_by_summary_overlap": 0,
         "kept": 0,
     }
-    dropped_examples = {"ungrounded": [], "empty_summary": []}
+    dropped_examples: dict[str, list[str]] = {"ungrounded": [], "empty_summary": []}
     kept = []
     for r in okf_results:
         passage = (r.get("source_passage") or "").lower()
@@ -136,20 +153,21 @@ def apply_grounding_filter(okf_results: list) -> tuple[list, dict]:
             # Rescue only if the summary is demonstrably about this passage.
             summary_words = _content_words(summary)
             passage_words = _content_words(passage)
-            overlap = (len(summary_words & passage_words) / len(summary_words)
-                       if summary_words else 0.0)
+            overlap = (
+                len(summary_words & passage_words) / len(summary_words) if summary_words else 0.0
+            )
             if overlap >= 0.30:
                 stats["rescued_by_summary_overlap"] += 1
                 stats["kept"] += 1
                 kept.append(r)
             else:
                 stats["dropped_ungrounded"] += 1
-                dropped_examples["ungrounded"].append(r.get("concept_name"))
+                dropped_examples["ungrounded"].append(str(r.get("concept_name", "")))
             continue
 
         if not summary and not exact_hit:
             stats["dropped_empty_summary"] += 1
-            dropped_examples["empty_summary"].append(r.get("concept_name"))
+            dropped_examples["empty_summary"].append(str(r.get("concept_name", "")))
             continue
 
         stats["kept"] += 1
@@ -158,18 +176,25 @@ def apply_grounding_filter(okf_results: list) -> tuple[list, dict]:
     total_dropped = stats["dropped_ungrounded"] + stats["dropped_empty_summary"]
     if total_dropped:
         print(f"  Grounding filter dropped {total_dropped} records:")
-        print(f"    {stats['dropped_ungrounded']} ungrounded (name not in passage, "
-              f"summary overlap <30%): {', '.join(dropped_examples['ungrounded'][:6])}"
-              f"{'...' if len(dropped_examples['ungrounded']) > 6 else ''}")
-        print(f"    {stats['dropped_empty_summary']} empty-summary without exact "
-              f"name match: {', '.join(dropped_examples['empty_summary'][:6])}"
-              f"{'...' if len(dropped_examples['empty_summary']) > 6 else ''}")
+        print(
+            f"    {stats['dropped_ungrounded']} ungrounded (name not in passage, "
+            f"summary overlap <30%): {', '.join(dropped_examples['ungrounded'][:6])}"
+            f"{'...' if len(dropped_examples['ungrounded']) > 6 else ''}"
+        )
+        print(
+            f"    {stats['dropped_empty_summary']} empty-summary without exact "
+            f"name match: {', '.join(dropped_examples['empty_summary'][:6])}"
+            f"{'...' if len(dropped_examples['empty_summary']) > 6 else ''}"
+        )
         if stats["rescued_by_summary_overlap"]:
-            print(f"    ({stats['rescued_by_summary_overlap']} ungrounded-name records "
-                  f"rescued by >=30% summary/passage overlap)")
+            print(
+                f"    ({stats['rescued_by_summary_overlap']} ungrounded-name records "
+                f"rescued by >=30% summary/passage overlap)"
+            )
     return kept, stats
 
-def prune_unresolved_references(okf_results: list) -> dict:
+
+def prune_unresolved_references(okf_results: list[dict[str, Any]]) -> dict[str, int]:
     """Prune truly invalid references (empty, non-string, self-refs) but keep
     cross-document references that become placeholder nodes in the graph.
     """

@@ -5,7 +5,10 @@ SLM-hallucinated concept names.
 This runs inside cleanup_and_canonicalize so every rebuild / re-ingest stays
 clean without manual scrubbing.
 """
-from okf.cleanup_parts._base import re  # noqa: F401
+
+from typing import Any
+
+from okf.cleanup_parts._base import re
 
 # Concept names that must never become graph nodes (lowercase, canonical-ish).
 # Two families:
@@ -13,16 +16,35 @@ from okf.cleanup_parts._base import re  # noqa: F401
 #  2) hallucinated / mode-collapse names observed from aura-qwen v3
 NON_AIML_NAME_DENYLIST = {
     # GraphRAG paper example-dataset entities (entertainment/news podcast corpus)
-    "taylor swift", "travis kelce", "britney spears", "public figures",
-    "news article", "podcast", "answer 1", "health", "policy", "influence",
-    "directness", "diversity", "comprehensiveness",
-    "verdant oasis plaza", "unity march", "harmony assembly",
-    "jeopardy question", "jeopardy question generation",
-    "community answers", "global answer",
+    "taylor swift",
+    "travis kelce",
+    "britney spears",
+    "public figures",
+    "news article",
+    "podcast",
+    "answer 1",
+    "health",
+    "policy",
+    "influence",
+    "directness",
+    "diversity",
+    "comprehensiveness",
+    "verdant oasis plaza",
+    "unity march",
+    "harmony assembly",
+    "jeopardy question",
+    "jeopardy question generation",
+    "community answers",
+    "global answer",
     # aura-qwen hallucinations / corrupted names
-    "maximum empowerment", "bart: batchable arma", "convex convex hull",
-    "negative log-log", "positive log-lag", "negative log-lag",
-    "positive log-log", "expanding exponential",
+    "maximum empowerment",
+    "bart: batchable arma",
+    "convex convex hull",
+    "negative log-log",
+    "positive log-lag",
+    "negative log-lag",
+    "positive log-log",
+    "expanding exponential",
     "the theorem",
 }
 
@@ -35,7 +57,9 @@ EXAMPLE_PASSAGE_RE = re.compile(
 )
 
 
-def drop_non_aiml_records(okf_results: list) -> tuple[list, dict]:
+def drop_non_aiml_records(
+    okf_results: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Drop denylisted names and records grounded only in example passages.
 
     Returns (kept_records, stats). A concept extracted from an entertainment
@@ -63,14 +87,22 @@ def drop_non_aiml_records(okf_results: list) -> tuple[list, dict]:
     for r in kept:
         for key in ("prerequisites", "unlocks"):
             vals = r.get(key) or []
-            new_vals = [v for v in vals
-                        if not (isinstance(v, str) and v.strip().lower() in NON_AIML_NAME_DENYLIST)]
+            new_vals = [
+                v
+                for v in vals
+                if not (isinstance(v, str) and v.strip().lower() in NON_AIML_NAME_DENYLIST)
+            ]
             pruned_refs += len(vals) - len(new_vals)
             r[key] = new_vals
         rel = r.get("related_to") or []
-        new_rel = [x for x in rel
-                   if not (isinstance(x, dict)
-                           and str(x.get("concept", "")).strip().lower() in NON_AIML_NAME_DENYLIST)]
+        new_rel = [
+            x
+            for x in rel
+            if not (
+                isinstance(x, dict)
+                and str(x.get("concept", "")).strip().lower() in NON_AIML_NAME_DENYLIST
+            )
+        ]
         pruned_refs += len(rel) - len(new_rel)
         r["related_to"] = new_rel
     stats["pruned_refs"] = pruned_refs
@@ -78,11 +110,11 @@ def drop_non_aiml_records(okf_results: list) -> tuple[list, dict]:
     total = stats["denylisted"] + stats["example_passage"]
     if total:
         uniq = sorted({str(n) for n in dropped_names if n})
-        print(f"  Domain-scope filter dropped {total} non-AIML records "
-              f"({stats['denylisted']} denylisted, {stats['example_passage']} example-passage): "
-              f"{', '.join(uniq[:10])}{'...' if len(uniq) > 10 else ''}")
+        print(
+            f"  Domain-scope filter dropped {total} non-AIML records "
+            f"({stats['denylisted']} denylisted, {stats['example_passage']} example-passage): "
+            f"{', '.join(uniq[:10])}{'...' if len(uniq) > 10 else ''}"
+        )
         if pruned_refs:
             print(f"    (also pruned {pruned_refs} edge references to denylisted names)")
     return kept, stats
-
-

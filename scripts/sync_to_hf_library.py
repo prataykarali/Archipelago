@@ -4,18 +4,15 @@ Synchronize Archipelago Library Books, Manifests, Datasets, and Fine-Tuned Model
 to private Hugging Face Dataset Hub: Prataykarali/Library_books.
 """
 
-import os
-import sys
-import json
 import logging
 from pathlib import Path
-from huggingface_hub import HfApi
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
-from archipelago.storage.hf_remote import HFStorageClient, compute_sha256
+from archipelago.storage.hf_remote import HFStorageClient  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("archipelago.sync_to_hf")
@@ -85,15 +82,16 @@ Includes deep-linking reader manifests and ISBNs for:
 * **Target Objective**: Canonical title-cased concept extraction, authoritative definitions, difficulty ratings, and directional `REQUIRES` prerequisite DAG links with negative boilerplate filtering.
 """
 
+
 def sync_all():
     client = HFStorageClient(repo_id=REPO_ID)
     if not client.is_available:
         logger.error("HF client is not authenticated. Please check HF_TOKEN in .env")
         sys.exit(1)
-        
+
     api = client.api
     logger.info("Authenticated to Hugging Face Hub. Target Repo: %s", REPO_ID)
-    
+
     # 1. Upload README.md (Dataset Card)
     logger.info("Uploading Dataset Card README.md...")
     api.upload_file(
@@ -101,39 +99,60 @@ def sync_all():
         path_in_repo="README.md",
         repo_id=REPO_ID,
         repo_type="dataset",
-        commit_message="Add comprehensive dataset card & repository overview"
+        commit_message="Add comprehensive dataset card & repository overview",
     )
-    
+
     # 2. Upload Catalogs
     catalogs = [
         (ROOT / "data" / "catalogs" / "pearson_bookshelf.json", "catalogs/pearson_bookshelf.json"),
-        (ROOT / "data" / "catalogs" / "batch1_ingestion_summary.json", "catalogs/batch1_ingestion_summary.json"),
+        (
+            ROOT / "data" / "catalogs" / "batch1_ingestion_summary.json",
+            "catalogs/batch1_ingestion_summary.json",
+        ),
     ]
     for local_path, remote_path in catalogs:
         if local_path.is_file():
             logger.info("Uploading %s -> %s...", local_path.name, remote_path)
-            client.upload_file(local_path, remote_path, commit_message=f"Sync catalog: {local_path.name}")
+            client.upload_file(
+                local_path, remote_path, commit_message=f"Sync catalog: {local_path.name}"
+            )
 
     # 3. Upload Datasets
     datasets = [
         (ROOT / "training_data" / "unified_v4_4_train.jsonl", "datasets/unified_v4_4_train.jsonl"),
         (ROOT / "training_data" / "unified_v4_4_test.jsonl", "datasets/unified_v4_4_test.jsonl"),
-        (ROOT / "training_data" / "unified_v4_4_manifest.json", "datasets/unified_v4_4_manifest.json"),
-        (ROOT / "data" / "datasets" / "pearson_v44_pairs.jsonl", "datasets/pearson_v44_pairs.jsonl"),
+        (
+            ROOT / "training_data" / "unified_v4_4_manifest.json",
+            "datasets/unified_v4_4_manifest.json",
+        ),
+        (
+            ROOT / "data" / "datasets" / "pearson_v44_pairs.jsonl",
+            "datasets/pearson_v44_pairs.jsonl",
+        ),
     ]
     for local_path, remote_path in datasets:
         if local_path.is_file():
             logger.info("Uploading %s -> %s...", local_path.name, remote_path)
-            client.upload_file(local_path, remote_path, commit_message=f"Sync dataset: {local_path.name}")
+            client.upload_file(
+                local_path, remote_path, commit_message=f"Sync dataset: {local_path.name}"
+            )
 
     # 4. Upload Books & PDFs
-    textbooks = list((ROOT / "pdfs" / "textbooks").glob("*.pdf")) if (ROOT / "pdfs" / "textbooks").is_dir() else []
+    textbooks = (
+        list((ROOT / "pdfs" / "textbooks").glob("*.pdf"))
+        if (ROOT / "pdfs" / "textbooks").is_dir()
+        else []
+    )
     for tb in textbooks:
         remote_path = f"books/textbooks/{tb.name}"
         logger.info("Uploading textbook %s -> %s...", tb.name, remote_path)
         client.upload_file(tb, remote_path, commit_message=f"Add textbook: {tb.name}")
-        
-    papers = list((ROOT / "pdfs" / "papers").glob("*.pdf")) if (ROOT / "pdfs" / "papers").is_dir() else []
+
+    papers = (
+        list((ROOT / "pdfs" / "papers").glob("*.pdf"))
+        if (ROOT / "pdfs" / "papers").is_dir()
+        else []
+    )
     for p in papers:
         remote_path = f"books/papers/{p.name}"
         logger.info("Uploading paper %s -> %s...", p.name, remote_path)
@@ -146,13 +165,16 @@ def sync_all():
             if mf.is_file():
                 remote_path = f"models/lib_qwen_lora_v44/{mf.name}"
                 logger.info("Uploading model artifact %s -> %s...", mf.name, remote_path)
-                client.upload_file(mf, remote_path, commit_message=f"Upload fine-tuned model artifact: {mf.name}")
+                client.upload_file(
+                    mf, remote_path, commit_message=f"Upload fine-tuned model artifact: {mf.name}"
+                )
 
     logger.info("=== Sync to Hugging Face %s complete! ===", REPO_ID)
     files = client.list_files()
     logger.info("Current files in %s: (%d total files)", REPO_ID, len(files))
     for f in sorted(files):
         logger.info("  - %s", f)
+
 
 if __name__ == "__main__":
     sync_all()

@@ -1,3 +1,4 @@
+import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 20--compact-history.js
 // Feature module 21 of 22.
 import { state } from './00-state.js';
@@ -29,7 +30,7 @@ import { startNewChat } from './04-start-new-chat.js';
         }
 
         function _writeSessions(sessions) {
-            const key = 'archipelago_sessions';
+            const key = storageKey('archipelago_sessions');
             const payload = JSON.stringify(sessions || []);
             try {
                 localStorage.setItem(key, payload);
@@ -76,7 +77,7 @@ import { startNewChat } from './04-start-new-chat.js';
         }
 
         function clearAllSessions() {
-            try { localStorage.removeItem('archipelago_sessions'); } catch (_) {}
+            try { localStorage.removeItem(storageKey('archipelago_sessions')); } catch (_) {}
             try { renderChatHistory(); } catch (_) {}
         }
 
@@ -86,7 +87,7 @@ import { startNewChat } from './04-start-new-chat.js';
             if (!state.chatHistory.length) return;
             let sessions = [];
             try {
-                sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+                sessions = JSON.parse(localStorage.getItem(storageKey('archipelago_sessions')) || '[]');
             } catch (_) {
                 sessions = [];
             }
@@ -120,7 +121,7 @@ import { startNewChat } from './04-start-new-chat.js';
         function renderChatHistory() {
             const listEl = document.getElementById('chat-history-list');
             if (!listEl) return;
-            const sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+            const sessions = JSON.parse(localStorage.getItem(storageKey('archipelago_sessions')) || '[]');
             listEl.innerHTML = '';
             
             if (sessions.length === 0) {
@@ -151,7 +152,7 @@ import { startNewChat } from './04-start-new-chat.js';
         }
 
         function loadSession(id) {
-            const sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+            const sessions = JSON.parse(localStorage.getItem(storageKey('archipelago_sessions')) || '[]');
             const session = sessions.find(s => s.id === id);
             if (!session) return;
             
@@ -195,7 +196,7 @@ import { startNewChat } from './04-start-new-chat.js';
         function deleteSession(id) {
             let sessions = [];
             try {
-                sessions = JSON.parse(localStorage.getItem('archipelago_sessions') || '[]');
+                sessions = JSON.parse(localStorage.getItem(storageKey('archipelago_sessions')) || '[]');
             } catch (_) {
                 sessions = [];
             }

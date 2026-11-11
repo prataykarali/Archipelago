@@ -15,6 +15,7 @@ does not re-ask about the same book.
 
 Proposals are advisory. Nothing here downloads, ingests, or mutates the graph.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable

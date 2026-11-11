@@ -1,9 +1,11 @@
 import json
+
 import pytest
-import kuzu
+
 import archipelago.inference.state as inference_server
 
 pytestmark = pytest.mark.integration
+
 
 def _stream_parts(response):
     body = response.get_data(as_text=True)
@@ -12,6 +14,7 @@ def _stream_parts(response):
         return json.loads(metadata), text
     return {}, body
 
+
 @pytest.fixture
 def lora_setup(tmp_kuzu_db):
     """
@@ -19,11 +22,12 @@ def lora_setup(tmp_kuzu_db):
     Also updates inference_server.CONCEPTS_DATA.
     """
     conn = tmp_kuzu_db
-    
+
     import okf.graph_db as graph_db
+
     old_conn = graph_db._DEFAULT_CONN
     graph_db.set_default_connection(conn)
-    
+
     # Drop existing chunk/rel tables to recreate with full schema
     try:
         conn.execute("DROP TABLE HAS_CHUNK")
@@ -31,7 +35,7 @@ def lora_setup(tmp_kuzu_db):
         conn.execute("DROP TABLE Chunk")
     except Exception:
         pass
-        
+
     conn.execute("""
         CREATE NODE TABLE Chunk (
             id STRING PRIMARY KEY,
@@ -49,10 +53,10 @@ def lora_setup(tmp_kuzu_db):
     """)
     conn.execute("CREATE REL TABLE HAS_CHUNK (FROM Document TO Chunk)")
     conn.execute("CREATE REL TABLE MENTIONS (FROM Chunk TO Concept)")
-    
+
     # 1. Create Documents
     conn.execute("MERGE (d:Document {id: 'lora_paper.pdf'})")
-    
+
     # 2. Create Chunks
     conn.execute("""
         CREATE (c1:Chunk {
@@ -84,7 +88,7 @@ def lora_setup(tmp_kuzu_db):
             block_h: 20.0
         })
     """)
-    
+
     # 3. Create Concepts
     conn.execute("""
         CREATE (c3:Concept {
@@ -104,21 +108,29 @@ def lora_setup(tmp_kuzu_db):
             summary: 'Fine-Tuning updates model weights on a downstream dataset.'
         })
     """)
-    
+
     # 4. Link Chunk -> Document (HAS_CHUNK)
-    conn.execute("MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper.pdf_chunk_001'}) CREATE (d)-[:HAS_CHUNK]->(c)")
-    conn.execute("MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper.pdf_chunk_002'}) CREATE (d)-[:HAS_CHUNK]->(c)")
-    
+    conn.execute(
+        "MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper.pdf_chunk_001'}) CREATE (d)-[:HAS_CHUNK]->(c)"
+    )
+    conn.execute(
+        "MATCH (d:Document {id: 'lora_paper.pdf'}), (c:Chunk {id: 'lora_paper.pdf_chunk_002'}) CREATE (d)-[:HAS_CHUNK]->(c)"
+    )
+
     # 5. Link Chunk -> Concept (MENTIONS)
-    conn.execute("MATCH (c:Chunk {id: 'lora_paper.pdf_chunk_001'}), (co:Concept {id: 'low_rank_adaptation'}) CREATE (c)-[:MENTIONS]->(co)")
-    conn.execute("MATCH (c:Chunk {id: 'lora_paper.pdf_chunk_002'}), (co:Concept {id: 'fine_tuning'}) CREATE (c)-[:MENTIONS]->(co)")
-    
+    conn.execute(
+        "MATCH (c:Chunk {id: 'lora_paper.pdf_chunk_001'}), (co:Concept {id: 'low_rank_adaptation'}) CREATE (c)-[:MENTIONS]->(co)"
+    )
+    conn.execute(
+        "MATCH (c:Chunk {id: 'lora_paper.pdf_chunk_002'}), (co:Concept {id: 'fine_tuning'}) CREATE (c)-[:MENTIONS]->(co)"
+    )
+
     # 6. Link REQUIRES relationship (Low-Rank Adaptation REQUIRES Fine-Tuning)
     conn.execute("""
         MATCH (from:Concept {id: 'low_rank_adaptation'}), (to:Concept {id: 'fine_tuning'})
         CREATE (from)-[:REQUIRES {relation_type: 'requires', source: 'lora_paper.pdf:chunk_001'}]->(to)
     """)
-    
+
     # Update inference_server CONCEPTS_DATA
     old_concepts = dict(inference_server.CONCEPTS_DATA)
     inference_server.CONCEPTS_DATA["low_rank_adaptation"] = {
@@ -127,7 +139,7 @@ def lora_setup(tmp_kuzu_db):
         "name": "Low-Rank Adaptation (LoRA)",
         "concept_type": "definition",
         "difficulty": "intermediate",
-        "summary": "Low-Rank Adaptation adapts large models with low rank matrices."
+        "summary": "Low-Rank Adaptation adapts large models with low rank matrices.",
     }
     inference_server.CONCEPTS_DATA["fine_tuning"] = {
         "id": "fine_tuning",
@@ -135,14 +147,15 @@ def lora_setup(tmp_kuzu_db):
         "name": "Fine-Tuning",
         "concept_type": "definition",
         "difficulty": "intermediate",
-        "summary": "Fine-Tuning updates model weights on a downstream dataset."
+        "summary": "Fine-Tuning updates model weights on a downstream dataset.",
     }
-    
+
     yield conn
-    
+
     # Restore original CONCEPTS_DATA and default conn
     inference_server.CONCEPTS_DATA = old_concepts
     graph_db._DEFAULT_CONN = old_conn
+
 
 def test_weak_out_of_domain_rejected(flask_test_client):
     """
@@ -162,6 +175,7 @@ def test_weak_out_of_domain_rejected(flask_test_client):
     assert "Learning path:" not in (text or "")
     assert text and len(text.strip()) > 10
 
+
 def test_known_question_retrieves_expected_path(flask_test_client, lora_setup):
     """
     Verify that querying "What is LoRA?" successfully matches low_rank_adaptation,
@@ -173,25 +187,34 @@ def test_known_question_retrieves_expected_path(flask_test_client, lora_setup):
     )
     assert response.status_code == 200
     metadata, text = _stream_parts(response)
-    
+
     # Check anchor concept matched correctly
     assert metadata["anchor_concept"]["id"] == "low_rank_adaptation"
-    
+
     # Check prerequisites includes fine_tuning
     prereqs = [p["id"] for p in metadata["prerequisites"]]
     assert "fine_tuning" in prereqs
-    
+
     # Natural template (or synthesis) should mention LoRA / fine-tuning
     combined = f"{text} {json.dumps(metadata)}".lower()
     assert "lora" in combined or "low-rank" in combined or "low rank" in combined
     assert "fine" in combined
 
-def test_every_citation_maps_to_kuzu_evidence(flask_test_client, lora_setup):
+
+def test_every_citation_maps_to_kuzu_evidence(flask_test_client, lora_setup, monkeypatch):
     """
     Parse citation IDs from response text and metadata; each must map to real
     Kuzu evidence (Document/Chunk with matching doc_id and page).
     """
     import re
+
+    import archipelago.inference.routes.chat.part05_graph_path as graph_path
+
+    monkeypatch.setattr(
+        graph_path,
+        "stream_synthesis_with_ollama",
+        lambda *_args, **_kwargs: iter(["A grounded explanation without inline markers."]),
+    )
 
     conn = lora_setup
 
@@ -209,7 +232,7 @@ def test_every_citation_maps_to_kuzu_evidence(flask_test_client, lora_setup):
     meta_ids = {
         c["evidence_id"]
         for c in citations
-        if isinstance(c.get("evidence_id"), str) and c["evidence_id"]
+        if isinstance(c.get("evidence_id"), str) and c["evidence_id"].startswith("S")
     }
     assert meta_ids, "metadata citations must carry evidence_id values"
     assert text_ids, "response text must contain [S#: citation brackets"
@@ -235,9 +258,7 @@ def test_every_citation_maps_to_kuzu_evidence(flask_test_client, lora_setup):
             f"WHERE chk.page_number = {int(page_number)} "
             f"RETURN chk.id, chk.chunk_id, chk.text_passage"
         )
-        assert res.has_next(), (
-            f"{eid} has no Kuzu chunk for doc_id={doc_id!r} page={page_number}"
-        )
+        assert res.has_next(), f"{eid} has no Kuzu chunk for doc_id={doc_id!r} page={page_number}"
         row = res.get_next()
         assert row[0], f"{eid} returned empty chunk id"
         # If the payload includes a text span, it should appear in the stored passage.

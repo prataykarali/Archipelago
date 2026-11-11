@@ -14,17 +14,18 @@ For each book this keeps:
 Everything else (chapters, prefaces, forewords, appendix prose) is dropped.
 
 Also merges open-access pilot papers from pdfs/papers/ (arXiv etc.) so the
-pilot can demo paper retrieval (meeting target: ~10–15 papers).
+pilot can demo paper retrieval (meeting target: ~10-15 papers).
 
 Usage:
     python scripts/build_compliant_corpus.py [-o OUT.json]
 """
+
 import argparse
+from collections import OrderedDict
 import json
+from pathlib import Path
 import re
 import sys
-from collections import OrderedDict
-from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
@@ -57,7 +58,7 @@ def load_open_access_paper_chunks(max_chunks_per_paper: int = 15) -> list:
     """Chunk open-access PDFs under pdfs/papers/ (full text allowed).
 
     Caps chunks per paper so pilot extraction finishes in reasonable time while
-    still covering abstract/intro/core sections (meeting: ~10–15 papers).
+    still covering abstract/intro/core sections (meeting: ~10-15 papers).
     """
     if not OPEN_ACCESS_PAPERS_DIR.is_dir():
         return []
@@ -82,17 +83,24 @@ def load_open_access_paper_chunks(max_chunks_per_paper: int = 15) -> list:
         by_doc.setdefault(doc_id, []).append(_normalize_chunk(c))
 
     out = []
-    for doc_id, doc_chunks in by_doc.items():
+    for _doc_id, doc_chunks in by_doc.items():
         # Prefer prose chunks first, then fill with the rest up to the cap.
-        prose = [c for c in doc_chunks if (c.get("chunk_kind") or "prose") in ("prose", "body", "text", "")]
+        prose = [
+            c
+            for c in doc_chunks
+            if (c.get("chunk_kind") or "prose") in ("prose", "body", "text", "")
+        ]
         other = [c for c in doc_chunks if c not in prose]
         selected = (prose + other)[:max_chunks_per_paper]
         out.extend(selected)
     return out
 
 
-def build(out_path: str, max_oa_chunks_per_paper: int = 15, max_structure_chunks: int | None = None):
-    chunks = json.load(open(SRC))
+def build(
+    out_path: str, max_oa_chunks_per_paper: int = 15, max_structure_chunks: int | None = None
+):
+    with open(SRC) as f:
+        chunks = json.load(f)
     papers = [_normalize_chunk(c) for c in chunks if c["doc_id"].startswith("papers/")]
     books = [c for c in chunks if not c["doc_id"].startswith("papers/")]
 
@@ -105,10 +113,13 @@ def build(out_path: str, max_oa_chunks_per_paper: int = 15, max_structure_chunks
 
     structure_chunks = []
     for doc_id, doc_chunks in by_doc.items():
-        headings = list(OrderedDict.fromkeys(
-            (c.get("section_title") or "").strip()
-            for c in doc_chunks if (c.get("section_title") or "").strip()
-        ))[:MAX_HEADINGS_PER_STRUCT]
+        headings = list(
+            OrderedDict.fromkeys(
+                (c.get("section_title") or "").strip()
+                for c in doc_chunks
+                if (c.get("section_title") or "").strip()
+            )
+        )[:MAX_HEADINGS_PER_STRUCT]
         if not headings:
             continue
         first = doc_chunks[0]
@@ -119,14 +130,18 @@ def build(out_path: str, max_oa_chunks_per_paper: int = 15, max_structure_chunks
         lines.append(f"Chapter file: {Path(doc_id).stem}")
         lines.append("Contents / section headings:")
         lines += [f"  - {h}" for h in headings]
-        structure_chunks.append({
-            **{k: first.get(k) for k in
-               ("doc_id", "doc_hash", "page_count", "doc_title", "edition")},
-            "chunk_id": f"{Path(doc_id).stem}__structure",
-            "section_title": "Contents (structure metadata)",
-            "page_number": first.get("page_number", 1),
-            "text": "\n".join(lines),
-        })
+        structure_chunks.append(
+            {
+                **{
+                    k: first.get(k)
+                    for k in ("doc_id", "doc_hash", "page_count", "doc_title", "edition")
+                },
+                "chunk_id": f"{Path(doc_id).stem}__structure",
+                "section_title": "Contents (structure metadata)",
+                "page_number": first.get("page_number", 1),
+                "text": "\n".join(lines),
+            }
+        )
 
     # One structure chunk per book folder is enough for pilot demos; full per-file
     # structure list is large and mostly redundant for concept extraction.
@@ -153,7 +168,7 @@ def build(out_path: str, max_oa_chunks_per_paper: int = 15, max_structure_chunks
     for c in papers:
         paper_by_doc.setdefault(c["doc_id"], []).append(c)
     papers_capped = []
-    for doc_id, doc_chunks in paper_by_doc.items():
+    for _doc_id, doc_chunks in paper_by_doc.items():
         if len(doc_chunks) > max_oa_chunks_per_paper * 2:
             papers_capped.extend(doc_chunks[: max_oa_chunks_per_paper * 2])
         else:
@@ -162,28 +177,46 @@ def build(out_path: str, max_oa_chunks_per_paper: int = 15, max_structure_chunks
 
     out = papers + kept_meta + structure_chunks
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    json.dump(out, open(out_path, "w"), indent=1)
+    with open(out_path, "w") as f:
+        json.dump(out, f, indent=1)
 
     n_book_docs = len(by_doc)
     n_paper_docs = len({c["doc_id"] for c in papers})
     n_book_folders = len({d.split("/")[0] for d in by_doc})
     print(f"source chunks          : {len(chunks)}")
-    print(f"kept paper chunks      : {len(papers)}  across {n_paper_docs} paper docs (full text — approved)")
+    print(
+        f"kept paper chunks      : {len(papers)}  across {n_paper_docs} paper docs (full text — approved)"
+    )
     print(f"  of which open-access : {len(oa_new)} new chunks from pdfs/papers/")
     print(f"kept book index/TOC    : {len(kept_meta)}")
-    print(f"synthetic TOC chunks   : {len(structure_chunks)} (from {n_book_docs} book files / {n_book_folders} books)")
+    print(
+        f"synthetic TOC chunks   : {len(structure_chunks)} (from {n_book_docs} book files / {n_book_folders} books)"
+    )
     print(f"dropped book body text : {len(books) - len(kept_meta)}")
     print(f"compliant total        : {len(out)} -> {out_path}")
-    print(f"\nJul 21 pilot alignment : books={n_book_folders} (index/TOC only), papers={n_paper_docs}")
+    print(
+        f"\nJul 21 pilot alignment : books={n_book_folders} (index/TOC only), papers={n_paper_docs}"
+    )
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-o", "--out", default=str(BASE / "pilot_corpus" / "_compliant_chunks.json"))
-    ap.add_argument("--max-oa-chunks", type=int, default=15,
-                    help="Max chunks per open-access paper (default 15)")
-    ap.add_argument("--max-structure", type=int, default=10,
-                    help="Max synthetic TOC structure chunks (default 10; one per book is enough)")
+    ap.add_argument(
+        "--max-oa-chunks",
+        type=int,
+        default=15,
+        help="Max chunks per open-access paper (default 15)",
+    )
+    ap.add_argument(
+        "--max-structure",
+        type=int,
+        default=10,
+        help="Max synthetic TOC structure chunks (default 10; one per book is enough)",
+    )
     args = ap.parse_args()
-    build(args.out, max_oa_chunks_per_paper=args.max_oa_chunks,
-          max_structure_chunks=args.max_structure)
+    build(
+        args.out,
+        max_oa_chunks_per_paper=args.max_oa_chunks,
+        max_structure_chunks=args.max_structure,
+    )

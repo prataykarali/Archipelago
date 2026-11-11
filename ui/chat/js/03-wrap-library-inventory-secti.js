@@ -1,7 +1,7 @@
 // Auto-split from ui/chat/index.html — 03-wrap-library-inventory-secti.js
 // Feature module 4 of 22.
 import { state } from './00-state.js';
-import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
+import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-highlights.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_CONTRACT } from './00-current-origin.js';
 
@@ -69,22 +69,23 @@ import { API_CONTRACT } from './00-current-origin.js';
                 scrollWrap.appendChild(inventoryTable);
                 container.appendChild(scrollWrap);
             } else if (!inventoryTable && !container && metadata) {
-                // Synthesize inventory table from metadata citations/books if not present in markdown prose
+                // A source citation is not a physical holding. Build this table
+                // only from records explicitly verified against the Koha export.
                 const citations = getResponseCitations(metadata);
-                const verifiedHoldings = (citations || []).filter(c => c.koha_record_verified === true && c.total_copies != null && c.available_copies != null);
-                if (verifiedHoldings.length) {
+                const sourceRows = (citations || []).filter(c => c.koha_record_verified).slice(0, 6);
+                if (sourceRows.length) {
                     container = document.createElement('section');
                     container.className = 'library-inventory-section';
                     container.innerHTML = `
                         <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
                             <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
-                            <i class="fa-solid fa-book-bookmark text-sky-400"></i> Koha Catalogue Matches
+                            <i class="fa-solid fa-book-bookmark text-sky-400"></i> Source inventory
                             </span>
                             <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Export snapshot
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Cited sources
                         </span>
                     </div>
-                        <h4 class="text-xs text-gray-400 mb-2 font-medium italic">Koha export snapshot — check the OPAC for live circulation status.</h4>
+                        <h4 class="text-xs text-amber-300 mb-2 font-medium">Copy figures appear only for verified catalogue records.</h4>
                     `;
                     const scrollWrap = document.createElement('div');
                     scrollWrap.className = 'inventory-table-wrap overflow-x-auto w-full';
@@ -101,14 +102,15 @@ import { API_CONTRACT } from './00-current-origin.js';
                             </tr>
                         </thead>
                         <tbody>
-                            ${verifiedHoldings.map((c, i) => {
-                                const title = c.title || c.document_title || c.doc_id || 'Resource';
-                                const accession = c.accession || '—';
-                                const total = c.total_copies;
-                                const avail = c.available_copies;
-                                const url = citationPageUrl(c);
-                                const pageNum = c.page_number || c.page || 1;
+                            ${sourceRows.map((c, i) => {
+                                const title = citationTitle(c, 'Resource');
+                                const verified = Boolean(c.koha_record_verified);
+                                const accession = verified ? c.accession : 'Not reported';
+                                const total = verified ? c.total_copies : 'Not reported';
+                                const avail = verified ? c.available_copies : 'Not reported';
+                                const pageNum = c.page_number || c.page;
                                 const badgeStr = c.evidence_id || `S${i+1}`;
+                                const pageUrl = citationPageUrl(c);
                                 return `
                                     <tr class="glass-card hover:border-sky-400/50 hover:scale-[1.01] transition-all duration-200 border border-white/10 rounded-xl my-1.5 p-3 flex flex-col md:table-row gap-2">
                                         <td class="py-2.5 px-3 font-semibold text-gray-200">
@@ -119,7 +121,7 @@ import { API_CONTRACT } from './00-current-origin.js';
                                         <td class="py-2.5 px-3 text-right text-gray-400">${total}</td>
                                         <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${avail}</td>
                                         <td class="py-2.5 px-3 text-center">
-                                            ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/30 text-indigo-200 hover:bg-indigo-600 hover:text-white border border-indigo-500/40 text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95">p. ${pageNum} ↗</a>` : '<span class="text-gray-500 text-[11px]">—</span>'}
+                                            <a class="view-page-link text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>
                                         </td>
                                     </tr>
                                 `;
@@ -146,6 +148,10 @@ import { API_CONTRACT } from './00-current-origin.js';
                 if (state && state.current_mcq && !state.completed) {
                     container.classList.add('hidden');
                 }
+            }
+            const evidenceRail = messageBody.querySelector('.evidence-rail');
+            if (container && evidenceRail && container.parentNode === evidenceRail.parentNode) {
+                container.parentNode.insertBefore(evidenceRail, container);
             }
         }
 

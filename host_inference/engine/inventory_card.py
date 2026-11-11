@@ -1,17 +1,4 @@
-"""The campus physical inventory card appended to concept answers.
-
-The contract requires every grounded concept answer to close with the physical
-holdings, so a student reading about third normal form is told which book on
-the shelf covers it — and is never told the digital copy replaces the print one.
-
-The card is **appended, never substituted**: the concept answer and its
-citations come first, unmodified, and the inventory section follows. Losing the
-explanation in order to gain a shelf address would be a bad trade.
-
-Attached to the payload rather than inlined into the prose, so the UI can render
-it as a distinct card (and so the LLM polisher is never allowed to summarise it
-away — a hallucinated call number is worse than none).
-"""
+"""Optional institutional e-book cards from the verified Pearson export."""
 
 from __future__ import annotations
 
@@ -34,7 +21,7 @@ def inventory_cards_for_concept(
     node_summary: str,
     records: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """Catalogue records that plausibly teach ``node_id``.
+    """Digital catalogue records that plausibly teach ``node_id``.
 
     Scored on the concept's name and summary, so a concept like "third normal
     form" finds the database textbook whose summary mentions normalisation.
@@ -61,10 +48,9 @@ def inventory_cards_for_concept(
                 "concept_id": node_id,
                 "title": record.get("title", ""),
                 "author": record.get("author", ""),
-                "isbn": record.get("isbn", "") or record.get("biblionumber", ""),
+                "isbn": record.get("isbn", ""),
                 "publisher": record.get("publisher", ""),
-                "available_copies": record.get("available_copies", 0),
-                "total_copies": record.get("total_copies", 0),
+                "resource_type": "institutional_e_book",
                 "match": score,
                 "confidence": confidence,
                 "reader_url": str(record.get("reader_base_url") or ""),
@@ -76,7 +62,7 @@ def inventory_cards_for_concept(
 
 
 def render_inventory_section(cards: list[dict[str, Any]]) -> str:
-    """Markdown section appended to a grounded concept answer."""
+    """Brief digital-resource section appended when requested."""
     if not cards:
         return ""
 
@@ -84,33 +70,23 @@ def render_inventory_section(cards: list[dict[str, Any]]) -> str:
         "",
         "---",
         "",
-        "### 3. Physical Campus Library Inventory",
+        "### Institutional e-books",
         "",
-        "To study this topic using physical campus assets, locate the following at the "
-        "Central Library:",
+        "Relevant licensed digital reading from the institutional catalogue:",
         "",
     ]
     for card in cards:
-        available = int(card.get("available_copies") or 0)
-        total = int(card.get("total_copies") or 0)
         qualifier = "" if card.get("confidence") == "confirmed" else " (closest indexed match)"
-        lines.append(f"* **Resource title.** {card.get('title', '')}{qualifier}")
+        lines.append(f"* **{card.get('title', '')}**{qualifier}")
         if card.get("author"):
-            lines.append(f"* **Author.** {card['author']}")
+            lines.append(f"  Author: {card['author']}")
         if card.get("isbn"):
-            lines.append(f"* **ISBN / shelf locator.** `{card['isbn']}`")
-        lines.append(
-            f"* **Live shelf availability.** **{available} physical cop"
-            f"{'y' if available == 1 else 'ies'} available** out of {total} total."
-        )
+            lines.append(f"  ISBN: `{card['isbn']}`")
         if card.get("reader_url"):
-            lines.append(f"* **Institutional e-resource.** {card['reader_url']}")
-
-    lines += [
-        "",
-        "Borrowing from the Central Library remains the primary route; digital access "
-        "does not replace the physical collection.",
-    ]
+            lines.append(f"  [Open with institutional access]({card['reader_url']})")
+    lines.extend(
+        ["", "Physical holdings and circulation status are not verified by this e-book export."]
+    )
     return "\n".join(lines)
 
 
@@ -137,6 +113,7 @@ def attach_inventory(
     if not cards:
         return []
     payload["inventory"] = cards
+    payload["digital_resources"] = cards
     return cards
 
 

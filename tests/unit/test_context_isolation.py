@@ -6,8 +6,9 @@ strict isolation and prevent context leakage between users.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
-from archipelago.core.context import RequestContext
+
 from archipelago.core.chunk import RetrievedChunk
+from archipelago.core.context import RequestContext
 
 
 def test_request_context_defaults():

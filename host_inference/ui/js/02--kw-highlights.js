@@ -146,7 +146,7 @@ import { state } from './00-state.js';
             }
         }).catch(() => {});
 
-        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/graphier/blob/main';
+        const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/Library_books/blob/main';
 
         const HF_CANONICAL_DOCS = {
             'deisenroth_math_for_ml.pdf': 'textbooks/Deisenroth_Math_For_ML.pdf',
@@ -199,18 +199,27 @@ import { state } from './00-state.js';
 
         function citationPageUrl(citation) {
             if (!citation || typeof citation !== 'object') return '';
-            let page = Number(citation.page_number || citation.page);
-            if (!Number.isFinite(page) || page < 1) page = 1;
-            page = Math.floor(page);
+            const rawPage = Number(citation.page_number ?? citation.page);
+            const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
 
             const directUrl = citation.reader_url || citation.url || citation.pdf_url || '';
+
+            // The hosted PDF route resolves a filename; /read?doc=papers/... can
+            // encode the folder twice and fail in the reader on Vercel.
+            if (typeof directUrl === 'string' && directUrl.startsWith('/read?')) {
+                const docId = String(citation.doc_id || citation.document_id || '');
+                const filename = docId.split('/').pop();
+                if (filename && filename.toLowerCase().endsWith('.pdf')) {
+                    return `/papers/${encodeURIComponent(filename)}${page ? `#page=${page}` : ''}`;
+                }
+            }
 
             if (typeof directUrl === 'string' && (directUrl.startsWith('/open/') || directUrl.startsWith('/read?'))) {
                 return directUrl;
             }
             if (typeof directUrl === 'string' && (directUrl.startsWith('/papers/') || directUrl.includes('/papers/'))) {
                 const clean = directUrl.split('#')[0];
-                return `${clean}#page=${page}`;
+                return `${clean}${page ? `#page=${page}` : ''}`;
             }
 
             // 1. Direct Pearson URL already present
@@ -246,18 +255,18 @@ import { state } from './00-state.js';
                 // the reader to an unrelated book, so fall through to the
                 // internal page-view reader instead of fabricating a URL.
                 if (!subId || !bId) {
-                    if (directUrl) return directUrl.includes('#page=') ? directUrl : `${directUrl}#page=${page}`;
-                    return `/api/page-view?doc_id=${encodeURIComponent(citation.doc_id || '')}&page=${page}#page=${page}`;
+                    if (directUrl) return directUrl;
+                    return '';
                 }
                 const bType = (pEntry && pEntry.type) || citation.book_type || 'pdf';
                 const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
-                const pagePart = `/page/${page || 1}`;
+                const pagePart = page ? `/page/${page}` : '';
                 return `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
             }
 
-            // 3. Direct external URL (Hugging Face, arXiv, etc.)
-            if (typeof directUrl === 'string' && (directUrl.startsWith('https://huggingface.co') || directUrl.startsWith('https://arxiv.org'))) {
-                return directUrl.includes('#page=') ? directUrl : `${directUrl}#page=${page}`;
+            // 3. Saved research URLs are document-level unless a real page was verified.
+            if (typeof directUrl === 'string' && directUrl.startsWith('https://')) {
+                return directUrl;
             }
 
             // 4. Hugging Face dataset mapping
@@ -271,17 +280,15 @@ import { state } from './00-state.js';
                 canonicalDoc = HF_CANONICAL_DOCS[baseName];
             } else if (HF_CANONICAL_DOCS[cleanDoc.toLowerCase()]) {
                 canonicalDoc = HF_CANONICAL_DOCS[cleanDoc.toLowerCase()];
-            } else if (raw.toLowerCase().includes('attention') || raw.toLowerCase().includes('vaswani')) {
-                canonicalDoc = 'papers/Vaswani2017_Attention_Is_All_You_Need.pdf';
-            } else if (!canonicalDoc.startsWith('papers/') && !canonicalDoc.startsWith('textbooks/') && !canonicalDoc.startsWith('archipelago-books-cs/') && canonicalDoc.endsWith('.pdf')) {
-                canonicalDoc = `papers/${canonicalDoc}`;
+            } else if (!canonicalDoc.startsWith('papers/') && !canonicalDoc.startsWith('textbooks/') && !canonicalDoc.startsWith('archipelago-books-cs/')) {
+                canonicalDoc = '';
             }
 
             if (canonicalDoc) {
-                return `/read?doc=${encodeURIComponent(canonicalDoc)}&page=${page}`;
+                return `/read?doc=${encodeURIComponent(canonicalDoc)}${page ? `&page=${page}` : ''}`;
             }
 
-            return `/api/page-view?doc_id=${encodeURIComponent(raw)}&page=${page}#page=${page}`;
+            return '';
         }
 
         function appendEvidenceRail(messageBody, metadata) {
@@ -292,7 +299,7 @@ import { state } from './00-state.js';
             }
             // Keep source navigation in the chat itself.  The inventory is useful
             // context, but it must not be the only way to reach a cited page.
-            const citations = getResponseCitations(metadata).slice(0, 6);
+            const citations = getResponseCitations(metadata).slice(0, 8);
             messageBody.setAttribute("data-evidence-count", String(citations.length));
             if (!citations.length) return;
 
@@ -303,19 +310,47 @@ import { state } from './00-state.js';
             label.textContent = 'Sources';
             rail.appendChild(label);
             citations.forEach((citation, index) => {
-                const page = Math.max(1, Number(citation.page_number || citation.page || 1));
+                const rawPage = Number(citation.page_number ?? citation.page);
+                const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                 const title = citationTitle(citation, `Source ${index + 1}`);
                 const href = citationPageUrl(citation);
-                const link = document.createElement('a');
+                if (citation.source_type === 'research_paper' || citation.source_type === 'scholarly_source') {
+                    const card = document.createElement('details');
+                    card.className = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200';
+                    const summary = document.createElement('summary');
+                    summary.className = 'cursor-pointer font-semibold focus:outline-none focus:ring-2 focus:ring-violet-400';
+                    summary.textContent = `${citation.evidence_id || `P${index + 1}`} · ${title}`;
+                    card.appendChild(summary);
+                    if (citation.text_span) {
+                        const excerpt = document.createElement('p');
+                        excerpt.className = 'mt-2 text-xs leading-relaxed text-slate-300';
+                        excerpt.textContent = String(citation.text_span);
+                        card.appendChild(excerpt);
+                    }
+                    const level = document.createElement('p');
+                    level.className = 'mt-1 text-[11px] text-slate-400';
+                    level.textContent = String(citation.evidence_level || 'Saved source record; inspect the original for full context.');
+                    card.appendChild(level);
+                    if (href) {
+                        const sourceLink = document.createElement('a');
+                        sourceLink.className = 'mt-2 inline-block text-xs font-semibold text-violet-200 underline focus:outline-none focus:ring-2 focus:ring-violet-400';
+                        sourceLink.href = href;
+                        sourceLink.target = '_blank';
+                        sourceLink.rel = 'noopener noreferrer';
+                        sourceLink.textContent = 'Open source ↗';
+                        card.appendChild(sourceLink);
+                    }
+                    rail.appendChild(card);
+                    return;
+                }
+                const link = document.createElement(href ? 'a' : 'span');
                 link.className = 'view-page-link text-[11px] font-semibold';
-                link.textContent = `${title} · page ${page}`;
-                link.href = href || '#';
+                link.textContent = page ? `${title} · PDF p.${page}` : `${title} · page unverified`;
                 if (href) {
+                    link.href = href;
                     link.dataset.pageUrl = href;
                     link.target = '_blank';
                     link.rel = 'noopener noreferrer';
-                } else {
-                    link.setAttribute('aria-disabled', 'true');
                 }
                 rail.appendChild(link);
 

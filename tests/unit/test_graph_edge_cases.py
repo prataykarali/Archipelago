@@ -6,13 +6,14 @@ duplicate edges, self-referencing cycles, and invalid relationship types.
 
 from __future__ import annotations
 
-import pytest
-import sys
 from pathlib import Path
+import sys
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
-from validate_graph import build_report, VALID_RELATIONS
+from validate_graph import build_report  # noqa: E402
 
 
 @pytest.mark.unit
@@ -46,8 +47,18 @@ def test_graph_self_referencing_edge_detected() -> None:
             {"id": "node_b", "concept_name": "Node B"},
         ],
         "edges": [
-            {"from_id": "node_a", "to_id": "node_a", "edge_type": "REQUIRES", "source_ref": "doc:1"},
-            {"from_id": "node_a", "to_id": "node_b", "edge_type": "REQUIRES", "source_ref": "doc:1"},
+            {
+                "from_id": "node_a",
+                "to_id": "node_a",
+                "edge_type": "REQUIRES",
+                "source_ref": "doc:1",
+            },
+            {
+                "from_id": "node_a",
+                "to_id": "node_b",
+                "edge_type": "REQUIRES",
+                "source_ref": "doc:1",
+            },
         ],
     }
     report = build_report(graph_with_self_ref)
@@ -64,7 +75,12 @@ def test_graph_invalid_relation_type() -> None:
             {"id": "node_b", "concept_name": "Node B"},
         ],
         "edges": [
-            {"from_id": "node_a", "to_id": "node_b", "edge_type": "MADE_UP_RELATION", "source_ref": "doc:1"},
+            {
+                "from_id": "node_a",
+                "to_id": "node_b",
+                "edge_type": "MADE_UP_RELATION",
+                "source_ref": "doc:1",
+            },
         ],
     }
     report = build_report(graph_invalid_rel)
@@ -81,8 +97,18 @@ def test_graph_duplicate_edges() -> None:
             {"id": "node_b", "concept_name": "Node B"},
         ],
         "edges": [
-            {"from_id": "node_a", "to_id": "node_b", "edge_type": "REQUIRES", "source_ref": "doc:1"},
-            {"from_id": "node_a", "to_id": "node_b", "edge_type": "REQUIRES", "source_ref": "doc:1"},
+            {
+                "from_id": "node_a",
+                "to_id": "node_b",
+                "edge_type": "REQUIRES",
+                "source_ref": "doc:1",
+            },
+            {
+                "from_id": "node_a",
+                "to_id": "node_b",
+                "edge_type": "REQUIRES",
+                "source_ref": "doc:1",
+            },
         ],
     }
     report = build_report(graph_dup_edges)

@@ -8,6 +8,7 @@ dependency path, best supporting source, citation record).
 from __future__ import annotations
 
 from collections import deque
+from hashlib import sha256
 import json
 from pathlib import Path
 import re
@@ -15,6 +16,7 @@ from urllib.parse import quote
 
 import numpy as np
 
+from .academic_sources import ACADEMIC_SOURCES_BY_ID
 from .constants import ALIASES, FORMULAS
 from .docmap import hf_doc_path
 from .text import embed, tokens
@@ -35,7 +37,10 @@ class LibraryGraph:
     """Queryable view over one exported concept graph."""
 
     def __init__(self, path: Path):
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        source_bytes = path.read_bytes()
+        raw = json.loads(source_bytes)
+        self.graph_version = sha256(source_bytes).hexdigest()[:12]
+        self.last_sync = path.stat().st_mtime
         # ``stats.fixture`` is stamped by scripts/build_corpus_fixture.py. Tracked
         # here so /api/readiness can say "this deployment is on the fallback
         # slice" rather than presenting a 59-concept graph as the whole library.
@@ -58,10 +63,14 @@ class LibraryGraph:
             node.get("id"): node.get("sources") or [] for node in viz_nodes if node.get("id")
         }
         for cid, node in self.nodes.items():
-            if not node.get("sources") and sources_by_id.get(cid):
-                node["sources"] = sources_by_id[cid]
+            if not node.get("sources"):
+                if sources_by_id.get(cid):
+                    node["sources"] = sources_by_id[cid]
+                elif cid in ACADEMIC_SOURCES_BY_ID:
+                    node["sources"] = [ACADEMIC_SOURCES_BY_ID[cid]]
         self.out: dict[str, list[tuple[str, str]]] = {}
         self.inn: dict[str, list[tuple[str, str]]] = {}
+        self.edge_records: dict[tuple[str, str, str], dict] = {}
         for edge in raw.get("edges") or []:
             src, dst = edge.get("from_id"), edge.get("to_id")
             kind = edge.get("edge_type") or edge.get("relation") or "RELATED"
@@ -69,6 +78,7 @@ class LibraryGraph:
                 continue
             self.out.setdefault(src, []).append((kind, dst))
             self.inn.setdefault(dst, []).append((kind, src))
+            self.edge_records[(src, dst, kind)] = edge
         self._emb = {cid: embed(self._blob(node)) for cid, node in self.nodes.items()}
         self._label_index = []
         for cid, node in self.nodes.items():
@@ -221,7 +231,9 @@ class LibraryGraph:
 
         return best_live_source(sources, score, retired)
 
-    def cite_record(self, cid: str, query: str = "", index: int = 1) -> dict:
+    def cite_record(
+        self, cid: str, query: str = "", index: int = 1, source_override: dict | None = None
+    ) -> dict:
         """Build the structured citation record the chat payload carries.
 
         When every passage behind this concept came from a withdrawn document,
@@ -230,29 +242,48 @@ class LibraryGraph:
         that will 404.
         """
         source, all_withdrawn = self.best_live_source(cid, query or getattr(self, "_query", ""))
-        page = int((source or {}).get("page_number") or 1)
+        if (
+            source_override is not None
+            and source_override in (self.nodes.get(cid) or {}).get("sources", [])
+            and str(source_override.get("doc_id") or "") not in withdrawn_documents()
+        ):
+            source, all_withdrawn = source_override, False
+        raw_page = (source or {}).get("page_number")
+        page = int(raw_page) if raw_page else None
         doc_id = hf_doc_path(str((source or {}).get("doc_id") or ""))
         if not doc_id and not all_withdrawn and cid in FORMULAS:
-            _formula, filename, formula_page = FORMULAS[cid]
+            _formula, filename, _formula_page = FORMULAS[cid]
             doc_id = f"papers/{filename}"
-            page = formula_page
-        name = (
-            doc_id.split("/")[-1]
-            if doc_id
-            else f"{re.sub(r'[^A-Za-z0-9]+', '', self.label(cid)) or 'Catalog'}_catalog.pdf"
-        )
-        hf_url = f"/read?doc={quote(doc_id, safe='')}&page={page}" if doc_id else ""
+        name = (source or {}).get("title") or (doc_id.split("/")[-1] if doc_id else "")
+        hf_url = f"/read?doc={quote(doc_id, safe='')}" if source and doc_id else ""
+        if hf_url and page:
+            hf_url += f"&page={page}"
+        label = f"[S{index}: {name}{f', #page={page}' if page else ''}]" if name and hf_url else ""
         return {
-            "label": f"[S{index}: {name}, #page={page}]",
+            "label": label,
+            "evidence_id": f"S{index}",
+            "source_type": "ingested_pdf" if source and page else "metadata_only",
             "concept_id": cid,
             "doc_id": doc_id,
+            "doc_title": (source or {}).get("title") or "",
+            "authors": (source or {}).get("authors") or "",
             "page_number": page,
-            "printed_page": page,
+            "printed_page": (source or {}).get("printed_page"),
             "pdf_url": hf_url,
             "url": hf_url,
             "withdrawn": bool(all_withdrawn),
             "notice": withdrawal_notice_for_doc(doc_id) if all_withdrawn else "",
             "text_passage": ((source or {}).get("text_passage") or "")[:PASSAGE_CHAR_LIMIT],
+            "passage": ((source or {}).get("text_passage") or "")[:PASSAGE_CHAR_LIMIT],
+            "section": (source or {}).get("section") or (source or {}).get("section_title"),
+            "doi": (source or {}).get("doi"),
+            "publication_year": (source or {}).get("publication_year"),
+            "source_provider": (source or {}).get("source_provider"),
+            "retrieved_at": (source or {}).get("retrieved_at"),
+            "verification_status": "Verified"
+            if source and page and hf_url
+            else "Requires verification",
+            "access_status": "Available" if hf_url and not all_withdrawn else "Unavailable",
         }
 
     def citation(self, cid: str, index: int = 1) -> str:

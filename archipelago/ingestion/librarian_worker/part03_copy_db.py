@@ -1,15 +1,19 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import re
 import shutil
+from typing import Any, cast
 import uuid
-from pathlib import Path
-from typing import Any, Optional
+
 from archipelago.graph.engine import KuzuGraphEngine
-from . import _deps as _rt  # noqa: F401
+from okf.query_rows import query_rows
+
+from . import _deps as _rt
 
 
 def _copy_db(src: Path, dest: Path) -> None:
@@ -30,18 +34,22 @@ def clone_production_to_staging(*, force: bool = False) -> Path:
     if not _rt.PROD_DB_PATH.exists():
         raise FileNotFoundError(f"Production database missing: {_rt.PROD_DB_PATH}")
     if force or not _rt.STAGING_DB_PATH.exists():
-        _rt.logger.info("Cloning production database %s -> %s for staging...", _rt.PROD_DB_PATH, _rt.STAGING_DB_PATH)
+        _rt.logger.info(
+            "Cloning production database %s -> %s for staging...",
+            _rt.PROD_DB_PATH,
+            _rt.STAGING_DB_PATH,
+        )
         _copy_db(_rt.PROD_DB_PATH, _rt.STAGING_DB_PATH)
-    return _rt.STAGING_DB_PATH
+    return Path(_rt.STAGING_DB_PATH)
 
 
 def ensure_staging_db() -> Path:
     """Ensure okf_graph_staging.db exists as a faithful snapshot of production okf_graph.db."""
     if _rt.STAGING_DB_PATH.exists():
-        return _rt.STAGING_DB_PATH
+        return Path(_rt.STAGING_DB_PATH)
     if _rt.PROD_DB_PATH.exists():
         return clone_production_to_staging(force=True)
-    return _rt.STAGING_DB_PATH
+    return Path(_rt.STAGING_DB_PATH)
 
 
 def count_concepts(db_path: Path | str) -> int:
@@ -49,17 +57,20 @@ def count_concepts(db_path: Path | str) -> int:
     try:
         engine = KuzuGraphEngine(db_path=db_path, read_only=True)
         try:
-            n = engine.conn.execute("MATCH (c:Concept) RETURN count(c);").get_as_df().iloc[0, 0]
+            n = next(query_rows(engine.conn, "MATCH (c:Concept) RETURN count(c);"))[0]
             return int(n)
         finally:
             engine.close()
     except Exception as exc:
-        _rt.logger.warning("count_concepts kuzu failed on %s (%s); falling back to JSON stats", db_path, exc)
+        _rt.logger.warning(
+            "count_concepts kuzu failed on %s (%s); falling back to JSON stats", db_path, exc
+        )
         if _rt.DATA_FILE.exists():
             data = json.loads(_rt.DATA_FILE.read_text(encoding="utf-8"))
-            return int((data.get("stats") or {}).get("total_concepts") or len(
-                (data.get("visualization") or {}).get("nodes") or []
-            ))
+            return int(
+                (data.get("stats") or {}).get("total_concepts")
+                or len((data.get("visualization") or {}).get("nodes") or [])
+            )
         raise
 
 
@@ -71,60 +82,66 @@ def export_graph_json(db_path: Path | str, data_file: Path | str = _rt.DATA_FILE
     try:
         nodes: list[dict[str, Any]] = []
         try:
-            res_nodes = engine.conn.execute(
-                "MATCH (c:Concept) RETURN c.id, c.name, c.concept_type, c.difficulty, c.summary, c.tags"
+            rows = query_rows(
+                engine.conn,
+                "MATCH (c:Concept) RETURN c.id, c.name, c.concept_type, c.difficulty, c.summary, c.tags",
             )
-            while res_nodes.has_next():
-                row = res_nodes.get_next()
+            for row in rows:
                 name = row[1] or row[0]
                 tags_raw = row[5] or ""
                 tags = [t.strip() for t in tags_raw.split(",") if t.strip()] if tags_raw else []
-                nodes.append({
-                    "id": row[0],
-                    "label": name,
-                    "name": name,
-                    "concept_type": row[2],
-                    "difficulty": row[3],
-                    "summary": row[4],
-                    "tags": tags,
-                })
+                nodes.append(
+                    {
+                        "id": row[0],
+                        "label": name,
+                        "name": name,
+                        "concept_type": row[2],
+                        "difficulty": row[3],
+                        "summary": row[4],
+                        "tags": tags,
+                    }
+                )
         except Exception:
-            res_nodes = engine.conn.execute(
-                "MATCH (c:Concept) RETURN c.id, c.name, c.concept_type, c.difficulty, c.summary"
+            rows = query_rows(
+                engine.conn,
+                "MATCH (c:Concept) RETURN c.id, c.name, c.concept_type, c.difficulty, c.summary",
             )
-            while res_nodes.has_next():
-                row = res_nodes.get_next()
+            for row in rows:
                 name = row[1] or row[0]
-                nodes.append({
-                    "id": row[0],
-                    "label": name,
-                    "name": name,
-                    "concept_type": row[2],
-                    "difficulty": row[3],
-                    "summary": row[4],
-                })
+                nodes.append(
+                    {
+                        "id": row[0],
+                        "label": name,
+                        "name": name,
+                        "concept_type": row[2],
+                        "difficulty": row[3],
+                        "summary": row[4],
+                    }
+                )
 
         # Query chunk citations/sources via MENTIONS
-        sources_by_concept = {}
+        sources_by_concept: dict[str, list[dict[str, Any]]] = {}
         try:
-            res_src = engine.conn.execute(
+            rows = query_rows(
+                engine.conn,
                 "MATCH (d:Document)-[:HAS_CHUNK]->(chk:Chunk)-[:MENTIONS]->(c:Concept) "
-                "RETURN c.id, d.id, chk.chunk_id, chk.page_number, chk.section_title, chk.text_passage"
+                "RETURN c.id, d.id, chk.chunk_id, chk.page_number, chk.section_title, chk.text_passage",
             )
-            while res_src.has_next():
-                row = res_src.get_next()
+            for row in rows:
                 cid = row[0]
                 if cid not in sources_by_concept:
                     sources_by_concept[cid] = []
-                sources_by_concept[cid].append({
-                    "doc_id": row[1],
-                    "chunk_id": row[2],
-                    "page_number": row[3],
-                    "section_title": row[4] or "",
-                    "text_passage": row[5] or "",
-                })
+                sources_by_concept[cid].append(
+                    {
+                        "doc_id": row[1],
+                        "chunk_id": row[2],
+                        "page_number": row[3],
+                        "section_title": row[4] or "",
+                        "text_passage": row[5] or "",
+                    }
+                )
         except Exception:
-            pass
+            _rt.logger.exception("Could not export graph source citations")
 
         for n in nodes:
             if n["id"] in sources_by_concept:
@@ -133,20 +150,22 @@ def export_graph_json(db_path: Path | str, data_file: Path | str = _rt.DATA_FILE
         edges: list[dict[str, Any]] = []
         for rel_table in ["REQUIRES", "UNLOCKS", "RELATED"]:
             try:
-                res_edges = engine.conn.execute(
-                    f"MATCH (a:Concept)-[r:{rel_table}]->(b:Concept) RETURN a.id, b.id, r.relation_type, r.source"
+                rows = query_rows(
+                    engine.conn,
+                    f"MATCH (a:Concept)-[r:{rel_table}]->(b:Concept) RETURN a.id, b.id, r.relation_type, r.source",
                 )
-                while res_edges.has_next():
-                    row = res_edges.get_next()
-                    edges.append({
-                        "from_id": row[0],
-                        "to_id": row[1],
-                        "relation": row[2] or rel_table.lower(),
-                        "edge_type": rel_table,
-                        "source": row[3] or "",
-                    })
+                for row in rows:
+                    edges.append(
+                        {
+                            "from_id": row[0],
+                            "to_id": row[1],
+                            "relation": row[2] or rel_table.lower(),
+                            "edge_type": rel_table,
+                            "source": row[3] or "",
+                        }
+                    )
             except Exception:
-                pass
+                _rt.logger.exception("Could not export %s edges", rel_table)
     finally:
         engine.close()
 
@@ -161,7 +180,9 @@ def export_graph_json(db_path: Path | str, data_file: Path | str = _rt.DATA_FILE
     graph_data["visualization"] = {"nodes": nodes}
     graph_data["edges"] = edges
     data_file.write_text(json.dumps(graph_data, indent=2), encoding="utf-8")
-    _rt.logger.info("Exported %s (%d nodes, %d edges) from %s", data_file, len(nodes), len(edges), db_path)
+    _rt.logger.info(
+        "Exported %s (%d nodes, %d edges) from %s", data_file, len(nodes), len(edges), db_path
+    )
     return graph_data
 
 
@@ -185,7 +206,8 @@ def _post_inference(url: str, timeout: int = 90) -> dict[str, Any] | None:
             body = resp.read().decode("utf-8")
             _rt.logger.info("Inference POST %s -> %s", url, body)
             try:
-                return json.loads(body)
+                parsed = json.loads(body)
+                return parsed if isinstance(parsed, dict) else {"raw": body}
             except Exception:
                 return {"raw": body}
     except Exception as exc:
@@ -220,6 +242,7 @@ def sync_embeddings_from_db(db_path: Path | str) -> None:
         return
     os.environ.setdefault("ARCHIPELAGO_FORCE_CPU_EMBED", "1")
     from archipelago.inference.embeddings import build_concept_embeddings
+
     build_concept_embeddings()
 
 
@@ -256,16 +279,16 @@ def start_upload_job(
         stage="QUEUED",
         auto_publish=auto_publish,
     )
-    return _librarian_worker.enqueue(job)
+    return cast(str, _librarian_worker.enqueue(job))
 
 
-def get_job_status(job_id: str) -> Optional[dict[str, Any]]:
+def get_job_status(job_id: str) -> dict[str, Any] | None:
     """Query progress and stage of a librarian ingestion job."""
     job = _librarian_worker.get_job(job_id)
-    return job.to_dict() if job else None
+    return cast(dict[str, Any], job.to_dict()) if job else None
 
 
-def get_staging_review(job_id: Optional[str] = None) -> dict[str, Any]:
+def get_staging_review(job_id: str | None = None) -> dict[str, Any]:
     """
     Retrieve newly staged entities and proposed edges awaiting librarian review.
     """
@@ -287,42 +310,46 @@ def get_staging_review(job_id: Optional[str] = None) -> dict[str, Any]:
 
     try:
         # Check concepts with source librarian_upload or recent
-        res_c = engine.conn.execute(
-            "MATCH (c:Concept) RETURN c.id, c.name, c.concept_type, c.difficulty, c.summary LIMIT 200;"
+        rows = query_rows(
+            engine.conn,
+            "MATCH (c:Concept) RETURN c.id, c.name, c.concept_type, c.difficulty, c.summary LIMIT 200;",
         )
-        while res_c.has_next():
-            row = res_c.get_next()
-            concepts.append({
-                "id": row[0],
-                "name": row[1],
-                "concept_type": row[2],
-                "difficulty": row[3],
-                "summary": row[4],
-            })
+        for row in rows:
+            concepts.append(
+                {
+                    "id": row[0],
+                    "name": row[1],
+                    "concept_type": row[2],
+                    "difficulty": row[3],
+                    "summary": row[4],
+                }
+            )
 
         for _rel_table in ["REQUIRES", "UNLOCKS", "RELATED"]:
             try:
-                res_e = engine.conn.execute(
+                rows = query_rows(
+                    engine.conn,
                     f"MATCH (a:Concept)-[r:{_rel_table}]->(b:Concept) "
-                    f"RETURN a.id, b.id, a.name, b.name, r.relation_type, r.source LIMIT 200;"
+                    f"RETURN a.id, b.id, a.name, b.name, r.relation_type, r.source LIMIT 200;",
                 )
-                while res_e.has_next():
-                    row = res_e.get_next()
-                    edges.append({
-                        "from_id": row[0],
-                        "to_id": row[1],
-                        "from_name": row[2],
-                        "to_name": row[3],
-                        "relation": row[4] or _rel_table.lower(),
-                        "edge_type": _rel_table,
-                        "source": row[5] or "librarian_upload",
-                    })
+                for row in rows:
+                    edges.append(
+                        {
+                            "from_id": row[0],
+                            "to_id": row[1],
+                            "from_name": row[2],
+                            "to_name": row[3],
+                            "relation": row[4] or _rel_table.lower(),
+                            "edge_type": _rel_table,
+                            "source": row[5] or "librarian_upload",
+                        }
+                    )
             except Exception:
-                pass
+                _rt.logger.exception("Could not read %s staging edges", _rel_table)
 
-        res_d = engine.conn.execute("MATCH (d:Document) RETURN d.id, d.title, d.pdf_url LIMIT 50;")
-        while res_d.has_next():
-            row = res_d.get_next()
+        for row in query_rows(
+            engine.conn, "MATCH (d:Document) RETURN d.id, d.title, d.pdf_url LIMIT 50;"
+        ):
             documents.append({"id": row[0], "title": row[1], "pdf_url": row[2]})
 
     except Exception as exc:

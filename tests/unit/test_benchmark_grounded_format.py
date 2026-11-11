@@ -1,4 +1,5 @@
 """Benchmark-style grounded answers (no LLM rewrite, clean structure)."""
+
 from __future__ import annotations
 
 import pytest

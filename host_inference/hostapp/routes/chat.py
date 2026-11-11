@@ -8,18 +8,24 @@ from __future__ import annotations
 
 import json
 import re
+from uuid import UUID
 
+from engine.answer import POLISHABLE_ROUTES
+from engine.llm import provider_config
+from engine.reply_templates import list_reply_templates, valid_reply_template_id
 from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
 from ..context import AppContext
+from ..conversation import contextual_query
+from ..research_chat import enrich_with_research
 
 # Query hygiene: strip null bytes and ASCII control characters, keep whitespace.
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 MAX_QUERY_CHARS = 500
+MAX_PREVIOUS_ANSWER_CHARS = 800
 STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
-TOKENS_SAVED_PER_HIT = 350
 TELEMETRY_NO_CONTENT = 204
 
 
@@ -55,7 +61,18 @@ def register(app: Flask, ctx: AppContext) -> None:
         principal = getattr(request, "archipelago_principal", None)
         if principal is None:
             return jsonify({"error": "unauthorized"}), 401
-        return jsonify(ctx.limiter.quota_status(principal["id"]))
+        if principal["role"] != "student":
+            return jsonify({"unrestricted": True, "role": principal["role"]})
+        try:
+            return jsonify(ctx.limiter.quota_status(principal["id"]))
+        except Exception:
+            current_app.logger.exception("Unable to read account quota")
+            return jsonify({"error": "quota_unavailable"}), 503
+
+    @app.get("/api/reply-templates")
+    def chat_reply_templates():
+        """List the packaged response formats for the chat UI."""
+        return jsonify({"templates": list_reply_templates()})
 
     @app.post("/api/chat")
     def api_chat():
@@ -71,45 +88,98 @@ def register(app: Flask, ctx: AppContext) -> None:
         if not query:
             return jsonify({"error": "Query cannot be empty"}), 400
 
+        template_id = str(body.get("reply_template_id") or "").strip()
+        if template_id and not valid_reply_template_id(template_id):
+            return jsonify({"error": "invalid_reply_template_id"}), 400
+        reply_detail = body.get("reply_detail")
+        if reply_detail not in (None, "standard", "expanded"):
+            return jsonify({"error": "invalid_reply_detail"}), 400
+
+        history = body.get("history")
+        resolved_query = contextual_query(query, history)
+        try:
+            prepared = ctx.engine.answer(resolved_query)
+            prepared = enrich_with_research(prepared, resolved_query)
+        except Exception:
+            current_app.logger.exception("Unable to prepare chat response")
+            return jsonify({"error": "chat_unavailable"}), 503
+        principal = getattr(request, "archipelago_principal", None)
+        custom_reply = reply_detail == "expanded" or bool(template_id)
+        uses_ai = provider_config() is not None and (
+            (prepared["route"] in POLISHABLE_ROUTES and not prepared.get("research_overlay"))
+            or (prepared.get("research_overlay") and custom_reply)
+        )
+        if uses_ai and principal and principal.get("id") and principal["role"] == "student":
+            request_id = body.get("request_id") or ""
+            if request_id:
+                try:
+                    request_id = str(UUID(str(request_id)))
+                except ValueError:
+                    return jsonify({"error": "invalid_request_id"}), 400
+            try:
+                limited, quota = ctx.limiter.check_daily_chat(principal["id"], request_id)
+            except Exception:
+                current_app.logger.exception("Unable to update account quota")
+                return jsonify({"error": "quota_unavailable"}), 503
+            if limited:
+                if quota.get("limit_reason") == "duplicate":
+                    return jsonify(
+                        {
+                            "error": "duplicate_request",
+                            "detail": "This AI request was already submitted.",
+                        }
+                    ), 409
+                response = jsonify(
+                    {
+                        "error": "query_limit",
+                        "detail": "AI queries are paused. Your saved conversations remain available.",
+                        "remaining": quota["remaining"],
+                        "retry_after": quota["retry_after"],
+                    }
+                )
+                response.status_code = 429
+                response.headers["Retry-After"] = str(quota["retry_after"])
+                return response
+            request.archipelago_quota = quota  # type: ignore[attr-defined]
+
+        previous_answer = ""
+        if isinstance(history, list) and len(history) >= 2:
+            previous_user, previous_assistant = history[-2:]
+            if (
+                isinstance(previous_user, dict)
+                and isinstance(previous_assistant, dict)
+                and previous_user.get("role") == "user"
+                and previous_assistant.get("role") == "assistant"
+                and str(previous_user.get("content", "")).strip().casefold() == query.casefold()
+            ):
+                previous_answer = str(previous_assistant.get("content", ""))[
+                    :MAX_PREVIOUS_ANSWER_CHARS
+                ]
+
         ctx.cache_metrics.record_request()
-        principal = getattr(request, "archipelago_principal", None) or {}
-        norm_query = f"{principal.get('id', 'guest')}:{ctx.cache_service.normalize_query(query)}"
-
-        # Only simultaneous requests share work. Completed answers are regenerated.
-        if ctx.request_dedup.is_in_flight(norm_query):
-            wait_result = ctx.request_dedup.wait(norm_query)
-            if wait_result is not None:
-                ctx.cache_metrics.record_dedup(tokens_saved=TOKENS_SAVED_PER_HIT)
-
-                def generate_dedup():
-                    if isinstance(wait_result, list):
-                        yield from wait_result
-                    else:
-                        yield str(wait_result)
-
-                return current_app.response_class(generate_dedup(), mimetype=STREAM_MIME)
-
-        # Fresh retrieval and inference for each request.
+        # Every chat request gets its own retrieval and provider stream, even
+        # when an identical question is submitted at the same time.
         ctx.cache_metrics.record_miss()
-        is_leader = ctx.request_dedup.start_flight(norm_query)
 
         def generate():
-            collected_chunks = []
             try:
-                for chunk in ctx.engine.stream_chat(query):
-                    collected_chunks.append(chunk)
-                    yield chunk
-
-                if collected_chunks and is_leader:
-                    ctx.request_dedup.complete(norm_query, collected_chunks)
+                if prepared.get("research_overlay") and not custom_reply:
+                    yield json.dumps(prepared["payload"]) + STREAM_MARKER
+                    yield prepared["text"]
+                else:
+                    options = {"previous_answer": previous_answer, "prepared": prepared}
+                    if template_id:
+                        options["reply_template_id"] = template_id
+                    if reply_detail == "expanded":
+                        options["reply_detail"] = "expanded"
+                    yield from ctx.engine.stream_chat(resolved_query, **options)
             except Exception as exc:
                 current_app.logger.error("Chat stream error: %s", exc)
                 yield "\n\nAn unexpected error occurred during synthesis. Please retry your question."
-            finally:
-                if is_leader:
-                    ctx.request_dedup.cleanup(norm_query)
 
-        return current_app.response_class(generate(), mimetype=STREAM_MIME)
+        response = current_app.response_class(generate(), mimetype=STREAM_MIME)
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     @app.get("/api/chat/diagnostic-mcqs")
     def diagnostic_mcqs():

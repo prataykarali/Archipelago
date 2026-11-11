@@ -1,4 +1,5 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
+
 from __future__ import annotations
 
 import re
@@ -70,6 +71,8 @@ def _finalize_stream_answer(
     if not _model_answer_is_usable(cleaned_model, user_query, baseline):
         return baseline
     # A concise grounded response with citations wins over a much longer rewrite.
-    if _count_words(baseline) and _count_words(cleaned_model) > max(120, _count_words(baseline) * 3):
+    if _count_words(baseline) and _count_words(cleaned_model) > max(
+        120, _count_words(baseline) * 3
+    ):
         return baseline
     return cleaned_model

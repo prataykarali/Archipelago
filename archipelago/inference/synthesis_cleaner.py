@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 _LEAK_PATTERNS = [
     re.compile(r"(?im)^style\s*\d+.*$"),
     re.compile(r"(?im)^layout\s*#.*$"),
@@ -245,6 +244,8 @@ def append_source_list(citations: list[dict[str, Any]] | None) -> str:
         if len(lines) - 2 >= _MAX_SOURCE_LINES:
             break
     return "\n".join(lines)
+
+
 def enforce_sterile_prose(text: str, fallback: str | None = None) -> str:
     """Strip greetings, prompt leaks, and style artifacts from SLM prose.
 

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Research Workspace — Archipelago</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/research.css">
+  <link rel="stylesheet" href="/research_layout.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js" defer></script>
+  <script type="module" src="/auth_bridge.js"></script>
+  <script src="/research_layout.js" defer></script>
+  <script src="/research_domains.js" defer></script>
+  <script src="/research.js" defer></script>
+  <script src="/research_intake.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/library"><span class="brand-mark" aria-hidden="true">✳</span> Archipelago <span class="brand-tag">RESEARCH</span></a>
+    <nav aria-label="Primary">
+      <a href="/library">Library</a>
+      <a href="/chat">Chat</a>
+      <a href="/research" aria-current="page">Research</a>
+    </nav>
+  </header>
+
+  <nav class="section-nav" aria-label="Research sections">
+    <a href="#overview" data-open-tab="overview">01 Overview</a>
+    <a href="#domains" data-open-tab="overview">02 Domains</a>
+    <a href="#pipeline" data-open-tab="overview">03 Pipeline</a>
+    <a href="#papers" data-open-tab="intake">04 Papers</a>
+    <a href="#college" data-open-tab="intake">05 College</a>
+    <a href="#evidence" data-open-tab="evidence">06 Evidence</a>
+    <a href="#graph-studio" data-open-tab="graph">07 Graph</a>
+  </nav>
+  <main class="workspace">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">RESEARCH INTELLIGENCE <span aria-hidden="true">/</span> ARCHIPELAGO</p>
+        <h1 id="page-title">Explore knowledge.<br><em>Follow the evidence.</em></h1>
+        <p class="intro-copy">Browse every indexed domain, follow two source pipelines, inspect cited papers and explore focused concept neighborhoods.</p>
+      </div>
+      <div class="scope-note"><span class="scope-dot" aria-hidden="true"></span><strong>Library concept graph</strong><span>Curated annotations are saved by library staff.</span></div>
+    </section>
+
+    <div class="workspace-tabs" role="tablist" aria-label="Research workspace views">
+      <button type="button" role="tab" id="tab-overview" aria-controls="pane-overview" aria-selected="true" data-tab="overview">Knowledge base</button>
+      <button type="button" role="tab" id="tab-intake" aria-controls="pane-intake" aria-selected="false" data-tab="intake">Ingestion &amp; sources</button>
+      <button type="button" role="tab" id="tab-evidence" aria-controls="pane-evidence" aria-selected="false" data-tab="evidence">Evidence &amp; Q&amp;A</button>
+      <button type="button" role="tab" id="tab-graph" aria-controls="pane-graph" aria-selected="false" data-tab="graph">Graph studio</button>
+    </div>
+    <div id="pane-overview" role="tabpanel" aria-labelledby="tab-overview" data-pane="overview">
+      <section id="overview" class="research-section" aria-labelledby="overview-heading">
+        <p class="eyebrow">01 / OVERVIEW</p><h2 id="overview-heading">Research at a glance</h2>
+        <p>Concepts come from the indexed institutional collection. Source counts show records actually saved to research storage.</p>
+        <div class="metric-grid">
+          <div class="metric"><strong id="metric-concepts">—</strong><span>concepts</span></div>
+          <div class="metric"><strong id="metric-relationships">—</strong><span>relationships</span></div>
+          <div class="metric"><strong id="metric-documents">—</strong><span>graph documents</span></div>
+          <div class="metric"><strong id="metric-papers">—</strong><span>saved papers</span></div>
+          <div class="metric"><strong id="metric-college">—</strong><span>campus pages</span></div>
+        </div>
+        <p id="pipeline-status" role="status">Checking source data…</p>
+      </section>
+      <section id="domains" class="research-section" aria-labelledby="domains-heading">
+        <p class="eyebrow">02 / DOMAINS</p><h2 id="domains-heading">Academic domain directory</h2>
+        <p>Browse the full concept index by subject. Select a concept to open its focused graph neighborhood.</p>
+        <label for="domain-filter">Search all concepts</label><input id="domain-filter" type="search" placeholder="Filter subjects or concepts" autocomplete="off">
+        <div id="domain-cards" class="domain-grid" aria-live="polite">Loading indexed concepts…</div>
+      </section>
+      <section id="pipeline" class="research-section" aria-labelledby="pipeline-heading">
+        <p class="eyebrow">03 / PIPELINE</p><h2 id="pipeline-heading">Two paths into the repository</h2>
+        <div class="flow-grid">
+          <article class="flow-card"><span>CHANNEL A · CAMPUS</span><h3>College knowledge</h3><p>UEM and IEM pages, syllabi and publications. Verified catalogue records are needed before a title is marked as a holding.</p><ol><li>Discover approved pages</li><li>Extract and review text</li><li>Save linked campus records</li><li>Connect concepts and citations</li></ol><strong><span id="campus-flow-count">—</span> pages saved</strong></article>
+          <article class="flow-card"><span>CHANNEL B · SCHOLARLY</span><h3>Research literature</h3><p>Scholarly API results are normalized by DOI and linked to their original source. Abstracts become evidence when supplied.</p><ol><li>Search research indexes</li><li>Normalize identifiers</li><li>Save metadata and abstracts</li><li>Link evidence to replies</li></ol><strong><span id="research-flow-count">—</span> papers saved</strong></article>
+        </div>
+        <p>These are stored-record counts, not unverified search results. <button type="button" class="text-action" data-tab-jump="intake">Open live intake →</button></p>
+      </section>
+    </div>
+    <div id="pane-graph" role="tabpanel" aria-labelledby="tab-graph" data-pane="graph" hidden>
+    <section id="graph-studio" class="graph-workspace" aria-label="Concept graph workspace">
+      <div class="studio-heading"><p class="eyebrow">07 / GRAPH STUDIO</p><h2>Explore the complete concept graph</h2><p>All indexed concepts load here. Search or choose a concept to inspect its connections.</p></div>
+      <div class="graph-toolbar">
+        <form id="search-form" role="search">
+          <label for="query">Find a concept</label>
+          <div class="search-row"><input id="query" type="search" minlength="2" maxlength="160" required placeholder="Try attention, databases, neural networks…"><button type="submit">Explore <span aria-hidden="true">↗</span></button></div>
+        </form>
+        <div class="view-group" aria-label="Research views">
+          <button id="show-all" type="button" class="view-button active">All concepts</button>
+          <button id="show-sources" type="button" class="view-button">Source documents</button>
+          <button id="show-intake-map" type="button" class="view-button">Research map</button>
+        </div>
+        <div class="filter-group" aria-label="Relationship filter">
+          <button class="filter active" type="button" data-filter="all" aria-pressed="true">All links</button>
+          <button class="filter" type="button" data-filter="requires" aria-pressed="false">Requires</button>
+          <button class="filter" type="button" data-filter="enables" aria-pressed="false">Enables</button>
+        </div>
+      </div>
+
+      <div id="graph-grid" class="graph-grid">
+        <div class="graph-panel">
+          <div class="graph-caption"><span class="live-dot" aria-hidden="true"></span><span id="graph-counts">Loading concepts…</span><span class="caption-help">Select a node to inspect · drag to explore</span></div>
+          <div id="graph" role="img" aria-label="Interactive concept relationship graph"></div>
+          <div class="graph-bottom">
+            <p id="graph-status" role="status">Loading graph…</p>
+            <div class="zoom-controls" aria-label="Graph zoom controls"><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="zoom-fit" type="button">Fit</button><button id="zoom-in" type="button" aria-label="Zoom in">+</button></div>
+          </div>
+        </div>
+
+        <aside class="detail-panel" aria-labelledby="detail-heading">
+          <div class="detail-kicker"><span class="detail-icon" aria-hidden="true">◇</span><span>CONCEPT DETAILS</span></div>
+          <h2 id="detail-heading">Select a concept</h2>
+          <p id="detail-summary">Choose a node from the graph or the list below to see its details.</p>
+          <a id="detail-source" href="#" target="_blank" rel="noopener noreferrer" hidden>Open source ↗</a>
+          <dl class="detail-stats"><div><dt>Type</dt><dd id="detail-kind">—</dd></div><div><dt>Connections</dt><dd id="detail-degree">—</dd></div><div><dt>Source documents</dt><dd id="detail-source-count">—</dd></div></dl>
+          <button id="expand-node" type="button" disabled>Explore this neighborhood <span aria-hidden="true">→</span></button>
+          <section class="concept-list-section" aria-labelledby="concept-list-title"><h3 id="concept-list-title">Concepts in view</h3><ul id="concept-list"></ul></section>
+          <form id="annotation-form" hidden>
+            <h3 id="editor-heading">Add curated details</h3>
+            <p>Only librarians and administrators can save changes.</p>
+            <label for="annotation-summary">Description</label>
+            <textarea id="annotation-summary" required maxlength="2000" rows="5" placeholder="Write a clear, source-grounded description."></textarea>
+            <label for="annotation-source">Source link (optional)</label>
+            <input id="annotation-source" type="url" maxlength="500" pattern="https://.*" placeholder="https://…">
+            <button id="save-annotation" type="submit">Save details</button>
+            <p id="annotation-status" role="status"></p>
+          </form>
+        </aside>
+      </div>
+      <section id="sources-view" hidden aria-labelledby="sources-heading">
+        <div class="sources-head"><div><p class="eyebrow">INDEXED DOCUMENTS</p><h2 id="sources-heading">Sources behind the graph</h2><p>Each document below contributes at least one indexed concept. Select a document to see its connected concepts.</p></div><label for="source-filter">Filter documents<input id="source-filter" type="search" placeholder="Search titles or paths"></label></div>
+        <div id="source-list" class="source-list"></div>
+      </section>
+    </section>
+    </div>
+    <div id="pane-intake" role="tabpanel" aria-labelledby="tab-intake" data-pane="intake" hidden>
+    <section class="intake-workspace" aria-labelledby="intake-heading">
+      <div class="intake-heading"><div><p class="eyebrow">04–05 / LIVE SOURCE INTAKE</p><h2 id="intake-heading">Papers and campus pages</h2><p>Search research topics and save approved UEM/IEM pages with links to the original sources.</p></div><div id="intake-count" class="intake-count">Loading records…</div></div>
+      <div class="intake-grid">
+        <section id="papers"><form id="paper-form" class="intake-card"><span class="card-icon" aria-hidden="true">↗</span><h3>Research papers</h3><p>Discover and save papers in any subject, from medicine to literature to computing.</p><label for="paper-topic">Topic or question</label><div class="intake-input-row"><input id="paper-topic" required minlength="3" maxlength="160" placeholder="e.g. distributed database consistency"><button type="submit">Fetch papers</button></div><p id="paper-status" role="status">Ready to search scholarly indexes.</p><div id="provider-status" class="provider-status"></div></form></section>
+        <section id="college"><form id="college-form" class="intake-card"><span class="card-icon college-icon" aria-hidden="true">⌂</span><h3>College sites</h3><p>Save readable content from approved IEM and UEM pages, linked to the original URL.</p><label for="college-url">Official page URL</label><div class="intake-input-row"><input id="college-url" type="url" required placeholder="https://uem.edu.in/…"><button type="submit">Ingest page</button></div><p id="college-status" role="status">Available to librarians and administrators.</p><div class="college-presets"><button type="button" data-url="https://uem.edu.in/uem-kolkata/syllabus/">UEM syllabus</button><button type="button" data-url="https://iem.edu.in/publications-2026/">IEM publications</button></div></form></section>
+      </div>
+      <div class="records-head"><h3>Recently ingested sources</h3><div class="record-filters"><button type="button" data-kind="all" class="active">All</button><button type="button" data-kind="paper">Papers</button><button type="button" data-kind="institutional_page">College pages</button></div></div>
+      <div id="intake-records" class="intake-records" aria-live="polite"></div>
+    </section>
+    </div>
+    <div id="pane-evidence" role="tabpanel" aria-labelledby="tab-evidence" data-pane="evidence" hidden>
+      <section id="evidence" class="research-section" aria-labelledby="evidence-heading">
+        <p class="eyebrow">06 / EVIDENCE FINDER</p><h2 id="evidence-heading">Ask the saved research</h2>
+        <p>Find matching abstract passages and open their original papers to check the full context.</p>
+        <form id="reply-form" class="reply-panel"><div><p class="eyebrow">SOURCE-BACKED REPLY</p><h3>Evidence search</h3></div><div class="reply-controls"><label for="reply-query">Research question</label><div class="intake-input-row"><input id="reply-query" required minlength="3" maxlength="300" placeholder="What do these sources say about database consistency?"><button type="submit">Find evidence</button></div></div><div id="reply-result" class="reply-result" role="status">Fetch papers, then ask a question.</div></form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

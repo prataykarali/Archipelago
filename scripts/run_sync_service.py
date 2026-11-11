@@ -7,6 +7,7 @@ content.
 Fails soft: a sync error is logged and retried on the next tick, because a
 hosted-API outage must never stall local ingestion.
 """
+
 from __future__ import annotations
 
 import json

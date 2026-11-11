@@ -65,7 +65,7 @@ def test_orphan_ratio_below_threshold(sample_graph):
 def test_compare_against_gold_attention():
     """A subset of gold-attention concepts should yield recall > 0 and f1 >= 0."""
     gold_path = _gold_path("gold_attention.json")
-    with open(gold_path, "r", encoding="utf-8") as fh:
+    with open(gold_path, encoding="utf-8") as fh:
         gold_data = json.load(fh)
 
     gold_concepts: list[str] = gold_data["concepts"]
@@ -79,16 +79,14 @@ def test_compare_against_gold_attention():
         f"Expected recall > 0.0, got {metrics['recall']}. "
         "Extracted concepts were drawn from the gold set so recall must be positive."
     )
-    assert metrics["f1"] >= 0.0, (
-        f"F1 must be >= 0, got {metrics['f1']}."
-    )
+    assert metrics["f1"] >= 0.0, f"F1 must be >= 0, got {metrics['f1']}."
 
 
 @pytest.mark.integration
 def test_compare_against_gold_lora():
     """A subset of gold-lora concepts should yield recall > 0."""
     gold_path = _gold_path("gold_lora.json")
-    with open(gold_path, "r", encoding="utf-8") as fh:
+    with open(gold_path, encoding="utf-8") as fh:
         gold_data = json.load(fh)
 
     gold_concepts: list[str] = gold_data["concepts"]

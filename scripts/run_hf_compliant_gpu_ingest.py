@@ -15,13 +15,14 @@ Usage:
     python scripts/run_hf_compliant_gpu_ingest.py --shards 4
     python scripts/run_hf_compliant_gpu_ingest.py --skip-extract   # reuse raw file
 """
+
 from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 import sys
 import time
-from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
@@ -33,6 +34,7 @@ DB_PATH = BASE / "okf_graph.db"
 
 def build_corpus() -> list:
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(
         "build_compliant_corpus",
         BASE / "scripts" / "build_compliant_corpus.py",
@@ -45,7 +47,8 @@ def build_corpus() -> list:
         max_oa_chunks_per_paper=999,
         max_structure_chunks=200,
     )
-    chunks = json.load(open(CHUNKS_OUT))
+    with open(CHUNKS_OUT) as f:
+        chunks = json.load(f)
     # Modal extract requires "text"
     fixed = 0
     for c in chunks:
@@ -55,7 +58,8 @@ def build_corpus() -> list:
         if not c.get("chunk_id"):
             c["chunk_id"] = f"auto_{fixed}"
     if fixed:
-        json.dump(chunks, open(CHUNKS_OUT, "w"), indent=1)
+        with open(CHUNKS_OUT, "w") as f:
+            json.dump(chunks, f, indent=1)
         print(f"  normalized text field on {fixed} chunks")
     return chunks
 
@@ -70,7 +74,10 @@ def verify_guidelines(chunks: list) -> None:
         sec = (c.get("section_title") or "").strip().lower()
         cid = (c.get("chunk_id") or "").lower()
         if "structure" in cid or sec in (
-            "index", "contents", "table of contents", "contents (structure metadata)"
+            "index",
+            "contents",
+            "table of contents",
+            "contents (structure metadata)",
         ):
             continue
         if any(k in stem for k in ("index", "content", "toc")):
@@ -86,6 +93,7 @@ def verify_guidelines(chunks: list) -> None:
 def modal_extract(chunks: list, shards: int) -> list:
     print(f"\n[GPU] Modal T4 extraction: {len(chunks)} chunks, {shards} shards")
     import modal
+
     extract_fn = modal.Function.from_name("okf-extract", "extract_chunks")
     # Fan out
     shard_lists = [chunks[i::shards] for i in range(shards)]
@@ -96,16 +104,17 @@ def modal_extract(chunks: list, shards: int) -> list:
     for part in extract_fn.map(shard_lists):
         merged.extend(part)
         print(f"  received shard batch, total raw records so far: {len(merged)}", flush=True)
-    print(f"  Modal done: {len(merged)} records in {(time.time()-t0)/60:.1f} min")
-    json.dump(merged, open(RAW_OUT, "w"))
+    print(f"  Modal done: {len(merged)} records in {(time.time() - t0) / 60:.1f} min")
+    with open(RAW_OUT, "w") as f:
+        json.dump(merged, f)
     print(f"  saved {RAW_OUT}")
     return merged
 
 
 def parse_and_build(raw: list, chunks: list) -> None:
+    from catalog_bridge import auto_link_resources, generate_coverage_report
     from okf.extraction import _extract_json_payload, normalize_okf_item
     from okf.pipeline import finalize_and_build
-    from catalog_bridge import auto_link_resources, generate_coverage_report
 
     by_key = {(c["doc_id"], str(c.get("chunk_id"))): c for c in chunks}
     results, parsed_ok, empty, failed = [], 0, 0, 0
@@ -162,6 +171,7 @@ def parse_and_build(raw: list, chunks: list) -> None:
 
     # Graph summary
     import kuzu
+
     db = kuzu.Database(str(DB_PATH), read_only=True)
     conn = kuzu.Connection(db)
     print("\n[verify] counts:")
@@ -176,8 +186,7 @@ def parse_and_build(raw: list, chunks: list) -> None:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--shards", type=int, default=4)
-    ap.add_argument("--skip-extract", action="store_true",
-                    help=f"Reuse existing {RAW_OUT.name}")
+    ap.add_argument("--skip-extract", action="store_true", help=f"Reuse existing {RAW_OUT.name}")
     ap.add_argument("--skip-build-corpus", action="store_true")
     args = ap.parse_args()
 
@@ -187,14 +196,16 @@ def main():
     print("=" * 70)
 
     if args.skip_build_corpus and CHUNKS_OUT.exists():
-        chunks = json.load(open(CHUNKS_OUT))
+        with open(CHUNKS_OUT) as f:
+            chunks = json.load(f)
         print(f"  reusing corpus {len(chunks)} chunks")
     else:
         chunks = build_corpus()
     verify_guidelines(chunks)
 
     if args.skip_extract and RAW_OUT.exists():
-        raw = json.load(open(RAW_OUT))
+        with open(RAW_OUT) as f:
+            raw = json.load(f)
         print(f"  reusing raw {len(raw)} records from {RAW_OUT}")
     else:
         raw = modal_extract(chunks, shards=args.shards)

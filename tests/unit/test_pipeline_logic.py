@@ -1,17 +1,18 @@
-import unittest
-import sys
-import pytest
 from pathlib import Path
+import sys
+import unittest
+
+import pytest
 
 # Add parent directory to path so we can import from libraryAI
 sys.path.append(str(Path(__file__).resolve().parent))
 
-from okf.canonicalize import canonicalize_name, build_canonical_map, apply_canonicalization
-from okf.cleanup import break_global_cycles, prune_unresolved_references, merge_duplicate_results
+from okf.canonicalize import canonicalize_name
+from okf.cleanup import break_global_cycles, merge_duplicate_results, prune_unresolved_references
+
 
 @pytest.mark.unit
 class TestPipelineLogic(unittest.TestCase):
-
     def test_break_global_cycles_simple(self):
         """Test cycle breaking with a simple direct cycle: A -> B -> A."""
         # A has difficulty "foundational" (rank 1), unlocks B.
@@ -26,16 +27,16 @@ class TestPipelineLogic(unittest.TestCase):
                 "concept_name": "A",
                 "difficulty": "foundational",
                 "prerequisites": [],
-                "unlocks": ["B"]
+                "unlocks": ["B"],
             },
             {
                 "concept_name": "B",
                 "difficulty": "intermediate",
                 "prerequisites": [],
-                "unlocks": ["A"]
-            }
+                "unlocks": ["A"],
+            },
         ]
-        
+
         removed = break_global_cycles(okf_results)
         self.assertEqual(removed, 1)
         self.assertNotIn("A", [x.title() for x in okf_results[1]["unlocks"]])
@@ -57,16 +58,16 @@ class TestPipelineLogic(unittest.TestCase):
                 "concept_name": "A",
                 "difficulty": "foundational",
                 "prerequisites": ["B"],
-                "unlocks": ["P"]
+                "unlocks": ["P"],
             },
             {
                 "concept_name": "B",
                 "difficulty": "intermediate",
                 "prerequisites": ["P"],
-                "unlocks": []
-            }
+                "unlocks": [],
+            },
         ]
-        
+
         removed = break_global_cycles(okf_results)
         self.assertEqual(removed, 1)
         self.assertEqual(okf_results[0]["prerequisites"], [])
@@ -81,11 +82,13 @@ class TestPipelineLogic(unittest.TestCase):
                 "concept_name": "A",
                 "prerequisites": ["UnresolvedPrereq"],
                 "unlocks": ["UnresolvedUnlock"],
-                "related_to": [{"concept": "UnresolvedRelated", "relation": "uses"}]
+                "related_to": [{"concept": "UnresolvedRelated", "relation": "uses"}],
             }
         ]
         stats = prune_unresolved_references(okf_results)
-        self.assertEqual(stats, {"prerequisites": 0, "unlocks": 0, "related": 0, "self_references": 0})
+        self.assertEqual(
+            stats, {"prerequisites": 0, "unlocks": 0, "related": 0, "self_references": 0}
+        )
         self.assertIn("UnresolvedPrereq", okf_results[0]["prerequisites"])
         self.assertIn("UnresolvedUnlock", okf_results[0]["unlocks"])
         self.assertEqual(okf_results[0]["related_to"][0]["concept"], "UnresolvedRelated")
@@ -102,7 +105,7 @@ class TestPipelineLogic(unittest.TestCase):
                 "chunk_id": "chunk1",
                 "page_number": 1,
                 "section_title": "Sec 1",
-                "source_passage": "passage 1"
+                "source_passage": "passage 1",
             },
             {
                 "concept_name": "A",
@@ -113,21 +116,21 @@ class TestPipelineLogic(unittest.TestCase):
                 "chunk_id": "chunk2",
                 "page_number": 2,
                 "section_title": "Sec 2",
-                "source_passage": "passage 2"
-            }
+                "source_passage": "passage 2",
+            },
         ]
-        
+
         merged, removed = merge_duplicate_results(okf_results)
         self.assertEqual(len(merged), 1)
         self.assertEqual(removed, 1)
-        
+
         merged_item = merged[0]
         # Should pick the longer summary
         self.assertEqual(merged_item["summary"], "Longer and richer description of A")
         # Should union prerequisites and unlocks
         self.assertCountEqual(merged_item["prerequisites"], ["B", "D"])
         self.assertCountEqual(merged_item["unlocks"], ["C"])
-        
+
         # Should union sources correctly
         self.assertEqual(len(merged_item["sources"]), 2)
         doc_ids = [s["doc_id"] for s in merged_item["sources"]]
@@ -138,6 +141,7 @@ class TestPipelineLogic(unittest.TestCase):
         self.assertEqual(canonicalize_name("some_concept_name"), "Some Concept Name")
         self.assertEqual(canonicalize_name("concept (abbrev)"), "Concept")
         self.assertEqual(canonicalize_name("concept name."), "Concept Name")
+
 
 if __name__ == "__main__":
     unittest.main()

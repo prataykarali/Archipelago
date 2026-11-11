@@ -19,13 +19,16 @@ Usage::
 
     python scripts/refactor/split_module.py --src archipelago/inference/routes_misc.py --apply
 """
+
 from __future__ import annotations
 
 import argparse
 import ast
 import json
-import sys
 from pathlib import Path
+import sys
+
+from split_cycles import _cycles
 
 
 def _bound_names(node: ast.AST) -> list[str]:
@@ -109,10 +112,12 @@ def _extract_blocks(text: str, tree: ast.Module) -> tuple[dict, list, str, dict,
             name = node.name
             if node.decorator_list:
                 start = min(d.lineno for d in node.decorator_list)
-                decorators = [
-                    ast.get_source_segment(text, d) or "" for d in node.decorator_list
-                ]
-        elif isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+                decorators = [ast.get_source_segment(text, d) or "" for d in node.decorator_list]
+        elif (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+        ):
             name = node.targets[0].id
         elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
             name = node.target.id
@@ -160,7 +165,9 @@ def _pack(blocks: dict, order: list[str], max_lines: int) -> list[list[str]]:
     return modules
 
 
-def _module_text(name_prefix: str, names: list[str], blocks: dict, imports: list, owner: dict, needs_deps: bool) -> str:
+def _module_text(
+    name_prefix: str, names: list[str], blocks: dict, imports: list, owner: dict, needs_deps: bool
+) -> str:
     parts = [blocks[name][2] for name in names]
     original_body = "\n\n\n".join(parts) + "\n"
     for name in names:
@@ -186,35 +193,16 @@ def _module_text(name_prefix: str, names: list[str], blocks: dict, imports: list
 
     for name in sibling_names:
         body = _re.sub(rf"\b{name}\b", f"_rt.{name}", body)
-    header = ['"""Auto-split from monolith — blocks are verbatim."""', "from __future__ import annotations", ""]
+    header = [
+        '"""Auto-split from monolith — blocks are verbatim."""',
+        "from __future__ import annotations",
+        "",
+    ]
     if import_lines:
         header.append("\n".join(import_lines))
     if needs_deps:
         header.append("from . import _deps as _rt  # noqa: F401")
     return "\n".join(header) + "\n\n\n" + body
-
-
-def _cycles(graph: dict[str, set[str]]) -> list[str] | None:
-    state: dict[str, int] = {}
-
-    def visit(node: str, stack: list[str]) -> list[str] | None:
-        state[node] = 1
-        for dep in sorted(graph.get(node, ())):
-            if state.get(dep, 0) == 1:
-                return stack + [node, dep]
-            if state.get(dep, 0) == 0:
-                found = visit(dep, stack + [node])
-                if found:
-                    return found
-        state[node] = 2
-        return None
-
-    for module in graph:
-        if state.get(module, 0) == 0:
-            found = visit(module, [])
-            if found:
-                return found
-    return None
 
 
 def main() -> int:
@@ -228,7 +216,9 @@ def main() -> int:
     src = Path(args.src)
     out = src.parent / src.stem
     text = src.read_text(encoding="utf-8")
-    blocks, imports, docstring, globals_by_block, toplevel_bound = _extract_blocks(text, ast.parse(text))
+    blocks, imports, docstring, globals_by_block, toplevel_bound = _extract_blocks(
+        text, ast.parse(text)
+    )
     order = sorted(blocks, key=lambda n: blocks[n][0])
 
     # ``global``-rebinding blocks plus the blocks that define their state must
@@ -274,9 +264,7 @@ def main() -> int:
 
     while True:
         owner = {
-            name: _module_file(i, names)
-            for i, names in enumerate(modules, 1)
-            for name in names
+            name: _module_file(i, names) for i, names in enumerate(modules, 1) for name in names
         }
         # Names bound inside a top-level block belong to that block's module so
         # siblings resolve them through ``_rt.<name>``.
@@ -302,11 +290,14 @@ def main() -> int:
         a, b = file_to_index[cycle[-2]], file_to_index[cycle[-1]]
         lo, hi = min(a, b), max(a, b)
         print(f"cycle detected ({' -> '.join(cycle)}); merging modules {lo + 1} + {hi + 1}")
-        merged = modules[:lo] + [modules[lo] + modules[hi]] + modules[lo + 1:hi] + modules[hi + 1:]
-        modules = merged
-        module_keys = [
-            f"merged{i:02d}_{_slug(names[0])}.py" for i, names in enumerate(modules, 1)
+        merged = [
+            *modules[:lo],
+            modules[lo] + modules[hi],
+            *modules[lo + 1 : hi],
+            *modules[hi + 1 :],
         ]
+        modules = merged
+        module_keys = [f"merged{i:02d}_{_slug(names[0])}.py" for i, names in enumerate(modules, 1)]
 
     # Verbatim identity of every block was asserted inside _module_text.
 
@@ -352,8 +343,7 @@ def main() -> int:
         # Names bound by a guarded top-level block (e.g. ``try: import ollama``)
         # must be imported so side effects fire and siblings can resolve them.
         named += sorted(
-            {b for n in names if n in toplevel_bound for b in toplevel_bound[n]}
-            - set(named)
+            {b for n in names if n in toplevel_bound for b in toplevel_bound[n]} - set(named)
         )
         named = [n for n in named if not n.startswith("_toplevel_")]
         if not named:
@@ -385,6 +375,7 @@ def main() -> int:
     print(f"wrote {out}/__init__.py (facade, {len(all_names)} names)")
 
     import importlib
+
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     facade_mod = importlib.import_module(import_name)
     absent = [n for n in named_all if not hasattr(facade_mod, n)]

@@ -284,6 +284,13 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
 
         function renderMarkdownSafely(target, text, citations = null) {
             let processedText = String(text || '');
+            if (Array.isArray(window._lastChatMetadata?.research_sources) && window._lastChatMetadata.research_sources.length) {
+                // The structured source cards below the reply carry these links.
+                // Keep API stream text intact for non-browser clients.
+                processedText = processedText
+                    .replace(/^Saved source evidence \(verify the linked paper or college page\):\s*$/gmi, '')
+                    .replace(/^\[\d+\].*\bSource:\s*https:\/\/\S+.*$/gmi, '');
+            }
             const citationMap = {};
             const cites = citations || (window._lastChatMetadata ? getResponseCitations(window._lastChatMetadata) : []);
             cites.forEach(c => {
@@ -292,26 +299,27 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 }
             });
 
-            // Expand [S1] and bare S1 markers into clickable direct page links (Pearson / HuggingFace only)
+            // Resolve only IDs present in the server's evidence metadata.
             const linkForCitation = (id) => {
                 const cit = citationMap[id];
                 if (!cit) return null;
-                const pageNum = cit.page_number || cit.page || 1;
+                const rawPage = Number(cit.page_number ?? cit.page);
+                const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                 const targetUrl = citationPageUrl(cit);
-                const label = `(p.${pageNum} ↗)`;
-                return targetUrl ? `[${label}](${targetUrl})` : `[${label}]`;
+                const label = page ? `${id} · PDF p.${page}` : id;
+                return targetUrl ? `[${label}](${targetUrl})` : `[${id}]`;
             };
-            processedText = processedText.replace(/\[(S\d+)(?:\s*:[^\]]*)?\]/g, (match, id) => {
+            processedText = processedText.replace(/\[((?:S|P)\d+)(?:\s*:[^\]]*)?\]/g, (match, id) => {
                 const res = linkForCitation(id);
                 return res !== null ? res : '';
             });
-            // Bare S1 / S2 the model sometimes emits without brackets
-            processedText = processedText.replace(/(?<!\[)\b(S\d+)\b(?!\])/g, (match, id) => {
+            // Bare IDs the model sometimes emits without brackets.
+            processedText = processedText.replace(/(?<!\[)\b((?:S|P)\d+)\b(?!\])/g, (match, id) => {
                 const res = linkForCitation(id);
                 return res !== null ? res : '';
             });
             // Strip trailing incomplete bracket citation markers during live streaming (e.g. "[S", "[S1", "[S1:")
-            processedText = processedText.replace(/\[S\d*:?[^\]]*$/i, '');
+            processedText = processedText.replace(/\[(?:S|P)\d*:?[^\]]*$/i, '');
             // Clean up spaces / soft hyphens / weird mid-word en-dashes from model output.
             // CRITICAL: never collapse newlines — that destroys markdown structure.
             processedText = processedText

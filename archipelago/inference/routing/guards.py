@@ -1,4 +1,5 @@
 """Routing guards: small-talk stripping, persona noise, dual-pass, history."""
+
 from __future__ import annotations
 
 import re
@@ -53,28 +54,32 @@ def _merge_slots(base_slots: dict, extra: dict) -> dict:
 def _run_dual_pass_guard(query: str) -> bool:
     import os
     import sys
+
     if "pytest" in sys.modules or os.environ.get("PYTEST_CURRENT_TEST"):
         return False
     try:
         from archipelago.inference.llm_gateway import gateway_chat
 
-        ans = gateway_chat(
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a security guard. Is the user asking to write, draft, or generate code, programming scripts, configuration files, emails, or personal advice? "
-                        "Answer YES only if they want you to write or generate these software/administrative artifacts. "
-                        "Answer NO if they are asking a theoretical, mathematical, conceptual, or syllabus-related question about machine learning, even if they ask to explain it in a creative style, format, or creative script (e.g. songs, poems, or audio play scripts)."
-                    ),
-                },
-                {"role": "user", "content": query},
-            ],
-            purpose="routing",
-            temperature=0.0,
-            max_tokens=8,
-            timeout=8,
-        ) or ""
+        ans = (
+            gateway_chat(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a security guard. Is the user asking to write, draft, or generate code, programming scripts, configuration files, emails, or personal advice? "
+                            "Answer YES only if they want you to write or generate these software/administrative artifacts. "
+                            "Answer NO if they are asking a theoretical, mathematical, conceptual, or syllabus-related question about machine learning, even if they ask to explain it in a creative style, format, or creative script (e.g. songs, poems, or audio play scripts)."
+                        ),
+                    },
+                    {"role": "user", "content": query},
+                ],
+                purpose="routing",
+                temperature=0.0,
+                max_tokens=8,
+                timeout=8,
+            )
+            or ""
+        )
         return "YES" in ans.strip().upper()
     except Exception:
         return False
@@ -95,7 +100,7 @@ def _get_active_concept_from_history(history: list) -> str | None:
             continue
         if role == "user":
             # Try to find a strong concept anchor first
-            anchor_id, score = _rt.find_anchor_concept(content)
+            anchor_id, _score = _rt.find_anchor_concept(content)
             if anchor_id:
                 return anchor_id
             # Fallback to top ranked concept with a reasonable score threshold

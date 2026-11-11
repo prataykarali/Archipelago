@@ -1,11 +1,13 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from flask import jsonify, send_from_directory, request, redirect
+from flask import jsonify, request
 import kuzu
-from ingestion_worker import job_store, get_worker, graph_lock
-from archipelago.auth import require_librarian, librarian_token_expected
+
+from archipelago.auth import librarian_token_expected
 from archipelago.inference import state as st
+from ingestion_worker import graph_lock
 
 
 @st.app.route("/api/readiness", methods=["GET"])
@@ -56,6 +58,7 @@ def readiness():
     }
     try:
         from ingestion_worker import get_worker
+
         payload["ingestion"]["worker_thread_alive"] = get_worker().is_alive()
     except Exception:
         pass
@@ -72,6 +75,7 @@ def close_graph_internal():
         return jsonify({"error": "localhost only"}), 403
     try:
         import archipelago.inference.state as _st
+
         old = getattr(_st, "_db", None)
         _st._db = None
         if old is not None:
@@ -93,7 +97,9 @@ def reload_graph_internal():
     if remote not in ("127.0.0.1", "::1"):
         return jsonify({"error": "localhost only"}), 403
     embeddings_only = str(request.args.get("embeddings_only") or "").lower() in (
-        "1", "true", "yes",
+        "1",
+        "true",
+        "yes",
     )
     if not embeddings_only:
         try:
@@ -104,13 +110,16 @@ def reload_graph_internal():
     embed_warning = None
     try:
         from archipelago.inference.embeddings import build_concept_embeddings
+
         build_concept_embeddings()
         embeddings_rebuilt = True
     except Exception as exc:
         embed_warning = str(exc)
-    return jsonify({
-        "ok": True,
-        "concepts": len(getattr(st, "CONCEPTS_DATA", {}) or {}),
-        "embeddings_rebuilt": embeddings_rebuilt,
-        "embed_warning": embed_warning,
-    }), 200
+    return jsonify(
+        {
+            "ok": True,
+            "concepts": len(getattr(st, "CONCEPTS_DATA", {}) or {}),
+            "embeddings_rebuilt": embeddings_rebuilt,
+            "embed_warning": embed_warning,
+        }
+    ), 200

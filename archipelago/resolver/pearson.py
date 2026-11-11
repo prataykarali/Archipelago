@@ -1,4 +1,5 @@
 """Pearson eLibrary Link Resolver - Pure Metadata & External URL Generation Engine."""
+
 from __future__ import annotations
 
 import datetime
@@ -47,11 +48,22 @@ def _normalize_key(s: str | None) -> str:
     """Normalize string to lowercase alphanumeric characters, stripping common prefixes."""
     if not s:
         return ""
-    clean = s.lower().replace("doc_", "").replace("pearson_", "").replace("book_", "").replace(".pdf", "")
+    clean = (
+        s.lower()
+        .replace("doc_", "")
+        .replace("pearson_", "")
+        .replace("book_", "")
+        .replace(".pdf", "")
+    )
     return re.sub(r"[^a-z0-9]", "", clean)
 
 
-def _fuzzy_match_book(catalog: list[dict[str, Any]], query_id: str | None, query_title: str | None, query_isbn: str | None) -> dict[str, Any] | None:
+def _fuzzy_match_book(
+    catalog: list[dict[str, Any]],
+    query_id: str | None,
+    query_title: str | None,
+    query_isbn: str | None,
+) -> dict[str, Any] | None:
     """Find matching Pearson book using exact, normalized, or fuzzy criteria."""
     if not query_id and not query_title and not query_isbn:
         return None
@@ -85,7 +97,7 @@ def _fuzzy_match_book(catalog: list[dict[str, Any]], query_id: str | None, query
             nb_title = _normalize_key(book.get("title", ""))
             nb_slug = _normalize_key(book.get("slug", ""))
             nb_id = _normalize_key(book.get("id", ""))
-            nb_author = _normalize_key(book.get("author", ""))
+            _normalize_key(book.get("author", ""))
             if nq in (nb_title, nb_slug, nb_id):
                 return book
             # Check aliases
@@ -113,7 +125,7 @@ def _fuzzy_match_book(catalog: list[dict[str, Any]], query_id: str | None, query
         clean_q = query_id.replace("-", "").lower()
         for book in catalog:
             b_id = book.get("id", "").replace("-", "").lower()
-            matching_chars = sum(1 for a, b in zip(clean_q, b_id) if a == b)
+            matching_chars = sum(1 for a, b in zip(clean_q, b_id, strict=False) if a == b)
             if matching_chars / max(len(clean_q), len(b_id)) > 0.75:
                 return book
 
@@ -144,10 +156,10 @@ def resolve_pearson_url(
     timeout: int = 6,
 ) -> dict[str, Any]:
     """Resolve a Pearson eLibrary textbook using catalog metadata to an external reader destination."""
-    
+
     # 1. Direct URL check
     if existing_url and "pearson.com" in existing_url and "http" in existing_url:
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        now_iso = datetime.datetime.now(datetime.UTC).isoformat()
         return {
             "working": True,
             "url": existing_url,
@@ -166,7 +178,11 @@ def resolve_pearson_url(
         b_id = matched_book.get("id")
         b_isbn = matched_book.get("isbn")
         b_title = matched_book.get("title")
-        sub_id = matched_book.get("subscription_id") or subscription_id or "debf3e10-c27c-469a-a2aa-8a30c919db91"
+        sub_id = (
+            matched_book.get("subscription_id")
+            or subscription_id
+            or "debf3e10-c27c-469a-a2aa-8a30c919db91"
+        )
         r_url = matched_book.get("reader_base_url")
         book_type = matched_book.get("book_type", "pdf")
 
@@ -175,7 +191,7 @@ def resolve_pearson_url(
         else:
             target_url = _reader_url(str(b_id), str(sub_id), str(book_type))
 
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        now_iso = datetime.datetime.now(datetime.UTC).isoformat()
         return {
             "working": True,
             "url": target_url,
@@ -195,7 +211,7 @@ def resolve_pearson_url(
     # 2. If book_id and subscription_id are explicitly passed
     if book_id and subscription_id:
         canonical_url = _reader_url(book_id, subscription_id)
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        now_iso = datetime.datetime.now(datetime.UTC).isoformat()
         return {
             "working": True,
             "url": canonical_url,
@@ -239,6 +255,7 @@ def build_reader_url(book_or_uuid: dict[str, Any] | str, page: int = 1) -> str:
         Full Pearson reader URL with #book/{uuid}/page/{page} fragment.
     """
     import re
+
     matched_book = None
     if isinstance(book_or_uuid, dict):
         matched_book = book_or_uuid
@@ -252,10 +269,10 @@ def build_reader_url(book_or_uuid: dict[str, Any] | str, page: int = 1) -> str:
         b_id = matched_book.get("id")
         sub_id = matched_book.get("subscription_id") or "debf3e10-c27c-469a-a2aa-8a30c919db91"
         book_type = matched_book.get("book_type", "pdf")
-        viewer = "index.html" if book_type == "reflowable" else "pdfviewer.html"
         base_url = _reader_url(str(b_id), str(sub_id), str(book_type))
     else:
         import os
+
         sub_id = os.environ.get("PEARSON_SUBSCRIPTION_ID", "debf3e10-c27c-469a-a2aa-8a30c919db91")
         base_url = _reader_url(str(book_or_uuid), str(sub_id))
 

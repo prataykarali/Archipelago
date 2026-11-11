@@ -25,6 +25,7 @@ with a reason, and callers must honour ``decision.allowed``. Every decision is
 written to an append-only audit log so an operator can answer "why did the
 system fetch that?" months later.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -235,9 +236,7 @@ def robots_for(url: str) -> RobotsRules | None:
             body = cached[1]
             return parse_robots(body) if body is not None else None
 
-    request = urllib.request.Request(
-        robots_url, headers={"User-Agent": _user_agent()}
-    )
+    request = urllib.request.Request(robots_url, headers={"User-Agent": _user_agent()})
     try:
         with urllib.request.urlopen(request, timeout=ROBOTS_FETCH_TIMEOUT_SEC) as response:
             body = response.read(ROBOTS_MAX_BYTES).decode("utf-8", errors="replace")
@@ -297,6 +296,7 @@ def check_fetch(
         A :class:`FetchDecision`. Callers must not proceed unless
         ``decision.allowed``.
     """
+
     def deny(reason: Reason, detail: str, rule: str = "") -> FetchDecision:
         decision = FetchDecision(
             allowed=False, url=url, reason=reason, detail=detail, robots_rule=rule
@@ -377,9 +377,7 @@ def guarded_fetch(
     except Exception as exc:
         logger.warning("Fetch failed for %s: %s", url, exc)
         return (
-            FetchDecision(
-                allowed=False, url=url, reason="robots_unavailable", detail=str(exc)
-            ),
+            FetchDecision(allowed=False, url=url, reason="robots_unavailable", detail=str(exc)),
             b"",
         )
     return decision, body

@@ -11,17 +11,17 @@ import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import BinaryIO, Optional
 
 try:
     from huggingface_hub import HfApi, hf_hub_download
+
     HF_HUB_AVAILABLE = True
 except ImportError:
     HF_HUB_AVAILABLE = False
 
 logger = logging.getLogger("archipelago.storage.hf_remote")
 
-DEFAULT_REPO_ID = "Prataykarali/Library_books"
+DEFAULT_REPO_ID = os.environ.get("HF_LIBRARY_REPO", "Prataykarali/Library_books")
 DEFAULT_CACHE_DIR = Path.home() / ".cache" / "archipelago" / "library_books"
 # Hub revision to download from. Pin to a commit/tag SHA in production so an
 # upstream force-push cannot silently change the corpus we ingest.
@@ -53,11 +53,7 @@ class HFStorageClient:
     ):
         self.offline = offline
         self.revision = revision or DEFAULT_REVISION
-        self.repo_id = (
-            repo_id
-            or os.environ.get("HF_DATASET_REPO")
-            or DEFAULT_REPO_ID
-        )
+        self.repo_id = repo_id or DEFAULT_REPO_ID
         self.token = token if token is not None else os.environ.get("HF_TOKEN")
         self.cache_dir = Path(cache_dir or DEFAULT_CACHE_DIR)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -73,11 +69,14 @@ class HFStorageClient:
                         line = line.strip()
                         if line.startswith("HF_TOKEN="):
                             self.token = line.split("=", 1)[1].strip().strip('"').strip("'")
-                        elif line.startswith("HF_DATASET_REPO="):
-                            if not repo_id:
-                                self.repo_id = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        elif line.startswith("HF_LIBRARY_REPO=") and not repo_id:
+                            self.repo_id = line.split("=", 1)[1].strip().strip('"').strip("'")
 
-        self.api = HfApi(token=self.token) if (HF_HUB_AVAILABLE and self.token and not self.offline) else None
+        self.api = (
+            HfApi(token=self.token)
+            if (HF_HUB_AVAILABLE and self.token and not self.offline)
+            else None
+        )
 
     @property
     def is_available(self) -> bool:

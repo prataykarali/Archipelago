@@ -10,8 +10,6 @@
   </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script defer src="/scene_background_3d.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
     body {
@@ -63,19 +61,10 @@
 </head>
 <body class="min-h-screen bg-black text-white relative overflow-x-hidden flex flex-col justify-between">
 
-  <!-- Full-screen Looping Cinematic Background Video with custom JS fade engine -->
-  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <video
-      id="bg-hero-video"
-      src="/ui/assets/archi_main.mp4"
-      autoplay
-      loop
-      muted
-      playsinline
-      class="absolute inset-0 w-full h-full object-cover translate-y-[17%] opacity-0"
-    ></video>
-    <canvas data-archipelago-scene aria-hidden="true" class="absolute inset-0 w-full h-full opacity-45 mix-blend-screen"></canvas>
-    <div class="absolute inset-0 bg-gradient-to-b from-black/75 via-black/35 to-black/90"></div>
+  <!-- The original full-screen animation stays behind the landing content. -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <video id="bg-hero-video" src="/ui/assets/landing_vortex.mp4" poster="/ui/assets/landing_vortex_poster.jpg" autoplay loop muted playsinline preload="auto" class="absolute inset-0 w-full h-full object-cover" style="left:4%;transform:translateY(3%);opacity:1;filter:brightness(.95) contrast(1.1)"></video>
+    <div class="absolute inset-0" style="background:linear-gradient(to bottom,rgba(0,0,0,.56),rgba(0,0,0,.1) 48%,rgba(0,0,0,.68))"></div>
   </div>
 
   <!-- Header: Archipelago Wordmark left, nav links & Sign In right -->
@@ -103,7 +92,7 @@
     </div>
   </header>
 
-  <!-- Hero Content Area floating seamlessly over the cinematic video -->
+  <!-- Original centered landing content over the cinematic animation. -->
   <main class="relative z-10 flex min-h-[calc(100vh-140px)] flex-col items-center justify-center px-6 py-8 text-center max-w-4xl mx-auto">
     <!-- Eyebrow + Knowledge Title -->
     <section class="flex w-full flex-col items-center text-center">
@@ -142,6 +131,10 @@
         >
           Library details &rarr;
         </a>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
+        <a href="https://archipelago-librarian.vercel.app/librarian" class="text-emerald-200 hover:text-white">Librarian Space ↗</a>
+        <a href="/research" class="text-violet-200 hover:text-white">Research ↗</a>
       </div>
     </section>
 
@@ -227,59 +220,21 @@
     </div>
   </div>
 
-  <!-- Custom requestAnimationFrame Video Fade System (500ms fade-in/fade-out) -->
+  <!-- Keep the looping hero visible while the browser advances between loops. -->
   <script>
     if (window.lucide) lucide.createIcons();
 
-    (function initVideoFadeEngine() {
+    (function keepHeroPlaying() {
       const video = document.getElementById('bg-hero-video');
       if (!video) return;
-
-      let animFrameId = null;
-      let fadingOut = false;
-
-      function fadeVideo(targetOpacity, durationMs, onComplete) {
-        if (animFrameId) cancelAnimationFrame(animFrameId);
-        const startOpacity = parseFloat(video.style.opacity || 0);
-        const startTime = performance.now();
-
-        function step(now) {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / durationMs, 1);
-          video.style.opacity = startOpacity + (targetOpacity - startOpacity) * progress;
-
-          if (progress < 1) {
-            animFrameId = requestAnimationFrame(step);
-          } else if (onComplete) {
-            onComplete();
-          }
-        }
-        animFrameId = requestAnimationFrame(step);
-      }
-
-      video.addEventListener('loadeddata', () => fadeVideo(0.85, 500));
-      video.addEventListener('play', () => fadeVideo(0.85, 500));
-
-      video.addEventListener('timeupdate', () => {
-        if (video.duration && (video.duration - video.currentTime <= 0.55) && !fadingOut) {
-          fadingOut = true;
-          fadeVideo(0, 500);
-        }
-      });
-
-      video.addEventListener('ended', () => {
-        video.style.opacity = '0';
-        setTimeout(() => {
-          video.currentTime = 0;
-          fadingOut = false;
-          video.play().catch(() => {});
-          fadeVideo(0.85, 500);
-        }, 100);
-      });
-
-      video.play().then(() => fadeVideo(0.85, 500)).catch(() => {
-        video.style.opacity = '0.7';
-      });
+      video.style.opacity = '1';
+      video.loop = true;
+      video.muted = true;
+      const play = () => video.play().catch(() => {});
+      video.addEventListener('pause', () => { if (!document.hidden) play(); });
+      video.addEventListener('stalled', play);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
+      play();
     })();
 
     // ── Auth Modal Functions ──

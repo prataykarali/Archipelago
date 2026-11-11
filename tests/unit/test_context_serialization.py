@@ -4,7 +4,7 @@ Verifies that internal DB metadata, internal routing endpoints, and leak-prone
 tokens are 100% stripped before reaching model prompts.
 """
 
-from archipelago.core.chunk import RetrievedChunk, ContextSerializer
+from archipelago.core.chunk import ContextSerializer, RetrievedChunk
 
 
 def test_sanitize_text_strips_internal_endpoints():

@@ -1,4 +1,5 @@
 """Authoritative booth demo-query book rows (CSV is an export of this table)."""
+
 from __future__ import annotations
 
 from typing import Any

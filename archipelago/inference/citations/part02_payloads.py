@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-from archipelago.inference import state as st
 from archipelago.inference.aliases import _node_name
 from archipelago.inference.citations.part01_evidence import _resolve_printed_page
+from archipelago.inference.evidence_contract import evidence_record, local_pdf_page
 from archipelago.resolver.pearson import PEARSON_READER_VERSION as _reader_version
 
 
@@ -41,18 +41,18 @@ def build_citation_link(chunk: dict, doc: dict) -> str:
     For Pearson eLibrary books, produces a reader URL with #book/{uuid}/page/{page} fragment.
     For standard PDFs, produces /api/page-view?doc_id=...&page=...#page=... URL.
     """
-    page = chunk.get("page_number", 1)
+    page = chunk.get("page_number")
     if not isinstance(page, int) or page < 1:
-        page = 1
+        page = None
     doc_id = chunk.get("doc_id") or doc.get("doc_id") or doc.get("id") or ""
     title = doc.get("title") or chunk.get("title") or ""
 
     try:
         from archipelago.resolver.pearson import resolve as pearson_resolve
 
-        pearson_url = pearson_resolve(doc_id, page=page)
+        pearson_url = pearson_resolve(doc_id, page=page or 1)
         if not pearson_url and title:
-            pearson_url = pearson_resolve(title, page=page)
+            pearson_url = pearson_resolve(title, page=page or 1)
         if pearson_url:
             return pearson_url
     except Exception:
@@ -63,11 +63,13 @@ def build_citation_link(chunk: dict, doc: dict) -> str:
         try:
             from archipelago.resolver.pearson import build_reader_url
 
-            return build_reader_url(doc, page=page)
+            return build_reader_url(doc, page=page or 1)
         except Exception:
             pass
 
-    url = f"/read/{quote(doc_id, safe='')}?page={page}#page={page}"
+    url = f"/read/{quote(doc_id, safe='')}"
+    if page:
+        url += f"?page={page}#page={page}"
     return url
 
 
@@ -84,9 +86,7 @@ def citation_payload(evidence, topic, evidence_id=None):
         evidence_id = evidence.get("evidence_id")
     doc_id = evidence.get("doc_id") or ""
     page_number = evidence.get("page_number")
-    url = f"/api/page-view?doc_id={quote(doc_id, safe='')}"
-    if isinstance(page_number, int) and page_number > 0:
-        url += f"&page={page_number}#page={page_number}"
+    url = local_pdf_page(doc_id, page_number) or str(evidence.get("url") or "")
     text = evidence.get("text") or ""
     start = evidence.get("text_offset_start")
     end = evidence.get("text_offset_end")
@@ -170,6 +170,7 @@ def citation_payload(evidence, topic, evidence_id=None):
                 if key in inventory
             }
         )
+    payload.update(evidence_record({**evidence, **payload}))
     return payload
 
 
@@ -192,17 +193,22 @@ def build_library_source_payloads(books, topic):
         except Exception:
             pass
 
-        url = f"{st.PDF_BASE_URL}/api/page-view?doc_id={quote(doc_id, safe='')}&page=1&highlight={quote(topic, safe='')}#page=1"
+        page = b.get("page_number")
+        url = local_pdf_page(doc_id, page)
+        if not url:
+            continue
         payloads.append(
-            {
-                "evidence_id": f"S{idx}",
-                "source_type": "indexed_document",
-                "doc_id": doc_id,
-                "page_number": 1,
-                "url": url,
-                "topic": topic,
-                "text_span": b.get("title") or doc_id,
-            }
+            evidence_record(
+                {
+                    "evidence_id": f"S{idx}",
+                    "source_type": "ingested_pdf",
+                    "doc_id": doc_id,
+                    "page_number": page,
+                    "url": url,
+                    "topic": topic,
+                    "title": b.get("title") or doc_id,
+                }
+            )
         )
     return payloads
 

@@ -1,16 +1,18 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
+
 from __future__ import annotations
 
 from archipelago.inference import state as st
 from archipelago.inference.aliases import _node_name
 from archipelago.inference.citations import (
-    _citation_label, _citation_marker, _cite_with_link, validate_citations,
-    cleanse_model_citations,
+    _cite_with_link,
 )
 from archipelago.inference.curriculum import format_curriculum_paths_section
 
 
-def render_indexed_learning_path(target_concept, prereqs, unlocks, citation_map, curriculum_paths=None):
+def render_indexed_learning_path(
+    target_concept, prereqs, unlocks, citation_map, curriculum_paths=None
+):
     """Produce a fast, bounded response without relying on generative prose.
 
     The format is intentionally compact: it exposes the graph's ordering and
@@ -29,7 +31,7 @@ def render_indexed_learning_path(target_concept, prereqs, unlocks, citation_map,
 
     if prereqs:
         lines.append("1. Learn first")
-        for index, item in enumerate(prereqs[:st.MAX_PREREQS_SHOWN], 1):
+        for index, item in enumerate(prereqs[: st.MAX_PREREQS_SHOWN], 1):
             name = _node_name(item)
             summary = (item.get("summary") or "Prerequisite concept.").strip()
             lines.append(
@@ -47,7 +49,7 @@ def render_indexed_learning_path(target_concept, prereqs, unlocks, citation_map,
 
     if unlocks:
         lines.append("3. Then explore")
-        for index, item in enumerate(unlocks[:st.MAX_UNLOCKS_SHOWN], 1):
+        for index, item in enumerate(unlocks[: st.MAX_UNLOCKS_SHOWN], 1):
             name = _node_name(item)
             summary = (item.get("summary") or "Downstream concept.").strip()
             lines.append(

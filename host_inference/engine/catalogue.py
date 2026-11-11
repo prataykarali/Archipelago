@@ -30,6 +30,13 @@ CATALOGUE_PATHS = (
     Path("host_inference/cache/pearson_bookshelf.json"),
     Path("../data/catalogs/pearson_bookshelf.json"),
 )
+PHYSICAL_INVENTORY_PATHS = (
+    Path("data/catalogs/library_book_inventory.csv"),
+    Path("docs/library_book_inventory.csv"),
+    Path("host_inference/cache/library_book_inventory.csv"),
+    Path("../data/catalogs/library_book_inventory.csv"),
+    Path("../docs/library_book_inventory.csv"),
+)
 
 
 def _candidate_roots() -> list[Path]:
@@ -52,6 +59,16 @@ def find_catalogue_file() -> Path | None:
     """First existing catalogue export, or None."""
     for root in _candidate_roots():
         for relative in CATALOGUE_PATHS:
+            candidate = root / relative
+            if candidate.is_file():
+                return candidate
+    return None
+
+
+def find_physical_inventory_file() -> Path | None:
+    """First existing physical inventory CSV export, or None."""
+    for root in _candidate_roots():
+        for relative in PHYSICAL_INVENTORY_PATHS:
             candidate = root / relative
             if candidate.is_file():
                 return candidate
@@ -93,27 +110,68 @@ def load_catalogue() -> list[dict[str, Any]]:
 
 @lru_cache(maxsize=1)
 def _load_catalogue_cached() -> tuple[dict[str, Any], ...]:
+    records: dict[tuple[str, str], dict[str, Any]] = {}
+
     path = find_catalogue_file()
-    if path is None:
-        logger.info("No catalogue export found; shelf cards will report 'not indexed'")
-        return ()
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        logger.warning("Unreadable catalogue export %s: %s", path, exc)
+    if path is not None and path.is_file():
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            books = payload.get("books", []) if isinstance(payload, dict) else []
+            for book in books:
+                if not isinstance(book, dict):
+                    continue
+                record = _normalise(book)
+                if not record["title"]:
+                    continue
+                key = (record["title"].lower(), record["isbn"])
+                records.setdefault(key, record)
+            logger.info("Loaded %d catalogue records from %s", len(records), path.name)
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.warning("Unreadable catalogue export %s: %s", path, exc)
+
+    inv_path = find_physical_inventory_file()
+    if inv_path is not None and inv_path.is_file():
+        try:
+            import csv
+
+            with inv_path.open("r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    title = (row.get("title") or "").strip()
+                    if not title:
+                        continue
+                    rec = {
+                        "title": title,
+                        "author": str(row.get("authors") or "").strip(),
+                        "biblionumber": str(row.get("book_id") or "").strip(),
+                        "publisher": str(row.get("publisher") or "").strip(),
+                        "isbn": "",
+                        "domain": str(row.get("subject") or "").strip(),
+                        "total_copies": None,
+                        "available_copies": None,
+                        "barcodes": [],
+                        "page_count": 0,
+                        "subscription_id": "",
+                        "reader_base_url": "",
+                        "external_id": str(row.get("book_id") or "").strip(),
+                        "cover_url": "",
+                        "category": str(row.get("category") or "").strip(),
+                        "take_home": str(row.get("take_home") or "").strip(),
+                        "physical_holdings_verified": False,
+                        "verification_status": "Metadata only",
+                    }
+                    key = (rec["title"].lower(), rec["biblionumber"])
+                    records.setdefault(key, rec)
+            logger.info(
+                "Loaded physical inventory from %s (total: %d)", inv_path.name, len(records)
+            )
+        except Exception as exc:
+            logger.warning("Unreadable physical inventory %s: %s", inv_path, exc)
+
+    if not records:
+        logger.info("No catalogue records found; shelf cards will report 'not indexed'")
         return ()
 
-    books = payload.get("books", []) if isinstance(payload, dict) else []
-    records: dict[tuple[str, str], dict[str, Any]] = {}
-    for book in books:
-        if not isinstance(book, dict):
-            continue
-        record = _normalise(book)
-        if not record["title"]:
-            continue
-        key = (record["title"].lower(), record["isbn"])
-        records.setdefault(key, record)
-    logger.info("Loaded %d catalogue records from %s", len(records), path.name)
     return tuple(records.values())
 
 

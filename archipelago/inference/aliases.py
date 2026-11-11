@@ -1,18 +1,22 @@
 """Alias / acronym helpers and PDF deep-link formatters."""
+
 from __future__ import annotations
 
 import re
-import urllib.parse
 from typing import Any
+import urllib.parse
 
 from archipelago.inference import state as st
+from archipelago.inference.alias_words import _clean_query_words as _clean_query_words
 
-def _node_name(node):
+
+def _node_name(node: dict[str, object] | None) -> str:
     """Return the display name used by both graph exports and Kuzu records."""
-    return (node or {}).get("label") or (node or {}).get("name") or "Unnamed concept"
+    value = (node or {}).get("label") or (node or {}).get("name")
+    return value if isinstance(value, str) and value else "Unnamed concept"
 
 
-def extract_acronym(text):
+def extract_acronym(text: str | None) -> str:
     """Build an acronym from significant words (e.g. Low-Rank Adaptation → LRA).
 
     Also returns parenthetical forms when present: ``Low-Rank Adaptation (LoRA)``
@@ -22,18 +26,35 @@ def extract_acronym(text):
         return ""
     paren = re.findall(r"\(([A-Za-z0-9]{2,12})\)", text)
     words = re.split(r"[\s\-_/.,]+", text.upper())
-    stop = {"OF", "FOR", "AND", "OR", "THE", "A", "AN", "IN", "ON", "AT", "TO", "FROM", "BY", "WITH", "IS", "IT"}
+    stop = {
+        "OF",
+        "FOR",
+        "AND",
+        "OR",
+        "THE",
+        "A",
+        "AN",
+        "IN",
+        "ON",
+        "AT",
+        "TO",
+        "FROM",
+        "BY",
+        "WITH",
+        "IS",
+        "IT",
+    }
     significant = [w for w in words if w and w not in stop and len(w) > 1 and w.isalpha()]
     computed = "".join(w[0] for w in significant)
     # Prefer explicit parenthetical acronym when present (LoRA, RAG, BERT).
     if paren:
-        return paren[0].upper()
+        return str(paren[0]).upper()
     if computed in stop:
         return ""
     return computed
 
 
-def generate_aliases(concept):
+def generate_aliases(concept: dict[str, Any] | None) -> list[str]:
     """Alias list for a concept: name, label, tags, acronyms, simple variants."""
     aliases = set()
     name = (concept or {}).get("name") or (concept or {}).get("label") or ""
@@ -67,24 +88,94 @@ def generate_aliases(concept):
         expanded.add(a.replace(" ", ""))
         expanded.add(a.replace(" ", "-"))
     # Prevent common stop words and extremely generic single-token words from being aliases
-    stop_words = {"of", "for", "and", "or", "the", "a", "an", "in", "on", "at", "to", "from", "by", "with", "is", "it", "that", "this", "these", "those", "are", "was", "were", "be", "been", "have", "has", "had", "do", "does", "did"}
-    generic_words = {"model", "models", "network", "networks", "data", "system", "systems", "learning", "training", "method", "methods", "analysis", "function", "functions", "value", "values", "variable", "variables", "error", "errors", "parameter", "parameters", "process", "processes", "layer", "layers", "step", "steps", "task", "tasks", "set", "sets", "weight", "weights", "vector", "vectors", "base", "bases", "language", "logic"}
-    
+    stop_words = {
+        "of",
+        "for",
+        "and",
+        "or",
+        "the",
+        "a",
+        "an",
+        "in",
+        "on",
+        "at",
+        "to",
+        "from",
+        "by",
+        "with",
+        "is",
+        "it",
+        "that",
+        "this",
+        "these",
+        "those",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+    }
+    generic_words = {
+        "model",
+        "models",
+        "network",
+        "networks",
+        "data",
+        "system",
+        "systems",
+        "learning",
+        "training",
+        "method",
+        "methods",
+        "analysis",
+        "function",
+        "functions",
+        "value",
+        "values",
+        "variable",
+        "variables",
+        "error",
+        "errors",
+        "parameter",
+        "parameters",
+        "process",
+        "processes",
+        "layer",
+        "layers",
+        "step",
+        "steps",
+        "task",
+        "tasks",
+        "set",
+        "sets",
+        "weight",
+        "weights",
+        "vector",
+        "vectors",
+        "base",
+        "bases",
+        "language",
+        "logic",
+    }
+
     exact_names = {name.lower().strip(), label.lower().strip()}
     filtered = set()
     for a in expanded:
         if not a or not a.strip():
             continue
         al = a.lower().strip()
-        if al in exact_names:
-            filtered.add(al)
-        elif al not in stop_words and al not in generic_words:
+        if al in exact_names or (al not in stop_words and al not in generic_words):
             filtered.add(al)
     return list(filtered)
 
 
-
-def pdf_page_url(doc_id, page_number=None):
+def pdf_page_url(doc_id: str | None, page_number: int | None = None) -> str:
     """Deep-link into a served PDF: /pdfs/{doc_id}#page=N."""
     if not doc_id:
         return ""
@@ -96,7 +187,7 @@ def pdf_page_url(doc_id, page_number=None):
     return url
 
 
-def markdown_pdf_link(label, doc_id, page_number=None):
+def markdown_pdf_link(label: str | None, doc_id: str | None, page_number: int | None = None) -> str:
     """Markdown link for in-bubble pedagogy (clickable #page=N)."""
     url = pdf_page_url(doc_id, page_number)
     if not url:
@@ -105,11 +196,13 @@ def markdown_pdf_link(label, doc_id, page_number=None):
     return f"[{safe_label}]({url})"
 
 
-def page_view_markdown_link(label_or_doc: str, doc_id_or_page: Any = None, page_number: Any = None, highlight: str = "") -> str:
+def page_view_markdown_link(
+    label_or_doc: str, doc_id_or_page: Any = None, page_number: Any = None, highlight: str = ""
+) -> str:
     """Markdown deep-link for /api/page-view with encoded doc_id and page parameters."""
     if not label_or_doc:
         return ""
-    if isinstance(doc_id_or_page, str) and any(c in doc_id_or_page for c in ("/","\\","."," ")):
+    if isinstance(doc_id_or_page, str) and any(c in doc_id_or_page for c in ("/", "\\", ".", " ")):
         label = label_or_doc
         doc_id = doc_id_or_page
         page = page_number
@@ -121,6 +214,7 @@ def page_view_markdown_link(label_or_doc: str, doc_id_or_page: Any = None, page_
     # Check Pearson direct reader URL
     try:
         from archipelago.resolver.pearson import resolve as pearson_resolve
+
         p_page = page if isinstance(page, int) and page > 0 else 1
         p_url = pearson_resolve(str(doc_id), page=p_page)
         if not p_url and label:
@@ -191,12 +285,24 @@ _CORE_CONCEPT_MAP: dict[str, tuple[str, ...]] = {
 
 # Variant/sub-concept title fragments that indicate this is NOT a core node
 _VARIANT_FRAGS = (
-    "applied to", "via ", "with ", "batching", "speedup", "scaling factor",
-    "variant", "efficient ", "extended", "for ", "based on", "using ",
+    "applied to",
+    "via ",
+    "with ",
+    "batching",
+    "speedup",
+    "scaling factor",
+    "variant",
+    "efficient ",
+    "extended",
+    "for ",
+    "based on",
+    "using ",
 )
 
 
-def _core_concept_bonus(query, concept_id, label, aliases=None):
+def _core_concept_bonus(
+    query: str, concept_id: str, label: str, aliases: list[str] | None = None
+) -> float:
     """Boost short/core concept nodes when the query is an acronym or short alias.
 
     Penalizes long family/variant titles when the user asked simply for a core
@@ -226,13 +332,18 @@ def _core_concept_bonus(query, concept_id, label, aliases=None):
     bonus = 0.0
 
     # 1) Exact alias/id/label match → strong bonus
-    if q_core in alias_set or q_core_lookup in alias_set or q_core == label_l or q_core.replace(" ", "_") == cid:
+    if (
+        q_core in alias_set
+        or q_core_lookup in alias_set
+        or q_core == label_l
+        or q_core.replace(" ", "_") == cid
+    ):
         bonus += 0.35
 
     # 2) Core concept map: if q_core maps to expected concept id fragments, boost them;
     #    penalize nodes whose ids DON'T match but whose label mentions the query token.
     core_targets = _CORE_CONCEPT_MAP.get(q_core) or _CORE_CONCEPT_MAP.get(q_core_lookup)
-    # Also try last 1–3 tokens (e.g. "build an ai agent" → "ai agent" / "agent")
+    # Also try last 1-3 tokens (e.g. "build an ai agent" -> "ai agent" / "agent")
     if not core_targets:
         parts = q_core.split()
         for n in (3, 2, 1):
@@ -250,12 +361,12 @@ def _core_concept_bonus(query, concept_id, label, aliases=None):
                 bonus -= 0.20
 
     # 3) Attention sub-node special case: penalize "LoRA applied to attention"
-    if q_core in ("attention", "self-attention", "attention mechanism"):
-        if "lora" in label_l or "applied" in label_l:
-            bonus -= 0.28
+    if q_core in ("attention", "self-attention", "attention mechanism") and (
+        "lora" in label_l or "applied" in label_l
+    ):
+        bonus -= 0.28
 
-    # 4) Acronym short-query heuristics (applies to any ≤6-char alphabetic query)
-    q_acr = extract_acronym(q_core) if " " in q_core else q_core.upper()
+    # 4) Acronym short-query heuristics (applies to any <=6-char alphabetic query)
     if len(q_core) <= 6 and q_core.isalpha():
         if q_core in alias_set:
             bonus += 0.30
@@ -270,31 +381,3 @@ def _core_concept_bonus(query, concept_id, label, aliases=None):
             bonus -= 0.22
 
     return bonus
-
-
-def _clean_query_words(text):
-    """Return a set of cleaned, normalised words from `text`.
-
-    Only trailing punctuation and a plain plural 's' are removed — NOT
-    leading characters.  The previous implementation used str.strip() with 's'
-    in the character set, which also ate leading 's', mangling words like
-    'suggest' → 'uggest' and 'various' → 'variou'.
-    """
-    import re as _re
-    result = set()
-    for word in (text or "").lower().split():
-        # Strip leading/trailing punctuation but NOT the letter 's' from the front
-        cleaned = word.strip("?,.!-:;()[]{}\"'")
-        # Optionally strip a trailing 's' that looks like a simple plural
-        # (only if the stem has >2 chars to avoid stripping too aggressively)
-        if cleaned.endswith("s") and len(cleaned) > 3:
-            stem = cleaned[:-1]
-        else:
-            stem = cleaned
-        # Use the fuller form if both are long enough
-        for tok in (cleaned, stem):
-            if len(tok) > 1:
-                result.add(tok)
-    return result
-
-

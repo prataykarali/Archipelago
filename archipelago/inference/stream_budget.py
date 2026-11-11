@@ -1,4 +1,5 @@
 """Token / context budget helpers for stream completions."""
+
 from __future__ import annotations
 
 import re
@@ -47,7 +48,7 @@ def trim_to_completion_boundary(text: str) -> str:
     if not text:
         return text
     s = text.rstrip()
-    if re.search(r'[.!?…]["\'”’)]?\s*$', s):
+    if re.search(r'[.!?…]["\'”)]?\s*$', s):
         return s
     # Prefer last sentence terminator.
     for i in range(len(s) - 1, -1, -1):

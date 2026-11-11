@@ -1,4 +1,5 @@
 """Tests for librarian manual ensure_concept / create_edge helpers."""
+
 from __future__ import annotations
 
 import pytest
@@ -9,7 +10,7 @@ pytestmark = pytest.mark.unit
 def test_ensure_concept_and_create_edge_module_level(tmp_path):
     kuzu = pytest.importorskip("kuzu")
     from okf.graph.common import _SCHEMA_DDL
-    from okf.graph.ingest import ensure_concept, create_edge
+    from okf.graph.ingest import create_edge, ensure_concept
 
     db = kuzu.Database(str(tmp_path / "manual.db"))
     conn = kuzu.Connection(db)
@@ -32,7 +33,7 @@ def test_ensure_concept_and_create_edge_module_level(tmp_path):
 def test_create_edge_unknown_relation_raises(tmp_path):
     kuzu = pytest.importorskip("kuzu")
     from okf.graph.common import _SCHEMA_DDL
-    from okf.graph.ingest import ensure_concept, create_edge
+    from okf.graph.ingest import create_edge, ensure_concept
 
     db = kuzu.Database(str(tmp_path / "manual2.db"))
     conn = kuzu.Connection(db)

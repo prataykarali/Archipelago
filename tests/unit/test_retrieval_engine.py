@@ -1,7 +1,9 @@
 """Unit tests for TwoPassHybridRetriever, BFS Pathfinding, and Topic Suggestion Engine."""
+
 from __future__ import annotations
 
 import pytest
+
 from archipelago.core.retrieval import (
     MAX_CHUNKS,
     MAX_PREREQS,
@@ -20,8 +22,18 @@ def mock_concepts():
             "prerequisites": ["attention_mechanism", "linear_algebra"],
             "unlocks": ["bert", "gpt"],
             "sources": [
-                {"doc_id": "Vaswani2017.pdf", "chunk_id": "c1", "page_number": 3, "text_passage": "Attention is all you need."},
-                {"doc_id": "Vaswani2017.pdf", "chunk_id": "c2", "page_number": 4, "text_passage": "Multi-head attention allows..."},
+                {
+                    "doc_id": "Vaswani2017.pdf",
+                    "chunk_id": "c1",
+                    "page_number": 3,
+                    "text_passage": "Attention is all you need.",
+                },
+                {
+                    "doc_id": "Vaswani2017.pdf",
+                    "chunk_id": "c2",
+                    "page_number": 4,
+                    "text_passage": "Multi-head attention allows...",
+                },
             ],
         },
         "attention_mechanism": {

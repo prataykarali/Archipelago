@@ -3,10 +3,11 @@
 Only fields that are actually present in the page text are emitted, so the
 librarian's pre-filled form never contains an invented value.
 """
+
 from __future__ import annotations
 
-import re
 from dataclasses import asdict, dataclass, field
+import re
 from typing import Any
 
 from archipelago.ingestion.mention import extract_isbn, normalize_title
@@ -37,14 +38,22 @@ _PUBLISHER_PATTERNS = (
 _COPYRIGHT_LINE_RE = re.compile(r"(?:©|\(c\)|copyright)\s*(\d{4})", re.I)
 _YEAR_RE = re.compile(r"\b(19[5-9]\d|20[0-4]\d)\b")
 _EDITION_RE = re.compile(r"\b(\d{1,2}(?:st|nd|rd|th)\s+edition|\d+(?:st|nd|rd|th)\s+ed\.?)\b", re.I)
-_EDITION_WORD_RE = re.compile(r"\b(first|second|third|fourth|fifth|sixth|seventh|eighth)\s+edition\b", re.I)
+_EDITION_WORD_RE = re.compile(
+    r"\b(first|second|third|fourth|fifth|sixth|seventh|eighth)\s+edition\b", re.I
+)
 _TRAILING_PAGES_RE = re.compile(r"(?:\.{2,}|\s+|\t)(\d{1,4})\s*$")
 _LEADING_NUM_RE = re.compile(r"^\s*(\d{1,2}(?:\.\d{1,2})*)[.\)]?\s+")
-_CHAPTER_WORD_RE = re.compile(r"^\s*(chapter|ch\.?|unit|part|appendix|section)\s+([0-9]+|[ivxlc]+)\b", re.I)
+_CHAPTER_WORD_RE = re.compile(
+    r"^\s*(chapter|ch\.?|unit|part|appendix|section)\s+([0-9]+|[ivxlc]+)\b", re.I
+)
 _TOC_KEYWORDS = ("contents", "table of contents", "index")
-_AUTHOR_LABEL_RE = re.compile(r"\b(?:by|written by|author)\s+([A-Z][\w.'-]*(?:\s+[A-Z][\w.'-]*){0,5})")
+_AUTHOR_LABEL_RE = re.compile(
+    r"\b(?:by|written by|author)\s+([A-Z][\w.'-]*(?:\s+[A-Z][\w.'-]*){0,5})"
+)
 _DOT_LEADER_RE = re.compile(r"[.·…]{3,}\s*\d{1,4}\s*$")
-_ORG_SUFFIX_RE = re.compile(r"\b(university|institute|inc\.?|ltd\.?|llc|press|books|publishing|academy|college)\b", re.I)
+_ORG_SUFFIX_RE = re.compile(
+    r"\b(university|institute|inc\.?|ltd\.?|llc|press|books|publishing|academy|college)\b", re.I
+)
 
 
 @dataclass
@@ -202,7 +211,7 @@ def _candidate_titles(lines: list[str]) -> list[str]:
     return out
 
 
-_NAME_TOKEN_RE = re.compile(r"^[A-Z][\w.'’-]*$")
+_NAME_TOKEN_RE = re.compile(r"^[A-Z][\w.'-]*$")
 _NAME_SPLIT_RE = re.compile(r"\s*(?:,|;|\band\b|&)\s*", re.I)
 _MIN_NAME_TOKENS = 2
 _NAME_MIN_TOKEN_LEN = 2
@@ -253,10 +262,11 @@ def extract_title_and_author(lines: list[str]) -> tuple[str, str]:
         for text in candidates:
             if text == title or _looks_like_toc_line(text) is not None:
                 continue
-            if _looks_like_person_list(text):
-                if normalize_title(text) not in normalize_title(title):
-                    author = text
-                    break
+            if _looks_like_person_list(text) and normalize_title(text) not in normalize_title(
+                title
+            ):
+                author = text
+                break
     return title, author
 
 

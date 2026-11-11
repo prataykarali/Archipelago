@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import re
 
 from flask import Response
 
+from archipelago.core.intent import IntentCategory, classify_query_intent
+from archipelago.core.multi_hop import extract_concept_mentions
 from archipelago.inference import state as st
 from archipelago.inference.aliases import _node_name
 from archipelago.inference.citations import (
@@ -23,6 +26,7 @@ from archipelago.inference.graph_lock import graph_lock
 from archipelago.inference.neighborhood import get_graph_neighborhood
 from archipelago.inference.reply_inventory import inventory_suffix
 from archipelago.inference.routes.chat.part00_shared import with_holdings
+from archipelago.inference.routes.chat.part08_paper_lookup import handle_paper_lookup
 from archipelago.inference.synthesis import (
     build_graph_notes,
     enforce_sterile_prose,
@@ -37,6 +41,50 @@ MAX_SOURCE_LINKS = 6
 def handle_graph_path(query, history, routing, wants_synthesis):
     """Graph path (strong or soft domain): traverse, cite, synthesize."""
     with graph_lock.read_lock():
+        mentions = extract_concept_mentions(query)
+        intent_category = classify_query_intent(query, extracted_concepts=mentions)
+        if intent_category == IntentCategory.PAPER_LOOKUP:
+            return handle_paper_lookup(query, routing)
+        if intent_category == IntentCategory.MULTI_CONCEPT and len(mentions) >= 2:
+            from archipelago.inference.multi_anchor import build_multi_anchor_answer
+
+            answer = build_multi_anchor_answer(query)
+            if answer is not None:
+
+                def generate_multi_anchor():
+                    yield (
+                        json.dumps(
+                            {
+                                "anchor_concept": None,
+                                "prerequisites": [],
+                                "unlocks": [],
+                                "related_concepts": [],
+                                "subgraph": None,
+                                "diagnostic_mcqs": [],
+                                "citations": answer["citations"],
+                                "multi_hop": {
+                                    "concepts": answer["concepts"],
+                                    "paths": answer["paths"],
+                                    "is_partial": answer["partial"],
+                                },
+                                "routing": {
+                                    "route": "multi_concept",
+                                    "reason": "bounded_multi_anchor",
+                                },
+                                "logs": [
+                                    {
+                                        "step": "Multi-anchor retrieval",
+                                        "status": "Partial" if answer["partial"] else "Success",
+                                        "details": f"Resolved {len(answer['concepts'])} requested concepts.",
+                                    }
+                                ],
+                            }
+                        )
+                        + "\n[STREAM_START]\n"
+                    )
+                    yield answer["text"]
+
+                return Response(generate_multi_anchor(), mimetype="text/plain")
         anchor_id = routing.get("anchor_id")
         related = routing.get("related") or []
         if not anchor_id or anchor_id not in st.CONCEPTS_DATA:
@@ -62,6 +110,13 @@ def handle_graph_path(query, history, routing, wants_synthesis):
                 return Response(generate_orphan(), mimetype="text/plain")
 
         target_concept = st.CONCEPTS_DATA[anchor_id]
+        wants_learning_graph = intent_category == IntentCategory.CONCEPT_LEARNING or bool(
+            re.search(
+                r"\b(quiz|diagnostic|roadmap|learning path|prerequisite|teach me|i want to learn)\b",
+                query,
+                re.I,
+            )
+        )
         prereqs, unlocks, _legacy_cites = get_graph_neighborhood(anchor_id, k=2)
         # Soft multi-anchor: pull light neighborhoods for top related peers
         related_nodes = []
@@ -79,21 +134,27 @@ def handle_graph_path(query, history, routing, wants_synthesis):
                 }
             )
 
-        citation_map = build_concept_citation_map(target_concept, prereqs, unlocks)
-        citation_payloads = build_citation_payloads(target_concept, prereqs, unlocks, citation_map)
+        visible_prereqs = prereqs if wants_learning_graph else []
+        visible_unlocks = unlocks if wants_learning_graph else []
+        citation_map = build_concept_citation_map(target_concept, visible_prereqs, visible_unlocks)
+        citation_payloads = build_citation_payloads(
+            target_concept, visible_prereqs, visible_unlocks, citation_map
+        )
         citation_payloads = merge_demo_citations(query, citation_payloads)[:MAX_SOURCE_LINKS]
         evidence_ids = {
             payload["evidence_id"] for payload in citation_payloads if payload["evidence_id"]
         }
         # Session 2: multi-hop curriculum chains (≤3 hops) with book/page links
-        curriculum_paths = find_curriculum_chains(
-            anchor_id, max_hops=3, citation_map=citation_map, max_paths=4
+        curriculum_paths = (
+            find_curriculum_chains(anchor_id, max_hops=3, citation_map=citation_map, max_paths=4)
+            if wants_learning_graph
+            else []
         )
         notes = build_graph_notes(
             query,
             target_concept,
-            prereqs,
-            unlocks,
+            visible_prereqs,
+            visible_unlocks,
             related,
             citation_map,
             bare_markers=True,
@@ -106,13 +167,24 @@ def handle_graph_path(query, history, routing, wants_synthesis):
         natural_fallback = format_natural_fallback(
             query,
             target_concept,
-            prereqs,
-            unlocks,
+            visible_prereqs,
+            visible_unlocks,
             related,
             citation_map,
             curriculum_paths=curriculum_paths,
             partial=is_partial,
         )
+        if intent_category == IntentCategory.RESEARCH_TOPIC:
+            if citation_payloads:
+                source_lines = [
+                    f"- {render_citation_from_payload(item)}"
+                    for item in citation_payloads[:MAX_SOURCE_LINKS]
+                ]
+                natural_fallback += "\n\n**Indexed evidence:**\n" + "\n".join(source_lines)
+            natural_fallback += (
+                "\n\nPublication-date coverage is unverified in this local concept index. "
+                "These sources cannot establish which studies are latest; use the research pipeline for dated scholarly retrieval."
+            )
         match_score = routing.get("score")
         step_logs = [
             {
@@ -159,10 +231,14 @@ def handle_graph_path(query, history, routing, wants_synthesis):
 
         from archipelago.inference.subgraph import generate_bounded_subgraph
 
-        bounded_subgraph = generate_bounded_subgraph(
-            anchor_id,
-            secondary_target_id=secondary_concept,
-            mode=query_mode,
+        bounded_subgraph = (
+            generate_bounded_subgraph(
+                anchor_id,
+                secondary_target_id=secondary_concept,
+                mode=query_mode,
+            )
+            if wants_learning_graph
+            else None
         )
 
         # Diagnostic MCQs and personalized graphs should ONLY be generated for:
@@ -170,15 +246,16 @@ def handle_graph_path(query, history, routing, wants_synthesis):
         # - Explicit roadmap or prerequisite requests.
         # - Explicit learning assessment or quiz requests.
         # Do NOT automatically produce MCQs or personalized graphs for paper/library/admin lookups.
-        import re
-
-        wants_mcq = bool(
-            re.search(
-                r"\b(quiz|test my|diagnostic|roadmap|assessment|evaluat|study plan|how to learn|teach me|i want to learn)\b",
-                query,
-                re.I,
+        wants_mcq = (
+            bool(
+                re.search(
+                    r"\b(quiz|test my|diagnostic|roadmap|assessment|evaluat|study plan|how to learn|teach me|i want to learn)\b",
+                    query,
+                    re.I,
+                )
             )
-        ) or routing.get("intent") == "MCQ_DIAGNOSTIC"
+            or routing.get("intent") == "MCQ_DIAGNOSTIC"
+        )
 
         intent = routing.get("intent")
         is_lookup = bool(
@@ -206,12 +283,14 @@ def handle_graph_path(query, history, routing, wants_synthesis):
 
         def generate_graph():
             init_payload = {
-                "anchor_concept": None if is_lookup else target_concept,
+                "anchor_concept": None if is_lookup or not wants_learning_graph else target_concept,
                 "query_mode": query_mode,
-                "subgraph": None if is_lookup else bounded_subgraph.to_dict(),
+                "subgraph": None
+                if is_lookup or bounded_subgraph is None
+                else bounded_subgraph.to_dict(),
                 "diagnostic_mcqs": diagnostic_mcqs,
-                "prerequisites": [] if is_lookup else prereqs,
-                "unlocks": [] if is_lookup else unlocks,
+                "prerequisites": [] if is_lookup or not wants_learning_graph else prereqs,
+                "unlocks": [] if is_lookup or not wants_learning_graph else unlocks,
                 "related_concepts": related_nodes,
                 "curriculum_paths": curriculum_paths,
                 "citations": citation_payloads,

@@ -1,9 +1,9 @@
 """CLI Admin Utility for parallel link resolution and catalog validation."""
+
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
-from pathlib import Path
 import sys
 from typing import Any
 
@@ -30,17 +30,22 @@ def main() -> None:
     total = len(resources)
     print(f"\nChecking all {total} resources concurrently...\n")
 
-
     verified = 0
     redirected = 0
     repaired = 0
     unresolved = 0
 
     def check_one(item: Any) -> dict:
-        rid = getattr(item, "resource_id", None) or (item.get("id") if isinstance(item, dict) else "unknown")
-        title = getattr(item, "title", None) or (item.get("title") if isinstance(item, dict) else "")
+        rid = getattr(item, "resource_id", None) or (
+            item.get("id") if isinstance(item, dict) else "unknown"
+        )
+        title = getattr(item, "title", None) or (
+            item.get("title") if isinstance(item, dict) else ""
+        )
         isbn = getattr(item, "isbn", None) or (item.get("isbn") if isinstance(item, dict) else "")
-        source = getattr(item, "source", None) or (item.get("source") if isinstance(item, dict) else "")
+        source = getattr(item, "source", None) or (
+            item.get("source") if isinstance(item, dict) else ""
+        )
         return resolver.resolve(resource_id=rid, title=title, isbn=isbn, source=source)
 
     with ThreadPoolExecutor(max_workers=10) as executor:

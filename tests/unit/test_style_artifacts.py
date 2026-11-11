@@ -1,4 +1,5 @@
 """Reply-style decorations must never leak into user-visible answers."""
+
 from archipelago.inference.reply_styles import (
     REPLY_STYLES,
     strip_style_artifacts,

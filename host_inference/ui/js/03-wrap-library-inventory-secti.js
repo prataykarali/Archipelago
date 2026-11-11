@@ -1,7 +1,7 @@
 // Auto-split from ui/chat/index.html — 03-wrap-library-inventory-secti.js
 // Feature module 4 of 22.
 import { state } from './00-state.js';
-import { citationTitle, getResponseCitations } from './02--kw-highlights.js';
+import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-highlights.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_CONTRACT } from './00-current-origin.js';
 
@@ -69,9 +69,10 @@ import { API_CONTRACT } from './00-current-origin.js';
                 scrollWrap.appendChild(inventoryTable);
                 container.appendChild(scrollWrap);
             } else if (!inventoryTable && !container && metadata) {
-                // Synthesize inventory table from metadata citations/books if not present in markdown prose
+                // A source citation is not a physical holding. Build this table
+                // only from records explicitly verified against the Koha export.
                 const citations = getResponseCitations(metadata);
-                const sourceRows = (citations || []).slice(0, 6);
+                const sourceRows = (citations || []).filter(c => c.koha_record_verified).slice(0, 6);
                 if (sourceRows.length) {
                     container = document.createElement('section');
                     container.className = 'library-inventory-section';
@@ -84,7 +85,7 @@ import { API_CONTRACT } from './00-current-origin.js';
                             <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Cited sources
                         </span>
                     </div>
-                        <h4 class="text-xs text-gray-400 mb-2 font-medium italic">Copy counts appear only for titles verified in the Koha export.</h4>
+                        <h4 class="text-xs text-amber-300 mb-2 font-medium">Copy figures appear only for verified catalogue records.</h4>
                     `;
                     const scrollWrap = document.createElement('div');
                     scrollWrap.className = 'inventory-table-wrap overflow-x-auto w-full';
@@ -103,11 +104,13 @@ import { API_CONTRACT } from './00-current-origin.js';
                         <tbody>
                             ${sourceRows.map((c, i) => {
                                 const title = citationTitle(c, 'Resource');
-                                const accession = c.accession || '—';
-                                const total = c.koha_record_verified ? c.total_copies : '—';
-                                const avail = c.koha_record_verified ? c.available_copies : '—';
-                                const pageNum = c.page_number || c.page || 1;
+                                const verified = Boolean(c.koha_record_verified);
+                                const accession = verified ? c.accession : 'Not reported';
+                                const total = verified ? c.total_copies : 'Not reported';
+                                const avail = verified ? c.available_copies : 'Not reported';
+                                const pageNum = c.page_number || c.page;
                                 const badgeStr = c.evidence_id || `S${i+1}`;
+                                const pageUrl = citationPageUrl(c);
                                 return `
                                     <tr class="glass-card hover:border-sky-400/50 hover:scale-[1.01] transition-all duration-200 border border-white/10 rounded-xl my-1.5 p-3 flex flex-col md:table-row gap-2">
                                         <td class="py-2.5 px-3 font-semibold text-gray-200">
@@ -118,7 +121,7 @@ import { API_CONTRACT } from './00-current-origin.js';
                                         <td class="py-2.5 px-3 text-right text-gray-400">${total}</td>
                                         <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${avail}</td>
                                         <td class="py-2.5 px-3 text-center">
-                                            <span class="text-indigo-200 text-xs font-bold">Page ${pageNum}</span>
+                                            <a class="view-page-link text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>
                                         </td>
                                     </tr>
                                 `;

@@ -7,10 +7,10 @@ Requires a live chat UI (default http://127.0.0.1:5052) and optional inference
 API (http://127.0.0.1:5051). Offline unit coverage lives in
 ``tests/unit/test_ui_deeplinking.py``.
 """
+
 from __future__ import annotations
 
 import os
-import re
 
 import pytest
 
@@ -83,8 +83,7 @@ def test_tc66_modal_close_or_back_control_exists(browser_page):
     page = browser_page
     html = page.content().lower()
     assert any(
-        token in html
-        for token in ("close", "modal", "back", "viewer", "dismiss", "page-view")
+        token in html for token in ("close", "modal", "back", "viewer", "dismiss", "page-view")
     )
 
 
@@ -107,12 +106,12 @@ def test_tc63_graph_ui_node_tooltip_surface():
 
 def test_tc71_readiness_survives_while_services_up():
     """Structural readiness check used during zero-downtime swap demos."""
-    urllib = pytest.importorskip("urllib.request")
+    urllib_req = pytest.importorskip("urllib.request")
     import json
     from urllib.error import URLError
 
     try:
-        with urllib.request.urlopen(f"{INFER_URL}/api/readiness", timeout=3) as resp:
+        with urllib_req.urlopen(f"{INFER_URL}/api/readiness", timeout=3) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except (URLError, TimeoutError, OSError) as exc:
         pytest.skip(f"inference not up: {exc}")

@@ -1,7 +1,6 @@
 """Concise answers + keep grounded first-paint over rambling model rewrites."""
-from __future__ import annotations
 
-import re
+from __future__ import annotations
 
 import pytest
 
@@ -35,10 +34,7 @@ def test_citation_spam_detector_flags_user_rag_dump() -> None:
 
 
 def test_verbose_trim_caps_word_count() -> None:
-    long = (
-        "### Topic\n\n"
-        + ("Retrieval helps generation with external memory. " * 80)
-    )
+    long = "### Topic\n\n" + ("Retrieval helps generation with external memory. " * 80)
     trimmed = synthesis._trim_verbose_study_answer(long, max_words=120)
     assert synthesis._count_words(trimmed) <= 130
     assert trimmed.endswith((".", "!", "?", "…")) or len(trimmed) < len(long)
@@ -74,20 +70,21 @@ def test_finalize_keeps_grounded_over_s_hash_spam() -> None:
         "Definition long essay...\n"
         "[S#] to (p.4 ↗)\n"
         "[RWC+19]: evaluation chatter\n"
-        "[GPT-2]: more chatter\n"
-        + ("The model is trained. " * 30)
+        "[GPT-2]: more chatter\n" + ("The model is trained. " * 30)
     )
     final = synthesis._finalize_stream_answer(
         model,
         grounded,
         grounded,
         {"S1"},
-        [{
-            "evidence_id": "S1",
-            "topic": "RAG",
-            "doc_id": "Lewis2020_RAG.pdf",
-            "page_number": 2,
-        }],
+        [
+            {
+                "evidence_id": "S1",
+                "topic": "RAG",
+                "doc_id": "Lewis2020_RAG.pdf",
+                "page_number": 2,
+            }
+        ],
         sterile=False,
         offline=False,
         user_query="tell me about RAG",

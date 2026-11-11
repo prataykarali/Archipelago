@@ -11,7 +11,6 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 from archipelago.ingestion.pearson_connector import PearsonBook, PearsonCatalog
 from archipelago.storage.hf_remote import HFStorageClient
@@ -43,12 +42,15 @@ class V44DatasetGenerator:
         page = concept.get("page_number", 1)
 
         reader_url = book.get_page_reader_url(page) if book else ""
-        source_title = book.title if book else concept.get("source_book", "Computer Science Reference")
+        source_title = (
+            book.title if book else concept.get("source_book", "Computer Science Reference")
+        )
         author = book.author if book else "Author"
 
         citation_md = (
             f"**Authoritative Source**: [{source_title} (p. {page})]({reader_url}) — {author}\n"
-            if reader_url else f"**Authoritative Source**: {source_title} (p. {page}) — {author}\n"
+            if reader_url
+            else f"**Authoritative Source**: {source_title} (p. {page}) — {author}\n"
         )
 
         user_msg = f"Explain the concept of {cname} from a rigorous pedagogical perspective."
@@ -175,7 +177,11 @@ class V44DatasetGenerator:
                         f"- **D)** {options['D']}\n\n"
                         f"*Ground Truth Answer: ({correct_option})*\n"
                         f"{explanation}\n"
-                        + (f"[Verify in Pearson eLibrary Reader (p. {page})]({reader_url})" if reader_url else "")
+                        + (
+                            f"[Verify in Pearson eLibrary Reader (p. {page})]({reader_url})"
+                            if reader_url
+                            else ""
+                        )
                     ),
                 },
             ],

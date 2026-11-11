@@ -1,0 +1,9 @@
+[Unit]
+Description=Search one live academic OPAC page for permitted external evidence
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Desktop/archipelago/Archipelago
+ExecStart=/usr/bin/python3 %h/Desktop/archipelago/Archipelago/scripts/ops/academic_automation.py scan-configured
+TimeoutStartSec=20min

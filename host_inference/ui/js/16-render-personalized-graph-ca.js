@@ -29,7 +29,7 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
 
             const pGraph = (evalData && evalData.personalized_graph) || { nodes: [], edges: [] };
             const nodes = pGraph.nodes || [];
-            const gapNodes = nodes.filter(n => n.status === 'review_gap');
+            const gapNodes = nodes.filter(n => n.missing || n.status === 'MISSING');
             const targetNode = nodes.find(n => n.role === 'target') || { label: anchorLabel, summary: '' };
             const gapExplanation = gapNodes.length
                 ? `Review ${gapNodes.map(n => n.label).join(', ')} before ${anchorLabel}. ${gapNodes[0].summary || 'Use the linked source to strengthen this prerequisite.'}`
@@ -90,7 +90,7 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                             </div>
                         </div>
 
-                        <p class="text-xs text-slate-200 leading-relaxed rounded-lg bg-white/5 p-3">${escapeHTML(gapExplanation.slice(0, 320))}</p>
+                        <p class="text-xs text-slate-200 leading-relaxed rounded-lg bg-white/5 p-3 line-clamp-3">${escapeHTML(gapExplanation.slice(0, 220))}</p>
                         <p class="text-xs text-slate-300">Follow the numbered arrows from left to right. Select a node for its explanation and source.</p>
                         <!-- Personalized Interactive SVG Canvas Map -->
                         <div class="relative w-full group/persgraph">
@@ -125,7 +125,7 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                             <div id="pers-insp-actions-${cardId}" class="flex flex-wrap items-center gap-2">
                                 ${(gapNodes[0] && gapNodes[0].doc_id) ? `
                                     <button onclick="openPrerequisiteRemediationReader('${gapNodes[0].doc_id}', ${gapNodes[0].page_number || 1}, '${escapeHTML(gapNodes[0].label)}', '${escapeHTML(gapNodes[0].summary)}')" type="button" class="px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
-                                        <i class="fa-solid fa-book-open text-xs"></i> <span>View Textbook (p. ${gapNodes[0].printed_page || gapNodes[0].page_number || 1})</span>
+                                        <i class="fa-solid fa-book-open text-xs"></i> <span>View Textbook${gapNodes[0].printed_page || gapNodes[0].page_number ? ` (p. ${gapNodes[0].printed_page || gapNodes[0].page_number})` : ''}</span>
                                     </button>
                                 ` : ''}
                             </div>
@@ -153,8 +153,8 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                                             </div>
                                             <div class="flex items-center gap-2 shrink-0">
                                                 ${st.doc_id ? `
-                                                    <button onclick="openPrerequisiteRemediationReader('${st.doc_id}', ${st.page_number}, '${escapeHTML(st.name || st.id)}', '${escapeHTML(st.summary)}')" class="px-2 py-1 rounded bg-white/10 hover:bg-white/15 text-[10px] font-bold text-gray-300 hover:text-white transition-all flex items-center gap-1">
-                                                        <i class="fa-solid fa-book-bookmark text-[9px]"></i> <span>p. ${st.printed_page || st.page_number}</span>
+                                                    <button onclick="openPrerequisiteRemediationReader('${st.doc_id}', ${st.page_number || 1}, '${escapeHTML(st.name || st.id)}', '${escapeHTML(st.summary)}')" class="px-2 py-1 rounded bg-white/10 hover:bg-white/15 text-[10px] font-bold text-gray-300 hover:text-white transition-all flex items-center gap-1">
+                                                        <i class="fa-solid fa-book-bookmark text-[9px]"></i> <span>${st.printed_page || st.page_number ? `p. ${st.printed_page || st.page_number}` : 'Open source'}</span>
                                                     </button>
                                                 ` : ''}
                                             </div>

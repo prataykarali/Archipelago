@@ -1,7 +1,9 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from typing import Any
+
 from . import _deps as _rt  # noqa: F401
 
 

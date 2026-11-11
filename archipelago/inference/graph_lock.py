@@ -3,11 +3,12 @@
 Shared by inference (read path) and ingestion (write/swap path) so inference
 never imports the ingestion worker or its heavy OKF/ollama dependencies.
 """
+
 from __future__ import annotations
 
-import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
+import threading
 
 
 class GraphLock:

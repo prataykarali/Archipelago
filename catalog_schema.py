@@ -8,6 +8,7 @@ production path ever called ``create_schema``, so every real graph was missing
 The DDL is now part of the canonical schema list in ``okf.graph.common``; this
 module remains so existing imports and tests keep working.
 """
+
 from __future__ import annotations
 
 from typing import Any

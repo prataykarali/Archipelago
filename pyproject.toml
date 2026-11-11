@@ -9,6 +9,13 @@ extend-exclude = [
     "dist",
     "okf_graph.db",
     "okf_graph.db/",
+    ".codex-release",
+    ".release-artifacts",
+    "data",
+    "backend",
+    "libraryAI",
+    "chat_server",
+    "training",
 ]
 
 [tool.ruff.lint]

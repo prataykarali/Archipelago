@@ -15,6 +15,7 @@ refusals:
 
 No test performs a real network request.
 """
+
 from __future__ import annotations
 
 import json
@@ -138,9 +139,7 @@ def test_credential_headers_are_refused(header):
 
 
 def test_ordinary_headers_are_allowed():
-    decision = fp.check_fetch(
-        SITE, headers={"Accept": "application/pdf"}, allowed_hosts=ALLOWED
-    )
+    decision = fp.check_fetch(SITE, headers={"Accept": "application/pdf"}, allowed_hosts=ALLOWED)
     assert decision.allowed
 
 
@@ -175,7 +174,9 @@ def test_longest_match_wins():
     _robots("User-agent: *\nDisallow: /papers/\nAllow: /papers/public/")
     # The longer Allow rule is more specific, so it wins.
     assert fp.check_fetch("https://example.edu/papers/public/a.pdf", allowed_hosts=ALLOWED).allowed
-    assert not fp.check_fetch("https://example.edu/papers/private/a.pdf", allowed_hosts=ALLOWED).allowed
+    assert not fp.check_fetch(
+        "https://example.edu/papers/private/a.pdf", allowed_hosts=ALLOWED
+    ).allowed
 
 
 def test_rules_for_other_agents_are_not_applied():
@@ -250,9 +251,7 @@ def test_refusal_is_audited_with_its_reason(isolated_gate):
 
 
 def test_credential_attempt_is_audited(isolated_gate):
-    fp.check_fetch(
-        "https://example.edu/x?access_token=abc", allowed_hosts=ALLOWED, actor="sweeper"
-    )
+    fp.check_fetch("https://example.edu/x?access_token=abc", allowed_hosts=ALLOWED, actor="sweeper")
     assert _audit_lines(isolated_gate)[0]["reason"] == "credentials_supplied"
 
 
@@ -268,19 +267,20 @@ def test_audit_is_disabled_when_unset(monkeypatch, tmp_path):
 
 def test_guarded_fetch_returns_no_body_when_refused(monkeypatch):
     """A refusal must never leak a payload the caller could mistake for data."""
+
     def explode(*args, **kwargs):
         raise AssertionError("network must not be touched after a refusal")
 
     monkeypatch.setattr(fp.urllib.request, "urlopen", explode)
-    decision, body = fp.guarded_fetch(
-        "https://evil.example.com/x", allowed_hosts=ALLOWED
-    )
+    decision, body = fp.guarded_fetch("https://evil.example.com/x", allowed_hosts=ALLOWED)
     assert not decision.allowed
     assert body == b""
 
 
 def test_guarded_fetch_propagates_a_network_error_as_a_refusal(monkeypatch):
-    monkeypatch.setattr(fp, "check_fetch", lambda url, **kw: fp.FetchDecision(allowed=True, url=url))
+    monkeypatch.setattr(
+        fp, "check_fetch", lambda url, **kw: fp.FetchDecision(allowed=True, url=url)
+    )
     monkeypatch.setattr(fp.urllib.request, "urlopen", explode_any)
     decision, body = fp.guarded_fetch(SITE, allowed_hosts=ALLOWED)
     assert not decision.allowed
@@ -297,11 +297,20 @@ def explode_any(*args, **kwargs):
 
 def test_gate_does_not_mention_or_implement_circumvention():
     """Guard against the module gaining a bypass helper in future."""
-    source = (REPO_ROOT / "archipelago" / "ingestion" / "fetch_policy.py").read_text(
-        encoding="utf-8"
-    ).lower()
-    for banned in ("bypass_paywall", "solve_captcha", "rotate_proxy", "stealth", "spoof_user_agent"):
+    source = (
+        (REPO_ROOT / "archipelago" / "ingestion" / "fetch_policy.py")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    for banned in (
+        "bypass_paywall",
+        "solve_captcha",
+        "rotate_proxy",
+        "stealth",
+        "spoof_user_agent",
+    ):
         assert banned not in source
+
 
 def test_redeclared_user_agent_starts_a_fresh_group():
     """Rules from a previous group must not leak into the next one.

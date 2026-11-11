@@ -4,12 +4,16 @@ Uses the locally installed Tesseract engine via pytesseract. No external AI call
 is made, so a librarian can pre-fill a record on an air-gapped library machine
 and this costs zero inference budget (docs/03 §1, docs/02 §1B).
 """
+
 from __future__ import annotations
 
 import io
 import logging
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from PIL.Image import Image as PILImage
 
 logger = logging.getLogger("archipelago.ingestion.page_image")
 
@@ -46,8 +50,9 @@ def ocr_available() -> bool:
     if _TESSERACT_AVAILABLE is not None:
         return _TESSERACT_AVAILABLE
     try:
-        import pytesseract  # noqa: F401
         from PIL import Image  # noqa: F401
+        import pytesseract  # type: ignore[import-untyped]
+
         pytesseract.get_tesseract_version()
         _TESSERACT_AVAILABLE = True
     except Exception as exc:
@@ -56,11 +61,11 @@ def ocr_available() -> bool:
     return _TESSERACT_AVAILABLE
 
 
-def _load_image(data: bytes):
+def _load_image(data: bytes) -> PILImage:
     """Decode bytes into a PIL image, downscaling very large scans."""
     from PIL import Image
 
-    image = Image.open(io.BytesIO(data))
+    image: PILImage = Image.open(io.BytesIO(data))
     if image.mode not in ("RGB", "L"):
         image = image.convert("RGB")
     width, height = image.size
@@ -70,13 +75,13 @@ def _load_image(data: bytes):
     return image
 
 
-def _run_ocr(image, extra_config: str = "") -> str:
+def _run_ocr(image: PILImage, extra_config: str = "") -> str:
     import pytesseract
 
     config = f"--psm {OCR_PAGE_SEG_MODE} --dpi {OCR_DEFAULT_DPI}"
     if extra_config:
         config = f"{config} {extra_config}"
-    return pytesseract.image_to_string(image, lang=OCR_LANGUAGES, config=config)
+    return str(pytesseract.image_to_string(image, lang=OCR_LANGUAGES, config=config))
 
 
 def ocr_image_bytes(data: bytes) -> str:
@@ -127,16 +132,18 @@ def ocr_text_blocks(data: bytes) -> list[dict[str, Any]]:
             continue
         if conf < OCR_MIN_CONFIDENCE:
             continue
-        blocks.append({
-            "text": word,
-            "conf": conf,
-            "x": int(data_frame["left"][i]),
-            "y": int(data_frame["top"][i]),
-            "w": int(data_frame["width"][i]),
-            "h": int(data_frame["height"][i]),
-            "block": int(data_frame["block_num"][i]),
-            "line": int(data_frame["line_num"][i]),
-        })
+        blocks.append(
+            {
+                "text": word,
+                "conf": conf,
+                "x": int(data_frame["left"][i]),
+                "y": int(data_frame["top"][i]),
+                "w": int(data_frame["width"][i]),
+                "h": int(data_frame["height"][i]),
+                "block": int(data_frame["block_num"][i]),
+                "line": int(data_frame["line_num"][i]),
+            }
+        )
     return blocks
 
 

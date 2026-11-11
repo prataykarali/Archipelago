@@ -1,21 +1,41 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import re
-import torch
+
 from thefuzz import fuzz
+import torch
+
 from archipelago.inference import state as st
 from archipelago.inference.aliases import (
-    extract_acronym, generate_aliases, _core_concept_bonus, _clean_query_words,
+    _clean_query_words,
+    _core_concept_bonus,
+    generate_aliases,
 )
-from archipelago.inference.embeddings import get_snowflake_embedding, _disable_embeddings
+from archipelago.inference.embeddings import _disable_embeddings, get_snowflake_embedding
+
 from . import _deps as _rt  # noqa: F401
 
-
-_PLURAL_TECH = frozenset({
-    "rag", "llm", "cnn", "rnn", "gpt", "agent", "gnn", "mlp", "svm",
-    "bert", "vae", "gan", "rl", "ml", "dl",
-})
+_PLURAL_TECH = frozenset(
+    {
+        "rag",
+        "llm",
+        "cnn",
+        "rnn",
+        "gpt",
+        "agent",
+        "gnn",
+        "mlp",
+        "svm",
+        "bert",
+        "vae",
+        "gan",
+        "rl",
+        "ml",
+        "dl",
+    }
+)
 
 
 _GREETING_PREFIX = re.compile(
@@ -44,12 +64,23 @@ _POLITE_FILLER = re.compile(
 
 
 _IDENTITY_PATTERNS = (
-    "who are you", "what are you", "tell me about yourself",
-    "introduce yourself", "what is your name", "what's your name",
-    "whats your name", "what can you do", "what do you do",
-    "how do you work", "what are your capabilities",
-    "are you an ai", "are you a bot", "are you human",
-    "your name", "about you", "about yourself",
+    "who are you",
+    "what are you",
+    "tell me about yourself",
+    "introduce yourself",
+    "what is your name",
+    "what's your name",
+    "whats your name",
+    "what can you do",
+    "what do you do",
+    "how do you work",
+    "what are your capabilities",
+    "are you an ai",
+    "are you a bot",
+    "are you human",
+    "your name",
+    "about you",
+    "about yourself",
 )
 
 
@@ -138,16 +169,33 @@ def _is_chitchat(query: str) -> bool:
     if _is_onboarding(q):
         return False
     chitchat = (
-        "hi", "hello", "hey", "thanks", "thank you", "good morning", "good evening",
-        "how are you", "what's up", "whats up", "bye", "ok", "okay", "cool", "lol",
-        "yo", "sup", "good night", "gm", "gn",
+        "hi",
+        "hello",
+        "hey",
+        "thanks",
+        "thank you",
+        "good morning",
+        "good evening",
+        "how are you",
+        "what's up",
+        "whats up",
+        "bye",
+        "ok",
+        "okay",
+        "cool",
+        "lol",
+        "yo",
+        "sup",
+        "good night",
+        "gm",
+        "gn",
     )
     bare = q.rstrip("!?.")
     if bare in chitchat:
         return True
-    if len(q.split()) <= 4 and any(bare == c or bare.startswith(c + " ") for c in chitchat):
-        return True
-    return False
+    return bool(
+        len(q.split()) <= 4 and any(bare == c or bare.startswith(c + " ") for c in chitchat)
+    )
 
 
 def _has_domain_terms(query: str) -> bool:
@@ -155,7 +203,11 @@ def _has_domain_terms(query: str) -> bool:
     for term in st._DOMAIN_TERMS:
         # word-ish match: pad short tokens to avoid matching "ai" inside "said"
         if len(term) <= 2:
-            if f" {term} " in q or q.strip().startswith(term + " ") or q.strip().endswith(" " + term):
+            if (
+                f" {term} " in q
+                or q.strip().startswith(term + " ")
+                or q.strip().endswith(" " + term)
+            ):
                 return True
             if re.search(rf"\b{re.escape(term)}\b", q):
                 return True
@@ -180,11 +232,7 @@ def _is_learning_or_domain_query(query: str) -> bool:
     """True when the user wants AIML learning / tech discussion (not weather etc.)."""
     if _is_chitchat(query) or _is_offtopic(query):
         return False
-    if _has_domain_terms(query):
-        return True
-    # Learning intent alone is not enough ("what is the weather?") — need domain terms
-    # OR a non-trivial question that still looks technical via domain terms only.
-    return False
+    return _has_domain_terms(query)
 
 
 def _expand_query_for_retrieval(query: str) -> str:
@@ -259,7 +307,6 @@ def rank_concepts(query, top_k=None):
         label = concept.get("label") or concept.get("name") or cid
         name = label.lower()
         summary = concept.get("summary") or ""
-        from archipelago.inference.aliases import generate_aliases
         aliases = generate_aliases(concept)
         fuzzy_boost = (fuzz.token_set_ratio(query_lower, name) / 100.0) * 0.15
         name_words = [w.strip("?,.!-") for w in name.split() if w.strip("?,.!-")]
@@ -284,12 +331,13 @@ def rank_concepts(query, top_k=None):
                 alias_boost = max(alias_boost, 0.26)
         for a in aliases:
             al = a.lower()
-            if len(al) >= 3 and (al in query_lower or query_lower in al or al in (query or "").lower()):
+            if len(al) >= 3 and (
+                al in query_lower or query_lower in al or al in (query or "").lower()
+            ):
                 alias_boost = max(alias_boost, 0.12)
             # Plural/singular: alias "rag" matches query token "rags"
             if len(al) >= 2 and any(
-                t == al or t == al + "s" or (t.endswith("s") and t[:-1] == al)
-                for t in q_words
+                t == al or t == al + "s" or (t.endswith("s") and t[:-1] == al) for t in q_words
             ):
                 alias_boost = max(alias_boost, 0.26)
         # Degree (connectivity) mild boost — denser curriculum hubs win ties

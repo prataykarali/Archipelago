@@ -1,5 +1,6 @@
 """Regression: topic-specific ranking must not fall back to global AIML top."""
-from catalog_ranking import rank_documents, format_ranking_response
+
+from catalog_ranking import format_ranking_response, rank_documents
 
 
 def test_sql_topic_does_not_return_attention_paper():

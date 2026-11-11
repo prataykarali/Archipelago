@@ -12,12 +12,13 @@
 Usage:
     python scripts/run_compliant_pilot_ingest.py [--ollama] [--limit N]
 """
+
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import sys
 import time
-from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
@@ -37,7 +38,10 @@ def verify_guidelines(chunks: list) -> None:
         sec = (c.get("section_title") or "").strip().lower()
         cid = (c.get("chunk_id") or "").lower()
         if "structure" in cid or sec in (
-            "index", "contents", "table of contents", "contents (structure metadata)"
+            "index",
+            "contents",
+            "table of contents",
+            "contents (structure metadata)",
         ):
             continue
         if any(k in stem for k in ("index", "content", "toc")):
@@ -55,6 +59,7 @@ def verify_guidelines(chunks: list) -> None:
 
 def rebridge_catalog() -> dict:
     from catalog_bridge import auto_link_resources, generate_coverage_report
+
     print("\n[bridge] Re-linking Resource ↔ Document (PROVIDES_TEXT)...")
     stats = auto_link_resources(str(DB_PATH))
     report = generate_coverage_report(str(DB_PATH))
@@ -65,14 +70,23 @@ def rebridge_catalog() -> dict:
 
 def print_graph_summary() -> None:
     import kuzu
+
     db = kuzu.Database(str(DB_PATH), read_only=True)
     conn = kuzu.Connection(db)
     print("\n[verify] Graph counts after ingest:")
     for t in ("Document", "Chunk", "Concept", "Subject", "Resource", "JournalIssue"):
         n = conn.execute(f"MATCH (n:{t}) RETURN count(n)").get_next()[0]
         print(f"  {t:16s} {n}")
-    for t in ("HAS_CHUNK", "MENTIONS", "PROVIDES_TEXT", "CATEGORIZES", "HAS_ISSUE",
-              "REQUIRES", "UNLOCKS", "RELATED"):
+    for t in (
+        "HAS_CHUNK",
+        "MENTIONS",
+        "PROVIDES_TEXT",
+        "CATEGORIZES",
+        "HAS_ISSUE",
+        "REQUIRES",
+        "UNLOCKS",
+        "RELATED",
+    ):
         n = conn.execute(f"MATCH ()-[r:{t}]->() RETURN count(r)").get_next()[0]
         print(f"  {t:16s} {n}")
     # sample page-view query
@@ -98,7 +112,8 @@ def main():
     print("  Jul 21 pilot-compliant ingestion")
     print("=" * 70)
 
-    chunks = json.load(open(CHUNKS))
+    with open(CHUNKS) as f:
+        chunks = json.load(f)
     if limit:
         chunks = chunks[:limit]
     print(f"  chunks: {len(chunks)} from {CHUNKS}")
@@ -109,7 +124,9 @@ def main():
 
     if use_ollama:
         ex.LOCAL_MODE = False
-        print(f"  extraction mode: Ollama ({ex.MODEL_NAME if hasattr(ex,'MODEL_NAME') else 'qwen3.5:0.8b'})")
+        print(
+            f"  extraction mode: Ollama ({ex.MODEL_NAME if hasattr(ex, 'MODEL_NAME') else 'qwen3.5:0.8b'})"
+        )
     else:
         ex.load_local_model()
         if not ex.is_model_loaded():
@@ -121,8 +138,10 @@ def main():
     t0 = time.time()
     results, ok = ex.extract_chunks_with_model(chunks)
     dt = time.time() - t0
-    print(f"\n  extracted {len(results)} concept records from {ok}/{len(chunks)} chunks "
-          f"in {dt/60:.1f} min")
+    print(
+        f"\n  extracted {len(results)} concept records from {ok}/{len(chunks)} chunks "
+        f"in {dt / 60:.1f} min"
+    )
 
     # Save intermediate so a crash in finalize is recoverable
     mid = BASE / "okf_results.compliant_raw.json"

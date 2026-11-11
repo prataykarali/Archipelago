@@ -1,17 +1,22 @@
 """Session 7 unit tests: catalog intent routing, renderers, and view-page links."""
-import re
 
-from archipelago.inference.routing import _detect_library_intent
 from archipelago.inference.library_queries import (
-    clean_catalog_topic, clean_journal_query,
+    clean_catalog_topic,
+    clean_journal_query,
 )
+from archipelago.inference.routing import _detect_library_intent
 from archipelago.inference.synthesis_library import (
-    render_physical_resources, render_catalog_resources,
-    render_resource_availability, render_journal_status,
+    render_catalog_resources,
+    render_journal_status,
+    render_physical_resources,
+    render_resource_availability,
 )
+
 try:
     from archipelago.inference.synthesis_library import (
-        view_page_url, inject_view_page_links, _availability_line,
+        _availability_line,
+        inject_view_page_links,
+        view_page_url,
     )
 except ImportError:
     # These functions may not exist yet; tests that use them will be skipped
@@ -30,24 +35,27 @@ class TestCatalogIntentDetection:
         assert _intent("Can I borrow a book on 3NF?") == "library_resource_lookup"
 
     def test_checkout_physical_book(self):
-        assert _intent("I'm struggling with normalization, can I check out a physical book?") == \
-            "library_resource_lookup"
+        assert (
+            _intent("I'm struggling with normalization, can I check out a physical book?")
+            == "library_resource_lookup"
+        )
 
     def test_available_copies(self):
-        assert _intent("how many copies of Database Systems are available?") == \
-            "library_resource_lookup"
+        assert (
+            _intent("how many copies of Database Systems are available?")
+            == "library_resource_lookup"
+        )
 
     def test_physical_copy(self):
-        assert _intent("is there a physical copy of the math textbook?") == \
-            "library_resource_lookup"
+        assert (
+            _intent("is there a physical copy of the math textbook?") == "library_resource_lookup"
+        )
 
     def test_reserve_a_title(self):
-        assert _intent("can I reserve the operating systems book?") == \
-            "library_resource_lookup"
+        assert _intent("can I reserve the operating systems book?") == "library_resource_lookup"
 
     def test_latest_journals_available(self):
-        assert _intent("Are the latest 2025 ML periodicals available?") == \
-            "library_journal_status"
+        assert _intent("Are the latest 2025 ML periodicals available?") == "library_journal_status"
 
     def test_late_journal_issues(self):
         assert _intent("which journals are late this month?") == "library_journal_status"
@@ -56,8 +64,10 @@ class TestCatalogIntentDetection:
         assert _intent("journal issues of IEEE Spectrum") == "library_journal_status"
 
     def test_subscription_status(self):
-        assert _intent("what is the status of our electronics magazine subscriptions?") == \
-            "library_journal_status"
+        assert (
+            _intent("what is the status of our electronics magazine subscriptions?")
+            == "library_journal_status"
+        )
 
     def test_reading_recommendation_not_catalog(self):
         # "what should I read" stays a reading recommendation, not a checkout ask
@@ -118,7 +128,7 @@ class TestViewPageUrl:
 
 
 class TestInjectViewPageLinks:
-    DOCS = [
+    DOCS = [  # noqa: RUF012
         ("textbooks/Deisenroth_Math_For_ML.pdf", "Mathematics for Machine Learning"),
         ("Hu2021_LoRA.pdf", "LoRA: Low-Rank Adaptation of Large Language Models"),
     ]
@@ -170,16 +180,21 @@ class TestAvailabilityLine:
 
 class TestRenderers:
     def test_render_physical_resources(self):
-        out = render_physical_resources("Normalization", [{
-            "resource_id": "res-1",
-            "title": "Database System Concepts",
-            "author": "Silberschatz",
-            "total_copies": 4,
-            "available_copies": 2,
-            "barcodes": "IEM0001, IEM0002",
-            "doc_id": "dbms-book.pdf",
-            "mentions": 7,
-        }])
+        out = render_physical_resources(
+            "Normalization",
+            [
+                {
+                    "resource_id": "res-1",
+                    "title": "Database System Concepts",
+                    "author": "Silberschatz",
+                    "total_copies": 4,
+                    "available_copies": 2,
+                    "barcodes": "IEM0001, IEM0002",
+                    "doc_id": "dbms-book.pdf",
+                    "mentions": 7,
+                }
+            ],
+        )
         assert "Database System Concepts" in out
         assert "2 of 4" in out
         assert "IEM0001" in out
@@ -190,52 +205,65 @@ class TestRenderers:
         assert "No physical resource" in out
 
     def test_render_catalog_resources(self):
-        out = render_catalog_resources("chemistry", [{
-            "resource_id": "res-9",
-            "title": "Organic Chemistry",
-            "author": "Clayden",
-            "total_copies": 3,
-            "available_copies": 3,
-            "barcodes": "IEM0100",
-            "subjects": ["CHEMISTRY"],
-        }])
+        out = render_catalog_resources(
+            "chemistry",
+            [
+                {
+                    "resource_id": "res-9",
+                    "title": "Organic Chemistry",
+                    "author": "Clayden",
+                    "total_copies": 3,
+                    "available_copies": 3,
+                    "barcodes": "IEM0100",
+                    "subjects": ["CHEMISTRY"],
+                }
+            ],
+        )
         assert "Organic Chemistry" in out
         assert "CHEMISTRY" in out
 
     def test_render_resource_availability_periodical_hint(self):
-        out = render_resource_availability({
-            "resource_id": "res-2",
-            "title": "IEEE Spectrum",
-            "total_copies": 1,
-            "available_copies": 1,
-            "is_periodical": True,
-        })
+        out = render_resource_availability(
+            {
+                "resource_id": "res-2",
+                "title": "IEEE Spectrum",
+                "total_copies": 1,
+                "available_copies": 1,
+                "is_periodical": True,
+            }
+        )
         assert "IEEE Spectrum" in out
         assert "periodical" in out
 
     def test_render_journal_status_late_only(self):
-        out = render_journal_status({
-            "matched_by": "subject",
-            "name": "ELECTRONICS",
-            "only_late": True,
-            "issues": [{
-                "resource_title": "Electronics For You",
-                "issue_id": "efy|12|3|2025-04-01",
-                "volume": "12",
-                "issue_number": "3",
-                "published_date": "2025-04-01",
-                "status": "Late",
-            }],
-        })
+        out = render_journal_status(
+            {
+                "matched_by": "subject",
+                "name": "ELECTRONICS",
+                "only_late": True,
+                "issues": [
+                    {
+                        "resource_title": "Electronics For You",
+                        "issue_id": "efy|12|3|2025-04-01",
+                        "volume": "12",
+                        "issue_number": "3",
+                        "published_date": "2025-04-01",
+                        "status": "Late",
+                    }
+                ],
+            }
+        )
         assert "Late issues" in out
         assert "Electronics For You" in out
         assert "**Late**" in out
 
     def test_render_journal_status_no_late(self):
-        out = render_journal_status({
-            "matched_by": "subject",
-            "name": "ELECTRONICS",
-            "only_late": True,
-            "issues": [],
-        })
+        out = render_journal_status(
+            {
+                "matched_by": "subject",
+                "name": "ELECTRONICS",
+                "only_late": True,
+                "issues": [],
+            }
+        )
         assert "up to date" in out

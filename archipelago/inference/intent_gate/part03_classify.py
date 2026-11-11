@@ -146,12 +146,16 @@ def classify_intent(query: str, *, force_llm: bool = False) -> dict[str, Any]:
 
     # Pedagogy/paper-theory always wins over weak embed "implementation/entity"
     # — except celebrity/infra trivia dressed as "according to the paper".
-    if pedagogy and not hard_impl and not celebrity_trivia:
-        if intent in (INTENT_IMPLEMENTATION, INTENT_ENTITY_TRIVIA, INTENT_OUT_OF_DOMAIN):
-            intent = INTENT_THEORY
-            score = max(score, float(scores.get(INTENT_THEORY) or 0.0), PEDAGOGY_RESCUE_MIN_SCORE)
-            margin = max(margin, PEDAGOGY_RESCUE_MIN_MARGIN)
-            method = f"{method}+pedagogy_rescue"
+    if (
+        pedagogy
+        and not hard_impl
+        and not celebrity_trivia
+        and intent in (INTENT_IMPLEMENTATION, INTENT_ENTITY_TRIVIA, INTENT_OUT_OF_DOMAIN)
+    ):
+        intent = INTENT_THEORY
+        score = max(score, float(scores.get(INTENT_THEORY) or 0.0), PEDAGOGY_RESCUE_MIN_SCORE)
+        margin = max(margin, PEDAGOGY_RESCUE_MIN_MARGIN)
+        method = f"{method}+pedagogy_rescue"
     if celebrity_trivia and not hard_impl:
         intent = INTENT_ENTITY_TRIVIA
         score = max(score, CELEBRITY_TRIVIA_MIN_SCORE)
@@ -185,10 +189,7 @@ def classify_intent(query: str, *, force_llm: bool = False) -> dict[str, Any]:
         # Only call the tiny LLM when prototypes are genuinely ambiguous.
         clear_winner = score >= ABS_MIN and margin >= MARGIN_MIN
         # Never LLM-override a pedagogy rescue or hard_impl
-        if pedagogy or hard_impl:
-            needs_llm = False
-        else:
-            needs_llm = force_llm or not clear_winner
+        needs_llm = False if pedagogy or hard_impl else force_llm or not clear_winner
 
     if needs_llm:
         llm = _llm_classify(q)
@@ -236,13 +237,14 @@ def classify_intent(query: str, *, force_llm: bool = False) -> dict[str, Any]:
         method = f"{method}+{matrix_rescue}"
 
     # Persona/style residue: if theory score is close to OOD after strip, prefer theory
-    if intent == INTENT_OUT_OF_DOMAIN and scoring.STYLE_NOISE_RE.search(q_raw):
-        if (
-            float(scores.get(INTENT_THEORY) or 0)
-            >= float(scores.get(INTENT_OUT_OF_DOMAIN) or 0) - PERSONA_THEORY_DELTA
-        ):
-            intent = INTENT_THEORY
-            method = f"{method}+persona_theory_rescue"
+    if (
+        intent == INTENT_OUT_OF_DOMAIN
+        and scoring.STYLE_NOISE_RE.search(q_raw)
+        and float(scores.get(INTENT_THEORY) or 0)
+        >= float(scores.get(INTENT_OUT_OF_DOMAIN) or 0) - PERSONA_THEORY_DELTA
+    ):
+        intent = INTENT_THEORY
+        method = f"{method}+persona_theory_rescue"
 
     result = {
         "intent": intent,

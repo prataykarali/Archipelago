@@ -1,5 +1,3 @@
-// Auto-split from ui/chat/index.html — 08-send-message.js
-// Feature module 9 of 22.
 import { state } from './00-state.js';
 import { setSendButtonState, stopGeneration } from './07-open-page-viewer-modal.js';
 import { dismissGraphChoiceModal, populateTopology } from './11-populate-topology.js';
@@ -10,14 +8,16 @@ import { _enrichAssistantMarkup, appendEvidenceRail, getResponseCitations } from
 import { wrapLibraryInventorySection } from './03-wrap-library-inventory-secti.js';
 import { renderGraphExperiencePrompt } from './12-choose-graph-experience.js';
 import { populatePipeline } from './10-populate-pipeline.js';
+import { updateBookStackForQuery } from './05-display-books.js';
 import { saveSession } from './20--compact-history.js';
 import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream-support.js';
+import { postChatRequest } from './08-send-request.js';
+import { handleStreamError } from './08-stream-error.js';
+import { resetChatUi } from './08-stream-cleanup.js';
 
         // Main Send Function
         async function sendMessage() {
-            if (state.isGenerating) {
-                stopGeneration();
-            }
+            if (state.isGenerating) return;
             if (typeof dismissGraphChoiceModal === 'function') {
                 dismissGraphChoiceModal();
             }
@@ -99,31 +99,7 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
             }
 
             try {
-                // Send only the last N turns — long chats must not bloat the request body.
-                const cleanHistory = state.chatHistory
-                    .slice(-MAX_HISTORY_TURNS_SENT)
-                    .map(h => ({
-                        role: h.role,
-                        content: typeof h.content === 'string' ? h.content : JSON.stringify(h.content || '')
-                    }));
-
-                const response = await fetch(`${API_HOST}/api/chat`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: state.currentAbortController.signal,
-                    body: JSON.stringify({
-                        query: inputVal,
-                        mode: state.currentMode,
-                        history: cleanHistory,
-                        session_id: state.conversationSessionId,
-                        // Enable synthesis so that local SLM generates natural academic answers
-                        synthesis: true
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP Error ${response.status}`);
-                }
+                const response = await postChatRequest(inputVal, state.currentAbortController.signal);
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -131,8 +107,6 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                 // Remove typing dots when the first text comes in
                 let cleanedIndicator = false;
 
-                // Smooth stream paint: grounded first → live typewriter rewrite → final cleanse.
-                
 
                                 // No status chip — stream the model reply directly.
                 const setModelStatus = (_v, _p) => {};
@@ -214,8 +188,13 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
-                    if (firstFinalize && window._lastChatMetadata && typeof renderGraphExperiencePrompt === 'function') {
-                        renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                    if (firstFinalize && window._lastChatMetadata) {
+                        if (typeof updateBookStackForQuery === 'function') {
+                            updateBookStackForQuery(window._lastChatMetadata);
+                        }
+                        if (typeof renderGraphExperiencePrompt === 'function') {
+                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                        }
                     }
                 };
 
@@ -380,6 +359,9 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                                 window._lastChatMetadata = metadata;
                                 populatePipeline(metadata);
                                 populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
+                                if (typeof updateBookStackForQuery === 'function') {
+                                    updateBookStackForQuery(metadata);
+                                }
                                 // renderHorizontalGraphCard & roadmap_assessment deferred until typing finishes
                             } catch (err) {
                                 console.error('Error parsing pipeline metadata:', err);
@@ -404,85 +386,12 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
                 }
 
             } catch (err) {
-                console.error(err);
-                // Keep any grounded / partial SLM text already painted. Wiping the
-                // bubble on AbortError ("BodyStreamBuffer was aborted") made GPU
-                // replies look like total failures after metadata + first paint.
-                const partial = (staticStreamBuffer && staticStreamBuffer.trim())
-                    || (assistantText && assistantText.trim())
-                    || (rewriteBuffer && rewriteBuffer.trim())
-                    || '';
-                const aborted = !!(err && (err.name === 'AbortError' || /aborted|BodyStreamBuffer/i.test(String(err.message || err))));
-                if (partial) {
-                    try { if (typewriter && typeof typewriter.flush === 'function') typewriter.flush(); } catch (_) {}
-                    try {
-                        if (typeof finalizeStreamedBubble === 'function') finalizeStreamedBubble();
-                        else {
-                            renderMarkdownSafely(
-                                msgEl,
-                                partial,
-                                window._lastChatMetadata ? getResponseCitations(window._lastChatMetadata) : null
-                            );
-                        }
-                    } catch (_) {
-                        try {
-                            renderMarkdownSafely(
-                                msgEl,
-                                partial,
-                                window._lastChatMetadata ? getResponseCitations(window._lastChatMetadata) : null
-                            );
-                        } catch (__) {}
-                    }
-                    if (aborted && msgEl && !msgEl.querySelector('.stream-abort-note')) {
-                        const note = document.createElement('div');
-                        note.className = 'stream-abort-note text-amber-300/90 text-xs mt-2 opacity-80';
-                        note.textContent = 'Generation stopped — showing the answer received so far.';
-                        msgEl.appendChild(note);
-                    }
-                    try {
-                        state.chatHistory.push({ role: 'user', content: inputVal });
-                        state.chatHistory.push({
-                            role: 'assistant',
-                            content: partial,
-                            citations: getResponseCitations(window._lastChatMetadata),
-                            metadata: window._lastChatMetadata,
-                        });
-                        saveSession();
-                    } catch (_) {}
-                } else {
-                    if (msgEl && msgEl.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
-                        msgEl.innerHTML = '';
-                    }
-                    const why = aborted
-                        ? ((err.message && err.message !== 'The user aborted a request.') ? err.message : 'stream was interrupted')
-                        : (err && err.message ? err.message : 'unknown error');
-                    if (msgEl) {
-                        msgEl.innerHTML = `<div class="text-rose-400 flex items-center gap-2 border border-rose-500/20 bg-rose-500/5 p-3 rounded-lg"><i class="fa-solid fa-circle-exclamation"></i>Failed to stream generation: ${why}. Ensure the local model / inference server is running.</div>`;
-                    }
-                }
+                handleStreamError(err, {
+                    msgEl, staticStreamBuffer, assistantText, rewriteBuffer,
+                    typewriter, finalizeStreamedBubble, inputVal
+                });
             } finally {
-                window.clearTimeout(responseTimeoutId);
-                if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
-                if (chatMsgs) chatMsgs.removeEventListener('scroll', checkUserScroll);
-                state.isGenerating = false;
-                try { window.isGenerating = false; } catch (_) {}
-                _updateGlowState(false);
-                setSendButtonState('send');
-                setLibrarianThinking(false);
-                state.currentAssistantRow = null;
-                state.currentAbortController = null;
-                const sendBtn = document.getElementById('send-btn');
-                if (sendBtn) {
-                    sendBtn.disabled = false;
-                    sendBtn.classList.remove('opacity-50', 'pointer-events-none');
-                }
-                const inputEl = document.getElementById('chat-input');
-                if (inputEl) {
-                    inputEl.disabled = false;
-                    setTimeout(() => { try { inputEl.focus(); } catch (_) {} }, 50);
-                }
-                // Single sticky librarian: think → hi (loops constantly)
-                setLibrarianThinking(false);
+                resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, checkUserScroll });
             }
         }
 

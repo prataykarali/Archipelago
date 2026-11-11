@@ -8,6 +8,7 @@ combined hours-plus-access sentence used to be handed to the credential formatte
 alone, which returned a portal card and silently dropped the schedule — the one
 half of the answer the student could not look up anywhere else.
 """
+
 from __future__ import annotations
 
 import logging
@@ -166,9 +167,7 @@ def ingestion_text() -> str:
         )
 
     settled = [
-        job
-        for job in jobs
-        if isinstance(job, dict) and str(job.get("status")) in SETTLED_STATUSES
+        job for job in jobs if isinstance(job, dict) and str(job.get("status")) in SETTLED_STATUSES
     ][:INGESTION_JOB_SCAN]
 
     if not settled:

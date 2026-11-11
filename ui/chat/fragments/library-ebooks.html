@@ -1,0 +1,93 @@
+    <!-- SECTION 02 · E-BOOK SHELF -->
+    <section id="sec-ebook" class="scroll-mt-20">
+      <div class="glass-card rounded-2xl p-6 md:p-10 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-white/10 pb-4 gap-4">
+          <div>
+            <div class="text-xs font-mono tracking-widest text-emerald-400 uppercase">&mdash; SECTION 02 &middot; E-BOOK SHELF</div>
+            <h2 class="text-2xl md:text-4xl font-bold text-white mt-1">Browse the e-book shelves</h2>
+            <p class="text-xs md:text-sm text-white/70 mt-1">
+              Interactive shelf of e-books only — open PDFs, free online texts, and Pearson institutional titles. Hardcopy stays in the catalogue tables below.
+            </p>
+          </div>
+          <div class="px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono flex items-center gap-2 self-start md:self-auto">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span id="ebook-stats-pill">46 titles &middot; 33 with PDF &middot; 40 Pearson (read from library)</span>
+          </div>
+        </div>
+
+        <div class="scope-box p-4 rounded-lg text-xs text-white/70 leading-relaxed">
+          <strong class="text-white block mb-1">What this section represents:</strong>
+          Readable / portal-linked e-books for the pilot — not the full offline OPAC.
+        </div>
+
+        <!-- 3D Bookshelf Header & Search Controls -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+          <div>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              Library shelves
+              <span id="open-state-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300">3D Interactive Shelf</span>
+            </h3>
+            <p class="text-xs text-white/60">Click any book to <strong>swing open its 3D cover</strong> and inspect table of contents.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="relative w-full md:w-64">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-white/40"></i>
+              <input type="text" id="ebook-search-input" placeholder="Search 3D books..." class="w-full pl-9 pr-4 py-2 rounded-lg bg-black/50 border border-white/20 text-xs text-white placeholder-white/40 focus:outline-none focus:border-blue-500 transition-colors" />
+            </div>
+            <button id="close-3d-btn" onclick="close3DView()" class="hidden px-3 py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 hover:bg-rose-500/30 text-rose-300 text-xs font-mono transition-colors">
+              ✕ Close 3D View
+            </button>
+            <button id="book-prev-btn" class="p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 text-white transition-colors">
+              <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+            <span id="book-counter" class="text-xs font-mono text-white/70 px-1 min-w-[65px] text-center">Book 1 of 46</span>
+            <button id="book-next-btn" class="p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 text-white transition-colors">
+              <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3D Canvas + Book Details Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div class="lg:col-span-7 h-[440px] relative rounded-xl overflow-hidden bg-black/40 border border-white/10 shadow-inner">
+            <div id="library-3d-shelf" class="w-full h-full"></div>
+            <div class="absolute bottom-3 left-3 text-[11px] text-white/60 font-mono flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-lg border border-white/10 backdrop-blur-sm">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+              Click 3D book to swing cover open &middot; Drag to rotate
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 flex flex-col justify-between h-[440px] p-6 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <span id="book-domain-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300">CS & AI</span>
+                <span id="book-type-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300">PDF Document</span>
+              </div>
+              <h3 id="book-title" class="text-xl md:text-2xl font-bold text-white mb-1 leading-snug">Artificial Intelligence: A New Synthesis</h3>
+              <p id="book-author" class="text-xs font-mono text-white/60 mb-3">Nils J. Nilsson (1998)</p>
+              <p id="book-desc" class="text-xs text-white/80 leading-relaxed mb-4 max-h-[80px] overflow-y-auto custom-scrollbar pr-2">
+                Foundational text on agent architectures, state-space search, logic, probabilistic reasoning, and neural networks.
+              </p>
+
+              <div class="flex items-center justify-between text-xs font-mono text-white/50 uppercase mb-2">
+                <span>Chapters & Index</span>
+                <span id="book-isbn-txt" class="text-[10px]">ISBN: N/A</span>
+              </div>
+              <div id="book-toc-list" class="space-y-1.5 max-h-[110px] overflow-y-auto custom-scrollbar pr-2 text-xs"></div>
+            </div>
+
+            <!-- Action Buttons for PDF Reader vs Pearson Direct Redirect -->
+            <div class="pt-4 border-t border-white/10 space-y-2">
+              <button id="book-action-btn" class="w-full py-2.5 px-4 rounded-lg bg-white text-black font-semibold text-xs hover:bg-white/90 transition-colors flex items-center justify-center gap-2 shadow-lg">
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+                <span id="book-action-text">Open PDF Reader</span>
+              </button>
+              <button id="copy-creds-btn" class="w-full py-2 px-3 rounded-lg bg-white/10 border border-white/20 text-white font-mono text-[11px] hover:bg-white/20 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="key" class="w-3.5 h-3.5 text-amber-400"></i>
+                Pearson Sign In & Reader
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>

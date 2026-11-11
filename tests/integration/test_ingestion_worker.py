@@ -4,21 +4,19 @@ GraphLock, and end-to-end status updates.
 """
 
 import json
-import os
-import shutil
+from pathlib import Path
 import threading
 import time
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from ingestion_jobs import JobStatus, JobStore
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def tmp_store(tmp_path):
@@ -37,9 +35,15 @@ def mock_staged_pipeline():
         "edges": [],
         "visualization": {"nodes": [], "edges": []},
     }
-    
+
     def fake_pipeline(source_path, temp_db_path, on_progress, check_cancelled=None):
-        for stage in ["PARSING", "EXTRACTION", "CANONICALIZATION", "GRAPH_BUILD", "GRAPH_VALIDATION"]:
+        for stage in [
+            "PARSING",
+            "EXTRACTION",
+            "CANONICALIZATION",
+            "GRAPH_BUILD",
+            "GRAPH_VALIDATION",
+        ]:
             on_progress(stage, 100, {"message": f"{stage} done"})
         return [], mock_db, mock_graph_export
 
@@ -51,6 +55,7 @@ def mock_staged_pipeline():
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_dummy_pdf(path: Path) -> None:
     """Create a minimal dummy file representing a quarantined PDF."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -61,13 +66,14 @@ def _make_dummy_pdf(path: Path) -> None:
 # Tests
 # ---------------------------------------------------------------------------
 
+
 def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
     """
     End-to-end test of a successful ingestion.
     Verifies that files are swapped under write lock, JSON files are written,
     and job finishes with COMPLETE status and version incremented.
     """
-    from ingestion_worker import IngestionWorker, GraphLock
+    from ingestion_worker import GraphLock, IngestionWorker
 
     live_db = tmp_path / "okf_graph.db"
     live_db.mkdir(parents=True, exist_ok=True)
@@ -78,7 +84,8 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
         {"doc_id": "papers/prior_b.pdf", "concept_name": "PriorB"},
     ]
     (tmp_path / "okf_results.json").write_text(
-        json.dumps(prior), encoding="utf-8",
+        json.dumps(prior),
+        encoding="utf-8",
     )
 
     job = tmp_store.create_job("success.pdf")
@@ -95,11 +102,18 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
     # Staged pipeline already merges; mock returns full multi-doc results
     def fake_merged_pipeline(source_path, temp_db_path, on_progress, check_cancelled=None):
         from unittest.mock import MagicMock
-        for stage in ["PARSING", "EXTRACTION", "CANONICALIZATION", "GRAPH_BUILD", "GRAPH_VALIDATION"]:
+
+        for stage in [
+            "PARSING",
+            "EXTRACTION",
+            "CANONICALIZATION",
+            "GRAPH_BUILD",
+            "GRAPH_VALIDATION",
+        ]:
             on_progress(stage, 100, {"message": f"{stage} done"})
         mock_db = MagicMock()
         mock_db.execute.return_value.has_next.return_value = False
-        merged = prior + [{"doc_id": "success.pdf", "concept_name": "NewConcept"}]
+        merged = [*prior, {"doc_id": "success.pdf", "concept_name": "NewConcept"}]
         export = {
             "stats": {"total_concepts": 3, "total_edges": 1},
             "concepts": {
@@ -114,10 +128,12 @@ def test_successful_ingestion(tmp_path, tmp_store, mock_staged_pipeline):
         return merged, mock_db, export
 
     # Patch BASE_DIR and other internal calls to use our tmp directory path
-    with patch("ingestion_worker_job_mixin.BASE_DIR", tmp_path), \
-         patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_merged_pipeline), \
-         patch("kuzu.Database") as mock_kuzu_db, \
-         patch("catalog_bridge.auto_link_resources", return_value={"linked": 0}):
+    with (
+        patch("ingestion_worker_job_mixin.BASE_DIR", tmp_path),
+        patch("ingestion_worker_job_mixin.run_pipeline_staged", side_effect=fake_merged_pipeline),
+        patch("kuzu.Database") as mock_kuzu_db,
+        patch("catalog_bridge.auto_link_resources", return_value={"linked": 0}),
+    ):
         mock_kuzu_db.return_value.execute.return_value.has_next.return_value = False
         w._process_job(job.job_id)
 
@@ -157,7 +173,7 @@ def test_failed_ingestion_no_graph_change(tmp_path, tmp_store):
     If any staged pipeline step raises an exception, the job status must
     flip to FAILED, the error is recorded, and the live graph is untouched.
     """
-    from ingestion_worker import IngestionWorker, GraphLock
+    from ingestion_worker import GraphLock, IngestionWorker
 
     # Create dummy live DB path
     live_db = tmp_path / "okf_graph.db"
@@ -192,7 +208,7 @@ def test_cancelled_ingestion(tmp_path, tmp_store):
     the job must abort immediately, status flips to CANCELLED, and live graph
     remains untouched.
     """
-    from ingestion_worker import IngestionWorker, GraphLock
+    from ingestion_worker import GraphLock, IngestionWorker
     from okf.pipeline import PipelineAborted
 
     live_db = tmp_path / "okf_graph.db"
@@ -202,7 +218,7 @@ def test_cancelled_ingestion(tmp_path, tmp_store):
     job = tmp_store.create_job("cancelled.pdf")
     upload = tmp_store.job_dir(job.job_id) / "upload.pdf"
     _make_dummy_pdf(upload)
-    
+
     # Request cancellation
     tmp_store.cancel_job(job.job_id)
 
@@ -273,7 +289,7 @@ def test_concurrent_read_during_ingestion():
     # Assert that all read starts occurred before the write start, or similar order.
     # Specifically, writer cannot acquire lock while readers hold it.
     write_start_idx = events.index("write_start")
-    
+
     # Read end events of reader 1 and 2 must happen BEFORE write_start
     assert events.index("read_end_1") < write_start_idx
     assert events.index("read_end_2") < write_start_idx

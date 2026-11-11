@@ -23,3 +23,25 @@ import './19-draw-horizontal-svg.js';
 import './20--compact-history.js';
 import './21-generate-roadmap.js';
 import './expose.js';
+await window.archipelagoAuthReady;
+await window.archipelagoRequireSession();
+if (window.matchMedia('(max-width: 768px)').matches) {
+  window.closeAllSidePanels?.();
+}
+if (window.archipelagoUserId) {
+  const { storageKey } = await import('./storage-key.js');
+  window.showGraphCards = localStorage.getItem(storageKey('showGraphCards')) !== 'false';
+  window.updateGraphToggleUI?.();
+}
+try {
+  const response = await fetch('/api/chat/quota');
+  if (response.ok) {
+    const quota = await response.json();
+    const label = document.getElementById('query-limit-status');
+    if (label) label.textContent = quota.unrestricted
+      ? `${(quota.role || 'Staff').replace(/^./, letter => letter.toUpperCase())}: no app AI query quota · provider limits may apply`
+      : quota.retry_after
+        ? `Student AI cooldown: ${Math.ceil(quota.retry_after / 60)} min · ${quota.used} / 40 today · 10 per burst`
+        : `Student AI queries: ${quota.used} / 40 today · 10 per burst, then 1-hour cooldown`;
+  }
+} catch (_) {}

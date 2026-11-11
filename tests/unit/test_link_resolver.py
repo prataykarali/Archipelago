@@ -1,10 +1,8 @@
 """Unit tests for LinkResolver, HuggingFace, Pearson, DOI, Rate Limiter, Negative Cache, and Bloom Filter."""
+
 from __future__ import annotations
 
-import time
-import pytest
-
-from archipelago.resolver import LinkResolver, resolve_book, resolve_url
+from archipelago.resolver import LinkResolver, resolve_book
 from archipelago.resolver.bloom_filter import BloomFilter, CuckooFilter
 from archipelago.resolver.cache import RateLimiter, ResolverCache
 from archipelago.resolver.doi import extract_doi, resolve_doi
@@ -14,13 +12,15 @@ from archipelago.resolver.validator import check_url_sync
 
 
 def test_huggingface_resolver():
-    res = resolve_huggingface_url("hf://datasets/Prataykarali/Library_books/papers/Vaswani2017_Attention_Is_All_You_Need.pdf")
+    res = resolve_huggingface_url(
+        "hf://datasets/Prataykarali/graphier/papers/Vaswani2017_Attention_Is_All_You_Need.pdf"
+    )
     assert res["working"] is True
     assert "huggingface.co" in res["url"]
 
     res_file = resolve_huggingface_url("Vaswani2017_Attention_Is_All_You_Need.pdf")
     assert res_file["working"] is True
-    assert "Prataykarali/Library_books" in res_file["url"]
+    assert "Prataykarali/graphier" in res_file["url"]
 
 
 def test_doi_resolver():
@@ -72,7 +72,7 @@ def test_rate_limiter_and_negative_cache():
 
 
 def test_ssrf_protection():
-    from archipelago.resolver.validator import check_url_sync, is_safe_url
+    from archipelago.resolver.validator import is_safe_url
 
     safe, err = is_safe_url("http://127.0.0.1/admin")
     assert safe is False
@@ -92,7 +92,7 @@ def test_ssrf_protection():
 def test_link_resolver_integrated():
 
     resolver = LinkResolver()
-    
+
     # HF resolution
     res_hf = resolver.resolve("paper_attention_is_all_you_need_2017")
     assert res_hf["working"] is True

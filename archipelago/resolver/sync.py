@@ -1,6 +1,7 @@
 """
 CLI command for resource synchronization and reconciliation across all 46 resources.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -8,11 +9,9 @@ from collections import Counter
 import json
 import logging
 from pathlib import Path
-import sys
 
-from archipelago.resolver.huggingface import resolve_huggingface_url, verify_hf_repo_file
-from archipelago.resolver.resource_registry import get_registry, ResourceRecord
 from archipelago.resolver.resolver import LinkResolver
+from archipelago.resolver.resource_registry import get_registry
 
 logger = logging.getLogger("archipelago.resolver.sync")
 
@@ -33,18 +32,20 @@ def sync_all_resources(verbose: bool = False) -> tuple[dict, list[dict]]:
     base_dir = Path(__file__).resolve().parents[2]
     pdf_dir = base_dir / "pdfs"
 
-    stats = Counter({
-        "total": len(resources),
-        "huggingface": 0,
-        "pearson": 0,
-        "local": 0,
-        "metadata_only": 0,
-        "resolved": 0,
-        "missing": 0,
-        "auth_required": 0,
-        "stale": 0,
-        "duplicates": 0,
-    })
+    stats = Counter(
+        {
+            "total": len(resources),
+            "huggingface": 0,
+            "pearson": 0,
+            "local": 0,
+            "metadata_only": 0,
+            "resolved": 0,
+            "missing": 0,
+            "auth_required": 0,
+            "stale": 0,
+            "duplicates": 0,
+        }
+    )
 
     duplicates = registry.detect_duplicates()
     stats["duplicates"] = len(duplicates)
@@ -64,7 +65,9 @@ def sync_all_resources(verbose: bool = False) -> tuple[dict, list[dict]]:
 
         if res_source == "huggingface":
             stats["huggingface"] += 1
-            hf_res = resolver.resolve(resource_id=res_id, title=res_title, isbn=res.isbn, source="huggingface")
+            hf_res = resolver.resolve(
+                resource_id=res_id, title=res_title, isbn=res.isbn, source="huggingface"
+            )
             if hf_res.get("working"):
                 status_symbol = "✓"
                 status_text = hf_res.get("filename") or hf_res.get("url", "")
@@ -76,7 +79,9 @@ def sync_all_resources(verbose: bool = False) -> tuple[dict, list[dict]]:
 
         elif res_source == "pearson":
             stats["pearson"] += 1
-            p_res = resolver.resolve(resource_id=res_id, title=res_title, isbn=res.isbn, source="pearson")
+            p_res = resolver.resolve(
+                resource_id=res_id, title=res_title, isbn=res.isbn, source="pearson"
+            )
             if p_res.get("working"):
                 status_symbol = "✓"
                 status_text = res.pearson_book_id or res_id
@@ -125,20 +130,24 @@ def sync_all_resources(verbose: bool = False) -> tuple[dict, list[dict]]:
         if is_stale:
             stats["stale"] += 1
 
-        results.append({
-            "id": res_id,
-            "source": res_source.upper(),
-            "symbol": status_symbol,
-            "title": res_title,
-            "status": status_text,
-            "reader_url": res.reader_url,
-        })
+        results.append(
+            {
+                "id": res_id,
+                "source": res_source.upper(),
+                "symbol": status_symbol,
+                "title": res_title,
+                "status": status_text,
+                "reader_url": res.reader_url,
+            }
+        )
 
     return dict(stats), results
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Resource Synchronization Command for Archipelago (All 46 Resources)")
+    parser = argparse.ArgumentParser(
+        description="Resource Synchronization Command for Archipelago (All 46 Resources)"
+    )
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     args = parser.parse_args()
@@ -148,10 +157,7 @@ def main() -> None:
     stats, results = sync_all_resources(verbose=args.verbose)
 
     if args.json:
-        print(json.dumps({
-            "stats": stats,
-            "details": results
-        }, indent=2))
+        print(json.dumps({"stats": stats, "details": results}, indent=2))
         return
 
     # Print Text Report
@@ -167,11 +173,8 @@ def main() -> None:
     print(f"Auth Required: {stats['auth_required']}")
     print(f"Stale:         {stats['stale']}")
     print(f"Duplicates:    {stats['duplicates']}\n")
-    
-    if stats['total'] > 0:
-        percent = (stats['resolved'] / stats['total']) * 100
-    else:
-        percent = 100.0
+
+    percent = stats["resolved"] / stats["total"] * 100 if stats["total"] > 0 else 100.0
     print(f"Completed: {percent:.2f}%\n")
 
     print("--- DETAILS ---")
@@ -182,4 +185,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

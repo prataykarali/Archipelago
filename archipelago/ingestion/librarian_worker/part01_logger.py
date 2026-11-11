@@ -1,14 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
+from dataclasses import asdict, dataclass, field
 import logging
 import os
-import time
-from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Optional
-from . import _deps as _rt  # noqa: F401
+import time
+from typing import Any
 
+from . import _deps as _rt  # noqa: F401
 
 logger = logging.getLogger("archipelago.ingestion.librarian_worker")
 
@@ -59,16 +60,18 @@ class LibrarianJob:
     chunks_processed: int = 0
     concepts_extracted: int = 0
     dag_status: str = "pending"
-    error: Optional[str] = None
-    hf_remote_path: Optional[str] = None
-    staged_entities: dict[str, Any] = field(default_factory=lambda: {
-        "documents": [],
-        "chunks": [],
-        "concepts": [],
-        "edges": [],
-    })
+    error: str | None = None
+    hf_remote_path: str | None = None
+    staged_entities: dict[str, Any] = field(
+        default_factory=lambda: {
+            "documents": [],
+            "chunks": [],
+            "concepts": [],
+            "edges": [],
+        }
+    )
     created_at: float = field(default_factory=time.time)
-    completed_at: Optional[float] = None
+    completed_at: float | None = None
     auto_publish: bool = False
 
     def to_dict(self) -> dict[str, Any]:

@@ -9,56 +9,97 @@ Implements the docs/01 §10 update loop with explicit per-record outcomes::
 
 Re-running the same file must produce UNCHANGED for every row and must never
 duplicate a node, a relationship, or a library record."""
+
 from __future__ import annotations
 
-import logging  # noqa: F401
-import re  # noqa: F401
 from dataclasses import dataclass, field  # noqa: F401
+import logging  # noqa: F401
 from pathlib import Path  # noqa: F401
+import re  # noqa: F401
 from typing import Any  # noqa: F401
+
 from archipelago.ingestion.mention import normalize_title as _normalize_title  # noqa: F401
 
-from .part01_logger import (  # noqa: F401
-    logger,
-    OUTCOME_CREATE,
-    OUTCOME_UPDATE,
-    OUTCOME_UNCHANGED,
-    OUTCOME_RETIRE,
-    OUTCOMES,
+from .part01_logger import (
+    _ID_STRIP_RE,
+    _INT_FIELDS,
+    _INT_RE,
+    _STR_FIELDS,
+    _TRUTHY,
+    _YEAR_RE,
+    FIELD_ALIASES,
     MAX_ROWS,
     MAX_SCAN_ROWS,
-    _ID_STRIP_RE,
-    _YEAR_RE,
-    _INT_RE,
-    _TRUTHY,
-    FIELD_ALIASES,
+    OUTCOME_CREATE,
+    OUTCOME_RETIRE,
+    OUTCOME_UNCHANGED,
+    OUTCOME_UPDATE,
+    OUTCOMES,
     REQUIRED_FIELDS,
-    _STR_FIELDS,
-    _INT_FIELDS,
-    RecordChange,
     MergePlan,
-    _slug,
-    _clean_str,
-    _to_int,
-    _to_bool,
-    normalize_header,
+    RecordChange,
     _alias_map,
-    map_columns,
-    row_to_record,
-    record_id_for,
-    read_rows,
+    _clean_str,
+    _diff_fields,
+    _fetch_existing,
+    _slug,
+    _to_bool,
+    _to_int,
     find_header_row,
     load_records,
-    _fetch_existing,
-    _diff_fields,
+    logger,
+    map_columns,
+    normalize_header,
     plan_merge,
+    read_rows,
+    record_id_for,
+    row_to_record,
 )
-from .part02_apply_merge import (  # noqa: F401
-    apply_merge,
-    _subject_params,
+from .part02_apply_merge import (
     _resource_params,
+    _subject_params,
     _update_statements,
     _write_plan,
+    apply_merge,
 )
 
-__all__ = ["logger", "OUTCOME_CREATE", "OUTCOME_UPDATE", "OUTCOME_UNCHANGED", "OUTCOME_RETIRE", "OUTCOMES", "MAX_ROWS", "MAX_SCAN_ROWS", "_ID_STRIP_RE", "_YEAR_RE", "_INT_RE", "_TRUTHY", "FIELD_ALIASES", "REQUIRED_FIELDS", "_STR_FIELDS", "_INT_FIELDS", "RecordChange", "MergePlan", "_slug", "_clean_str", "_to_int", "_to_bool", "normalize_header", "_alias_map", "map_columns", "row_to_record", "record_id_for", "read_rows", "find_header_row", "load_records", "_fetch_existing", "_diff_fields", "plan_merge", "apply_merge", "_subject_params", "_resource_params", "_update_statements", "_write_plan"]
+__all__ = [
+    "FIELD_ALIASES",
+    "MAX_ROWS",
+    "MAX_SCAN_ROWS",
+    "OUTCOMES",
+    "OUTCOME_CREATE",
+    "OUTCOME_RETIRE",
+    "OUTCOME_UNCHANGED",
+    "OUTCOME_UPDATE",
+    "REQUIRED_FIELDS",
+    "_ID_STRIP_RE",
+    "_INT_FIELDS",
+    "_INT_RE",
+    "_STR_FIELDS",
+    "_TRUTHY",
+    "_YEAR_RE",
+    "MergePlan",
+    "RecordChange",
+    "_alias_map",
+    "_clean_str",
+    "_diff_fields",
+    "_fetch_existing",
+    "_resource_params",
+    "_slug",
+    "_subject_params",
+    "_to_bool",
+    "_to_int",
+    "_update_statements",
+    "_write_plan",
+    "apply_merge",
+    "find_header_row",
+    "load_records",
+    "logger",
+    "map_columns",
+    "normalize_header",
+    "plan_merge",
+    "read_rows",
+    "record_id_for",
+    "row_to_record",
+]

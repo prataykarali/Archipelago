@@ -1,8 +1,8 @@
 """Production output hygiene: strip internal lineage + raw source dumps."""
+
 from __future__ import annotations
 
 import re
-
 
 # Bare "p.N ↗" chips outside markdown links.
 _BARE_PAGE_ARROW_RE = re.compile(r"\bp\.\d+\s*\u2197")
@@ -15,9 +15,7 @@ _LINKED_PAGE_CHIP_RE = re.compile(r"\[p\.\d+\s*\u2197\]\([^)]*\)")
 _DOC_ID_LINEAGE_RE = re.compile(r"\[doc_id:\s*.*?\]", re.DOTALL)
 _CHUNK_LINEAGE_RE = re.compile(r"\[[^\]]*_chunk_\d+[^\]]*\]")
 # Raw per-chunk source lines: " papers/Edge2024_GraphRAG.pdf_chunk_030, page 8"
-_RAW_SOURCE_LINE_RE = re.compile(
-    r"(?m)^\s*\S*_chunk_\d+,\s*page\s*\d+\s*$"
-)
+_RAW_SOURCE_LINE_RE = re.compile(r"(?m)^\s*\S*_chunk_\d+,\s*page\s*\d+\s*$")
 # The raw source-list header block that must never ship.
 _SOURCE_CITATIONS_HEADER_RE = re.compile(r"(?m)^\s*Source Citations:\s*$")
 _ORPHAN_QUERY_RE = re.compile(r"(?im)^\s*(?:c_id|doc_id|page|highlight)=[^\n]*$")

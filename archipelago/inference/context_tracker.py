@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 import re
 from typing import Any
 
-SESSION_CONTEXTS: dict[str, "ContextTracker"] = {}
+SESSION_CONTEXTS: dict[str, ContextTracker] = {}
 """Module-level session store mapping session_id → ContextTracker."""
 
 #: A session is idle after this long without a user turn. Reported so the chat UI
@@ -23,12 +23,39 @@ MAX_TRAIL = 12
 #: How many leading tokens of a user turn are kept as its topic label.
 TOPIC_LABEL_TOKENS = 6
 
-_STOPWORDS = frozenset({
-    "this", "that", "what", "which", "when", "where", "how", "does", "did",
-    "explain", "tell", "show", "give", "learn", "teach", "about", "with",
-    "from", "into", "have", "help", "please", "want", "need", "more",
-    "library", "book", "textbook", "chapter",
-})
+_STOPWORDS = frozenset(
+    {
+        "this",
+        "that",
+        "what",
+        "which",
+        "when",
+        "where",
+        "how",
+        "does",
+        "did",
+        "explain",
+        "tell",
+        "show",
+        "give",
+        "learn",
+        "teach",
+        "about",
+        "with",
+        "from",
+        "into",
+        "have",
+        "help",
+        "please",
+        "want",
+        "need",
+        "more",
+        "library",
+        "book",
+        "textbook",
+        "chapter",
+    }
+)
 
 
 def _topic_tokens(text: str) -> set[str]:
@@ -80,7 +107,12 @@ class ContextTracker:
         self._shift_detected = bool(previous) and _overlap(previous, tokens) < SAME_TOPIC_OVERLAP
         label = " ".join(sorted(tokens)[:TOPIC_LABEL_TOKENS]) or content.strip()[:60]
         self._trail.append(
-            {"topic": label, "at": now.isoformat(), "tokens": tokens, "shifted": self._shift_detected}
+            {
+                "topic": label,
+                "at": now.isoformat(),
+                "tokens": tokens,
+                "shifted": self._shift_detected,
+            }
         )
         del self._trail[:-MAX_TRAIL]
 
@@ -157,4 +189,3 @@ def get_or_create_context(session_id: str) -> ContextTracker:
     if session_id not in SESSION_CONTEXTS:
         SESSION_CONTEXTS[session_id] = ContextTracker()
     return SESSION_CONTEXTS[session_id]
-

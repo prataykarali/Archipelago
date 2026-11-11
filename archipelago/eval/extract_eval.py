@@ -22,6 +22,7 @@ Following Skill 2 the summary reports a **distribution** (mean/std/min/max/p5/
 p95) rather than a single pass/fail, so a 90%-mean run with visible spread is
 distinguishable from a fluke.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -37,6 +38,15 @@ import time
 from typing import Any
 
 from okf.config import BASE_DIR
+
+from .extract_eval_report import report as report
+from .extract_eval_vocab import (
+    ACRONYM_EXPANSIONS,
+    PERSON_TOKENS,
+    REQUIRED_KEYS,
+    VALID_DIFFICULTIES,
+    VALID_TYPES,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,53 +64,6 @@ GATE_MAX_CELEBRITY_CONCEPTS = 0
 # Probe window: enough of a real page to be representative, small enough to
 # keep a full run under a couple of minutes on CPU.
 PROBE_CHAR_LIMIT = 2500
-
-REQUIRED_KEYS = (
-    "concept_name",
-    "concept_type",
-    "difficulty",
-    "summary",
-    "prerequisites",
-    "unlocks",
-    "related_to",
-    "tags",
-)
-VALID_TYPES = frozenset({"core", "technique", "definition", "algorithm", "theorem"})
-VALID_DIFFICULTIES = frozenset({"foundational", "intermediate", "advanced"})
-
-# Names that must never become graph nodes. A prior fine-tune turned author
-# names into concepts ("Goodfellow"), which pollutes the graph permanently
-# because concept nodes are MERGE-d: a bad node cannot be removed without
-# rebuilding every downstream edge.
-#
-# Only a *fully* person-indicating name is flagged. "Goodfellow GAN" is a
-# legitimate concept that merely names an author, so a name counts as a person
-# only when every token is person-indicating.
-PERSON_TOKENS = frozenset({
-    "author", "authors", "et", "al", "professor", "dr", "nobel", "laureate",
-    "ian", "geoffrey", "yann", "andrej", "joshua", "tim", "timothee",
-    "goodfellow", "pouget", "abadie", "mirza", "bengio", "lecun", "hinton",
-    "vaswani", "shazeer", "parmar", "devlin", "chang", "lee", "toshev",
-    "krizhevsky", "sutskever", "hechtman", "srivastava", "ho", "graphrag",
-    "hu", "shen", "zhu", "liu", "wang", "zhang", "chen", "li", "yang",
-    "jurafsky", "martin", "proakis", "manolakis", "deisenroth", "mohri",
-    "silberschatz", "galvin", "gagne", "arpaci", "dusseau", "stallings",
-    "tanenbaum", "kernighan", "ritchie", "thompson", "page", "karp",
-})
-# Acronyms whose expansion a fine-tuned model may emit interchangeably with
-# the short form. Scored as equal rather than as a miss.
-ACRONYM_EXPANSIONS = {
-    "lora": "low rank adaptation",
-    "sgd": "stochastic gradient descent",
-    "bert": "bidirectional encoder representations from transformers",
-    "knn": "k nearest neighbors",
-    "svm": "support vector machine",
-    "adam": "adaptive moment estimation",
-    "gnn": "graph neural network",
-    "cnn": "convolutional neural network",
-    "rnn": "recurrent neural network",
-    "rl": "reinforcement learning",
-}
 
 
 def _norm(text: str) -> str:
@@ -286,9 +249,7 @@ def run_probe(extractor: Any, probe: dict[str, Any]) -> ProbeResult:
         result.json_valid = isinstance(concepts, list)
         concepts = concepts if result.json_valid else []
         result.schema_ok = validate_schema(concepts)
-        result.predicted = [
-            str(c.get("name") or c.get("concept_name") or "") for c in concepts
-        ]
+        result.predicted = [str(c.get("name") or c.get("concept_name") or "") for c in concepts]
         result.celebrity_concepts = [n for n in result.predicted if looks_like_celebrity(n)]
         result.self_references = sum(count_self_references(c) for c in concepts)
     except Exception as exc:
@@ -333,9 +294,9 @@ def evaluate(
         "f1_alias": summarize([r.f1_alias for r in scored]),
         "latency_s": summarize([r.latency_s for r in results]),
         "empty_gold_n": len(empty_probes),
-        "empty_exact_match_pct": round(
-            100.0 * empty_hits / len(empty_probes), 2
-        ) if empty_probes else 0.0,
+        "empty_exact_match_pct": round(100.0 * empty_hits / len(empty_probes), 2)
+        if empty_probes
+        else 0.0,
         "celebrity_concepts": sum(len(r.celebrity_concepts) for r in results),
         "self_ref_count": sum(r.self_references for r in results),
         "errors": sum(1 for r in results if r.error),
@@ -348,9 +309,7 @@ def evaluate(
         "no_celeb_concepts": metrics["celebrity_concepts"] <= GATE_MAX_CELEBRITY_CONCEPTS,
         # Only meaningful when the probe set actually contains empty-gold cases.
         "empty_match_ge_40_if_present": (
-            metrics["empty_exact_match_pct"] >= GATE_EMPTY_MATCH_MIN
-            if empty_probes
-            else True
+            metrics["empty_exact_match_pct"] >= GATE_EMPTY_MATCH_MIN if empty_probes else True
         ),
         "self_ref_low": metrics["self_ref_count"] <= 1,
     }
@@ -384,41 +343,6 @@ def _by_tag(results: Sequence[ProbeResult]) -> dict[str, dict[str, Any]]:
     for bucket in out.values():
         bucket["f1_alias"] = summarize(bucket["f1_alias"])
     return out
-
-
-def report(report_payload: dict[str, Any]) -> str:
-    """Human-readable summary of an eval run."""
-    metrics = report_payload["metrics"]
-    lines = [
-        f"SLM extraction eval — model={report_payload['model']}  "
-        f"probes={report_payload['n_probes']}",
-        "",
-        f"  JSON valid      {metrics['json_valid_pct']:6.1f}%",
-        f"  Schema OK       {metrics['schema_ok_pct']:6.1f}%",
-        f"  F1 (alias)      mean {metrics['f1_alias']['mean']:.3f}  "
-        f"std {metrics['f1_alias']['std']:.3f}  "
-        f"p5 {metrics['f1_alias']['p5']:.3f}  p95 {metrics['f1_alias']['p95']:.3f}",
-        f"  F1 (exact)      mean {metrics['f1_exact']['mean']:.3f}  "
-        f"std {metrics['f1_exact']['std']:.3f}",
-        f"  Empty-gold hit  {metrics['empty_exact_match_pct']:6.1f}%  "
-        f"(n={metrics['empty_gold_n']})",
-        f"  Celebrity nodes {metrics['celebrity_concepts']:6d}",
-        f"  Self-refs       {metrics['self_ref_count']:6d}",
-        f"  Latency (s)     mean {metrics['latency_s']['mean']:.2f}  "
-        f"p95 {metrics['latency_s']['p95']:.2f}",
-        "",
-        "Gate:",
-    ]
-    for name, ok in report_payload["gate"]["checks"].items():
-        lines.append(f"  [{'PASS' if ok else 'FAIL'}] {name}")
-    gate = report_payload["gate"]
-    lines += [
-        "",
-        f"  {gate['pass_count']}/{gate['total']} checks passed",
-        f"  ready_for_pilot_ingest: {gate['ready_for_pilot_ingest']}",
-        f"  ready_for_full_replace: {gate['ready_for_full_replace']}",
-    ]
-    return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> int:

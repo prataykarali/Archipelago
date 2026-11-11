@@ -3,9 +3,10 @@ tests/e2e/test_upload_flow.py — E2E manual verification script and curl docs.
 """
 
 import os
-import sys
 import unittest
+
 import requests
+
 
 class TestUploadFlow(unittest.TestCase):
     """
@@ -21,29 +22,29 @@ class TestUploadFlow(unittest.TestCase):
     def test_upload_flow_curl_docs(self):
         """
         Documents the expected upload flow and provides curl commands to test each step manually.
-        
+
         ========== MANUAL UPLOAD FLOW INSTRUCTIONS ==========
-        
+
         Step 1: Start Ingestion
         Upload a PDF file using multipart form-data.
-        
+
         Curl command:
           curl -i -X POST -F "file=@/home/pratay-karali/Desktop/libraryAI/libraryAI/pdfs/Hu2021_LoRA.pdf" http://localhost:5051/api/ingest
-          
+
         Expected Response (202 Accepted):
           {
             "job_id": "<job_id>",
             "status": "queued"
           }
-          
+
         -----------------------------------------------------
-        
+
         Step 2: Poll Ingestion Job Status
         Poll the status of the job using the returned job_id.
-        
+
         Curl command:
           curl -i http://localhost:5051/api/ingest/<job_id>
-          
+
         Expected Response (200 OK):
           {
             "job_id": "...",
@@ -53,30 +54,34 @@ class TestUploadFlow(unittest.TestCase):
             },
             ...
           }
-          
+
         -----------------------------------------------------
-        
+
         Step 3: Optional Cancellation
         Cancel a running or queued job.
-        
+
         Curl command:
           curl -i http://localhost:5051/api/ingest/<job_id>/cancel
-          
+
         Expected Response (200 OK):
           {
             "job_id": "...",
             "status": "CANCELLED",
             "cancelled": true
           }
-          
+
         =====================================================
         """
         API_HOST = "http://localhost:5051"
-        
+
         # Verify inference server is running and ready
         try:
             res = requests.get(f"{API_HOST}/api/readiness", timeout=5)
-            self.assertIn(res.status_code, [200, 503], "Inference server is not running or responding correctly")
+            self.assertIn(
+                res.status_code,
+                [200, 503],
+                "Inference server is not running or responding correctly",
+            )
             print("✓ Live Inference Server is online.")
         except requests.exceptions.RequestException as e:
             self.fail(f"Could not connect to inference server at {API_HOST}: {e}")

@@ -1,7 +1,9 @@
 """Catalog ranking module for sorting documents by academic metrics."""
+
 from __future__ import annotations
 
 from typing import Any
+
 from evaluate_pdf_catalog import evaluate_pdf_catalog
 
 

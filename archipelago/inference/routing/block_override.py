@@ -1,4 +1,5 @@
 """Graph-grounded veto of intent-gate hard blocks."""
+
 from __future__ import annotations
 
 from archipelago.inference import state as st
@@ -21,10 +22,7 @@ def _graph_block_override(query: str, ranked: list) -> list | None:
         return None
     norm = normalize_user_query(query)
     core = _QUESTION_FRAMING_RE.sub("", norm).strip(" ?!.") or norm
-    tokens = {
-        t for t in _clean_query_words(core)
-        if t not in _COVERAGE_STOPWORDS
-    }
+    tokens = {t for t in _clean_query_words(core) if t not in _COVERAGE_STOPWORDS}
     if not tokens:
         return None
     for r in ranked[:5]:
@@ -38,17 +36,11 @@ def _graph_block_override(query: str, ranked: list) -> list | None:
         alias_tokens = set()
         for a in aliases:
             alias_tokens |= _clean_query_words((a or "").lower())
-        label_tokens = _clean_query_words(
-            (r.get("label") or r.get("name") or "").lower()
-        )
+        label_tokens = _clean_query_words((r.get("label") or r.get("name") or "").lower())
         alias_tokens |= label_tokens
         matched = {
-            t for t in tokens
-            if t in alias_tokens or (t.endswith("s") and t[:-1] in alias_tokens)
+            t for t in tokens if t in alias_tokens or (t.endswith("s") and t[:-1] in alias_tokens)
         }
         if len(matched) / len(tokens) >= 0.5:
-            return [
-                x.get("label") or x.get("name") or x.get("id")
-                for x in ranked[:3]
-            ]
+            return [x.get("label") or x.get("name") or x.get("id") for x in ranked[:3]]
     return None

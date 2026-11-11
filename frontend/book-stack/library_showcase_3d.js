@@ -1,0 +1,1 @@
+../../ui/chat/library_showcase_3d.js

@@ -14,6 +14,7 @@ Regenerate with::
 
     python scripts/build_corpus_fixture.py --concepts 60
 """
+
 from __future__ import annotations
 
 import argparse
@@ -90,9 +91,7 @@ def pick(graph: dict, limit: int) -> tuple[list[dict], list[dict]]:
     kept_nodes = [nodes[cid] for cid in nodes if cid in keep]
     kept_ids = set(keep)
     kept_edges = [
-        edge
-        for edge in edges
-        if edge.get("from_id") in kept_ids and edge.get("to_id") in kept_ids
+        edge for edge in edges if edge.get("from_id") in kept_ids and edge.get("to_id") in kept_ids
     ]
     return kept_nodes, kept_edges
 

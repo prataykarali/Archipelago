@@ -1,18 +1,15 @@
-"""JobProcessingMixin: staged pipeline job processing for IngestionWorker.
+"""Stage ingestion jobs and swap verified graph data into the live store."""
 
-Split out of ingestion_worker.py to keep every file under 400 lines; the
-method body is byte-identical to the original.
-"""
 from __future__ import annotations
 
 import json
 import logging
 import os
-import shutil
 from pathlib import Path
-from typing import Any, Dict
+import shutil
+from typing import Any
 
-from ingestion_jobs import JobStatus
+from ingestion_jobs import JobStatus, JobStore
 from okf.config import BASE_DIR
 from okf.exports import export_vis_json
 from okf.pipeline import PipelineAborted, run_pipeline_staged
@@ -21,7 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 class JobProcessingMixin:
-    def _process_job(self, job_id: str):
+    job_store: JobStore
+    live_db_path: str
+    graph_lock: Any
+
+    def _process_job(self, job_id: str) -> None:
         job = self.job_store.get_job(job_id)
         if not job:
             return
@@ -55,17 +56,14 @@ class JobProcessingMixin:
             return
         temp_db_path = str(job_dir / "temp_graph.db")
 
-        # 1. Update status to PARSING
         self.job_store.update_status(job_id, JobStatus.PARSING)
 
-        def on_progress(stage, pct, detail):
+        def on_progress(stage: str, pct: int, detail: dict[str, Any]) -> None:
             self.job_store.update_status(
-                job_id,
-                JobStatus(stage),
-                progress={stage: {"pct": pct, "detail": detail}}
+                job_id, JobStatus(stage), progress={stage: {"pct": pct, "detail": detail}}
             )
 
-        def check_cancelled():
+        def check_cancelled() -> bool:
             return self.job_store.is_cancelled(job_id)
 
         try:
@@ -83,7 +81,7 @@ class JobProcessingMixin:
             prior_doc_ids = doc_ids_in_results(prior_results)
 
             # Optional librarian metadata (title, shelf, license, …)
-            upload_meta: Dict[str, Any] = {}
+            upload_meta: dict[str, Any] = {}
             meta_path = job_dir / "meta.json"
             if meta_path.is_file():
                 try:
@@ -91,9 +89,7 @@ class JobProcessingMixin:
                 except (OSError, json.JSONDecodeError):
                     upload_meta = {}
 
-            license_mode = str(
-                upload_meta.get("license_mode") or "full"
-            ).strip().lower() or "full"
+            license_mode = str(upload_meta.get("license_mode") or "full").strip().lower() or "full"
             if license_mode not in ("full", "toc_only", "metadata_only"):
                 license_mode = "full"
             upload_meta["license_mode"] = license_mode
@@ -129,6 +125,7 @@ class JobProcessingMixin:
                     from archipelago.inference.inventory_ssot import (
                         clear_all_inventory_caches,
                     )
+
                     clear_all_inventory_caches()
                 except Exception as cache_err:
                     logger.warning("Inventory cache clear failed: %s", cache_err)
@@ -148,12 +145,10 @@ class JobProcessingMixin:
                         },
                         "pdf_relpath": dest_rel_full,
                         "inventory_id": (
-                            f"librarian_upload_"
+                            "librarian_upload_"
                             + "".join(
                                 ch if ch.isalnum() else "_"
-                                for ch in str(
-                                    upload_meta.get("title") or dest_rel_full
-                                ).lower()
+                                for ch in str(upload_meta.get("title") or dest_rel_full).lower()
                             ).strip("_")[:64]
                         ),
                     },
@@ -163,6 +158,7 @@ class JobProcessingMixin:
 
             # toc_only / full: staged OKF extract. Cap pages for commercial TOC.
             import okf.config as _okf_cfg
+
             _prev_max_pages = _okf_cfg.MAX_PAGES_PER_DOC
             if license_mode == "toc_only":
                 # Structure/front-matter only — never full commercial body.
@@ -176,7 +172,7 @@ class JobProcessingMixin:
                     source_path=str(upload_pdf),
                     temp_db_path=temp_db_path,
                     on_progress=on_progress,
-                    check_cancelled=check_cancelled
+                    check_cancelled=check_cancelled,
                 )
             finally:
                 _okf_cfg.MAX_PAGES_PER_DOC = _prev_max_pages
@@ -186,11 +182,11 @@ class JobProcessingMixin:
             # After copy into pdfs/, final id may be papers/<name>; use
             # results-derived id when present.
             merged_ids = doc_ids_in_results(okf_results)
-            for candidate in merged_ids:
-                base = candidate.replace("\\", "/").rsplit("/", 1)[-1]
+            for candidate_id in merged_ids:
+                base = candidate_id.replace("\\", "/").rsplit("/", 1)[-1]
                 upload_base = Path(job.source_filename or upload_pdf.name).name
-                if base == upload_base or candidate == uploading_doc_id:
-                    uploading_doc_id = candidate
+                if base == upload_base or candidate_id == uploading_doc_id:
+                    uploading_doc_id = candidate_id
                     break
 
             assert_merge_safe(prior_doc_ids, merged_ids, uploading_doc_id)
@@ -255,6 +251,7 @@ class JobProcessingMixin:
 
                 try:
                     from archipelago.inference.state import reload_db
+
                     reload_db()
                 except ImportError:
                     pass
@@ -263,19 +260,22 @@ class JobProcessingMixin:
 
                 try:
                     import okf.graph_db as _gdb
+
                     _gdb._DEFAULT_GRAPH_DB = None
                 except ImportError:
                     pass
 
-                from okf.exports import write_all_artifacts
                 import kuzu
+
+                from okf.exports import write_all_artifacts
+
                 new_db = kuzu.Database(self.live_db_path)
-                write_all_artifacts(graph_export, okf_results, new_db,
-                                    base_dir=BASE_DIR)
+                write_all_artifacts(graph_export, okf_results, new_db, base_dir=BASE_DIR)
 
                 # Link Resource ↔ Document when catalog schema is present.
                 try:
                     from catalog_bridge import auto_link_resources
+
                     link_stats = auto_link_resources(self.live_db_path)
                     on_progress(
                         "GRAPH_VALIDATION",
@@ -287,11 +287,11 @@ class JobProcessingMixin:
 
                 try:
                     from archipelago.inference.embeddings import build_concept_embeddings
+
                     build_concept_embeddings()
                 except (ImportError, AttributeError):
                     pass
 
-            # 3. FINALIZE (after releasing write lock)
             pdf_dest_dir = BASE_DIR / "pdfs"
             pdf_dest_dir.mkdir(parents=True, exist_ok=True)
             src_name = job.source_filename or upload_pdf.name
@@ -311,9 +311,16 @@ class JobProcessingMixin:
             except ValueError:
                 dest_rel = dest_pdf_path.name
             # Prefer path under pdfs/ for inventory + future re-ingest
-            dest_rel_full = f"{sub.name}/{Path(src_name).name}" if sub.name in (
-                "papers", "textbooks", "web_syllabi",
-            ) else dest_rel
+            dest_rel_full = (
+                f"{sub.name}/{Path(src_name).name}"
+                if sub.name
+                in (
+                    "papers",
+                    "textbooks",
+                    "web_syllabi",
+                )
+                else dest_rel
+            )
 
             # graph_ready=1 only after successful merge + swap above.
             upsert_upload_inventory_meta(
@@ -323,6 +330,7 @@ class JobProcessingMixin:
             )
             try:
                 from archipelago.inference.inventory_ssot import clear_all_inventory_caches
+
                 clear_all_inventory_caches()
             except Exception as cache_err:
                 logger.warning("Inventory cache clear failed: %s", cache_err)
@@ -351,18 +359,19 @@ class JobProcessingMixin:
                     new_node_ids.append(cid)
                     merged_concepts.append(cinfo.get("name"))
 
-            inv_slug = "".join(
-                ch if ch.isalnum() else "_"
-                for ch in str(
-                    (upload_meta or {}).get("title") or Path(src_name).stem
-                ).lower()
-            ).strip("_")[:64] or "upload"
+            inv_slug = (
+                "".join(
+                    ch if ch.isalnum() else "_"
+                    for ch in str((upload_meta or {}).get("title") or Path(src_name).stem).lower()
+                ).strip("_")[:64]
+                or "upload"
+            )
             res_meta = {
                 "nodes": graph_export.get("stats", {}).get("total_concepts", 0),
                 "edges": graph_export.get("stats", {}).get("total_edges", 0),
                 "new_node_ids": new_node_ids,
                 "merged_concepts": merged_concepts,
-                "source_pages": sorted(list(source_pages)),
+                "source_pages": sorted(source_pages),
                 "merge": {
                     "mode": "full_rebuild_from_merged_okf_results",
                     "license_mode": license_mode,
@@ -376,10 +385,7 @@ class JobProcessingMixin:
                 "inventory_id": f"librarian_upload_{inv_slug}",
             }
             self.job_store.update_status(
-                job_id,
-                JobStatus.COMPLETE,
-                result=res_meta,
-                graph_version=next_version
+                job_id, JobStatus.COMPLETE, result=res_meta, graph_version=next_version
             )
 
         except PipelineAborted:

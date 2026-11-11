@@ -8,6 +8,7 @@ Usage:
 from __future__ import annotations
 
 import os
+
 from locust import HttpUser, between, task
 
 

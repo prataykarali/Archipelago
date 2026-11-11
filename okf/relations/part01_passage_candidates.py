@@ -1,9 +1,12 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import json
 import sys
 import time
+from typing import Any, overload
+
 from okf import extraction
 from okf.cleanup import cleanup_and_canonicalize
 from okf.config import BASE_DIR, MAX_CHARS_TO_SLM, RELATION_PROMPT
@@ -14,10 +17,12 @@ from okf.extraction import (
     _string_list,
     load_local_model,
 )
+
 from . import _deps as _rt  # noqa: F401
+from .part03_direction import infer_prerequisite_direction as infer_prerequisite_direction
 
 
-def _passage_candidates(record: dict, all_names: list, cap: int = 8) -> list:
+def _passage_candidates(record: dict[str, Any], all_names: list[str], cap: int = 8) -> list[str]:
     """Canonical concept names (other than the record's own) that appear
     verbatim, case-insensitively, in the record's source passage."""
     passage_lower = (record.get("source_passage") or "").lower()
@@ -33,12 +38,12 @@ def _passage_candidates(record: dict, all_names: list, cap: int = 8) -> list:
     return candidates
 
 
-def extract_relations_for_record(record: dict, candidates: list) -> dict:
+def extract_relations_for_record(record: dict[str, Any], candidates: list[str]) -> dict[str, Any]:
     """Prompt the local model for relations between a record's concept and the
     candidate concepts found in its passage. Returns accepted relations only
     (targets restricted to the candidate list); defensive parse like
     extract_okf_v15. Empty dict-of-empty-lists on any failure."""
-    empty = {"prerequisites": [], "unlocks": [], "related_to": []}
+    empty: dict[str, Any] = {"prerequisites": [], "unlocks": [], "related_to": []}
     passage = record.get("source_passage") or ""
     if len(passage) > MAX_CHARS_TO_SLM:
         passage = passage[:MAX_CHARS_TO_SLM]
@@ -61,7 +66,7 @@ def extract_relations_for_record(record: dict, candidates: list) -> dict:
     own_lower = (record.get("concept_name") or "").strip().lower()
     cand_lookup = {c.lower(): c for c in candidates}
 
-    def _accept_names(values):
+    def _accept_names(values: object) -> list[str]:
         accepted = []
         for v in _string_list(values):
             key = v.strip().lower()
@@ -88,7 +93,7 @@ def extract_relations_for_record(record: dict, candidates: list) -> dict:
     }
 
 
-def relation_pass(okf_results: list) -> dict:
+def relation_pass(okf_results: list[dict[str, Any]]) -> dict[str, int]:
     """Second-pass relation extraction over cleaned+canonicalized records.
 
     Mutates records in place: accepted relations are unioned onto the
@@ -100,13 +105,17 @@ def relation_pass(okf_results: list) -> dict:
         load_local_model()
     if not extraction.LOCAL_MODE or extraction.LOCAL_MODEL is None:
         print("ERROR: local model unavailable — relation pass never falls back to Ollama.")
-        return {"processed": 0, "skipped": 0, "records_with_new_relations": 0,
-                "relations_added": 0}
+        return {"processed": 0, "skipped": 0, "records_with_new_relations": 0, "relations_added": 0}
 
     all_names = sorted(
-        {r.get("concept_name", "").strip() for r in okf_results
-         if r.get("concept_name", "").strip()},
-        key=len, reverse=True)  # longest first so 'Gradient Descent' beats 'Gradient'
+        {
+            r.get("concept_name", "").strip()
+            for r in okf_results
+            if r.get("concept_name", "").strip()
+        },
+        key=len,
+        reverse=True,
+    )  # longest first so 'Gradient Descent' beats 'Gradient'
 
     eligible = []
     skipped = 0
@@ -120,15 +129,20 @@ def relation_pass(okf_results: list) -> dict:
             continue
         eligible.append((r, candidates))
 
-    print(f"\n[RELATION PASS] {len(eligible)} records with candidates "
-          f"({skipped} skipped: trivial passage or no co-occurring concepts)")
+    print(
+        f"\n[RELATION PASS] {len(eligible)} records with candidates "
+        f"({skipped} skipped: trivial passage or no co-occurring concepts)"
+    )
 
-    stats = {"processed": 0, "skipped": skipped,
-             "records_with_new_relations": 0, "relations_added": 0}
+    stats = {
+        "processed": 0,
+        "skipped": skipped,
+        "records_with_new_relations": 0,
+        "relations_added": 0,
+    }
     for i, (r, candidates) in enumerate(eligible):
         name = r.get("concept_name", "")
-        print(f"  [{i+1}/{len(eligible)}] {name[:40]:40s} "
-              f"({len(candidates)} candidates)", end="")
+        print(f"  [{i + 1}/{len(eligible)}] {name[:40]:40s} ({len(candidates)} candidates)", end="")
         sys.stdout.flush()
         start_time = time.time()
         rels = extract_relations_for_record(r, candidates)
@@ -144,8 +158,11 @@ def relation_pass(okf_results: list) -> dict:
             if u not in r.setdefault("unlocks", []):
                 r["unlocks"].append(u)
                 added += 1
-        existing_rel = {(x.get("concept", "").lower(), x.get("relation", ""))
-                        for x in r.get("related_to", []) if isinstance(x, dict)}
+        existing_rel = {
+            (x.get("concept", "").lower(), x.get("relation", ""))
+            for x in r.get("related_to", [])
+            if isinstance(x, dict)
+        }
         for rel in rels["related_to"]:
             key = (rel["concept"].lower(), rel["relation"])
             if key not in existing_rel:
@@ -157,19 +174,22 @@ def relation_pass(okf_results: list) -> dict:
             stats["records_with_new_relations"] += 1
             stats["relations_added"] += added
             summary = "; ".join(
-                [f"req:{p}" for p in rels["prerequisites"]] +
-                [f"unl:{u}" for u in rels["unlocks"]] +
-                [f"{x['relation']}:{x['concept']}" for x in rels["related_to"]])
+                [f"req:{p}" for p in rels["prerequisites"]]
+                + [f"unl:{u}" for u in rels["unlocks"]]
+                + [f"{x['relation']}:{x['concept']}" for x in rels["related_to"]]
+            )
             print(f" -> +{added} [{summary[:60]}] ({elapsed:.1f}s)")
         else:
             print(f" -> 0 ({elapsed:.1f}s)")
 
-    print(f"\n  Relation pass: {stats['relations_added']} relations added to "
-          f"{stats['records_with_new_relations']}/{stats['processed']} records")
+    print(
+        f"\n  Relation pass: {stats['relations_added']} relations added to "
+        f"{stats['records_with_new_relations']}/{stats['processed']} records"
+    )
     return stats
 
 
-def run_relations_only():
+def run_relations_only() -> Any:
     """--relations-only mode: load saved results, clean+canonicalize, run the
     second-pass relation extraction, save, and rebuild the graph."""
     # Deferred import: pipeline imports this module, so importing it at the
@@ -180,7 +200,7 @@ def run_relations_only():
     if not saved_file.exists():
         print("ERROR: okf_results.json not found — run extraction first.")
         return
-    with open(saved_file, "r", encoding="utf-8") as f:
+    with open(saved_file, encoding="utf-8") as f:
         okf_results = json.load(f)
     print(f"Loaded {len(okf_results)} records from okf_results.json")
 
@@ -190,16 +210,34 @@ def run_relations_only():
 
     relation_pass(okf_results)
 
-    chunk_count = len({(r.get("doc_id", ""), r.get("chunk_id", ""))
-                       for r in okf_results if r.get("chunk_id")})
+    chunk_count = len(
+        {(r.get("doc_id", ""), r.get("chunk_id", "")) for r in okf_results if r.get("chunk_id")}
+    )
     return finalize_and_build(okf_results, chunk_count, chunk_count)
 
 
-def validate_relation(relation, chunks: list, alias_index: dict = None) -> bool:
+def validate_relation(
+    relation: object,
+    chunks: list[dict[str, Any]],
+    alias_index: dict[str, str] | None = None,
+) -> bool:
     """Check if both concepts of the relation (or their aliases) co-occur in at least one chunk."""
     if isinstance(relation, dict):
-        concept_a = relation.get("source") or relation.get("concept_a") or relation.get("from") or relation.get("from_name") or relation.get("from_id")
-        concept_b = relation.get("target") or relation.get("concept_b") or relation.get("to") or relation.get("to_name") or relation.get("to_id") or relation.get("concept")
+        concept_a = (
+            relation.get("source")
+            or relation.get("concept_a")
+            or relation.get("from")
+            or relation.get("from_name")
+            or relation.get("from_id")
+        )
+        concept_b = (
+            relation.get("target")
+            or relation.get("concept_b")
+            or relation.get("to")
+            or relation.get("to_name")
+            or relation.get("to_id")
+            or relation.get("concept")
+        )
     elif isinstance(relation, (tuple, list)) and len(relation) >= 2:
         concept_a = relation[0]
         concept_b = relation[1]
@@ -210,10 +248,10 @@ def validate_relation(relation, chunks: list, alias_index: dict = None) -> bool:
         return False
 
     from okf.alias_index import generate_aliases_for_name, resolve_concept_name
-    
+
     a_canon = resolve_concept_name(str(concept_a), alias_index) if alias_index else str(concept_a)
     b_canon = resolve_concept_name(str(concept_b), alias_index) if alias_index else str(concept_b)
-    
+
     aliases_a = generate_aliases_for_name(a_canon)
     aliases_b = generate_aliases_for_name(b_canon)
 
@@ -226,10 +264,33 @@ def validate_relation(relation, chunks: list, alias_index: dict = None) -> bool:
     return False
 
 
-def filter_relations(relations, chunks: list, concepts: list, alias_index: dict = None):
+@overload
+def filter_relations[Relation](
+    relations: list[Relation],
+    chunks: list[dict[str, Any]],
+    concepts: list[dict[str, Any] | str],
+    alias_index: dict[str, str] | None = None,
+) -> list[Relation]: ...
+
+
+@overload
+def filter_relations[Relation](
+    relations: dict[str, Relation],
+    chunks: list[dict[str, Any]],
+    concepts: list[dict[str, Any] | str],
+    alias_index: dict[str, str] | None = None,
+) -> dict[str, Relation]: ...
+
+
+def filter_relations(
+    relations: dict[str, Any] | list[Any],
+    chunks: list[dict[str, Any]],
+    concepts: list[dict[str, Any] | str],
+    alias_index: dict[str, str] | None = None,
+) -> dict[str, Any] | list[Any]:
     """Filter a list/dict of relations against chunks and concepts using alias-aware matching."""
     from okf.alias_index import build_alias_index, resolve_concept_name
-    
+
     if alias_index is None:
         raw_names = []
         for c in concepts:
@@ -246,18 +307,32 @@ def filter_relations(relations, chunks: list, concepts: list, alias_index: dict 
         if isinstance(c, dict):
             name = c.get("concept_name") or c.get("name")
             if name:
-                concept_canon_names.add(resolve_concept_name(str(name), alias_index).lower().strip())
+                concept_canon_names.add(
+                    resolve_concept_name(str(name), alias_index).lower().strip()
+                )
         elif isinstance(c, str):
             concept_canon_names.add(resolve_concept_name(c, alias_index).lower().strip())
 
     filtered = []
-    is_dict = isinstance(relations, dict)
-    items = relations.values() if is_dict else relations
+    items = relations.values() if isinstance(relations, dict) else relations
 
     for rel in items:
         if isinstance(rel, dict):
-            concept_a = rel.get("source") or rel.get("concept_a") or rel.get("from") or rel.get("from_name") or rel.get("from_id")
-            concept_b = rel.get("target") or rel.get("concept_b") or rel.get("to") or rel.get("to_name") or rel.get("to_id") or rel.get("concept")
+            concept_a = (
+                rel.get("source")
+                or rel.get("concept_a")
+                or rel.get("from")
+                or rel.get("from_name")
+                or rel.get("from_id")
+            )
+            concept_b = (
+                rel.get("target")
+                or rel.get("concept_b")
+                or rel.get("to")
+                or rel.get("to_name")
+                or rel.get("to_id")
+                or rel.get("concept")
+            )
         elif isinstance(rel, (tuple, list)) and len(rel) >= 2:
             concept_a = rel[0]
             concept_b = rel[1]
@@ -270,92 +345,17 @@ def filter_relations(relations, chunks: list, concepts: list, alias_index: dict 
         a_canon = resolve_concept_name(str(concept_a), alias_index).lower().strip()
         b_canon = resolve_concept_name(str(concept_b), alias_index).lower().strip()
 
-        if a_canon in concept_canon_names and b_canon in concept_canon_names:
-            if validate_relation(rel, chunks, alias_index):
-                filtered.append(rel)
+        if (
+            a_canon in concept_canon_names
+            and b_canon in concept_canon_names
+            and validate_relation(rel, chunks, alias_index)
+        ):
+            filtered.append(rel)
 
-    if is_dict:
+    if isinstance(relations, dict):
         filtered_dict = {}
         for k, rel in relations.items():
             if rel in filtered:
                 filtered_dict[k] = rel
         return filtered_dict
     return filtered
-
-
-def infer_prerequisite_direction(concept_a, concept_b, chunks: list) -> tuple:
-    """Infer prerequisite direction between concept_a and concept_b.
-
-    Uses order of appearance in chunks (first occurrence or co-occurrence position).
-    Falls back to difficulty ranks (foundational < intermediate < advanced < expert).
-    """
-    diff_rank = {"foundational": 1, "intermediate": 2, "advanced": 3, "expert": 4}
-
-    diff_a = "intermediate"
-    diff_b = "intermediate"
-
-    if isinstance(concept_a, dict):
-        diff_a = concept_a.get("difficulty", "intermediate")
-        name_a = concept_a.get("concept_name") or concept_a.get("name") or ""
-    else:
-        name_a = str(concept_a)
-
-    if isinstance(concept_b, dict):
-        diff_b = concept_b.get("difficulty", "intermediate")
-        name_b = concept_b.get("concept_name") or concept_b.get("name") or ""
-    else:
-        name_b = str(concept_b)
-
-    a_lower = name_a.strip().lower()
-    b_lower = name_b.strip().lower()
-
-    co_occur_score = 0
-    first_chunk_a = None
-    first_chunk_b = None
-
-    for idx, chunk in enumerate(chunks):
-        text = (chunk.get("text") or chunk.get("text_passage") or "").lower()
-        has_a = a_lower in text
-        has_b = b_lower in text
-
-        if has_a and first_chunk_a is None:
-            first_chunk_a = idx
-        if has_b and first_chunk_b is None:
-            first_chunk_b = idx
-
-        if has_a and has_b:
-            try:
-                idx_a = text.index(a_lower)
-                idx_b = text.index(b_lower)
-                if idx_a < idx_b:
-                    co_occur_score += 1
-                elif idx_b < idx_a:
-                    co_occur_score -= 1
-            except ValueError:
-                pass
-
-    if co_occur_score > 0:
-        return (name_a, name_b)
-    elif co_occur_score < 0:
-        return (name_b, name_a)
-
-    if first_chunk_a is not None and first_chunk_b is not None and first_chunk_a != first_chunk_b:
-        if first_chunk_a < first_chunk_b:
-            return (name_a, name_b)
-        else:
-            return (name_b, name_a)
-
-    # Fallback to difficulty rank
-    rank_a = diff_rank.get(str(diff_a).lower(), 2)
-    rank_b = diff_rank.get(str(diff_b).lower(), 2)
-
-    if rank_a < rank_b:
-        return (name_a, name_b)
-    elif rank_b < rank_a:
-        return (name_b, name_a)
-
-    # Final fallback: alphabetical
-    if name_a < name_b:
-        return (name_a, name_b)
-    else:
-        return (name_b, name_a)

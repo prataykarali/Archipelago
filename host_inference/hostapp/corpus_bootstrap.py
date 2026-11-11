@@ -11,8 +11,8 @@ is the worst possible failure: a green health check over an empty brain.
 So the corpus arrives by one of two routes, in this order:
 
 1. **Boot fetch.** If a tracked fixture is absent or obviously a stub, pull the
-   real artifacts from the configured Hugging Face dataset repo using
-   ``HF_TOKEN``/``HF_DATASET_REPO``. The corpus is generated from licensed local
+   graph from Graphier and catalogue from Library_books using ``HF_TOKEN``.
+   The corpus is generated from licensed local
    PDFs, so it never enters git; only this bootstrap code does.
 2. **Tracked fixture.** ``host_inference/fixtures/`` ships a small, real slice of
    the graph so the build is never empty even when the fetch is unavailable
@@ -38,11 +38,11 @@ logger = logging.getLogger(__name__)
 #: to where it has to land on disk.  ``okf_graph.json`` is the concept graph the
 #: engine loads; the bookshelf export is the institutional catalogue.
 #:
-#: Paths are the real layout of Prataykarali/Library_books.  Guessing here is how
+#: Paths are the real layouts of Graphier and Library_books. Guessing here is how
 #: a deploy silently ends up on the 84-concept fixture while the log says the
 #: fetch "succeeded".
 CORPUS_ARTIFACTS: dict[str, str] = {
-    "okf_graph.json": "okf_graph.json",
+    "graph/okf_graph.json": "okf_graph.json",
     "catalogs/pearson_bookshelf.json": "data/catalogs/pearson_bookshelf.json",
 }
 
@@ -156,14 +156,16 @@ def provision(root: Path | None = None) -> dict[str, object]:
         return report
 
     logger.info("Concept graph is missing or a stub; provisioning at boot.")
-    repo_id = os.environ.get(HF_REPO_ENV, "").strip()
+    graph_repo = os.environ.get("ARCHIPELAGO_SCHOLARLY_HF_REPO", "Prataykarali/graphier")
+    library_repo = os.environ.get("HF_LIBRARY_REPO", "Prataykarali/Library_books")
     token = os.environ.get(HF_TOKEN_ENV, "").strip()
 
     fetched = False
-    if repo_id:
+    if token:
         staging = repo_root / "data" / "provisioned"
         for remote_path, local_path in CORPUS_ARTIFACTS.items():
             target = staging / remote_path
+            repo_id = graph_repo if local_path == "okf_graph.json" else library_repo
             if not _hf_download(repo_id, remote_path, target, token):
                 continue
             fetched = True

@@ -107,14 +107,14 @@ def hf_title(path: str) -> str:
     return " ".join(parts).replace("_", " ").replace("-", " ")
 
 
-def paper_url(path: str, page: int) -> str:
-    page_n = max(1, int(page or 1))
-    return f"/read?doc={quote(path, safe='')}&page={page_n}"
+def paper_url(path: str, page: int | None) -> str:
+    base = f"/read?doc={quote(path, safe='')}"
+    return f"{base}&page={page}" if page and page > 0 else base
 
 
-def pearson_open(book_id: str, page: int) -> str:
-    page_n = max(1, int(page or 1))
-    return f"/open/{book_id}?page={page_n}"
+def pearson_open(book_id: str, page: int | None) -> str:
+    base = f"/open/{book_id}"
+    return f"{base}?page={page}" if page and page > 0 else base
 
 
 class Catalog:
@@ -203,10 +203,11 @@ class Catalog:
 
     def _hf_reply(self, query: str, item: dict) -> dict:
         passage = self.best_passage(query, item["path"]) or self.best_passage(query, item["title"])
-        page = requested_page(query) or (int(passage["page"]) if passage else 1)
-        if passage and page != int(passage["page"]):
+        requested = requested_page(query)
+        if passage and requested and requested != int(passage["page"]):
             passage = None
-        url = paper_url(item["path"], page)
+        page = int(passage["page"]) if passage else None
+        url = paper_url(item["path"], requested or page)
         excerpt = " ".join((passage["text"] if passage else "").split())[:420]
         if excerpt:
             body = f"**{item['title']}.** {excerpt}"
@@ -218,16 +219,20 @@ class Catalog:
         text = "\n\n".join(
             [
                 body,
-                f"**Paper page.** [{item['title']} p.{page}]({url})",
+                (
+                    f"**Verified PDF page.** [{item['title']} p.{page}]({url})"
+                    if page
+                    else f"**Document access.** [Open {item['title']}]({url}); exact supporting page not verified."
+                ),
             ]
         )
         return {
             "text": text,
             "citation": {
-                "label": f"[S1: {item['path'].split('/')[-1]}, #page={page}]",
+                "label": f"[S1: {item['path'].split('/')[-1]}{f', #page={page}' if page else ''}]",
                 "doc_id": item["path"],
                 "page_number": page,
-                "printed_page": page,
+                "printed_page": None,
                 "url": url,
                 "pdf_url": url,
             },
@@ -236,36 +241,41 @@ class Catalog:
     def _pearson_reply(self, query: str, book: dict) -> dict:
         title = book.get("title") or "Pearson book"
         author = book.get("author") or "Institutional collection"
-        page_count = int(book.get("page_count") or 1)
+        page_count = int(book.get("page_count") or 0)
         passage = self.best_passage(query, title)
-        page = requested_page(query) or (int(passage["page"]) if passage else 1)
-        if passage and page != int(passage["page"]):
+        requested = requested_page(query)
+        if passage and requested and requested != int(passage["page"]):
             passage = None
-        if page > page_count:
-            page = 1
+        if requested and page_count and requested > page_count:
+            requested = None
             passage = None
-        url = pearson_open(book.get("id") or "", page)
+        page = int(passage["page"]) if passage else None
+        url = pearson_open(book.get("id") or "", requested or page)
         if passage:
             excerpt = " ".join(passage["text"].split())[:420]
             body = f"**{title}.** {author}. {excerpt}"
         else:
             body = (
-                f"**{title}.** {author}. Pearson e-book, {page_count} pages. "
+                f"**{title}.** {author}. Pearson e-book. "
                 "This reply uses the catalog record. It does not invent a chapter that is not indexed."
             )
         text = "\n\n".join(
             [
                 body,
-                f"**Pearson page.** [{title} p.{page}]({url})",
+                (
+                    f"**Verified e-book page.** [{title} p.{page}]({url})"
+                    if page
+                    else f"**E-book access.** [Open {title}]({url}); exact supporting page not verified."
+                ),
             ]
         )
         return {
             "text": text,
             "citation": {
-                "label": f"[S1: {title}, #page={page}]",
+                "label": f"[S1: {title}{f', #page={page}' if page else ''}]",
                 "doc_id": book.get("id") or "",
                 "page_number": page,
-                "printed_page": page,
+                "printed_page": None,
                 "url": url,
                 "pdf_url": url,
                 "book_id": book.get("id"),

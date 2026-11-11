@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 import itertools
+from typing import Any
 
 from archipelago.inference import state as st
 from archipelago.inference.aliases import _node_name
@@ -10,7 +12,7 @@ from archipelago.inference.graph_access import _default_graph_db
 from archipelago.inference.neighborhood import get_concept_citations
 
 
-def _resolve_printed_page(evidence):
+def _resolve_printed_page(evidence: Mapping[str, Any]) -> str | None:
     """Reverse-map a physical PDF page to its printed label, if a map exists.
 
     ``page_label_map`` maps printed labels to physical (1-based) PDF pages;
@@ -30,7 +32,7 @@ def _resolve_printed_page(evidence):
     return None
 
 
-def _page_display(evidence):
+def _page_display(evidence: Mapping[str, Any]) -> str:
     """Render 'p. <printed>' only when a label map resolves; else 'PDF page <n>'."""
     printed = _resolve_printed_page(evidence)
     if printed is not None:
@@ -41,7 +43,7 @@ def _page_display(evidence):
     return ""
 
 
-def _citation_label(topic_name, evidence_list):
+def _citation_label(topic_name: str, evidence_list: Sequence[Mapping[str, Any]]) -> str:
     """Format provenance labels for ALL retrieved evidence; never invent a page."""
     if not evidence_list:
         return ""
@@ -55,7 +57,7 @@ def _citation_label(topic_name, evidence_list):
     return " " + " ".join(labels)
 
 
-def _normalize_legacy_citation(citation):
+def _normalize_legacy_citation(citation: Mapping[str, Any]) -> dict[str, Any]:
     """Lift a legacy get_concept_citations record into the evidence contract."""
     return {
         "chunk_id": None,
@@ -82,13 +84,15 @@ __all__ = [
 ]
 
 
-def _evidence_for_concept(graph_db, concept_id, concept_name):
+def _evidence_for_concept(
+    graph_db: Any, concept_id: str, concept_name: str
+) -> list[dict[str, Any]]:
     """Fetch evidence for one concept, falling back to the legacy Kuzu lookup."""
     if graph_db is not None:
         try:
             evidence = graph_db.get_evidence_for_concept(concept_name)
-            if evidence:
-                return evidence
+            if isinstance(evidence, list) and evidence:
+                return [dict(item) for item in evidence if isinstance(item, Mapping)]
         except Exception as e:
             print(f"Evidence retrieval error for concept '{concept_name}': {e}")
     return [
@@ -97,7 +101,9 @@ def _evidence_for_concept(graph_db, concept_id, concept_name):
     ]
 
 
-def _evidence_for_prerequisite(graph_db, prereq_name, target_name):
+def _evidence_for_prerequisite(
+    graph_db: Any, prereq_name: str, target_name: str
+) -> list[dict[str, Any]] | None:
     """Fetch edge-level evidence for a prerequisite relation, if indexed.
 
     REQUIRES edges are stored target -> prerequisite (see get_graph_neighborhood),
@@ -114,11 +120,19 @@ def _evidence_for_prerequisite(graph_db, prereq_name, target_name):
             return None
         if evidence:
             # Accept either a single evidence dict or a list of them.
-            return [evidence] if isinstance(evidence, dict) else evidence
+            if isinstance(evidence, dict):
+                return [evidence]
+            if isinstance(evidence, list):
+                return [dict(item) for item in evidence if isinstance(item, Mapping)]
     return None
 
 
-def build_concept_citation_map(target_concept, prereqs, unlocks, graph_db=None):
+def build_concept_citation_map(
+    target_concept: str | dict[str, Any],
+    prereqs: list[dict[str, Any]],
+    unlocks: list[dict[str, Any]],
+    graph_db: Any = None,
+) -> dict[str, list[dict[str, Any]]]:
     """Return evidence keyed by concept id for all displayed roadmap steps.
 
     Evidence IDs (``S1``, ``S2``, ...) come from a single counter assigned in
@@ -141,10 +155,10 @@ def build_concept_citation_map(target_concept, prereqs, unlocks, graph_db=None):
         target_name = _node_name(target_concept)
 
     counter = itertools.count(1)
-    citation_map = {}
+    citation_map: dict[str, list[dict[str, Any]]] = {}
 
-    def assign(concept_id, evidence_list):
-        tagged = []
+    def assign(concept_id: str, evidence_list: list[dict[str, Any]] | None) -> None:
+        tagged: list[dict[str, Any]] = []
         for evidence in (evidence_list or [])[: st.EVIDENCE_PER_CONCEPT]:
             entry = dict(evidence)
             entry["evidence_id"] = f"S{next(counter)}"

@@ -8,6 +8,11 @@ from __future__ import annotations
 
 import re
 
+from .compose_catalog import (
+    VERIFIED_BIBLIOGRAPHIC_RECORDS as VERIFIED_BIBLIOGRAPHIC_RECORDS,
+)
+from .compose_catalog import library_inventory_reply as library_inventory_reply
+from .compose_catalog import paper_lookup_reply as paper_lookup_reply
 from .constants import KILL_SWITCH, PORTALS, SCHEDULE, SHELF
 from .multi_hop import VERIFIED_CONCEPT_FOUNDATIONS
 from .render import arrow, lineage, neighborhood_block
@@ -39,6 +44,9 @@ def split_pair(query: str):
         r"relation(?:ship)? between\s+(.+?)\s+and\s+(.+)",
         r"compare\s+(.+?)\s+(?:with|and|to|versus|vs\.?)\s+(.+)",
         r"difference between\s+(.+?)\s+and\s+(.+)",
+        r"how (?:does|do)\s+(.+?)\s+(?:differ|contrast)\s+(?:from|with)\s+(.+)",
+        r"how (?:is|are)\s+(.+?)\s+different\s+(?:from|to|than)\s+(.+)",
+        r"(.+?)\s+(?:versus|vs\.?)\s+(.+)",
     )
     for pattern in patterns:
         match = re.search(pattern, clean_q, re.I)
@@ -56,6 +64,11 @@ def resolve_fragment(engine, fragment: str) -> tuple[str | None, bool]:
     hits = engine.graph.phrase_hits(fragment)
     if hits:
         return hits[0], True
+    frag_norm = fragment.strip().lower()
+    if frag_norm.endswith("s") and not frag_norm.endswith("ss"):
+        hits_sing = engine.graph.phrase_hits(frag_norm[:-1])
+        if hits_sing:
+            return hits_sing[0], True
     ranked = engine.graph.rank(fragment, top_k=1)
     if ranked and ranked[0][0] >= KILL_SWITCH:
         return ranked[0][1], True
@@ -67,10 +80,7 @@ def synthesis(engine, cid: str) -> str:
     graph = engine.graph
     node = graph.nodes[cid]
     foundation = VERIFIED_CONCEPT_FOUNDATIONS.get(cid)
-    if foundation:
-        summary = foundation
-    else:
-        summary = (node.get("summary") or "Indexed catalog concept.").strip()
+    summary = foundation or (node.get("summary") or "Indexed catalog concept.").strip()
     cite = graph.citation(cid)
     formula = graph.formula(cid)
     query = str(getattr(graph, "_query", ""))
@@ -117,7 +127,183 @@ def matrix(
     def cell(cid: str) -> str:
         return (graph.nodes[cid].get("summary") or graph.label(cid)).strip()[:MATRIX_CELL_CHARS]
 
-    if left_name and "B+" in left_name:
+    pair_set = {a, b}
+    if {"semaphore", "condition_variable"}.issubset(pair_set):
+        is_left_sem = a == "semaphore"
+        data_l = (
+            "Integer counter state representing available resource units; persists across calls."
+            if is_left_sem
+            else "Stateless wait queue of blocked threads; maintains no counter or history."
+        )
+        data_r = (
+            "Stateless wait queue of blocked threads; maintains no counter or history."
+            if is_left_sem
+            else "Integer counter state representing available resource units; persists across calls."
+        )
+        search_l = (
+            "sem_wait() decrements and blocks if <= 0; sem_post() increments and wakes one waiter."
+            if is_left_sem
+            else "pthread_cond_wait() atomically unlocks associated mutex and sleeps until signaled."
+        )
+        search_r = (
+            "pthread_cond_wait() atomically unlocks associated mutex and sleeps until signaled."
+            if is_left_sem
+            else "sem_wait() decrements and blocks if <= 0; sem_post() increments and wakes one waiter."
+        )
+        io_l = (
+            "Self-contained primitive; does not require an external mutex to modify count."
+            if is_left_sem
+            else "Strictly requires an external mutex lock and a while(!condition) re-check loop."
+        )
+        io_r = (
+            "Strictly requires an external mutex lock and a while(!condition) re-check loop."
+            if is_left_sem
+            else "Self-contained primitive; does not require an external mutex to modify count."
+        )
+        recall_l = (
+            "Guaranteed wake-up even if signal occurs before wait (memory of signal)."
+            if is_left_sem
+            else "Lost-wake-up if signaled when no thread is actively blocked on the condition variable."
+        )
+        recall_r = (
+            "Lost-wake-up if signaled when no thread is actively blocked on the condition variable."
+            if is_left_sem
+            else "Guaranteed wake-up even if signal occurs before wait (memory of signal)."
+        )
+        cites = f"{graph.citation(a, 1)} {graph.citation(b, 2)}"
+    elif {"semaphore", "mutex_lock"}.issubset(pair_set):
+        is_left_sem = a == "semaphore"
+        data_l = (
+            r"Counting integer variable ($N \ge 0$) representing multiple resource instances."
+            if is_left_sem
+            else "Binary state (0 = unlocked, 1 = locked) strictly enforcing single ownership."
+        )
+        data_r = (
+            "Binary state (0 = unlocked, 1 = locked) strictly enforcing single ownership."
+            if is_left_sem
+            else r"Counting integer variable ($N \ge 0$) representing multiple resource instances."
+        )
+        search_l = (
+            "No ownership requirement: any thread can invoke sem_post() to signal."
+            if is_left_sem
+            else "Strict thread ownership: only the thread that called lock() may invoke unlock()."
+        )
+        search_r = (
+            "Strict thread ownership: only the thread that called lock() may invoke unlock()."
+            if is_left_sem
+            else "No ownership requirement: any thread can invoke sem_post() to signal."
+        )
+        io_l = (
+            "Signaling, thread synchronization, and producer-consumer bounded buffers."
+            if is_left_sem
+            else "Mutual exclusion protection for critical sections."
+        )
+        io_r = (
+            "Mutual exclusion protection for critical sections."
+            if is_left_sem
+            else "Signaling, thread synchronization, and producer-consumer bounded buffers."
+        )
+        recall_l = (
+            "Allows up to $K$ concurrent threads into the resource region."
+            if is_left_sem
+            else "Strictly permits exactly one thread in the critical section."
+        )
+        recall_r = (
+            "Strictly permits exactly one thread in the critical section."
+            if is_left_sem
+            else "Allows up to $K$ concurrent threads into the resource region."
+        )
+        cites = f"{graph.citation(a, 1)} {graph.citation(b, 2)}"
+    elif {"b_plus_tree", "hash_indexing"}.issubset(pair_set):
+        is_left_tree = a == "b_plus_tree"
+        data_l = (
+            "Balanced multi-way search tree with linked sequential leaf pages."
+            if is_left_tree
+            else "Hash bucket directory with modulo mapping and collision overflow chains."
+        )
+        data_r = (
+            "Hash bucket directory with modulo mapping and collision overflow chains."
+            if is_left_tree
+            else "Balanced multi-way search tree with linked sequential leaf pages."
+        )
+        search_l = (
+            "O(log_B N) root-to-leaf descent, followed by leaf sibling pointer traversal."
+            if is_left_tree
+            else "O(1) expected hash computation and direct bucket lookup."
+        )
+        search_r = (
+            "O(1) expected hash computation and direct bucket lookup."
+            if is_left_tree
+            else "O(log_B N) root-to-leaf descent, followed by leaf sibling pointer traversal."
+        )
+        io_l = (
+            "Highly efficient sequential page I/O for range queries (e.g. BETWEEN, >, <)."
+            if is_left_tree
+            else "Random I/O per key; completely incapable of efficient range scans."
+        )
+        io_r = (
+            "Random I/O per key; completely incapable of efficient range scans."
+            if is_left_tree
+            else "Highly efficient sequential page I/O for range queries (e.g. BETWEEN, >, <)."
+        )
+        recall_l = (
+            "Guaranteed logarithmic bounds under high fanout (B >= 100)."
+            if is_left_tree
+            else "Degrades to O(N) linear scans under severe bucket collision or hash skew."
+        )
+        recall_r = (
+            "Degrades to O(N) linear scans under severe bucket collision or hash skew."
+            if is_left_tree
+            else "Guaranteed logarithmic bounds under high fanout (B >= 100)."
+        )
+        cites = f"{graph.citation(a, 1)} {graph.citation(b, 2)}"
+    elif {"breadth_first_search", "depth_first_search"}.issubset(pair_set) or {
+        "bfs",
+        "dfs",
+    }.issubset(pair_set):
+        is_left_bfs = a in ("bfs", "breadth_first_search")
+        data_l = (
+            "Level-by-level frontier exploration using a First-In-First-Out (FIFO) queue."
+            if is_left_bfs
+            else "Branch-to-leaf exploration using a Last-In-First-Out (LIFO) stack or call recursion."
+        )
+        data_r = (
+            "Branch-to-leaf exploration using a Last-In-First-Out (LIFO) stack or call recursion."
+            if is_left_bfs
+            else "Level-by-level frontier exploration using a First-In-First-Out (FIFO) queue."
+        )
+        search_l = (
+            "Systematically explores all nodes at depth d before moving to depth d+1."
+            if is_left_bfs
+            else "Follows a single path as deeply as possible until a dead end, then backtracks."
+        )
+        search_r = (
+            "Follows a single path as deeply as possible until a dead end, then backtracks."
+            if is_left_bfs
+            else "Systematically explores all nodes at depth d before moving to depth d+1."
+        )
+        io_l = (
+            "Guarantees finding the shortest path on unweighted graphs."
+            if is_left_bfs
+            else "Does not guarantee shortest path; path length depends on edge visitation order."
+        )
+        io_r = (
+            "Does not guarantee shortest path; path length depends on edge visitation order."
+            if is_left_bfs
+            else "Guarantees finding the shortest path on unweighted graphs."
+        )
+        recall_l = (
+            "Space complexity O(V) proportional to width of the graph frontier."
+            if is_left_bfs
+            else "Space complexity O(D) proportional to maximum depth of search tree."
+        )
+        recall_r = (
+            "Space complexity O(D) proportional to maximum depth of search tree."
+            if is_left_bfs
+            else "Space complexity O(V) proportional to width of the graph frontier."
+        )
+        cites = f"{graph.citation(a, 1)} {graph.citation(b, 2)}"
+    elif left_name and "B+" in left_name:
         data_l = "Ordered keys in leaf-linked pages of a B+ tree."
         data_r = "High-dimensional embedding vectors in an HNSW graph."
         search_l = "Exact descent from root to leaf, then a sequential sibling scan."
@@ -260,178 +446,3 @@ def _portal_lines(query: str) -> list[str]:
     if not chosen:
         chosen = PORTALS[:4]
     return [f"**{name}.** {url} — {how}." for name, url, how in chosen]
-
-
-VERIFIED_BIBLIOGRAPHIC_RECORDS: dict[str, dict[str, str]] = {
-    "low_rank_adaptation": {
-        "title": "LoRA: Low-Rank Adaptation of Large Language Models",
-        "authors": "Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen",
-        "year": "2021",
-        "venue": "ICLR 2022 / arXiv:2106.09685",
-        "doc_id": "papers/Hu2021_LoRA.pdf",
-        "summary": "Freezes pre-trained model weights and injects trainable rank decomposition matrices into Transformer attention layers, reducing trainable parameters by up to 10,000x without adding inference latency.",
-    },
-    "transformer": {
-        "title": "Attention Is All You Need",
-        "authors": "Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, Illia Polosukhin",
-        "year": "2017",
-        "venue": "NeurIPS 2017 / arXiv:1706.03762",
-        "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
-        "summary": "Introduces the Transformer sequence transduction architecture based entirely on multi-headed self-attention mechanisms, dispensing with recurrence and convolutions.",
-    },
-    "bert": {
-        "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
-        "authors": "Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina Toutanova",
-        "year": "2018",
-        "venue": "NAACL 2019 / arXiv:1810.04805",
-        "doc_id": "papers/Devlin2018_BERT.pdf",
-        "summary": "Introduces deep bidirectional Transformer representations pretrained jointly on Masked Language Modeling (MLM) and Next Sentence Prediction (NSP).",
-    },
-    "rag": {
-        "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
-        "authors": "Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, Douwe Kiela",
-        "year": "2020",
-        "venue": "NeurIPS 2020 / arXiv:2005.11401",
-        "doc_id": "papers/Lewis2020_RAG.pdf",
-        "summary": "Combines pre-trained parametric neural sequence-to-sequence generators with non-parametric dense vector retrieval over Wikipedia, updating retrieval outputs per token or sequence.",
-    },
-    "graph_rag": {
-        "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
-        "authors": "Darren Edge, Ha Trinh, Newman Cheng, Joshua Bradley, Alex Chao, Apurva Mody, Steven Truitt, Jonathan Larson",
-        "year": "2024",
-        "venue": "arXiv:2404.16130 (Microsoft Research)",
-        "doc_id": "papers/Edge2024_GraphRAG.pdf",
-        "summary": "Combines knowledge graph extraction, hierarchical community detection (Leiden), and recursive community summarization to enable global dataset-wide reasoning in retrieval-augmented generation.",
-    },
-    "qlora": {
-        "title": "QLoRA: Efficient Finetuning of Quantized LLMs",
-        "authors": "Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, Luke Zettlemoyer",
-        "year": "2023",
-        "venue": "NeurIPS 2023 / arXiv:2305.14314",
-        "doc_id": "papers/Dettmers2023_QLoRA.pdf",
-        "summary": "Enables 33B/65B parameter model fine-tuning on a single 48GB GPU by introducing 4-bit NormalFloat (NF4), Double Quantization (DQ), and Paged Optimizers without performance degradation.",
-    },
-}
-
-
-def paper_lookup_reply(engine, query: str, cid: str | None = None) -> tuple[str, dict]:
-    """Provide crisp bibliographic answers for paper lookup queries without displaying a learning graph."""
-    graph = engine.graph
-    target_cid = cid
-    if not target_cid:
-        hits = graph.phrase_hits(query)
-        target_cid = hits[0] if hits else None
-    if not target_cid:
-        ranked = graph.rank(query, top_k=1)
-        target_cid = ranked[0][1] if ranked and ranked[0][0] >= KILL_SWITCH else None
-
-    # Check catalog if no concept node found
-    if not target_cid:
-        catalog_hit = engine.catalog.reply(query)
-        if catalog_hit:
-            return catalog_hit["text"], catalog_hit["citation"]
-
-    if not target_cid or target_cid not in graph.nodes:
-        return (
-            "I could not identify a specific indexed paper matching that bibliographic query. "
-            "Please specify the title, authors, or primary concept (e.g. LoRA, BERT, Transformers).",
-            {},
-        )
-
-    label = graph.label(target_cid)
-
-    # Use authoritative bibliographic record if catalogued
-    if target_cid in VERIFIED_BIBLIOGRAPHIC_RECORDS:
-        rec = VERIFIED_BIBLIOGRAPHIC_RECORDS[target_cid]
-        lines = [
-            f"**Paper Identification: {label}**",
-            "",
-            f"• **Title:** *{rec['title']}*",
-            f"• **Authors:** {rec['authors']} ({rec['year']})",
-            f"• **Venue / Citation:** {rec['venue']}",
-            f"• **Repository Document:** `{rec['doc_id']}`",
-            "",
-            f"**Core Scientific Contribution:**\n> {rec['summary']}",
-        ]
-        cite_record = {
-            "source_category": "paper",
-            "doc_id": rec["doc_id"],
-            "title": rec["title"],
-            "authors": rec["authors"],
-            "year": rec["year"],
-            "venue": rec["venue"],
-            "verified": True,
-        }
-        return "\n".join(lines), cite_record
-
-    node = graph.nodes[target_cid]
-    sources = node.get("sources") or []
-    paper_sources = [
-        s for s in sources if str(s.get("source_category", "")).lower() == "paper" or "papers/" in str(s.get("doc_id", ""))
-    ]
-    best_src = paper_sources[0] if paper_sources else (sources[0] if sources else {})
-
-    doc_id = str(best_src.get("doc_id") or "")
-    doc_stem = doc_id.split("/")[-1].replace(".pdf", "").replace("_", " ")
-
-    year_match = re.search(r"\b(19\d\d|20\d\d)\b", doc_id)
-    year = year_match.group(1) if year_match else "Verified publication"
-
-    author_match = re.search(r"([A-Z][a-z]+)(\d{4})", doc_id)
-    if author_match:
-        authors = f"{author_match.group(1)} et al. ({author_match.group(2)})"
-    else:
-        authors = "Identified in corpus records"
-
-    passage = str(best_src.get("text_passage") or node.get("summary") or "").strip()
-    doi_match = re.search(r"\b(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)\b", passage)
-    arxiv_match = re.search(r"\barXiv:\s*(\d{4}\.\d{4,5})\b", passage, re.I)
-
-    lines = [
-        f"**Paper Identification: {label}**",
-        "",
-        f"• **Core Title / Work:** {doc_stem.title() if doc_stem else label}",
-        f"• **Authors / Date:** {authors}",
-    ]
-    if doi_match:
-        lines.append(f"• **DOI:** https://doi.org/{doi_match.group(1)}")
-    elif arxiv_match:
-        lines.append(f"• **arXiv:** https://arxiv.org/abs/{arxiv_match.group(1)}")
-
-    page = best_src.get("page_number")
-    if page:
-        lines.append(f"• **Repository Document:** `{doc_id}` (page {page})")
-    elif doc_id:
-        lines.append(f"• **Repository Document:** `{doc_id}`")
-
-    summary_text = node.get("summary") or ""
-    if summary_text:
-        lines.extend(["", f"**Core Concept Summary:**\n> {summary_text}"])
-
-    cite_record = graph.cite_record(target_cid, query)
-    return "\n".join(lines), cite_record
-
-
-def library_inventory_reply(engine, query: str) -> str:
-    """Provide concise institutional holdings and journal inventory without an interactive graph."""
-    lines = [
-        "**Institutional Library & Journal Inventory**",
-        "",
-        "The Central Library catalog provides access to print reserve texts, licensed electronic resources, and departmental reference collections:",
-        "",
-        "**Monograph & Course Reserve Catalog:**",
-        "• *Database System Concepts* — Silberschatz, Korth, Sudarshan (Physical reserve & Pearson eLibrary)",
-        "• *Operating System Concepts* — Silberschatz, Galvin, Gagne (Physical circulation & Digital reserve)",
-        "• *Artificial Intelligence: A Modern Approach* — Russell & Norvig (Physical reference)",
-        "• *Deep Learning* — Goodfellow, Bengio, Courville (Digital open access & Campus library stack)",
-        "• *Speech and Language Processing* — Jurafsky & Martin (Draft 3rd ed. digital repository)",
-        "",
-        "**Electronic Journal & Database Subscriptions:**",
-        "• IEEE Xplore Digital Library (full-text conference & journal access via campus IP/EZProxy)",
-        "• ScienceDirect & Scopus (institutional subscription for Elsevier computer science journals)",
-        "• SpringerLink (Springer lecture notes in computer science LNCS)",
-        "",
-        "For real-time shelf availability, accession numbers, or loan renewals, consult the OPAC terminal (http://uemk-opac.l2c2.co.in) or visit the circulation desk during operating hours (Mon–Sat 9:00 AM – 8:00 PM).",
-    ]
-    return "\n".join(lines)
-

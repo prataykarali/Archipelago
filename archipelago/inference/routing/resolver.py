@@ -1,4 +1,5 @@
 """Query routing pipeline: stage orchestration + response post-processing."""
+
 from __future__ import annotations
 
 import re
@@ -8,7 +9,6 @@ from archipelago.inference.intent_gate import (
     INTENT_ENTITY_TRIVIA,
     INTENT_IMPLEMENTATION,
     INTENT_META,
-    INTENT_OUT_OF_DOMAIN,
     INTENT_SOCIAL,
     INTENT_THEORY,
 )
@@ -46,7 +46,10 @@ def resolve_query_routing(query: str, history: list | None = None) -> dict:
         # Sanity-guard / dual-pass verdicts are deliberate rejections of
         # absurd or trivia asks — never soften those back into suggestions.
         guarded = (res.get("slots") or {}).get("intent_method") in (
-            "sanity_guard", "dual_pass_guard", "offtopic_mix", "emotional_homework_ood",
+            "sanity_guard",
+            "dual_pass_guard",
+            "offtopic_mix",
+            "emotional_homework_ood",
         )
         if (
             res.get("route") == "out_of_scope"
@@ -54,18 +57,16 @@ def resolve_query_routing(query: str, history: list | None = None) -> dict:
             and not guarded
         ):
             from archipelago.inference.ranking import rank_concepts
+
             q_raw = (query or "").strip()
             ranked = rank_concepts(q_raw, top_k=3)
-            best_cos = float(ranked[0]["cos"]) if ranked else 0.0
-            best_lex = float(ranked[0].get("lexical") or 0.0) if ranked else 0.0
+            float(ranked[0]["cos"]) if ranked else 0.0
+            float(ranked[0].get("lexical") or 0.0) if ranked else 0.0
 
             # Check if query has a domain signal
             has_domain_signal = _rt._is_learning_or_domain_query(q_raw)
             if has_domain_signal:
-                closest = [
-                    r.get("label") or r.get("name") or r.get("id")
-                    for r in ranked[:3]
-                ]
+                closest = [r.get("label") or r.get("name") or r.get("id") for r in ranked[:3]]
                 res["route"] = "low_similarity_reject"
                 res["reason"] = "kill_switch_low_similarity_in_scope"
                 res["scope"] = "soft"
@@ -77,6 +78,7 @@ def resolve_query_routing(query: str, history: list | None = None) -> dict:
                 res["block_reason"] = None
 
         from archipelago.inference.query_classifier import classify_query_mode
+
         res["query_mode"] = classify_query_mode(query, routing_result=res).value
     return res
 
@@ -97,6 +99,7 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
     """
     if not st.CONCEPTS_DATA:
         from archipelago.inference.routes_chat import init_concepts_data
+
         try:
             init_concepts_data()
         except Exception as e:
@@ -138,10 +141,13 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
     # on a prior turn (pronouns / deictic follow-ups) and the graph shows no
     # direct surface hit of its own, not only when cosine is very low.
     if history:
-        has_pronoun = bool(re.search(
-            r"\b(it|this|that|them|these|its|starting|before|after|next|prereq|prerequisites|requirements|downstream|upstream|concept|topic|more|deeper|further)\b",
-            q_raw, re.I
-        ))
+        has_pronoun = bool(
+            re.search(
+                r"\b(it|this|that|them|these|its|starting|before|after|next|prereq|prerequisites|requirements|downstream|upstream|concept|topic|more|deeper|further)\b",
+                q_raw,
+                re.I,
+            )
+        )
         own_surface_hit = _rt._has_surface_concept_hit(ranked, search_q)
         needs_context = best_cos < 0.45 or (has_pronoun and not own_surface_hit)
         if needs_context and (has_pronoun or learning):
@@ -174,10 +180,11 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
     # Meta / system-leak still needs the raw wording ("as an AI… token limits")
     if intent_info["intent"] not in (INTENT_META, INTENT_IMPLEMENTATION, INTENT_ENTITY_TRIVIA):
         raw_info = _rt.classify_intent(q_raw)
-        if raw_info["intent"] in (INTENT_META, INTENT_IMPLEMENTATION, INTENT_ENTITY_TRIVIA):
-            # Only adopt raw block if search path was not clear pedagogy/theory
-            if intent_info["intent"] != INTENT_THEORY:
-                intent_info = raw_info
+        if (
+            raw_info["intent"] in (INTENT_META, INTENT_IMPLEMENTATION, INTENT_ENTITY_TRIVIA)
+            and intent_info["intent"] != INTENT_THEORY
+        ):
+            intent_info = raw_info
 
     intent = intent_info["intent"]
     intent_score = float(intent_info.get("score") or 0.0)
@@ -212,20 +219,51 @@ def _resolve_query_routing(query: str, history: list | None = None) -> dict:
         return ood
 
     pre, graph_evidence = pre_scope_route(
-        q_raw, q, ranked, best_cos, best_lex, base, library, offtopic, has_domain,
-        chitchat, learning, identity, onboarding, intent,
+        q_raw,
+        q,
+        ranked,
+        best_cos,
+        best_lex,
+        base,
+        library,
+        offtopic,
+        has_domain,
+        chitchat,
+        learning,
+        identity,
+        onboarding,
+        intent,
     )
     if pre:
         return pre
 
     socialized = social_sanity_route(
-        q_raw, q, search_q, history, ranked, base, offtopic, has_domain,
-        chitchat, learning, intent,
+        q_raw,
+        q,
+        search_q,
+        history,
+        ranked,
+        base,
+        offtopic,
+        has_domain,
+        chitchat,
+        learning,
+        intent,
     )
     if socialized:
         return socialized
 
     return graph_route(
-        q, search_q, ranked, best, best_cos, best_lex, base, domain,
-        learning, offtopic, has_domain, graph_evidence,
+        q,
+        search_q,
+        ranked,
+        best,
+        best_cos,
+        best_lex,
+        base,
+        domain,
+        learning,
+        offtopic,
+        has_domain,
+        graph_evidence,
     )

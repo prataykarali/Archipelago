@@ -122,29 +122,33 @@ def select_reply_style(query: str, intent: str | None = None) -> str:
         A style instruction string chosen from REPLY_STYLES.
     """
     ql = (query or "").lower()
-    
+
     # 1. Comparison / Contrast
     if any(k in ql for k in ("compare", "versus", "vs", "difference", "contrasting")):
         return "Use contrast (A vs B) where relevant. Highlight trade-offs explicitly."
-    
+
     # 2. Mechanism / How it works
     if any(k in ql for k in ("how does", "how do", "mechanism", "how it works")):
         return "Explain the intuition, then the mechanics. Structure as: What, Why, How."
-    
+
     # 3. Research literature / state of the art
     if any(k in ql for k in ("research", "literature", "recent", "findings", "studies", "sota")):
         return "Highlight what changed in recent research. Distinguish between theory and practice."
-        
+
     # 4. Lookup / factual bibliographic query
-    if any(k in ql for k in ("who wrote", "which paper", "call number", "where is", "copies", "shelf")):
+    if any(
+        k in ql for k in ("who wrote", "which paper", "call number", "where is", "copies", "shelf")
+    ):
         return "Be concise and precise. Start with the most important fact."
-        
+
     # 5. Learning / beginner introduction
     if any(k in ql for k in ("teach me", "i want to learn", "beginner", "introduce", "what is")):
-        return "Explain like the student is new to the topic. Lead with the definition, then examples."
+        return (
+            "Explain like the student is new to the topic. Lead with the definition, then examples."
+        )
 
     # Fallback deterministic choice
-    return REPLY_STYLES[hash(query) % len(REPLY_STYLES)]
+    return REPLY_STYLES[0]
 
 
 def strip_style_artifacts(text: str) -> str:
@@ -167,18 +171,38 @@ def style_instruction(query: str, intent: str | None = None) -> str:
     style = select_reply_style(query, intent=intent)
 
     # Adaptive length guidance
-    if any(k in ql for k in ("where is", "who wrote", "call number", "how many copies", "hours", "schedule")):
+    if any(
+        k in ql
+        for k in ("where is", "who wrote", "call number", "how many copies", "hours", "schedule")
+    ):
         length_guidance = "Provide a direct, concise response (about 40-120 words)."
-    elif any(k in ql for k in ("compare", "versus", "vs", "difference", "relate", "connect", "detailed", "in depth", "literature review", "synthesis")):
-        length_guidance = "Provide a comprehensive, detailed scientific explanation (about 250-550 words)."
+    elif any(
+        k in ql
+        for k in (
+            "compare",
+            "versus",
+            "vs",
+            "difference",
+            "relate",
+            "connect",
+            "detailed",
+            "in depth",
+            "literature review",
+            "synthesis",
+        )
+    ):
+        length_guidance = (
+            "Provide a comprehensive, detailed scientific explanation (about 250-550 words)."
+        )
     else:
         length_guidance = "Provide a clear, well-structured explanation (about 150-350 words)."
 
     return (
         f"{style} "
         f"{length_guidance} "
-        f"Cite sources using bare [S#] markers — at least {_MIN_INLINE_CITATIONS_REQUESTED}, "
-        f"at most {_MAX_INLINE_CITATIONS_REQUESTED} inline markers from different [S#] evidence IDs. "
+        f"Cite sources using bare [S#] markers — at least {_MIN_INLINE_CITATIONS_REQUESTED} "
+        f"when that many distinct sources are available, at most {_MAX_INLINE_CITATIONS_REQUESTED} inline markers "
+        f"from different [S#] evidence IDs. Never invent markers to reach a count. "
         f"Synthesize scientific connections naturally without forcing an artificial topological boilerplate. "
         f"Never add a Sources section or invent pages. "
         f"Never print style labels or control tokens."

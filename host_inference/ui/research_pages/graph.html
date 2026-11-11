@@ -1,0 +1,52 @@
+<section aria-label="Concept graph workspace" class="graph-workspace" id="graph-studio">
+<div class="studio-heading"><p class="eyebrow">06 / GRAPH STUDIO</p><h2>Explore the complete concept graph</h2><p>Switch between the institutional concept graph and the saved research source graph. Search or choose a node to inspect its connections.</p></div>
+<div class="graph-toolbar">
+<form id="search-form" role="search">
+<label for="query">Find a concept</label>
+<div class="search-row"><input id="query" maxlength="160" minlength="2" placeholder="Try attention, databases, neural networks…" required="" type="search"/><button type="submit">Explore <span aria-hidden="true">↗</span></button></div>
+</form>
+<div aria-label="Research views" class="view-group">
+<button class="view-button active" id="show-all" type="button">All concepts</button>
+<button class="view-button" id="show-sources" type="button">Source documents</button>
+<button class="view-button" id="show-intake-map" type="button">Research map</button><button class="view-button" id="download-research-graph" type="button">Download graph JSON</button>
+</div>
+<div aria-label="Relationship filter" class="filter-group">
+<button aria-pressed="true" class="filter active" data-filter="all" type="button">All links</button>
+<button aria-pressed="false" class="filter" data-filter="requires" type="button">Requires</button>
+<button aria-pressed="false" class="filter" data-filter="enables" type="button">Enables</button>
+</div>
+</div>
+<div class="graph-grid" id="graph-grid">
+<div class="graph-panel">
+<div class="graph-caption"><span aria-hidden="true" class="live-dot"></span><span id="graph-counts">Loading concepts…</span><span class="caption-help">Select a node to inspect · drag to explore</span></div>
+<div aria-label="Interactive concept relationship graph" id="graph" role="img"></div>
+<div class="graph-bottom">
+<p id="graph-status" role="status">Loading graph…</p>
+<div aria-label="Graph zoom controls" class="zoom-controls"><button aria-label="Zoom out" id="zoom-out" type="button">−</button><button id="zoom-fit" type="button">Fit</button><button aria-label="Zoom in" id="zoom-in" type="button">+</button></div>
+</div>
+</div>
+<aside aria-labelledby="detail-heading" class="detail-panel">
+<div class="detail-kicker"><span aria-hidden="true" class="detail-icon">◇</span><span>CONCEPT DETAILS</span></div>
+<h2 id="detail-heading">Select a concept</h2>
+<p id="detail-summary">Choose a node from the graph or the list below to see its details.</p>
+<a hidden="" href="#" id="detail-source" rel="noopener noreferrer" target="_blank">Open source ↗</a>
+<dl class="detail-stats"><div><dt>Type</dt><dd id="detail-kind">—</dd></div><div><dt>Connections</dt><dd id="detail-degree">—</dd></div><div><dt>Source documents</dt><dd id="detail-source-count">—</dd></div></dl>
+<button disabled="" id="expand-node" type="button">Explore this neighborhood <span aria-hidden="true">→</span></button>
+<section aria-labelledby="concept-list-title" class="concept-list-section"><h3 id="concept-list-title">Concepts in view</h3><ul id="concept-list"></ul></section>
+<form hidden="" id="annotation-form">
+<h3 id="editor-heading">Add curated details</h3>
+<p>Only librarians and administrators can save changes.</p>
+<label for="annotation-summary">Description</label>
+<textarea id="annotation-summary" maxlength="2000" placeholder="Write a clear, source-grounded description." required="" rows="5"></textarea>
+<label for="annotation-source">Source link (optional)</label>
+<input id="annotation-source" maxlength="500" pattern="https://.*" placeholder="https://…" type="url"/>
+<button id="save-annotation" type="submit">Save details</button>
+<p id="annotation-status" role="status"></p>
+</form>
+</aside>
+</div>
+<section aria-labelledby="sources-heading" hidden="" id="sources-view">
+<div class="sources-head"><div><p class="eyebrow">INDEXED DOCUMENTS</p><h2 id="sources-heading">Sources behind the graph</h2><p>Each document below contributes at least one indexed concept. Select a document to see its connected concepts.</p></div><label for="source-filter">Filter documents<input id="source-filter" placeholder="Search titles or paths" type="search"/></label></div>
+<div class="source-list" id="source-list"></div>
+</section>
+</section>

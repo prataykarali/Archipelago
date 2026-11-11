@@ -1,9 +1,6 @@
 """Unit tests for Interactive Diagnostic MCQ Layer."""
 
-import pytest
-
 from archipelago.inference.diagnostic_mcq import (
-    DiagnosticMCQ,
     evaluate_diagnostic_mcqs,
     generate_diagnostic_mcqs,
 )
@@ -80,9 +77,11 @@ def test_mcq_evaluation_pass_threshold():
 
 def test_verify_mcq_flask_endpoint():
     import os
+
     os.environ["ARCHIPELAGO_DB_READ_ONLY"] = "1"
     from archipelago.inference import state as st
     from archipelago.inference.routes_chat import init_concepts_data
+
     init_concepts_data()
 
     with st.app.test_client() as client:
@@ -108,16 +107,18 @@ def test_verify_mcq_flask_endpoint():
 
 
 def test_chat_server_verify_mcq_proxy(monkeypatch):
-    import chat_server
     from archipelago import supabase_auth
+    import chat_server
+
     principal = supabase_auth.AuthPrincipal("test-user", "student", "student", "test-token")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _request: (principal, None))
 
     class MockResponse:
-        status_code = 200
-        headers = {"Content-Type": "application/json"}
-        content = b'{"success": true, "score": "3/3", "passed": true}'
+        def __init__(self):
+            self.status_code = 200
+            self.headers = {"Content-Type": "application/json"}
+            self.content = b'{"success": true, "score": "3/3", "passed": true}'
 
     def mock_post(url, json=None, headers=None, timeout=None):
         assert "verify-mcq" in url
@@ -139,10 +140,7 @@ def test_zero_score_remediation_scenario():
     """Edge Case 1: 0/3 correct must construct foundational remediation bridge without failure."""
     mcqs = generate_diagnostic_mcqs("transformer", num_questions=3)
     # Intentionally select wrong options for all questions
-    wrong_answers = {
-        q["id"]: ("A" if q["correct_option"] != "A" else "C")
-        for q in mcqs
-    }
+    wrong_answers = {q["id"]: ("A" if q["correct_option"] != "A" else "C") for q in mcqs}
     result = evaluate_diagnostic_mcqs(mcqs, wrong_answers, target_concept_id="transformer")
     assert result["success"] is True
     assert result["score"] == "0/3"
@@ -183,6 +181,7 @@ def test_full_score_unlocked_scenario():
 def test_anti_tamper_input_validation():
     """Anti-tamper: Reject malformed payload, unbounded submissions, and foreign question IDs."""
     from archipelago.inference.diagnostic_mcq import validate_mcq_submission
+
     mcqs = generate_diagnostic_mcqs("transformer", num_questions=3)
 
     # 1. Reject empty target
@@ -207,8 +206,10 @@ def test_anti_tamper_input_validation():
 def test_diagnostic_mcqs_endpoint_latency_and_contract():
     """Verify /api/chat/diagnostic-mcqs endpoint response structure and fast fallback."""
     import time
+
     from archipelago.inference import state as st
     from archipelago.inference.routes_chat import init_concepts_data
+
     init_concepts_data()
 
     with st.app.test_client() as client:
@@ -229,10 +230,15 @@ def test_diagnostic_mcqs_endpoint_latency_and_contract():
 def test_telemetry_endpoint():
     """Verify /api/chat/telemetry records user choice correctly."""
     from archipelago.inference import state as st
+
     with st.app.test_client() as client:
         resp = client.post(
             "/api/chat/telemetry",
-            json={"event": "graph_choice", "mode": "personalized", "concept_id": "retrieval_augmented_generation"},
+            json={
+                "event": "graph_choice",
+                "mode": "personalized",
+                "concept_id": "retrieval_augmented_generation",
+            },
         )
         assert resp.status_code == 200
         data = resp.get_json()
@@ -242,16 +248,18 @@ def test_telemetry_endpoint():
 
 def test_chat_server_telemetry_and_mcq_proxies(monkeypatch):
     """Verify chat_server forwards telemetry and diagnostic-mcqs endpoints."""
-    import chat_server
     from archipelago import supabase_auth
+    import chat_server
+
     principal = supabase_auth.AuthPrincipal("test-user", "student", "student", "test-token")
     monkeypatch.setenv("ARCHIPELAGO_AUTH_REQUIRED", "1")
     monkeypatch.setattr(supabase_auth, "authenticate_request", lambda _request: (principal, None))
 
     class MockResponse:
-        status_code = 200
-        headers = {"Content-Type": "application/json"}
-        content = b'{"success": true, "mcqs": []}'
+        def __init__(self):
+            self.status_code = 200
+            self.headers = {"Content-Type": "application/json"}
+            self.content = b'{"success": true, "mcqs": []}'
 
     def mock_get(url, params=None, headers=None, timeout=None):
         assert "diagnostic-mcqs" in url
@@ -268,112 +276,7 @@ def test_chat_server_telemetry_and_mcq_proxies(monkeypatch):
         resp_mcq = client.get("/api/chat/diagnostic-mcqs?concept=transformer")
         assert resp_mcq.status_code == 200
 
-        resp_tel = client.post("/api/chat/telemetry", json={"event": "graph_choice", "mode": "normal"})
+        resp_tel = client.post(
+            "/api/chat/telemetry", json={"event": "graph_choice", "mode": "normal"}
+        )
         assert resp_tel.status_code == 200
-
-
-def test_dag_cycle_prevention():
-    """Verify build_personalized_graph_dag creates a valid cycle-free directed acyclic graph."""
-    from archipelago.inference.diagnostic_mcq import build_personalized_graph_dag
-
-    eval_details = [
-        {"concept_id": "linear_algebra", "concept_name": "Linear Algebra", "is_correct": True, "citation": "Ref 1"},
-        {"concept_id": "vector_space", "concept_name": "Vector Spaces", "is_correct": False, "citation": "Ref 2"},
-    ]
-    graph = build_personalized_graph_dag(
-        target_concept_id="embeddings",
-        mastered_concepts=["linear_algebra"],
-        gap_concepts=["vector_space"],
-        eval_details=eval_details,
-    )
-    nodes = {n["id"]: n for n in graph["nodes"]}
-    assert "embeddings" in nodes
-    assert "linear_algebra" in nodes
-    assert "vector_space" in nodes
-
-    # Status check
-    assert nodes["linear_algebra"]["status"] == "mastered"
-    assert nodes["vector_space"]["status"] == "review_gap"
-    assert nodes["embeddings"]["status"] == "target"
-
-    # Cycle check: verify all edges flow prereq -> target, no self-loops, no back edges
-    assert len(graph["edges"]) >= 2
-    for edge in graph["edges"]:
-        assert edge["source"] in nodes
-        assert edge["target"] in nodes
-        assert edge["source"] != edge["target"]
-    assert graph["is_dag"] is True
-
-
-def test_adaptive_step_leap_back_and_completion():
-    """Verify adaptive leap-back on gap and 3-tick early completion."""
-    from archipelago.inference.diagnostic_mcq import execute_adaptive_step
-
-    # 1. Correct answer increments consecutive ticks
-    step1 = execute_adaptive_step({
-        "target_concept": "low_rank_adaptation",
-        "current_concept": "fine_tuning",
-        "user_choice": "A",
-        "history": [],
-        "consecutive_ticks": 0,
-        "current_mcq": {
-            "id": "mcq_fine_tuning_1",
-            "concept_id": "fine_tuning",
-            "question": "PEFT definition",
-            "options": {"A": "Correct", "B": "W1", "C": "W2", "D": "W3"},
-            "correct_option": "A",
-            "explanation": "Exp",
-            "citation": "Cit",
-        }
-    })
-    assert step1["is_tick"] is True
-    assert step1["consecutive_ticks"] == 1
-    assert step1["completed"] is False
-    assert step1["stride_action"] == "advance"
-
-    # 2. Incorrect answer triggers leap back
-    step2 = execute_adaptive_step({
-        "target_concept": "low_rank_adaptation",
-        "current_concept": "transformer",
-        "user_choice": "C",  # Wrong answer
-        "history": step1["history"],
-        "consecutive_ticks": 1,
-        "current_mcq": {
-            "id": "mcq_transformer_2",
-            "concept_id": "transformer",
-            "question": "Transformer question",
-            "options": {"A": "W1", "B": "Correct", "C": "W2", "D": "W3"},
-            "correct_option": "B",
-            "explanation": "Exp",
-            "citation": "Cit",
-        }
-    })
-    assert step2["is_tick"] is False
-    assert step2["consecutive_ticks"] == 0
-    assert step2["completed"] is False
-    assert step2["stride_action"] == "leap_back"
-
-    # 3. Three consecutive ticks completes session
-    hist = list(step1["history"])
-    step3 = execute_adaptive_step({
-        "target_concept": "low_rank_adaptation",
-        "current_concept": "matrix_multiplication",
-        "user_choice": "A",
-        "history": hist,
-        "consecutive_ticks": 2,  # Already at 2 ticks, this makes 3!
-        "current_mcq": {
-            "id": "mcq_matrix_multiplication_3",
-            "concept_id": "matrix_multiplication",
-            "question": "Matrix dims",
-            "options": {"A": "Correct", "B": "W1", "C": "W2", "D": "W3"},
-            "correct_option": "A",
-            "explanation": "Exp",
-            "citation": "Cit",
-        }
-    })
-    assert step3["is_tick"] is True
-    assert step3["consecutive_ticks"] == 3
-    assert step3["completed"] is True
-    assert "personalized_graph" in step3
-    assert "evaluation" in step3
-

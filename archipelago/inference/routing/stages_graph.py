@@ -1,8 +1,9 @@
 """Graph pinning stage: kill-switch, scope gate, strong/soft anchor selection."""
+
 from __future__ import annotations
 
 from archipelago.inference import state as st
-from archipelago.inference.intent_gate import REASON_OUT_OF_SCOPE
+
 from . import _deps as _rt
 from .guards import _merge_slots
 
@@ -43,19 +44,20 @@ def graph_route(
             graph_evidence=graph_evidence,
         )
         if in_scope:
-            closest = [
-                r.get("label") or r.get("name") or r.get("id")
-                for r in ranked[:3]
-            ]
+            closest = [r.get("label") or r.get("name") or r.get("id") for r in ranked[:3]]
             return {
                 **base,
                 "route": "low_similarity_reject",
                 "reason": "kill_switch_low_similarity_in_scope",
                 "score": best_cos,
                 "scope": "yes",
-                "slots": _merge_slots(base["slots"], {
-                    "closest_concepts": closest, "query": q,
-                }),
+                "slots": _merge_slots(
+                    base["slots"],
+                    {
+                        "closest_concepts": closest,
+                        "query": q,
+                    },
+                ),
             }
         return {
             **base,
@@ -80,19 +82,20 @@ def graph_route(
     )
     if not in_scope:
         if learning and not offtopic:
-            closest = [
-                r.get("label") or r.get("name") or r.get("id")
-                for r in ranked[:3]
-            ]
+            closest = [r.get("label") or r.get("name") or r.get("id") for r in ranked[:3]]
             return {
                 **base,
                 "route": "low_similarity_reject",
                 "reason": "not_indexed_learning_topic",
                 "score": best_cos,
                 "scope": "soft",
-                "slots": _merge_slots(base["slots"], {
-                    "closest_concepts": closest, "query": q,
-                }),
+                "slots": _merge_slots(
+                    base["slots"],
+                    {
+                        "closest_concepts": closest,
+                        "query": q,
+                    },
+                ),
             }
         return {
             **base,
@@ -126,9 +129,7 @@ def graph_route(
         target_reason = "soft_high_confidence"
 
     if target_route:
-        max_cos = max(
-            (float(r.get("cos") or 0.0) for r in ranked), default=0.0
-        )
+        max_cos = max((float(r.get("cos") or 0.0) for r in ranked), default=0.0)
         best_alias = float((best or {}).get("alias_boost") or 0.0)
         best_blended = float((best or {}).get("blended") or 0.0)
         surface_hit = _rt._has_surface_concept_hit(ranked, q)
@@ -142,19 +143,20 @@ def graph_route(
             and not surface_hit
         )
         if hard_miss:
-            closest = [
-                r.get("label") or r.get("name") or r.get("id")
-                for r in ranked[:3]
-            ]
+            closest = [r.get("label") or r.get("name") or r.get("id") for r in ranked[:3]]
             return {
                 **base,
                 "route": "low_similarity_reject",
                 "score": max_cos,
                 "reason": "low_similarity_reject",
                 "scope": "yes",
-                "slots": _merge_slots(base["slots"], {
-                    "closest_concepts": closest, "query": q,
-                }),
+                "slots": _merge_slots(
+                    base["slots"],
+                    {
+                        "closest_concepts": closest,
+                        "query": q,
+                    },
+                ),
             }
 
         if (
@@ -169,13 +171,15 @@ def graph_route(
                 "score": max_cos,
                 "reason": "partial_coverage_low_cos",
                 "scope": "yes",
-                "slots": _merge_slots(base["slots"], {
-                    "partial": True,
-                    "closest_concepts": [
-                        r.get("label") or r.get("name") or r.get("id")
-                        for r in ranked[:3]
-                    ],
-                }),
+                "slots": _merge_slots(
+                    base["slots"],
+                    {
+                        "partial": True,
+                        "closest_concepts": [
+                            r.get("label") or r.get("name") or r.get("id") for r in ranked[:3]
+                        ],
+                    },
+                ),
             }
 
         out_score = target_score
@@ -192,19 +196,20 @@ def graph_route(
         }
 
     if learning:
-        closest = [
-            r.get("label") or r.get("name") or r.get("id")
-            for r in ranked[:3]
-        ]
+        closest = [r.get("label") or r.get("name") or r.get("id") for r in ranked[:3]]
         return {
             **base,
             "route": "low_similarity_reject",
             "score": best_cos,
             "reason": "not_indexed_low_signal",
             "scope": "yes",
-            "slots": _merge_slots(base["slots"], {
-                "closest_concepts": closest, "query": q,
-            }),
+            "slots": _merge_slots(
+                base["slots"],
+                {
+                    "closest_concepts": closest,
+                    "query": q,
+                },
+            ),
         }
 
     return {

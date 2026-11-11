@@ -65,7 +65,7 @@ port_up() {  # $1 = port
   # Pass the shared token when set so authed services don't read as DOWN (401)
   curl -sf -o /dev/null --max-time 2 \
     ${ARCHIPELAGO_TOKEN:+-H "X-Archipelago-Token: ${ARCHIPELAGO_TOKEN}"} \
-    "http://${URL_HOST}:$1/" 2>/dev/null
+    "http://${URL_HOST}:$1/api/readiness" 2>/dev/null
 }
 
 start_one() {

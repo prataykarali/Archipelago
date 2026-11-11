@@ -1,9 +1,11 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def apply_merge(
@@ -17,14 +19,18 @@ def apply_merge(
     writes: list[dict[str, Any]] = []
     if not dry_run:
         writes = _write_plan(plan, record_type)
+        if writes:
+            from archipelago.inference.inventory_ssot import clear_all_inventory_caches
+
+            clear_all_inventory_caches()
     summary = plan.summary()
     summary["applied"] = not dry_run
     summary["dry_run"] = dry_run
     summary["retire_missing"] = retire_missing
     summary["writes_performed"] = len(writes)
+    summary["graph_updated"] = bool(writes)
     summary["idempotent"] = all(
-        c["outcome"] in (_rt.OUTCOME_UNCHANGED, _rt.OUTCOME_RETIRE)
-        for c in summary["changes"]
+        c["outcome"] in (_rt.OUTCOME_UNCHANGED, _rt.OUTCOME_RETIRE) for c in summary["changes"]
     )
     return summary
 
@@ -98,7 +104,9 @@ def _write_plan(plan: _rt.MergePlan, record_type: str) -> list[dict[str, Any]]:
         return written
     try:
         import kuzu
+
         from archipelago.inference import state as st
+
         if getattr(st, "db", None) is None:
             plan.errors.append("Graph database unavailable; nothing was written.")
             return written

@@ -31,12 +31,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
-from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WORKER_DIR = Path(__file__).resolve().parent / "kaggle_worker"
@@ -55,7 +55,6 @@ def _hf_headers(token: str | None) -> dict:
 
 def hf_get_json(repo: str, path: str, token: str | None, repo_type: str = "dataset") -> dict | None:
     """Fetch a JSON file from HF with cache-bust. Returns None if missing."""
-    base = "datasets" if repo_type == "dataset" else ""
     # resolve/main with download=true follows CDN redirects when using urlopen
     url = (
         f"https://huggingface.co/{'datasets/' if repo_type == 'dataset' else ''}"
@@ -83,8 +82,7 @@ def push_kaggle_notebook(kernel_slug: str) -> str:
 
     print(f"  📤 Pushing headless GPU ingest notebook → {kernel_slug}")
     result = subprocess.run(
-        ["kaggle", "kernels", "push", "-p", str(WORKER_DIR),
-         "--accelerator", "NvidiaTeslaT4"],
+        ["kaggle", "kernels", "push", "-p", str(WORKER_DIR), "--accelerator", "NvidiaTeslaT4"],
         capture_output=True,
         text=True,
     )
@@ -149,8 +147,7 @@ def wait_for_graph_on_hf(
             print("    graph/status.json not published yet...")
         time.sleep(15)
     raise RuntimeError(
-        f"Timed out waiting for {books_repo}/{status_path}. "
-        "Check Kaggle kernel logs."
+        f"Timed out waiting for {books_repo}/{status_path}. Check Kaggle kernel logs."
     )
 
 
@@ -158,7 +155,7 @@ def print_spaces_hints(books_repo: str, graph_prefix: str) -> None:
     p = graph_prefix.strip("/")
     print(
         f"""
-{'=' * 70}
+{"=" * 70}
 🎉 HEADLESS INGEST COMPLETE
 
 HF dataset (books + ready graph for Spaces):
@@ -176,7 +173,7 @@ Librarian flow next time:
   1. Upload new PDFs into the HF dataset (folder per book / papers/)
   2. Re-run:  python scripts/kaggle_ingest.py
   3. Spaces reloads graph/ from the same dataset
-{'=' * 70}
+{"=" * 70}
 """
     )
 
@@ -185,16 +182,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Headless Kaggle GPU ingest: HF books → lib-qwen → HF graph"
     )
-    parser.add_argument("--books-repo", default=DEFAULT_BOOKS_REPO,
-                        help="HF dataset where librarian uploads books")
-    parser.add_argument("--graph-prefix", default=DEFAULT_GRAPH_PREFIX,
-                        help="Path prefix inside the dataset for graph outputs")
+    parser.add_argument(
+        "--books-repo", default=DEFAULT_BOOKS_REPO, help="HF dataset where librarian uploads books"
+    )
+    parser.add_argument(
+        "--graph-prefix",
+        default=DEFAULT_GRAPH_PREFIX,
+        help="Path prefix inside the dataset for graph outputs",
+    )
     parser.add_argument("--kernel-slug", default=DEFAULT_KERNEL_SLUG)
     parser.add_argument("--hf-token", default=os.environ.get("HF_TOKEN", ""))
-    parser.add_argument("--skip-push", action="store_true",
-                        help="Only poll HF for an already-running/finished job")
-    parser.add_argument("--max-wait", type=int, default=14400,
-                        help="Max seconds to wait for Kaggle kernel")
+    parser.add_argument(
+        "--skip-push", action="store_true", help="Only poll HF for an already-running/finished job"
+    )
+    parser.add_argument(
+        "--max-wait", type=int, default=14400, help="Max seconds to wait for Kaggle kernel"
+    )
     args = parser.parse_args()
 
     if not args.hf_token:
@@ -206,7 +209,7 @@ def main() -> None:
     print(f"  kernel:              {args.kernel_slug}")
     print("=" * 60)
 
-    push_ts = time.time()
+    time.time()
     if not args.skip_push:
         if not WORKER_DIR.exists():
             raise SystemExit(f"Missing worker dir: {WORKER_DIR}")

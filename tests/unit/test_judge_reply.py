@@ -1,4 +1,5 @@
 """Unit coverage for SoFerence judge-ready reply architecture."""
+
 from __future__ import annotations
 
 import json
@@ -6,9 +7,7 @@ import json
 import pytest
 
 from archipelago.inference.judge_reply import (
-    JUDGE_MAX_OUTPUT_TOKENS,
     JUDGE_SYSTEM_PROMPT,
-    JUDGE_TEMPERATURE,
     build_judge_user_content,
     has_judge_section_headings,
 )
@@ -17,7 +16,6 @@ from archipelago.inference.sanitizer import (
     sanitize_stream_final,
 )
 import archipelago.inference.synthesis as synthesis
-
 
 pytestmark = pytest.mark.unit
 
@@ -85,10 +83,9 @@ def test_sanitize_strips_orphan_query_params_and_dedupes():
 
 
 def test_malformed_math_synthesis_is_rejected() -> None:
-    malformed = (
-        "y'_i,j,k,l,m,n,p,q,r,s,t,u,v,w,x,y,z = begincases "
-        "W_ij · x_i endcases"
-    )
+    malformed = "y'_i,j,k,l,m,n,p,q,r,s,t,u,v,w,x,y,z = begincases W_ij · x_i endcases"
 
     assert not synthesis.is_readable_synthesis(malformed)
-    assert synthesis.is_readable_synthesis("LoRA freezes base weights and learns a low-rank update.")
+    assert synthesis.is_readable_synthesis(
+        "LoRA freezes base weights and learns a low-rank update."
+    )

@@ -1,4 +1,5 @@
 """Unit tests for credential redaction in log output."""
+
 from __future__ import annotations
 
 import logging

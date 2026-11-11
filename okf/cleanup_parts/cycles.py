@@ -1,11 +1,16 @@
-from okf.cleanup_parts._base import *  # noqa: F403
+from typing import Any
 
-def break_global_cycles(okf_results: list) -> int:
+from okf.cleanup_parts._base import *  # noqa: F403
+from okf.cleanup_parts._base import _DIFFICULTY_RANK
+
+
+def break_global_cycles(okf_results: list[dict[str, Any]]) -> int:
     """Break all cycles in the learning progression graph (prerequisites and unlocks).
 
     Enforces a strict Directed Acyclic Graph (DAG) for learning paths.
     """
     import sys
+
     # Increase recursion limit just in case
     sys.setrecursionlimit(max(sys.getrecursionlimit(), 2000))
 
@@ -14,7 +19,7 @@ def break_global_cycles(okf_results: list) -> int:
 
     for _ in range(1000):  # limit iterations to prevent infinite loop
         # Build learning edges list (src -> dst means src must be learned before dst)
-        edges = []
+        edges: list[tuple[str, str, str, str, str]] = []
         for r in okf_results:
             u = r.get("concept_name", "")
             u_lower = u.lower()
@@ -34,18 +39,23 @@ def break_global_cycles(okf_results: list) -> int:
                     edges.append((u_lower, val_lower, "unlock", u, val))
 
         # Build adjacency list
-        adj = {}
-        edge_lookup = {}
+        adj: dict[str, set[str]] = {}
+        edge_lookup: dict[tuple[str, str], tuple[str, str, str]] = {}
         for src, dst, etype, orig_src, orig_dst in edges:
             adj.setdefault(src, set()).add(dst)
             edge_lookup[(src, dst)] = (etype, orig_src, orig_dst)
 
         # DFS cycle detection
-        state = {}  # node -> 0: unvisited, 1: visiting, 2: visited
-        parent = {}
-        cycle_found = None
+        state: dict[str, int] = {}  # node -> 0: unvisited, 1: visiting, 2: visited
+        parent: dict[str, str] = {}
+        cycle_found: list[str] | None = None
 
-        def dfs(node):
+        def dfs(
+            node: str,
+            state: dict[str, int] = state,
+            adj: dict[str, set[str]] = adj,
+            parent: dict[str, str] = parent,
+        ) -> None:
             nonlocal cycle_found
             if cycle_found:
                 return
@@ -53,11 +63,11 @@ def break_global_cycles(okf_results: list) -> int:
             for neighbor in adj.get(node, []):
                 if state.get(neighbor, 0) == 1:
                     # Cycle detected! Reconstruct cycle path
-                    cycle = []
+                    cycle: list[str] = []
                     curr = node
                     while curr != neighbor:
                         cycle.append(curr)
-                        curr = parent.get(curr)
+                        curr = parent[curr]
                     cycle.append(neighbor)
                     cycle.reverse()
                     cycle.append(neighbor)
@@ -83,7 +93,7 @@ def break_global_cycles(okf_results: list) -> int:
         # We have a cycle path like [A, B, C, A]
         cycle_pairs = []
         for i in range(len(cycle_found) - 1):
-            cycle_pairs.append((cycle_found[i], cycle_found[i+1]))
+            cycle_pairs.append((cycle_found[i], cycle_found[i + 1]))
 
         # Find weakest edge in the cycle:
         # Score = diff(dst) - diff(src). Lower score = weaker/more likely incorrect.
@@ -94,8 +104,12 @@ def break_global_cycles(okf_results: list) -> int:
             src_res = index.get(src)
             dst_res = index.get(dst)
 
-            src_diff = _DIFFICULTY_RANK.get(src_res.get("difficulty", "intermediate") if src_res else "intermediate", 2)
-            dst_diff = _DIFFICULTY_RANK.get(dst_res.get("difficulty", "intermediate") if dst_res else "intermediate", 2)
+            src_diff = _DIFFICULTY_RANK.get(
+                src_res.get("difficulty", "intermediate") if src_res else "intermediate", 2
+            )
+            dst_diff = _DIFFICULTY_RANK.get(
+                dst_res.get("difficulty", "intermediate") if dst_res else "intermediate", 2
+            )
 
             score = dst_diff - src_diff
 
@@ -113,7 +127,9 @@ def break_global_cycles(okf_results: list) -> int:
             if etype == "prereq":
                 dst_res = index.get(dst)
                 if dst_res:
-                    dst_res["prerequisites"] = [x for x in dst_res.get("prerequisites", []) if x.lower() != src]
+                    dst_res["prerequisites"] = [
+                        x for x in dst_res.get("prerequisites", []) if x.lower() != src
+                    ]
             else:
                 src_res = index.get(src)
                 if src_res:

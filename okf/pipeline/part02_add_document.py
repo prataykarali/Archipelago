@@ -1,22 +1,28 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
+from collections import Counter
 import json
 import os
-from collections import Counter
+from typing import Any, cast
+
 from okf import config, extraction
-from okf.config import MODEL_NAME, _local_path, infer_source_category
+from okf.config import _local_path
 from okf.extraction import extract_chunks_with_model, load_local_model
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
-def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
+def add_document(
+    path: str, limit: int | None = None, evaluate_gold_path: str | None = None
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]] | None:
     """Incrementally ingest ONE document with the LOCAL model and rebuild the
     merged graph. Re-adding a doc replaces its previous entries (no duplicates).
 
     limit: optional cap on prose chunks processed (fast testing on CPU).
     """
-    from archipelago.ingestion.pdf_io import ingest_document
+    from pdf_ingestion import ingest_document
 
     print("=" * 70)
     print("ARCHIPELAGO PIPELINE - INCREMENTAL ADD (single document)")
@@ -24,7 +30,7 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
 
     if not os.path.isfile(path):
         print(f"ERROR: file not found: {path}")
-        return
+        return None
 
     doc_id = _rt.compute_doc_id(path)
     print(f"\n  Document: {path}")
@@ -49,7 +55,7 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
 
     if not prose_chunks:
         print("ERROR: No prose chunks to extract from!")
-        return
+        return None
 
     if limit is not None and limit < len(prose_chunks):
         print(f"  --limit {limit}: processing only the first {limit} prose chunks")
@@ -59,9 +65,12 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
     print(f"\n[2] STAGE 2: OKF v1.5 Extraction via local model: {_local_path}")
     print("-" * 50)
 
-    if extraction.LOCAL_MODEL is None:
+    shared_model = os.getenv("ARCHIPELAGO_INGESTION_MODEL", "").strip()
+    if not shared_model and extraction.LOCAL_MODEL is None:
         load_local_model()
-    if extraction.LOCAL_MODE and extraction.LOCAL_MODEL is not None:
+    if shared_model:
+        print(f"  Using fine-tuned shared Ollama model '{shared_model}' for extraction.")
+    elif extraction.LOCAL_MODE and extraction.LOCAL_MODEL is not None:
         # Preferred path: PyTorch lib-qwen / aura-qwen loaded from disk.
         pass
     else:
@@ -70,6 +79,7 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
         # preserves the invariant that we never extract with the untuned base
         # qwen3.5:0.8b.
         from okf.config import MODEL_NAME as _okf_model
+
         fine_tuned_prefixes = ("lib-qwen", "aura-qwen", "lora")
         if any(_okf_model.startswith(p) for p in fine_tuned_prefixes):
             print(
@@ -82,7 +92,7 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
                 f"'{_okf_model}' is not a fine-tuned extractor — "
                 "--add never falls back to the untuned base model. Aborting."
             )
-            return
+            return None
 
     new_results, new_successful = extract_chunks_with_model(prose_chunks)
     print(f"\n  Extracted: {len(new_results)} concepts from {len(prose_chunks)} chunks")
@@ -92,7 +102,7 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
         # entries and replace them with nothing — abort instead so a bad run
         # can never destroy existing data.
         print("ERROR: extraction produced 0 concepts — leaving existing results untouched.")
-        return
+        return None
 
     # ── Merge with existing results (replace prior entries for this doc) ──
     print("\n[2a] MERGE WITH EXISTING RESULTS")
@@ -101,7 +111,7 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
     saved_file = _rt.BASE_DIR / "okf_results.json"
     existing = []
     if saved_file.exists():
-        with open(saved_file, "r", encoding="utf-8") as f:
+        with open(saved_file, encoding="utf-8") as f:
             existing = json.load(f)
     before = len(existing)
     # Existing entries already carry page_number/section_title/source_passage;
@@ -113,16 +123,26 @@ def add_document(path: str, limit: int = None, evaluate_gold_path: str = None):
     else:
         print(f"  No prior entries for {doc_id}")
     okf_results = existing + new_results
-    print(f"  Merged total: {len(okf_results)} concepts "
-          f"({len(existing)} existing + {len(new_results)} new)")
+    print(
+        f"  Merged total: {len(okf_results)} concepts "
+        f"({len(existing)} existing + {len(new_results)} new)"
+    )
 
     # Chunk counts for the merged evaluation: distinct extracted chunks from the
     # kept existing results plus every prose chunk processed in this run.
-    existing_chunk_count = len({
-        (r.get("doc_id", ""), r.get("chunk_id", ""))
-        for r in existing if r.get("chunk_id")
-    })
+    existing_chunk_count = len(
+        {(r.get("doc_id", ""), r.get("chunk_id", "")) for r in existing if r.get("chunk_id")}
+    )
     total_chunks = existing_chunk_count + len(prose_chunks)
     successful_chunk_count = existing_chunk_count + new_successful
 
-    return _rt.finalize_and_build(okf_results, total_chunks, successful_chunk_count, chunks=prose_chunks, evaluate_gold_path=evaluate_gold_path)
+    return cast(
+        tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]],
+        _rt.finalize_and_build(
+            okf_results,
+            total_chunks,
+            successful_chunk_count,
+            chunks=prose_chunks,
+            evaluate_gold_path=evaluate_gold_path,
+        ),
+    )

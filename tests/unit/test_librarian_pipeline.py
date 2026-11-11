@@ -1,11 +1,10 @@
 """Unit tests for Librarian Pipeline, 8-Key OKF Contract, and Atomic Swap Mechanics."""
 
-import io
 import json
-import shutil
+from pathlib import Path
 import sys
 import tempfile
-from pathlib import Path
+
 import pytest
 
 from archipelago.graph.engine import KuzuGraphEngine
@@ -15,13 +14,6 @@ from archipelago.ingestion.lib_qwen_extractor import (
     canonical_concept_id,
     canonicalize_concept_name,
     clean_json_payload,
-    is_negative_sample,
-)
-from archipelago.ingestion.librarian_worker import (
-    get_job_status,
-    get_staging_review,
-    publish_staging,
-    start_upload_job,
 )
 
 
@@ -104,12 +96,16 @@ def test_kahn_dag_multi_domain():
     existing_edges = {("routing", "ip"), ("ip", "tcp")}
 
     # Valid acyclic addition
-    is_valid, rej = fusion.validate_dag_kahn(existing_nodes, existing_edges, {"bgp"}, {("bgp", "routing")})
+    is_valid, rej = fusion.validate_dag_kahn(
+        existing_nodes, existing_edges, {"bgp"}, {("bgp", "routing")}
+    )
     assert is_valid is True
     assert len(rej) == 0
 
     # Cyclic edge (tcp -> routing creates routing -> ip -> tcp -> routing)
-    is_valid_c, rej_c = fusion.validate_dag_kahn(existing_nodes, existing_edges, set(), {("tcp", "routing")})
+    is_valid_c, rej_c = fusion.validate_dag_kahn(
+        existing_nodes, existing_edges, set(), {("tcp", "routing")}
+    )
     assert is_valid_c is False
     assert ("tcp", "routing") in rej_c
 
@@ -146,12 +142,16 @@ def test_kuzu_connection_safe_atomic_swap(tmp_path):
 
     # Create dummy initial production database
     engine_prod = KuzuGraphEngine(db_path=prod_file, read_only=False)
-    engine_prod.conn.execute("CREATE NODE TABLE IF NOT EXISTS TestNode (id STRING PRIMARY KEY, val STRING);")
+    engine_prod.conn.execute(
+        "CREATE NODE TABLE IF NOT EXISTS TestNode (id STRING PRIMARY KEY, val STRING);"
+    )
     engine_prod.conn.execute("MERGE (t:TestNode {id: 'n1'}) ON CREATE SET t.val = 'production_v1';")
-    
+
     # Create staging database
     engine_staging = KuzuGraphEngine(db_path=staging_file, read_only=False)
-    engine_staging.conn.execute("CREATE NODE TABLE IF NOT EXISTS TestNode (id STRING PRIMARY KEY, val STRING);")
+    engine_staging.conn.execute(
+        "CREATE NODE TABLE IF NOT EXISTS TestNode (id STRING PRIMARY KEY, val STRING);"
+    )
     engine_staging.conn.execute("MERGE (t:TestNode {id: 'n1'}) ON CREATE SET t.val = 'staging_v2';")
 
     # Perform atomic swap
@@ -207,13 +207,25 @@ def test_export_graph_json_multi_edge_types():
         engine = KuzuGraphEngine(db_path=db_path, read_only=False)
         _create_schema(engine.conn)
 
-        engine.conn.execute("CREATE (c:Concept {id: 'c1', name: 'Concept 1', concept_type: 'method', difficulty: 'foundational', summary: 'S1', tags: 't1'})")
-        engine.conn.execute("CREATE (c:Concept {id: 'c2', name: 'Concept 2', concept_type: 'technique', difficulty: 'intermediate', summary: 'S2', tags: 't2'})")
-        engine.conn.execute("CREATE (c:Concept {id: 'c3', name: 'Concept 3', concept_type: 'definition', difficulty: 'advanced', summary: 'S3', tags: 't3'})")
+        engine.conn.execute(
+            "CREATE (c:Concept {id: 'c1', name: 'Concept 1', concept_type: 'method', difficulty: 'foundational', summary: 'S1', tags: 't1'})"
+        )
+        engine.conn.execute(
+            "CREATE (c:Concept {id: 'c2', name: 'Concept 2', concept_type: 'technique', difficulty: 'intermediate', summary: 'S2', tags: 't2'})"
+        )
+        engine.conn.execute(
+            "CREATE (c:Concept {id: 'c3', name: 'Concept 3', concept_type: 'definition', difficulty: 'advanced', summary: 'S3', tags: 't3'})"
+        )
 
-        engine.conn.execute("MATCH (a:Concept {id: 'c1'}), (b:Concept {id: 'c2'}) CREATE (a)-[:REQUIRES {relation_type: 'prerequisite', source: 'test'}]->(b)")
-        engine.conn.execute("MATCH (a:Concept {id: 'c2'}), (b:Concept {id: 'c3'}) CREATE (a)-[:UNLOCKS {relation_type: 'unlocks', source: 'test'}]->(b)")
-        engine.conn.execute("MATCH (a:Concept {id: 'c1'}), (b:Concept {id: 'c3'}) CREATE (a)-[:RELATED {relation_type: 'uses', source: 'test'}]->(b)")
+        engine.conn.execute(
+            "MATCH (a:Concept {id: 'c1'}), (b:Concept {id: 'c2'}) CREATE (a)-[:REQUIRES {relation_type: 'prerequisite', source: 'test'}]->(b)"
+        )
+        engine.conn.execute(
+            "MATCH (a:Concept {id: 'c2'}), (b:Concept {id: 'c3'}) CREATE (a)-[:UNLOCKS {relation_type: 'unlocks', source: 'test'}]->(b)"
+        )
+        engine.conn.execute(
+            "MATCH (a:Concept {id: 'c1'}), (b:Concept {id: 'c3'}) CREATE (a)-[:RELATED {relation_type: 'uses', source: 'test'}]->(b)"
+        )
         engine.close()
 
         exported = export_graph_json(db_path, json_path)

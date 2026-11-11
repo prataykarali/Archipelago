@@ -42,7 +42,10 @@ def test_pearson_reader_urls_keep_query_parameters_and_exact_page():
         ("How do DBMS buffer pools optimize query retrieval in Silberschatz?", "graph_strong"),
         ("Explain virtual memory paging vs segmentation in OSTEP.", "graph_strong"),
         ("How does GraphRAG combine graph databases with RAG synthesis?", "graph_strong"),
-        ("Rank the most critical PEFT and RAG papers in the corpus by contribution.", "graph_strong"),
+        (
+            "Rank the most critical PEFT and RAG papers in the corpus by contribution.",
+            "graph_strong",
+        ),
         ("What are the library hours and weekend issue rules?", "library_hours"),
         ("What e-resource portals does the central library provide?", "library_resources"),
         ("How do I access Pearson eLibrary textbooks?", "library_resources"),
@@ -63,7 +66,11 @@ def test_demo_citations_include_exact_pearson_page_links():
     from archipelago.inference.demo_query_books import merge_demo_citations
 
     citations = merge_demo_citations("How do DBMS buffer managers work?", [])
-    pearson = next(citation for citation in citations if citation["doc_id"] == "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae")
+    pearson = next(
+        citation
+        for citation in citations
+        if citation["doc_id"] == "4268f15e-ac2c-40dd-bd12-aca2f02dd0ae"
+    )
 
     assert pearson["page_number"] == 1
     assert pearson["page_url"].endswith("/page/1")

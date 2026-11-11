@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 import functools
 import hmac
 import os
+from typing import Any
 
 from flask import g, jsonify, request
 
@@ -41,9 +43,9 @@ def load_user() -> None:
     g.user_id = principal.user_id
 
 
-def require_auth(fn):
+def require_auth[**P](fn: Callable[P, Any]) -> Callable[P, Any]:
     @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
         if request.method == "OPTIONS":
             return fn(*args, **kwargs)
         if not getattr(g, "authenticated", False):
@@ -53,9 +55,9 @@ def require_auth(fn):
     return wrapper
 
 
-def require_admin(fn):
+def require_admin[**P](fn: Callable[P, Any]) -> Callable[P, Any]:
     @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
         if request.method == "OPTIONS":
             return fn(*args, **kwargs)
         principal = getattr(g, "archipelago_principal", None)
@@ -85,9 +87,9 @@ def is_librarian_request() -> bool:
     return bool(expected and provided and hmac.compare_digest(provided, expected))
 
 
-def require_librarian(fn):
+def require_librarian[**P](fn: Callable[P, Any]) -> Callable[P, Any]:
     @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
         if request.method == "OPTIONS":
             return fn(*args, **kwargs)
 
@@ -100,20 +102,24 @@ def require_librarian(fn):
         if principal is not None:
             if principal.role in {"librarian", "administrator"}:
                 return fn(*args, **kwargs)
-            return jsonify({
-                "error": "forbidden",
-                "detail": "Librarian or administrator role required",
-            }), 403
+            return jsonify(
+                {
+                    "error": "forbidden",
+                    "detail": "Librarian or administrator role required",
+                }
+            ), 403
 
         expected = librarian_token_expected()
         provided = _extract_token()
         if expected and provided and hmac.compare_digest(provided, expected):
             return fn(*args, **kwargs)
         if expected:
-            return jsonify({
-                "error": "unauthorized",
-                "detail": "Librarian authentication required.",
-            }), 401
+            return jsonify(
+                {
+                    "error": "unauthorized",
+                    "detail": "Librarian authentication required.",
+                }
+            ), 401
 
         if (
             not supabase_auth.is_auth_required()
@@ -123,10 +129,12 @@ def require_librarian(fn):
         ):
             return fn(*args, **kwargs)
 
-        return jsonify({
-            "error": "unauthorized",
-            "detail": auth_error or "Librarian or administrator role required",
-        }), 401
+        return jsonify(
+            {
+                "error": "unauthorized",
+                "detail": auth_error or "Librarian or administrator role required",
+            }
+        ), 401
 
     return wrapper
 
@@ -136,11 +144,13 @@ require_token = require_librarian
 # Reading and asking stay open to anonymous campus users. Set to "0" to require
 # a verified session on every chat request instead.
 _OPEN_READING_ALLOWED = os.getenv("ARCHIPELAGO_OPEN_READING", "1").strip().lower() not in {
-    "0", "false", "no",
+    "0",
+    "false",
+    "no",
 }
 
 
-def require_student_or_open(fn):
+def require_student_or_open[**P](fn: Callable[P, Any]) -> Callable[P, Any]:
     """Allow reading/asking without a session; attach a principal when present.
 
     Learning access is open to every campus user, so an anonymous visitor may
@@ -148,17 +158,20 @@ def require_student_or_open(fn):
     role-aware behaviour still works. Mutating endpoints use the stricter
     ``require_librarian`` / ``require_auth`` decorators instead.
     """
+
     @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
         if request.method == "OPTIONS":
             return fn(*args, **kwargs)
         principal, auth_error = supabase_auth.authenticate_request(request)
         if principal is None:
             if supabase_auth.is_auth_required() and not _OPEN_READING_ALLOWED:
-                return jsonify({
-                    "error": "unauthorized",
-                    "detail": auth_error or "A verified Supabase session is required",
-                }), 401
+                return jsonify(
+                    {
+                        "error": "unauthorized",
+                        "detail": auth_error or "A verified Supabase session is required",
+                    }
+                ), 401
             g.authenticated = False
             return fn(*args, **kwargs)
         g.archipelago_principal = principal

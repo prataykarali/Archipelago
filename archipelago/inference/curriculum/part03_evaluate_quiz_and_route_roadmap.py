@@ -1,7 +1,8 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from . import _deps as _rt  # noqa: F401
+from . import _deps as _rt
 
 
 def evaluate_quiz_and_route_roadmap(
@@ -23,7 +24,10 @@ def evaluate_quiz_and_route_roadmap(
 
     questions = quiz_data.get("questions", [])
     if not questions:
-        return {"error": "Could not generate questions for target concept", "target_id": target_concept_id}
+        return {
+            "error": "Could not generate questions for target concept",
+            "target_id": target_concept_id,
+        }
 
     mastered = []
     gaps = []
@@ -34,11 +38,15 @@ def evaluate_quiz_and_route_roadmap(
         cid = q["concept_id"]
         correct = q["correct_option"].upper().strip()
         user_ans = (
-            quiz_responses.get(q_idx_str)
-            or quiz_responses.get(q["q_index"])
-            or quiz_responses.get(cid)
-            or ""
-        ).upper().strip()
+            (
+                quiz_responses.get(q_idx_str)
+                or quiz_responses.get(q["q_index"])
+                or quiz_responses.get(cid)
+                or ""
+            )
+            .upper()
+            .strip()
+        )
 
         is_correct = user_ans == correct
         item = {

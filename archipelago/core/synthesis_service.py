@@ -11,11 +11,12 @@ Model Governance:
 
 from __future__ import annotations
 
+from collections.abc import Generator
 import json
 import logging
 import os
-import re
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any
+
 from archipelago.inference.llm_gateway import gateway_chat, gateway_chat_stream
 
 logger = logging.getLogger(__name__)
@@ -30,31 +31,36 @@ class SynthesisService:
 
     def __init__(
         self,
-        ollama_host: Optional[str] = None,
-        synthesis_model: Optional[str] = None,
-        ingestion_model: Optional[str] = None,
+        ollama_host: str | None = None,
+        synthesis_model: str | None = None,
+        ingestion_model: str | None = None,
     ) -> None:
         self.host = ollama_host or DEFAULT_OLLAMA_HOST
         self.synthesis_model = synthesis_model or DEFAULT_SYNTHESIS_MODEL
         self.ingestion_model = ingestion_model or DEFAULT_INGESTION_MODEL
-        self._client: Optional[Any] = None
+        self._client: Any | None = None
         self._init_client()
 
     def _init_client(self) -> None:
         """Initialize LLM Gateway."""
         try:
-            from archipelago.inference.llm_gateway import configure_gateway, gateway_chat, gateway_chat_stream
+            from archipelago.inference.llm_gateway import (
+                configure_gateway,
+            )
+
             configure_gateway()
             self._client = True
         except Exception as exc:
-            logger.warning("Could not initialize LLM Gateway (%s). Running in offline fallback mode.", exc)
+            logger.warning(
+                "Could not initialize LLM Gateway (%s). Running in offline fallback mode.", exc
+            )
             self._client = None
 
     def synthesize_response(
         self,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         stream: bool = False,
-    ) -> Dict[str, Any] | Generator[str, None, None]:
+    ) -> dict[str, Any] | Generator[str, None, None]:
         """Dispatch isolated prompt to qwen3.5:0.8b with strict citation enforcement."""
         system_prompt = payload.get("system_prompt", "")
         user_prompt = payload.get("user_prompt", "")
@@ -74,20 +80,17 @@ class SynthesisService:
 
     def _generate_response(
         self,
-        messages: List[Dict[str, str]],
-        lineage: List[Dict[str, Any]],
+        messages: list[dict[str, str]],
+        lineage: list[dict[str, Any]],
         topo: str,
         anchor: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute synchronous synthesis."""
         text_output = ""
         if self._client is not None:
             try:
                 response = gateway_chat(
-                    messages,
-                    purpose='synthesis',
-                    temperature=0.1,
-                    max_tokens=512
+                    messages, purpose="synthesis", temperature=0.1, max_tokens=512
                 )
                 msg = getattr(response, "message", None) or (
                     response.get("message") if isinstance(response, dict) else {}
@@ -115,8 +118,8 @@ class SynthesisService:
 
     def _stream_response(
         self,
-        messages: List[Dict[str, str]],
-        lineage: List[Dict[str, Any]],
+        messages: list[dict[str, str]],
+        lineage: list[dict[str, Any]],
         topo: str,
         anchor: str,
     ) -> Generator[str, None, None]:
@@ -131,10 +134,7 @@ class SynthesisService:
         if self._client is not None:
             try:
                 stream = gateway_chat_stream(
-                    messages,
-                    purpose='synthesis',
-                    temperature=0.1,
-                    max_tokens=512
+                    messages, purpose="synthesis", temperature=0.1, max_tokens=512
                 )
                 for chunk in stream:
                     msg = getattr(chunk, "message", None) or (
@@ -145,7 +145,7 @@ class SynthesisService:
                     )
                     if token:
                         yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
-            except Exception as exc:
+            except Exception:
                 fallback = self._grounded_fallback(anchor, topo, lineage)
                 yield f"data: {json.dumps({'type': 'token', 'content': fallback})}\n\n"
         else:
@@ -154,12 +154,11 @@ class SynthesisService:
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-
     def generate_topic_suggestions(
         self,
         term: str,
-        candidate_nodes: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        candidate_nodes: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """Format interactive clarification payload for Tier 2 ambiguous terms."""
         clarification_text = (
             f"I couldn't find an exact match for '{term}' in the active curriculum catalog. "
@@ -173,15 +172,17 @@ class SynthesisService:
             req_str = f"Requires: {', '.join(reqs)}" if reqs else "Foundational entry"
             unl_str = f"Unlocks: {', '.join(unls)}" if unls else "Terminal topic"
 
-            formatted_options.append({
-                "concept_id": cand.get("id"),
-                "name": cand.get("name"),
-                "difficulty": cand.get("difficulty", "intermediate"),
-                "summary": cand.get("summary", ""),
-                "prerequisites": reqs,
-                "unlocks": unls,
-                "display_roadmap": f"{req_str} ➔ **{cand.get('name')}** ➔ {unl_str}",
-            })
+            formatted_options.append(
+                {
+                    "concept_id": cand.get("id"),
+                    "name": cand.get("name"),
+                    "difficulty": cand.get("difficulty", "intermediate"),
+                    "summary": cand.get("summary", ""),
+                    "prerequisites": reqs,
+                    "unlocks": unls,
+                    "display_roadmap": f"{req_str} ➔ **{cand.get('name')}** ➔ {unl_str}",
+                }
+            )
 
         return {
             "type": "TOPIC_SUGGESTION",
@@ -193,8 +194,8 @@ class SynthesisService:
     def generate_diagnostic_mcq(
         self,
         concept: str,
-        prerequisites: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        prerequisites: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """Formulate a 3-question prerequisite MCQ with branching logic."""
         questions = []
         prereq_names = [p.get("name") or p.get("id") for p in prerequisites if p]
@@ -202,20 +203,22 @@ class SynthesisService:
             prereq_names = ["Mathematical Foundations", "Linear Algebra", "Data Structures"]
 
         for idx, p_name in enumerate(prereq_names[:3], 1):
-            questions.append({
-                "question_id": f"mcq_{idx}",
-                "prerequisite": p_name,
-                "question": f"Which fundamental principle of '{p_name}' is essential before studying '{concept}'?",
-                "options": {
-                    "A": f"Mathematical properties governing {p_name} transformations",
-                    "B": f"Asymptotic memory limits of {p_name} state machines",
-                    "C": f"Empirical initialization bounds in non-convex {p_name}",
-                    "D": f"Discrete topological sorting of {p_name} graphs",
-                },
-                "correct_option": "A",
-                "explanation": f"Understanding foundational {p_name} representations is a strict prerequisite for {concept}.",
-                "citation": f"Curriculum DAG: {p_name} -> {concept}",
-            })
+            questions.append(
+                {
+                    "question_id": f"mcq_{idx}",
+                    "prerequisite": p_name,
+                    "question": f"Which fundamental principle of '{p_name}' is essential before studying '{concept}'?",
+                    "options": {
+                        "A": f"Mathematical properties governing {p_name} transformations",
+                        "B": f"Asymptotic memory limits of {p_name} state machines",
+                        "C": f"Empirical initialization bounds in non-convex {p_name}",
+                        "D": f"Discrete topological sorting of {p_name} graphs",
+                    },
+                    "correct_option": "A",
+                    "explanation": f"Understanding foundational {p_name} representations is a strict prerequisite for {concept}.",
+                    "citation": f"Curriculum DAG: {p_name} -> {concept}",
+                }
+            )
 
         return {
             "type": "MCQ_DIAGNOSTIC",
@@ -239,11 +242,13 @@ class SynthesisService:
         return "\n".join(deduped)
 
     @staticmethod
-    def _grounded_fallback(anchor: str, topo: str, lineage: List[Dict[str, Any]]) -> str:
+    def _grounded_fallback(anchor: str, topo: str, lineage: list[dict[str, Any]]) -> str:
         """Deterministic grounded fallback when local SLM is offline or initializing."""
         passages_text = ""
         for item in lineage:
-            passages_text += f"\n- **[{item['badge']}]** *{item['doc_title']}* (Page {item['page_number']})\n"
+            passages_text += (
+                f"\n- **[{item['badge']}]** *{item['doc_title']}* (Page {item['page_number']})\n"
+            )
 
         return (
             f"### Pedagogical Overview: {anchor}\n\n"

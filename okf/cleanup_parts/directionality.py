@@ -3,9 +3,11 @@
 Used during post-extraction cleanup so inverted REQUIRES never enter the graph
 (e.g. Neural Network requiring Graph Neural Network).
 """
+
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from okf.cleanup_parts._base import _DIFFICULTY_RANK
 from okf.util import create_concept_id
@@ -20,22 +22,28 @@ _BIBLIO_SECTION_RE = re.compile(
 )
 
 # (target_id, prereq_id) pairs that must never appear as target REQUIRES prereq
-_BLOCKED_PREREQ_PAIRS = frozenset({
-    ("neural_network", "graph_neural_network"),
-    ("neural_network", "dimensionality_reduction"),
-    ("linear_regression", "neural_network"),
-    ("eigenvalue", "neural_network"),
-    ("linear_algebra", "linear_regression"),
-    ("linear_regression", "support_vector_machine"),
-    ("matrix_inverse", "linear_regression"),
-    ("linear_algebra", "dimensionality_reduction"),
-})
+_BLOCKED_PREREQ_PAIRS = frozenset(
+    {
+        ("neural_network", "graph_neural_network"),
+        ("neural_network", "dimensionality_reduction"),
+        ("linear_regression", "neural_network"),
+        ("eigenvalue", "neural_network"),
+        ("linear_algebra", "linear_regression"),
+        ("linear_regression", "support_vector_machine"),
+        ("matrix_inverse", "linear_regression"),
+        ("linear_algebra", "dimensionality_reduction"),
+    }
+)
 
 # Name fragments: if prereq name contains specialized form of target, drop
 # e.g. target "Neural Network", prereq "Graph Neural Network"
 _SPECIALIZATION_MARKERS = (
-    "graph neural", "convolutional neural", "recurrent neural",
-    "deep neural", "spiking neural", "capsule network",
+    "graph neural",
+    "convolutional neural",
+    "recurrent neural",
+    "deep neural",
+    "spiking neural",
+    "capsule network",
 )
 
 
@@ -58,8 +66,9 @@ def _name_id(name: str) -> str:
     return create_concept_id(name or "")
 
 
-def is_inverted_prerequisite(target_name: str, prereq_name: str,
-                             target_diff: str = "", prereq_diff: str = "") -> bool:
+def is_inverted_prerequisite(
+    target_name: str, prereq_name: str, target_diff: str = "", prereq_diff: str = ""
+) -> bool:
     """Return True when ``prereq`` should NOT be a prerequisite of ``target``."""
     t_id = _name_id(target_name)
     p_id = _name_id(prereq_name)
@@ -77,14 +86,15 @@ def is_inverted_prerequisite(target_name: str, prereq_name: str,
     t_low = (target_name or "").lower()
     p_low = (prereq_name or "").lower()
     # Specialization of the same family should not be a prereq of the parent
-    if "neural network" in t_low and any(m in p_low for m in _SPECIALIZATION_MARKERS):
-        if "graph" in p_low or "convolutional" in p_low or "recurrent" in p_low:
-            if "graph" not in t_low and "convolutional" not in t_low:
-                return True
-    return False
+    return bool(
+        "neural network" in t_low
+        and any(m in p_low for m in _SPECIALIZATION_MARKERS)
+        and ("graph" in p_low or "convolutional" in p_low or "recurrent" in p_low)
+        and ("graph" not in t_low and "convolutional" not in t_low)
+    )
 
 
-def prune_inverted_prerequisites(okf_results: list) -> int:
+def prune_inverted_prerequisites(okf_results: list[dict[str, Any]]) -> int:
     """Drop inverted / blocked prerequisite links from extraction records.
 
     Returns number of prereq entries removed.

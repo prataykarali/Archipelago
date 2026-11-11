@@ -36,6 +36,11 @@ PUBLIC_API = frozenset(
         "/api/ingest/capabilities",
         "/api/health",
         "/api/readiness",
+        "/api/reply-templates",
+        "/api/library/data",
+        "/api/research/intake/metrics",
+        "/api/research/intake/activity",
+        "/api/research/intake/scheduled",
     }
 )
 PUBLIC_API_PREFIXES: tuple[str, ...] = ()
@@ -80,7 +85,7 @@ PAGE_FILES = {
 # their own routes. Set ARCHIPELAGO_OPEN_READING=0 to restore mandatory
 # sessions for these pages.
 # Open reading: chat and library are accessible without authentication
-AUTH_GATED_PAGES = frozenset({"chat", "library"})
+AUTH_GATED_PAGES = frozenset({"chat"})
 
 SESSION_COOKIE_NAME = "archipelago_token"
 SESSION_COOKIE_MAX_AGE = 3600

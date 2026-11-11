@@ -18,6 +18,7 @@ reviewable, evidence-backed plan — silently adding books the library does not 
 would put invented holdings on the shelf cards, which is the one failure mode
 this codebase is built to avoid.
 """
+
 from __future__ import annotations
 
 import logging
@@ -40,13 +41,55 @@ MIN_TOKEN_LEN = 2
 #: signal. Repeated asking is the signal.
 DEFAULT_MIN_DEMAND_COUNT = 2
 
-_STOPWORDS = frozenset({
-    "the", "a", "an", "and", "or", "of", "in", "on", "to", "for", "about",
-    "edition", "ed", "vol", "volume", "book", "books", "copy", "copies",
-    "please", "find", "where", "can", "will", "any", "have", "has", "do",
-    "does", "did", "you", "your", "i", "me", "my", "is", "are", "was",
-    "were", "library", "campus", "physical", "available", "need", "want",
-})
+_STOPWORDS = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "and",
+        "or",
+        "of",
+        "in",
+        "on",
+        "to",
+        "for",
+        "about",
+        "edition",
+        "ed",
+        "vol",
+        "volume",
+        "book",
+        "books",
+        "copy",
+        "copies",
+        "please",
+        "find",
+        "where",
+        "can",
+        "will",
+        "any",
+        "have",
+        "has",
+        "do",
+        "does",
+        "did",
+        "you",
+        "your",
+        "i",
+        "me",
+        "my",
+        "is",
+        "are",
+        "was",
+        "were",
+        "library",
+        "campus",
+        "physical",
+        "available",
+        "need",
+        "want",
+    }
+)
 
 
 def _norm_tokens(text: str) -> set[str]:
@@ -120,9 +163,7 @@ def match_candidates(
     return results
 
 
-def apify_candidates(
-    keywords: str, dataset_id: str = "", limit: int = 50
-) -> list[dict[str, Any]]:
+def apify_candidates(keywords: str, dataset_id: str = "", limit: int = 50) -> list[dict[str, Any]]:
     """Candidate titles from an approved Apify run, if one is available.
 
     Returns ``[]`` — never raises — when Apify is unconfigured, unapproved, or
@@ -199,9 +240,7 @@ def discovery_plan(
     an empty list, so the review page is a worklist and not a mirror of the log.
     """
     qualifying = [
-        row
-        for row in demand
-        if isinstance(row, dict) and int(row.get("count") or 0) >= min_count
+        row for row in demand if isinstance(row, dict) and int(row.get("count") or 0) >= min_count
     ]
 
     catalogue = _pearson_catalogue()

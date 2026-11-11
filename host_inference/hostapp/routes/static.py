@@ -10,6 +10,7 @@ from flask import Flask, jsonify, send_from_directory
 
 from ..config import ASSET, UI
 from ..context import AppContext
+from ..page_fragments import assembled_page
 
 API_PREFIX = "api/"
 
@@ -28,8 +29,15 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.get("/<path:filename>")
     def static_files(filename):
-        if filename.startswith(".") or filename.startswith(API_PREFIX) or ".." in filename:
+        if (
+            filename.startswith(".")
+            or filename.startswith(API_PREFIX)
+            or ".." in filename
+            or filename == "research.html"
+        ):
             return jsonify({"error": "not_found"}), 404
+        if filename in {"index.html", "library.html"}:
+            return assembled_page(UI, filename)
         if (UI / filename).is_file():
             return send_from_directory(UI, filename)
         return jsonify({"error": "not_found"}), 404

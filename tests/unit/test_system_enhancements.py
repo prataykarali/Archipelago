@@ -8,16 +8,13 @@ Unit tests for the 6 System Enhancements:
 6. 55-PDF Evaluation & Multi-Parameter Ranking Engine
 """
 
-import json
 import pytest
-from pathlib import Path
 
 # Register all Flask routes early before any test client request
-from archipelago.inference import bootstrap
 from archipelago.inference import state as st
 from archipelago.inference.routes_misc import resolve_pdf_file
-from evaluate_pdf_catalog import evaluate_pdf_catalog, KNOWN_METADATA
-from catalog_ranking import rank_documents, format_ranking_response
+from catalog_ranking import format_ranking_response, rank_documents
+from evaluate_pdf_catalog import evaluate_pdf_catalog
 
 pytestmark = pytest.mark.usefixtures("verified_student_auth")
 
@@ -26,7 +23,7 @@ def test_pdf_catalog_evaluation_and_ranking():
     """Verify that all 55+ PDFs are evaluated and ranked accurately."""
     catalog = evaluate_pdf_catalog()
     assert len(catalog) >= 55, f"Expected at least 55 PDFs evaluated, found {len(catalog)}"
-    
+
     # Verify metadata fields are present for every entry
     for entry in catalog:
         assert "doc_id" in entry
@@ -78,9 +75,7 @@ def test_multi_topic_query_parsing():
     t3 = parse_multi_topic_query("Explain Attention, GNN and Operating Systems")
     assert len(t3) <= 3
 
-    dependent = parse_multi_topic_query(
-        "Explain LoRA and how it reduces trainable parameters"
-    )
+    dependent = parse_multi_topic_query("Explain LoRA and how it reduces trainable parameters")
     assert dependent == ["LoRA and how it reduces trainable parameters"]
 
 

@@ -2,10 +2,10 @@
 
 from archipelago.inference import state as st  # noqa: F401  (kept for test monkeypatching)
 from archipelago.inference.intent_gate import part02_scoring as scoring  # noqa: F401
-from archipelago.inference.intent_gate.part01_labels import (
+from archipelago.inference.intent_gate.part01_labels import (  # noqa: F401
     ABS_MIN as _ABS_MIN,
 )
-from archipelago.inference.intent_gate.part01_labels import (
+from archipelago.inference.intent_gate.part01_labels import (  # noqa: F401
     BLOCK_MIN as _BLOCK_MIN,
 )
 from archipelago.inference.intent_gate.part01_labels import (
@@ -21,16 +21,16 @@ from archipelago.inference.intent_gate.part01_labels import (
     REASON_NOT_IN_CORPUS,
     REASON_OUT_OF_SCOPE,
 )
-from archipelago.inference.intent_gate.part01_labels import (
+from archipelago.inference.intent_gate.part01_labels import (  # noqa: F401
     MARGIN_MIN as _MARGIN_MIN,
 )
-from archipelago.inference.intent_gate.part01_labels import (
+from archipelago.inference.intent_gate.part01_labels import (  # noqa: F401
     PROTOTYPES as _PROTOTYPES,
 )
-from archipelago.inference.intent_gate.part01_labels import (
+from archipelago.inference.intent_gate.part01_labels import (  # noqa: F401
     QUERY_CACHE_MAX as _QUERY_CACHE_MAX,
 )
-from archipelago.inference.intent_gate.part02_scoring import (
+from archipelago.inference.intent_gate.part02_scoring import (  # noqa: F401
     _PROTO_EMB,
     _QUERY_CACHE,
     _blend_scores,
@@ -41,7 +41,7 @@ from archipelago.inference.intent_gate.part02_scoring import (
     _score_lexical,
     clear_intent_cache,
 )
-from archipelago.inference.intent_gate.part03_classify import (
+from archipelago.inference.intent_gate.part03_classify import (  # noqa: F401
     _llm_classify,
     classify_intent,
     intent_to_block_reason,

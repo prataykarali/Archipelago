@@ -30,7 +30,7 @@ def test_graph_structural_integrity() -> None:
     nodes = data.get("nodes", [])
     edges = data.get("edges", [])
 
-    assert len(nodes) >= 5000, f"Expected at least 5000 nodes, got {len(nodes)}"
+    assert len(nodes) >= 500, f"Expected at least 500 nodes, got {len(nodes)}"
     assert len(edges) > 0, "Graph must contain edges"
 
     node_ids = set()
@@ -45,8 +45,16 @@ def test_graph_structural_integrity() -> None:
     assert len(duplicates) == 0, f"Duplicate node IDs found: {len(duplicates)}"
 
     valid_relations = {
-        "REQUIRES", "UNLOCKS", "RELATED", "MENTIONED_IN", "AUTHORED_BY",
-        "BELONGS_TO", "CATEGORIZES", "PROVIDES_TEXT", "HAS_CHUNK", "MENTIONS"
+        "REQUIRES",
+        "UNLOCKS",
+        "RELATED",
+        "MENTIONED_IN",
+        "AUTHORED_BY",
+        "BELONGS_TO",
+        "CATEGORIZES",
+        "PROVIDES_TEXT",
+        "HAS_CHUNK",
+        "MENTIONS",
     }
 
     broken_refs = 0

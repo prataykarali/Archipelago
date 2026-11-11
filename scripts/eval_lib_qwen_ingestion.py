@@ -8,16 +8,17 @@ Loads /home/.../lib-qwen (not aura-qwen), runs:
 
 Writes report to training_data/lib_qwen_ingestion_eval.json
 """
+
 from __future__ import annotations
 
-import json
-import re
-import time
 from collections import Counter
+import json
 from pathlib import Path
+import re
+import sys
+import time
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
 
 ROOT = Path(__file__).resolve().parents[1]
 LIB_QWEN = ROOT.parent / "lib-qwen"
@@ -26,9 +27,8 @@ ALIAS_PATH = ROOT / "training_data" / "okf_name_aliases_v4_4.json"
 OUT_PATH = ROOT / "training_data" / "lib_qwen_ingestion_eval.json"
 
 # Production prompt (system path)
-import sys
 sys.path.insert(0, str(ROOT))
-from okf.config import EXTRACTION_PROMPT_V15, MAX_CHARS_TO_SLM  # noqa: E402
+from eval_lib_qwen_model import LibQwenExtractor, parse_json_array  # noqa: E402
 
 
 def extract_text_from_instruction(instr: str) -> str:
@@ -51,32 +51,12 @@ def norm_name(name: str, aliases: dict) -> str:
     for canon, surfaces in aliases.items():
         ckey = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", canon.lower())).strip()
         surf = {
-            re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", s.lower())).strip()
-            for s in surfaces
+            re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", s.lower())).strip() for s in surfaces
         }
         surf.add(ckey)
         if k in surf or k == ckey:
             return ckey
     return k
-
-
-def parse_json_array(raw: str):
-    cleaned = raw.strip()
-    if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
-        cleaned = re.sub(r"\s*```$", "", cleaned)
-    a0, a1 = cleaned.find("["), cleaned.rfind("]")
-    if a0 != -1 and a1 > a0:
-        cleaned = cleaned[a0 : a1 + 1]
-    try:
-        data = json.loads(cleaned)
-        if isinstance(data, dict):
-            data = [data]
-        if isinstance(data, list):
-            return data, None
-        return None, "not_list"
-    except Exception as e:
-        return None, str(e)
 
 
 def concept_names(arr) -> list[str]:
@@ -101,7 +81,7 @@ def name_sets(pred_names, gold_names, aliases):
     rec = tp / (tp + fn) if tp + fn else (1.0 if not g and not p else 0.0)
     f1 = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
     exact_count = len(pred_names) == len(gold_names)
-    empty_exact = (len(pred_names) == 0 and len(gold_names) == 0)
+    empty_exact = len(pred_names) == 0 and len(gold_names) == 0
     return {
         "precision": prec,
         "recall": rec,
@@ -116,67 +96,9 @@ def name_sets(pred_names, gold_names, aliases):
     }
 
 
-class LibQwenExtractor:
-    def __init__(self, model_path: Path):
-        print(f"Loading model from {model_path} ...")
-        t0 = time.time()
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True
-        )
-        dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            dtype=dtype,
-            device_map="auto" if torch.cuda.is_available() else None,
-            trust_remote_code=True,
-        )
-        if not torch.cuda.is_available():
-            self.model = self.model.to("cpu")
-        self.model.eval()
-        print(f"  loaded in {time.time()-t0:.1f}s  cuda={torch.cuda.is_available()}")
-
-    def generate(self, prompt: str, max_new_tokens: int = 768) -> str:
-        messages = [{"role": "user", "content": prompt}]
-        try:
-            templated = self.tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=True,
-                enable_thinking=False,
-            )
-        except TypeError:
-            templated = self.tokenizer.apply_chat_template(
-                messages, tokenize=False, add_generation_prompt=True
-            )
-        inputs = self.tokenizer(templated, return_tensors="pt")
-        device = next(self.model.parameters()).device
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-        with torch.no_grad():
-            out = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=False,
-                temperature=0.1,
-            )
-        gen = out[0][inputs["input_ids"].shape[1] :]
-        return self.tokenizer.decode(gen, skip_special_tokens=True).strip()
-
-    def extract_system_path(self, text: str) -> tuple[list | None, str, str | None]:
-        """Same prompt path as okf.extraction.extract_okf_v15."""
-        if len(text) > MAX_CHARS_TO_SLM:
-            window = text[:MAX_CHARS_TO_SLM]
-            cut = window.rfind("\n\n")
-            if cut < MAX_CHARS_TO_SLM // 2:
-                cut = max(window.rfind(". "), window.rfind("\n"))
-            text = window[:cut] if cut > MAX_CHARS_TO_SLM // 2 else window
-        prompt = EXTRACTION_PROMPT_V15.format(text=text)
-        raw = self.generate(prompt)
-        arr, err = parse_json_array(raw)
-        return arr, raw, err
-
-
 def load_test_rows():
-    rows = [json.loads(l) for l in TEST_PATH.open() if l.strip()]
+    with TEST_PATH.open() as f:
+        rows = [json.loads(line) for line in f if line.strip()]
     return rows
 
 
@@ -201,7 +123,13 @@ def build_probe_set(rows: list[dict], rng_seed: int = 42) -> list[dict]:
     lora = [r for r in rows if "Hu2021_LoRA" in (r.get("doc_id") or "")]
     graphrag = [r for r in rows if "GraphRAG" in (r.get("doc_id") or "")]
     math = [r for r in rows if "Deisenroth" in (r.get("doc_id") or "")]
-    bert = [r for r in rows if "BERT" in (r.get("doc_id") or "") or "Vaswani" in (r.get("doc_id") or "") or "Lewis" in (r.get("doc_id") or "")]
+    bert = [
+        r
+        for r in rows
+        if "BERT" in (r.get("doc_id") or "")
+        or "Vaswani" in (r.get("doc_id") or "")
+        or "Lewis" in (r.get("doc_id") or "")
+    ]
 
     for r in empties[:6]:
         add(r, "empty_gold")
@@ -288,7 +216,7 @@ def main():
 
     for i, row in enumerate(probes):
         text = extract_text_from_instruction(row.get("instruction") or "")
-        gold_arr, gerr = parse_json_array(row.get("output") or "[]")
+        gold_arr, _gerr = parse_json_array(row.get("output") or "[]")
         gold_names = concept_names(gold_arr or [])
 
         t0 = time.time()
@@ -352,7 +280,7 @@ def main():
         }
         results.append(rec)
         print(
-            f"[{i+1}/{len(probes)}] {row['_tag']:12} "
+            f"[{i + 1}/{len(probes)}] {row['_tag']:12} "
             f"json={ok_json} f1e={f1e:.2f} f1a={alias_m['f1']:.2f} "
             f"{dt:.1f}s  gold={gold_names[:3]} pred={pred_names[:3]}"
         )
@@ -379,9 +307,7 @@ def main():
             "mean_f1_exact": round(sum(f1s_exact) / n, 4),
             "mean_f1_alias": round(sum(f1s_alias) / n, 4),
             "empty_gold_n": empty_gold_n,
-            "empty_exact_match_pct": round(
-                100 * empty_exact_n / empty_gold_n, 2
-            )
+            "empty_exact_match_pct": round(100 * empty_exact_n / empty_gold_n, 2)
             if empty_gold_n
             else None,
             "celeb_concept_failures": celeb_fail,
@@ -403,8 +329,7 @@ def main():
         "alias_f1_ge_0_35": m["mean_f1_alias"] >= 0.35,
         "no_celeb_concepts": m["celeb_concept_failures"] == 0,
         "empty_match_ge_40_if_present": (
-            m["empty_exact_match_pct"] is None
-            or m["empty_exact_match_pct"] >= 40
+            m["empty_exact_match_pct"] is None or m["empty_exact_match_pct"] >= 40
         ),
         "self_ref_low": m["self_ref_count"] <= max(2, n // 10),
     }

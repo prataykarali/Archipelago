@@ -206,8 +206,8 @@ def test_research_topic_has_citations_and_date_coverage_disclosure(engine):
     assert result["route"] == "RESEARCH_TOPIC"
     assert payload["citations"], "Research topic explanation must carry verified citations"
 
-    # Must contain date coverage notice with mid-2024 boundary
-    assert "temporal boundary" in text.lower() or "corpus date coverage" in text.lower() or "mid-2024" in text.lower()
+    # State the dates of the actual indexed examples without claiming a fixed corpus cutoff.
+    assert "corpus date coverage" in text.lower()
     assert "2024" in text
 
     # Must cite Lewis 2020 and Edge 2024 Graph RAG
@@ -215,8 +215,8 @@ def test_research_topic_has_citations_and_date_coverage_disclosure(engine):
     assert "edge" in text.lower()
     assert "graphrag" in text.lower() or "graph rag" in text.lower()
 
-    # RESEARCH_TOPIC renders concept topology without MCQs
-    assert payload["render_graph"] is True, "RESEARCH_TOPIC renders concept topology"
+    # Research explanations retrieve the graph internally without a learning card.
+    assert payload["render_graph"] is False
     assert "diagnostic_mcqs" not in payload or payload["diagnostic_mcqs"] == []
 
 
@@ -258,4 +258,3 @@ def test_main_router_produces_intent_category(router):
     )
     assert routed_multi["intent_category"] == IntentCategory.MULTI_CONCEPT.value
     assert len(routed_multi["concepts"]) >= 3
-

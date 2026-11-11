@@ -1,15 +1,31 @@
+from __future__ import annotations
+
+from typing import Any
+
+from okf.canonicalize import apply_canonicalization, build_canonical_map
 from okf.cleanup_parts._base import *  # noqa: F403
-from okf.cleanup_parts.grounding import is_valid_concept_name, apply_grounding_filter, prune_invalid_references, prune_unresolved_references, _content_words
-from okf.cleanup_parts.dedupe import dedupe_identical_records, merge_duplicate_results, deduplicate_concepts
 from okf.cleanup_parts.cycles import break_global_cycles
+from okf.cleanup_parts.dedupe import (
+    dedupe_identical_records,
+    deduplicate_concepts,
+    merge_duplicate_results,
+)
 from okf.cleanup_parts.directionality import (
     is_bibliography_section,
     prune_inverted_prerequisites,
 )
 from okf.cleanup_parts.domain_scope import drop_non_aiml_records
-from okf.canonicalize import apply_canonicalization
+from okf.cleanup_parts.grounding import (
+    _content_words,
+    apply_grounding_filter,
+    is_valid_concept_name,
+    prune_invalid_references,
+    prune_unresolved_references,
+)
+from okf.query_rows import query_rows
 
-def cleanup_and_canonicalize(okf_results: list) -> list:
+
+def cleanup_and_canonicalize(okf_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Stages 2b+3: post-extraction cleanup and entity canonicalization.
 
     Idempotent — shared by finalize_and_build and the --relations-only mode
@@ -28,8 +44,7 @@ def cleanup_and_canonicalize(okf_results: list) -> list:
     # 1. Remove reference/bibliography section extractions (noise)
     # Broad match: "References", "Bibliography", "Works Cited", etc.
     okf_results = [
-        r for r in okf_results
-        if not is_bibliography_section(r.get("section_title", ""))
+        r for r in okf_results if not is_bibliography_section(r.get("section_title", ""))
     ]
     ref_removed = pre_cleanup - junk_removed - len(okf_results)
     print(f"  Removed {ref_removed} reference/bibliography-section concepts")
@@ -49,8 +64,10 @@ def cleanup_and_canonicalize(okf_results: list) -> list:
     # Collapse them to one record each, unioning provenance.
     okf_results, attractor_removed = dedupe_identical_records(okf_results)
     if attractor_removed > 0:
-        print(f"  Collapsed {attractor_removed} identical "
-              f"(doc, name, summary) mode-collapse duplicates")
+        print(
+            f"  Collapsed {attractor_removed} identical "
+            f"(doc, name, summary) mode-collapse duplicates"
+        )
 
     # 2. Remove self-loops (concept listing itself as prerequisite/unlock)
     ref_stats = prune_invalid_references(okf_results)
@@ -68,8 +85,7 @@ def cleanup_and_canonicalize(okf_results: list) -> list:
 
     # 4. Remove concepts with very short names (likely noise)
     pre_filter = len(okf_results)
-    okf_results = [r for r in okf_results
-                   if len(r.get("concept_name", "")) >= 3]
+    okf_results = [r for r in okf_results if len(r.get("concept_name", "")) >= 3]
     noise_removed = pre_filter - len(okf_results)
     if noise_removed > 0:
         print(f"  Removed {noise_removed} too-short concept names")
@@ -77,7 +93,7 @@ def cleanup_and_canonicalize(okf_results: list) -> list:
     print(f"  Final: {len(okf_results)} clean concepts (was {pre_cleanup})")
 
     # -- Stage 3: Canonicalization --
-    print(f"\n[3] STAGE 3: Entity Canonicalization")
+    print("\n[3] STAGE 3: Entity Canonicalization")
     print("-" * 50)
 
     canon_map = build_canonical_map(okf_results)
@@ -126,7 +142,7 @@ def cleanup_and_canonicalize(okf_results: list) -> list:
         print(f"  Removed {inverted_dropped} inverted/blocked prerequisite edges")
 
     # Fill empty summaries from the richest available source
-    summary_by_name = {}
+    summary_by_name: dict[str, str] = {}
     for r in okf_results:
         name = r.get("concept_name", "")
         s = r.get("summary", "")
@@ -143,7 +159,10 @@ def cleanup_and_canonicalize(okf_results: list) -> list:
 
     return okf_results
 
-def reject_weak_concepts(concepts: list, chunks: list, min_overlap: float = 0.3) -> list:
+
+def reject_weak_concepts(
+    concepts: list[dict[str, Any]], chunks: list[dict[str, Any]], min_overlap: float = 0.3
+) -> list[dict[str, Any]]:
     """Reject weak concepts using grounding overlaps.
 
     Rejects concepts whose name/summary does not meet grounding thresholds
@@ -179,8 +198,9 @@ def reject_weak_concepts(concepts: list, chunks: list, min_overlap: float = 0.3)
         if not word_hit:
             summary_words = _content_words(summary)
             passage_words = _content_words(passage)
-            overlap = (len(summary_words & passage_words) / len(summary_words)
-                       if summary_words else 0.0)
+            overlap = (
+                len(summary_words & passage_words) / len(summary_words) if summary_words else 0.0
+            )
             if overlap >= min_overlap:
                 kept.append(r)
             continue
@@ -192,7 +212,10 @@ def reject_weak_concepts(concepts: list, chunks: list, min_overlap: float = 0.3)
 
     return kept
 
-def filter_out_of_domain(concepts: list, domain_terms: list) -> list:
+
+def filter_out_of_domain(
+    concepts: list[dict[str, Any]], domain_terms: list[str]
+) -> list[dict[str, Any]]:
     """Filter out-of-domain concepts.
 
     Removes concepts whose names do not match any of the provided domain terms
@@ -211,36 +234,39 @@ def filter_out_of_domain(concepts: list, domain_terms: list) -> list:
             kept.append(r)
     return kept
 
-def prune_orphans(db, threshold: float = 0.20) -> list:
+
+def prune_orphans(db: Any, threshold: float = 0.20) -> list[dict[str, str]]:
     """Identifies, logs, and deletes orphan nodes in the database.
 
     Orphan nodes are Concept nodes that have no REQUIRES, UNLOCKS, or RELATED
     relationships to/from other Concept nodes.
     """
     import kuzu
-    if hasattr(db, 'execute'):
-        conn = db
-    else:
-        conn = kuzu.Connection(db)
+
+    conn = db if hasattr(db, "execute") else kuzu.Connection(db)
 
     # 1. Total Concept Count
-    res = conn.execute("MATCH (c:Concept) RETURN count(c)")
-    total = res.get_next()[0] if res.has_next() else 0
+    total_row = next(query_rows(conn, "MATCH (c:Concept) RETURN count(c)"), None)
+    total = int(total_row[0]) if total_row is not None else 0
     if total == 0:
         print("No concepts in database to prune.")
         return []
 
     # 2. Find orphans
-    res = conn.execute("MATCH (c:Concept) WHERE NOT (c)-[:REQUIRES|UNLOCKS|RELATED]-(:Concept) RETURN c.id, c.name")
-    orphans = []
-    while res.has_next():
-        row = res.get_next()
-        orphans.append((row[0], row[1]))
+    orphans = [
+        (str(row[0]), str(row[1]))
+        for row in query_rows(
+            conn,
+            "MATCH (c:Concept) WHERE NOT (c)-[:REQUIRES|UNLOCKS|RELATED]-(:Concept) RETURN c.id, c.name",
+        )
+    ]
 
     orphan_count = len(orphans)
     orphan_ratio = orphan_count / total
 
-    print(f"Identified {orphan_count} orphan concept nodes out of {total} total concepts ({orphan_ratio:.2%}).")
+    print(
+        f"Identified {orphan_count} orphan concept nodes out of {total} total concepts ({orphan_ratio:.2%})."
+    )
 
     pruned = []
     if orphan_ratio >= threshold:
@@ -251,11 +277,18 @@ def prune_orphans(db, threshold: float = 0.20) -> list:
             conn.execute(f"MATCH (c:Concept {{id: '{escaped_id}'}}) DETACH DELETE c")
             pruned.append({"id": cid, "name": name})
     else:
-        print(f"Orphan ratio ({orphan_ratio:.2%}) is below threshold ({threshold:.2%}). Orphans kept.")
+        print(
+            f"Orphan ratio ({orphan_ratio:.2%}) is below threshold ({threshold:.2%}). Orphans kept."
+        )
 
     return pruned
 
-def clean_pipeline(concepts: list, chunks: list, domain_terms: list = None) -> list:
+
+def clean_pipeline(
+    concepts: list[dict[str, Any]],
+    chunks: list[dict[str, Any]],
+    domain_terms: list[str] | None = None,
+) -> list[dict[str, Any]]:
     """Run the clean pipeline stages: weak concept rejection, deduplication, and domain filtering."""
     concepts = reject_weak_concepts(concepts, chunks)
     concepts = deduplicate_concepts(concepts)

@@ -61,6 +61,7 @@ def _ollama_reachable(ollama_url: str, timeout: float = 3) -> bool:
 
 # ── 1. Readiness of all services ──────────────────────────────────────────────
 
+
 def test_readiness_all_services(GRAPH_URL, INFERENCE_URL, CHAT_URL, OLLAMA_URL):
     """HTTP probe graph :5050, inference :5051, chat :5052 (and optionally Ollama)."""
     # Graph: /api/stats or / should return 200
@@ -110,6 +111,7 @@ def test_readiness_all_services(GRAPH_URL, INFERENCE_URL, CHAT_URL, OLLAMA_URL):
 
 # ── 2. Full RAG query ─────────────────────────────────────────────────────────
 
+
 def test_full_rag_query(INFERENCE_URL):
     """POST /api/chat rag_synthesis and assert structured stream response."""
     status, metadata, body = _post_chat(
@@ -136,6 +138,7 @@ def test_full_rag_query(INFERENCE_URL):
 
 
 # ── 3. Ollama synthesis preserves citation IDs ────────────────────────────────
+
 
 def test_ollama_synthesis_preserves_citations(INFERENCE_URL, OLLAMA_URL):
     """Ollama wording pass must not drop pre-synthesis citation IDs (S1, S2, ...)."""
@@ -171,9 +174,7 @@ def test_ollama_synthesis_preserves_citations(INFERENCE_URL, OLLAMA_URL):
     if not meta_ids:
         # Matched an anchor but no evidence rows — nothing to preserve.
         if not _ollama_reachable(OLLAMA_URL):
-            pytest.skip(
-                "Ollama unreachable and synthesis returned no citation IDs to validate"
-            )
+            pytest.skip("Ollama unreachable and synthesis returned no citation IDs to validate")
         # Indexed renderer / thin graph: still ok if body non-empty
         return
 
@@ -187,6 +188,7 @@ def test_ollama_synthesis_preserves_citations(INFERENCE_URL, OLLAMA_URL):
 
 # ── 4. Ingestion + query ──────────────────────────────────────────────────────
 
+
 def test_ingestion_and_query(INFERENCE_URL, test_pdf_path):
     """Upload synthetic PDF, poll job to COMPLETE, then query for known phrase."""
     # Preflight readiness / worker
@@ -196,9 +198,7 @@ def test_ingestion_and_query(INFERENCE_URL, test_pdf_path):
         pytest.fail(f"Inference server unreachable: {exc}")
     assert ready.status_code in (200, 503)
     ready_payload = ready.json()
-    worker_alive = (
-        ready_payload.get("ingestion", {}).get("worker_thread_alive")
-    )
+    worker_alive = ready_payload.get("ingestion", {}).get("worker_thread_alive")
     if worker_alive is False:
         pytest.fail(
             "Ingestion worker is not running (worker_thread_alive=false). "
@@ -241,14 +241,10 @@ def test_ingestion_and_query(INFERENCE_URL, test_pdf_path):
             break
         time.sleep(2)
     else:
-        pytest.fail(
-            f"Ingest job {job_id} did not finish within 300s; last status={last_status}"
-        )
+        pytest.fail(f"Ingest job {job_id} did not finish within 300s; last status={last_status}")
 
     if last_status == "FAILED":
-        pytest.fail(
-            f"Ingest job {job_id} FAILED: {last_payload.get('error') or last_payload}"
-        )
+        pytest.fail(f"Ingest job {job_id} FAILED: {last_payload.get('error') or last_payload}")
     if last_status == "CANCELLED":
         pytest.fail(f"Ingest job {job_id} was CANCELLED unexpectedly")
 

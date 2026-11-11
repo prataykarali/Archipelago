@@ -61,7 +61,7 @@ def _resolve_new_role(principal: AuthPrincipal, target_role: str, data: dict[str
 
 
 def _now_iso() -> str:
-    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+    return datetime.datetime.now(datetime.UTC).isoformat()
 
 
 def _fetch_supabase_profile(url: str, headers: dict[str, str], target_id: str) -> dict | None:

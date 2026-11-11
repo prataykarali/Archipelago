@@ -1,12 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import kuzu
-from archipelago.inference.graph_lock import graph_lock
+
 from archipelago.inference import state as st
-from archipelago.inference.aliases import _node_name, pdf_page_url, markdown_pdf_link
-from archipelago.inference.neighborhood import get_concept_citations, is_plausible_prereq
+from archipelago.inference.aliases import _node_name, markdown_pdf_link, pdf_page_url
 from archipelago.inference.citations import _normalize_legacy_citation
+from archipelago.inference.graph_lock import graph_lock
+from archipelago.inference.neighborhood import get_concept_citations, is_plausible_prereq
+
 from . import _deps as _rt  # noqa: F401
 
 
@@ -36,7 +39,7 @@ def _hop_provenance(concept_id, citation_map=None):
 
 
 def find_curriculum_chains(concept_id, max_hops=3, citation_map=None, max_paths=4):
-    """Find multi-hop prerequisite chains (2–3 hops max) along REQUIRES edges.
+    """Find multi-hop prerequisite chains (2-3 hops max) along REQUIRES edges.
 
     Returns a list of path dicts::
         {
@@ -69,18 +72,22 @@ def find_curriculum_chains(concept_id, max_hops=3, citation_map=None, max_paths=
             while res.has_next():
                 reachable.add(res.get_next()[0])
             # Fetch edges among root + reachable
-            res = conn.execute("MATCH (a:Concept)-[:REQUIRES]->(b:Concept) RETURN a.id, b.id, b.name, b.summary")
+            res = conn.execute(
+                "MATCH (a:Concept)-[:REQUIRES]->(b:Concept) RETURN a.id, b.id, b.name, b.summary"
+            )
             while res.has_next():
                 a_id, b_id, b_name, b_sum = res.get_next()
                 if a_id not in reachable and a_id != root_id:
                     continue
                 if not is_plausible_prereq(a_id, b_id):
                     continue
-                adj.setdefault(a_id, []).append({
-                    "id": b_id,
-                    "name": b_name,
-                    "summary": b_sum or "",
-                })
+                adj.setdefault(a_id, []).append(
+                    {
+                        "id": b_id,
+                        "name": b_name,
+                        "summary": b_sum or "",
+                    }
+                )
     except Exception as e:
         print(f"find_curriculum_chains graph error: {e}")
         # Fallback: use st.CONCEPTS_DATA prerequisites lists if present
@@ -90,6 +97,7 @@ def find_curriculum_chains(concept_id, max_hops=3, citation_map=None, max_paths=
         name_to_id = {}
         for cid, c in st.CONCEPTS_DATA.items():
             name_to_id[(c.get("label") or c.get("name") or "").lower()] = cid
+
         def prereq_ids_for(cid):
             c = st.CONCEPTS_DATA.get(cid) or {}
             out = []
@@ -101,12 +109,15 @@ def find_curriculum_chains(concept_id, max_hops=3, citation_map=None, max_paths=
                     pid = name_to_id.get(p.lower())
                     if pid and is_plausible_prereq(cid, pid):
                         pc = st.CONCEPTS_DATA.get(pid, {})
-                        out.append({
-                            "id": pid,
-                            "name": pc.get("label") or pc.get("name") or p,
-                            "summary": pc.get("summary") or "",
-                        })
+                        out.append(
+                            {
+                                "id": pid,
+                                "name": pc.get("label") or pc.get("name") or p,
+                                "summary": pc.get("summary") or "",
+                            }
+                        )
             return out
+
         # BFS expand adjacency via st.CONCEPTS_DATA only
         frontier = [concept_id]
         seen = {concept_id}
@@ -147,7 +158,7 @@ def find_curriculum_chains(concept_id, max_hops=3, citation_map=None, max_paths=
                 "summary": child.get("summary") or "",
                 "hop": len(trail),  # 0=root, 1=first prereq, …
             }
-            walk(cid, trail + [hop])
+            walk(cid, [*trail, hop])
             extended = True
             if len(paths) >= max_paths:
                 return
@@ -182,13 +193,15 @@ def find_curriculum_chains(concept_id, max_hops=3, citation_map=None, max_paths=
                 md_parts.append(markdown_pdf_link(f"{n['name']} ({page_lbl})", n["doc_id"], page))
             else:
                 md_parts.append(n["name"])
-        results.append({
-            "nodes": nodes,
-            "learn_order": learn_order,
-            "labels": labels,
-            "markdown": " → ".join(md_parts),
-            "hops": max(0, len(nodes) - 1),
-        })
+        results.append(
+            {
+                "nodes": nodes,
+                "learn_order": learn_order,
+                "labels": labels,
+                "markdown": " → ".join(md_parts),
+                "hops": max(0, len(nodes) - 1),
+            }
+        )
     # Prefer longer (richer) chains first
     results.sort(key=lambda p: p["hops"], reverse=True)
     return results
@@ -214,7 +227,9 @@ def format_curriculum_paths_section(curriculum_paths):
         md = path.get("markdown") or " → ".join(path.get("labels") or [])
         hops = path.get("hops", 0)
         if multi:
-            lines.append(f"{i}. {md}" + (f"  \n   _{hops} hop{'s' if hops != 1 else ''}_" if hops else ""))
+            lines.append(
+                f"{i}. {md}" + (f"  \n   _{hops} hop{'s' if hops != 1 else ''}_" if hops else "")
+            )
         else:
             lines.append(f"{i}. {md}")
     lines.append("\n_Click a book link to open the PDF at the cited page._")

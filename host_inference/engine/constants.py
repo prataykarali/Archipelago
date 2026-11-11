@@ -51,8 +51,8 @@ UNINDEXED_CURRICULUM_MESSAGE = (
     "I will not invent a curriculum for a topic I cannot cite. If you upload the "
     "textbook chapter or syllabus, the librarian can ingest it and this assistant "
     "will build the prerequisite graph from your own course material.\n\n"
-    "Indexed topics you can study now include LoRA, BERT, attention mechanisms, "
-    "Retrieval-Augmented Generation, graph neural networks, and third normal form."
+    "Indexed subjects you can explore include Operating Systems, Database Systems, "
+    "Data Structures & Algorithms, Computer Networks, Compilers, and AI & Machine Learning."
 )
 
 ALIASES = {
@@ -79,6 +79,63 @@ ALIASES = {
     "transformer": "attention_mechanism",
     "graph rag": "graph_rag",
     "qiskit": "qiskit",
+    # Academic Foundations — Operating Systems
+    "context switch": "context_switch",
+    "context switching": "context_switch",
+    "semaphore": "semaphore",
+    "semaphores": "semaphore",
+    "mutex": "mutex_lock",
+    "mutexes": "mutex_lock",
+    "mutex lock": "mutex_lock",
+    "mutex locks": "mutex_lock",
+    "deadlock": "deadlock",
+    "deadlocks": "deadlock",
+    "deadlock prevention": "deadlock_prevention",
+    "condition variable": "condition_variable",
+    "condition variables": "condition_variable",
+    "virtual memory": "virtual_memory",
+    "cpu scheduling": "cpu_scheduling",
+    # Academic Foundations — DBMS & SQL
+    "b tree": "b_plus_tree",
+    "b trees": "b_plus_tree",
+    "b plus tree": "b_plus_tree",
+    "b plus trees": "b_plus_tree",
+    "hash indexing": "hash_indexing",
+    "hash index": "hash_indexing",
+    "acid": "acid_properties",
+    "acid properties": "acid_properties",
+    "relational database": "relational_database",
+    "relational databases": "relational_database",
+    # Academic Foundations — DSA
+    "bfs": "breadth_first_search",
+    "breadth first search": "breadth_first_search",
+    "dfs": "depth_first_search",
+    "depth first search": "depth_first_search",
+    # Academic Foundations — Computer Networks
+    "tcp congestion control": "tcp_congestion_control",
+    "congestion control": "tcp_congestion_control",
+    "osi model": "osi_model",
+    "osi": "osi_model",
+    # Academic Foundations — Compilers & Automata
+    "lexical analysis": "lexical_analysis",
+    "lexer": "lexical_analysis",
+    "tokenization": "lexical_analysis",
+    "syntax analysis": "syntax_analysis",
+    "parsing": "syntax_analysis",
+    "parser": "syntax_analysis",
+    "abstract syntax tree": "abstract_syntax_tree",
+    "ast": "abstract_syntax_tree",
+    "deterministic finite automaton": "deterministic_finite_automaton",
+    "deterministic finite automata": "deterministic_finite_automaton",
+    "dfa": "deterministic_finite_automaton",
+    "turing machine": "turing_machine",
+    "turing machines": "turing_machine",
+    # Academic Foundations — Math & Machine Learning
+    "matrix multiplication": "matrix_multiplication",
+    "maximum likelihood estimation": "maximum_likelihood_estimation",
+    "mle": "maximum_likelihood_estimation",
+    "bayes theorem": "bayes_theorem",
+    "bayes": "bayes_theorem",
 }
 
 # Grounded identities that already appear in the indexed papers / shelf cards.

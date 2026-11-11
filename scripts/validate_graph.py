@@ -24,12 +24,20 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 from pathlib import Path
+import sys
 
 VALID_RELATIONS = {
-    "REQUIRES", "UNLOCKS", "RELATED", "MENTIONED_IN", "AUTHORED_BY",
-    "BELONGS_TO", "CATEGORIZES", "PROVIDES_TEXT", "HAS_CHUNK", "MENTIONS",
+    "REQUIRES",
+    "UNLOCKS",
+    "RELATED",
+    "MENTIONED_IN",
+    "AUTHORED_BY",
+    "BELONGS_TO",
+    "CATEGORIZES",
+    "PROVIDES_TEXT",
+    "HAS_CHUNK",
+    "MENTIONS",
 }
 
 BASELINE_NODE_COUNT = int(os.environ.get("BASELINE_NODE_COUNT", "514"))
@@ -80,9 +88,7 @@ def has_attribution(edge: dict) -> bool:
     )
 
 
-def validate_edges(
-    edges: list[dict], node_ids: set[str]
-) -> dict[str, int | set[str]]:
+def validate_edges(edges: list[dict], node_ids: set[str]) -> dict[str, int | set[str]]:
     """Validate edges and return error counts."""
     broken_refs = 0
     self_refs = 0
@@ -156,14 +162,10 @@ def build_report(data: dict) -> dict:
 
     # Node count warnings (non-critical unless drastically wrong)
     if node_count < NODE_COUNT_MIN:
-        report["node_count_warning"] = (
-            f"Node count {node_count} is below minimum {NODE_COUNT_MIN}"
-        )
+        report["node_count_warning"] = f"Node count {node_count} is below minimum {NODE_COUNT_MIN}"
         critical = True
     elif node_count > NODE_COUNT_MAX:
-        report["node_count_warning"] = (
-            f"Node count {node_count} exceeds maximum {NODE_COUNT_MAX}"
-        )
+        report["node_count_warning"] = f"Node count {node_count} exceeds maximum {NODE_COUNT_MAX}"
 
     # Warnings (non-critical)
     if report["duplicate_edges"] > 0:

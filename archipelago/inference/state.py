@@ -1,11 +1,17 @@
 """Shared runtime state and config for Archipelago inference."""
+
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
+import re
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, cast
 
 from flask import Flask
+
+if TYPE_CHECKING:
+    import kuzu
 
 # Project root = libraryAI/ (two levels up from this file: inference/ -> archipelago/ -> root)
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -18,21 +24,21 @@ app = Flask(__name__)
 # Lazy Kuzu handle — do NOT open the DB at import time.
 # Eager open caused exclusive-lock failures during pytest collection and
 # concurrent tool/server access.
-_db = None
+_db: kuzu.Database | None = None
 _db_read_only = False
 
 
 class _LazyDB:
     """Proxy so ``st.db`` still works as a Database-like object."""
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(get_db(), name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<LazyKuzuDB path={DB_PATH!r} open={_db is not None}>"
 
 
-def get_db(*, read_only: bool | None = None):
+def get_db(*, read_only: bool | None = None) -> kuzu.Database:
     """Return the process-wide Kuzu Database, opening on first use.
 
     Prefer read-write for the inference server. If the exclusive lock is held
@@ -69,7 +75,7 @@ def get_db(*, read_only: bool | None = None):
 db = _LazyDB()
 
 
-def reload_db():
+def reload_db() -> None:
     """Re-open the database after a write swap and refresh concept cache."""
     global _db, _db_read_only
     old = _db
@@ -82,7 +88,8 @@ def reload_db():
             pass
     get_db(read_only=False)
     try:
-        from archipelago.inference.routes_chat import init_concepts_data
+        from archipelago.inference.routes.chat import init_concepts_data
+
         init_concepts_data()
     except Exception as e:
         print(f"Error in init_concepts_data during reload: {e}")
@@ -98,10 +105,10 @@ aura_tokenizer = None
 aura_model = None
 aura_loaded = False
 
-CONCEPT_EMBEDDINGS = {}
-CONCEPT_IDS = []
+CONCEPT_EMBEDDINGS: dict[str, Any] = {}
+CONCEPT_IDS: list[str] = []
 CONCEPT_EMBEDDINGS_TENSOR = None
-CONCEPTS_DATA = {}
+CONCEPTS_DATA: dict[str, dict[str, Any]] = {}
 
 SEMANTIC_ANCHOR_THRESHOLD = float(os.getenv("ARCHIPELAGO_SEMANTIC_THRESHOLD", "0.52"))
 # Soft graph reject only when cos is below this AND lexical/alias surface fit is poor.
@@ -126,50 +133,217 @@ MAX_UNLOCKS_SHOWN = 3
 EVIDENCE_PER_CONCEPT = 4
 CITATION_ID_PATTERN = re.compile(r"\[(S\d+):")
 
-_GRAPH_DB = None
+_GRAPH_DB: ModuleType | None = None
 _GRAPH_DB_IMPORT_FAILED = False
 
 _DOMAIN_TERMS = (
-    "ai", "a.i", "ml", "aiml", "ai/ml", "ai-ml",
-    "machine learning", "deep learning", "neural", "model",
-    "agent", "agents", "agentic", "llm", "language model", "transformer", "attention",
-    "bert", "gpt", "rag", "rags", "retrieval", "lora", "fine-tun", "finetun", "embedding",
-    "vector", "knowledge graph", "dataset", "training", "inference", "nlp",
-    "computer vision", "comp vision", "cnn", "rnn", "gradient", "optimizer",
-    "reinforcement", "supervised", "unsupervised", "peft", "parameter-efficient",
-    "pretrain", "pre-train", "token", "encoder", "decoder", "multi-head",
-    "self-attention", "vision", "image recognition", "object detection",
-    "framework", "frameworks", "pytorch", "tensorflow", "hugging face", "huggingface",
-    "langchain", "llamaindex", "openai", "anthropic", "diffusion", "stable diffusion",
-    "classification", "regression", "clustering", "generative", "foundation model",
-    "representation", "representations", "latent space", "manifold", "generalization",
-    "gru", "lstm",
+    "ai",
+    "a.i",
+    "ml",
+    "aiml",
+    "ai/ml",
+    "ai-ml",
+    "machine learning",
+    "deep learning",
+    "neural",
+    "model",
+    "agent",
+    "agents",
+    "agentic",
+    "llm",
+    "language model",
+    "transformer",
+    "attention",
+    "bert",
+    "gpt",
+    "rag",
+    "rags",
+    "retrieval",
+    "lora",
+    "fine-tun",
+    "finetun",
+    "embedding",
+    "vector",
+    "knowledge graph",
+    "dataset",
+    "training",
+    "inference",
+    "nlp",
+    "computer vision",
+    "comp vision",
+    "cnn",
+    "rnn",
+    "gradient",
+    "optimizer",
+    "reinforcement",
+    "supervised",
+    "unsupervised",
+    "peft",
+    "parameter-efficient",
+    "pretrain",
+    "pre-train",
+    "token",
+    "encoder",
+    "decoder",
+    "multi-head",
+    "self-attention",
+    "vision",
+    "image recognition",
+    "object detection",
+    "framework",
+    "frameworks",
+    "pytorch",
+    "tensorflow",
+    "hugging face",
+    "huggingface",
+    "langchain",
+    "llamaindex",
+    "openai",
+    "anthropic",
+    "diffusion",
+    "stable diffusion",
+    "classification",
+    "regression",
+    "clustering",
+    "generative",
+    "foundation model",
+    "representation",
+    "representations",
+    "latent space",
+    "manifold",
+    "generalization",
+    "gru",
+    "lstm",
     # Broader computer-science shelves represented in the graph.
-    "computer science", "algorithm", "algorithms", "data structure", "data structures",
-    "database", "databases", "dbms", "sql", "index", "indexing", "b-tree", "hashing",
-    "operating system", "operating systems", "os", "kernel", "process", "memory", "paging",
-    "computer network", "computer networks", "networking", "tcp", "ip", "routing", "congestion",
-    "dijkstra", "shortest path", "graph algorithm", "compiler", "compilers", "programming language",
-    "software engineering", "distributed system", "distributed systems", "security", "cryptography",
-    "linear algebra", "calculus", "probability", "statistics", "mathematics", "optimization",
+    "computer science",
+    "algorithm",
+    "algorithms",
+    "data structure",
+    "data structures",
+    "database",
+    "databases",
+    "dbms",
+    "sql",
+    "index",
+    "indexing",
+    "b-tree",
+    "hashing",
+    "operating system",
+    "operating systems",
+    "os",
+    "kernel",
+    "process",
+    "memory",
+    "paging",
+    "computer network",
+    "computer networks",
+    "networking",
+    "tcp",
+    "ip",
+    "routing",
+    "congestion",
+    "dijkstra",
+    "shortest path",
+    "graph algorithm",
+    "compiler",
+    "compilers",
+    "programming language",
+    "software engineering",
+    "distributed system",
+    "distributed systems",
+    "security",
+    "cryptography",
+    "linear algebra",
+    "calculus",
+    "probability",
+    "statistics",
+    "mathematics",
+    "optimization",
 )
 
 _LEARNING_INTENT = (
-    "learn", "learning", "teach", "explain", "what is", "what's", "whats",
-    "how does", "how do", "how to", "tell me about", "about ", "study",
-    "understand", "intro to", "introduction", "prereq", "curriculum",
-    "difference between", "vs ", " versus ", "why do we", "when to use",
-    "i wanna", "i want to", "can you explain", "help me with",
+    "learn",
+    "learning",
+    "teach",
+    "explain",
+    "what is",
+    "what's",
+    "whats",
+    "how does",
+    "how do",
+    "how to",
+    "tell me about",
+    "about ",
+    "study",
+    "understand",
+    "intro to",
+    "introduction",
+    "prereq",
+    "curriculum",
+    "difference between",
+    "vs ",
+    " versus ",
+    "why do we",
+    "when to use",
+    "i wanna",
+    "i want to",
+    "can you explain",
+    "help me with",
 )
 
 # Light assist only — primary OOD path is intent_gate prototypes, not this list.
 _OFFTOPIC_MARKERS = (
-    "weather", "temperature outside", "stock price", "recipe", "cook",
-    "football", "soccer", "cricket score", "who won", "joke", "horoscope",
-    "astronomy", "astrophysics", "constellation", "planet jupiter",
-    "britney spears", "celebrity gossip", "super bowl", "world cup",
-    "batman", "superman", "harry potter", "sourdough", "calorie", "calories",
-    "wine pairing", "my ex", "pyramids", "ancient egypt",
-    "relativity", "physics", "chemistry", "biology", "photosynthesis",
-    "shakespeare", "world war", "history", "literature"
+    "weather",
+    "temperature outside",
+    "stock price",
+    "recipe",
+    "cook",
+    "football",
+    "soccer",
+    "cricket score",
+    "who won",
+    "joke",
+    "horoscope",
+    "astronomy",
+    "astrophysics",
+    "constellation",
+    "planet jupiter",
+    "britney spears",
+    "celebrity gossip",
+    "super bowl",
+    "world cup",
+    "batman",
+    "superman",
+    "harry potter",
+    "sourdough",
+    "calorie",
+    "calories",
+    "wine pairing",
+    "my ex",
+    "pyramids",
+    "ancient egypt",
+    "relativity",
+    "physics",
+    "chemistry",
+    "biology",
+    "photosynthesis",
+    "shakespeare",
+    "world war",
+    "history",
+    "literature",
 )
+
+
+# Re-exported for callers & tests expecting citation map on inference state/server
+def build_concept_citation_map(
+    target_concept: str | dict[str, Any],
+    prereqs: list[dict[str, Any]],
+    unlocks: list[dict[str, Any]],
+    graph_db: Any = None,
+) -> dict[str, list[dict[str, Any]]]:
+    from archipelago.inference.citations import build_concept_citation_map as _build
+
+    return cast(
+        dict[str, list[dict[str, Any]]],
+        _build(target_concept, prereqs, unlocks, graph_db),
+    )

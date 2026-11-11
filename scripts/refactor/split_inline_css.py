@@ -15,11 +15,12 @@ Usage::
     python scripts/refactor/split_inline_css.py ui/chat/index.html \
         --out-dir ui/chat/styles --url-prefix /styles --dry-run
 """
+
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
+import re
 
 MAX_CHUNK_LINES = 380
 STYLE_OPEN = re.compile(r"^\s*<style[^>]*>\s*$")
@@ -81,7 +82,9 @@ def _css_name(chunk: list[str], index: int) -> str:
     return f"{index:02d}-styles.css"
 
 
-def plan(html_path: Path, max_lines: int) -> tuple[list[str], list[tuple[str, list[str]]], list[str]]:
+def plan(
+    html_path: Path, max_lines: int
+) -> tuple[list[str], list[tuple[str, list[str]]], list[str]]:
     """Return (css_chunks, named_chunks, kept_lines).
 
     ``kept_lines`` is the HTML with each ``<style>`` block replaced by a marker
@@ -139,7 +142,7 @@ def main() -> int:
     text = "".join(keep)
     marker = "<!-- styles moved to linked files -->\n"
     first = text.index(marker)
-    text = text[:first] + links.strip("\n") + "\n" + text[first + len(marker):]
+    text = text[:first] + links.strip("\n") + "\n" + text[first + len(marker) :]
     text = text.replace("<!-- styles moved to linked files -->\n", "")
     args.html.write_text(text, encoding="utf-8")
     print(f"wrote {len(named)} files and rewrote {args.html}")

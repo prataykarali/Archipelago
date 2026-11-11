@@ -7,8 +7,10 @@ catalog record when nothing matches.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
-from flask import Response, jsonify, request
+from flask import jsonify, request
+from flask.typing import ResponseReturnValue
 
 from archipelago.api.engine_state import (
     CATALOG_SEARCH_LIMIT,
@@ -53,7 +55,7 @@ INSTITUTIONAL_PORTALS = [
 ]
 
 
-def _rows_to_dicts(result) -> list[dict]:
+def _rows_to_dicts(result: Any) -> list[Any]:
     """Drain a Kùzu result set into a list of dicts."""
     rows = []
     while result.has_next():
@@ -61,7 +63,7 @@ def _rows_to_dicts(result) -> list[dict]:
     return rows
 
 
-def _shelf_label(biblionumber) -> str:
+def _shelf_label(biblionumber: object) -> str:
     """Call number for a catalog record, or the default when unassigned."""
     text = str(biblionumber or "").strip()
     if not text or text == "0":
@@ -70,10 +72,10 @@ def _shelf_label(biblionumber) -> str:
 
 
 @app.route("/api/catalog/search", methods=["GET"])
-def api_catalog_search() -> Response:
+def api_catalog_search() -> ResponseReturnValue:
     """Search Koha/OPAC physical inventory by title, author, or subject."""
     q = request.args.get("q", "").strip().lower()
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
 
     if q:
         conn = get_kuzu_connection()
@@ -108,7 +110,7 @@ def api_catalog_search() -> Response:
 
 
 @app.route("/api/eresources", methods=["GET"])
-def api_eresources() -> Response:
+def api_eresources() -> ResponseReturnValue:
     """Return institutional links and access portals for IEEE, NDLI, Scopus."""
     try:
         from archipelago.inference.eresource_credentials import load_credentials
@@ -126,9 +128,9 @@ def api_eresources() -> Response:
 
 
 @app.route("/api/documents", methods=["GET"])
-def api_documents() -> Response:
+def api_documents() -> ResponseReturnValue:
     """Return all indexed documents in the active library."""
-    docs: list[dict] = []
+    docs: list[dict[str, Any]] = []
     conn = get_kuzu_connection()
     if conn is not None:
         try:

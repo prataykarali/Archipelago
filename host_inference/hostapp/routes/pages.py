@@ -6,13 +6,18 @@ is computed from the live graph, never hard-coded.
 
 from __future__ import annotations
 
-from flask import Flask, jsonify, redirect, send_from_directory
+import os
+
+from flask import Flask, jsonify, redirect, request, send_from_directory
 
 from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
 from ..context import AppContext
+from ..page_fragments import assembled_page
+from ..research_pages import PAGE_DETAILS
 from .ingest import _worker_available
 
 GRAPH_PAGE_FILE = "graph.html"
+RESEARCH_ORIGIN = "https://archipelago-librarian.vercel.app"
 
 #: Concept count below which the deployment is provably running the tracked
 #: fixture rather than the library's full corpus.  The fixture is ~59 concepts;
@@ -29,6 +34,8 @@ def register(app: Flask, ctx: AppContext) -> None:
             principal, _error = ctx.auth.principal()
             if principal is None:
                 return redirect(f"/login?next=/{name}")
+        if name in {"chat", "library"}:
+            return assembled_page(UI, PAGE_FILES[name])
         return send_from_directory(UI, PAGE_FILES[name])
 
     @app.get("/")
@@ -49,12 +56,25 @@ def register(app: Flask, ctx: AppContext) -> None:
                 return redirect("/login?next=/graph")
             if principal.get("role") not in ELEVATED_ROLES:
                 return redirect("/chat")
-        return send_from_directory(UI, GRAPH_PAGE_FILE)
+        return redirect(f"{RESEARCH_ORIGIN}/academic/graph")
+
+    @app.get("/research")
+    @app.get("/research/")
+    def research_page():
+        return redirect(f"{RESEARCH_ORIGIN}{request.full_path.rstrip('?')}")
+
+    @app.get("/research/<page>")
+    def research_subpage(page: str):
+        if page not in PAGE_DETAILS:
+            return jsonify({"error": "not_found"}), 404
+        return redirect(f"{RESEARCH_ORIGIN}{request.full_path.rstrip('?')}")
 
     @app.get("/library")
     @app.get("/library/")
     def library_page():
-        return _page("library")
+        # The catalogue details page is a public entry point even when chat
+        # sessions are required elsewhere in the deployment.
+        return assembled_page(UI, PAGE_FILES["library"])
 
     @app.get("/login")
     def login_page():
@@ -90,6 +110,16 @@ def register(app: Flask, ctx: AppContext) -> None:
                 "pearson_books": len(ctx.engine.books),
                 "cache": ctx.engine.cache_info.get("source"),
                 "ingestion": _worker_available(),
+                "research_intake": {
+                    "enabled": bool(
+                        os.getenv("SUPABASE_URL")
+                        and (
+                            os.getenv("SUPABASE_SECRET_KEY")
+                            or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+                        )
+                    ),
+                    "scope": "scholarly_metadata_and_institutional_html",
+                },
                 "cache_metrics": ctx.cache_metrics.stats(),
             }
         )

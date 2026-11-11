@@ -11,7 +11,6 @@ import pytest
 
 from okf.exports import write_all_artifacts
 
-
 GRAPH_EXPORT = {
     "concepts": {
         "basic_algebra": {
@@ -74,12 +73,10 @@ def test_write_all_artifacts_root_and_graph_ui_identical(tmp_path):
     (tmp_path / "graph_ui").mkdir()
 
     with patch("okf.exports.export_vis_json") as mock_vis:
-        write_all_artifacts(GRAPH_EXPORT, OKF_RESULTS, MagicMock(),
-                            base_dir=tmp_path)
+        write_all_artifacts(GRAPH_EXPORT, OKF_RESULTS, MagicMock(), base_dir=tmp_path)
 
     root_graph = json.loads((tmp_path / "okf_graph.json").read_text(encoding="utf-8"))
-    ui_graph = json.loads(
-        (tmp_path / "graph_ui" / "okf_graph.json").read_text(encoding="utf-8"))
+    ui_graph = json.loads((tmp_path / "graph_ui" / "okf_graph.json").read_text(encoding="utf-8"))
 
     assert len(root_graph["concepts"]) == len(ui_graph["concepts"]) == 2
     assert len(root_graph["edges"]) == len(ui_graph["edges"]) == 1
@@ -103,7 +100,8 @@ def test_write_all_artifacts_without_graph_ui_dir(tmp_path):
     artifact and simply skips the static copy (finalize_and_build behavior)."""
     with patch("okf.exports.export_vis_json"):
         graph_audit, accuracy = write_all_artifacts(
-            GRAPH_EXPORT, OKF_RESULTS, MagicMock(), base_dir=tmp_path)
+            GRAPH_EXPORT, OKF_RESULTS, MagicMock(), base_dir=tmp_path
+        )
 
     assert (tmp_path / "okf_graph.json").exists()
     assert (tmp_path / "graph_audit.json").exists()

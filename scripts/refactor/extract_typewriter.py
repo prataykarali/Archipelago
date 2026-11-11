@@ -9,11 +9,12 @@ Usage::
     python scripts/refactor/extract_typewriter.py ui/chat/js --dry-run
     python scripts/refactor/extract_typewriter.py ui/chat/js --write
 """
+
 from __future__ import annotations
 
 import argparse
-import textwrap
 from pathlib import Path
+import textwrap
 
 CLASS_MARK = "class SmoothTypewriterStream {"
 CLASS_END_MARK = "// No status chip — stream the model reply directly."
@@ -58,8 +59,10 @@ def main() -> int:
         + "\n\nexport { SmoothTypewriterStream, _normText, _shouldReplaceFinal };\n"
     )
     print(f"stream-support.js: {len(module.splitlines())} lines")
-    print(f"08-send-message.js: {len(text.splitlines())} -> "
-          f"{len(text[:class_start].splitlines()) + len(text[class_end:utils_start].splitlines()) + len(text[utils_end:].splitlines())} lines")
+    print(
+        f"08-send-message.js: {len(text.splitlines())} -> "
+        f"{len(text[:class_start].splitlines()) + len(text[class_end:utils_start].splitlines()) + len(text[utils_end:].splitlines())} lines"
+    )
 
     if not args.write:
         print("(dry run)")

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 import json
+from typing import Any
 
 from flask import Response
 
@@ -25,7 +27,9 @@ from archipelago.inference.synthesis import (
 )
 
 
-def handle_library_book_details(query, history, routing, wants_synthesis):
+def handle_library_book_details(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Book metadata & summaries."""
     meta = get_book_metadata_details(query)
     book_citations = []
@@ -55,7 +59,7 @@ def handle_library_book_details(query, history, routing, wants_synthesis):
         notes = f"### 📚 Book Details\nCould not find a specific indexed book or paper matching '{query}'. You can browse the complete e-book shelves at [/library](/library)."
         details = "No exact book match."
 
-    def generate_book_details():
+    def generate_book_details() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": meta.get("prerequisites", []) if meta else [],
@@ -77,7 +81,9 @@ def handle_library_book_details(query, history, routing, wants_synthesis):
     return Response(generate_book_details(), mimetype="text/plain")
 
 
-def handle_library_resources(query, history, routing, wants_synthesis):
+def handle_library_resources(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Institutional portal guidance (redacted), plus hours when both were asked."""
     from archipelago.inference.library_resource_access import render_resource_access
 
@@ -95,7 +101,7 @@ def handle_library_resources(query, history, routing, wants_synthesis):
         # schedule, which is the fact the student most needs and cannot look up.
         notes = get_library_hours_response() + "\n\n" + notes
 
-    def generate_resource_access():
+    def generate_resource_access() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -117,11 +123,13 @@ def handle_library_resources(query, history, routing, wants_synthesis):
     return Response(generate_resource_access(), mimetype="text/plain")
 
 
-def handle_library_hours(query, history, routing, wants_synthesis):
+def handle_library_hours(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Operating hours & access policies."""
     notes = get_library_hours_response()
 
-    def generate_hours():
+    def generate_hours() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -143,7 +151,9 @@ def handle_library_hours(query, history, routing, wants_synthesis):
     return Response(generate_hours(), mimetype="text/plain")
 
 
-def handle_library_materials(query, history, routing, wants_synthesis):
+def handle_library_materials(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Lab-manual and reprography counter locations.
 
     Contract type 2. "Where are the lab manuals?" matched no holdings pattern
@@ -153,7 +163,7 @@ def handle_library_materials(query, history, routing, wants_synthesis):
     """
     notes = get_library_materials_response(query)
 
-    def generate_materials():
+    def generate_materials() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -175,11 +185,13 @@ def handle_library_materials(query, history, routing, wants_synthesis):
     return Response(generate_materials(), mimetype="text/plain")
 
 
-def handle_library_holdings(query, history, routing, wants_synthesis):
+def handle_library_holdings(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Catalog inventory metrics."""
     notes = get_library_holdings_response(query)
 
-    def generate_holdings():
+    def generate_holdings() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -191,7 +203,7 @@ def handle_library_holdings(query, history, routing, wants_synthesis):
                 {
                     "step": "Library Retrieval",
                     "status": "Success",
-                    "details": "Retrieved catalog inventory metrics (109 records / 904 copies).",
+                    "details": "Retrieved available Koha export records with snapshot provenance.",
                 }
             ],
         }
@@ -201,7 +213,9 @@ def handle_library_holdings(query, history, routing, wants_synthesis):
     return Response(generate_holdings(), mimetype="text/plain")
 
 
-def handle_library_books(query, history, routing, wants_synthesis):
+def handle_library_books(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Book recommendations by topic."""
     topic = clean_topic_query(query)
     limit = int((routing.get("slots") or {}).get("limit") or 5)
@@ -228,7 +242,7 @@ def handle_library_books(query, history, routing, wants_synthesis):
             }
         )
 
-    def generate_books():
+    def generate_books() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -250,7 +264,9 @@ def handle_library_books(query, history, routing, wants_synthesis):
     return Response(generate_books(), mimetype="text/plain")
 
 
-def handle_library_chapters(query, history, routing, wants_synthesis):
+def handle_library_chapters(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Chapters of a book."""
     res = get_chapters_of_book(query)
     if res:
@@ -262,7 +278,7 @@ def handle_library_chapters(query, history, routing, wants_synthesis):
         notes = f"Could not find any matching book/paper for '{query}' in the database."
         details = "No book match found."
 
-    def generate_chapters():
+    def generate_chapters() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],
@@ -284,7 +300,9 @@ def handle_library_chapters(query, history, routing, wants_synthesis):
     return Response(generate_chapters(), mimetype="text/plain")
 
 
-def handle_library_chapter_lookup(query, history, routing, wants_synthesis):
+def handle_library_chapter_lookup(
+    query: str, history: Any, routing: dict[str, Any], wants_synthesis: bool
+) -> Response:
     """Chapters containing a concept."""
     res = get_chapters_containing_concept(query)
     if res:
@@ -295,7 +313,7 @@ def handle_library_chapter_lookup(query, history, routing, wants_synthesis):
         notes = f"Could not find matching book or concept for query: '{query}'."
         details = "No match found."
 
-    def generate_lookup():
+    def generate_lookup() -> Iterator[str]:
         payload = {
             "anchor_concept": None,
             "prerequisites": [],

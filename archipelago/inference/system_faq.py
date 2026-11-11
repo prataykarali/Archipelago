@@ -2,12 +2,13 @@
 
 Answers product facts that are not concept nodes in Kùzu (OKF schema,
 guardrails, embedding model, catalog node types). Keeps LLM calls out of the
-loop so eval Q6–Q18 style questions stay cheap and stable.
+loop so eval Q6-Q18 style questions stay cheap and stable.
 """
+
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
+import re
 from typing import Any
 
 
@@ -24,25 +25,45 @@ class FaqHit:
 _FAQ_ENTRIES: tuple[tuple[str, tuple[str, ...], str], ...] = (
     (
         "okf_acronym",
-        (r"\bokf\b.*\bstand", r"\bacronym\b.*\bokf\b", r"\bokf\b.*\bmean", r"\bwhat\s+does\s+okf\b"),
+        (
+            r"\bokf\b.*\bstand",
+            r"\bacronym\b.*\bokf\b",
+            r"\bokf\b.*\bmean",
+            r"\bwhat\s+does\s+okf\b",
+        ),
         "OKF stands for **Open Knowledge Format** — Archipelago's structured "
         "concept schema for teachable technical topics (prerequisites, unlocks, tags).",
     ),
     (
         "okf_keys",
-        (r"\b8\b.*\b(?:json\s+)?keys?\b", r"\brequired\s+(?:json\s+)?keys?\b.*\bokf\b", r"\bokf\b.*\bconcept\s+object\b", r"\bkeys?\b.*\bvalid\s+okf\b"),
+        (
+            r"\b8\b.*\b(?:json\s+)?keys?\b",
+            r"\brequired\s+(?:json\s+)?keys?\b.*\bokf\b",
+            r"\bokf\b.*\bconcept\s+object\b",
+            r"\bkeys?\b.*\bvalid\s+okf\b",
+        ),
         "Every valid OKF concept object must include these 8 keys: "
         "`concept_name`, `concept_type`, `difficulty`, `summary`, "
         "`prerequisites`, `unlocks`, `related_to`, `tags`.",
     ),
     (
         "okf_name_words",
-        (r"\bmaximum\s+word\b.*\bconcept_name\b", r"\bconcept_name\b.*\b(?:word|words)\b", r"\b≤\s*5\b.*\bconcept_name\b", r"\btitle\s+case\b.*\bconcept_name\b"),
+        (
+            r"\bmaximum\s+word\b.*\bconcept_name\b",
+            r"\bconcept_name\b.*\b(?:word|words)\b",
+            r"\b≤\s*5\b.*\bconcept_name\b",
+            r"\btitle\s+case\b.*\bconcept_name\b",
+        ),
         "An OKF `concept_name` must be **≤5 words**, formatted in **Title Case**.",
     ),
     (
         "okf_unlocks",
-        (r"\bunlocks\b.*\bdownstream\b", r"\bdownstream\b.*\bunlocks\b", r"\barray\s+field\b.*\bdownstream\b", r"\bwhich\s+array\b.*\bmastering\b"),
+        (
+            r"\bunlocks\b.*\bdownstream\b",
+            r"\bdownstream\b.*\bunlocks\b",
+            r"\barray\s+field\b.*\bdownstream\b",
+            r"\bwhich\s+array\b.*\bmastering\b",
+        ),
         "In the OKF schema, the **`unlocks`** array lists downstream topics "
         "enabled after mastering the target concept.",
     ),
@@ -58,14 +79,24 @@ _FAQ_ENTRIES: tuple[tuple[str, tuple[str, ...], str], ...] = (
     ),
     (
         "query_too_long",
-        (r"\b500\s+characters?\b", r"\bquer(?:y|ies)\b.*\btoo\s+long\b", r"\bexceeding\s+500\b", r"\bguardrail\b.*\blength\b"),
+        (
+            r"\b500\s+characters?\b",
+            r"\bquer(?:y|ies)\b.*\btoo\s+long\b",
+            r"\bexceeding\s+500\b",
+            r"\bguardrail\b.*\blength\b",
+        ),
         "Queries longer than **500 characters** are rejected by the Stage-1 guardrail "
         "with an immediate API error payload: `Query too long` "
         "(limit 500 characters).",
     ),
     (
         "embed_model",
-        (r"\bembedding\s+model\b", r"\barctic-embed\b", r"\bsnowflake\b.*\bembed", r"\bquery\s+vectorization\b"),
+        (
+            r"\bembedding\s+model\b",
+            r"\barctic-embed\b",
+            r"\bsnowflake\b.*\bembed",
+            r"\bquery\s+vectorization\b",
+        ),
         "Query vectorization uses the local embedding model "
         "**`Snowflake/snowflake-arctic-embed-m-v1.5`** (also referenced as "
         "Snowflake/arctic-embed-m-v1.5).",
@@ -86,26 +117,44 @@ _FAQ_ENTRIES: tuple[tuple[str, tuple[str, ...], str], ...] = (
     ),
     (
         "empty_okf_array",
-        (r"\blacks?\s+any\s+teachable\b", r"\bempty\s+json\s+array\b", r"\bno\s+teachable\s+technical\s+concept\b", r"\bextraction\b.*\b\[\]"),
+        (
+            r"\blacks?\s+any\s+teachable\b",
+            r"\bempty\s+json\s+array\b",
+            r"\bno\s+teachable\s+technical\s+concept\b",
+            r"\bextraction\b.*\b\[\]",
+        ),
         "When text has no teachable technical concept, the OKF extraction engine "
         "must return an empty JSON array: **`[]`**.",
     ),
     (
         "ollama_model",
-        (r"\bprimary\s+generator\b", r"\bollama\b.*\bmodel\b", r"\bhigh-speed\s+synthesis\b", r"\btwo-pass\s+inference\b.*\bmodel\b"),
+        (
+            r"\bprimary\s+generator\b",
+            r"\bollama\b.*\bmodel\b",
+            r"\bhigh-speed\s+synthesis\b",
+            r"\btwo-pass\s+inference\b.*\bmodel\b",
+        ),
         "High-speed synthesis in the two-pass inference pipeline uses **local Ollama** "
         "(configured model: `qwen3.5:0.8b` via `ARCHIPELAGO_OLLAMA_MODEL`, "
         "host: `OLLAMA_HOST`).",
     ),
     (
         "catalog_node_types",
-        (r"\bthree\s+new\s+node\s+types\b", r"\bsubject\b.*\bresource\b.*\bjournal", r"\binstitutional\s+catalog\b.*\bnode\s+types\b"),
+        (
+            r"\bthree\s+new\s+node\s+types\b",
+            r"\bsubject\b.*\bresource\b.*\bjournal",
+            r"\binstitutional\s+catalog\b.*\bnode\s+types\b",
+        ),
         "Institutional catalog integration introduced three node types: "
         "**`Subject`**, **`Resource`**, and **`JournalIssue`**.",
     ),
     (
         "has_issue_edge",
-        (r"\bhas_issue\b", r"\bjournalissue\b.*\bresource\b", r"\brelationship\s+edge\b.*\bjournal"),
+        (
+            r"\bhas_issue\b",
+            r"\bjournalissue\b.*\bresource\b",
+            r"\brelationship\s+edge\b.*\bjournal",
+        ),
         "A **`HAS_ISSUE`** edge connects a `JournalIssue` node to its parent "
         "paper/journal `Resource` node.",
     ),
@@ -117,20 +166,35 @@ _FAQ_ENTRIES: tuple[tuple[str, tuple[str, ...], str], ...] = (
     ),
     (
         "no_self_cycle",
-        (r"\bcircular\s+graph\b", r"\bown\s+prerequisites\b", r"\bnever\s+appear\s+in\s+its\s+own\b", r"\bcycle\b.*\bconcept\s+nodes?\b"),
+        (
+            r"\bcircular\s+graph\b",
+            r"\bown\s+prerequisites\b",
+            r"\bnever\s+appear\s+in\s+its\s+own\b",
+            r"\bcycle\b.*\bconcept\s+nodes?\b",
+        ),
         "A concept must **never** appear in its own `prerequisites` or `unlocks` "
         "arrays — this rule prevents circular graph dependencies on individual nodes.",
     ),
     (
         "citation_brackets",
-        (r"\binline\s+citation\b", r"\b\[s1\]\b", r"\bpage-view\b.*\bcorrupt", r"\bcitation\s+formatting\b"),
+        (
+            r"\binline\s+citation\b",
+            r"\b\[s1\]\b",
+            r"\bpage-view\b.*\bcorrupt",
+            r"\bcitation\s+formatting\b",
+        ),
         "Archipelago standardizes citations as bare bracket markers **`[S1]`**, **`[S2]`**, … "
         "and strips raw system routes such as `/api/page-view` or `p.X ↗` from prose "
         "so the frontend never corrupts links.",
     ),
     (
         "atomic_swap",
-        (r"\batomic\s+swap\b", r"\bingestion_worker\b", r"\bzero\s+user\s+downtime\b", r"\bokf_graph\.db\b.*\bswap\b"),
+        (
+            r"\batomic\s+swap\b",
+            r"\bingestion_worker\b",
+            r"\bzero\s+user\s+downtime\b",
+            r"\bokf_graph\.db\b.*\bswap\b",
+        ),
         "During database updates, `ingestion_worker` builds a new graph offline and "
         "**atomically swaps** `okf_graph.db` under a write lock so live readers see "
         "zero downtime.",

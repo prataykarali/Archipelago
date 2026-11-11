@@ -1,14 +1,17 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-import logging
-import re
 from dataclasses import dataclass, field
+import logging
 from pathlib import Path
+import re
 from typing import Any
-from archipelago.ingestion.mention import normalize_title as _normalize_title
-from . import _deps as _rt  # noqa: F401
 
+from archipelago.ingestion.mention import normalize_title as _normalize_title
+
+from . import _deps as _rt  # noqa: F401
+from .part02_existing import _fetch_existing as _read_existing
 
 logger = logging.getLogger("archipelago.ingestion.spreadsheet")
 
@@ -53,10 +56,23 @@ FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "year": ("year", "copyrightyear", "pubyear", "publicationyear", "date", "copyright"),
     "isbn": ("isbn", "isbn13", "isbn10", "identifier", "biblionumber", "accno", "accession"),
     "subject": ("subject", "category", "topic", "dept", "department"),
-    "total_copies": ("totalcopies", "nocopies", "noofcopies", "numberofcopies", "copies",
-                     "holdings", "total"),
-    "available_copies": ("availablecopies", "available", "availcopies", "availcopiescount",
-                         "onloan", "copiesavailable"),
+    "total_copies": (
+        "totalcopies",
+        "nocopies",
+        "noofcopies",
+        "numberofcopies",
+        "copies",
+        "holdings",
+        "total",
+    ),
+    "available_copies": (
+        "availablecopies",
+        "available",
+        "availcopies",
+        "availcopiescount",
+        "onloan",
+        "copiesavailable",
+    ),
     "overdue_items": ("overdueitems", "overdue", "onloanitems"),
     "is_periodical": ("isperiodical", "periodical", "journal", "serial"),
 }
@@ -105,9 +121,8 @@ class MergePlan:
 
     def counts(self) -> dict[str, int]:
         """Outcome tallies for reporting."""
-        return {outcome: 0 for outcome in OUTCOMES} | {
-            c.outcome: sum(1 for x in self.changes if x.outcome == c.outcome)
-            for c in self.changes
+        return dict.fromkeys(OUTCOMES, 0) | {
+            c.outcome: sum(1 for x in self.changes if x.outcome == c.outcome) for c in self.changes
         }
 
     def summary(self) -> dict[str, Any]:
@@ -210,6 +225,7 @@ def record_id_for(record: dict[str, Any]) -> str:
 def read_rows(path: str | Path) -> list[list[Any]]:
     """Read an ODS/CSV/TSV/XLSX export into rows, reusing the shared parser."""
     from archipelago.inference.ods_parser import read_ods_sheet
+
     p = Path(path)
     if not p.is_file():
         return []
@@ -227,7 +243,9 @@ def find_header_row(rows: list[list[Any]], scan_rows: int = 12) -> int:
     return best_index
 
 
-def load_records(path: str | Path, max_rows: int = MAX_ROWS) -> tuple[list[dict[str, Any]], list[str], list[str]]:
+def load_records(
+    path: str | Path, max_rows: int = MAX_ROWS
+) -> tuple[list[dict[str, Any]], list[str], list[str]]:
     """Load a spreadsheet into normalized records plus detected fields and errors."""
     errors: list[str] = []
     rows = read_rows(path)
@@ -237,16 +255,20 @@ def load_records(path: str | Path, max_rows: int = MAX_ROWS) -> tuple[list[dict[
     header_index = find_header_row(rows)
     mapping, detected = map_columns(rows[header_index])
     if not mapping:
-        return [], [], [
-            f"{Path(path).name}: no recognisable columns "
-            f"(expected one of: {', '.join(FIELD_ALIASES)})."
-        ]
+        return (
+            [],
+            [],
+            [
+                f"{Path(path).name}: no recognisable columns "
+                f"(expected one of: {', '.join(FIELD_ALIASES)})."
+            ],
+        )
     missing = [f for f in REQUIRED_FIELDS if f not in detected]
     if missing:
         errors.append(f"{Path(path).name}: missing required column(s): {', '.join(missing)}")
 
     records: list[dict[str, Any]] = []
-    for offset, row in enumerate(rows[header_index + 1:], start=header_index + 2):
+    for offset, row in enumerate(rows[header_index + 1 :], start=header_index + 2):
         if len(records) >= max_rows:
             errors.append(f"{Path(path).name}: truncated at {max_rows} rows.")
             break
@@ -261,41 +283,8 @@ def load_records(path: str | Path, max_rows: int = MAX_ROWS) -> tuple[list[dict[
 
 
 def _fetch_existing(record_type: str) -> dict[str, dict[str, Any]]:
-    """Read current catalogue state keyed by record id."""
-    existing: dict[str, dict[str, Any]] = {}
-    if record_type == "subject":
-        query = "MATCH (s:Subject) RETURN s.id, s.subject_name, s.total_titles"
-        name_field = "subject_name"
-    else:
-        query = (
-            "MATCH (r:Resource) RETURN r.id, r.title, r.author, r.publisher, "
-            "r.copyright_year, r.biblionumber, r.total_copies, r.available_copies, "
-            "r.overdue_items, r.is_periodical"
-        )
-        name_field = "title"
-    try:
-        import kuzu
-        from archipelago.inference import state as st
-        if getattr(st, "db", None) is None:
-            return existing
-        conn = kuzu.Connection(st.db)
-        res = conn.execute(query)
-        while res.has_next():
-            row = res.get_next()
-            existing[str(row[0])] = {
-                name_field: _clean_str(row[1]),
-                "author": _clean_str(row[2]) if len(row) > 2 else "",
-                "publisher": _clean_str(row[3]) if len(row) > 3 else "",
-                "year": str(row[4]) if len(row) > 4 and row[4] is not None else "",
-                "isbn": _clean_str(row[5]) if len(row) > 5 else "",
-                "total_copies": row[6] if len(row) > 6 and row[6] is not None else 0,
-                "available_copies": row[7] if len(row) > 7 and row[7] is not None else 0,
-                "overdue_items": row[8] if len(row) > 8 and row[8] is not None else 0,
-                "is_periodical": bool(row[9]) if len(row) > 9 else False,
-            }
-    except Exception as exc:
-        logger.debug("Existing catalogue read unavailable: %s", exc)
-    return existing
+    """Read current catalogue rows with the existing string normalizer."""
+    return _read_existing(record_type, _clean_str)
 
 
 def _diff_fields(incoming: dict[str, Any], current: dict[str, Any]) -> list[str]:
@@ -351,13 +340,15 @@ def plan_merge(
         fields = {k: v for k, v in record.items() if not k.startswith("_")}
         if rid in seen_ids:
             # Duplicate row inside the same file: report once, never write twice.
-            plan.changes.append(RecordChange(
-                outcome=OUTCOME_UNCHANGED,
-                record_id=rid,
-                title=fields.get("title", ""),
-                fields=fields,
-                source_row=record.get("_row", 0),
-            ))
+            plan.changes.append(
+                RecordChange(
+                    outcome=OUTCOME_UNCHANGED,
+                    record_id=rid,
+                    title=fields.get("title", ""),
+                    fields=fields,
+                    source_row=record.get("_row", 0),
+                )
+            )
             continue
         seen_ids.add(rid)
         current = existing.get(rid)
@@ -367,23 +358,27 @@ def plan_merge(
         else:
             changed = _diff_fields(fields, current)
             outcome = OUTCOME_UPDATE if changed else OUTCOME_UNCHANGED
-        plan.changes.append(RecordChange(
-            outcome=outcome,
-            record_id=rid,
-            title=fields.get("title", ""),
-            fields=fields,
-            changed_fields=changed,
-            source_row=record.get("_row", 0),
-        ))
+        plan.changes.append(
+            RecordChange(
+                outcome=outcome,
+                record_id=rid,
+                title=fields.get("title", ""),
+                fields=fields,
+                changed_fields=changed,
+                source_row=record.get("_row", 0),
+            )
+        )
 
     if retire_missing and record_type == "resource":
         for rid, current in existing.items():
             if rid in seen_ids or not current.get("title"):
                 continue
-            plan.changes.append(RecordChange(
-                outcome=OUTCOME_RETIRE,
-                record_id=rid,
-                title=current.get("title", ""),
-                fields={k: v for k, v in current.items() if v not in ("", 0, False, None)},
-            ))
+            plan.changes.append(
+                RecordChange(
+                    outcome=OUTCOME_RETIRE,
+                    record_id=rid,
+                    title=current.get("title", ""),
+                    fields={k: v for k, v in current.items() if v not in ("", 0, False, None)},
+                )
+            )
     return plan

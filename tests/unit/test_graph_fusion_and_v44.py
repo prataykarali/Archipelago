@@ -1,11 +1,9 @@
 """Unit tests for GraphFusionEngine & V44DatasetGenerator."""
 
-from pathlib import Path
 import json
-import pytest
 
-from archipelago.graph.graph_fusion import GraphFusionEngine
 from archipelago.dataset.v44_generator import V44DatasetGenerator
+from archipelago.graph.graph_fusion import GraphFusionEngine
 
 
 def test_kahn_dag_cycle_gate():
@@ -16,19 +14,25 @@ def test_kahn_dag_cycle_gate():
     # Case 1: Valid new edges that do not introduce cycles
     new_nodes = {"d"}
     new_edges = {("c", "d")}
-    is_valid, rejected = fusion.validate_dag_kahn(existing_nodes, existing_edges, new_nodes, new_edges)
+    is_valid, rejected = fusion.validate_dag_kahn(
+        existing_nodes, existing_edges, new_nodes, new_edges
+    )
     assert is_valid is True
     assert len(rejected) == 0
 
     # Case 2: Direct cycle (c -> a introduces a -> b -> c -> a)
     cyclic_edges = {("c", "a")}
-    is_valid_c, rejected_c = fusion.validate_dag_kahn(existing_nodes, existing_edges, set(), cyclic_edges)
+    is_valid_c, rejected_c = fusion.validate_dag_kahn(
+        existing_nodes, existing_edges, set(), cyclic_edges
+    )
     assert is_valid_c is False
     assert ("c", "a") in rejected_c
 
     # Case 3: Self-loop (b -> b)
     self_loop = {("b", "b")}
-    is_valid_s, rejected_s = fusion.validate_dag_kahn(existing_nodes, existing_edges, set(), self_loop)
+    is_valid_s, rejected_s = fusion.validate_dag_kahn(
+        existing_nodes, existing_edges, set(), self_loop
+    )
     assert is_valid_s is False
     assert ("b", "b") in rejected_s
 
@@ -37,8 +41,7 @@ def test_batch_node_threshold_enforcement():
     fusion = GraphFusionEngine()
     # Generate 180 concepts (exceeding 150 threshold)
     concepts = [
-        {"id": f"concept_{i}", "name": f"Concept {i}", "prerequisites": []}
-        for i in range(180)
+        {"id": f"concept_{i}", "name": f"Concept {i}", "prerequisites": []} for i in range(180)
     ]
     res = fusion.merge_batch(concepts, kuzu_engine=None, max_batch_nodes=150)
     assert res["success"] is True

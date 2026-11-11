@@ -27,6 +27,7 @@ class JSONFormatter(logging.Formatter):
 
         return json.dumps(log_data)
 
+
 def setup_logging(app):
     from archipelago.middleware.log_redaction import install_log_redaction
 
@@ -46,7 +47,7 @@ def setup_logging(app):
 
     @app.after_request
     def after_request(response):
-        if not hasattr(g, 'start_time'):
+        if not hasattr(g, "start_time"):
             return response
 
         duration_ms = (time.time() - g.start_time) * 1000
@@ -58,7 +59,7 @@ def setup_logging(app):
             lineno=0,
             msg="Request processed",
             args=(),
-            exc_info=None
+            exc_info=None,
         )
         log_record.request_id = getattr(g, "request_id", "-")
         log_record.method = request.method

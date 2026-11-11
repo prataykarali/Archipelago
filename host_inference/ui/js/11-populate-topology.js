@@ -2,6 +2,7 @@
 // Feature module 12 of 22.
 import { _nodeId, _nodeLabel, _nodeSummary, selectGraphNode } from './10-populate-pipeline.js';
 import { _initGraphRipple } from './18--init-graph-ripple.js';
+import { storageKey } from './storage-key.js';
 
         function populateTopology(anchor, prereqs, unlocks, related, isReset = false) {
             const placeholder = document.getElementById('topology-placeholder');
@@ -274,11 +275,9 @@ import { _initGraphRipple } from './18--init-graph-ripple.js';
         // preference must not silently make it disappear.
         window.showGraphCards = true;
 
-        localStorage.setItem('showGraphCards', 'true');
-
         function toggleGraphCardsSetting() {
             window.showGraphCards = !window.showGraphCards;
-            localStorage.setItem('showGraphCards', window.showGraphCards ? 'true' : 'false');
+            localStorage.setItem(storageKey('showGraphCards'), window.showGraphCards ? 'true' : 'false');
             updateGraphToggleUI();
         }
 

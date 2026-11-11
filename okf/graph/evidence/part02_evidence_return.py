@@ -1,14 +1,23 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import json
-from okf.graph.common import (
-    _DEFAULT_DB_PATH, _kuzu_escape, _kuzu_literal, _SCHEMA_DDL,
-    _create_schema, _migrate_schema, logger, BASE_DIR,
-)
-from okf.util import create_concept_id
-from . import _deps as _rt  # noqa: F401
+import logging
+from typing import Any
 
+from okf.graph.common import (
+    _DEFAULT_DB_PATH,
+    _create_schema,
+    _kuzu_escape,
+    _kuzu_literal,
+    _migrate_schema,
+)
+from okf.query_rows import query_rows
+from okf.util import create_concept_id
+
+from . import _deps as _rt
+from .row_mapping import _row_to_evidence as _row_to_evidence
 
 _EVIDENCE_RETURN = """
 RETURN chk.chunk_id, doc.id, chk.page_number, chk.section_title, chk.text_passage,
@@ -16,51 +25,32 @@ RETURN chk.chunk_id, doc.id, chk.page_number, chk.section_title, chk.text_passag
        chk.block_w, chk.block_h, doc.title, doc.page_label_map
 """
 
-
-def _row_to_evidence(row) -> dict:
-    """Map an _EVIDENCE_RETURN result row to the shared evidence contract."""
-    block_vals = row[7:11]
-    block_bbox = [float(v) for v in block_vals] if all(
-        v is not None for v in block_vals) else None
-    page_label_map = None
-    if row[12]:
-        try:
-            parsed = json.loads(row[12])
-            if isinstance(parsed, dict) and parsed:
-                page_label_map = parsed
-        except (ValueError, TypeError):
-            pass
-    return {
-        "chunk_id": row[0],
-        "doc_id": row[1],
-        "page_number": int(row[2]) if row[2] is not None else 0,
-        "section_title": row[3],
-        "text": row[4],
-        "text_offset_start": int(row[5]) if row[5] is not None else None,
-        "text_offset_end": int(row[6]) if row[6] is not None else None,
-        "block_bbox": block_bbox,
-        "doc_title": row[11],
-        "page_label_map": page_label_map,
-    }
+logger = logging.getLogger(__name__)
 
 
 class GraphDB:
     """Open (or create) a KùzuDB graph without wiping existing data."""
 
-    def __init__(self, db_path: str = _DEFAULT_DB_PATH):
+    def __init__(self, db_path: str = _DEFAULT_DB_PATH) -> None:
         import kuzu
 
         self.db_path = db_path
-        self.db = kuzu.Database(db_path)
-        self.conn = kuzu.Connection(self.db)
-        _create_schema(self.conn)   # fresh DB: full column set
+        self.db: Any = kuzu.Database(db_path)
+        self.conn: Any = kuzu.Connection(self.db)
+        _create_schema(self.conn)  # fresh DB: full column set
         _migrate_schema(self.conn)  # pre-existing DB: add new columns in place
 
     # -- writers ------------------------------------------------------------
 
-    def add_document(self, doc_id: str, doc_hash: str = None,
-                     page_count: int = None, title: str = None,
-                     edition: str = None, page_label_map=None):
+    def add_document(
+        self,
+        doc_id: str,
+        doc_hash: str | None = None,
+        page_count: int | None = None,
+        title: str | None = None,
+        edition: str | None = None,
+        page_label_map: dict[str, Any] | str | None = None,
+    ) -> None:
         """MERGE a Document node, storing citation metadata.
 
         page_label_map may be a dict (JSON-encoded here) or a pre-encoded
@@ -77,9 +67,7 @@ class GraphDB:
             "edition": edition,
             "page_label_map": page_label_map,
         }
-        assignments = ", ".join(
-            f"d.{col} = {_kuzu_literal(val)}" for col, val in props.items()
-        )
+        assignments = ", ".join(f"d.{col} = {_kuzu_literal(val)}" for col, val in props.items())
         safe_doc_id = _kuzu_escape(doc_id)
         self.conn.execute(f"""
             MERGE (d:Document {{id: '{safe_doc_id}'}})
@@ -87,11 +75,20 @@ class GraphDB:
             ON MATCH SET {assignments}
         """)
 
-    def add_chunk(self, doc_id: str, chunk_id: str, page_number: int = 0,
-                  section_title: str = "", text: str = "",
-                  text_offset_start: int = None, text_offset_end: int = None,
-                  block_x: float = None, block_y: float = None,
-                  block_w: float = None, block_h: float = None) -> str:
+    def add_chunk(
+        self,
+        doc_id: str,
+        chunk_id: str,
+        page_number: int = 0,
+        section_title: str = "",
+        text: str = "",
+        text_offset_start: int | None = None,
+        text_offset_end: int | None = None,
+        block_x: float | None = None,
+        block_y: float | None = None,
+        block_w: float | None = None,
+        block_h: float | None = None,
+    ) -> str:
         """MERGE a Chunk node (id = '<doc_id>_<chunk_id>', matching
         ingest_to_kuzu) with offsets/bbox and link it to its Document."""
         if not doc_id or not chunk_id:
@@ -109,9 +106,7 @@ class GraphDB:
             "block_w": block_w,
             "block_h": block_h,
         }
-        assignments = ", ".join(
-            f"c.{col} = {_kuzu_literal(val)}" for col, val in props.items()
-        )
+        assignments = ", ".join(f"c.{col} = {_kuzu_literal(val)}" for col, val in props.items())
         safe_cid = _kuzu_escape(cid)
         safe_doc_id = _kuzu_escape(doc_id)
         self.conn.execute(f"""
@@ -127,8 +122,13 @@ class GraphDB:
         """)
         return cid
 
-    def add_concept(self, name: str, concept_type: str = "definition",
-                    difficulty: str = "intermediate", summary: str = "") -> str:
+    def add_concept(
+        self,
+        name: str,
+        concept_type: str = "definition",
+        difficulty: str = "intermediate",
+        summary: str = "",
+    ) -> str:
         """MERGE a Concept node (helper so evidence links can be built)."""
         cid = create_concept_id(name)
         safe_name = _kuzu_escape(name)
@@ -141,7 +141,7 @@ class GraphDB:
         """)
         return cid
 
-    def link_mention(self, doc_id: str, chunk_id: str, concept_name: str):
+    def link_mention(self, doc_id: str, chunk_id: str, concept_name: str) -> None:
         """MERGE a (Chunk)-[:MENTIONS]->(Concept) edge."""
         safe_cid = _kuzu_escape(f"{doc_id}_{chunk_id}")
         concept_id = create_concept_id(concept_name)
@@ -153,7 +153,7 @@ class GraphDB:
 
     # -- evidence getters (shared contract with the inference server) --------
 
-    def get_evidence_for_concept(self, concept_name: str) -> list:
+    def get_evidence_for_concept(self, concept_name: str) -> list[dict[str, Any]]:
         """All evidence chunks mentioning a concept (matched by id or name).
 
         Each dict has exactly: chunk_id, doc_id, page_number, section_title,
@@ -162,22 +162,24 @@ class GraphDB:
         """
         concept_id = create_concept_id(concept_name or "")
         safe_name = _kuzu_escape((concept_name or "").lower())
-        evidence = []
+        evidence: list[dict[str, Any]] = []
         try:
-            res = self.conn.execute(f"""
+            for row in query_rows(
+                self.conn,
+                f"""
                 MATCH (doc:Document)-[:HAS_CHUNK]->(chk:Chunk)
                       -[:MENTIONS]->(c:Concept)
                 WHERE c.id = '{concept_id}' OR lower(c.name) = '{safe_name}'
                 {_EVIDENCE_RETURN}
                 ORDER BY doc.id, chk.page_number
-            """)
-            while res.has_next():
-                evidence.append(_row_to_evidence(res.get_next()))
+            """,
+            ):
+                evidence.append(_row_to_evidence(row))
         except Exception:
-            pass
+            logger.exception("Could not load concept evidence for %s", concept_name)
         return evidence
 
-    def get_evidence_for_edge(self, source: str, target: str) -> dict:
+    def get_evidence_for_edge(self, source: str, target: str) -> dict[str, Any] | None:
         """Evidence for a REQUIRES prerequisite edge source -> target.
 
         Resolution order:
@@ -195,45 +197,57 @@ class GraphDB:
         prov = ""
         for a, b in ((source_id, target_id), (target_id, source_id)):
             try:
-                res = self.conn.execute(f"""
+                rows = query_rows(
+                    self.conn,
+                    f"""
                     MATCH (a:Concept {{id: '{a}'}})
                           -[r:REQUIRES]->(b:Concept {{id: '{b}'}})
                     RETURN r.source
-                """)
-                if res.has_next():
-                    prov = str(res.get_next()[0] or "")
+                """,
+                )
+                first = next(rows, None)
+                if first is not None:
+                    prov = str(first[0] or "")
                     break
             except Exception:
-                pass
+                logger.debug("Could not load edge provenance", exc_info=True)
         if prov and ":" in prov:
             doc_id, chunk_id = prov.rsplit(":", 1)
             if doc_id and chunk_id:
                 safe_cid = _kuzu_escape(f"{doc_id}_{chunk_id}")
                 try:
-                    res = self.conn.execute(f"""
+                    rows = query_rows(
+                        self.conn,
+                        f"""
                         MATCH (doc:Document)-[:HAS_CHUNK]->
                               (chk:Chunk {{id: '{safe_cid}'}})
                         {_EVIDENCE_RETURN}
-                    """)
-                    if res.has_next():
-                        evidence = _row_to_evidence(res.get_next())
+                    """,
+                    )
+                    first = next(rows, None)
+                    if first is not None:
+                        evidence = _row_to_evidence(first)
                 except Exception:
-                    pass
+                    logger.debug("Could not load chunk evidence", exc_info=True)
 
         # 2. Fall back to a chunk mentioning BOTH concepts.
         if evidence is None:
             try:
-                res = self.conn.execute(f"""
+                rows = query_rows(
+                    self.conn,
+                    f"""
                     MATCH (doc:Document)-[:HAS_CHUNK]->(chk:Chunk),
                           (chk)-[:MENTIONS]->(a:Concept {{id: '{source_id}'}}),
                           (chk)-[:MENTIONS]->(b:Concept {{id: '{target_id}'}})
                     {_EVIDENCE_RETURN}
                     LIMIT 1
-                """)
-                if res.has_next():
-                    evidence = _row_to_evidence(res.get_next())
+                """,
+                )
+                first = next(rows, None)
+                if first is not None:
+                    evidence = _row_to_evidence(first)
             except Exception:
-                pass
+                logger.debug("Could not load shared concept evidence", exc_info=True)
 
         # 3. Last resort: any chunk mentioning the source concept.
         if evidence is None:
@@ -247,14 +261,14 @@ class GraphDB:
         evidence["target"] = target
         return evidence
 
-    def close(self):
+    def close(self) -> None:
         self.conn = None
         self.db = None
 
 
-def _get_conn(conn):
+def _get_conn(conn: Any) -> Any:
     """Get a kuzu Connection - either the provided one, a test default, or a new default."""
-    if conn is not None and hasattr(conn, 'execute'):
+    if conn is not None and hasattr(conn, "execute"):
         return conn
     # Use test-injected default if available
     if _rt._DEFAULT_CONN is not None:
@@ -263,24 +277,32 @@ def _get_conn(conn):
     return db.conn
 
 
-def _is_connection(obj):
+def _is_connection(obj: Any) -> bool:
     """Check if object is a kuzu Connection (has execute method)."""
-    return obj is not None and hasattr(obj, 'execute')
+    return obj is not None and hasattr(obj, "execute")
 
 
-def add_document(conn=None, doc_id: str = None, doc_hash: str = None,
-                 page_count: int = None, title: str = None,
-                 edition: str = None, page_label_map=None):
+def add_document(
+    conn: Any = None,
+    doc_id: str | None = None,
+    doc_hash: str | None = None,
+    page_count: int | None = None,
+    title: str | None = None,
+    edition: str | None = None,
+    page_label_map: dict[str, Any] | str | None = None,
+) -> None:
     """Module-level wrapper for GraphDB.add_document.
-    
+
     Can be called as:
       add_document(conn, doc_id, doc_hash, page_count, title, edition, page_label_map)
       add_document(doc_id, doc_hash, page_count, title, edition, page_label_map)  # uses default DB
     """
     actual_conn = _get_conn(conn)
     # If first arg was actually doc_id (no conn passed), shift args
-    if conn is not None and not _is_connection(conn):
+    if isinstance(conn, str) and not _is_connection(conn):
         doc_id = conn
+    if not doc_id:
+        return
     if isinstance(page_label_map, dict):
         page_label_map = json.dumps(page_label_map, ensure_ascii=False)
     props = {
@@ -290,9 +312,7 @@ def add_document(conn=None, doc_id: str = None, doc_hash: str = None,
         "edition": edition,
         "page_label_map": page_label_map,
     }
-    assignments = ", ".join(
-        f"d.{col} = {_kuzu_literal(val)}" for col, val in props.items()
-    )
+    assignments = ", ".join(f"d.{col} = {_kuzu_literal(val)}" for col, val in props.items())
     safe_doc_id = _kuzu_escape(doc_id)
     actual_conn.execute(f"""
         MERGE (d:Document {{id: '{safe_doc_id}'}})
@@ -301,20 +321,29 @@ def add_document(conn=None, doc_id: str = None, doc_hash: str = None,
     """)
 
 
-def add_chunk(conn=None, doc_id: str = None, chunk_id: str = None, page_number: int = 0,
-              section_title: str = "", text: str = "",
-              text_passage: str = None,
-              text_offset_start: int = None, text_offset_end: int = None,
-              block_x: float = None, block_y: float = None,
-              block_w: float = None, block_h: float = None) -> str:
+def add_chunk(
+    conn: Any = None,
+    doc_id: str | None = None,
+    chunk_id: str | None = None,
+    page_number: int = 0,
+    section_title: str = "",
+    text: str = "",
+    text_passage: str | None = None,
+    text_offset_start: int | None = None,
+    text_offset_end: int | None = None,
+    block_x: float | None = None,
+    block_y: float | None = None,
+    block_w: float | None = None,
+    block_h: float | None = None,
+) -> str:
     """Module-level wrapper for GraphDB.add_chunk.
-    
+
     Can be called as:
       add_chunk(conn, doc_id, chunk_id, page_number, section_title, text, ...)
       add_chunk(doc_id, chunk_id, page_number, section_title, text, ...)  # uses default DB
     """
     actual_conn = _get_conn(conn)
-    if conn is not None and not _is_connection(conn):
+    if isinstance(conn, str) and not _is_connection(conn):
         # First arg was actually doc_id
         doc_id = conn
     if not doc_id or not chunk_id:
@@ -333,9 +362,7 @@ def add_chunk(conn=None, doc_id: str = None, chunk_id: str = None, page_number: 
         "block_w": block_w,
         "block_h": block_h,
     }
-    assignments = ", ".join(
-        f"c.{col} = {_kuzu_literal(val)}" for col, val in props.items()
-    )
+    assignments = ", ".join(f"c.{col} = {_kuzu_literal(val)}" for col, val in props.items())
     safe_cid = _kuzu_escape(cid)
     safe_doc_id = _kuzu_escape(doc_id)
     actual_conn.execute(f"""

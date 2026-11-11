@@ -1,10 +1,10 @@
 """Bloom Filter and Cuckoo Filter for fast resource key membership testing."""
+
 from __future__ import annotations
 
 import hashlib
 import math
 import random
-from typing import Any, List
 
 
 class BloomFilter:
@@ -20,7 +20,7 @@ class BloomFilter:
         self.bit_array = [False] * self.size
         self._count = 0
 
-    def _hashes(self, item: str) -> List[int]:
+    def _hashes(self, item: str) -> list[int]:
         indexes = []
         item_bytes = str(item).encode("utf-8")
         h1 = int(hashlib.sha256(item_bytes).hexdigest(), 16)
@@ -54,7 +54,7 @@ class CuckooFilter:
         self.capacity = capacity
         self.bucket_size = bucket_size
         self.num_buckets = max(int(capacity / bucket_size / 0.95), 16)
-        self.buckets: List[List[int]] = [[] for _ in range(self.num_buckets)]
+        self.buckets: list[list[int]] = [[] for _ in range(self.num_buckets)]
         self.fingerprint_size = fingerprint_size
         self._count = 0
 
@@ -66,9 +66,7 @@ class CuckooFilter:
 
     def _hash_index(self, item: str) -> int:
         h = int(
-            hashlib.md5(
-                str(item).encode("utf-8"), usedforsecurity=False
-            ).hexdigest(),
+            hashlib.md5(str(item).encode("utf-8"), usedforsecurity=False).hexdigest(),
             16,
         )
         return h % self.num_buckets

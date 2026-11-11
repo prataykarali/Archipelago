@@ -9,10 +9,7 @@ because relation co-occurrence validation only saw the new doc's text.
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from okf.pipeline import run_pipeline_staged
-
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
@@ -104,14 +101,14 @@ def _relation_counts(records: list, doc_ids: set) -> dict:
 # Tests
 # ---------------------------------------------------------------------------
 
+
 def test_staged_ingest_preserves_existing_relations(tmp_path):
     """
     Oracle for Bug A: staged ingest of a small unrelated document must NOT
     reduce concept or relation counts on pre-existing records.
     """
     saved_file = tmp_path / "okf_results.json"
-    saved_file.write_text(
-        json.dumps(EXISTING_RESULTS, indent=2), encoding="utf-8")
+    saved_file.write_text(json.dumps(EXISTING_RESULTS, indent=2), encoding="utf-8")
 
     graph_export_stub = {
         "concepts": {},
@@ -119,17 +116,18 @@ def test_staged_ingest_preserves_existing_relations(tmp_path):
         "stats": {"total_concepts": 4, "total_edges": 3},
     }
 
-    with patch("okf.pipeline.BASE_DIR", tmp_path), \
-         patch("archipelago.ingestion.pdf_io.ingest_document",
-               return_value=[dict(NEW_DOC_CHUNK)]), \
-         patch("okf.extraction.LOCAL_MODE", False), \
-         patch("okf.extraction.extract_okf_v15",
-               return_value=[dict(r) for r in NEW_DOC_EXTRACTION]), \
-         patch("okf.pipeline.ingest_to_kuzu",
-               return_value=(MagicMock(), MagicMock(), graph_export_stub)), \
-         patch("okf.evaluate.structural_audit",
-               return_value={"self_edges": [], "cycles": []}):
-        okf_results, db, graph_export = run_pipeline_staged(
+    with (
+        patch("okf.pipeline.BASE_DIR", tmp_path),
+        patch("archipelago.ingestion.pdf_io.ingest_document", return_value=[dict(NEW_DOC_CHUNK)]),
+        patch("okf.extraction.LOCAL_MODE", False),
+        patch("okf.extraction.extract_okf_v15", return_value=[dict(r) for r in NEW_DOC_EXTRACTION]),
+        patch(
+            "okf.pipeline.ingest_to_kuzu",
+            return_value=(MagicMock(), MagicMock(), graph_export_stub),
+        ),
+        patch("okf.evaluate.structural_audit", return_value={"self_edges": [], "cycles": []}),
+    ):
+        okf_results, _db, _graph_export = run_pipeline_staged(
             source_path=str(tmp_path / "synthetic_one_pager.pdf"),
             temp_db_path=str(tmp_path / "temp_graph.db"),
             on_progress=lambda stage, pct, detail: None,
@@ -161,8 +159,7 @@ def test_staged_ingest_still_filters_new_doc_relations(tmp_path):
     doc's chunks is still removed.
     """
     saved_file = tmp_path / "okf_results.json"
-    saved_file.write_text(
-        json.dumps(EXISTING_RESULTS, indent=2), encoding="utf-8")
+    saved_file.write_text(json.dumps(EXISTING_RESULTS, indent=2), encoding="utf-8")
 
     hallucinated = [dict(NEW_DOC_EXTRACTION[0])]
     # "Machine Learning" exists in the corpus inventory but never co-occurs
@@ -175,21 +172,22 @@ def test_staged_ingest_still_filters_new_doc_relations(tmp_path):
         "stats": {"total_concepts": 4, "total_edges": 3},
     }
 
-    with patch("okf.pipeline.BASE_DIR", tmp_path), \
-         patch("archipelago.ingestion.pdf_io.ingest_document",
-               return_value=[dict(NEW_DOC_CHUNK)]), \
-         patch("okf.extraction.LOCAL_MODE", False), \
-         patch("okf.extraction.extract_okf_v15", return_value=hallucinated), \
-         patch("okf.pipeline.ingest_to_kuzu",
-               return_value=(MagicMock(), MagicMock(), graph_export_stub)), \
-         patch("okf.evaluate.structural_audit",
-               return_value={"self_edges": [], "cycles": []}):
-        okf_results, db, graph_export = run_pipeline_staged(
+    with (
+        patch("okf.pipeline.BASE_DIR", tmp_path),
+        patch("archipelago.ingestion.pdf_io.ingest_document", return_value=[dict(NEW_DOC_CHUNK)]),
+        patch("okf.extraction.LOCAL_MODE", False),
+        patch("okf.extraction.extract_okf_v15", return_value=hallucinated),
+        patch(
+            "okf.pipeline.ingest_to_kuzu",
+            return_value=(MagicMock(), MagicMock(), graph_export_stub),
+        ),
+        patch("okf.evaluate.structural_audit", return_value={"self_edges": [], "cycles": []}),
+    ):
+        okf_results, _db, _graph_export = run_pipeline_staged(
             source_path=str(tmp_path / "synthetic_one_pager.pdf"),
             temp_db_path=str(tmp_path / "temp_graph.db"),
             on_progress=lambda stage, pct, detail: None,
         )
 
-    new_rec = next(r for r in okf_results
-                   if r.get("concept_name") == "Photosynthesis Overview")
+    new_rec = next(r for r in okf_results if r.get("concept_name") == "Photosynthesis Overview")
     assert "Machine Learning" not in new_rec.get("prerequisites", [])

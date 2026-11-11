@@ -6,27 +6,7 @@
     <title>Archipelago — Live Knowledge Operations</title>
     <!-- Tailwind Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        darkBg: '#090514',
-                        panelBg: 'rgba(15, 10, 25, 0.6)',
-                        accentPurple: '#8b5cf6',
-                        accentPink: '#ec4899',
-                        accentCyan: '#06b6d4',
-                    },
-                    fontFamily: {
-                        sans: ['Brigend', 'sans-serif'],
-                        display: ['Aurellis', 'sans-serif'],
-                        body: ['Brigend', 'sans-serif'],
-                        mono: ['Brigend', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="/index-inline-1.js"></script>
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Marked.js (Markdown renderer) -->
@@ -43,64 +23,7 @@
     <!-- Chromatic Waves (Originkit) welcome background -->
     <script type="module" src="/chromatic_waves.js"></script>
     <script type="module" src="/auth_bridge.js"></script>
-    <script type="module">
-        window.archipelagoAuthReady.then(async ({ config, supabase }) => {
-            if (config && config.required) {
-                const session = await window.archipelagoRequireSession();
-                if (!session) return; // redirected to login
-            }
-            await updateHeaderAuthProfile();
-        });
-
-        async function updateHeaderAuthProfile() {
-            try {
-                let user = null;
-                try {
-                    const resp = await fetch("/api/auth/me", { cache: "no-store" });
-                    if (resp.ok) {
-                        const serverUser = await resp.json();
-                        if (serverUser?.authenticated === true && serverUser.role) user = serverUser;
-                    }
-                } catch (_) {}
-
-                const badge = document.getElementById("user-profile-badge");
-                const loginLink = document.getElementById("auth-login-link");
-                const roleLabel = document.getElementById("user-role-label");
-                const nameLabel = document.getElementById("user-name-label");
-                if (user?.authenticated === true && user.role) {
-                    if (badge) { badge.classList.remove("hidden"); badge.classList.add("flex"); }
-                    if (loginLink) loginLink.classList.add("hidden");
-                    if (roleLabel) roleLabel.textContent = user.role || "Student";
-                    if (nameLabel) nameLabel.textContent = user.username ? `(${user.username})` : "";
-                } else {
-                    if (badge) { badge.classList.add("hidden"); badge.classList.remove("flex"); }
-                    if (loginLink) loginLink.classList.remove("hidden");
-                }
-            } catch (e) {
-                console.warn("Could not check auth status:", e);
-            }
-        }
-        window.updateHeaderAuthProfile = updateHeaderAuthProfile;
-
-        // Run immediately as early as possible
-        updateHeaderAuthProfile();
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", updateHeaderAuthProfile);
-        }
-
-        window.signOutSupabase = async function() {
-            try {
-                sessionStorage.removeItem("archipelago_local_user");
-                localStorage.removeItem("archipelago_local_user");
-                await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
-                const { supabase } = await window.archipelagoAuthReady;
-                if (supabase) await supabase.auth.signOut();
-            } catch (e) {
-                console.warn(e);
-            }
-            window.location.replace("/login");
-        };
-    </script>
+    <script type="module" src="/index-inline-2.js"></script>
 
     <link rel="stylesheet" href="/styles/01-custom-scrollbar-styling.css">
     <link rel="stylesheet" href="/styles/02-info-note-under-summary.css">
@@ -129,26 +52,8 @@
     <!-- Main Layout Container -->
     <div class="flex flex-col h-full">
 
-        <!-- Top chrome: video covers the full band; header floats on top (no solid bars) -->
+        <!-- Compact chat navigation; the Librarian animation lives in the chat stage. -->
         <div id="top-chrome">
-        <section id="chat-hero-band" aria-label="Archipelago hero">
-            <div id="hero-video-card">
-                <video id="hero-video"
-                       src="/ui/assets/final_archi.mp4"
-                       autoplay muted loop playsinline webkit-playsinline
-                       preload="auto"
-                       poster="/ui/assets/final_archi_poster.jpg">
-                    Your browser does not support the video tag.
-                </video>
-                <!-- Title overlay removed — final_archi plays full-bleed -->
-
-            </div>
-            <!-- switchboard strip removed — video owns this region -->
-            <div id="switchboard-lights" class="hidden" aria-hidden="true" hidden>
-                <div class="sw-grid" id="sw-grid"></div>
-            </div>
-        </section>
-
         <header id="app-header" class="flex items-center justify-between px-4 md:px-6 z-10 gap-3">
             <video id="header-bg-video" muted playsinline preload="none"
                    aria-hidden="true" tabindex="-1"></video>
@@ -197,7 +102,7 @@
         </header>
         </div><!-- /#top-chrome -->
 
-        <!-- Dynamic Body Area (Sidebar | Chat | Pipeline) — sits under the hero video -->
+        <!-- Dynamic Body Area (Sidebar | Chat | Pipeline) -->
         <div id="app-body" class="flex flex-1 overflow-hidden">
 
             <!-- Left Panel: Settings & Current Concept (starts open) -->
@@ -329,17 +234,13 @@
                     <i class="fa-solid fa-chevron-left text-sm" id="edge-toggle-right-icon"></i>
                 </button>
 
-                <!-- Chat stage: ONE sticky avatar (left) + scrolling messages
-                     (Hero video lives full-width above #app-body so sidebars never cover it) -->
+                <!-- Chat stage: one sticky avatar (left) and scrolling messages. -->
                 <div id="chat-stage" class="flex-1 min-h-0">
                 <!-- Fixed librarian + concept graph under her (never covers chat bubbles) -->
                 <aside id="sticky-avatar-dock" aria-hidden="true">
                     <div class="avatar-shell" id="sticky-avatar" data-avatar>
-                        <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                        <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                        <video data-avatar-clip="type" class="avatar-clip is-hidden" src="/ui/assets/library_type.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                        <video data-avatar-clip="goit" class="avatar-clip is-hidden" src="/ui/assets/library_goit.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                        <video data-avatar-clip="success" class="avatar-clip is-hidden" src="/ui/assets/library_sucess%20(1).mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
                     </div>
                     <span class="avatar-label">AI Librarian</span>
                     <div id="bottom-svg-map-container" class="hidden" title="Concept neighborhood">
@@ -350,15 +251,12 @@
                 <!-- Message Window -->
                 <div id="chat-messages" class="flex-1 overflow-y-auto px-5 py-5 md:pl-4 md:pr-8 md:py-6 space-y-5">
                     
-                    <!-- Welcome State (hero lives outside — never removed with messages) -->
+                    <!-- Welcome State -->
                     <div id="welcome-container" class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center text-center py-3 md:py-5 gap-4">
 
                         <div class="avatar-shell welcome-avatar" id="welcome-avatar" data-avatar>
-                            <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                            <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                            <video data-avatar-clip="type" class="avatar-clip is-hidden" src="/ui/assets/library_type.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                            <video data-avatar-clip="goit" class="avatar-clip is-hidden" src="/ui/assets/library_goit.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                            <video data-avatar-clip="success" class="avatar-clip is-hidden" src="/ui/assets/library_sucess%20(1).mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
                         </div>
 
                         <!-- 2+3. ShineText + TypewriterText -->
@@ -370,9 +268,9 @@
                         <!-- 4+7. DepthParallaxWords + hover-3d — Suggested Prompts -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 w-full max-w-4xl text-left mt-1" id="suggest-grid">
 
-                            <button onclick="autoPrompt('What is Low-Rank Adaptation (LoRA)?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentPurple/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('How do compilers transform source code into machine instructions?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentPurple/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/brain_btn2.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Brain">
-                                <span class="depth-word-target">What is Low-Rank Adaptation (LoRA)?</span>
+                                <span class="depth-word-target">Compiler stages and machine code</span>
                             </button>
 
                             <button onclick="autoPrompt('Explain the main components of retrieval augmented generation (RAG)')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentPink/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
@@ -380,14 +278,14 @@
                                 <span class="depth-word-target">Explain the main components of RAG</span>
                             </button>
 
-                            <button onclick="autoPrompt('What are the prerequisites for BERT model training?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentCyan/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Compare B-Trees and LSM-Trees in database storage engines.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentCyan/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/network_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Network">
-                                <span class="depth-word-target">What are the prerequisites for BERT?</span>
+                                <span class="depth-word-target">B-Trees vs LSM-Trees</span>
                             </button>
 
-                            <button onclick="autoPrompt('How does the Attention mechanism handle sequence alignment?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Compare TCP Reno and BBR congestion control in high-throughput networks.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/brain_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Attention">
-                                <span class="depth-word-target">How does the Attention mechanism work?</span>
+                                <span class="depth-word-target">TCP Reno vs BBR</span>
                             </button>
 
                             <button onclick="autoPrompt('How do DBMS buffer pools optimize query retrieval in Silberschatz?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
@@ -400,14 +298,14 @@
                                 <span class="depth-word-target">Virtual memory paging vs segmentation</span>
                             </button>
 
-                            <button onclick="autoPrompt('How does GraphRAG combine graph databases with RAG synthesis?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Explain singular value decomposition and its relation to eigenvalues.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/graph_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Graph">
-                                <span class="depth-word-target">GraphRAG: graph + RAG synthesis</span>
+                                <span class="depth-word-target">SVD and eigenvalues</span>
                             </button>
 
-                            <button onclick="autoPrompt('Rank the most critical PEFT and RAG papers in the corpus by contribution.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('What are the risks of branch prediction and speculative execution in computer architecture?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/flash_card_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Flashcard">
-                                <span class="depth-word-target">Rank top PEFT &amp; RAG papers</span>
+                                <span class="depth-word-target">Branch prediction and speculation</span>
                             </button>
 
 
@@ -431,14 +329,14 @@
                                 <span class="depth-word-target">Suggest books on operating systems</span>
                             </button>
 
-                            <button onclick="autoPrompt('RAG + DBMS')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Explain ACID properties and multi-version concurrency control in databases.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Library">
-                                <span class="depth-word-target">Multi-topic: RAG + DBMS</span>
+                                <span class="depth-word-target">ACID and MVCC</span>
                             </button>
 
-                            <button onclick="autoPrompt('LoRA vs BERT')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('How does the Linux Completely Fair Scheduler choose processes to run?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/settings_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Compare">
-                                <span class="depth-word-target">Compare LoRA vs BERT</span>
+                                <span class="depth-word-target">Linux CFS process scheduling</span>
                             </button>
                         </div>
                     </div>
@@ -458,254 +356,13 @@
                                 </button>
                             </div>
                         </div>
-                        <p id="query-limit-status" class="mt-2 text-xs text-slate-300" aria-live="polite">35 AI queries per day. After every 7 queries, a one-hour cooldown applies.</p>
                     </div>
-                    <p id="chat-availability" class="max-w-3xl mx-auto mt-2 text-[11px] text-gray-500">Student mode: query only. Librarians manage PDFs in the Graph UI → Librarian tab.</p>
                 </div>
             </main>
 
-            <!-- Right Panel: Ingestion operations + retrieval trace (starts closed) -->
-            <aside id="pipeline-panel" class="side-panel panel-closed border-l border-white/10 glass flex flex-col shrink-0" aria-hidden="true">
-            <div class="side-panel-inner flex flex-col p-5 overflow-y-auto gap-6 h-full">
-<div class="flex items-center justify-between">
-<h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-<i class="fa-solid fa-route text-accentPurple"></i>
-Live operations
-</h3>
-<button type="button" onclick="togglePipeline()" class="text-gray-400 hover:text-white transition-colors" aria-label="Close pipeline panel">
-<i class="fa-solid fa-xmark text-base"></i>
-</button>
-</div>
-
-<hr class="border-white/10">
-
-<!-- 📚 Stack of Books -->
-<div class="flex flex-col gap-3">
-    <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
-            Stack of Books
-        </span>
-        <span id="books-count" class="text-xs text-gray-400 font-mono"></span>
-    </div>
-    <!-- Category Filter Selector -->
-    <div id="books-filter" class="flex flex-wrap gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold">
-        <button data-filter="all" class="px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all">All</button>
-        <button data-filter="dbms" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DBMS</button>
-        <button data-filter="os" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">OS</button>
-        <button data-filter="dl" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DL</button>
-        <button data-filter="math" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Math</button>
-        <button data-filter="peft" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">RAG/FT</button>
-        <button data-filter="gnn" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">GNN</button>
-        <button data-filter="syllabi" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Syllabi</button>
-    </div>
-    <!-- Document Collection / Provenance Selector -->
-    <div id="type-filter" class="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold mt-1">
-        <button data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center">All Docs</button>
-        <button data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Library / Pearson</button>
-        <button data-type-filter="open_source" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Peer-reviewed arXiv papers and open-access textbooks">🌐 Open-Source</button>
-    </div>
-    <div id="books-list" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1"></div>
-</div>
-
-<hr class="border-white/10">
-
-
-                    <!-- KuzuDB Source Citations -->
-                    <div class="flex flex-col gap-3">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-file-invoice text-accentPink"></i>
-                            KuzuDB Source Citations
-                        </span>
-                        
-                        <div id="citations-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
-                            No citations retrieved yet.
-                        </div>
-
-                        <div id="citations-list" class="hidden flex flex-col gap-2"></div>
-                    </div>
-
-                    <!-- Step Execution Logs -->
-                    <div class="flex flex-col gap-3">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-accentCyan"></i>
-                            Execution Trace
-                        </span>
-                        
-                        <div id="logs-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
-                            No logs captured yet.
-                        </div>
-
-                        <div id="logs-list" class="hidden flex flex-col gap-2.5"></div>
-                    </div>
-                </div>
-            </div>
-            </aside>
-
-        </div>
-    </div>
-
-    <!-- Reading Mode Modal — page-first: PDF fills the viewport by default -->
-<div id="reading-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-[2px] p-2 md:p-4" role="dialog" aria-modal="true" aria-labelledby="reading-title">
-<div class="w-full max-w-[96vw] h-[96vh] flex flex-col rounded-2xl glass border border-white/10 shadow-2xl">
-<div class="reader-header flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
-<div class="flex items-center gap-3 min-w-0">
-<span id="reading-type-badge" class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide bg-accentCyan/15 text-accentCyan border border-accentCyan/20">Paper</span>
-<h3 id="reading-title" class="text-base font-bold text-white truncate max-w-xl" tabindex="-1">Book Title</h3>
-</div>
-<div class="flex items-center gap-2 shrink-0">
-<button type="button" id="reading-copy-bibtex" onclick="copyBibtex()" class="hidden items-center gap-2 px-3 py-1.5 rounded-lg bg-accentPink/15 border border-accentPink/30 hover:bg-accentPink/25 hover:border-accentPink/50 text-accentPink text-[10px] font-bold transition-all shadow-[0_0_10px_rgba(236,72,153,0.15)] hover:shadow-[0_0_15px_rgba(236,72,153,0.3)]">
-<img src="/ui/assets/cite_btn.png" class="w-5 h-5 object-contain shrink-0" alt="Cite">
-Copy BibTeX
-</button>
-<div id="reading-view-toggle" class="hidden items-center gap-1 rounded-lg bg-slate-800 border border-slate-700 p-1" role="tablist" aria-label="Reader view">
-<button type="button" id="reading-tab-pdf" onclick="setReadingView('pdf')" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-slate-300 hover:text-white" title="Page only" role="tab" aria-selected="true">Page</button>
-<button type="button" id="reading-tab-split" onclick="setReadingView('split')" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-slate-300 hover:text-white" title="Page and indexed passage" role="tab" aria-selected="false">Split</button>
-<button type="button" id="reading-tab-summary" onclick="setReadingView('summary')" class="px-3 py-1 rounded-md text-xs font-bold transition-all text-slate-300 hover:text-white" title="Indexed passage only" role="tab" aria-selected="false">Passage</button>
-</div>
-<a id="reading-open-tab" href="#" target="_blank" rel="noopener" class="hidden w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 transition-all" title="Open this page in a new tab" aria-label="Open this PDF page in a new tab">
-<i class="fa-solid fa-up-right-from-square text-xs"></i>
-</a>
-<button type="button" onclick="closeReadingMode()" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white hover:bg-red-600 hover:border-red-500 transition-all" aria-label="Close document reader">
-<i class="fa-solid fa-xmark text-sm"></i>
-</button>
-</div>
-</div>
-<div id="reading-body-container" class="flex-1 min-h-0 flex overflow-hidden">
-<div id="reading-content" class="hidden overflow-y-auto p-5 text-base text-gray-200 leading-relaxed space-y-4 passage-transition"></div>
-<div id="reading-pdf-wrap" class="w-full h-full min-h-0 flex-1 bg-slate-100">
-<iframe id="reading-pdf-frame" class="w-full h-full min-h-0 border-0 bg-slate-100" title="PDF document page" style="min-height:100%;height:100%;"></iframe>
-</div>
-</div>
-<div class="reader-footer p-4 border-t border-white/10 shrink-0">
-<button type="button" onclick="closeReadingMode()" class="w-full py-2.5 px-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold hover:bg-blue-100 transition-all flex items-center justify-center gap-2">
-<i class="fa-solid fa-arrow-left"></i>
-Back to Chat
-</button>
-</div>
-</div>
-</div>
-
-<!-- Visual Learning Roadmap Modal -->
-<div id="roadmap-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4 md:p-8">
-    <div class="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl glass border border-white/10 shadow-2xl overflow-hidden">
-        <div class="flex items-center justify-between p-5 border-b border-white/10 bg-panelBg shrink-0">
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-map-location-dot text-accentPurple text-xl"></i>
-                <h3 id="roadmap-title" class="text-lg font-bold text-white">Learning Roadmap</h3>
-            </div>
-            <button onclick="closeRoadmapModal()" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
-                <i class="fa-solid fa-xmark text-sm"></i>
-            </button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-6 bg-black/40">
-            <div id="roadmap-loading" class="hidden flex-col items-center justify-center h-40 text-gray-400 gap-3">
-                <i class="fa-solid fa-spinner fa-spin text-2xl text-accentPurple"></i>
-                <span class="text-sm font-medium">Generating optimal learning path...</span>
-            </div>
-            <div id="roadmap-content" class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/20 before:to-transparent">
-                <!-- Stages will be rendered here -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Interactive Concept Graph Mode Choice Modal (Personalized vs Normal) -->
-<div id="graph-choice-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300" role="dialog" aria-modal="true" aria-labelledby="choice-modal-title">
-    <div class="relative w-full max-w-xl rounded-2xl glass border border-white/15 shadow-2xl overflow-hidden p-6 text-white space-y-5">
-        <!-- Close Button -->
-        <button onclick="dismissGraphChoiceModal()" type="button" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all cursor-pointer" aria-label="Close modal">
-            <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
-
-        <!-- Header -->
-        <div class="space-y-1.5 pr-8">
-            <div class="flex items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-accentPurple/25 border border-accentPurple/40 text-accentPurple uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-compass"></i> Knowledge Graph Exploration
-                </span>
-                <span id="choice-concept-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-400/20 border border-amber-400/40 text-amber-300 truncate max-w-[180px]">Concept</span>
-            </div>
-            <h3 id="choice-modal-title" class="text-lg sm:text-xl font-black text-white tracking-tight">
-                Want a Personalized Graph or a Normal One?
-            </h3>
-            <p class="text-xs text-gray-300 leading-relaxed">
-                Choose how you would like to explore this concept in Archipelago:
-            </p>
-        </div>
-
-        <!-- Options Container -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-            <!-- Option 1: Personalized Graph -->
-            <div id="choice-card-personalized" tabindex="0" onclick="chooseGraphExperience('personalized')" class="group relative p-4 rounded-xl border border-accentPurple/50 bg-gradient-to-br from-accentPurple/20 via-white/5 to-transparent hover:border-accentPurple hover:from-accentPurple/30 transition-all cursor-pointer flex flex-col justify-between space-y-3 shadow-lg shadow-accentPurple/10 focus:outline-none focus:ring-2 focus:ring-accentPurple">
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="w-8 h-8 rounded-lg bg-accentPurple/30 border border-accentPurple/50 flex items-center justify-center text-accentPurple group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-graduation-cap text-sm"></i>
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[9px] font-mono font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Recommended</span>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-extrabold text-white group-hover:text-accentPurple transition-colors flex items-center gap-1.5">
-                            Personalized Graph
-                        </h4>
-                        <p class="text-[11px] text-gray-300 mt-1 leading-snug">
-                            Start a quick 3-question diagnostic quiz. Archipelago checks your prerequisite knowledge and maps a custom roadmap highlighting your mastered topics and review gaps.
-                        </p>
-                    </div>
-                </div>
-                <button type="button" class="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-accentPurple to-indigo-600 group-hover:brightness-110 text-white font-bold text-xs shadow-md shadow-accentPurple/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                    <span>Start Q&A Quiz</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                </button>
-            </div>
-
-            <!-- Option 2: Normal Graph -->
-            <div id="choice-card-normal" tabindex="0" onclick="chooseGraphExperience('normal')" class="group relative p-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/25 transition-all cursor-pointer flex flex-col justify-between space-y-3 focus:outline-none focus:ring-2 focus:ring-white/40">
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-diagram-project text-sm"></i>
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[9px] font-mono font-extrabold uppercase bg-white/10 text-gray-300 border border-white/15">Standard</span>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-extrabold text-white group-hover:text-amber-200 transition-colors flex items-center gap-1.5">
-                            Normal Graph
-                        </h4>
-                        <p class="text-[11px] text-gray-400 mt-1 leading-snug">
-                            Directly explore standard node topology, prerequisite connections, and unlocked concepts ("this type of !") without answering questions.
-                        </p>
-                    </div>
-                </div>
-                <button type="button" class="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-gray-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                    <span>View Normal Graph</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="flex items-center justify-between text-[11px] text-gray-400 pt-2 border-t border-white/10">
-            <span class="flex items-center gap-1"><i class="fa-solid fa-keyboard text-[10px]"></i> Press <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-gray-300 font-mono text-[10px]">Esc</kbd> to dismiss or choose later</span>
-            <button onclick="chooseGraphExperience('normal')" type="button" class="text-gray-400 hover:text-white underline cursor-pointer">Skip directly to normal graph</button>
-        </div>
-    </div>
-</div>
-
-<script>
-window.addEventListener('popstate', (e) => {
-    const readingModal = document.getElementById('reading-modal');
-    if (readingModal && !readingModal.classList.contains('hidden')) {
-        closeReadingMode(true);
-    }
-    const roadmapModal = document.getElementById('roadmap-modal');
-    if (roadmapModal && !roadmapModal.classList.contains('hidden')) {
-        closeRoadmapModal(true);
-    }
-    const choiceModal = document.getElementById('graph-choice-modal');
-    if (choiceModal && !choiceModal.classList.contains('hidden')) {
-        dismissGraphChoiceModal();
-    }
-});
-</script>
+<!-- include: chat-operations.html -->
+<!-- include: chat-dialogs.html -->
+<script src="/index-inline-3.js"></script>
 
 <!-- JS Logic -->
     <script type="module" src="/js/index.js"></script>

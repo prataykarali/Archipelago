@@ -1,9 +1,11 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from flask import jsonify, send_from_directory, request, redirect
-from archipelago.inference import state as st
+from flask import jsonify, request
+
 from archipelago import supabase_auth
+from archipelago.inference import state as st
 
 
 @st.app.route("/api/auth/config", methods=["GET"])
@@ -11,6 +13,7 @@ def api_auth_config():
     """Return browser-safe Supabase configuration."""
     try:
         from archipelago import supabase_auth
+
         return jsonify(supabase_auth.public_config())
     except Exception as exc:
         return jsonify({"configured": False, "error": str(exc)}), 500
@@ -21,17 +24,20 @@ def api_auth_me():
     """Return the authenticated user's Archipelago role."""
     try:
         from archipelago import supabase_auth
+
         if not supabase_auth.is_auth_required():
             return jsonify({"authenticated": False, "auth_required": False})
         principal, error = supabase_auth.authenticate_request(request)
         if principal is None:
             return jsonify({"error": "unauthorized", "detail": error}), 401
-        return jsonify({
-            "authenticated": True,
-            "user_id": principal.user_id,
-            "username": principal.username,
-            "role": principal.role,
-        })
+        return jsonify(
+            {
+                "authenticated": True,
+                "user_id": principal.user_id,
+                "username": principal.username,
+                "role": principal.role,
+            }
+        )
     except Exception as exc:
         return jsonify({"error": "unauthorized", "detail": str(exc)}), 500
 
@@ -43,16 +49,19 @@ def manage_users_api_backend(user_id=None):
     if request.method == "OPTIONS":
         return ("", 204)
 
-    from archipelago import supabase_auth
     principal, auth_err = supabase_auth.authenticate_request(request)
     if principal is None:
-        return jsonify({"error": "unauthorized", "detail": auth_err or "Authentication required"}), 401
+        return jsonify(
+            {"error": "unauthorized", "detail": auth_err or "Authentication required"}
+        ), 401
 
     if request.method == "GET":
         users, err = supabase_auth.list_managed_users(principal)
         if err:
             return jsonify({"error": "forbidden", "detail": err}), 403
-        return jsonify({"users": users, "requester": {"role": principal.role, "user_id": principal.user_id}})
+        return jsonify(
+            {"users": users, "requester": {"role": principal.role, "user_id": principal.user_id}}
+        )
 
     elif request.method == "POST":
         data = request.get_json(silent=True) or {}
@@ -73,7 +82,7 @@ def manage_users_api_backend(user_id=None):
     elif request.method == "DELETE":
         if not user_id:
             return jsonify({"error": "missing_user_id"}), 400
-        ok, err = supabase_auth.delete_managed_user(principal, user_id)
+        _ok, err = supabase_auth.delete_managed_user(principal, user_id)
         if err:
             return jsonify({"error": "delete_failed", "detail": err}), 400
         return jsonify({"success": True})

@@ -1,13 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-import re
 from pathlib import Path
+import re
 from typing import Any
 from urllib.parse import quote
-from archipelago.inference.demo_query_books_data import DEMO_BOOK_ROWS
-from . import _deps as _rt  # noqa: F401
 
+from archipelago.inference.demo_query_books_data import DEMO_BOOK_ROWS
+
+from . import _deps as _rt  # noqa: F401
 
 _QUERY_MATCHERS: list[tuple[str, tuple[str, ...]]] = [
     ("lora_vs_bert", ("lora vs bert", "compare lora", "lora versus bert")),
@@ -16,7 +18,10 @@ _QUERY_MATCHERS: list[tuple[str, tuple[str, ...]]] = [
     ("bert", ("prerequisites for bert", "prerequisite for bert")),
     ("attention", ("attention mechanism", "how does the attention")),
     ("dbms_buffer", ("buffer pools", "silberschatz", "dbms buffer")),
-    ("ostep_paging", ("paging vs segmentation", "virtual memory paging", "paging versus segmentation")),
+    (
+        "ostep_paging",
+        ("paging vs segmentation", "virtual memory paging", "paging versus segmentation"),
+    ),
     ("graphrag", ("graphrag", "graph + rag", "graph and rag")),
     ("peft_rank", ("rank top peft", "peft & rag", "peft and rag papers")),
     ("multi_rag_dbms", ("rag + dbms", "multi-topic: rag", "rag + dbms")),
@@ -91,13 +96,15 @@ def _coerce_row(raw: dict[str, str]) -> dict[str, Any]:
 def _load_rows() -> list[dict[str, Any]]:
     # Keep curated source/page metadata; circulation must come from Koha ODS.
     inventory_fields = {
-        "total_copies", "available_copies", "availability", "is_reference",
-        "shelf_location", "call_number", "library_scope",
+        "total_copies",
+        "available_copies",
+        "availability",
+        "is_reference",
+        "shelf_location",
+        "call_number",
+        "library_scope",
     }
-    return [
-        {k: v for k, v in r.items() if k not in inventory_fields}
-        for r in DEMO_BOOK_ROWS
-    ]
+    return [{k: v for k, v in r.items() if k not in inventory_fields} for r in DEMO_BOOK_ROWS]
 
 
 _ROWS: list[dict[str, Any]] = _load_rows()
@@ -136,7 +143,8 @@ def page_view_href(book: dict[str, Any]) -> str:
     """Open-page URL for the named doc — empty string when the file is absent
     so the caller can fall back to a Pearson/OPAC CTA instead of a 404 link."""
     doc = resolve_doc_id(str(book.get("doc_id") or book.get("book_id") or ""))
-    page = int(book.get("page_number") or 1) or 1
+    raw_page = book.get("page_number")
+    page = int(raw_page) if str(raw_page or "").isdigit() and int(raw_page) > 0 else None
 
     # Check for direct Pearson textbook match
     reader_url = str(book.get("reader_url") or book.get("url") or "")
@@ -144,9 +152,10 @@ def page_view_href(book: dict[str, Any]) -> str:
         return reader_url
     try:
         from archipelago.resolver.pearson import resolve as pearson_resolve
-        p_url = pearson_resolve(doc or str(book.get("book_id") or ""), page=page)
+
+        p_url = pearson_resolve(doc or str(book.get("book_id") or ""), page=page or 1)
         if not p_url and book.get("book_title"):
-            p_url = pearson_resolve(str(book["book_title"]), page=page)
+            p_url = pearson_resolve(str(book["book_title"]), page=page or 1)
         if p_url:
             return p_url
     except Exception:
@@ -155,10 +164,12 @@ def page_view_href(book: dict[str, Any]) -> str:
     if not doc:
         return ""
     topic = str(book.get("topic") or "").strip()
-    q = f"/api/page-view?doc_id={quote(doc, safe='')}&page={page}"
-    if topic:
+    q = f"/api/page-view?doc_id={quote(doc, safe='')}"
+    if page:
+        q += f"&page={page}"
+    if topic and page:
         q += f"&highlight={quote(topic[:120], safe='')}"
-    return f"{q}#page={page}"
+    return f"{q}#page={page}" if page else q
 
 
 def format_availability_table(books: list[dict[str, Any]]) -> str:
@@ -170,6 +181,7 @@ def format_availability_table(books: list[dict[str, Any]]) -> str:
             INVENTORY_DISCLAIMER,
             inventory_for_books,
         )
+
         rows = inventory_for_books(books)
     except Exception:
         rows = books
@@ -182,6 +194,7 @@ def format_availability_table(books: list[dict[str, Any]]) -> str:
     try:
         from archipelago.inference.resource_kind import format_resource_kind_label
     except ImportError:  # pragma: no cover
+
         def format_resource_kind_label(_row: dict) -> str:  # type: ignore[misc]
             return "Catalog metadata"
 
@@ -191,21 +204,29 @@ def format_availability_table(books: list[dict[str, Any]]) -> str:
         "",
         f"_{INVENTORY_DISCLAIMER}_",
         "",
-        "| Catalogue title | Accession | Copies | Available | Open |",
-        "| --- | --- | ---: | ---: | --- |",
+        "| Title | Author | Edition / ISBN | Call number | Copies | Available | Source |",
+        "| --- | --- | --- | --- | ---: | ---: | --- |",
     ]
     for b in rows:
-        href = page_view_href(b)
-        open_cell = f"[p.{int(b.get('page_number') or 1)} ↗]({href})" if href else "Passage only"
+
+        def cell(value: object) -> str:
+            return str(value if value not in (None, "") else "—").replace("|", "/")
+
+        source = b.get("opac_url")
+        source_cell = f"[Koha snapshot]({source})" if source else "Koha snapshot"
+        edition = b.get("edition") or b.get("isbn")
         lines.append(
-            "| {title} | {accession} | {total} | {avail} | {open} |".format(
-                title=str(b.get("book_title") or "—").replace("|", "/"),
-                accession=str(b.get("accession") or "—").replace("|", "/"),
-                total=int(b.get("total_copies") or 0),
-                avail=int(b.get("available_copies") or 0),
-                open=open_cell,
-            )
+            f"| {cell(b.get('book_title'))} | {cell(b.get('authors'))} | "
+            f"{cell(edition)} | {cell(b.get('call_number'))} | "
+            f"{cell(b.get('total_copies'))} | {cell(b.get('available_copies'))} | {source_cell} |"
         )
+        details = [f"Accession: {cell(b.get('accession'))}"]
+        for key, label in (("publisher", "Publisher"), ("shelf_location", "Shelf")):
+            if b.get(key):
+                details.append(f"{label}: {cell(b[key])}")
+        if b.get("retrieved_at"):
+            details.append(f"Snapshot: {b['retrieved_at']}")
+        lines.append(f"|  | {' · '.join(details)} |  |  |  |  |  |")
     lines.append("")
     return "\n".join(lines)
 
@@ -216,9 +237,10 @@ def format_inline_page_links(books: list[dict[str, Any]]) -> str:
         href = page_view_href(b)
         title = str(b.get("book_title") or "Source").strip()
         short = title if len(title) <= 42 else title[:40] + "…"
-        page = int(b.get("page_number") or 1) or 1
+        page = b.get("page_number")
         if href:
-            chips.append(f"[📄 {short} · p.{page} ↗]({href})")
+            location = f"PDF p.{page}" if page else "page unverified"
+            chips.append(f"[📄 {short} · {location} ↗]({href})")
         else:
             chips.append(f"📄 {short} (reference summary — no pilot PDF)")
     if not chips:
@@ -249,6 +271,7 @@ def enrich_reply_with_books(
 
     try:
         from archipelago.inference.corpus_inventory import inventory_for_books
+
         enriched = inventory_for_books(resolved)
     except Exception:
         enriched = resolved
@@ -258,90 +281,18 @@ def enrich_reply_with_books(
     phrase = book_titles_phrase(enriched)
     mention = ""
     if phrase:
-        mention = (
-            f"\n\n**Sources referenced:** **{phrase}**"
-        )
-    return (
-        body
-        + mention
-        + format_inline_page_links(enriched)
-        + format_availability_table(enriched)
-    )
+        mention = f"\n\n**Sources referenced:** **{phrase}**"
+    return body + mention + format_availability_table(enriched)
 
 
 def citation_overlays_for_query(query: str) -> list[dict[str, Any]]:
-    from archipelago.inference.corpus_inventory import inventory_for_books
-
-    out: list[dict[str, Any]] = []
-    for i, b in enumerate(books_for_query(query), start=1):
-        doc = resolve_doc_id(str(b.get("doc_id") or b.get("book_id") or ""))
-        page = int(b.get("page_number") or 1) or 1
-        topic = str(b.get("topic") or "")
-        title = str(b.get("book_title") or "Library book")
-        href = page_view_href(b)
-        out.append(
-            {
-                "evidence_id": f"B{i}",
-                "doc_id": doc or str(b.get("book_id") or f"demo_book_{i}"),
-                "title": title,
-                "document_title": title,
-                "source_title": title,
-                "authors": b.get("authors") or "",
-                "page_number": page,
-                "topic": topic,
-                "section_title": topic,
-                "summary": b.get("summary") or "",
-                "passage": b.get("summary") or "",
-                "page_url": href,
-                "url": href,
-                "pdf": f"{doc}#page={page}" if doc else "",
-            }
-        )
-        inventory = inventory_for_books([b])[0]
-        if inventory.get("koha_record_verified"):
-            out[-1].update({
-                key: inventory[key]
-                for key in ("koha_record_verified", "total_copies", "available_copies", "availability", "accession", "publisher")
-                if key in inventory
-            })
-    return out
+    """Retired demo overlays; query text alone cannot create citations."""
+    return []
 
 
 def merge_demo_citations(
     query: str,
     citations: list[dict[str, Any]] | None,
 ) -> list[dict[str, Any]]:
-    overlays = citation_overlays_for_query(query)
-    if not overlays:
-        return list(citations or [])
-    existing = list(citations or [])
-    for c in existing:
-        did = str(c.get("doc_id") or c.get("document_id") or c.get("source_id") or "")
-        resolved = resolve_doc_id(did)
-        if resolved:
-            c["doc_id"] = resolved
-        for o in overlays:
-            o_doc = str(o.get("doc_id") or "")
-            if o_doc and (o_doc == did or o_doc == resolved or o_doc in did or did in o_doc):
-                c["title"] = o["title"]
-                c["document_title"] = o["title"]
-                c["source_title"] = o["title"]
-                if o.get("page_url"):
-                    c["page_url"] = o["page_url"]
-                if o.get("summary") and not c.get("summary"):
-                    c["summary"] = o["summary"]
-                for field in ("koha_record_verified", "total_copies", "available_copies", "availability", "accession", "publisher"):
-                    if field in o:
-                        c[field] = o[field]
-                break
-    seen = {
-        str(c.get("title") or c.get("document_title") or "").strip().lower()
-        for c in existing
-    }
-    merged = list(existing)
-    for o in overlays:
-        t = str(o.get("title") or "").strip().lower()
-        if t and t not in seen:
-            merged.insert(0, o)
-            seen.add(t)
-    return merged
+    """Keep genuine retrieved citations; demo rows are never evidence."""
+    return list(citations or [])

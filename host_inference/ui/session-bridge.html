@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Archipelago session handoff</title><script type="module" src="/auth_bridge.js"></script></head><body style="font:16px system-ui;padding:24px"><p id="status" role="status">Connecting your Archipelago session…</p><script type="module">
+  const target = 'https://archipelago-librarian.vercel.app';
+  const status = document.getElementById('status');
+  if (!window.opener) { status.textContent = 'Open this from the Librarian Space sign-in page.'; }
+  else {
+    try {
+      const { supabase } = await window.archipelagoAuthReady;
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) throw new Error('Please sign in on the main Archipelago site first.');
+      const response = await fetch('/api/auth/me', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Your Archipelago session needs to be verified.');
+      const principal = await response.json();
+      if (!['faculty','librarian','administrator'].includes(principal.role)) throw new Error('A staff account is required.');
+      window.opener.postMessage({ type:'archipelago-session-v1', access_token:data.session.access_token, refresh_token:data.session.refresh_token }, target);
+      status.textContent = 'Session sent. This window can be closed.';
+      setTimeout(() => window.close(), 1200);
+    } catch (error) { status.textContent = error.message; }
+  }
+</script></body></html>

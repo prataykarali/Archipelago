@@ -7,9 +7,7 @@ from typing import Any
 def select_layout_index(query: str, domain: str) -> int:
     """Select a stable, pseudorandom layout index in [0, 100)."""
     h = int(
-        hashlib.md5(
-            f"{query}:{domain}".encode("utf-8"), usedforsecurity=False
-        ).hexdigest(),
+        hashlib.md5(f"{query}:{domain}".encode(), usedforsecurity=False).hexdigest(),
         int("16"),
     )
     return h % int("100")
@@ -77,7 +75,9 @@ def render_grounded_answer(
         lines.append("**Then explore**")
         lines.append("")
         for item in unlocks[:4]:
-            label = item.get("name") or item.get("label") or "" if isinstance(item, dict) else str(item)
+            label = (
+                item.get("name") or item.get("label") or "" if isinstance(item, dict) else str(item)
+            )
             lines.append(f"- {label}")
         lines.append("")
 
@@ -93,8 +93,9 @@ def render_grounded_answer(
     if citation_map:
         lines.append("**Cited resources.**")
         from urllib.parse import quote
+
         emitted = 0
-        for cid, evidences in citation_map.items():
+        for _cid, evidences in citation_map.items():
             for ev in evidences:
                 if emitted >= 4:
                     break
@@ -110,7 +111,11 @@ def render_grounded_answer(
     return "\n".join(lines)
 
 
-def _benchmark_concept_card(query: str | dict[str, Any], concept: dict[str, Any] | None = None, citation_map: dict[str, Any] | None = None) -> str:
+def _benchmark_concept_card(
+    query: str | dict[str, Any],
+    concept: dict[str, Any] | None = None,
+    citation_map: dict[str, Any] | None = None,
+) -> str:
     """Format a concept card for benchmarking.
 
     Args:
@@ -126,7 +131,9 @@ def _benchmark_concept_card(query: str | dict[str, Any], concept: dict[str, Any]
         name = ctx.get("name") or "Concept"
         prereqs = [{"name": value} for value in (ctx.get("prereqs") or [])]
         unlocks = [{"name": value} for value in (ctx.get("unlocks") or [])]
-        text = render_grounded_answer("", {"name": name, "summary": ctx.get("summary") or ""}, prereqs, {}, unlocks=unlocks)
+        text = render_grounded_answer(
+            "", {"name": name, "summary": ctx.get("summary") or ""}, prereqs, {}, unlocks=unlocks
+        )
         sections = []
         if ctx.get("cite"):
             sections.append(f"**Cited resources.** {ctx['cite']}")

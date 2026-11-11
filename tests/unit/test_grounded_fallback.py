@@ -1,4 +1,5 @@
 """Unit tests for false-OOS detection and benchmark grounded cards."""
+
 from __future__ import annotations
 
 from archipelago.inference.grounded_fallback import (

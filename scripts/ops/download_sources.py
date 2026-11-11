@@ -10,12 +10,11 @@ not actually present on disk.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import shutil
 import sys
 import urllib.error
 import urllib.request
-from pathlib import Path
-
 
 BASE_DIR = Path(__file__).resolve().parent
 MANIFEST_PATH = BASE_DIR / "source_manifest.json"
@@ -134,20 +133,24 @@ def main() -> int:
         url = item.get("url")
 
         if not url:
-            results.append({
-                **item,
-                "status": "skipped",
-                "reason": item.get("reason", "no open PDF URL in manifest"),
-            })
+            results.append(
+                {
+                    **item,
+                    "status": "skipped",
+                    "reason": item.get("reason", "no open PDF URL in manifest"),
+                }
+            )
             print(f"SKIP  {title}: {results[-1]['reason']}")
             continue
 
         if output.exists() and validate_download(output, "") is None:
-            results.append({
-                **item,
-                "status": "exists",
-                "bytes": output.stat().st_size,
-            })
+            results.append(
+                {
+                    **item,
+                    "status": "exists",
+                    "bytes": output.stat().st_size,
+                }
+            )
             print(f"KEEP  {title} -> {output.relative_to(BASE_DIR)}")
             continue
 

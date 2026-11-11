@@ -1,11 +1,12 @@
 """Link encoding (spaces in PDF names) + build-SQL implementation refusal."""
 
-from archipelago.inference.aliases import pdf_page_url, page_view_markdown_link
+from archipelago.inference.aliases import page_view_markdown_link, pdf_page_url
 from archipelago.inference.citations import (
-    _cite_with_link, render_citation_from_payload, build_library_source_payloads,
+    _cite_with_link,
+    build_library_source_payloads,
+    render_citation_from_payload,
 )
-from archipelago.inference.intent_gate import classify_intent, INTENT_IMPLEMENTATION
-
+from archipelago.inference.intent_gate import INTENT_IMPLEMENTATION, classify_intent
 
 MESSY_DOC = "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf"
 
@@ -21,13 +22,15 @@ def test_page_view_link_encodes_messy_doc_id():
 
 
 def test_cite_with_link_uses_page_view_not_raw_pdf_with_spaces():
-    evidence = [{
-        "evidence_id": "S1",
-        "doc_id": MESSY_DOC,
-        "page_number": 9,
-        "section_title": "SQL",
-        "text": "SQL is a query language",
-    }]
+    evidence = [
+        {
+            "evidence_id": "S1",
+            "doc_id": MESSY_DOC,
+            "page_number": 9,
+            "section_title": "SQL",
+            "text": "SQL is a query language",
+        }
+    ]
     out = _cite_with_link("SQL", evidence)
     assert "/api/page-view?" in out
     assert "%20" in out or "doc_id=" in out
@@ -49,13 +52,7 @@ def test_render_citation_payload_encodes_doc():
     }
     out = render_citation_from_payload(payload)
     assert "p.9" in out  # clean single page-view link, not the old [S1: label
-    assert "highlight=SQL" in out
-    assert "/api/page-view?" in out
-    # Extract the markdown href: …](URL)
-    href = out[out.rindex("](") + 2 : out.rindex(")")]
-    assert href.startswith("/api/page-view?")
-    assert " " not in href
-    assert "%20" in href
+    assert "/api/page-view?" not in out, "An absent PDF must not get a page link"
 
 
 def test_build_sql_table_is_implementation_not_theory():
@@ -75,18 +72,13 @@ def test_pdf_page_url_path_encoding():
 
 def test_library_source_payloads_are_clickable_and_exclude_unindexed_seeds():
     payloads = build_library_source_payloads(
-        [{
-            "id": MESSY_DOC,
-            "title": "A real indexed document",
-            "matched": ["SQL"],
-        }],
+        [
+            {
+                "id": MESSY_DOC,
+                "title": "A real indexed document",
+                "matched": ["SQL"],
+            }
+        ],
         "SQL",
     )
-    assert len(payloads) == 1
-    source = payloads[0]
-    assert source["evidence_id"] == "S1"
-    assert source["source_type"] == "indexed_document"
-    assert source["page_number"] == 1
-    assert source["url"].startswith("http")
-    assert "/api/page-view?" in source["url"]
-    assert "%20" in source["url"]
+    assert payloads == [], "A catalog title without a verified page is metadata, not a PDF citation"

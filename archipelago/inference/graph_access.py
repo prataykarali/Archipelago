@@ -1,13 +1,22 @@
 """Lazy okf.graph_db access for citations."""
+
+from __future__ import annotations
+
+from typing import Any
+
 from archipelago.inference import state as st
 
-def _default_graph_db():
+
+def _default_graph_db() -> Any:
     if st._GRAPH_DB is None and not st._GRAPH_DB_IMPORT_FAILED:
         try:
             import importlib
+
             _okf_graph_db = importlib.import_module("okf.graph_db")
             st._GRAPH_DB = _okf_graph_db
         except Exception as e:
-            print(f"Warning: okf.graph_db unavailable ({e}); citation evidence will use the legacy Kuzu lookup.")
+            print(
+                f"Warning: okf.graph_db unavailable ({e}); citation evidence will use the legacy Kuzu lookup."
+            )
             st._GRAPH_DB_IMPORT_FAILED = True
     return st._GRAPH_DB

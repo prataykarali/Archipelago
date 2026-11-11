@@ -190,16 +190,27 @@ def public_library_manifest() -> bytes:
 
 
 def upload_hf(env: dict[str, str], graph: bytes, catalog: bytes) -> None:
+    """Publish graph artifacts and library catalogue to their separate datasets."""
     token = env.get("HF_TOKEN", "").strip()
-    repo = env.get("HF_DATASET_REPO", "").strip()
-    if not token or not repo:
+    if not token:
         print("hf skipped")
         return
     from huggingface_hub import HfApi
 
     api = HfApi(token=token)
-    api.create_repo(repo, repo_type="dataset", exist_ok=True)
-    for name, data in (("okf_graph.json", graph), ("pearson_public.json", catalog)):
+    targets = (
+        (
+            env.get("ARCHIPELAGO_SCHOLARLY_HF_REPO") or "Prataykarali/graphier",
+            "graph/okf_graph.json",
+            graph,
+        ),
+        (
+            env.get("HF_LIBRARY_REPO") or "Prataykarali/Library_books",
+            "pearson_public.json",
+            catalog,
+        ),
+    )
+    for repo, name, data in targets:
         api.upload_file(
             path_or_fileobj=data,
             path_in_repo=name,

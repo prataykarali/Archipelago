@@ -11,7 +11,7 @@ Enforces strict context bounds:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 import urllib.parse
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ MAX_GRAPH_NODES: int = 6
 class PromptPayloadAssembler:
     """Assembles strictly bounded, isolated context envelopes for local SLMs."""
 
-    def __init__(self, system_instruction: Optional[str] = None) -> None:
+    def __init__(self, system_instruction: str | None = None) -> None:
         self.system_instruction = system_instruction or (
             "You are Archipelago, an institutional AI/ML library intelligence assistant. "
             "Synthesize pedagogical explanations strictly grounded in the Topological Map "
@@ -34,15 +34,14 @@ class PromptPayloadAssembler:
         self,
         anchor_name: str,
         difficulty: str,
-        prerequisites: List[Dict[str, Any]],
-        unlocks: List[Dict[str, Any]],
-        path: Optional[List[str]] = None,
+        prerequisites: list[dict[str, Any]],
+        unlocks: list[dict[str, Any]],
+        path: list[str] | None = None,
     ) -> str:
         """Format the deterministic pedagogical topology within the 6-node budget."""
         if path and len(path) >= 2:
             return (
-                "TOPOLOGY BRIDGE (Connecting Entities):\n"
-                f"  {' -> '.join(path[:MAX_GRAPH_NODES])}"
+                f"TOPOLOGY BRIDGE (Connecting Entities):\n  {' -> '.join(path[:MAX_GRAPH_NODES])}"
             )
 
         # Enforce MAX_GRAPH_NODES budget: 1 anchor + up to 3 prereqs + up to 2 unlocks = max 6
@@ -60,11 +59,11 @@ class PromptPayloadAssembler:
         )
 
     def format_evidence_passages(
-        self, chunks: List[Dict[str, Any]]
-    ) -> Tuple[str, List[Dict[str, Any]]]:
+        self, chunks: list[dict[str, Any]]
+    ) -> tuple[str, list[dict[str, Any]]]:
         """Format raw text chunks into [S1], [S2] badges with exact #page=N coordinates."""
-        lines: List[str] = []
-        lineage: List[Dict[str, Any]] = []
+        lines: list[str] = []
+        lineage: list[dict[str, Any]] = []
 
         # Enforce MAX_CHUNKS = 3
         bounded_chunks = chunks[:MAX_CHUNKS]
@@ -81,19 +80,18 @@ class PromptPayloadAssembler:
             lines.append(f'[{badge}] {doc_title} (Page {page}{sec_part}):\n"{passage}"')
 
             quoted_doc = urllib.parse.quote(str(doc_id).lstrip("/"), safe="/")
-            lineage.append({
-                "badge": badge,
-                "doc_id": doc_id,
-                "doc_title": doc_title,
-                "page_number": page,
-                "section_title": section,
-                "deep_link": f"/api/pdf/view?doc={quoted_doc}#page={page}",
-            })
+            lineage.append(
+                {
+                    "badge": badge,
+                    "doc_id": doc_id,
+                    "doc_title": doc_title,
+                    "page_number": page,
+                    "section_title": section,
+                    "deep_link": f"/api/pdf/view?doc={quoted_doc}#page={page}",
+                }
+            )
 
-        if not lines:
-            passages_text = "None retrieved from active shelves."
-        else:
-            passages_text = "\n\n".join(lines)
+        passages_text = "None retrieved from active shelves." if not lines else "\n\n".join(lines)
 
         return passages_text, lineage
 
@@ -102,11 +100,11 @@ class PromptPayloadAssembler:
         query: str,
         anchor_name: str,
         difficulty: str = "intermediate",
-        prerequisites: Optional[List[Dict[str, Any]]] = None,
-        unlocks: Optional[List[Dict[str, Any]]] = None,
-        chunks: Optional[List[Dict[str, Any]]] = None,
-        path: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        prerequisites: list[dict[str, Any]] | None = None,
+        unlocks: list[dict[str, Any]] | None = None,
+        chunks: list[dict[str, Any]] | None = None,
+        path: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Assemble the complete context payload for local synthesis."""
         prereqs = prerequisites or []
         unl = unlocks or []

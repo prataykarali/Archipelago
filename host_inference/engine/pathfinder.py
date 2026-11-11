@@ -34,9 +34,6 @@ EDGE_COST = 1.0
 #: node is treated as the starting point when several are equidistant.
 GAP_PENALTY = 1.5
 
-#: Cap on path length, so a weakly connected graph cannot produce a 40-step plan.
-MAX_PATH_NODES = 8
-
 #: Recorded in every roadmap so an auditor can see what produced the ordering.
 SEARCH_ALGORITHM = "Dijkstra_from_target_skipping_mastered"
 
@@ -46,13 +43,13 @@ DEPENDENCY_RELATIONS = frozenset({"REQUIRES", "UNLOCKS", "inv-REQUIRES", "inv-UN
 
 
 def _dependency_neighbours(graph, cid: str) -> list[str]:
-    """Nodes reachable from ``cid`` along a dependency edge, in either direction."""
+    """Direct prerequisites of ``cid``; never follow an unrelated unlock."""
     hops: list[str] = []
     for kind, nxt in graph.out.get(cid, []):
-        if kind in DEPENDENCY_RELATIONS and nxt in graph.nodes and nxt not in hops:
+        if kind == "REQUIRES" and nxt in graph.nodes and nxt not in hops:
             hops.append(nxt)
     for kind, nxt in graph.inn.get(cid, []):
-        if kind in DEPENDENCY_RELATIONS and nxt in graph.nodes and nxt not in hops:
+        if kind == "UNLOCKS" and nxt in graph.nodes and nxt not in hops:
             hops.append(nxt)
     return hops
 
@@ -77,8 +74,6 @@ def _costs_to_target(
         cost_so_far, _tie, current = heappop(frontier)
         if cost_so_far > distances.get(current, float("inf")):
             continue
-        if len(distances) >= MAX_PATH_NODES:
-            break
         for nxt in _dependency_neighbours(graph, current):
             if nxt in blocked:
                 continue
@@ -118,14 +113,13 @@ def learning_path(
     # Deepest prerequisite first (largest cost-to-target); ties broken by id so
     # the same diagnostic always produces the same plan.
     ordered = sorted(costs, key=lambda cid: (-costs[cid], cid))
-    return [*ordered[: MAX_PATH_NODES - 1], target]
+    return [*ordered, target]
 
 
 __all__ = [
     "DEPENDENCY_RELATIONS",
     "EDGE_COST",
     "GAP_PENALTY",
-    "MAX_PATH_NODES",
     "SEARCH_ALGORITHM",
     "learning_path",
 ]

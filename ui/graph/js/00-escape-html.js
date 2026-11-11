@@ -267,7 +267,7 @@ async function checkGraphStaffAccess() {
 // ── DATA INGESTION & PROCESSING ──
 function processData(data){
   if (data.visualization && data.edges) {
-    const nodes = data.visualization.nodes;
+    const nodes = data.nodes || data.visualization.nodes;
     const edges = data.edges.map((e, i) => ({
       id: e.id || `e${i}`,
       source: e.from_id,

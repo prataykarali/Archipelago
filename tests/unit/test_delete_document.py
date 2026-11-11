@@ -1,8 +1,6 @@
 """Unit tests for document delete / unmerge helpers and directionality."""
-from __future__ import annotations
 
-import json
-from pathlib import Path
+from __future__ import annotations
 
 import pytest
 
@@ -141,8 +139,7 @@ def test_delete_document_from_temp_kuzu(tmp_path):
         "CREATE (chk)-[:MENTIONS]->(c)"
     )
     conn.execute(
-        "MATCH (chk:Chunk {id: 'A_c1'}), (c:Concept {id: 'only_a'}) "
-        "CREATE (chk)-[:MENTIONS]->(c)"
+        "MATCH (chk:Chunk {id: 'A_c1'}), (c:Concept {id: 'only_a'}) CREATE (chk)-[:MENTIONS]->(c)"
     )
     conn.execute(
         "MATCH (chk:Chunk {id: 'A_c1'}), (c:Concept {id: 'only_a_prereq'}) "

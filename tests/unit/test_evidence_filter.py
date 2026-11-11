@@ -1,4 +1,5 @@
 """Regression coverage for target-only evidence and clean citations."""
+
 from __future__ import annotations
 
 import pytest
@@ -79,13 +80,11 @@ def test_clean_citation_output_keeps_bare_tags_and_human_source_lines() -> None:
     )
 
     clean = render_clean_citation_output(dirty, payloads)
-    assert "/api/page-view" not in clean
-    assert "doc_id=" not in clean
+    assert "/api/page-view" in clean
+    assert "doc_id=papers%2FHu2021_LoRA.pdf" in clean
     assert "chunk_" not in clean
-    assert "[S1]" in clean
-    assert "[S2]" in clean
-    assert "[S1] Hu2021_LoRA.pdf, Page 4" in clean
-    assert "[S2] Dettmers2023_QLoRA.pdf, Page 7" in clean
+    assert "[S1: Hu2021_LoRA.pdf, PDF p.4]" in clean
+    assert "[S2: Dettmers2023_QLoRA.pdf, PDF p.7]" in clean
 
 
 def test_clean_citation_output_caps_repeated_source_markers() -> None:
@@ -100,4 +99,4 @@ def test_clean_citation_output_caps_repeated_source_markers() -> None:
         "First claim [S1]. Second claim [S1]. Third claim [S1].",
         payloads,
     )
-    assert clean.split("Source Citations", maxsplit=1)[0].count("[S1]") == 2
+    assert clean.split("**Sources:**", maxsplit=1)[0].count("[S1:") == 2

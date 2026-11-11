@@ -1,28 +1,37 @@
 """pipeline_staged.py — Staged pipeline execution for the background live worker."""
+
+from collections.abc import Callable
 import json
+import os
+from typing import Any
+
 from okf import config, extraction
-from okf.config import _local_path
 from okf.extraction import load_local_model
 from okf.graph_db import ingest_to_kuzu
-from okf.pipeline import compute_doc_id, filter_extracted_relations, cleanup_and_canonicalize
+from okf.pipeline.part01_filter_extracted_relations import (
+    compute_doc_id,
+    filter_extracted_relations,
+)
+
 
 class PipelineAborted(Exception):
     """Raised when a job is cancelled mid-flight."""
 
+
 def run_pipeline_staged(
     source_path: str,
     temp_db_path: str,
-    on_progress,
-    check_cancelled=None,
-):
+    on_progress: Callable[[str, int, dict[str, Any]], None],
+    check_cancelled: Callable[[], bool] | None = None,
+) -> tuple[list[dict[str, Any]], Any, dict[str, Any]]:
     """
     Staged pipeline execution for the safe live ingestion worker.
     """
-    from archipelago.ingestion.pdf_io import ingest_document
     from okf.cleanup import clean_pipeline, cleanup_and_canonicalize
     from okf.evaluate import structural_audit
+    from pdf_ingestion import ingest_document
 
-    def _check():
+    def _check() -> None:
         if check_cancelled and check_cancelled():
             raise PipelineAborted("Job cancelled")
 
@@ -39,17 +48,25 @@ def run_pipeline_staged(
     if not prose_chunks:
         raise ValueError("No prose chunks to extract from!")
 
-    on_progress("PARSING", 100, {
-        "message": f"Chunked into {len(prose_chunks)} prose chunks",
-        "total_chunks": len(raw_chunks),
-        "prose_chunks": len(prose_chunks),
-    })
+    on_progress(
+        "PARSING",
+        100,
+        {
+            "message": f"Chunked into {len(prose_chunks)} prose chunks",
+            "total_chunks": len(raw_chunks),
+            "prose_chunks": len(prose_chunks),
+        },
+    )
     _check()
 
     # ── Stage 2: EXTRACTION ─────────────────────────────────────────────
     on_progress("EXTRACTION", 0, {"message": "Starting OKF extraction"})
 
-    if extraction.LOCAL_MODEL is None and extraction.LOCAL_MODE:
+    if (
+        not os.getenv("ARCHIPELAGO_INGESTION_MODEL")
+        and extraction.LOCAL_MODEL is None
+        and extraction.LOCAL_MODE
+    ):
         load_local_model()
 
     new_results = []
@@ -57,6 +74,7 @@ def run_pipeline_staged(
     for i, chunk in enumerate(prose_chunks):
         _check()
         from okf.extraction import extract_okf_v15
+
         results = extract_okf_v15(
             text=chunk["text"],
             doc_id=chunk.get("doc_id", doc_id),
@@ -77,10 +95,14 @@ def run_pipeline_staged(
             new_results.extend(results)
             new_successful += 1
         pct = int((i + 1) / len(prose_chunks) * 100)
-        on_progress("EXTRACTION", pct, {
-            "message": f"Extracted {i+1}/{len(prose_chunks)} chunks",
-            "concepts_so_far": len(new_results),
-        })
+        on_progress(
+            "EXTRACTION",
+            pct,
+            {
+                "message": f"Extracted {i + 1}/{len(prose_chunks)} chunks",
+                "concepts_so_far": len(new_results),
+            },
+        )
 
     if not new_results:
         raise ValueError("Extraction produced 0 concepts — aborting.")
@@ -89,8 +111,7 @@ def run_pipeline_staged(
     # ── Stage 3: CANONICALIZATION ────────────────────────────────────────
     on_progress("CANONICALIZATION", 0, {"message": "Merging with existing knowledge graph"})
 
-    from okf.pipeline import BASE_DIR
-    saved_file = BASE_DIR / "okf_results.json"
+    saved_file = config.BASE_DIR / "okf_results.json"
     existing = []
     if saved_file.exists():
         try:
@@ -100,36 +121,46 @@ def run_pipeline_staged(
     existing = [r for r in existing if r.get("doc_id") != doc_id]
 
     new_results = clean_pipeline(new_results, raw_chunks)
-    new_results = filter_extracted_relations(new_results, raw_chunks,
-                                             inventory=existing + new_results)
+    new_results = filter_extracted_relations(
+        new_results, raw_chunks, inventory=existing + new_results
+    )
 
     okf_results = existing + new_results
     okf_results = cleanup_and_canonicalize(okf_results)
-    
+
     # Apply co-mention RELATED builder and UNLOCKS heuristics in staged pipeline
     from okf.co_mention import build_co_mention_edges
     from okf.unlocks_heuristics import add_heuristic_unlocks
+
     okf_results = build_co_mention_edges(okf_results, raw_chunks)
     okf_results = add_heuristic_unlocks(okf_results, raw_chunks)
-    
+
     _check()
 
-    on_progress("CANONICALIZATION", 100, {
-        "message": "Canonicalization complete",
-        "total_concepts": len(okf_results),
-    })
+    on_progress(
+        "CANONICALIZATION",
+        100,
+        {
+            "message": "Canonicalization complete",
+            "total_concepts": len(okf_results),
+        },
+    )
 
     # ── Stage 4: GRAPH_BUILD ─────────────────────────────────────────────
     on_progress("GRAPH_BUILD", 0, {"message": "Building graph in temp DB"})
     _check()
 
-    conn, db, graph_export = ingest_to_kuzu(okf_results, db_path=temp_db_path)
+    _conn, db, graph_export = ingest_to_kuzu(okf_results, db_path=temp_db_path)
 
-    on_progress("GRAPH_BUILD", 100, {
-        "message": "Graph build complete",
-        "nodes": graph_export.get("stats", {}).get("total_concepts", 0),
-        "edges": graph_export.get("stats", {}).get("total_edges", 0),
-    })
+    on_progress(
+        "GRAPH_BUILD",
+        100,
+        {
+            "message": "Graph build complete",
+            "nodes": graph_export.get("stats", {}).get("total_concepts", 0),
+            "edges": graph_export.get("stats", {}).get("total_edges", 0),
+        },
+    )
     _check()
 
     # ── Stage 5: GRAPH_VALIDATION ────────────────────────────────────────

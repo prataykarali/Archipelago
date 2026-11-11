@@ -10,10 +10,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 import json
 import logging
-import os
 from pathlib import Path
 import re
-from typing import Optional
+from typing import Any
 
 logger = logging.getLogger("archipelago.ingestion.pearson_connector")
 
@@ -22,28 +21,48 @@ PEARSON_BASE_WR = "https://ebooks.elibrary.in.pearson.com/wr"
 # Academic domain categorization heuristics for Pearson titles
 DOMAIN_KEYWORDS = {
     "Artificial Intelligence & Machine Learning": [
-        "artificial intelligence", "machine learning", "neural network", "speech and language",
-        "computer vision", "deep learning"
+        "artificial intelligence",
+        "machine learning",
+        "neural network",
+        "speech and language",
+        "computer vision",
+        "deep learning",
     ],
     "Computer Networks & Security": [
-        "computer networks", "cryptography", "network security", "wireless communications",
-        "data and computer communications"
+        "computer networks",
+        "cryptography",
+        "network security",
+        "wireless communications",
+        "data and computer communications",
     ],
     "Operating Systems & Architecture": [
-        "operating systems", "computer system architecture", "computer organization", "iot fundamentals"
+        "operating systems",
+        "computer system architecture",
+        "computer organization",
+        "iot fundamentals",
     ],
     "Compilers & Algorithms": [
-        "compilers", "analysis of algorithms", "data structures", "problem solving and programming"
+        "compilers",
+        "analysis of algorithms",
+        "data structures",
+        "problem solving and programming",
     ],
-    "Databases & Web Engineering": [
-        "database system", "web development", "web technology"
-    ],
+    "Databases & Web Engineering": ["database system", "web development", "web technology"],
     "Electronics & Embedded Systems": [
-        "microcontroller", "embedded systems", "electronic devices", "digital logic",
-        "digital design", "basic electrical", "op-amps", "solid state"
+        "microcontroller",
+        "embedded systems",
+        "electronic devices",
+        "digital logic",
+        "digital design",
+        "basic electrical",
+        "op-amps",
+        "solid state",
     ],
     "Signal Processing & Mathematics": [
-        "digital signal processing", "digital image processing", "probability", "quantitative"
+        "digital signal processing",
+        "digital image processing",
+        "probability",
+        "quantitative",
     ],
 }
 
@@ -71,7 +90,7 @@ class PearsonBook:
     domain: str
     cover_url: str = ""
     ingestion_tier: str = "deep"  # Pearson books receive deep extraction
-    sections: list[dict] = field(default_factory=list)
+    sections: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def reader_base_url(self) -> str:
@@ -88,7 +107,7 @@ class PearsonBook:
             return f"{base}/page/{page_number}"
         return base
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["reader_base_url"] = self.reader_base_url
         return d
@@ -101,7 +120,7 @@ class PearsonCatalog:
     books: list[PearsonBook] = field(default_factory=list)
 
     @classmethod
-    def from_readium_data(cls, readium_raw_data: list[dict]) -> PearsonCatalog:
+    def from_readium_data(cls, readium_raw_data: list[dict[str, Any]]) -> PearsonCatalog:
         """Parse raw ReadiumLibraryData from Pearson eLibrary session."""
         books = []
         for raw in readium_raw_data:
@@ -146,8 +165,12 @@ class PearsonCatalog:
         with open(p) as f:
             data = json.load(f)
         import dataclasses
+
         valid_fields = {f.name for f in dataclasses.fields(PearsonBook)}
-        books = [PearsonBook(**{k: v for k, v in b.items() if k in valid_fields}) for b in data.get("books", [])]
+        books = [
+            PearsonBook(**{k: v for k, v in b.items() if k in valid_fields})
+            for b in data.get("books", [])
+        ]
         return cls(books=books)
 
     def save_to_file(self, path: str | Path) -> None:

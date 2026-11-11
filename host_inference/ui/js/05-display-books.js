@@ -52,7 +52,7 @@ function displayBooks() {
         citations.forEach(cite => {
             const title = cite.doc_title || cite.title || (cite.doc_id ? cite.doc_id.split('/').pop() : 'Cited Resource');
             const page = cite.page_number || cite.printed_page || 1;
-            const hfUrl = cite.hf_url || (cite.doc_id && cite.doc_id.endsWith('.pdf') ? `https://huggingface.co/datasets/Prataykarali/graphier/blob/main/${cite.doc_id}` : null);
+            const hfUrl = cite.hf_url || (cite.doc_id && cite.doc_id.endsWith('.pdf') ? `https://huggingface.co/datasets/Prataykarali/Library_books/blob/main/${cite.doc_id}` : null);
             const openUrl = cite.url || cite.reader_url || `/read/${encodeURIComponent(cite.doc_id || '')}?page=${page}#page=${page}`;
             const shelfLoc = cite.shelf || (cite.call_number ? `Shelf: ${cite.call_number}` : (cite.location || null));
             const isPearson = !!(cite.is_pearson || (cite.book_id && !isNaN(Number(cite.book_id))));

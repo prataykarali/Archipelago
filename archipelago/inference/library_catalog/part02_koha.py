@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import logging
 from pathlib import Path
 
@@ -40,6 +41,7 @@ def load_holdings(path: Path | None) -> tuple[list[dict], int, int]:
     rows = parse_ods_rows(path)
     if len(rows) <= 1:
         return [], 0, 0
+    snapshot_at = datetime.fromtimestamp(path.stat().st_mtime, tz=UTC).isoformat()
 
     holdings: list[dict] = []
     total_copies = 0
@@ -61,6 +63,11 @@ def load_holdings(path: Path | None) -> tuple[list[dict], int, int]:
                 "available_barcodes": _cell(r, 7),
                 "overdue_items": _cell(r, 8, "0"),
                 "available_ratio": f"{a_num} / {c_num}",
+                "source_type": "opac_snapshot",
+                "source_provider": "Koha export",
+                "retrieved_at": snapshot_at,
+                "verification_status": "Catalog snapshot",
+                "access_status": "Snapshot only",
             }
         )
     return holdings, total_copies, available_copies

@@ -10,21 +10,24 @@ relation filtering, save to okf_results.json and Kùzu graph rebuild.
 Usage:
     python scripts/ingest_kaggle_raw.py /path/to/okf_raw_outputs.json
 """
+
 import json
-import sys
 from pathlib import Path
+import sys
 
 BASE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE))
 
-from okf.extraction import _extract_json_payload, normalize_okf_item
-from okf.pipeline import finalize_and_build
+from okf.extraction import _extract_json_payload, normalize_okf_item  # noqa: E402
+from okf.pipeline import finalize_and_build  # noqa: E402
 
 
 def main(raw_path: str):
-    raw = json.load(open(raw_path))
+    with open(raw_path) as f:
+        raw = json.load(f)
     chunks_path = BASE / "pdfs" / "archipelago-books-cs" / "_pdf_chunks.json"
-    chunks = {(c["doc_id"], c["chunk_id"]): c for c in json.load(open(chunks_path))}
+    with open(chunks_path) as f:
+        chunks = {(c["doc_id"], c["chunk_id"]): c for c in json.load(f)}
 
     results, parsed_ok, empty, failed = [], 0, 0, 0
     for rec in raw:
@@ -64,9 +67,12 @@ def main(raw_path: str):
 
     # finalize_and_build runs clean_pipeline + filter_extracted_relations +
     # canonicalization + Kùzu build when given the chunks.
-    finalize_and_build(results, total_chunks=len(raw),
-                       successful_chunk_count=parsed_ok,
-                       chunks=list(chunks.values()))
+    finalize_and_build(
+        results,
+        total_chunks=len(raw),
+        successful_chunk_count=parsed_ok,
+        chunks=list(chunks.values()),
+    )
 
 
 if __name__ == "__main__":

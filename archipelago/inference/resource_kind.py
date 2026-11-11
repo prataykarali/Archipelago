@@ -1,4 +1,5 @@
 """Human labels for catalog resource kinds (paper / textbook / reference)."""
+
 from __future__ import annotations
 
 from typing import Any

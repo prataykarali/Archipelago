@@ -1,12 +1,14 @@
 """New Chat must also release its server-side semantic context."""
 
+import pytest
+
 from archipelago.inference.context_tracker import SESSION_CONTEXTS, get_or_create_context
-from archipelago.inference.state import app
+
 # Import registers the Flask route when this unit test runs without the normal
 # inference bootstrap module.
 import archipelago.inference.routes_context  # noqa: F401
+from archipelago.inference.state import app
 
-import pytest
 pytestmark = pytest.mark.usefixtures("verified_student_auth")
 
 

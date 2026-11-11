@@ -1,0 +1,176 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-10-15T05:03:52Z",
+  "total_cataloged": 13,
+  "items": [
+    {
+      "id": "09f33e23-1973-4c96-bb73-cbb4fd044ecc",
+      "title": "RLHF-Blender: A Configurable Interactive Interface for Learning from Diverse Human Feedback",
+      "authors": [
+        "arXiv Researcher"
+      ],
+      "venue": "arXiv.org",
+      "year": "2023",
+      "abstract": "To use reinforcement learning from human feedback (RLHF) in practical applications, it is crucial to learn reward models from diverse sources of human feedback and to consider human factors involved in providing feedback of different types. However, the systematic study of learning from diverse type",
+      "oa_url": "http://arxiv.org/abs/2308.04332v1",
+      "source": "arxiv",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22RLHF-Blender%3A%20A%20Configurable%20Interactive%20Interface%20for%20Learning%20from%20Diverse%20Human%20Feedback%22%20arXiv%20Researcher"
+    },
+    {
+      "id": "9da2c2f4-ffc5-4201-ac51-6061c4c2fa79",
+      "title": "Reinforcement Learning from Human Feedback: Whose Culture, Whose Values, Whose Perspectives?",
+      "authors": [
+        "arXiv Researcher"
+      ],
+      "venue": "arXiv.org",
+      "year": "2024",
+      "abstract": "We argue for the epistemic and ethical advantages of pluralism in Reinforcement Learning from Human Feedback (RLHF) in the context of Large Language Models (LLM). Drawing on social epistemology and pluralist philosophy of science, we suggest ways in which RHLF can be made more responsive to human ne",
+      "oa_url": "http://arxiv.org/abs/2407.17482v2",
+      "source": "arxiv",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Reinforcement%20Learning%20from%20Human%20Feedback%3A%20Whose%20Culture%2C%20Whose%20Values%2C%20Whose%20Perspectives%3F%22%20arXiv%20Researcher"
+    },
+    {
+      "id": "ad2eb3d1-ad34-4ae7-af81-e6dca1bccb41",
+      "title": "The Open Ant: A Robot Platform for Reinforcement Learning Research",
+      "authors": [
+        "arXiv Researcher"
+      ],
+      "venue": "arXiv.org",
+      "year": "2026",
+      "abstract": "Reinforcement learning (RL) research has demonstrated success in both physical and simulated domains; however, the predominant methodology remains rooted in simulations. The predominance of simulations makes translating research to physical reality uncertain for both algorithms and researchers. We p",
+      "oa_url": "http://arxiv.org/abs/2607.18488v1",
+      "source": "arxiv",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22The%20Open%20Ant%3A%20A%20Robot%20Platform%20for%20Reinforcement%20Learning%20Research%22%20arXiv%20Researcher"
+    },
+    {
+      "id": "362ec598-941e-4ce6-afb3-9be97f67a34e",
+      "title": "Value Bonuses using Ensemble Errors for Exploration in Reinforcement Learning",
+      "authors": [
+        "arXiv Researcher"
+      ],
+      "venue": "arXiv.org",
+      "year": "2026",
+      "abstract": "Optimistic value estimates provide one mechanism for directed exploration in reinforcement learning (RL). The agent acts greedily with respect to an estimate of the value plus what can be seen as a value bonus. The value bonus can be learned by estimating a value function on reward bonuses, propagat",
+      "oa_url": "http://arxiv.org/abs/2602.12375v1",
+      "source": "arxiv",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Value%20Bonuses%20using%20Ensemble%20Errors%20for%20Exploration%20in%20Reinforcement%20Learning%22%20arXiv%20Researcher"
+    },
+    {
+      "id": "577d770c-88c0-46ec-bae5-c84350d2bbdb",
+      "title": "Artificial Intelligence: A Modern Approach, 4/e",
+      "authors": [
+        "Stuart J. Russell"
+      ],
+      "venue": "UEMK Central Library",
+      "year": null,
+      "abstract": "UEM Kolkata Central Library Catalog Holding. Domain: Artificial Intelligence & Machine Learning. ISBN: 9789356063488.",
+      "oa_url": "https://ebooks.elibrary.in.pearson.com/wr/index.html?subscriptionId=7bb3b997-7c55-4754-a1d6-dac05113cbeb#book/2be79d29-39cc-41a0-a068-e2a8821c309e",
+      "source": "uemk_opac",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Artificial%20Intelligence%3A%20A%20Modern%20Approach%2C%204/e%22%20Stuart%20J.%20Russell"
+    },
+    {
+      "id": "7e21f979-f551-4b0c-a3e0-fd7ba31bb837",
+      "title": "Neural Networks and Learning Machines",
+      "authors": [
+        "Haykin"
+      ],
+      "venue": "UEMK Central Library",
+      "year": null,
+      "abstract": "UEM Kolkata Central Library Catalog Holding. Domain: Artificial Intelligence & Machine Learning. ISBN: 9781282645820.",
+      "oa_url": "https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?subscriptionId=2e8cbec6-12ad-4b0b-8583-d6d857cbead1#book/83b29de5-69ca-4ccc-9aee-c7f481a1010d",
+      "source": "uemk_opac",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Neural%20Networks%20and%20Learning%20Machines%22%20Haykin"
+    },
+    {
+      "id": "85be75f2-a1ee-4e8d-9e12-09b2ae2f78ce",
+      "title": "Machine Learning, 2/e",
+      "authors": [
+        "Saikat Dutt"
+      ],
+      "venue": "UEMK Central Library",
+      "year": null,
+      "abstract": "UEM Kolkata Central Library Catalog Holding. Domain: Artificial Intelligence & Machine Learning. ISBN: 9789361591457.",
+      "oa_url": "https://ebooks.elibrary.in.pearson.com/wr/index.html?subscriptionId=f3dc4242-fcc6-4616-9281-8bfa9196004a#book/8d874a41-09e6-4b2a-9f52-06b53fbe398e",
+      "source": "uemk_opac",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Machine%20Learning%2C%202/e%22%20Saikat%20Dutt"
+    },
+    {
+      "id": "9062d1ed-d488-4c52-9d32-66ec5db5fcac",
+      "title": "Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics and Speech Recognition 2/e",
+      "authors": [
+        "Jurafsky"
+      ],
+      "venue": "UEMK Central Library",
+      "year": null,
+      "abstract": "UEM Kolkata Central Library Catalog Holding. Domain: Artificial Intelligence & Machine Learning. ISBN: 9789353948078.",
+      "oa_url": "https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?subscriptionId=d4b2c13e-97e0-4354-88b8-372e176460ee#book/a506f2c2-94b2-42d5-aa27-fe1592bd55f6",
+      "source": "uemk_opac",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Speech%20and%20Language%20Processing%3A%20An%20Introduction%20to%20Natural%20Language%20Processing%2C%20Computational%20Linguistics%20and%20Speech%20Recognition%202/e%22%20Jurafsky"
+    },
+    {
+      "id": "d178ecac-5667-413a-9c92-6c17e0cd7030",
+      "title": "UEM Kolkata - Library OPAC Portal",
+      "authors": [
+        "UEM Kolkata Central Library"
+      ],
+      "venue": "IEM CRP \u2014 Online Public Access Catalog",
+      "year": null,
+      "abstract": "Search Books, Journals, Thesis, Project Reports and other Library Resources in UEM Kolkata.",
+      "oa_url": "http://uemk-opac.l2c2.co.in",
+      "source": "iemcrp",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22UEM%20Kolkata%20-%20Library%20OPAC%20Portal%22%20UEM%20Kolkata%20Central%20Library"
+    },
+    {
+      "id": "def7feff-cdcd-4b3c-9fb0-4bbff724662d",
+      "title": "IEM Saltlake - Library Catalogue",
+      "authors": [
+        "IEM Saltlake Library"
+      ],
+      "venue": "IEM CRP \u2014 Online Public Access Catalog",
+      "year": null,
+      "abstract": "Search Physical and Digital Resources in IEM Saltlake Campus.",
+      "oa_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "source": "iemcrp",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22IEM%20Saltlake%20-%20Library%20Catalogue%22%20IEM%20Saltlake%20Library"
+    },
+    {
+      "id": "04bfcff4-09c2-415b-a25e-f436b4b2b837",
+      "title": "IEM Gurukul Campus - Library OPAC",
+      "authors": [
+        "IEM Gurukul Campus Library"
+      ],
+      "venue": "IEM CRP \u2014 Online Public Access Catalog",
+      "year": null,
+      "abstract": "Library catalogue and holdings for IEM Gurukul Campus.",
+      "oa_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "source": "iemcrp",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22IEM%20Gurukul%20Campus%20-%20Library%20OPAC%22%20IEM%20Gurukul%20Campus%20Library"
+    },
+    {
+      "id": "34d9d55b-44d7-4f5a-9e45-95d98b2d2f6c",
+      "title": "IEM-UEM Digital Library Database Access",
+      "authors": [
+        "IEM-UEM Digital Resource Center"
+      ],
+      "venue": "IEM CRP \u2014 Digital Library",
+      "year": null,
+      "abstract": "Access to eBooks, eJournals, High-Performance Compute, and Online Research Databases.",
+      "oa_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "source": "iemcrp",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22IEM-UEM%20Digital%20Library%20Database%20Access%22%20IEM-UEM%20Digital%20Resource%20Center"
+    },
+    {
+      "id": "971eae4a-2c0a-4049-bbc2-a1fcc4f68e5c",
+      "title": "Google Scholar Search: reinforcement learning from human feedback",
+      "authors": [
+        "Google Scholar Index"
+      ],
+      "venue": "Google Scholar",
+      "year": null,
+      "abstract": "Authoritative Google Scholar verified literature cluster for research topic: reinforcement learning from human feedback.",
+      "oa_url": "https://scholar.google.com/scholar?q=%22reinforcement%20learning%20from%20human%20feedback%22",
+      "source": "google_scholar",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Google%20Scholar%20Search%3A%20reinforcement%20learning%20from%20human%20feedback%22%20Google%20Scholar%20Index"
+    }
+  ]
+}

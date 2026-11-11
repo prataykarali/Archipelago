@@ -1,13 +1,16 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-import logging
-import re
 from dataclasses import asdict, dataclass, field
+import logging
 from pathlib import Path
-from typing import Any
-from . import _deps as _rt  # noqa: F401
+import re
+from typing import Any, cast
 
+from okf.query_rows import query_rows
+
+from . import _deps as _rt  # noqa: F401
 
 logger = logging.getLogger("archipelago.ingestion.mention")
 
@@ -36,10 +39,31 @@ PDF_SUBDIRS = ("papers", "textbooks", "web_syllabi", "archipelago-books-cs")
 _OPAC_URL = "https://uemk-opac.l2c2.co.in"
 
 
-_STOPWORDS = frozenset({
-    "the", "a", "an", "of", "and", "or", "for", "in", "on", "to", "is", "are",
-    "with", "by", "from", "at", "as", "edition", "ed", "vol", "volume",
-})
+_STOPWORDS = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "of",
+        "and",
+        "or",
+        "for",
+        "in",
+        "on",
+        "to",
+        "is",
+        "are",
+        "with",
+        "by",
+        "from",
+        "at",
+        "as",
+        "edition",
+        "ed",
+        "vol",
+        "volume",
+    }
+)
 
 
 MATCH_KIND_EXACT_ISBN = "exact_isbn"
@@ -129,7 +153,8 @@ def normalize_title(value: str | None) -> str:
 def title_tokens(value: str | None) -> set[str]:
     """Content tokens for a title, ignoring filler words and short fragments."""
     return {
-        t for t in normalize_title(value).split()
+        t
+        for t in normalize_title(value).split()
         if len(t) >= MIN_TOKEN_LENGTH and t not in _STOPWORDS
     }
 
@@ -185,19 +210,21 @@ def _search_resource_catalog(query: str, query_tokens: set[str]) -> list[Mention
     out: list[MentionMatch] = []
     try:
         import kuzu
+
         from archipelago.inference import state as st
+
         if getattr(st, "db", None) is None:
             return out
         with graph_lock.read_lock():
-            conn = kuzu.Connection(st.db)
-            res = conn.execute(
+            conn = kuzu.Connection(cast(kuzu.Database, st.db))
+            rows = query_rows(
+                conn,
                 "MATCH (r:Resource) "
                 "RETURN r.title, r.author, r.publisher, r.copyright_year, "
                 "r.biblionumber, r.available_copies, r.total_copies "
-                "LIMIT 5000"
+                "LIMIT 5000",
             )
-            while res.has_next():
-                row = res.get_next()
+            for row in rows:
                 title = row[0] or ""
                 if not title:
                     continue
@@ -205,24 +232,26 @@ def _search_resource_catalog(query: str, query_tokens: set[str]) -> list[Mention
                 if score < MIN_FUZZY_SCORE:
                     continue
                 biblionumber = str(row[4] or "").strip()
-                out.append(MentionMatch(
-                    title=str(title),
-                    match_kind=MATCH_KIND_CATALOG,
-                    source=SOURCE_NAMES[MATCH_KIND_CATALOG],
-                    confidence=score,
-                    # No verified per-title OPAC page exists, so link the
-                    # institutional catalogue itself rather than inventing one.
-                    source_url=_OPAC_URL,
-                    author=str(row[1] or ""),
-                    publisher=str(row[2] or ""),
-                    year=str(row[3] or "") if row[3] is not None else "",
-                    isbn=biblionumber if biblionumber and biblionumber != "0" else "",
-                    is_catalog_only=True,
-                    shelf_location=biblionumber if biblionumber and biblionumber != "0" else "",
-                    available_copies=int(row[5]) if row[5] is not None else None,
-                    page_count=int(row[6]) if row[6] is not None else 0,
-                    notes=["Physical catalogue record; no licensed digital file."],
-                ))
+                out.append(
+                    MentionMatch(
+                        title=str(title),
+                        match_kind=MATCH_KIND_CATALOG,
+                        source=SOURCE_NAMES[MATCH_KIND_CATALOG],
+                        confidence=score,
+                        # No verified per-title OPAC page exists, so link the
+                        # institutional catalogue itself rather than inventing one.
+                        source_url=_OPAC_URL,
+                        author=str(row[1] or ""),
+                        publisher=str(row[2] or ""),
+                        year=str(row[3] or "") if row[3] is not None else "",
+                        isbn=biblionumber if biblionumber and biblionumber != "0" else "",
+                        is_catalog_only=True,
+                        shelf_location=biblionumber if biblionumber and biblionumber != "0" else "",
+                        available_copies=int(row[5]) if row[5] is not None else None,
+                        page_count=int(row[6]) if row[6] is not None else 0,
+                        notes=["Physical catalogue record; no licensed digital file."],
+                    )
+                )
     except Exception as exc:
         logger.debug("Resource catalogue mention search unavailable: %s", exc)
     return out
@@ -233,6 +262,7 @@ def _search_registry(query: str, query_tokens: set[str]) -> list[MentionMatch]:
     out: list[MentionMatch] = []
     try:
         from archipelago.resolver.resource_registry import get_registry
+
         registry = get_registry()
     except Exception as exc:
         logger.debug("Resource registry unavailable: %s", exc)
@@ -242,19 +272,21 @@ def _search_registry(query: str, query_tokens: set[str]) -> list[MentionMatch]:
         if score < MIN_FUZZY_SCORE:
             continue
         source_url = record.blob_url or record.reader_url
-        out.append(MentionMatch(
-            title=record.title or record.resource_id,
-            match_kind=MATCH_KIND_REGISTRY,
-            source=record.source or SOURCE_NAMES[MATCH_KIND_REGISTRY],
-            confidence=score,
-            source_url=source_url,
-            doc_id=record.hf_file_path or record.resource_id,
-            author=record.author,
-            isbn=record.isbn,
-            edition=record.edition,
-            page_count=record.page_count,
-            domain=record.domain,
-        ))
+        out.append(
+            MentionMatch(
+                title=record.title or record.resource_id,
+                match_kind=MATCH_KIND_REGISTRY,
+                source=record.source or SOURCE_NAMES[MATCH_KIND_REGISTRY],
+                confidence=score,
+                source_url=source_url,
+                doc_id=record.hf_file_path or record.resource_id,
+                author=record.author,
+                isbn=record.isbn,
+                edition=record.edition,
+                page_count=record.page_count,
+                domain=record.domain,
+            )
+        )
     return out
 
 
@@ -263,6 +295,7 @@ def _search_pearson(query: str, query_tokens: set[str]) -> list[MentionMatch]:
     out: list[MentionMatch] = []
     try:
         from archipelago.resolver.pearson import _load_pearson_catalog, build_reader_url
+
         catalog = _load_pearson_catalog()
     except Exception as exc:
         logger.debug("Pearson catalog unavailable: %s", exc)
@@ -280,20 +313,22 @@ def _search_pearson(query: str, query_tokens: set[str]) -> list[MentionMatch]:
         )
         if best < MIN_FUZZY_SCORE:
             continue
-        out.append(MentionMatch(
-            title=title,
-            match_kind=MATCH_KIND_PEARSON,
-            source=SOURCE_NAMES[MATCH_KIND_PEARSON],
-            confidence=best,
-            # Exact reader page for this specific title.
-            source_url=build_reader_url(book, page=1),
-            doc_id=str(book.get("id") or ""),
-            author=author,
-            isbn=str(book.get("isbn") or ""),
-            page_count=int(book.get("page_count") or 0),
-            domain=str(book.get("domain") or ""),
-            notes=["Institutional login required at Pearson eLibrary."],
-        ))
+        out.append(
+            MentionMatch(
+                title=title,
+                match_kind=MATCH_KIND_PEARSON,
+                source=SOURCE_NAMES[MATCH_KIND_PEARSON],
+                confidence=best,
+                # Exact reader page for this specific title.
+                source_url=build_reader_url(book, page=1),
+                doc_id=str(book.get("id") or ""),
+                author=author,
+                isbn=str(book.get("isbn") or ""),
+                page_count=int(book.get("page_count") or 0),
+                domain=str(book.get("domain") or ""),
+                notes=["Institutional login required at Pearson eLibrary."],
+            )
+        )
     return out
 
 
@@ -302,6 +337,7 @@ def _search_huggingface(query: str, query_tokens: set[str]) -> list[MentionMatch
     out: list[MentionMatch] = []
     try:
         from archipelago.resolver.huggingface import enumerate_hf_resources
+
         resources = enumerate_hf_resources()
     except Exception as exc:
         logger.debug("Hugging Face enumeration unavailable: %s", exc)
@@ -314,15 +350,17 @@ def _search_huggingface(query: str, query_tokens: set[str]) -> list[MentionMatch
         score = score_against(query_tokens, stem)
         if score < MIN_FUZZY_SCORE:
             continue
-        out.append(MentionMatch(
-            title=stem,
-            match_kind=MATCH_KIND_HF,
-            source=SOURCE_NAMES[MATCH_KIND_HF],
-            confidence=score,
-            # Exact dataset file page, never the repo root.
-            source_url=resource.get("blob_url") or f"{HF_BLOB_BASE}{path}",
-            doc_id=path,
-        ))
+        out.append(
+            MentionMatch(
+                title=stem,
+                match_kind=MATCH_KIND_HF,
+                source=SOURCE_NAMES[MATCH_KIND_HF],
+                confidence=score,
+                # Exact dataset file page, never the repo root.
+                source_url=resource.get("blob_url") or f"{HF_BLOB_BASE}{path}",
+                doc_id=path,
+            )
+        )
     return out
 
 
@@ -341,12 +379,14 @@ def _search_local_pdfs(query: str, query_tokens: set[str]) -> list[MentionMatch]
             rel = pdf.relative_to(pdf_dir).as_posix()
         except ValueError:
             rel = pdf.name
-        out.append(MentionMatch(
-            title=pdf.stem.replace("_", " "),
-            match_kind=MATCH_KIND_LOCAL,
-            source=SOURCE_NAMES[MATCH_KIND_LOCAL],
-            confidence=score,
-            source_url=f"/pdfs/{rel}",
-            doc_id=rel,
-        ))
+        out.append(
+            MentionMatch(
+                title=pdf.stem.replace("_", " "),
+                match_kind=MATCH_KIND_LOCAL,
+                source=SOURCE_NAMES[MATCH_KIND_LOCAL],
+                confidence=score,
+                source_url=f"/pdfs/{rel}",
+                doc_id=rel,
+            )
+        )
     return out

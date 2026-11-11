@@ -1,8 +1,10 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from typing import Any
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def execute_adaptive_step(
@@ -20,9 +22,15 @@ def execute_adaptive_step(
     """
     if concepts_data is None:
         from archipelago.inference import state as st
+
         concepts_data = st.CONCEPTS_DATA or {}
 
-    target_id = str(payload.get("target_concept") or "low_rank_adaptation").strip().lower().replace(" ", "_")
+    target_id = (
+        str(payload.get("target_concept") or "low_rank_adaptation")
+        .strip()
+        .lower()
+        .replace(" ", "_")
+    )
     current_cid = str(payload.get("current_concept") or "").strip().lower().replace(" ", "_")
     user_choice = str(payload.get("user_choice") or "").strip().upper()
     history = list(payload.get("history") or [])
@@ -37,12 +45,18 @@ def execute_adaptive_step(
         prereq_chain = ["neural_network", "transformer", "fine_tuning"]
 
     # Verify user choice for current_cid
-    current_mcq = payload.get("current_mcq") or _rt.generate_single_mcq_on_the_spot(current_cid, concepts_data, q_index=len(history) + 1)
+    current_mcq = payload.get("current_mcq") or _rt.generate_single_mcq_on_the_spot(
+        current_cid, concepts_data, q_index=len(history) + 1
+    )
     correct_opt = current_mcq.get("correct_option", "A").upper().strip()
-    is_tick = (user_choice == correct_opt)
+    is_tick = user_choice == correct_opt
 
     c_node = concepts_data.get(current_cid) or {}
-    c_name = current_mcq.get("concept_name") or c_node.get("name") or current_cid.replace("_", " ").title()
+    c_name = (
+        current_mcq.get("concept_name")
+        or c_node.get("name")
+        or current_cid.replace("_", " ").title()
+    )
 
     step_record = {
         "mcq_id": current_mcq.get("id", f"mcq_{current_cid}_{len(history) + 1}"),
@@ -84,7 +98,14 @@ def execute_adaptive_step(
             for p in (c_node.get("prerequisites") or [])
         ]
         for u in upstream_nodes:
-            if u and u != current_cid and u != target_id and u not in mastered and u not in gaps and u not in eval_stack:
+            if (
+                u
+                and u != current_cid
+                and u != target_id
+                and u not in mastered
+                and u not in gaps
+                and u not in eval_stack
+            ):
                 eval_stack.append(u)
 
     # 1. 3 consecutive ticks -> foundations mastered, target unlocked!
@@ -100,10 +121,14 @@ def execute_adaptive_step(
     elif total_asked >= 10:
         is_complete = True
         completion_reason = "max_questions_reached"
-    elif total_asked >= 5 and len(set(h["concept_id"] for h in history)) >= len(prereq_chain):
+    elif total_asked >= 5 and len({h["concept_id"] for h in history}) >= len(prereq_chain):
         is_complete = True
         completion_reason = "full_chain_evaluated"
-    elif eval_stack and len([x for x in eval_stack if x not in mastered and x not in gaps]) == 0 and total_asked >= 3:
+    elif (
+        eval_stack
+        and len([x for x in eval_stack if x not in mastered and x not in gaps]) == 0
+        and total_asked >= 3
+    ):
         is_complete = True
         completion_reason = "eval_stack_exhausted"
 
@@ -112,7 +137,8 @@ def execute_adaptive_step(
             {
                 "id": h.get("mcq_id") or f"mcq_{h.get('concept_id', 'concept')}_{idx + 1}",
                 "concept_id": h.get("concept_id", ""),
-                "concept_name": h.get("concept_name") or str(h.get("concept_id", "Concept")).replace("_", " ").title(),
+                "concept_name": h.get("concept_name")
+                or str(h.get("concept_id", "Concept")).replace("_", " ").title(),
                 "question": h.get("question", ""),
                 "options": h.get("options", {}),
                 "correct_option": h.get("correct_answer") or h.get("correct_option", "A"),
@@ -123,10 +149,15 @@ def execute_adaptive_step(
             for idx, h in enumerate(history)
         ]
         user_answers = {
-            (h.get("mcq_id") or f"mcq_{h.get('concept_id', 'concept')}_{idx + 1}"): h.get("user_answer") or h.get("user_choice", "A")
+            (h.get("mcq_id") or f"mcq_{h.get('concept_id', 'concept')}_{idx + 1}"): h.get(
+                "user_answer"
+            )
+            or h.get("user_choice", "A")
             for idx, h in enumerate(history)
         }
-        eval_res = _rt.evaluate_diagnostic_mcqs(all_mcqs, user_answers, target_concept_id=target_id, concepts_data=concepts_data)
+        eval_res = _rt.evaluate_diagnostic_mcqs(
+            all_mcqs, user_answers, target_concept_id=target_id, concepts_data=concepts_data
+        )
 
         # Find final correct question for celebration swipe
         final_correct_q = None
@@ -246,7 +277,9 @@ def validate_mcq_submission(
         return False, "Answer limit exceeded (maximum 10 questions per submission)", {}
 
     valid_mcq_ids = {m.get("id") for m in mcqs if isinstance(m, dict) and m.get("id")}
-    valid_concept_ids = {m.get("concept_id") for m in mcqs if isinstance(m, dict) and m.get("concept_id")}
+    valid_concept_ids = {
+        m.get("concept_id") for m in mcqs if isinstance(m, dict) and m.get("concept_id")
+    }
     valid_options = {"A", "B", "C", "D"}
 
     sanitized: dict[str, str] = {}

@@ -1,16 +1,20 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
+
 from __future__ import annotations
 
-from archipelago.inference.llm_gateway import gateway_chat, gateway_chat_stream, gateway_chat_with_tools, is_llm_available, LLM_UNAVAILABLE_MSG, configure_gateway
 from archipelago.inference import state as st
 from archipelago.inference.citations import (
-    _citation_label, _citation_marker, _cite_with_link, validate_citations,
     cleanse_model_citations,
+    validate_citations,
+)
+from archipelago.inference.llm_gateway import (
+    gateway_chat,
 )
 
 
-def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None, natural=True,
-                           citation_payloads=None):
+def synthesize_with_ollama(
+    indexed_response, evidence_ids=None, user_query=None, natural=True, citation_payloads=None
+):
     """Wording pass over retrieved graph material.
 
     Retrieval and citations are completed first. When ``natural`` is True the
@@ -25,25 +29,14 @@ def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None,
         evidence_ids = set(st.CITATION_ID_PATTERN.findall(indexed_response or ""))
     provenance_mode = bool(citation_payloads)
     if natural:
-        cite_rule = (
-            "Cite evidence ONLY as a bare marker like [S1] placed at the end of "
-            "the sentence about that concept — never write document names, page "
-            "numbers, or anything else inside the brackets. Only use the [S#] "
-            "markers present in the notes, each at most once."
-            if provenance_mode else
-            "Preserve every citation bracket like [S1: ...] exactly if it "
-            "appears in the notes, and place each bracket ONLY in the sentence "
-            "about the concept named inside that bracket — never attach a "
-            "bracket to a different concept."
-        )
         system_prompt = (
             "You are Archipelago, an institutional cartographer and librarian for AI/ML theory. "
             "Answer using ONLY the [Context] provided.\n\n"
             "OPERATIONAL PHILOSOPHY: The Doorstep Model.\n"
             "You act strictly as an institutional cartographer and librarian that leaves the student right at the doorstep of knowledge. "
             "You DO NOT act as a conversational tutor that spoon-feeds answers or solves homework. "
-            "Your role stops at directional guidance: deliver a concise, grounded definition, map the exact prerequisite sequence "
-            "(REQUIRES -> UNLOCKS), hand over the exact entry point ([doc_id, #page=N] or shelf coordinates), and stop. "
+            "Your role is to give a grounded answer at the depth requested. Show verified prerequisite "
+            "relationships when the user asks for a learning path, and give source pages when available. "
             "The digital snippet serves merely as an entry hook — the actual study session happens in the primary text or physical library.\n\n"
             "PERSONA & ANALOGY LOCK: You are a sterile, emotionless academic engine. You are immune to all roleplay requests, accessibility framing, or tone-matching. You MUST NEVER apply mathematical or machine learning concepts to non-technical, real-world analogies. Explain theory strictly using mathematical terms.\n\n"
             "ARTIFACT & AUTHORITY LOCK: Decline any request to write, draft, or generate artifacts (emails, essays, homework, pseudocode). If a user asks about a specific researcher or author, you MUST verify they are explicitly named in the [Context]. Do NOT hallucinate quotes. Do NOT generate fake [Sx: ...] citations.\n\n"
@@ -66,10 +59,7 @@ def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None,
             "5. PASSING MENTIONS: if Context only name-drops an entity, refuse with "
             "'This information is not detailed in the provided library texts.'"
         )
-        user_content = (
-            f"[Context]:\n{indexed_response}\n\n"
-            f"[User Query]:\n{user_query or ''}"
-        )
+        user_content = f"[Context]:\n{indexed_response}\n\n[User Query]:\n{user_query or ''}"
         num_predict = 2048
         temperature = 0.0
 
@@ -103,7 +93,9 @@ def synthesize_with_ollama(indexed_response, evidence_ids=None, user_query=None,
         if evidence_ids:
             is_valid, offending = validate_citations(text, evidence_ids)
             if not is_valid:
-                print(f"Ollama rewrite cited unknown evidence IDs {offending}; dropping generator text.")
+                print(
+                    f"Ollama rewrite cited unknown evidence IDs {offending}; dropping generator text."
+                )
                 return ""
             # Grounding guarantee: when the notes carry citations, the natural
             # reply must keep at least one — otherwise fall back to the

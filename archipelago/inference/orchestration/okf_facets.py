@@ -1,27 +1,31 @@
 """
 OKF Facet Reply Mechanisms
 """
-from typing import List, Dict, Any, Optional
+
+from typing import Any
+
 
 class OKFFacets:
     @staticmethod
-    def architectural_taxonomy(concept_type: str, concepts: List[Dict[str, Any]]) -> str:
+    def architectural_taxonomy(concept_type: str, concepts: list[dict[str, Any]]) -> str:
         """
         Defines classification layer directly.
         """
-        return f"### Architectural Taxonomy: {concept_type.capitalize()}\n\n" + \
-               "\n".join([f"- **{c['name']}**: {c.get('description', '')}" for c in concepts])
+        return f"### Architectural Taxonomy: {concept_type.capitalize()}\n\n" + "\n".join(
+            [f"- **{c['name']}**: {c.get('description', '')}" for c in concepts]
+        )
 
     @staticmethod
-    def curriculum_difficulty(difficulty: str, concepts: List[Dict[str, Any]]) -> str:
+    def curriculum_difficulty(difficulty: str, concepts: list[dict[str, Any]]) -> str:
         """
         Groups concepts by cognitive depth.
         """
-        return f"### Curriculum Difficulty: {difficulty.capitalize()}\n\n" + \
-               "\n".join([f"- **{c['name']}**" for c in concepts])
+        return f"### Curriculum Difficulty: {difficulty.capitalize()}\n\n" + "\n".join(
+            [f"- **{c['name']}**" for c in concepts]
+        )
 
     @staticmethod
-    def contrastive_analysis(base: str, contrasts: List[Dict[str, Any]]) -> str:
+    def contrastive_analysis(base: str, contrasts: list[dict[str, Any]]) -> str:
         """
         Renders structured Markdown comparison matrix.
         """
@@ -33,7 +37,7 @@ class OKFFacets:
         return table
 
     @staticmethod
-    def architectural_evolution(baseline: str, descendants: List[Dict[str, Any]]) -> str:
+    def architectural_evolution(baseline: str, descendants: list[dict[str, Any]]) -> str:
         """
         Renders evolutionary timeline with baseline flaws and descendant delta.
         """
@@ -43,7 +47,7 @@ class OKFFacets:
         return resp
 
     @staticmethod
-    def sub_mechanism_composition(composite: str, parts: List[Dict[str, Any]]) -> str:
+    def sub_mechanism_composition(composite: str, parts: list[dict[str, Any]]) -> str:
         """
         Renders architectural breakdown of composite parts.
         """
@@ -53,7 +57,7 @@ class OKFFacets:
         return resp
 
     @staticmethod
-    def thematic_clustering(tags: List[str], clusters: List[Dict[str, Any]]) -> str:
+    def thematic_clustering(tags: list[str], clusters: list[dict[str, Any]]) -> str:
         """
         Returns cluster summary of matching indexed concept nodes and textbook chapters.
         """
@@ -65,18 +69,18 @@ class OKFFacets:
         return resp
 
     @staticmethod
-    def mcq_diagnostic(questions: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def mcq_diagnostic(questions: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Diagnostic MCQs + color-coded roadmap.
         """
         return {
             "type": "MCQ_DIAGNOSTIC",
             "questions": questions,
-            "roadmap_legend": "🟢 Mastered, 🟡 Review Gap, 🎯 Target Goal"
+            "roadmap_legend": "🟢 Mastered, 🟡 Review Gap, 🎯 Target Goal",
         }
 
     @staticmethod
-    def catalog_shelf_routing(items: List[Dict[str, Any]]) -> str:
+    def catalog_shelf_routing(items: list[dict[str, Any]]) -> str:
         """
         Physical call numbers, stack rack coordinates, barcodes, copy counts.
         """
@@ -97,7 +101,7 @@ class OKFFacets:
         return f"[RENDER_AUTH_CARD] Auth required for: {resource_name}"
 
     @staticmethod
-    def cross_domain_bridge(source: str, target: str, path: List[str], citations: List[str]) -> str:
+    def cross_domain_bridge(source: str, target: str, path: list[str], citations: list[str]) -> str:
         """
         Shortest-path query in KuzuDB connecting two distant domains with textbook citations.
         """
@@ -113,7 +117,9 @@ class OKFFacets:
         """
         Negative connection denial when no topological link exists within k-hops.
         """
-        return f"No topological link exists between {source} and {target} within the permitted depth."
+        return (
+            f"No topological link exists between {source} and {target} within the permitted depth."
+        )
 
     @staticmethod
     def catalog_depth_fallback(concept: str, parent: str) -> str:

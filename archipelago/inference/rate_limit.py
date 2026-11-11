@@ -1,4 +1,5 @@
 """Rate limiter for public / Hugging Face demos."""
+
 from __future__ import annotations
 
 import collections
@@ -6,6 +7,7 @@ import os
 import time
 from typing import Any
 
+from flask import Response
 
 _RATE_LIMIT_DISABLED_ENV: str = "ARCHIPELAGO_RATE_LIMIT_DISABLED"
 _RATE_LIMIT_PER_MIN_ENV: str = "ARCHIPELAGO_RATE_LIMIT_PER_MIN"
@@ -90,14 +92,9 @@ def client_key_from_request(request: Any, session_id: str = "") -> str:
     """Build a stable client key from XFF / remote_addr + session."""
     headers = getattr(request, "headers", {}) or {}
     xff = ""
-    if hasattr(headers, "get"):
+    if hasattr(headers, "get") or isinstance(headers, dict):
         xff = headers.get("X-Forwarded-For", "") or ""
-    elif isinstance(headers, dict):
-        xff = headers.get("X-Forwarded-For", "") or ""
-    if xff:
-        ip = xff.split(",")[0].strip()
-    else:
-        ip = getattr(request, "remote_addr", None) or "unknown"
+    ip = xff.split(",")[0].strip() if xff else getattr(request, "remote_addr", None) or "unknown"
     sid = (session_id or "").strip()
     return f"{ip}|{sid}" if sid else ip
 
@@ -117,7 +114,7 @@ def check_chat_rate_limit(request: Any, session_id: str = "") -> tuple[bool, dic
     return False, meta
 
 
-def rate_limit_response(info: dict[str, Any] | None = None):
+def rate_limit_response(info: dict[str, Any] | None = None) -> Response:
     """Return a Flask 429 response with the queue message tests expect."""
     from flask import jsonify
 

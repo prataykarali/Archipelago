@@ -5,12 +5,12 @@ or a catalogue export into a populated, reviewable ingestion record. They never
 mutate the graph themselves: they return a plan or a prefill that the librarian
 confirms through the existing staged ingestion job.
 """
+
 from __future__ import annotations
 
-import json
 import logging
-import tempfile
 from pathlib import Path
+import tempfile
 
 from flask import jsonify, request
 
@@ -99,8 +99,13 @@ def ingest_page_image():
     try:
         extraction = extract_page_from_image(data)
     except OCRUnavailable as exc:
-        return _error(str(exc), UNPROCESSABLE, ocr_available=False, paste_text_endpoint="/api/ingest/page-text")
-    except Exception as exc:  # noqa: BLE001 - surfaced to the librarian
+        return _error(
+            str(exc),
+            UNPROCESSABLE,
+            ocr_available=False,
+            paste_text_endpoint="/api/ingest/page-text",
+        )
+    except Exception as exc:
         logger.exception("Page image extraction failed")
         return _error(f"Could not read that page image: {exc}", UNPROCESSABLE)
 
@@ -135,9 +140,11 @@ def _sheet_from_request() -> tuple[Path | None, str | None, tuple | None]:
     uploaded = request.files.get("file") or request.files.get("sheet")
     if uploaded is not None and uploaded.filename:
         if not is_supported_sheet(uploaded.filename):
-            return None, (
-                f"Unsupported spreadsheet type. Accepted: {', '.join(SHEET_SUFFIXES)}."
-            ), None
+            return (
+                None,
+                (f"Unsupported spreadsheet type. Accepted: {', '.join(SHEET_SUFFIXES)}."),
+                None,
+            )
         return _resolve_sheet_path(uploaded), None, None
 
     data = request.get_json(silent=True) or {}
@@ -212,19 +219,21 @@ def ingest_spreadsheet_apply():
 @require_librarian
 def intake_capabilities():
     """Advertise what the librarian intake helpers can do on this machine."""
-    return jsonify({
-        "mention_lookup": "/api/ingest/mention",
-        "page_image": "/api/ingest/page-image",
-        "page_text": "/api/ingest/page-text",
-        "spreadsheet_plan": "/api/ingest/spreadsheet/plan",
-        "spreadsheet_apply": "/api/ingest/spreadsheet/apply",
-        "ocr_available": ocr_available(),
-        "image_formats": list(IMAGE_FORMATS),
-        "sheet_formats": list(SHEET_SUFFIXES),
-        "spreadsheet_outcomes": ["CREATE", "UPDATE", "UNCHANGED", "RETIRE"],
-        "retire_requires_confirmation": True,
-        "note": (
-            "Intake never invents metadata: an unmatched mention or an unreadable "
-            "page returns an explicit reason instead of a guess."
-        ),
-    }), OK
+    return jsonify(
+        {
+            "mention_lookup": "/api/ingest/mention",
+            "page_image": "/api/ingest/page-image",
+            "page_text": "/api/ingest/page-text",
+            "spreadsheet_plan": "/api/ingest/spreadsheet/plan",
+            "spreadsheet_apply": "/api/ingest/spreadsheet/apply",
+            "ocr_available": ocr_available(),
+            "image_formats": list(IMAGE_FORMATS),
+            "sheet_formats": list(SHEET_SUFFIXES),
+            "spreadsheet_outcomes": ["CREATE", "UPDATE", "UNCHANGED", "RETIRE"],
+            "retire_requires_confirmation": True,
+            "note": (
+                "Intake never invents metadata: an unmatched mention or an unreadable "
+                "page returns an explicit reason instead of a guess."
+            ),
+        }
+    ), OK

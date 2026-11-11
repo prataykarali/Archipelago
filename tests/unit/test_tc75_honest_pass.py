@@ -5,6 +5,7 @@ bodies, multi-topic parse, curriculum API, and citation lineage contracts.
 
 Requires a temporary e-resource JSON store for Category 2 credential TCs.
 """
+
 from __future__ import annotations
 
 import json
@@ -80,12 +81,15 @@ def _install_cred_env(monkeypatch, cred_store):
 
 
 def _build_ctx(case) -> dict[str, Any]:
+    from archipelago.inference import state as st
     from archipelago.inference.citation_lineage import (
         build_lineage_metadata,
         format_lineage_string,
         okf_tooltip_fields,
     )
     from archipelago.inference.curriculum import find_curriculum_chains
+    from archipelago.inference.library_queries import get_library_hours_response
+    from archipelago.inference.library_resource_access import render_resource_access
     from archipelago.inference.routing import (
         _detect_library_intent,
         parse_multi_topic_query,
@@ -95,9 +99,6 @@ def _build_ctx(case) -> dict[str, Any]:
         render_catalog_stats,
         render_library_info,
     )
-    from archipelago.inference.library_resource_access import render_resource_access
-    from archipelago.inference.library_queries import get_library_hours_response
-    from archipelago.inference import state as st
 
     ctx: dict[str, Any] = {
         "route": "",
@@ -143,19 +144,26 @@ def _build_ctx(case) -> dict[str, Any]:
         return ctx
 
     if case.tc_id == "TC-63":
-        tip = okf_tooltip_fields({
-            "label": "Self-Attention",
-            "concept_type": "mechanism",
-            "difficulty": "advanced",
-            "summary": "Attention over positions",
-            "prerequisites": [{"name": "Softmax"}],
-            "unlocks": [{"name": "Transformer"}],
-            "related_to": [{"name": "Multi-Head"}],
-            "tags": ["attention"],
-        })
+        tip = okf_tooltip_fields(
+            {
+                "label": "Self-Attention",
+                "concept_type": "mechanism",
+                "difficulty": "advanced",
+                "summary": "Attention over positions",
+                "prerequisites": [{"name": "Softmax"}],
+                "unlocks": [{"name": "Transformer"}],
+                "related_to": [{"name": "Multi-Head"}],
+                "tags": ["attention"],
+            }
+        )
         ctx["lineage_ok"] = all(
-            k in tip for k in (
-                "concept_name", "summary", "difficulty", "prerequisites", "unlocks",
+            k in tip
+            for k in (
+                "concept_name",
+                "summary",
+                "difficulty",
+                "prerequisites",
+                "unlocks",
             )
         )
         ctx["route"] = "graph_strong"
@@ -192,19 +200,27 @@ def _build_ctx(case) -> dict[str, Any]:
         return ctx
 
     if case.tc_id == "TC-73":
-        tip = okf_tooltip_fields({
-            "label": "WordPiece Tokenization",
-            "concept_type": "technique",
-            "difficulty": "intermediate",
-            "summary": "Subword units",
-            "prerequisites": ["Tokenization"],
-            "unlocks": ["BERT"],
-            "related_to": ["BPE"],
-            "tags": ["nlp"],
-        })
+        tip = okf_tooltip_fields(
+            {
+                "label": "WordPiece Tokenization",
+                "concept_type": "technique",
+                "difficulty": "intermediate",
+                "summary": "Subword units",
+                "prerequisites": ["Tokenization"],
+                "unlocks": ["BERT"],
+                "related_to": ["BPE"],
+                "tags": ["nlp"],
+            }
+        )
         required = (
-            "concept_name", "concept_type", "difficulty", "summary",
-            "prerequisites", "unlocks", "related_to", "tags",
+            "concept_name",
+            "concept_type",
+            "difficulty",
+            "summary",
+            "prerequisites",
+            "unlocks",
+            "related_to",
+            "tags",
         )
         ctx["lineage_ok"] = all(k in tip for k in required)
         ctx["route"] = "graph_strong"
@@ -219,7 +235,9 @@ def _build_ctx(case) -> dict[str, Any]:
     if case.tc_id == "TC-75":
         topics = parse_multi_topic_query("Compare B-Tree vs HNSW")
         meta = build_lineage_metadata(
-            doc_id="papers/example.pdf", chunk_id="chunk_001", page_number=2,
+            doc_id="papers/example.pdf",
+            chunk_id="chunk_001",
+            page_number=2,
             text_fragment="example",
         )
         ctx["topics_ok"] = bool(topics)
@@ -246,6 +264,7 @@ def _build_ctx(case) -> dict[str, Any]:
     # TC-59 de-greaser: technical core must survive
     if case.tc_id == "TC-59":
         from archipelago.inference.routing import _strip_persona_style
+
         stripped, _ = _strip_persona_style(case.query)
         assert "recurrent" in stripped.lower() or "recurrent" in case.query.lower()
         routing = resolve_query_routing(case.query)
@@ -271,7 +290,9 @@ def _build_ctx(case) -> dict[str, Any]:
         try:
             paths = find_curriculum_chains(anchor or "low_rank_adaptation", max_hops=3)
             ctx["curriculum_ok"] = isinstance(paths, list) and ctx["route"] in (
-                "graph_strong", "graph_soft", "general_chat",
+                "graph_strong",
+                "graph_soft",
+                "general_chat",
             )
         except Exception:
             ctx["curriculum_ok"] = ctx["route"] in ("graph_strong", "graph_soft")

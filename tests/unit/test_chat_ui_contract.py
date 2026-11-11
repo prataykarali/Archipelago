@@ -111,7 +111,10 @@ def test_stack_book_click_uses_pdf_or_unavailable_flow() -> None:
     assert "window.location.href = libraryHref" in open_book
     assert "/library?" in resolve
     assert "#book-reader" in resolve
-    assert "Any stack item with a real PDF" in resolve or "rawPdf && /\\.pdf$/i.test(rawPdf)" in resolve
+    assert (
+        "Any stack item with a real PDF" in resolve
+        or "rawPdf && /\\.pdf$/i.test(rawPdf)" in resolve
+    )
     # Unavailable path still exists for non-PDF cards (summary banner).
     assert "PDF Not Available" in source
     assert "Reference book · contents index" not in source

@@ -1,13 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import csv
-import re
 from pathlib import Path
+import re
 from typing import Any
-from archipelago.inference import state as st
-from . import _deps as _rt  # noqa: F401
 
+from archipelago.inference import state as st
+
+from . import _deps as _rt  # noqa: F401
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -140,7 +142,7 @@ def journal_title_and_issue_totals() -> dict[str, Any]:
             if (row.get("journal_title") or "").strip()
         }
         return {"journal_titles": len(titles), "issue_count": len(issues)}
-    return {"journal_titles": 15, "issue_count": 48}
+    return {"journal_titles": 0, "issue_count": 0}
 
 
 def format_journal_totals() -> str:
@@ -155,11 +157,13 @@ def format_journal_totals() -> str:
 
 def resource_kind_counts() -> dict[str, int]:
     from archipelago.inference.holdings_overview import resource_kind_counts as _fn
+
     return _fn()
 
 
 def format_library_holdings_overview(query: str = "") -> str:
     from archipelago.inference.holdings_overview import format_library_holdings_overview as _fn
+
     return _fn(query)
 
 
@@ -254,20 +258,6 @@ def format_keyword_title_search(query: str) -> str:
         deduped.append(item)
     results = deduped[:20]
 
-    if not results and "data mining" in keyword.lower():
-        results = [
-            {
-                "title": "Introduction to Data Mining",
-                "author": "Tan, Steinbach, Kumar",
-                "available": 2,
-            },
-            {
-                "title": "Data Mining: Concepts and Techniques",
-                "author": "Han, Kamber, Jian",
-                "available": 0,
-            },
-        ]
-
     if not results:
         return (
             f"No catalog results found matching keyword '{keyword}'.\n\n"
@@ -277,10 +267,14 @@ def format_keyword_title_search(query: str) -> str:
     lines = [f"### Catalog Search Results for '{keyword}'"]
     for row in results:
         avail = row["available"]
-        avail_txt = f"{avail} copies" if isinstance(avail, int) and avail >= 0 else "see OPAC / holdings"
+        avail_txt = (
+            f"{avail} copies" if isinstance(avail, int) and avail >= 0 else "see OPAC / holdings"
+        )
         lines.append(f"- **{row['title']}** by {row['author']} (Available: {avail_txt})")
     lines.append("")
-    lines.append("📍 **See also:** [Holdings](/library#holdings) · [Catalog snapshot](/library#catalog-stats)")
+    lines.append(
+        "📍 **See also:** [Holdings](/library#holdings) · [Catalog snapshot](/library#catalog-stats)"
+    )
     return "\n".join(lines)
 
 
@@ -328,10 +322,13 @@ def zero_available_copies(
         if not title:
             continue
         hay = f"{title} {row.get('author') or ''}".lower()
-        if topic and not any(tok in hay for tok in topic.replace("/", " ").split() if len(tok) > 1):
+        if (
+            topic
+            and not any(tok in hay for tok in topic.replace("/", " ").split() if len(tok) > 1)
+            and not any(k in hay for k in ("ai", "ml", "learning", "data", "neural"))
+        ):
             # keep AI/ML-ish rows when filter present but title sparse
-            if not any(k in hay for k in ("ai", "ml", "learning", "data", "neural")):
-                continue
+            continue
         try:
             total = int(row.get("no_of_copies") or row.get("total_copies") or 0)
         except ValueError:

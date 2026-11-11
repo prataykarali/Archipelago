@@ -1,14 +1,19 @@
-from okf.util import _record_sources, _dedupe_dicts, _source_record
-from okf.cleanup_parts._base import *  # noqa: F403
+from typing import Any
 
-def dedupe_identical_records(okf_results: list) -> tuple[list, int]:
+from okf.cleanup_parts._base import *  # noqa: F403
+from okf.util import _dedupe_dicts, _record_sources
+
+
+def dedupe_identical_records(
+    okf_results: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], int]:
     """Collapse mode-collapse duplicates: records sharing an identical
     (doc_id, concept_name, summary) triple are one observation repeated by the
     model, not independent evidence. Union their provenance and relations into
     a single record (same source-union semantics as merge_duplicate_results).
     """
-    seen = {}
-    deduped = []
+    seen: dict[tuple[str, str, str], dict[str, Any]] = {}
+    deduped: list[dict[str, Any]] = []
     for r in okf_results:
         key = (
             r.get("doc_id", ""),
@@ -17,14 +22,15 @@ def dedupe_identical_records(okf_results: list) -> tuple[list, int]:
         )
         if key in seen:
             existing = seen[key]
-            existing["sources"] = _dedupe_dicts(
-                _record_sources(existing) + _record_sources(r))
+            existing["sources"] = _dedupe_dicts(_record_sources(existing) + _record_sources(r))
             existing["source_count"] = len(existing["sources"])
             for field in ("prerequisites", "unlocks", "tags"):
-                existing[field] = list(dict.fromkeys(
-                    existing.get(field, []) + r.get(field, [])))
-            existing_rels = {(x.get("concept", ""), x.get("relation", ""))
-                             for x in existing.get("related_to", []) if isinstance(x, dict)}
+                existing[field] = list(dict.fromkeys(existing.get(field, []) + r.get(field, [])))
+            existing_rels = {
+                (x.get("concept", ""), x.get("relation", ""))
+                for x in existing.get("related_to", [])
+                if isinstance(x, dict)
+            }
             for rel in r.get("related_to", []):
                 if isinstance(rel, dict):
                     key_rel = (rel.get("concept", ""), rel.get("relation", ""))
@@ -43,9 +49,12 @@ def dedupe_identical_records(okf_results: list) -> tuple[list, int]:
             deduped.append(r)
     return deduped, len(okf_results) - len(deduped)
 
-def merge_duplicate_results(okf_results: list) -> tuple[list, int]:
+
+def merge_duplicate_results(
+    okf_results: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], int]:
     """Merge repeated concept records, keeping the richest fields."""
-    seen = {}
+    seen: dict[str, dict[str, Any]] = {}
     merged_results = []
     for r in okf_results:
         key = r.get("concept_name", "").lower().replace("-", " ").replace("_", " ").strip()
@@ -53,14 +62,16 @@ def merge_duplicate_results(okf_results: list) -> tuple[list, int]:
             existing = seen[key]
             if len(r.get("summary", "")) > len(existing.get("summary", "")):
                 existing["summary"] = r["summary"]
-            existing["prerequisites"] = list(set(
-                existing.get("prerequisites", []) + r.get("prerequisites", [])))
-            existing["unlocks"] = list(set(
-                existing.get("unlocks", []) + r.get("unlocks", [])))
-            existing["tags"] = list(set(
-                existing.get("tags", []) + r.get("tags", [])))
-            existing_rels = {(x.get("concept", ""), x.get("relation", ""))
-                             for x in existing.get("related_to", []) if isinstance(x, dict)}
+            existing["prerequisites"] = list(
+                set(existing.get("prerequisites", []) + r.get("prerequisites", []))
+            )
+            existing["unlocks"] = list(set(existing.get("unlocks", []) + r.get("unlocks", [])))
+            existing["tags"] = list(set(existing.get("tags", []) + r.get("tags", [])))
+            existing_rels = {
+                (x.get("concept", ""), x.get("relation", ""))
+                for x in existing.get("related_to", [])
+                if isinstance(x, dict)
+            }
             for rel in r.get("related_to", []):
                 if isinstance(rel, dict):
                     key_rel = (rel.get("concept", ""), rel.get("relation", ""))
@@ -70,8 +81,7 @@ def merge_duplicate_results(okf_results: list) -> tuple[list, int]:
             # Union ALL provenance from every duplicate so cross-document
             # evidence is never undercounted. Deduplicate the source records
             # but keep one per distinct (doc/chunk/page/section) origin.
-            existing["sources"] = _dedupe_dicts(
-                _record_sources(existing) + _record_sources(r))
+            existing["sources"] = _dedupe_dicts(_record_sources(existing) + _record_sources(r))
             existing["source_count"] = len(existing["sources"])
             # Per-relation provenance must survive the merge: relations copied
             # from r keep pointing at r's asserting chunk, not existing's.
@@ -86,8 +96,7 @@ def merge_duplicate_results(okf_results: list) -> tuple[list, int]:
                     r_prov.setdefault(f"unlock:{str(u).lower()}", r_src)
                 for rel in r.get("related_to", []):
                     if isinstance(rel, dict) and rel.get("concept"):
-                        r_prov.setdefault(
-                            f"related:{str(rel['concept']).lower()}", r_src)
+                        r_prov.setdefault(f"related:{str(rel['concept']).lower()}", r_src)
             merged_prov = dict(existing.get("relation_provenance") or {})
             for relation, provenance in r_prov.items():
                 if relation not in merged_prov:
@@ -115,7 +124,10 @@ def merge_duplicate_results(okf_results: list) -> tuple[list, int]:
             merged_results.append(r)
     return merged_results, len(okf_results) - len(merged_results)
 
-def deduplicate_concepts(concepts: list, threshold: int = 85) -> list:
+
+def deduplicate_concepts(
+    concepts: list[dict[str, Any]], threshold: int = 85
+) -> list[dict[str, Any]]:
     """Deduplicate concepts using fuzzy string matching (thefuzz) with threshold."""
     if not concepts:
         return []
@@ -123,11 +135,12 @@ def deduplicate_concepts(concepts: list, threshold: int = 85) -> list:
         from thefuzz import fuzz
     except ImportError:
         import sys
+
         print("Warning: thefuzz not available, falling back to exact matching", file=sys.stderr)
         fuzz = None
 
     canon_map = {}
-    seen_names = []  # list of (lower_name, original_name)
+    seen_names: list[tuple[str, str]] = []  # list of (lower_name, original_name)
 
     for c in concepts:
         name = c.get("concept_name", "").strip()
@@ -172,7 +185,7 @@ def deduplicate_concepts(concepts: list, threshold: int = 85) -> list:
                 "tags": list(r.get("tags", [])),
                 "related_to": list(r.get("related_to", [])),
                 "sources": list(_record_sources(r)),
-                "relation_provenance": dict(r.get("relation_provenance") or {})
+                "relation_provenance": dict(r.get("relation_provenance") or {}),
             }
             if r.get("source_passage"):
                 merged_by_name[canon_key]["source_passage"] = r.get("source_passage")
@@ -189,12 +202,17 @@ def deduplicate_concepts(concepts: list, threshold: int = 85) -> list:
             if len(r.get("summary", "")) > len(existing.get("summary", "")):
                 existing["summary"] = r["summary"]
 
-            existing["prerequisites"] = list(dict.fromkeys(existing["prerequisites"] + r.get("prerequisites", [])))
+            existing["prerequisites"] = list(
+                dict.fromkeys(existing["prerequisites"] + r.get("prerequisites", []))
+            )
             existing["unlocks"] = list(dict.fromkeys(existing["unlocks"] + r.get("unlocks", [])))
             existing["tags"] = list(dict.fromkeys(existing["tags"] + r.get("tags", [])))
 
-            existing_rels = {(x.get("concept", ""), x.get("relation", ""))
-                             for x in existing.get("related_to", []) if isinstance(x, dict)}
+            existing_rels = {
+                (x.get("concept", ""), x.get("relation", ""))
+                for x in existing.get("related_to", [])
+                if isinstance(x, dict)
+            }
             for rel in r.get("related_to", []):
                 if isinstance(rel, dict):
                     key_rel = (rel.get("concept", ""), rel.get("relation", ""))

@@ -1,11 +1,22 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
-import re
 from pathlib import Path
-from urllib.parse import quote, urlsplit, urlunsplit, parse_qsl, urlencode
-from .merged01_repo_root import ASSETS_DIR, STATIC_DIR, _ASSET_ROOTS, _has_valid_auth_session, _is_auth_enforced, app  # noqa: F401
+import re
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
+
+from flask import redirect, request, send_from_directory
+
+from .merged01_repo_root import (  # noqa: F401
+    _ASSET_ROOTS,
+    ASSETS_DIR,
+    STATIC_DIR,
+    _has_valid_auth_session,
+    _is_auth_enforced,
+    app,
+)
+from .page_fragments import assembled_page
 
 
 @app.route("/")
@@ -28,7 +39,7 @@ def chat_ui():
     Reading and asking are open to every campus user; only mutating surfaces
     (graph console, librarian intake) stay role-gated.
     """
-    return send_from_directory(str(STATIC_DIR), "index.html")
+    return assembled_page(STATIC_DIR, "index.html")
 
 
 @app.route("/library_showcase_3d.js")
@@ -45,7 +56,7 @@ def library_details():
     The catalogue is public knowledge; only librarian management actions inside
     the page remain role-gated.
     """
-    return send_from_directory(str(STATIC_DIR), "library.html")
+    return assembled_page(STATIC_DIR, "library.html")
 
 
 @app.route("/reader.html")
@@ -71,7 +82,9 @@ def _with_page_fragment(target_url: str, page: int) -> str:
     if parsed.path.startswith(("/read/", "/open/")):
         query = dict(parse_qsl(parsed.query, keep_blank_values=True))
         query["page"] = str(page)
-        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment))
+        return urlunsplit(
+            (parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment)
+        )
     return target_url
 
 
@@ -84,16 +97,27 @@ def reader_view(resource_id: str = ""):
     If resource is Pearson, redirects to /open/<id>?page=N to launch external flow.
     Open to every campus user: this is where citation page links land.
     """
-    doc_arg = request.args.get("doc") or request.args.get("id") or request.args.get("src") or request.args.get("book") or ""
+    doc_arg = (
+        request.args.get("doc")
+        or request.args.get("id")
+        or request.args.get("src")
+        or request.args.get("book")
+        or ""
+    )
     clean_id = (resource_id or doc_arg).removeprefix("book/").strip()
     page = _requested_page(request.args.get("page"))
 
     # Check if Pearson book
     if clean_id:
         try:
-            from archipelago.resolver.pearson import _load_pearson_catalog, _fuzzy_match_book
+            from archipelago.resolver.pearson import _fuzzy_match_book, _load_pearson_catalog
+
             cat = _load_pearson_catalog()
-            if _fuzzy_match_book(cat, clean_id, clean_id, clean_id) or "pearson" in clean_id.lower() or "0fcd531f" in clean_id:
+            if (
+                _fuzzy_match_book(cat, clean_id, clean_id, clean_id)
+                or "pearson" in clean_id.lower()
+                or "0fcd531f" in clean_id
+            ):
                 return redirect(f"/open/{quote(clean_id, safe='/')}?page={page}", code=302)
         except Exception:
             pass
@@ -139,4 +163,6 @@ def media_assets(filename):
 @app.route("/<path:filename>")
 def static_files(filename):
     """Serves any static resources within the chat_ui directory"""
+    if filename in {"index.html", "library.html"}:
+        return assembled_page(STATIC_DIR, filename)
     return send_from_directory(str(STATIC_DIR), filename)

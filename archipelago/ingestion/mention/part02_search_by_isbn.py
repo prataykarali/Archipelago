@@ -1,8 +1,10 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from typing import Any
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def _search_by_isbn(isbn: str) -> list[_rt.MentionMatch]:
@@ -12,39 +14,45 @@ def _search_by_isbn(isbn: str) -> list[_rt.MentionMatch]:
     out: list[_rt.MentionMatch] = []
     try:
         from archipelago.resolver.resource_registry import get_registry
+
         record = get_registry().get_by_isbn(isbn)
         if record is not None:
-            out.append(_rt.MentionMatch(
-                title=record.title or record.resource_id,
-                match_kind=_rt.MATCH_KIND_EXACT_ISBN,
-                source=_rt.SOURCE_NAMES[_rt.MATCH_KIND_EXACT_ISBN],
-                confidence=100.0,
-                source_url=record.blob_url or record.reader_url,
-                doc_id=record.hf_file_path or record.resource_id,
-                author=record.author,
-                isbn=isbn,
-                page_count=record.page_count,
-                domain=record.domain,
-            ))
+            out.append(
+                _rt.MentionMatch(
+                    title=record.title or record.resource_id,
+                    match_kind=_rt.MATCH_KIND_EXACT_ISBN,
+                    source=_rt.SOURCE_NAMES[_rt.MATCH_KIND_EXACT_ISBN],
+                    confidence=100.0,
+                    source_url=record.blob_url or record.reader_url,
+                    doc_id=record.hf_file_path or record.resource_id,
+                    author=record.author,
+                    isbn=isbn,
+                    page_count=record.page_count,
+                    domain=record.domain,
+                )
+            )
     except Exception as exc:
         _rt.logger.debug("Registry ISBN lookup unavailable: %s", exc)
     try:
         from archipelago.ingestion.pearson_connector import PearsonCatalog
+
         catalog = PearsonCatalog.load_from_file(
             _rt._repo_root() / "data" / "catalogs" / "pearson_bookshelf.json"
         )
         book = catalog.find_by_isbn(isbn)
         if book is not None:
-            out.append(_rt.MentionMatch(
-                title=book.title,
-                match_kind=_rt.MATCH_KIND_EXACT_ISBN,
-                source=_rt.SOURCE_NAMES[_rt.MATCH_KIND_PEARSON],
-                confidence=100.0,
-                source_url=book.reader_base_url,
-                doc_id=str(book.book_id or ""),
-                author=str(book.author or ""),
-                isbn=isbn,
-            ))
+            out.append(
+                _rt.MentionMatch(
+                    title=book.title,
+                    match_kind=_rt.MATCH_KIND_EXACT_ISBN,
+                    source=_rt.SOURCE_NAMES[_rt.MATCH_KIND_PEARSON],
+                    confidence=100.0,
+                    source_url=book.reader_base_url,
+                    doc_id=str(book.book_id or ""),
+                    author=str(book.author or ""),
+                    isbn=isbn,
+                )
+            )
     except Exception as exc:
         _rt.logger.debug("Pearson ISBN lookup unavailable: %s", exc)
     return out
@@ -61,10 +69,17 @@ def mention_book(query: str, limit: int = _rt.MAX_CANDIDATES) -> _rt.MentionResu
 
     tokens = _rt.title_tokens(text)
     isbn = _rt.extract_isbn(text)
-    searched = [_rt.SOURCE_NAMES[k] for k in (
-        _rt.MATCH_KIND_EXACT_ISBN, _rt.MATCH_KIND_CATALOG, _rt.MATCH_KIND_REGISTRY,
-        _rt.MATCH_KIND_PEARSON, _rt.MATCH_KIND_HF, _rt.MATCH_KIND_LOCAL,
-    )]
+    searched = [
+        _rt.SOURCE_NAMES[k]
+        for k in (
+            _rt.MATCH_KIND_EXACT_ISBN,
+            _rt.MATCH_KIND_CATALOG,
+            _rt.MATCH_KIND_REGISTRY,
+            _rt.MATCH_KIND_PEARSON,
+            _rt.MATCH_KIND_HF,
+            _rt.MATCH_KIND_LOCAL,
+        )
+    ]
     candidates: list[_rt.MentionMatch] = []
 
     if isbn:
@@ -101,7 +116,9 @@ def is_trusted_match(match: _rt.MentionMatch) -> bool:
     return match.confidence >= _rt.METADATA_TRUST_MIN_CONFIDENCE
 
 
-def prefill_from_match(match: _rt.MentionMatch, adopt_metadata: bool | None = None) -> dict[str, Any]:
+def prefill_from_match(
+    match: _rt.MentionMatch, adopt_metadata: bool | None = None
+) -> dict[str, Any]:
     """Build the ingestion form payload for a chosen match.
 
     ``adopt_metadata`` controls whether bibliographic fields (author, ISBN,

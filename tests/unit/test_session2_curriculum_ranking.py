@@ -3,8 +3,6 @@
 No GPU / Ollama required. Uses CONCEPTS_DATA injection and pure helpers.
 """
 
-import re
-
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -13,6 +11,7 @@ pytestmark = pytest.mark.unit
 @pytest.fixture
 def server_module():
     import archipelago.inference as s
+
     return s
 
 
@@ -24,11 +23,13 @@ def test_extract_acronym_parenthetical(server_module):
 
 def test_generate_aliases_includes_lora(server_module):
     s = server_module
-    aliases = s.generate_aliases({
-        "name": "Low-Rank Adaptation (LoRA)",
-        "label": "Low-Rank Adaptation",
-        "tags": ["peft", "lora"],
-    })
+    aliases = s.generate_aliases(
+        {
+            "name": "Low-Rank Adaptation (LoRA)",
+            "label": "Low-Rank Adaptation",
+            "tags": ["peft", "lora"],
+        }
+    )
     lower = {a.lower() for a in aliases}
     assert "lora" in lower
     assert any("low-rank" in a or "low rank" in a for a in lower)
@@ -73,11 +74,13 @@ def test_rank_concepts_alias_prefers_core_lora(server_module):
                 "summary": "Parameter-efficient fine-tuning via low-rank matrices.",
                 "tags": ["lora", "peft"],
                 "degree": 20,
-                "aliases": s.generate_aliases({
-                    "name": "Low-Rank Adaptation (LoRA)",
-                    "label": "Low-Rank Adaptation",
-                    "tags": ["lora"],
-                }),
+                "aliases": s.generate_aliases(
+                    {
+                        "name": "Low-Rank Adaptation (LoRA)",
+                        "label": "Low-Rank Adaptation",
+                        "tags": ["lora"],
+                    }
+                ),
             },
             "lora_applied_to_attention_weights": {
                 "id": "lora_applied_to_attention_weights",
@@ -86,10 +89,12 @@ def test_rank_concepts_alias_prefers_core_lora(server_module):
                 "summary": "Applies LoRA to attention projections.",
                 "tags": ["lora", "attention"],
                 "degree": 3,
-                "aliases": s.generate_aliases({
-                    "name": "LoRA Applied to Attention Weights",
-                    "label": "LoRA Applied to Attention Weights",
-                }),
+                "aliases": s.generate_aliases(
+                    {
+                        "name": "LoRA Applied to Attention Weights",
+                        "label": "LoRA Applied to Attention Weights",
+                    }
+                ),
             },
             "weather_node": {
                 "id": "weather_node",
@@ -117,11 +122,13 @@ def test_rank_concepts_alias_prefers_core_lora(server_module):
 
 def test_format_curriculum_paths_section_has_page_links(server_module):
     s = server_module
-    paths = [{
-        "labels": ["Transformer", "Low-Rank Adaptation"],
-        "markdown": "[Transformer (p.3)](http://localhost:5051/pdfs/papers/x.pdf#page=3) → Low-Rank Adaptation",
-        "hops": 1,
-    }]
+    paths = [
+        {
+            "labels": ["Transformer", "Low-Rank Adaptation"],
+            "markdown": "[Transformer (p.3)](http://localhost:5051/pdfs/papers/x.pdf#page=3) → Low-Rank Adaptation",
+            "hops": 1,
+        }
+    ]
     section = s.format_curriculum_paths_section(paths)
     # 1-hop paths use a quieter label; multi-hop keeps the multi-hop title
     assert (
@@ -133,37 +140,46 @@ def test_format_curriculum_paths_section_has_page_links(server_module):
 
 def test_render_indexed_learning_path_includes_curriculum(server_module):
     s = server_module
-    target = {"id": "low_rank_adaptation", "label": "Low-Rank Adaptation", "summary": "PEFT method."}
+    target = {
+        "id": "low_rank_adaptation",
+        "label": "Low-Rank Adaptation",
+        "summary": "PEFT method.",
+    }
     prereqs = [{"id": "transformer", "name": "Transformer", "summary": "Attention architecture."}]
     unlocks = []
     citation_map = {
-        "transformer": [{
-            "evidence_id": "S1",
-            "doc_id": "papers/Hu2021_LoRA.pdf",
-            "page_number": 3,
-            "section_title": "Method",
-            "text": "Transformer layers.",
-        }],
-        "low_rank_adaptation": [{
-            "evidence_id": "S2",
-            "doc_id": "papers/Hu2021_LoRA.pdf",
-            "page_number": 4,
-            "section_title": "LoRA",
-            "text": "Low-rank adaptation.",
-        }],
+        "transformer": [
+            {
+                "evidence_id": "S1",
+                "doc_id": "papers/Hu2021_LoRA.pdf",
+                "page_number": 3,
+                "section_title": "Method",
+                "text": "Transformer layers.",
+            }
+        ],
+        "low_rank_adaptation": [
+            {
+                "evidence_id": "S2",
+                "doc_id": "papers/Hu2021_LoRA.pdf",
+                "page_number": 4,
+                "section_title": "LoRA",
+                "text": "Low-rank adaptation.",
+            }
+        ],
     }
-    paths = [{
-        "labels": ["Transformer", "Low-Rank Adaptation"],
-        "markdown": "Transformer → Low-Rank Adaptation",
-        "hops": 1,
-        "nodes": [],
-    }]
-    text = s.render_indexed_learning_path(target, prereqs, unlocks, citation_map, curriculum_paths=paths)
-    assert "Learning path: Low-Rank Adaptation" in text
-    assert (
-        "Multi-hop curriculum path" in text
-        or "Learning path (from graph prerequisites)" in text
+    paths = [
+        {
+            "labels": ["Transformer", "Low-Rank Adaptation"],
+            "markdown": "Transformer → Low-Rank Adaptation",
+            "hops": 1,
+            "nodes": [],
+        }
+    ]
+    text = s.render_indexed_learning_path(
+        target, prereqs, unlocks, citation_map, curriculum_paths=paths
     )
+    assert "Learning path: Low-Rank Adaptation" in text
+    assert "Multi-hop curriculum path" in text or "Learning path (from graph prerequisites)" in text
     assert "1. Learn first" in text
     assert "#page=" in text or "S1" in text
 

@@ -9,35 +9,34 @@ applies the change, and saves atomically via rename-swap.
 
 from __future__ import annotations
 
-import json
-import os
-import threading
-import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
+import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-
+import threading
+from typing import Any
+import uuid
 
 # ---------------------------------------------------------------------------
 # Status Enum
 # ---------------------------------------------------------------------------
 
-class JobStatus(str, Enum):
-    QUEUED            = "QUEUED"
-    PARSING           = "PARSING"
-    EXTRACTION        = "EXTRACTION"
-    CANONICALIZATION  = "CANONICALIZATION"
-    GRAPH_BUILD       = "GRAPH_BUILD"
-    GRAPH_VALIDATION  = "GRAPH_VALIDATION"
-    COMPLETE          = "COMPLETE"
-    FAILED            = "FAILED"
-    CANCELLED         = "CANCELLED"
+
+class JobStatus(StrEnum):
+    QUEUED = "QUEUED"
+    PARSING = "PARSING"
+    EXTRACTION = "EXTRACTION"
+    CANONICALIZATION = "CANONICALIZATION"
+    GRAPH_BUILD = "GRAPH_BUILD"
+    GRAPH_VALIDATION = "GRAPH_VALIDATION"
+    COMPLETE = "COMPLETE"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
 
 
 # Ordered active stages — useful for progress display.
-ACTIVE_STAGES: List[JobStatus] = [
+ACTIVE_STAGES: list[JobStatus] = [
     JobStatus.PARSING,
     JobStatus.EXTRACTION,
     JobStatus.CANONICALIZATION,
@@ -53,18 +52,19 @@ TERMINAL_STATES = {JobStatus.COMPLETE, JobStatus.FAILED, JobStatus.CANCELLED}
 # JobRecord dataclass
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class JobRecord:
-    job_id:          str
-    status:          JobStatus
+    job_id: str
+    status: JobStatus
     source_filename: str
-    created_at:      str            # ISO-8601 UTC
-    updated_at:      str            # ISO-8601 UTC
-    progress:        Dict[str, Any] = field(default_factory=dict)
-    error:           Optional[str]  = None
-    result:          Optional[Dict[str, Any]] = field(default_factory=dict)
-    graph_version:   Optional[int]  = None
-    cancelled:       bool           = False   # soft-cancel flag polled by worker
+    created_at: str  # ISO-8601 UTC
+    updated_at: str  # ISO-8601 UTC
+    progress: dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
+    result: dict[str, Any] | None = field(default_factory=dict)
+    graph_version: int | None = None
+    cancelled: bool = False  # soft-cancel flag polled by worker
 
     # ------------------------------------------------------------------
     # Serialisation helpers
@@ -72,20 +72,20 @@ class JobRecord:
 
     def to_dict(self) -> dict:
         return {
-            "job_id":          self.job_id,
-            "status":          self.status.value if isinstance(self.status, JobStatus) else self.status,
+            "job_id": self.job_id,
+            "status": self.status.value if isinstance(self.status, JobStatus) else self.status,
             "source_filename": self.source_filename,
-            "created_at":      self.created_at,
-            "updated_at":      self.updated_at,
-            "progress":        self.progress,
-            "error":           self.error,
-            "result":          self.result if self.result is not None else {},
-            "graph_version":   self.graph_version,
-            "cancelled":       self.cancelled,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "progress": self.progress,
+            "error": self.error,
+            "result": self.result if self.result is not None else {},
+            "graph_version": self.graph_version,
+            "cancelled": self.cancelled,
         }
 
     @classmethod
-    def from_dict(cls, d: dict) -> "JobRecord":
+    def from_dict(cls, d: dict) -> JobRecord:
         return cls(
             job_id=d["job_id"],
             status=JobStatus(d["status"]),
@@ -102,18 +102,19 @@ class JobRecord:
     def summary(self) -> dict:
         """Lightweight summary for list_jobs()."""
         return {
-            "job_id":          self.job_id,
-            "status":          self.status.value,
+            "job_id": self.job_id,
+            "status": self.status.value,
             "source_filename": self.source_filename,
-            "created_at":      self.created_at,
-            "updated_at":      self.updated_at,
-            "graph_version":   self.graph_version,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "graph_version": self.graph_version,
         }
 
 
 # ---------------------------------------------------------------------------
 # JobStore
 # ---------------------------------------------------------------------------
+
 
 class JobStore:
     """
@@ -149,7 +150,7 @@ class JobStore:
     def _jobs_path(self) -> Path:
         return self._dir / self._JOBS_FILE
 
-    def _load_unlocked(self) -> Dict[str, dict]:
+    def _load_unlocked(self) -> dict[str, dict]:
         """Load raw jobs dict from disk. Caller MUST hold self._lock."""
         p = self._jobs_path()
         if not p.exists():
@@ -159,7 +160,7 @@ class JobStore:
         except (json.JSONDecodeError, OSError):
             return {}
 
-    def _save_unlocked(self, jobs: Dict[str, dict]) -> None:
+    def _save_unlocked(self, jobs: dict[str, dict]) -> None:
         """Atomically save jobs dict via rename. Caller MUST hold self._lock."""
         p = self._jobs_path()
         tmp = p.with_suffix(".tmp")
@@ -177,7 +178,7 @@ class JobStore:
 
     @staticmethod
     def _now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     # ------------------------------------------------------------------ #
     #  Public API                                                          #
@@ -208,11 +209,11 @@ class JobStore:
         self,
         job_id: str,
         status: JobStatus,
-        progress: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
-        result: Optional[Dict[str, Any]] = None,
-        graph_version: Optional[int] = None,
-    ) -> Optional[JobRecord]:
+        progress: dict[str, Any] | None = None,
+        error: str | None = None,
+        result: dict[str, Any] | None = None,
+        graph_version: int | None = None,
+    ) -> JobRecord | None:
         """Update the status (and optional fields) of an existing job.
 
         Silently returns None if job_id is unknown.
@@ -240,7 +241,7 @@ class JobStore:
             self._mirror_job_json(record)
         return record
 
-    def get_job(self, job_id: str) -> Optional[JobRecord]:
+    def get_job(self, job_id: str) -> JobRecord | None:
         """Return the JobRecord for job_id, or None if not found."""
         with self._lock:
             jobs = self._load_unlocked()
@@ -249,7 +250,7 @@ class JobStore:
                 return None
             return JobRecord.from_dict(raw)
 
-    def list_jobs(self) -> List[dict]:
+    def list_jobs(self) -> list[dict]:
         """Return a list of lightweight job summaries, newest first."""
         with self._lock:
             jobs = self._load_unlocked()
@@ -257,7 +258,7 @@ class JobStore:
         records.sort(key=lambda r: r.created_at, reverse=True)
         return [r.summary() for r in records]
 
-    def cancel_job(self, job_id: str) -> Optional[JobRecord]:
+    def cancel_job(self, job_id: str) -> JobRecord | None:
         """Request cancellation of a job.
 
         - Terminal-state jobs are returned unchanged.

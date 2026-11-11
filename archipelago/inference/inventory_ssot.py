@@ -11,6 +11,7 @@ Keeping the reader here means one definition of "what the library holds":
 ``upload_inventory.json`` rows whose ``graph_ready`` flag is true, plus any
 catalog the librarian imported.
 """
+
 from __future__ import annotations
 
 import json
@@ -19,7 +20,7 @@ from pathlib import Path
 import threading
 from typing import Any
 
-from okf.config import BASE_DIR
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,9 @@ def _stamp(path: Path) -> tuple[int, int] | None:
     return stat.st_size, stat.st_mtime_ns
 
 
-def read_inventory(base_dir: Path | str | None = None, use_cache: bool = True) -> list[dict[str, Any]]:
+def read_inventory(
+    base_dir: Path | str | None = None, use_cache: bool = True
+) -> list[dict[str, Any]]:
     """Return every recorded upload row.
 
     Never raises: a missing or corrupt inventory is an empty library, not a

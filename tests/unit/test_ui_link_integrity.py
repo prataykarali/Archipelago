@@ -10,6 +10,7 @@ These pin three things that were real, shipped bugs:
    ``ui/chat`` tree — that drift is what caused the Pearson bug to appear only
    on the hosted deployment.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -39,11 +40,17 @@ def test_no_malformed_pearson_version_parameter():
 
 def test_pearson_urls_join_parameters_with_ampersand():
     for root in (CANONICAL, HOSTED):
-        builders = [path for path in _js_files(root) if "pearson.com/wr/" in path.read_text(encoding="utf-8")]
+        builders = [
+            path
+            for path in _js_files(root)
+            if "pearson.com/wr/" in path.read_text(encoding="utf-8")
+        ]
         assert builders, f"{root} has no Pearson URL builder"
         for path in builders:
             text = path.read_text(encoding="utf-8")
-            assert "version=1.0.317.1&subscriptionId=" in text, f"{path} does not join version and subscription with '&'"
+            assert "version=1.0.317.1&subscriptionId=" in text, (
+                f"{path} does not join version and subscription with '&'"
+            )
 
 
 def test_link_interceptor_is_loaded_by_the_chat_page():
@@ -53,9 +60,14 @@ def test_link_interceptor_is_loaded_by_the_chat_page():
         assert '<script type="module" src="/js/index.js"></script>' in index
 
         entry = (root / "js" / "index.js").read_text(encoding="utf-8")
-        loaded = {line.split("'./")[-1].split("'")[0] for line in entry.splitlines() if "import './" in line}
+        loaded = {
+            line.split("'./")[-1].split("'")[0]
+            for line in entry.splitlines()
+            if "import './" in line
+        }
         interceptor = [
-            name for name in loaded
+            name
+            for name in loaded
             if "addEventListener('click'" in (root / "js" / name).read_text(encoding="utf-8")
         ]
         interceptors_text = "".join(
@@ -94,4 +106,6 @@ def test_dead_roadmap_quiz_script_is_gone():
     """roadmap_quiz.js never existed; the tag 404'd on every page load."""
     for root in (CANONICAL, HOSTED):
         index = (root / "index.html").read_text(encoding="utf-8")
-        assert "roadmap_quiz.js" not in index, f"{root}/index.html still references a missing script"
+        assert "roadmap_quiz.js" not in index, (
+            f"{root}/index.html still references a missing script"
+        )

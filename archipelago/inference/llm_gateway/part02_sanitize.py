@@ -6,7 +6,6 @@ Untrusted corpus text is never forwarded verbatim to an external LLM.
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Optional, Tuple
 
 _INTERNAL_ROUTE_RE = r"/(?:api/page-view|read|open|papers|pdfs)\S*"
 _ARCHIPELAGO_BOOKS_RE = r"archipelago-books-\S+"
@@ -40,7 +39,7 @@ def sanitize_for_external_llm(text: str) -> str:
     return clean.strip()
 
 
-def _convert_messages_for_gemini(messages: List[Dict]) -> Tuple[Optional[str], List[Dict]]:
+def _convert_messages_for_gemini(messages: list[dict]) -> tuple[str | None, list[dict]]:
     """Convert standard messages to Gemini format with leak sanitization."""
     system_instruction = None
     formatted_history = []
@@ -59,7 +58,7 @@ def _convert_messages_for_gemini(messages: List[Dict]) -> Tuple[Optional[str], L
     return system_instruction, formatted_history
 
 
-def _clean_messages_for_openai(messages: List[Dict]) -> List[Dict]:
+def _clean_messages_for_openai(messages: list[dict]) -> list[dict]:
     """Ensure valid roles and sanitized string content for the OpenAI-compatible API."""
     clean = []
     for msg in messages:

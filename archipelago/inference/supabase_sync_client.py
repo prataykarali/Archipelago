@@ -18,14 +18,14 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 
 
 class SupabaseSyncClient:
-    def __init__(self, url: str = None, key: str = None):
+    def __init__(self, url: str | None = None, key: str | None = None):
         self.url = (url or SUPABASE_URL).rstrip("/")
         self.key = key or SUPABASE_KEY
         self.headers = {
             "apikey": self.key,
             "Authorization": f"Bearer {self.key}",
             "Content-Type": "application/json",
-            "Prefer": "resolution=merge-duplicates"
+            "Prefer": "resolution=merge-duplicates",
         }
 
     def _request(self, table: str, data: list[dict[str, Any]]) -> bool:

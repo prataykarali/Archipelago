@@ -4,14 +4,15 @@
 process plus every required dependency can actually serve traffic.  Kubernetes
 and AntDeploy use these to decide whether to route requests.
 """
+
 from __future__ import annotations
 
 import logging
 import os
 import time
 
-import kuzu
 from flask import jsonify
+import kuzu
 
 from archipelago.inference import state as st
 from archipelago.inference.graph_lock import graph_lock
@@ -30,23 +31,27 @@ def _graph_status() -> dict:
             res = conn.execute("MATCH (c:Concept) RETURN count(c)")
             count = res.get_next()[0] if res.has_next() else 0
         return {"ready": True, "concept_count": int(count), "error": None}
-    except Exception as exc:  # noqa: BLE001 - surfaced in the probe payload
+    except Exception as exc:
         return {"ready": False, "concept_count": 0, "error": str(exc)}
 
 
 def _inference_configured() -> bool:
     """True when an inference credential is present (never probes the network)."""
-    return bool(os.environ.get("XKIRO_API_KEY", "").strip() or os.environ.get("GEMINI_API_KEY", "").strip())
+    return bool(
+        os.environ.get("XKIRO_API_KEY", "").strip() or os.environ.get("GEMINI_API_KEY", "").strip()
+    )
 
 
 @st.app.route("/health", methods=["GET"])
 def health():
     """Liveness probe: the process is running. Never touches a dependency."""
-    return jsonify({
-        "status": "alive",
-        "service": SERVICE_NAME,
-        "uptime_seconds": round(time.time() - STARTED_AT, 3),
-    }), 200
+    return jsonify(
+        {
+            "status": "alive",
+            "service": SERVICE_NAME,
+            "uptime_seconds": round(time.time() - STARTED_AT, 3),
+        }
+    ), 200
 
 
 @st.app.route("/ready", methods=["GET"])
@@ -60,14 +65,16 @@ def ready():
         "inference_configured": _inference_configured(),
     }
     is_ready = graph["ready"] and concepts_loaded
-    return jsonify({
-        "status": "ready" if is_ready else "not_ready",
-        "ready": is_ready,
-        "service": SERVICE_NAME,
-        "checks": checks,
-        "graph": graph,
-        "concept_count": len(st.CONCEPTS_DATA),
-    }), 200 if is_ready else 503
+    return jsonify(
+        {
+            "status": "ready" if is_ready else "not_ready",
+            "ready": is_ready,
+            "service": SERVICE_NAME,
+            "checks": checks,
+            "graph": graph,
+            "concept_count": len(st.CONCEPTS_DATA),
+        }
+    ), 200 if is_ready else 503
 
 
 @st.app.route("/api/health", methods=["GET"])

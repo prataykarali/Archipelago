@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 import logging
 import time
-from typing import Dict, Generator, List, Optional
 
 from archipelago.inference.llm_gateway import part01_config as config
 from archipelago.inference.llm_gateway.part01_config import (
@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 def _stream_xkiro(
-    messages: List[Dict],
-    model: Optional[str] = None,
+    messages: list[dict],
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
@@ -69,9 +69,9 @@ def _stream_xkiro(
 
 
 def _stream_gemini(
-    messages: List[Dict],
+    messages: list[dict],
     purpose: str = "synthesis",
-    model: Optional[str] = None,
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
@@ -106,8 +106,8 @@ def _stream_gemini(
 
 
 def _stream_nvidia(
-    messages: List[Dict],
-    model: Optional[str] = None,
+    messages: list[dict],
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_NVIDIA_TIMEOUT_SECONDS,
@@ -137,7 +137,7 @@ def _stream_nvidia(
         line = raw.decode("utf-8", errors="replace")
         if not line.startswith("data: "):
             continue
-        frame = line[len("data: "):].strip()
+        frame = line[len("data: ") :].strip()
         if frame == "[DONE]":
             break
         try:
@@ -153,9 +153,9 @@ def _stream_nvidia(
 
 def _stream_by_name(
     provider: str,
-    messages: List[Dict],
+    messages: list[dict],
     purpose: str = "general",
-    model: Optional[str] = None,
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
@@ -163,26 +163,35 @@ def _stream_by_name(
     """Yield tokens from one named provider's stream."""
     if provider == "xkiro":
         return _stream_xkiro(
-            messages, model=model, temperature=temperature,
-            max_tokens=max_tokens, timeout=timeout,
+            messages,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
         )
     if provider == "nvidia":
         return _stream_nvidia(
-            messages, model=model, temperature=temperature,
-            max_tokens=max_tokens, timeout=timeout,
+            messages,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
         )
     if provider == "gemini":
         return _stream_gemini(
-            messages, purpose=purpose, temperature=temperature,
-            max_tokens=max_tokens, timeout=timeout,
+            messages,
+            purpose=purpose,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
         )
     raise RuntimeError(f"unknown provider {provider!r}")
 
 
 def gateway_chat_stream(
-    messages: List[Dict],
+    messages: list[dict],
     purpose: str = "synthesis",
-    model: Optional[str] = None,
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
@@ -200,7 +209,7 @@ def gateway_chat_stream(
 
     for name in order:
         try:
-            for chunk in _stream_by_name(
+            yield from _stream_by_name(
                 name,
                 messages,
                 purpose=purpose,
@@ -208,8 +217,7 @@ def gateway_chat_stream(
                 temperature=temperature,
                 max_tokens=max_tokens,
                 timeout=timeout,
-            ):
-                yield chunk
+            )
             latency_ms = (time.time() - start_time) * 1000
             print(
                 f"gateway_chat_stream | Provider: {name} | Purpose: {purpose} "

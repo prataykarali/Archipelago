@@ -1,17 +1,25 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
+from collections import Counter
 import json
 import os
-from collections import Counter
 from pathlib import Path
-from okf import config, extraction
+from typing import Any
+
+from okf import config
 from okf.config import MODEL_NAME, _local_path, infer_source_category
 from okf.extraction import extract_chunks_with_model, load_local_model
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
-def filter_extracted_relations(okf_results: list, chunks: list, inventory: list = None) -> list:
+def filter_extracted_relations(
+    okf_results: list[dict[str, Any]],
+    chunks: list[dict[str, Any]],
+    inventory: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     """Helper to convert okf_results relations to filter_relations format,
     filter them, and rebuild the relationships in okf_results.
 
@@ -29,12 +37,12 @@ def filter_extracted_relations(okf_results: list, chunks: list, inventory: list 
     if inventory is None:
         inventory = okf_results
     concepts = [r.get("concept_name") for r in inventory if r.get("concept_name")]
-    
+
     for r in okf_results:
         concept_name = r.get("concept_name", "")
         if not concept_name:
             continue
-            
+
         # 1. Prerequisites
         prereqs = []
         for p in r.get("prerequisites", []):
@@ -42,7 +50,7 @@ def filter_extracted_relations(okf_results: list, chunks: list, inventory: list 
                 prereqs.append({"source": concept_name, "target": p, "type": "prereq"})
         filtered_prereqs = filter_relations(prereqs, chunks, concepts)
         r["prerequisites"] = [x["target"] for x in filtered_prereqs]
-        
+
         # 2. Unlocks
         unlocks = []
         for u in r.get("unlocks", []):
@@ -50,29 +58,34 @@ def filter_extracted_relations(okf_results: list, chunks: list, inventory: list 
                 unlocks.append({"source": concept_name, "target": u, "type": "unlock"})
         filtered_unlocks = filter_relations(unlocks, chunks, concepts)
         r["unlocks"] = [x["target"] for x in filtered_unlocks]
-        
+
         # 3. Related
         related = []
         for rel in r.get("related_to", []):
             if isinstance(rel, dict) and rel.get("concept"):
-                related.append({
-                    "source": concept_name, 
-                    "concept": rel["concept"], 
-                    "relation": rel.get("relation", "related"), 
-                    "type": "related"
-                })
+                related.append(
+                    {
+                        "source": concept_name,
+                        "concept": rel["concept"],
+                        "relation": rel.get("relation", "related"),
+                        "type": "related",
+                    }
+                )
         filtered_related = filter_relations(related, chunks, concepts)
         r["related_to"] = [
-            {"concept": x["concept"], "relation": x["relation"]} 
-            for x in filtered_related
+            {"concept": x["concept"], "relation": x["relation"]} for x in filtered_related
         ]
-        
+
     return okf_results
 
 
-def finalize_and_build(okf_results: list, total_chunks: int,
-                       successful_chunk_count: int, chunks: list = None,
-                       evaluate_gold_path: str = None):
+def finalize_and_build(
+    okf_results: list[dict[str, Any]],
+    total_chunks: int,
+    successful_chunk_count: int,
+    chunks: list[dict[str, Any]] | None = None,
+    evaluate_gold_path: str | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
     """Run every stage after extraction: save raw results, cleanup,
     canonicalization, KuzuDB graph build, exports and evaluation.
 
@@ -85,10 +98,11 @@ def finalize_and_build(okf_results: list, total_chunks: int,
     # write always target the same file regardless of the current directory).
     with open(saved_file, "w", encoding="utf-8") as f:
         json.dump(okf_results, f, indent=2, ensure_ascii=False)
-    print(f"  Saved to okf_results.json")
+    print("  Saved to okf_results.json")
 
     # Integrate cleanup.clean_pipeline and filter_extracted_relations after extraction
     from okf.cleanup import clean_pipeline
+
     if chunks:
         okf_results = clean_pipeline(okf_results, chunks)
         okf_results = filter_extracted_relations(okf_results, chunks)
@@ -98,11 +112,12 @@ def finalize_and_build(okf_results: list, total_chunks: int,
     # Apply co-mention RELATED builder and UNLOCKS heuristics
     from okf.co_mention import build_co_mention_edges
     from okf.unlocks_heuristics import add_heuristic_unlocks
+
     if not chunks:
         pdf_chunks_path = _rt.BASE_DIR / "pdf_chunks.json"
         if pdf_chunks_path.exists():
             try:
-                with open(pdf_chunks_path, "r", encoding="utf-8") as f:
+                with open(pdf_chunks_path, encoding="utf-8") as f:
                     chunks = json.load(f)
             except Exception as e:
                 print(f"Warning: Failed to load pdf_chunks.json: {e}")
@@ -111,13 +126,16 @@ def finalize_and_build(okf_results: list, total_chunks: int,
         okf_results = add_heuristic_unlocks(okf_results, chunks)
 
     # ── Stage 4: KùzuDB Graph Ingestion ──
-    print(f"\n[4] STAGE 4: KuzuDB Graph Ingestion (MERGE)")
+    print("\n[4] STAGE 4: KuzuDB Graph Ingestion (MERGE)")
     print("-" * 50)
 
-    conn, db, graph_export = _rt.ingest_to_kuzu(okf_results, db_path=str(_rt.BASE_DIR / "okf_graph.db"))
+    _conn, db, graph_export = _rt.ingest_to_kuzu(
+        okf_results, db_path=str(_rt.BASE_DIR / "okf_graph.db")
+    )
 
     # Call evaluate.structural_audit(db) before finalizing, and raise exception if cycles or self-edges are detected.
     from okf.evaluate import structural_audit
+
     audit_res = structural_audit(db)
     if audit_res.get("self_edges") or audit_res.get("cycles"):
         raise ValueError(
@@ -131,49 +149,53 @@ def finalize_and_build(okf_results: list, total_chunks: int,
     # All artifacts are anchored to BASE_DIR so outputs land next to the
     # resume-read inputs no matter which directory the pipeline runs from.
     from okf.exports import write_all_artifacts
-    graph_audit, accuracy = write_all_artifacts(
-        graph_export, okf_results, db,
+
+    _graph_audit, accuracy = write_all_artifacts(
+        graph_export,
+        okf_results,
+        db,
         total_chunks=total_chunks,
         successful_chunk_count=successful_chunk_count,
         base_dir=_rt.BASE_DIR,
     )
 
     # ── Stage 5: Evaluation ──
-    print(f"\n[5] STAGE 5: Accuracy Evaluation")
+    print("\n[5] STAGE 5: Accuracy Evaluation")
     print("-" * 50)
 
     # If evaluate_gold_path is provided, run the comparison against gold-standard graphs
     if evaluate_gold_path:
         print(f"\n[5a] Comparing against gold standard: {evaluate_gold_path}")
         from okf.evaluate import evaluate_pipeline, print_report
+
         report = evaluate_pipeline(db, evaluate_gold_path)
         print_report(report)
 
     # Print results
     print(f"\n{'=' * 70}")
-    print(f"RESULTS")
+    print("RESULTS")
     print(f"{'=' * 70}")
     print(f"\n  >> Overall Accuracy Score: {accuracy['overall_score']}%")
-    print(f"\n  Breakdown:")
+    print("\n  Breakdown:")
     for metric, value in accuracy["breakdown"].items():
         bar = "#" * int(value / 5) + "." * (20 - int(value / 5))
         print(f"    {metric:30s} {bar} {value}%")
 
-    print(f"\n  Concept Type Distribution:")
+    print("\n  Concept Type Distribution:")
     for t, count in accuracy["distributions"]["concept_types"].items():
         print(f"    {t:20s}: {count}")
 
-    print(f"\n  Difficulty Distribution:")
+    print("\n  Difficulty Distribution:")
     for d, count in accuracy["distributions"]["difficulty_levels"].items():
         print(f"    {d:20s}: {count}")
 
-    print(f"\n  Graph Stats:")
+    print("\n  Graph Stats:")
     for k, v in accuracy["stats"].items():
         print(f"    {k:30s}: {v}")
 
     # Print some sample concept mappings
     print(f"\n{'=' * 70}")
-    print(f"SAMPLE EXTRACTED CONCEPTS")
+    print("SAMPLE EXTRACTED CONCEPTS")
     print(f"{'=' * 70}")
     for result in okf_results[:10]:
         print(f"\n  [{result.get('concept_type', '?'):10s}] {result['concept_name']}")
@@ -191,24 +213,35 @@ def finalize_and_build(okf_results: list, total_chunks: int,
             print(f"    Tags: {', '.join(result['tags'][:5])}")
 
     print(f"\n{'=' * 70}")
-    print(f"GRAPH EDGES (sample)")
+    print("GRAPH EDGES (sample)")
     print(f"{'=' * 70}")
     for edge in graph_export["edges"][:20]:
-        arrow = "--requires-->" if edge["edge_type"] == "REQUIRES" else \
-                "--unlocks--->" if edge["edge_type"] == "UNLOCKS" else \
-                f"--{edge['relation']:10s}->"
+        arrow = (
+            "--requires-->"
+            if edge["edge_type"] == "REQUIRES"
+            else "--unlocks--->"
+            if edge["edge_type"] == "UNLOCKS"
+            else f"--{edge['relation']:10s}->"
+        )
         print(f"  {edge['from_name'][:30]:30s} {arrow} {edge['to_name'][:30]}")
 
     print(f"\n{'=' * 70}")
-    print(f"[OK] Pipeline complete! Files: okf_results.json, okf_graph.json, graph_audit.json, accuracy.json")
+    print(
+        "[OK] Pipeline complete! Files: okf_results.json, okf_graph.json, graph_audit.json, accuracy.json"
+    )
     print(f"{'=' * 70}")
 
     return okf_results, graph_export, accuracy
 
 
-def run_pipeline(input_path: str = None, resume: bool = False, local: bool = False, evaluate_gold_path: str = None):
+def run_pipeline(
+    input_path: str | None = None,
+    resume: bool = False,
+    local: bool = False,
+    evaluate_gold_path: str | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]] | None:
     """Run the full Archipelago pipeline."""
-    from archipelago.ingestion.pdf_io import ingest_document, ingest_folder
+    from pdf_ingestion import ingest_document, ingest_folder
 
     print("=" * 70)
     print("ARCHIPELAGO PIPELINE - PDF -> OKF v1.5 -> KuzuDB Graph RAG")
@@ -245,7 +278,7 @@ def run_pipeline(input_path: str = None, resume: bool = False, local: bool = Fal
 
     if not prose_chunks:
         print("ERROR: No prose chunks to extract from!")
-        return
+        return None
     chunks = prose_chunks
 
     # ── Stage 2: OKF v1.5 Extraction ──
@@ -259,7 +292,7 @@ def run_pipeline(input_path: str = None, resume: bool = False, local: bool = Fal
     successful_chunk_count = 0
     if resume and saved_file.exists():
         print("  RESUMING from saved okf_results.json...")
-        with open(saved_file, "r", encoding="utf-8") as f:
+        with open(saved_file, encoding="utf-8") as f:
             okf_results = json.load(f)
         # Build map of chunks to restore page_number and section_title
         chunk_map = {(c["doc_id"], c["chunk_id"]): c for c in raw_chunks}
@@ -286,10 +319,9 @@ def run_pipeline(input_path: str = None, resume: bool = False, local: bool = Fal
             if r.get("concept_name"):
                 fixed.append(r)
         okf_results = fixed
-        successful_chunk_count = len({
-            (r.get("doc_id", ""), r.get("chunk_id", ""))
-            for r in okf_results if r.get("chunk_id")
-        })
+        successful_chunk_count = len(
+            {(r.get("doc_id", ""), r.get("chunk_id", "")) for r in okf_results if r.get("chunk_id")}
+        )
         print(f"  Loaded {len(okf_results)} results (fixed list-type names)")
     else:
         if local:
@@ -297,7 +329,13 @@ def run_pipeline(input_path: str = None, resume: bool = False, local: bool = Fal
         okf_results, successful_chunk_count = extract_chunks_with_model(chunks)
         print(f"\n  Extracted: {len(okf_results)} concepts from {total_chunks} chunks")
 
-    return finalize_and_build(okf_results, total_chunks, successful_chunk_count, chunks=raw_chunks if resume else chunks, evaluate_gold_path=evaluate_gold_path)
+    return finalize_and_build(
+        okf_results,
+        total_chunks,
+        successful_chunk_count,
+        chunks=raw_chunks if resume else chunks,
+        evaluate_gold_path=evaluate_gold_path,
+    )
 
 
 def compute_doc_id(path: str) -> str:

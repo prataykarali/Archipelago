@@ -1,9 +1,11 @@
 """DOI (Digital Object Identifier) Link Resolver."""
+
 from __future__ import annotations
 
 import logging
 import re
 from typing import Any
+
 import requests
 
 logger = logging.getLogger("archipelago.resolver.doi")
@@ -31,9 +33,8 @@ def resolve_doi(input_str: str, timeout: int = 8) -> dict[str, Any]:
             "source": "doi",
         }
 
-
     doi_url = f"https://doi.org/{doi}"
-    
+
     # Try resolving doi.org via handle API first for speed
     api_url = f"https://doi.org/api/handles/{doi}"
     try:
@@ -79,4 +80,3 @@ def resolve_doi(input_str: str, timeout: int = 8) -> dict[str, Any]:
         "doi_url": doi_url,
         "source": "doi",
     }
-

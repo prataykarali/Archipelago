@@ -7,9 +7,9 @@ eliminating mutable global request state.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 import uuid
-from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .chunk import RetrievedChunk
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 @dataclass
 class RequestContext:
     """Explicit request execution context.
-    
+
     Every request processed by the Archipelago pipeline receives a unique,
     isolated RequestContext instance to prevent cross-request context pollution.
     """
@@ -26,7 +26,7 @@ class RequestContext:
     query: str
     user_id: str = "anonymous"
     request_id: str = field(default_factory=lambda: f"req_{uuid.uuid4().hex[:12]}")
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     intent: str | None = None
     retrieved_sources: list[RetrievedChunk] = field(default_factory=list)
     graph_nodes: list[str] = field(default_factory=list)

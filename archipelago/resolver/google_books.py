@@ -1,8 +1,10 @@
 """Google Books Link Resolver."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
+
 import requests
 
 from archipelago.resolver.openlibrary import _is_plausible_isbn, _title_matches

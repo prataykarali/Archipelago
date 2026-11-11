@@ -1,14 +1,18 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import re
 from typing import Any
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def format_citation(query: str) -> str:
     """Format an authoritative citation lookup for a given title or paper query."""
-    clean_q = re.sub(r"^(?:cite|citation\s+for|reference\s+for)\s+", "", (query or "").strip(), flags=re.I).strip(" '\"")
+    clean_q = re.sub(
+        r"^(?:cite|citation\s+for|reference\s+for)\s+", "", (query or "").strip(), flags=re.I
+    ).strip(" '\"")
     if not clean_q:
         clean_q = "Deep Learning"
 
@@ -73,9 +77,14 @@ def format_citation(query: str) -> str:
 
 def copies_for_title(query: str) -> dict[str, Any]:
     """Look up copy counts and availability for a specific title in the catalog."""
-    clean_q = re.sub(r"^(?:how\s+many\s+copies\s+of|copies\s+of|is\s+there\s+a\s+copy\s+of)\s+", "", (query or "").strip(), flags=re.I).strip(" '\"")
+    clean_q = re.sub(
+        r"^(?:how\s+many\s+copies\s+of|copies\s+of|is\s+there\s+a\s+copy\s+of)\s+",
+        "",
+        (query or "").strip(),
+        flags=re.I,
+    ).strip(" '\"")
     needle = clean_q.lower()
-    
+
     for row in _rt._read_csv(_rt._HOLDINGS_CSV):
         title = (row.get("title") or "").strip()
         if needle in title.lower() or title.lower() in needle:
@@ -114,12 +123,14 @@ def format_copies_reply(query: str) -> str:
         ]
         if info["barcodes"]:
             lines.append(f"- **Accession / Barcodes**: `{info['barcodes']}`")
-        lines.extend([
-            "",
-            "⚠️ *Note: Holdings export is partial — for live campus-wide availability, please confirm on OPAC.*",
-            "",
-            "📍 **See also:** [Holdings](/library#holdings) · [Live OPAC](https://uemk-opac.l2c2.co.in)",
-        ])
+        lines.extend(
+            [
+                "",
+                "⚠️ *Note: Holdings export is partial — for live campus-wide availability, please confirm on OPAC.*",
+                "",
+                "📍 **See also:** [Holdings](/library#holdings) · [Live OPAC](https://uemk-opac.l2c2.co.in)",
+            ]
+        )
         return "\n".join(lines)
     return (
         f"Could not find exact holdings record matching '{info['title']}' in the current holdings export.\n\n"

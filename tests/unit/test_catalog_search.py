@@ -13,6 +13,7 @@ Covers the ``Resource`` / ``Subject`` catalog path end to end:
 
 Deterministic: builds a throwaway Kuzu database in ``tmp_path``.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -143,9 +144,7 @@ def test_resource_id_is_stable_across_calls():
 
 
 def test_subject_id_is_slugged():
-    assert subject_id("Signal Processing & Mathematics") == (
-        "subj_signal_processing_mathematics"
-    )
+    assert subject_id("Signal Processing & Mathematics") == ("subj_signal_processing_mathematics")
 
 
 @pytest.mark.parametrize("cell, expected", [("7", 7), (7, 7), ("", 0), (None, 0), ("n/a", 0)])
@@ -184,8 +183,12 @@ def _make_koha_export(tmp_path: Path) -> Path:
             "Overdue Items": [0, 1],
         }
     )
-    subjects.to_excel(koha / "SUBJECT-WISE TITLE COUNT-reportresults.ods", engine="odf", index=False)
-    titles.to_excel(koha / "Titles List with specified keyword-reportresults.ods", engine="odf", index=False)
+    subjects.to_excel(
+        koha / "SUBJECT-WISE TITLE COUNT-reportresults.ods", engine="odf", index=False
+    )
+    titles.to_excel(
+        koha / "Titles List with specified keyword-reportresults.ods", engine="odf", index=False
+    )
     return koha
 
 
@@ -205,7 +208,10 @@ def test_ingest_catalog_populates_and_is_idempotent(tmp_path):
     conn = kuzu.Connection(kuzu.Database(db_path, read_only=True))
     assert conn.execute("MATCH (r:Resource) RETURN count(r)").get_next()[0] == 2
     assert conn.execute("MATCH (s:Subject) RETURN count(s)").get_next()[0] == 2
-    assert conn.execute("MATCH (s:Subject)-[:CATEGORIZES]->(r:Resource) RETURN count(*)").get_next()[0] == 2
+    assert (
+        conn.execute("MATCH (s:Subject)-[:CATEGORIZES]->(r:Resource) RETURN count(*)").get_next()[0]
+        == 2
+    )
 
     second = ingest_catalog(db_path, str(koha))
     assert second == first
@@ -259,9 +265,7 @@ def test_pearson_bookshelf_populates_searchable_books(tmp_path):
 
 
 def test_pearson_bookshelf_missing_file_is_a_no_op(tmp_path):
-    result = ingest_pearson_bookshelf(
-        str(tmp_path / "x.db"), str(tmp_path / "absent.json")
-    )
+    result = ingest_pearson_bookshelf(str(tmp_path / "x.db"), str(tmp_path / "absent.json"))
     assert result == {"subjects": 0, "resources": 0}
 
 

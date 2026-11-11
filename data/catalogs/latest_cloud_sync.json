@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-10-15T18:16:32Z",
+  "huggingface": {
+    "status": "success",
+    "uploaded_files": [
+      "datasets/dataset1_pedagogical_revamped.jsonl",
+      "datasets/dataset2_scholarly_evidence.jsonl",
+      "datasets/slm_ingestion_queue.jsonl",
+      "catalogs/live_scholarly_manifest.json",
+      "catalogs/latest_harvest_summary.json",
+      "models/lib_qwen_scholarly_lora/adapter_config.json",
+      "models/lib_qwen_scholarly_lora/adapter_model.safetensors",
+      "models/lib_qwen_scholarly_lora/training_args.bin"
+    ],
+    "errors": [],
+    "repo_id": "Prataykarali/graphier"
+  },
+  "vercel": {
+    "timestamp": "2026-10-15T18:16:27Z",
+    "vercel_url": "https://archipelago-blond.vercel.app",
+    "manifest_synced": true,
+    "deploy_hook_triggered": false,
+    "live_site_reachable": true
+  }
+}

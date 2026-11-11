@@ -1,36 +1,43 @@
 """Wire Flask routes and one shared auth boundary onto state.app."""
+
 from flask import g, jsonify, request
 
-from archipelago.inference import routes_misc  # noqa: F401
-from archipelago.inference import routes_chat  # noqa: F401
-from archipelago.inference import routes_page_view  # noqa: F401
+from archipelago import supabase_auth
+from archipelago.auth import load_user
+
 # Registered for its side effect: /api/context-status is defined here, and the
 # module was never imported by this bootstrap, so the route did not exist on the
 # app it builds — a 404 for a documented endpoint.
-from archipelago.inference import routes_context  # noqa: F401
+from archipelago.inference import (
+    routes_chat,  # noqa: F401
+    routes_context,  # noqa: F401
+    routes_misc,  # noqa: F401
+    routes_page_view,  # noqa: F401
+)
+from archipelago.inference.routes_chat import init_concepts_data  # noqa: F401
 from archipelago.inference.state import app
-from archipelago.inference.routes_chat import init_concepts_data
-from archipelago.auth import load_user
-from archipelago import supabase_auth
 
 app.before_request(load_user)
 
-_PUBLIC_PATHS = frozenset({
-    "/api/readiness",
-    "/api/health",
-    # Container probes cannot present a user session, so liveness/readiness are
-    # always reachable. They expose service status only, never corpus content.
-    "/health",
-    "/ready",
-    "/api/ingest/capabilities",
-    "/api/auth/config",
-    "/api/page-view",
-    "/api/chat",
-    "/api/chat/telemetry",
-    "/api/chat/diagnostic-mcqs",
-    "/api/chat/verify-mcq",
-    "/api/chat/adaptive-step",
-})
+_PUBLIC_PATHS = frozenset(
+    {
+        "/api/readiness",
+        "/api/health",
+        # Container probes cannot present a user session, so liveness/readiness are
+        # always reachable. They expose service status only, never corpus content.
+        "/health",
+        "/ready",
+        "/api/context-status",
+        "/api/ingest/capabilities",
+        "/api/auth/config",
+        "/api/page-view",
+        "/api/chat",
+        "/api/chat/telemetry",
+        "/api/chat/diagnostic-mcqs",
+        "/api/chat/verify-mcq",
+        "/api/chat/adaptive-step",
+    }
+)
 _STAFF_PREFIXES = ("/api/users", "/api/ingest", "/api/documents", "/api/manual/")
 
 
@@ -51,6 +58,11 @@ def enforce_verified_session():
             return jsonify({"error": "unauthorized", "detail": error}), 401
         g.archipelago_principal = principal
 
-    if request.path.startswith(_STAFF_PREFIXES) and principal.role not in {"librarian", "administrator"}:
-        return jsonify({"error": "forbidden", "detail": "Librarian or administrator role required"}), 403
+    if request.path.startswith(_STAFF_PREFIXES) and principal.role not in {
+        "librarian",
+        "administrator",
+    }:
+        return jsonify(
+            {"error": "forbidden", "detail": "Librarian or administrator role required"}
+        ), 403
     return None

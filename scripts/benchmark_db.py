@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
 import statistics
 import sys
@@ -23,7 +22,7 @@ _src_dir = _repo_root / "src"
 if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
-from archipelago.graph.engine import KuzuGraphEngine
+from archipelago.graph.engine import KuzuGraphEngine  # noqa: E402
 
 
 def benchmark_query(
@@ -68,11 +67,14 @@ def run_benchmarks(db_path: str, iterations: int = 100) -> dict[str, Any]:
     """Execute standard suite of benchmark queries against KùzuDB instance."""
     path = Path(db_path)
     if not path.exists():
-        print(f"Warning: Database path '{db_path}' does not exist. Creating synthetic in-memory/temp DB.")
+        print(
+            f"Warning: Database path '{db_path}' does not exist. Creating synthetic in-memory/temp DB."
+        )
         # Setup synthetic benchmark DB
         temp_dir = Path("/tmp/archipelago_bench_db")
         if temp_dir.exists():
             import shutil
+
             shutil.rmtree(temp_dir)
         engine = KuzuGraphEngine(temp_dir, read_only=False)
         engine.execute("CREATE NODE TABLE Concept(name STRING, level INT64, PRIMARY KEY(name))")
@@ -81,7 +83,9 @@ def run_benchmarks(db_path: str, iterations: int = 100) -> dict[str, Any]:
         for i in range(100):
             engine.execute(f"CREATE (:Concept {{name: 'C_{i}', level: {i % 4}}})")
         for i in range(90):
-            engine.execute(f"MATCH (a:Concept), (b:Concept) WHERE a.name = 'C_{i}' AND b.name = 'C_{i+1}' CREATE (a)-[:REQUIRES]->(b)")
+            engine.execute(
+                f"MATCH (a:Concept), (b:Concept) WHERE a.name = 'C_{i}' AND b.name = 'C_{i + 1}' CREATE (a)-[:REQUIRES]->(b)"
+            )
     else:
         engine = KuzuGraphEngine(path, read_only=True)
 
@@ -117,7 +121,9 @@ def run_benchmarks(db_path: str, iterations: int = 100) -> dict[str, Any]:
 def main():
     parser = argparse.ArgumentParser(description="KùzuDB Micro-benchmarks")
     parser.add_argument("--db-path", default="okf_graph.db", help="Path to KùzuDB database")
-    parser.add_argument("--iterations", type=int, default=100, help="Number of benchmark iterations")
+    parser.add_argument(
+        "--iterations", type=int, default=100, help="Number of benchmark iterations"
+    )
     parser.add_argument("--output-json", help="Path to write JSON benchmark report")
     args = parser.parse_args()
 

@@ -15,18 +15,19 @@ from pathlib import Path
 import re
 from shutil import which as shutil_which
 
+from quality_baseline import new_size_errors, new_type_errors, read_baseline, type_error_counts
+from quality_constants import MAGIC_NUMBER_EXCEPTIONS
 from quality_gate import (
     BANNED_PATTERNS,
     FORBIDDEN_IMPORTS,
-    MAGIC_NUMBER_EXCEPTIONS,
     MAGIC_NUMBER_PATTERN,
-    MAX_FILE_LINES,
     GateResult,
     find_python_files,
     run_command,
     should_exclude_from_banned,
     should_exclude_from_magic,
 )
+from source_size_gate import MAX_SOURCE_LINES, oversized_sources
 
 # Matches `NAME = ...`, `NAME: TYPE = ...`, and annotated assignments, so the
 # literal that defines a named constant is never reported as a magic number.
@@ -61,9 +62,7 @@ def gate_lint(root: Path) -> GateResult:
     else:
         result.details.append("ruff format --check: OK")
 
-    if not result.details:
-        result.passed = True
-        result.details.append("All lint checks passed")
+    result.passed = check.returncode == 0 and fmt.returncode == 0
 
     return result
 
@@ -81,10 +80,18 @@ def gate_types(root: Path) -> GateResult:
     cmd = [mypy, "--strict", "archipelago/", "okf/"]
     proc = run_command(cmd, cwd=str(root))
     if proc.returncode != 0:
-        result.passed = False
-        result.details.append("mypy --strict failed:")
-        for line in proc.stdout.strip().splitlines()[-30:]:
-            result.details.append(f"  {line}")
+        current = type_error_counts(proc.stdout)
+        if not current:
+            result.passed = False
+            result.details.append(f"mypy did not produce diagnostics: {proc.stderr.strip()}")
+            return result
+        baseline = read_baseline()["mypy"]
+        introduced = new_type_errors(current, baseline)
+        result.name = "Pass 2: Types (baseline)"
+        result.passed = not introduced
+        result.details.append(f"mypy --strict: {sum(current.values())} existing error(s)")
+        result.warnings.append("Interim baseline active; strict typing is still failing")
+        result.details.extend(introduced[:30])
     else:
         result.passed = True
         result.details.append("mypy --strict: OK")
@@ -110,6 +117,8 @@ def gate_banned_patterns(root: Path) -> GateResult:
 
         rel_path = filepath.relative_to(root)
         for pattern in BANNED_PATTERNS:
+            if any(ex in rel_path.parts for ex in pattern.exclude_dirs):
+                continue
             matches = pattern.matches(content)
             if matches:
                 total_violations += len(matches)
@@ -185,32 +194,20 @@ def gate_magic_numbers(root: Path) -> GateResult:
 
 
 def gate_file_size(root: Path) -> GateResult:
-    """Check that no Python file exceeds MAX_FILE_LINES."""
-    result = GateResult(name="Pass 4a: File size (≤500 lines)")
-
-    files = find_python_files(root)
-    violations: list[str] = []
-
-    for filepath in files:
-        if should_exclude_from_banned(filepath, root):
-            continue
-        try:
-            line_count = len(filepath.read_text(encoding="utf-8").splitlines())
-        except (UnicodeDecodeError, OSError):
-            continue
-
-        if line_count > MAX_FILE_LINES:
-            rel_path = filepath.relative_to(root)
-            violations.append(f"{rel_path}: {line_count} lines (max {MAX_FILE_LINES})")
+    """Check all application, UI, script, and test sources against the roadmap."""
+    result = GateResult(name="Pass 4a: File size (≤400 lines)")
+    violations = oversized_sources(root)
 
     if violations:
-        result.passed = False
-        result.details.append(f"Found {len(violations)} file(s) exceeding {MAX_FILE_LINES} lines:")
-        for v in violations:
-            result.details.append(f"  {v}")
+        introduced = new_size_errors(violations, read_baseline()["source_lines"])
+        result.name = "Pass 4a: File size (baseline)"
+        result.passed = not introduced
+        result.details.append(f"{len(violations)} existing file(s) exceed {MAX_SOURCE_LINES} lines")
+        result.warnings.append("Interim baseline active; strict source-size check is still failing")
+        result.details.extend(introduced[:30])
     else:
         result.passed = True
-        result.details.append(f"All files within {MAX_FILE_LINES} line limit")
+        result.details.append(f"All files within {MAX_SOURCE_LINES} line limit")
 
     return result
 

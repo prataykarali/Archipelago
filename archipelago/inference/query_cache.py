@@ -3,13 +3,14 @@
 Follows the reference architecture:
 STUDENT -> Normalize Query -> Redis / Cache -> HIT (Return) | MISS (...)
 """
+
 from __future__ import annotations
 
-import re
-import time
-import threading
 from collections import OrderedDict
-from typing import Any, Optional
+import re
+import threading
+import time
+from typing import Any
 
 _LOCK = threading.Lock()
 _CACHE: OrderedDict[str, tuple[float, Any]] = OrderedDict()
@@ -27,7 +28,7 @@ def normalize_query(query: str) -> str:
     return q
 
 
-def get_cached_response(query: str) -> Optional[Any]:
+def get_cached_response(query: str) -> Any | None:
     """Return cached response if present and not expired, else None."""
     norm = normalize_query(query)
     if not norm:

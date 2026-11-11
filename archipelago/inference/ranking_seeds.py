@@ -2,207 +2,26 @@ from __future__ import annotations
 
 from typing import Any
 
+from archipelago.inference.ranking_seed_data import (
+    _BOOK_SIGNAL_BY_TITLE as _BOOK_SIGNAL_BY_TITLE,
+)
+from archipelago.inference.ranking_seed_data import (
+    _PAPER_SIGNAL_BY_TITLE as _PAPER_SIGNAL_BY_TITLE,
+)
+from archipelago.inference.ranking_seed_data import (
+    SEED_BOOKS as SEED_BOOKS,
+)
+from archipelago.inference.ranking_seed_data import (
+    SEED_PAPERS as SEED_PAPERS,
+)
+
 
 def detect_subject_key(query: str) -> str | None:
     """Identify subject from stack + graph."""
     from archipelago.inference.stack_domains import detect_stack_subject_key
+
     return detect_stack_subject_key(query)
 
-
-SEED_BOOKS: list[dict[str, Any]] = [
-    {
-        "title": "Database System Concepts",
-        "authors": "Silberschatz, Korth, Sudarshan",
-        "subject_key": "dbms",
-        "kind": "textbook",
-        "doc_id_hint": "textbooks/db_concepts.pdf",
-    },
-    {
-        "title": "Modern Operating Systems",
-        "authors": "Andrew S. Tanenbaum",
-        "subject_key": "operating_systems",
-        "kind": "textbook",
-        "doc_id_hint": "textbooks/modern_operating_systems.pdf",
-    },
-    {
-        "title": "Operating Systems: Three Easy Pieces",
-        "authors": "Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau",
-        "subject_key": "operating_systems",
-        "kind": "textbook",
-        "doc_id_hint": "ostep_three_easy_pieces/00_Preface.pdf",
-    },
-    {
-        "title": "Introduction to Algorithms",
-        "authors": "Cormen, Leiserson, Rivest, Stein",
-        "subject_key": "data_structures",
-        "kind": "textbook",
-        "doc_id_hint": "textbooks/clrs.pdf",
-    },
-    {
-        "title": "Data Structures and Algorithms in Python",
-        "authors": "Goodrich, Tamassia, Goldwasser",
-        "subject_key": "data_structures",
-        "kind": "textbook",
-        "doc_id_hint": "textbooks/dsa_python.pdf",
-    },
-    {
-        "title": "Mathematics for Machine Learning",
-        "authors": "Deisenroth, Faisal, Ong",
-        "subject_key": "aiml",
-        "kind": "textbook",
-        "doc_id_hint": "textbooks/Deisenroth_Math_For_ML.pdf",
-    },
-    {
-        "title": "Neural Networks and Learning Machines",
-        "authors": "Simon Haykin",
-        "subject_key": "aiml",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9781282645820",
-        "rank_reason": "Classic NN textbook; Pearson institutional e-book",
-    },
-    {
-        "title": "Artificial Intelligence: A Modern Approach, 4/e",
-        "authors": "Stuart J. Russell, Peter Norvig",
-        "subject_key": "aiml",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9789356063488",
-        "rank_reason": "Canonical AI survey; top author authority",
-    },
-    {
-        "title": "Operating Systems: Internals and Design Principles, Global Edition",
-        "authors": "William Stallings",
-        "subject_key": "operating_systems",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9781292214306",
-        "rank_reason": "Systems design depth; pairs with OSTEP",
-    },
-    {
-        "title": "Speech and Language Processing 2/e",
-        "authors": "Jurafsky, Martin",
-        "subject_key": "aiml",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9789353948078",
-        "rank_reason": "Standard NLP reference (Pearson edition)",
-    },
-    {
-        "title": "Computer Vision",
-        "authors": "Forsyth, Ponce",
-        "subject_key": "aiml",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9781292014081",
-        "rank_reason": "Core vision text; Pearson institutional e-book",
-    },
-    {
-        "title": "Data Structures Using C, 1e",
-        "authors": "Tenenbaum, Langsam, Augenstein",
-        "subject_key": "data_structures",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9789353948849",
-        "rank_reason": "Classic DSA with C; Pearson e-book",
-    },
-    {
-        "title": "Software Engineering",
-        "authors": "Ian Sommerville",
-        "subject_key": "aiml",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9789352861569",
-        "rank_reason": "Widely adopted SE survey; Pearson e-book",
-    },
-    {
-        "title": "Computer Organization and Architecture",
-        "authors": "William Stallings",
-        "subject_key": "operating_systems",
-        "kind": "textbook",
-        "doc_id_hint": None,
-        "source": "pearson_elibrary",
-        "isbn": "9789356062931",
-        "rank_reason": "Hardware/org foundation; author authority",
-    },
-]
-
-SEED_PAPERS: list[dict[str, Any]] = [
-    {
-        "title": "LoRA: Low-Rank Adaptation of Large Language Models",
-        "authors": "Edward J. Hu et al.",
-        "subject_key": "aiml",
-        "kind": "paper",
-        "venue": "arXiv 2021",
-        "doc_id_hint": "papers/Hu2021_LoRA.pdf",
-    },
-    {
-        "title": "Attention Is All You Need",
-        "authors": "Vaswani et al.",
-        "subject_key": "aiml",
-        "kind": "paper",
-        "venue": "NeurIPS 2017",
-        "doc_id_hint": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
-    },
-    {
-        "title": "BERT: Pre-training of Deep Bidirectional Transformers",
-        "authors": "Devlin et al.",
-        "subject_key": "aiml",
-        "kind": "paper",
-        "venue": "NAACL 2019",
-        "doc_id_hint": "papers/Devlin2018_BERT.pdf",
-    },
-    {
-        "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
-        "authors": "Lewis et al.",
-        "subject_key": "aiml",
-        "kind": "paper",
-        "venue": "NeurIPS 2020",
-        "doc_id_hint": "papers/Lewis2020_RAG.pdf",
-    },
-    {
-        "title": "Language Models are Few-Shot Learners",
-        "authors": "Brown et al.",
-        "subject_key": "aiml",
-        "kind": "paper",
-        "venue": "NeurIPS 2020",
-        "doc_id_hint": "papers/Brown2020_GPT3.pdf",
-    },
-]
-
-# Scores are normalized, librarian-reviewed metadata.  They deliberately live
-# with the source/provenance rather than being inferred by the reply model.
-_BOOK_SIGNAL_BY_TITLE: dict[str, dict[str, Any]] = {
-    "database system concepts": {"author_authority": 0.94, "review_score": 0.91, "recency_score": 0.76, "source": "publisher_and_librarian_review"},
-    "modern operating systems": {"author_authority": 0.96, "review_score": 0.90, "recency_score": 0.82, "source": "publisher_and_librarian_review"},
-    "operating systems: three easy pieces": {"author_authority": 0.91, "review_score": 0.93, "recency_score": 0.88, "source": "open_textbook_and_librarian_review"},
-    "introduction to algorithms": {"author_authority": 0.98, "review_score": 0.95, "recency_score": 0.80, "source": "publisher_and_librarian_review"},
-    "data structures and algorithms in python": {"author_authority": 0.88, "review_score": 0.87, "recency_score": 0.84, "source": "publisher_and_librarian_review"},
-    "mathematics for machine learning": {"author_authority": 0.96, "review_score": 0.98, "recency_score": 0.95, "source": "open_textbook_and_librarian_review"},
-    "neural networks and learning machines": {"author_authority": 0.93, "review_score": 0.88, "recency_score": 0.72, "source": "pearson_and_librarian_review"},
-    "artificial intelligence: a modern approach, 4/e": {"author_authority": 0.99, "review_score": 0.96, "recency_score": 0.91, "source": "pearson_and_librarian_review"},
-    "operating systems: internals and design principles, global edition": {"author_authority": 0.92, "review_score": 0.86, "recency_score": 0.85, "source": "pearson_and_librarian_review"},
-    "speech and language processing 2/e": {"author_authority": 0.98, "review_score": 0.94, "recency_score": 0.74, "source": "pearson_and_librarian_review"},
-    "computer vision": {"author_authority": 0.89, "review_score": 0.84, "recency_score": 0.70, "source": "pearson_and_librarian_review"},
-    "data structures using c, 1e": {"author_authority": 0.86, "review_score": 0.80, "recency_score": 0.62, "source": "pearson_and_librarian_review"},
-    "software engineering": {"author_authority": 0.94, "review_score": 0.90, "recency_score": 0.86, "source": "pearson_and_librarian_review"},
-    "computer organization and architecture": {"author_authority": 0.92, "review_score": 0.87, "recency_score": 0.79, "source": "pearson_and_librarian_review"},
-}
-
-_PAPER_SIGNAL_BY_TITLE: dict[str, dict[str, Any]] = {
-    "lora: low-rank adaptation of large language models": {"author_authority": 0.93, "review_score": 0.91, "citation_impact": 0.94, "recency_score": 0.88, "source": "arxiv_and_scholarly_index_review"},
-    "attention is all you need": {"author_authority": 0.99, "review_score": 0.98, "citation_impact": 1.0, "recency_score": 0.78, "source": "neurips_and_scholarly_index_review"},
-    "bert: pre-training of deep bidirectional transformers": {"author_authority": 0.97, "review_score": 0.96, "citation_impact": 0.99, "recency_score": 0.83, "source": "naacl_and_scholarly_index_review"},
-    "retrieval-augmented generation for knowledge-intensive nlp tasks": {"author_authority": 0.94, "review_score": 0.93, "citation_impact": 0.92, "recency_score": 0.90, "source": "neurips_and_scholarly_index_review"},
-    "language models are few-shot learners": {"author_authority": 0.98, "review_score": 0.94, "citation_impact": 0.97, "recency_score": 0.89, "source": "neurips_and_scholarly_index_review"},
-}
 
 _TOPIC_WEIGHT = 0.35
 _AUTHOR_WEIGHT = 0.20
@@ -216,9 +35,17 @@ _MAX_RECOMMENDATIONS = 4
 # Fine-grained domain keys still match the broader AIML seed bucket so
 # "papers on RAG" does not empty the librarian shortlist.
 _SUBJECT_FAMILIES: dict[str, frozenset[str]] = {
-    "aiml": frozenset({
-        "aiml", "rag", "finetuning", "deep_learning", "gnn", "mathematics", "syllabi",
-    }),
+    "aiml": frozenset(
+        {
+            "aiml",
+            "rag",
+            "finetuning",
+            "deep_learning",
+            "gnn",
+            "mathematics",
+            "syllabi",
+        }
+    ),
     "rag": frozenset({"rag", "aiml"}),
     "finetuning": frozenset({"finetuning", "aiml"}),
     "deep_learning": frozenset({"deep_learning", "aiml"}),
@@ -318,9 +145,7 @@ def rank_seed_entries(
             tok in title_lower for tok in ("lora", "qlora", "adapter", "fine")
         ):
             topic_match = max(topic_match, 1.0)
-        if subject == "gnn" and any(
-            tok in title_lower for tok in ("graph", "gcn", "gat")
-        ):
+        if subject == "gnn" and any(tok in title_lower for tok in ("graph", "gcn", "gat")):
             topic_match = max(topic_match, 1.0)
         if "rag" in q_low and "retrieval" in title_lower:
             topic_match = max(topic_match, 1.0)

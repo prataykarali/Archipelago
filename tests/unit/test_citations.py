@@ -30,6 +30,7 @@ _SID_RE = re.compile(r"^S\d+$")
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
+
 def _import_inference_server():
     """Import a namespace that exposes both state attributes and citation functions.
 
@@ -38,20 +39,28 @@ def _import_inference_server():
     """
     try:
         import types
-        import archipelago.inference.state as _st
-        import archipelago.inference.citations as _cit
 
-        ns = types.SimpleNamespace(**{
-            k: getattr(_st, k) for k in dir(_st) if not k.startswith("_")
-        })
+        import archipelago.inference.citations as _cit
+        import archipelago.inference.state as _st
+
+        ns = types.SimpleNamespace(
+            **{k: getattr(_st, k) for k in dir(_st) if not k.startswith("_")}
+        )
         # Overlay citation functions that tests depend on
         for name in (
-            "build_concept_citation_map", "validate_citations",
-            "citation_payload", "build_citation_payloads",
-            "_resolve_printed_page", "_page_display", "_citation_label",
-            "_normalize_legacy_citation", "_evidence_for_concept",
-            "_evidence_for_prerequisite", "compile_narrative_recipe",
-            "_cite_with_link", "build_citation_link",
+            "build_concept_citation_map",
+            "validate_citations",
+            "citation_payload",
+            "build_citation_payloads",
+            "_resolve_printed_page",
+            "_page_display",
+            "_citation_label",
+            "_normalize_legacy_citation",
+            "_evidence_for_concept",
+            "_evidence_for_prerequisite",
+            "compile_narrative_recipe",
+            "_cite_with_link",
+            "build_citation_link",
         ):
             fn = getattr(_cit, name, None)
             if fn is not None:
@@ -94,8 +103,12 @@ def _evidence_record(concept_key, page_number=3, page_label_map=None):
 def _walk_sids(obj, out, mode):
     if isinstance(obj, dict):
         for key, value in obj.items():
-            if (mode == "field" and key == "evidence_id"
-                    and isinstance(value, str) and _SID_RE.match(value)):
+            if (
+                mode == "field"
+                and key == "evidence_id"
+                and isinstance(value, str)
+                and _SID_RE.match(value)
+            ):
                 out.append(value)
             if mode == "key" and isinstance(key, str) and _SID_RE.match(key):
                 out.append(key)
@@ -168,9 +181,7 @@ def _call_citation_payload(fn, evidence_id, topic, evidence):
             except TypeError:
                 pass
 
-    for args in ((evidence_id, topic, evidence),
-                 (evidence, evidence_id, topic),
-                 (evidence,)):
+    for args in ((evidence_id, topic, evidence), (evidence, evidence_id, topic), (evidence,)):
         try:
             return fn(*args)
         except TypeError:
@@ -188,24 +199,22 @@ def _patch_evidence_retrieval(monkeypatch, server, fake_concept_evidence):
     def fake_edge_evidence(*args, **kwargs):
         return None
 
-    monkeypatch.setattr(server, "get_concept_citations", fake_concept_evidence,
-                        raising=False)
-    monkeypatch.setattr(server, "get_evidence_for_concept", fake_concept_evidence,
-                        raising=False)
-    monkeypatch.setattr(server, "get_evidence_for_edge", fake_edge_evidence,
-                        raising=False)
+    monkeypatch.setattr(server, "get_concept_citations", fake_concept_evidence, raising=False)
+    monkeypatch.setattr(server, "get_evidence_for_concept", fake_concept_evidence, raising=False)
+    monkeypatch.setattr(server, "get_evidence_for_edge", fake_edge_evidence, raising=False)
     try:
         import okf.graph_db as graph_db
     except Exception:
         graph_db = None
     if graph_db is not None:
-        monkeypatch.setattr(graph_db, "get_evidence_for_concept",
-                            fake_concept_evidence, raising=False)
-        monkeypatch.setattr(graph_db, "get_evidence_for_edge",
-                            fake_edge_evidence, raising=False)
+        monkeypatch.setattr(
+            graph_db, "get_evidence_for_concept", fake_concept_evidence, raising=False
+        )
+        monkeypatch.setattr(graph_db, "get_evidence_for_edge", fake_edge_evidence, raising=False)
 
 
 # ── tests ────────────────────────────────────────────────────────────────────
+
 
 def test_evidence_ids_assigned_sequentially(monkeypatch):
     """2 prereqs + target + 1 unlock -> S1..S4, sequential, no gaps/duplicates."""
@@ -218,22 +227,26 @@ def test_evidence_ids_assigned_sequentially(monkeypatch):
     _patch_evidence_retrieval(monkeypatch, server, fake_concept_evidence)
 
     prereqs = [
-        {"id": "basic_algebra", "name": "Basic Algebra",
-         "summary": "Solving equations with variables."},
-        {"id": "probability_theory", "name": "Probability Theory",
-         "summary": "Modeling uncertainty."},
+        {
+            "id": "basic_algebra",
+            "name": "Basic Algebra",
+            "summary": "Solving equations with variables.",
+        },
+        {
+            "id": "probability_theory",
+            "name": "Probability Theory",
+            "summary": "Modeling uncertainty.",
+        },
     ]
     unlocks = [
-        {"id": "deep_learning", "name": "Deep Learning",
-         "summary": "Multi-layer neural networks."},
+        {"id": "deep_learning", "name": "Deep Learning", "summary": "Multi-layer neural networks."},
     ]
 
     try:
         citation_map = build("machine_learning", prereqs, unlocks)
     except TypeError as exc:
         pytest.fail(
-            "build_concept_citation_map no longer accepts "
-            f"(target_id, prereqs, unlocks): {exc}"
+            f"build_concept_citation_map no longer accepts (target_id, prereqs, unlocks): {exc}"
         )
 
     sids = _extract_sids(citation_map)
@@ -291,8 +304,16 @@ def test_citation_payload_structure():
     payload = _call_citation_payload(payload_fn, "S1", "Gradient Descent", evidence)
 
     assert isinstance(payload, dict), f"citation_payload must return a dict, got {type(payload)}"
-    required = {"evidence_id", "topic", "doc_id", "page_number", "printed_page",
-                "section_title", "url", "text_span"}
+    required = {
+        "evidence_id",
+        "topic",
+        "doc_id",
+        "page_number",
+        "printed_page",
+        "section_title",
+        "url",
+        "text_span",
+    }
     missing = required - set(payload.keys())
     assert not missing, f"citation_payload missing contract keys: {sorted(missing)}"
 
@@ -303,9 +324,7 @@ def test_citation_payload_structure():
         f"page_number must be an int (PDF 1-based), got {payload['page_number']!r}"
     )
     assert payload["page_number"] == 3
-    assert isinstance(payload["url"], str) and "#page=" in payload["url"], (
-        f"url must deep-link with a #page= fragment, got {payload['url']!r}"
-    )
+    assert payload["url"] == "", "An absent local PDF must not get a guessed page link"
     assert payload["section_title"] == evidence["section_title"]
     assert payload["text_span"], "text_span must be a non-empty supporting span"
 
@@ -316,9 +335,7 @@ def test_printed_vs_pdf_page():
 
     # With a page_label_map mapping printed "112" -> pdf page 3, the payload
     # must surface the printed label.
-    ev_with_map = _evidence_record(
-        "self_attention", page_number=3, page_label_map={"112": 3}
-    )
+    ev_with_map = _evidence_record("self_attention", page_number=3, page_label_map={"112": 3})
     with_map = _call_citation_payload(payload_fn, "S1", "Self-Attention", ev_with_map)
     assert with_map["printed_page"] == "112", (
         "with a page_label_map (printed '112' -> pdf 3), printed_page must be "
@@ -329,12 +346,10 @@ def test_printed_vs_pdf_page():
     # Without a map there is no printed label: printed_page is None and no
     # rendered text may fabricate a "p. N" printed-page claim; any rendered
     # page label must use the "PDF page N" form.
-    ev_no_map = _evidence_record("self_attention", page_number=3,
-                                 page_label_map=None)
+    ev_no_map = _evidence_record("self_attention", page_number=3, page_label_map=None)
     no_map = _call_citation_payload(payload_fn, "S1", "Self-Attention", ev_no_map)
     assert no_map["printed_page"] is None, (
-        "without a page_label_map printed_page must be None; got "
-        f"{no_map['printed_page']!r}"
+        f"without a page_label_map printed_page must be None; got {no_map['printed_page']!r}"
     )
     for key, value in no_map.items():
         if key == "url" or not isinstance(value, str):
@@ -345,6 +360,5 @@ def test_printed_vs_pdf_page():
         )
         if key in ("page_label", "label", "rendered", "display", "citation_label"):
             assert "PDF page" in value, (
-                f"rendered label must say 'PDF page N' when no page_label_map "
-                f"exists; got {value!r}"
+                f"rendered label must say 'PDF page N' when no page_label_map exists; got {value!r}"
             )

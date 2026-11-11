@@ -13,6 +13,7 @@ import requests
 from archipelago import supabase_auth
 from archipelago.academic_automation import AcademicStore
 from archipelago.academic_automation.gpu import gpu_snapshot
+from archipelago.graph.explorer import graph_neighborhood, graph_page, graph_snapshot
 from archipelago.middleware.log_redaction import install_log_redaction
 
 # Access logs must never capture the `?token=`/Authorization values used here.
@@ -20,9 +21,14 @@ install_log_redaction()
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "okf_graph.json"
+GRAPH_DB_FILE = BASE_DIR / "okf_graph.db"
 STATIC_DIR = BASE_DIR / "graph_ui"
-_ASSET_ROOTS = tuple(path for path in (BASE_DIR / "buttons", BASE_DIR / "ui" / "assets") if path.is_dir())
-_PUBLIC_AUTH_PATHS = frozenset({"/api/auth/config", "/api/auth/me", "/api/readiness", "/api/health"})
+_ASSET_ROOTS = tuple(
+    path for path in (BASE_DIR / "buttons", BASE_DIR / "ui" / "assets") if path.is_dir()
+)
+_PUBLIC_AUTH_PATHS = frozenset(
+    {"/api/auth/config", "/api/auth/me", "/api/readiness", "/api/health"}
+)
 
 app = Flask(__name__, static_folder=str(STATIC_DIR))
 
@@ -41,7 +47,12 @@ def enforce_graph_auth():
     if principal is not None and principal.role in {"librarian", "administrator"}:
         g.archipelago_principal = principal
         return None
-    if principal is None and request.path in {"/", "/archipelago_graph.html", "/academic-automation.html"}:
+    if principal is None and request.path in {
+        "/",
+        "/archipelago_graph.html",
+        "/global.html",
+        "/academic-automation.html",
+    }:
         config = supabase_auth.public_config()
         chat_origin = config.get("chatUrl")
         graph_origin = config.get("graphUrl") or request.host_url.rstrip("/")
@@ -50,7 +61,9 @@ def enforce_graph_auth():
             return redirect(f"{chat_origin}/login?next={quote(target, safe='')}", code=302)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": error}), 401
-    return jsonify({"error": "forbidden", "detail": "Librarian or administrator role required"}), 403
+    return jsonify(
+        {"error": "forbidden", "detail": "Librarian or administrator role required"}
+    ), 403
 
 
 @app.after_request
@@ -59,6 +72,11 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = allowed_origin
     response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
     response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,POST,OPTIONS"
+    if (
+        request.headers.get("Origin") == "https://archipelago-blond.vercel.app"
+        and request.headers.get("Access-Control-Request-Private-Network") == "true"
+    ):
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     return response
@@ -82,12 +100,14 @@ def auth_me():
     principal, error = supabase_auth.authenticate_request(request)
     if principal is None:
         return jsonify({"error": "unauthorized", "detail": error}), 401
-    return jsonify({
-        "authenticated": True,
-        "user_id": principal.user_id,
-        "username": principal.username,
-        "role": principal.role,
-    })
+    return jsonify(
+        {
+            "authenticated": True,
+            "user_id": principal.user_id,
+            "username": principal.username,
+            "role": principal.role,
+        }
+    )
 
 
 @app.route("/api/readiness", methods=["GET"])
@@ -100,17 +120,70 @@ def readiness():
 def api_graph():
     data = load_graph()
     visualization = data.get("visualization", {})
-    nodes = visualization.get("nodes", data.get("nodes", []))
+    nodes = data.get("nodes") or visualization.get("nodes", [])
     raw_edges = data.get("edges", [])
-    edges = [{
-        "id": edge.get("id", f"e{index}"),
-        "source": edge.get("from_id") or edge.get("source"),
-        "target": edge.get("to_id") or edge.get("target"),
-        "relation": edge.get("relation"),
-        "edge_type": edge.get("edge_type"),
-        "source_ref": edge.get("source", ""),
-    } for index, edge in enumerate(raw_edges)]
-    return jsonify({"nodes": nodes, "edges": edges, "stats": data.get("stats", {}), "clusters": visualization.get("clusters", {})})
+    edges = [
+        {
+            "id": edge.get("id", f"e{index}"),
+            "source": edge.get("from_id") or edge.get("source"),
+            "target": edge.get("to_id") or edge.get("target"),
+            "relation": edge.get("relation"),
+            "edge_type": edge.get("edge_type"),
+            "source_ref": edge.get("source", ""),
+        }
+        for index, edge in enumerate(raw_edges)
+    ]
+    return jsonify(
+        {
+            "nodes": nodes,
+            "edges": edges,
+            "stats": data.get("stats", {}),
+            "clusters": visualization.get("clusters", {}),
+        }
+    )
+
+
+@app.get("/api/graph/global")
+def api_global_graph():
+    """Page all persisted entity or relation types without truncating storage."""
+    if not GRAPH_DB_FILE.exists():
+        return jsonify({"error": "graph_storage_unavailable"}), 503
+    try:
+        offset = int(request.args.get("offset", 0))
+        limit = int(request.args.get("limit", 100))
+        payload = graph_page(
+            graph_snapshot(GRAPH_DB_FILE),
+            kind=request.args.get("kind", "nodes"),
+            offset=offset,
+            limit=limit,
+            node_type=request.args.get("node_type", ""),
+            relation=request.args.get("relation", ""),
+            search=request.args.get("q", ""),
+        )
+        return jsonify(payload)
+    except (ValueError, TypeError) as error:
+        return jsonify({"error": "invalid_request", "detail": str(error)}), 400
+
+
+@app.get("/api/graph/neighborhood")
+def api_global_neighborhood():
+    """Return selected persisted links with their typed source metadata."""
+    if not GRAPH_DB_FILE.exists():
+        return jsonify({"error": "graph_storage_unavailable"}), 503
+    node_id = request.args.get("id", "")
+    try:
+        return jsonify(
+            graph_neighborhood(
+                graph_snapshot(GRAPH_DB_FILE),
+                node_id,
+                int(request.args.get("limit", 40)),
+                int(request.args.get("hops", 2)),
+            )
+        )
+    except KeyError:
+        return jsonify({"error": "node_not_found"}), 404
+    except (TypeError, ValueError) as error:
+        return jsonify({"error": "invalid_request", "detail": str(error)}), 400
 
 
 @app.get("/api/academic-automation/status")
@@ -141,7 +214,16 @@ def api_node(node_id: str):
     node = next((item for item in nodes if item.get("id") == node_id), None)
     if node is None:
         return jsonify({"error": "node not found"}), 404
-    return jsonify({"node": node, "edges": [edge for edge in edges if edge.get("source") == node_id or edge.get("target") == node_id]})
+    return jsonify(
+        {
+            "node": node,
+            "edges": [
+                edge
+                for edge in edges
+                if edge.get("source") == node_id or edge.get("target") == node_id
+            ],
+        }
+    )
 
 
 @app.route("/api/<path:api_path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -208,12 +290,14 @@ def api_stats():
     visualization = data.get("visualization", {})
     nodes = visualization.get("nodes", data.get("nodes", []))
     edges = data.get("edges", [])
-    return jsonify({
-        "node_count": len(nodes),
-        "edge_count": len(edges),
-        "schema_version": data.get("schema", {}).get("version", "1.6"),
-        "updated_at": data.get("updated_at"),
-    })
+    return jsonify(
+        {
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+            "schema_version": data.get("schema", {}).get("version", "1.6"),
+            "updated_at": data.get("updated_at"),
+        }
+    )
 
 
 @app.route("/")

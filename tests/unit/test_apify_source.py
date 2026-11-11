@@ -1,12 +1,14 @@
 """Unit tests for the cost-capped, approval-gated Apify source client."""
+
 from __future__ import annotations
 
-import json
 from decimal import Decimal
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytest.importorskip("apify_client")
 from archipelago.ingestion import apify_source as apify
 
 pytestmark = pytest.mark.unit
@@ -30,6 +32,30 @@ def _fake_store_http(payload: dict):
     response.__enter__ = lambda self: response
     response.__exit__ = lambda self, *a: False
     return response
+
+
+def test_actor_run_status_preserves_actual_terminal_state(monkeypatch) -> None:
+    run = MagicMock()
+    run.get.return_value = {
+        "status": "SUCCEEDED",
+        "default_dataset_id": "dataset-one",
+        "status_message": "Finished! Total 1 requests: 0 succeeded, 1 failed.",
+        "usage_total_usd": 0.02,
+    }
+    client = MagicMock()
+    client.run.return_value = run
+    monkeypatch.setattr(apify, "_client", lambda: client)
+    status = apify.actor_run_status("run-one")
+    assert status["status"] == "SUCCEEDED"
+    assert status["dataset_id"] == "dataset-one"
+    assert status["status_message"].endswith("0 succeeded, 1 failed.")
+
+
+def test_actor_failure_state_reads_source_error_from_logs(monkeypatch) -> None:
+    client = MagicMock()
+    client.log.return_value.get.return_value = "Received blocked status code: 403"
+    monkeypatch.setattr(apify, "_client", lambda: client)
+    assert apify.actor_failure_state("run-one") == "http_403"
 
 
 def test_not_configured_without_token() -> None:
@@ -207,9 +233,9 @@ def test_gate_start_urls_passes_a_wholly_permitted_batch(monkeypatch) -> None:
 
 
 def test_gate_start_urls_accepts_plain_strings():
-    assert apify.gate_start_urls(
-        ["https://example.com/a"], allowed_hosts={"example.com"}
-    ) == [{"url": "https://example.com/a"}]
+    assert apify.gate_start_urls(["https://example.com/a"], allowed_hosts={"example.com"}) == [
+        {"url": "https://example.com/a"}
+    ]
 
 
 def test_gate_start_urls_is_empty_safe():
@@ -218,6 +244,6 @@ def test_gate_start_urls_is_empty_safe():
 
 
 def test_gate_start_urls_drops_empty_and_malformed_entries():
-    assert apify.gate_start_urls(
-        [{"url": ""}, {"no_url": 1}, 42], allowed_hosts={"example.com"}
-    ) == []
+    assert (
+        apify.gate_start_urls([{"url": ""}, {"no_url": 1}, 42], allowed_hosts={"example.com"}) == []
+    )

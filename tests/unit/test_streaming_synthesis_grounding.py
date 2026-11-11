@@ -3,11 +3,13 @@
 Ollama is the sole generative provider. Tests mock the Ollama client
 so unit runs never hit the network.
 """
+
 from __future__ import annotations
 
 import pytest
-import archipelago.inference.synthesis as synthesis
+
 from archipelago.inference import state as st
+import archipelago.inference.synthesis as synthesis
 from archipelago.inference.synthesis import streaming as synth_streaming
 
 pytestmark = pytest.mark.unit
@@ -22,10 +24,7 @@ def test_stream_system_prompt_is_ollama_based():
 
 def test_malformed_math_is_rejected():
     """Known SLM artifacts are detected as unreadable."""
-    malformed = (
-        "y'_i,j,k,l,m,n,p,q,r,s,t,u,v,w,x,y,z = begincases "
-        "W_ij · x_i endcases"
-    )
+    malformed = "y'_i,j,k,l,m,n,p,q,r,s,t,u,v,w,x,y,z = begincases W_ij · x_i endcases"
     assert not synthesis.is_readable_synthesis(malformed)
     assert synthesis.is_readable_synthesis(
         "LoRA freezes base weights and learns a low-rank update."

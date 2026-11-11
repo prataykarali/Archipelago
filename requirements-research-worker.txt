@@ -1,0 +1,3 @@
+# Install on the local research workstation, not on Vercel.
+-r requirements.txt
+indra-ocr==1.1.2

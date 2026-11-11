@@ -8,10 +8,12 @@ known concepts return natural curriculum answers with prereqs/unlocks metadata.
 """
 
 import json
+
 import pytest
 
 # Mark all tests in this file as integration tests
 pytestmark = pytest.mark.integration
+
 
 def _stream_parts(response):
     body = response.get_data(as_text=True)
@@ -31,7 +33,8 @@ def test_readiness_reports_actual_service_state(flask_test_client):
 def test_out_of_corpus_query_is_rejected_not_forced_to_an_anchor(flask_test_client):
     """Off-domain queries must not invent a curriculum anchor."""
     response = flask_test_client.post(
-        "/api/chat", json={"query": "I want to build a rocket", "mode": "rag_synthesis", "synthesis": False}
+        "/api/chat",
+        json={"query": "I want to build a rocket", "mode": "rag_synthesis", "synthesis": False},
     )
     metadata, text = _stream_parts(response)
     assert response.status_code == 200
@@ -62,11 +65,7 @@ def test_known_concept_uses_compact_indexed_default_response(flask_test_client, 
     assert "basic algebra" in combined or "basic_algebra" in combined
     assert "machine learning" in combined or "machine_learning" in combined
     # Natural fallback and/or indexed path both valid Session 2 surfaces
-    assert (
-        "Learning path:" in text
-        or "Linear Algebra" in text
-        or "linear algebra" in text.lower()
-    )
+    assert "Learning path:" in text or "Linear Algebra" in text or "linear algebra" in text.lower()
     # Routing should be graph-grounded
     route = (metadata.get("routing") or {}).get("route")
     assert route in ("graph_strong", "graph_soft", None) or metadata.get("anchor_concept")

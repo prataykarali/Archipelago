@@ -1,7 +1,7 @@
 .PHONY: ui test lint serve-inference serve-chat serve-graph
 
 ui:
-	npx esbuild books_showcase_src.tsx --bundle --outfile=ui/chat/library_showcase_3d.js --external:three
+	./scripts/build_ui.sh
 
 test:
 	pytest tests/unit/ -k "not test_heavy_gpu" -v

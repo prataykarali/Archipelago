@@ -1,10 +1,7 @@
 """Unit tests for LibQwenConceptExtractor & Ingestion Rules."""
 
-import pytest
-
 from archipelago.ingestion.lib_qwen_extractor import (
     LibQwenConceptExtractor,
-    canonical_concept_id,
     clean_json_payload,
     is_negative_sample,
 )
@@ -12,14 +9,14 @@ from archipelago.ingestion.lib_qwen_extractor import (
 
 def test_clean_json_payload():
     # 1. Bare JSON array wrapped in markdown fences
-    fenced_array = "```json\n[{\"name\": \"Attention\", \"definition\": \"Dynamically weight tokens.\", \"difficulty\": \"intermediate\"}]\n```"
+    fenced_array = '```json\n[{"name": "Attention", "definition": "Dynamically weight tokens.", "difficulty": "intermediate"}]\n```'
     res1 = clean_json_payload(fenced_array)
     assert "concepts" in res1
     assert len(res1["concepts"]) == 1
     assert res1["concepts"][0]["name"] == "Attention"
 
     # 2. Top-level object with concepts key
-    fenced_obj = "```\n{\"concepts\": [{\"name\": \"BERT\", \"definition\": \"Bidirectional encoder.\", \"difficulty\": \"intermediate\"}]}\n```"
+    fenced_obj = '```\n{"concepts": [{"name": "BERT", "definition": "Bidirectional encoder.", "difficulty": "intermediate"}]}\n```'
     res2 = clean_json_payload(fenced_obj)
     assert len(res2["concepts"]) == 1
     assert res2["concepts"][0]["name"] == "BERT"
@@ -33,11 +30,17 @@ def test_is_negative_sample():
     assert is_negative_sample("Too short") is True
 
     # Bibliography page
-    bib = "Bibliography\n1. Vaswani et al. Attention is all you need. 2017.\n2. Devlin et al. BERT. 2018." + " " * 100
+    bib = (
+        "Bibliography\n1. Vaswani et al. Attention is all you need. 2017.\n2. Devlin et al. BERT. 2018."
+        + " " * 100
+    )
     assert is_negative_sample(bib) is True
 
     # Preface page
-    preface = "Preface\nThis book is intended for undergraduate students studying computer networks." + " " * 100
+    preface = (
+        "Preface\nThis book is intended for undergraduate students studying computer networks."
+        + " " * 100
+    )
     assert is_negative_sample(preface) is True
 
     # Legitimate pedagogical text
@@ -93,7 +96,9 @@ def test_live_lib_qwen_extraction():
         "Gradients computed via backpropagation are used by gradient descent optimizers to update synaptic weights."
     )
 
-    concepts = extractor.extract_from_chunk(text, book_title="Deep Learning", page_number=15, domain="AI & Machine Learning")
+    concepts = extractor.extract_from_chunk(
+        text, book_title="Deep Learning", page_number=15, domain="AI & Machine Learning"
+    )
     assert isinstance(concepts, list)
     if concepts:  # If Ollama is running lib-qwen
         c_names = [c["name"].lower() for c in concepts]

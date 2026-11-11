@@ -1,12 +1,15 @@
-"""Kuzu neighborhood traversal and concept citations.
-"""
+"""Kuzu neighborhood traversal and concept citations."""
+
 from __future__ import annotations
 
-import kuzu
 import re
+from typing import Any, cast
 
-from archipelago.inference.graph_lock import graph_lock
+import kuzu
+
 from archipelago.inference import state as st
+from archipelago.inference.graph_lock import graph_lock
+from okf.query_rows import query_rows
 
 _DIFFICULTY_RANK = {
     "foundational": 1,
@@ -17,19 +20,21 @@ _DIFFICULTY_RANK = {
 
 # Explicit inverted / nonsense REQUIRES pairs to drop at render time
 # (from_id, to_id) means "from requires to" which is wrong and should not be shown.
-_BLOCKED_REQUIRES = frozenset({
-    ("neural_network", "graph_neural_network"),
-    ("neural_network", "dimensionality_reduction"),
-    ("linear_regression", "neural_network"),
-    ("eigenvalue", "neural_network"),
-    ("linear_algebra", "linear_regression"),
-    ("linear_regression", "support_vector_machine"),
-    ("matrix_inverse", "linear_regression"),
-    ("linear_algebra", "dimensionality_reduction"),
-    ("linear_algebra", "nearest_neighbor"),
-    ("vector", "partial_derivative"),
-    ("vector", "orthonormal_basis"),
-})
+_BLOCKED_REQUIRES = frozenset(
+    {
+        ("neural_network", "graph_neural_network"),
+        ("neural_network", "dimensionality_reduction"),
+        ("linear_regression", "neural_network"),
+        ("eigenvalue", "neural_network"),
+        ("linear_algebra", "linear_regression"),
+        ("linear_regression", "support_vector_machine"),
+        ("matrix_inverse", "linear_regression"),
+        ("linear_algebra", "dimensionality_reduction"),
+        ("linear_algebra", "nearest_neighbor"),
+        ("vector", "partial_derivative"),
+        ("vector", "orthonormal_basis"),
+    }
+)
 
 
 def _difficulty_rank(concept_id: str) -> int | None:
@@ -54,19 +59,21 @@ def is_plausible_prereq(target_id: str, prereq_id: str) -> bool:
     p_node = st.CONCEPTS_DATA.get(prereq_id) or {}
     t_name = (t_node.get("label") or t_node.get("name") or target_id).lower()
     p_name = (p_node.get("label") or p_node.get("name") or prereq_id).lower()
-    if "neural network" in t_name and "neural" in p_name:
-        if any(m in p_name for m in ("graph neural", "convolutional", "recurrent")):
-            if "graph" not in t_name and "convolutional" not in t_name:
-                return False
+    if (
+        "neural network" in t_name
+        and "neural" in p_name
+        and any(m in p_name for m in ("graph neural", "convolutional", "recurrent"))
+        and "graph" not in t_name
+        and "convolutional" not in t_name
+    ):
+        return False
     t_rank = _difficulty_rank(target_id)
     p_rank = _difficulty_rank(prereq_id)
     # Only drop egregious inversions (foundational requiring advanced/expert)
-    if t_rank is not None and p_rank is not None and (p_rank - t_rank) >= 2:
-        return False
-    return True
+    return not (t_rank is not None and p_rank is not None and (p_rank - t_rank) >= 2)
 
 
-def filter_prereqs(target_id: str, prereqs: list) -> list:
+def filter_prereqs(target_id: str, prereqs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Drop inverted / blocked prerequisite neighbors."""
     out = []
     for p in prereqs or []:
@@ -109,15 +116,36 @@ _MENTION_SHARE_WEIGHT = 2.5
 # Minimum chunk rows to pull when ranking citations by mention share.
 _MENTION_POOL_MIN = 24
 
-_TITLE_STOPWORDS = frozenset({    "the", "a", "an", "of", "and", "for", "in", "on", "to", "is", "are",
-    "with", "using", "via", "model", "models", "learning", "neural", "network",
-})
+_TITLE_STOPWORDS = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "of",
+        "and",
+        "for",
+        "in",
+        "on",
+        "to",
+        "is",
+        "are",
+        "with",
+        "using",
+        "via",
+        "model",
+        "models",
+        "learning",
+        "neural",
+        "network",
+    }
+)
 
 
 def _title_tokens(text: str) -> set[str]:
     """Content tokens from a document id or concept name, for affinity matching."""
     return {
-        t for t in re.findall(r"[a-z0-9]+", (text or "").lower())
+        t
+        for t in re.findall(r"[a-z0-9]+", (text or "").lower())
         if len(t) > 2 and t not in _TITLE_STOPWORDS
     }
 
@@ -145,7 +173,9 @@ def _title_affinity(doc_id: str, concept_names: list[str]) -> float:
     return best
 
 
-def get_concept_citations(concept_id, limit=2, concept_names=None):
+def get_concept_citations(
+    concept_id: str, limit: int = 2, concept_names: list[str] | None = None
+) -> list[dict[str, Any]]:
     """Get source passages for one concept, with page metadata intact.
 
     Ranking, highest first:
@@ -155,26 +185,29 @@ def get_concept_citations(concept_id, limit=2, concept_names=None):
       3. definitional body passages over reference-list pages.
     """
     safe_id = str(concept_id).replace("'", "\\'")
-    citations = []
+    citations: list[dict[str, Any]] = []
     try:
         with graph_lock.read_lock():
-            conn = kuzu.Connection(st.db)
+            conn = kuzu.Connection(cast(kuzu.Database, st.db))
             # Fetch a wide pool: mention share needs the full distribution.
             fetch_n = max(_MENTION_POOL_MIN, int(limit) * 4)
-            res = conn.execute(f"""
+            for row in query_rows(
+                conn,
+                f"""
                 MATCH (d:Document)-[:HAS_CHUNK]->(chk:Chunk)-[:MENTIONS]->
                       (c:Concept {{id: '{safe_id}'}})
                 RETURN d.id, chk.page_number, chk.section_title, chk.text_passage
                 LIMIT {fetch_n}
-            """)
-            while res.has_next():
-                row = res.get_next()
-                citations.append({
-                    "doc_id": row[0],
-                    "page_number": int(row[1]) if row[1] is not None else 0,
-                    "section_title": row[2] or "",
-                    "text_passage": row[3] or "",
-                })
+            """,
+            ):
+                citations.append(
+                    {
+                        "doc_id": row[0],
+                        "page_number": int(row[1]) if row[1] is not None else 0,
+                        "section_title": row[2] or "",
+                        "text_passage": row[3] or "",
+                    }
+                )
     except Exception as e:
         print(f"Citation retrieval error for {concept_id}: {e}")
 
@@ -187,7 +220,7 @@ def get_concept_citations(concept_id, limit=2, concept_names=None):
         mention_counts[c["doc_id"]] = mention_counts.get(c["doc_id"], 0) + 1
     max_mentions = max(mention_counts.values())
 
-    def _rank(c: dict) -> float:
+    def _rank(c: dict[str, Any]) -> float:
         share = mention_counts.get(c["doc_id"], 0) / max_mentions
         return (
             _citation_quality_score(
@@ -215,16 +248,16 @@ _RELATION_TYPE_LABELS = {
 }
 
 
-def get_related_edges(concept_id: str, limit: int = 8) -> list[dict]:
+def get_related_edges(concept_id: str, limit: int = 8) -> list[dict[str, Any]]:
     """Return RELATED neighbors with human-readable relation_type labels (S9).
 
     Never invents edges — only what Kuzu stores. Prefer non-co_mention subtypes.
     """
     safe = str(concept_id).replace("'", "\\'")
-    rows: list[dict] = []
+    rows: list[dict[str, Any]] = []
     try:
         with graph_lock.read_lock():
-            conn = kuzu.Connection(st.db)
+            conn = kuzu.Connection(cast(kuzu.Database, st.db))
             # Outgoing + incoming RELATED (undirected for chat display)
             for direction in (
                 f"MATCH (a:Concept {{id: '{safe}'}})-[r:RELATED]->(b:Concept) "
@@ -233,33 +266,35 @@ def get_related_edges(concept_id: str, limit: int = 8) -> list[dict]:
                 f"RETURN b.id, b.name, b.summary, r.relation_type",
             ):
                 try:
-                    res = conn.execute(direction)
-                    while res.has_next():
-                        rid, name, summary, rel = res.get_next()
+                    for rid, name, summary, rel in query_rows(conn, direction):
                         if not rid or rid == concept_id:
                             continue
                         rel_s = str(rel or "related").strip().lower() or "related"
-                        rows.append({
-                            "id": rid,
-                            "name": name,
-                            "label": name,
-                            "summary": summary or "",
-                            "relation_type": rel_s,
-                            "relation_label": _RELATION_TYPE_LABELS.get(rel_s, rel_s.replace("_", " ")),
-                        })
+                        rows.append(
+                            {
+                                "id": rid,
+                                "name": name,
+                                "label": name,
+                                "summary": summary or "",
+                                "relation_type": rel_s,
+                                "relation_label": _RELATION_TYPE_LABELS.get(
+                                    rel_s, rel_s.replace("_", " ")
+                                ),
+                            }
+                        )
                 except Exception as e:
                     print(f"RELATED traversal error: {e}")
     except Exception as e:
         print(f"get_related_edges error: {e}")
 
     # Dedupe by id; prefer non-co_mention
-    by_id: dict[str, dict] = {}
+    by_id: dict[str, dict[str, Any]] = {}
     for r in rows:
         rid = r["id"]
         prev = by_id.get(rid)
-        if prev is None:
-            by_id[rid] = r
-        elif prev.get("relation_type") == "co_mention" and r.get("relation_type") != "co_mention":
+        if prev is None or (
+            prev.get("relation_type") == "co_mention" and r.get("relation_type") != "co_mention"
+        ):
             by_id[rid] = r
 
     ranked = sorted(
@@ -269,7 +304,7 @@ def get_related_edges(concept_id: str, limit: int = 8) -> list[dict]:
     return ranked[: max(1, int(limit))]
 
 
-def format_connected_via(related_edges: list[dict], max_n: int = 5) -> str:
+def format_connected_via(related_edges: list[dict[str, Any]], max_n: int = 5) -> str:
     """Build the S9 'Connected via…' block for chat notes."""
     if not related_edges:
         return ""
@@ -285,21 +320,21 @@ def format_connected_via(related_edges: list[dict], max_n: int = 5) -> str:
     return "\n".join(lines)
 
 
-def get_graph_neighborhood(concept_id, k=2):
+def get_graph_neighborhood(
+    concept_id: str, k: int = 2
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     # Escape concept_id to prevent Cypher injection
     concept_id = str(concept_id).replace("'", "\\'")
-    prereqs = []
-    unlocks = []
-    citations = []
+    prereqs: list[dict[str, Any]] = []
+    unlocks: list[dict[str, Any]] = []
+    citations: list[dict[str, Any]] = []
 
     with graph_lock.read_lock():
-        conn = kuzu.Connection(st.db)
+        conn = kuzu.Connection(cast(kuzu.Database, st.db))
 
         try:
             query = f"MATCH (a:Concept {{id: '{concept_id}'}})-[:REQUIRES*1..{k}]->(b:Concept) RETURN DISTINCT b.id, b.name, b.summary"
-            res = conn.execute(query)
-            while res.has_next():
-                row = res.get_next()
+            for row in query_rows(conn, query):
                 prereqs.append({"id": row[0], "name": row[1], "summary": row[2]})
         except Exception as e:
             print(f"Traversal Upstream error: {e}")
@@ -307,9 +342,7 @@ def get_graph_neighborhood(concept_id, k=2):
         try:
             # Traverse downstream unlocks via reverse REQUIRES (things that require this concept)
             query = f"MATCH (b:Concept)-[:REQUIRES*1..{k}]->(a:Concept {{id: '{concept_id}'}}) RETURN DISTINCT b.id, b.name, b.summary"
-            res = conn.execute(query)
-            while res.has_next():
-                row = res.get_next()
+            for row in query_rows(conn, query):
                 unlocks.append({"id": row[0], "name": row[1], "summary": row[2]})
         except Exception as e:
             print(f"Traversal Downstream (reverse REQUIRES) error: {e}")
@@ -317,10 +350,8 @@ def get_graph_neighborhood(concept_id, k=2):
         try:
             # Also traverse the explicit UNLOCKS edge table (concept_id UNLOCKS target)
             query = f"MATCH (a:Concept {{id: '{concept_id}'}})-[:UNLOCKS*1..{k}]->(b:Concept) RETURN DISTINCT b.id, b.name, b.summary"
-            res = conn.execute(query)
             seen_unlock_ids = {u["id"] for u in unlocks}
-            while res.has_next():
-                row = res.get_next()
+            for row in query_rows(conn, query):
                 if row[0] not in seen_unlock_ids:
                     unlocks.append({"id": row[0], "name": row[1], "summary": row[2]})
                     seen_unlock_ids.add(row[0])
@@ -332,7 +363,8 @@ def get_graph_neighborhood(concept_id, k=2):
     prereqs = filter_prereqs(real_id, prereqs)
     # Unlocks that only exist because of a blocked REQUIRES pair should not appear
     unlocks = [
-        u for u in unlocks
+        u
+        for u in unlocks
         if u.get("id")
         and (u["id"], real_id) not in _BLOCKED_REQUIRES
         and (real_id, u["id"]) not in _BLOCKED_REQUIRES
@@ -347,9 +379,16 @@ def get_graph_neighborhood(concept_id, k=2):
     return prereqs, unlocks, citations
 
 
-def get_bounded_subgraph(concept_id: str, secondary_id: str | None = None, mode: str = "mode_c", max_nodes: int = 10, min_nodes: int = 5):
+def get_bounded_subgraph(
+    concept_id: str,
+    secondary_id: str | None = None,
+    mode: str = "mode_c",
+    max_nodes: int = 10,
+    min_nodes: int = 5,
+) -> Any:
     """Retrieve a strictly bounded subgraph for the given concept and query mode."""
     from archipelago.inference.subgraph import generate_bounded_subgraph
+
     return generate_bounded_subgraph(
         target_id=concept_id,
         secondary_target_id=secondary_id,
@@ -357,5 +396,3 @@ def get_bounded_subgraph(concept_id: str, secondary_id: str | None = None, mode:
         max_nodes=max_nodes,
         min_nodes=min_nodes,
     )
-
-

@@ -221,7 +221,7 @@
             border-radius: 50%;
             overflow: hidden;
             flex-shrink: 0;
-            background: #140a22;
+            background: #140a22 url('/ui/assets/library_avatar_poster.jpg') center / cover no-repeat;
             border: 3px solid rgba(196, 160, 255, 0.9);
             box-shadow:
                 0 0 0 2px rgba(139, 92, 246, 0.35),
@@ -243,8 +243,7 @@
             opacity: 1;
             filter: none;
             mix-blend-mode: normal;
-            transition: opacity 0.35s ease;
-            background: #140a22;
+            background: transparent;
             pointer-events: none;
         }
         /* success: tiny circular subject on large white plate — zoom hard to fill shell */

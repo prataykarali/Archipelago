@@ -26,6 +26,7 @@ delete a book from the record.
 Storage is a single JSON ledger under ``data/`` so the state survives restarts
 and can be diffed/committed like any other artifact.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -58,6 +59,7 @@ def _base_dir() -> Path:
     """Resolve the state root: env override when set, otherwise the repo root."""
     override = os.environ.get(STATE_DIR_ENV, "").strip()
     return Path(override) if override else Path(BASE_DIR)
+
 
 # The reply shown in place of an answer we can no longer ground. Wording is
 # deliberately factual: the source left the record, it is not "lost", and we do

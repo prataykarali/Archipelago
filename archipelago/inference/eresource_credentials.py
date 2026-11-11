@@ -17,6 +17,7 @@ mode 0600). This module reads it for metadata fields (``url``,
 Card counts come from ``ARCHIPELAGO_MEMBERSHIP_*`` env vars and default
 to 0 (conservative — do not promise stock the library does not have).
 """
+
 from __future__ import annotations
 
 import json
@@ -142,9 +143,7 @@ def format_credential_reply(prompt: str) -> str | None:
     if "opac" in p_lower:
         o_creds = creds.get("opac") or {}
         fmt = (
-            o_creds.get("login_format")
-            if isinstance(o_creds, dict)
-            else None
+            o_creds.get("login_format") if isinstance(o_creds, dict) else None
         ) or "Emp ID / Enrollment No."
         return _portal_line(
             "IEM/UEM Library OPAC",

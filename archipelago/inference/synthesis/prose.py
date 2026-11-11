@@ -1,4 +1,5 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
+
 from __future__ import annotations
 
 import re
@@ -6,25 +7,25 @@ import re
 
 def _strip_latex(text):
     """Remove LaTeX/math notation from text and replace with plain description."""
-    text = re.sub(r'\$([^$]*)\$', r'\1', text)
-    text = re.sub(r'\$([^$]*)\$', r'\1', text)
-    text = re.sub(r'\\\(([^)]*)\\\)', r'\1', text)
-    text = re.sub(r'\\\[([^\]]*)\\\]', r'\1', text)
-    text = re.sub(r'\\begin\{[^}]*\}([\\\\s\\S]*?)\\end\{[^}]*\}', r'\1', text)
-    text = re.sub(r'\\[a-zA-Z]+\{([^}]*)\}', r'\1', text)
-    text = re.sub(r'\\\\([a-zA-Z]+)', r'\1', text)
-    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r"\$([^$]*)\$", r"\1", text)
+    text = re.sub(r"\$([^$]*)\$", r"\1", text)
+    text = re.sub(r"\\\(([^)]*)\\\)", r"\1", text)
+    text = re.sub(r"\\\[([^\]]*)\\\]", r"\1", text)
+    text = re.sub(r"\\begin\{[^}]*\}([\\\\s\\S]*?)\\end\{[^}]*\}", r"\1", text)
+    text = re.sub(r"\\[a-zA-Z]+\{([^}]*)\}", r"\1", text)
+    text = re.sub(r"\\\\([a-zA-Z]+)", r"\1", text)
+    text = re.sub(r"\s+", " ", text)
     return text.strip()
 
 
 _EMOJI_RE = re.compile(
     "["
-    "\U0001F300-\U0001F9FF"
-    "\U0001FA00-\U0001FAFF"
-    "\U00002700-\U000027BF"
-    "\U0001F600-\U0001F64F"
-    "\U0001F680-\U0001F6FF"
-    "\U00002600-\U000026FF"
+    "\U0001f300-\U0001f9ff"
+    "\U0001fa00-\U0001faff"
+    "\U00002700-\U000027bf"
+    "\U0001f600-\U0001f64f"
+    "\U0001f680-\U0001f6ff"
+    "\U00002600-\U000026ff"
     "]+",
     re.UNICODE,
 )
@@ -59,10 +60,7 @@ def enforce_sterile_prose(text: str, fallback: str = "") -> str:
         cleaned,
         re.I,
     ):
-        return (
-            fallback
-            or "This information is not detailed in the provided library texts."
-        )
+        return fallback or "This information is not detailed in the provided library texts."
     return cleaned
 
 
@@ -74,9 +72,7 @@ def is_readable_synthesis(text: str) -> bool:
         return False
     if re.search(r"(?:[a-zA-Z]_[a-zA-Z0-9],?\s*){5,}", text):
         return False
-    if re.search(r"(?:[a-z]',?){4,}", text):
-        return False
-    return True
+    return not re.search(r"(?:[a-z]',?){4,}", text)
 
 
 def _scrub_slm_artifacts(text: str) -> str:

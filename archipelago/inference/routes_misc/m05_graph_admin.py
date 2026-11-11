@@ -1,12 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from flask import jsonify, send_from_directory, request, redirect
+
+from flask import jsonify, request
 import kuzu
-from ingestion_worker import job_store, get_worker, graph_lock
-from archipelago.auth import require_librarian, librarian_token_expected
+
+from archipelago.auth import require_librarian
 from archipelago.inference import state as st
+from ingestion_worker import graph_lock
 
 
 @st.app.route("/api/documents", methods=["GET"])
@@ -16,6 +19,7 @@ def list_graph_documents():
         with graph_lock.read_lock():
             conn = kuzu.Connection(st.db)
             from okf.graph.delete_document import list_documents
+
             docs = list_documents(conn)
         return jsonify({"documents": docs, "count": len(docs)}), 200
     except Exception as e:
@@ -36,7 +40,10 @@ def delete_graph_document(doc_id):
       remove_pdf=1  — also delete the file under pdfs/ when present
     """
     remove_pdf = str(request.args.get("remove_pdf") or "").lower() in (
-        "1", "true", "yes", "on",
+        "1",
+        "true",
+        "yes",
+        "on",
     )
     try:
         from okf.graph.delete_document import delete_document_end_to_end
@@ -57,6 +64,7 @@ def delete_graph_document(doc_id):
                 stats["reload_warning"] = str(e)
             try:
                 from archipelago.inference.embeddings import build_concept_embeddings
+
                 build_concept_embeddings()
                 stats["embeddings_rebuilt"] = True
             except Exception as e:
@@ -88,11 +96,11 @@ def manual_add_concept():
         return "", 204
 
     data = request.get_json(force=True, silent=True) or {}
-    name         = (data.get("name") or "").strip()
+    name = (data.get("name") or "").strip()
     concept_type = (data.get("concept_type") or "").strip()
-    difficulty   = (data.get("difficulty") or "").strip()
-    summary      = (data.get("summary") or "").strip()
-    tags         = [t.strip() for t in (data.get("tags") or []) if t.strip()]
+    difficulty = (data.get("difficulty") or "").strip()
+    summary = (data.get("summary") or "").strip()
+    tags = [t.strip() for t in (data.get("tags") or []) if t.strip()]
 
     if not name:
         return jsonify({"error": "Field 'name' is required."}), 400
@@ -105,15 +113,16 @@ def manual_add_concept():
     concept_id = name.lower().replace(" ", "_").replace("-", "_")
 
     try:
-        from okf.graph.ingest import ensure_concept
-        from okf.graph.export import export_graph
         from okf.exports import write_all_artifacts as _waa
+        from okf.graph.export import export_graph
+        from okf.graph.ingest import ensure_concept
 
         with graph_lock.write_lock():
             conn = kuzu.Connection(st.db)
             ensure_concept(conn, concept_id, name, concept_type, difficulty, summary, tags)
             try:
-                from okf.exports import build_visual_graph, build_graph_rag_index
+                from okf.exports import build_graph_rag_index, build_visual_graph
+
                 base_dir = Path(st.BASE_DIR)
                 graph_export = export_graph(conn)
                 graph_export["visualization"] = build_visual_graph([], graph_export)
@@ -124,11 +133,13 @@ def manual_add_concept():
                 except Exception:
                     pass
             except Exception as export_err:
-                return jsonify({
-                    "concept_id": concept_id,
-                    "name": name,
-                    "warning": f"Concept stored but artifact export failed: {export_err}",
-                }), 201
+                return jsonify(
+                    {
+                        "concept_id": concept_id,
+                        "name": name,
+                        "warning": f"Concept stored but artifact export failed: {export_err}",
+                    }
+                ), 201
 
         return jsonify({"concept_id": concept_id, "name": name, "status": "created"}), 201
 
@@ -156,14 +167,19 @@ def manual_add_edge():
         return "", 204
 
     VALID_RELATIONS = {
-        "requires", "enables", "uses", "extends",
-        "part_of", "contrasts_with", "evaluated_by",
+        "requires",
+        "enables",
+        "uses",
+        "extends",
+        "part_of",
+        "contrasts_with",
+        "evaluated_by",
     }
 
-    data         = request.get_json(force=True, silent=True) or {}
+    data = request.get_json(force=True, silent=True) or {}
     from_concept = (data.get("from_concept") or "").strip()
-    to_concept   = (data.get("to_concept") or "").strip()
-    relation     = (data.get("relation") or "").strip().lower()
+    to_concept = (data.get("to_concept") or "").strip()
+    relation = (data.get("relation") or "").strip().lower()
 
     if not from_concept:
         return jsonify({"error": "Field 'from_concept' is required."}), 400
@@ -176,13 +192,13 @@ def manual_add_edge():
         return name.lower().replace(" ", "_").replace("-", "_")
 
     from_id = _id(from_concept)
-    to_id   = _id(to_concept)
+    to_id = _id(to_concept)
 
     try:
+        from okf.exports import write_all_artifacts as _waa
+        from okf.graph.export import export_graph
         from okf.graph.ingest import create_edge
         from okf.util import create_concept_id
-        from okf.graph.export import export_graph
-        from okf.exports import write_all_artifacts as _waa
 
         # Prefer canonical IDs when names differ from slug form
         from_id = create_concept_id(from_concept) or from_id
@@ -194,9 +210,7 @@ def manual_add_edge():
             # Verify both concepts exist (by id, then fuzzy name)
             for cid, label in [(from_id, from_concept), (to_id, to_concept)]:
                 safe = cid.replace("'", "\\'")
-                res = conn.execute(
-                    f"MATCH (c:Concept {{id: '{safe}'}}) RETURN c.id LIMIT 1"
-                )
+                res = conn.execute(f"MATCH (c:Concept {{id: '{safe}'}}) RETURN c.id LIMIT 1")
                 if not res.has_next():
                     # try match by name
                     safe_name = label.replace("'", "\\'")
@@ -204,9 +218,9 @@ def manual_add_edge():
                         f"MATCH (c:Concept) WHERE c.name = '{safe_name}' RETURN c.id LIMIT 1"
                     )
                     if not res2.has_next():
-                        return jsonify({
-                            "error": f"Concept not found: '{label}' (id: '{cid}'). Add it first."
-                        }), 404
+                        return jsonify(
+                            {"error": f"Concept not found: '{label}' (id: '{cid}'). Add it first."}
+                        ), 404
                     resolved = res2.get_next()[0]
                     if cid == from_id:
                         from_id = resolved
@@ -219,7 +233,8 @@ def manual_add_edge():
                 return jsonify({"error": str(ve)}), 409
 
             try:
-                from okf.exports import build_visual_graph, build_graph_rag_index
+                from okf.exports import build_graph_rag_index, build_visual_graph
+
                 base_dir = Path(st.BASE_DIR)
                 graph_export = export_graph(conn)
                 graph_export["visualization"] = build_visual_graph([], graph_export)
@@ -230,15 +245,23 @@ def manual_add_edge():
                 except Exception:
                     pass
             except Exception as export_err:
-                return jsonify({
-                    "from": from_concept, "to": to_concept, "relation": relation,
-                    "warning": f"Edge stored but artifact export failed: {export_err}",
-                }), 201
+                return jsonify(
+                    {
+                        "from": from_concept,
+                        "to": to_concept,
+                        "relation": relation,
+                        "warning": f"Edge stored but artifact export failed: {export_err}",
+                    }
+                ), 201
 
-        return jsonify({
-            "from": from_concept, "to": to_concept,
-            "relation": relation, "status": "created",
-        }), 201
+        return jsonify(
+            {
+                "from": from_concept,
+                "to": to_concept,
+                "relation": relation,
+                "status": "created",
+            }
+        ), 201
 
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500

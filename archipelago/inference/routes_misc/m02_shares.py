@@ -1,14 +1,16 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import re
 import secrets
 import time
-from pathlib import Path
-from flask import jsonify, send_from_directory, request, redirect
-from archipelago.inference import state as st
 
+from flask import jsonify, request
+
+from archipelago.inference import state as st
 
 SHARES_DIR = Path(st.BASE_DIR) / "shares"
 

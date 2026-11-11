@@ -1,10 +1,12 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import os
 import random
 from typing import Any
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def _generate_dynamic_mcq(
@@ -16,7 +18,9 @@ def _generate_dynamic_mcq(
     """Generate a high-quality 4-option MCQ dynamically from concept metadata and citations."""
     c_node = concepts_data.get(concept_id) or {}
     name = c_node.get("name") or c_node.get("label") or concept_id.replace("_", " ").title()
-    summary = (c_node.get("summary") or f"A fundamental methodology in machine learning known as {name}.").strip()
+    summary = (
+        c_node.get("summary") or f"A fundamental methodology in machine learning known as {name}."
+    ).strip()
     diff = c_node.get("difficulty") or "intermediate"
 
     # Citation source
@@ -56,7 +60,7 @@ def _generate_dynamic_mcq(
         distractors = random.sample(fallback_pool, 3)
 
     # Shuffle into exactly 4 options: A, B, C, D
-    all_choices = [correct_text] + distractors[:3]
+    all_choices = [correct_text, *distractors[:3]]
     random.shuffle(all_choices)
     letters = ["A", "B", "C", "D"]
     options = {letters[i]: opt for i, opt in enumerate(all_choices)}
@@ -96,6 +100,7 @@ def generate_diagnostic_mcqs(
     """
     if concepts_data is None:
         from archipelago.inference import state as st
+
         concepts_data = st.CONCEPTS_DATA or {}
 
     num_q = max(3, min(5, num_questions))
@@ -164,6 +169,7 @@ def get_prerequisite_chain(
     """
     if concepts_data is None:
         from archipelago.inference import state as st
+
         concepts_data = st.CONCEPTS_DATA or {}
 
     t_id = target_concept_id.strip().lower().replace(" ", "_")
@@ -213,11 +219,11 @@ def get_prerequisite_chain(
                 prefix.append(cf)
                 if len(prefix) + len(chain) >= 6:
                     break
-        chain = prefix + chain
+        chain = [*prefix, *chain]
 
     # Keep chain bounded between 5 and 10 concepts total
     if len(chain) > 10:
-        chain = [chain[0]] + chain[-8:]
+        chain = [chain[0], *chain[-8:]]
 
     return chain
 
@@ -229,18 +235,21 @@ def generate_single_mcq_on_the_spot(
     use_slm: bool = True,
 ) -> dict[str, Any]:
     """Generate a single verified 4-option MCQ on the spot with literature citations.
-    
+
     Tries the local SLM via Ollama first for simple, fresh conceptual questions.
     Falls back to verified bank / dynamic randomized generation if SLM is unavailable.
     """
     if concepts_data is None:
         from archipelago.inference import state as st
+
         concepts_data = st.CONCEPTS_DATA or {}
 
     cid = str(concept_id).strip().lower().replace(" ", "_")
     c_node = concepts_data.get(cid) or {}
     c_name = c_node.get("name") or c_node.get("label") or cid.replace("_", " ").title()
-    summary = (c_node.get("summary") or f"A fundamental methodology in machine learning known as {c_name}.").strip()
+    summary = (
+        c_node.get("summary") or f"A fundamental methodology in machine learning known as {c_name}."
+    ).strip()
     diff = c_node.get("difficulty") or "intermediate"
 
     citation = "Foundational Machine Learning Literature & OKF Knowledge Graph."
@@ -255,6 +264,7 @@ def generate_single_mcq_on_the_spot(
 
     # 1. Attempt SLM-powered on-the-spot generation (skip during automated unit tests to satisfy <200ms SLA)
     import sys
+
     is_testing = "pytest" in sys.modules or os.getenv("ARCHIPELAGO_TEST_MODE") == "1"
     if use_slm and not is_testing:
         slm_mcq = _rt._generate_slm_mcq(

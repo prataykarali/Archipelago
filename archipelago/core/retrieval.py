@@ -13,10 +13,11 @@ from __future__ import annotations
 
 from collections import deque
 import logging
-import re
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 import numpy as np
+
+from archipelago.core.retrieval_terms import _clean_query_tokens as _clean_query_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -26,42 +27,30 @@ MAX_PREREQS = 4
 MAX_UNLOCKS = 4
 
 
-_STOPWORDS = {
-    "a", "an", "the", "and", "or", "to", "of", "in", "for", "on", "with", "by", "at",
-    "is", "are", "was", "were", "what", "which", "how", "why", "explain", "tell", "me",
-    "about", "something", "vaguely", "related", "concept", "topic", "information",
-}
-
-
-def _clean_query_tokens(text: str) -> str:
-    """Filter generic noise words and stopwords before lexical/fuzzy matching."""
-    tokens = re.findall(r"\w+", text.lower())
-    meaningful = [t for t in tokens if t not in _STOPWORDS]
-    return " ".join(meaningful) if meaningful else text.strip().lower()
-
-
 class TwoPassHybridRetriever:
     """Two-Pass Hybrid Retriever combining vector similarity and KùzuDB graph traversals."""
 
     def __init__(
         self,
-        kuzu_conn: Optional[Any] = None,
-        concepts_data: Optional[Dict[str, Any]] = None,
-        concept_embeddings: Optional[Dict[str, np.ndarray]] = None,
+        kuzu_conn: Any | None = None,
+        concepts_data: dict[str, Any] | None = None,
+        concept_embeddings: dict[str, np.ndarray] | None = None,
     ) -> None:
         self.conn = kuzu_conn
-        self.concepts_data: Dict[str, Any] = concepts_data or {}
-        self.concept_embeddings: Dict[str, np.ndarray] = concept_embeddings or {}
-        self._concept_keys: List[str] = list(self.concept_embeddings.keys())
-        self._embed_matrix: Optional[np.ndarray] = None
+        self.concepts_data: dict[str, Any] = concepts_data or {}
+        self.concept_embeddings: dict[str, np.ndarray] = concept_embeddings or {}
+        self._concept_keys: list[str] = list(self.concept_embeddings.keys())
+        self._embed_matrix: np.ndarray | None = None
         if self._concept_keys:
             try:
-                self._embed_matrix = np.array([self.concept_embeddings[k] for k in self._concept_keys])
+                self._embed_matrix = np.array(
+                    [self.concept_embeddings[k] for k in self._concept_keys]
+                )
             except Exception as e:
                 logger.warning("Failed to initialize embed matrix: %s", e)
 
         # Build alias & fuzzy index for fast exact/fuzzy resolution
-        self._alias_map: Dict[str, str] = {}
+        self._alias_map: dict[str, str] = {}
         self._build_alias_index()
 
     def _build_alias_index(self) -> None:
@@ -80,7 +69,7 @@ class TwoPassHybridRetriever:
                 if base_name:
                     self._alias_map[base_name.lower()] = cid
 
-    def resolve_anchor(self, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
+    def resolve_anchor(self, query: str, top_k: int = 3) -> list[tuple[str, float]]:
         """Resolve concept anchor nodes using dense cosine similarity and lexical matching.
 
         Returns:
@@ -101,10 +90,11 @@ class TwoPassHybridRetriever:
             return [(cid, 1.0)]
 
         # 2. Vector search if embedding matrix is available
-        results: List[Tuple[str, float]] = []
+        results: list[tuple[str, float]] = []
         if self._embed_matrix is not None and len(self._embed_matrix) > 0:
             try:
                 from archipelago.inference import embeddings as emb_mod
+
                 q_vec = emb_mod.get_snowflake_embedding(query)
                 if q_vec is not None:
                     q_norm = q_vec / (np.linalg.norm(q_vec) + 1e-9)
@@ -120,14 +110,14 @@ class TwoPassHybridRetriever:
         # 3. Lexical / Fuzzy scoring fallback via string similarity
         from thefuzz import fuzz
 
-        scored: List[Tuple[str, float]] = []
+        scored: list[tuple[str, float]] = []
         for alias, cid in self._alias_map.items():
             ratio = fuzz.token_set_ratio(clean_q, alias) / 100.0
             if ratio >= 0.50:
                 scored.append((cid, ratio))
 
         # Deduplicate by concept_id keeping max score
-        best_scores: Dict[str, float] = {}
+        best_scores: dict[str, float] = {}
         for cid, score in scored:
             if cid not in best_scores or score > best_scores[cid]:
                 best_scores[cid] = score
@@ -138,8 +128,9 @@ class TwoPassHybridRetriever:
 
         return results
 
-
-    def find_shortest_path(self, entity_a: str, entity_b: str, max_depth: int = 3) -> Optional[List[str]]:
+    def find_shortest_path(
+        self, entity_a: str, entity_b: str, max_depth: int = 3
+    ) -> list[str] | None:
         """Resolve shortest topological path between two concepts (Fixing TC-04 bug).
 
         Executes Cypher shortestPath or BFS over bidirectional graph edges.
@@ -166,7 +157,9 @@ class TwoPassHybridRetriever:
         # 2. In-memory BFS fallback over concepts_data
         return self._bfs_shortest_path(id_a, id_b, max_depth=max_depth)
 
-    def _bfs_shortest_path(self, start_id: str, end_id: str, max_depth: int = 4) -> Optional[List[str]]:
+    def _bfs_shortest_path(
+        self, start_id: str, end_id: str, max_depth: int = 4
+    ) -> list[str] | None:
         """In-memory BFS pathfinder over concept adjacency."""
         if start_id == end_id:
             return [start_id]
@@ -180,7 +173,7 @@ class TwoPassHybridRetriever:
                 continue
 
             c_info = self.concepts_data.get(curr, {})
-            neighbors: Set[str] = set()
+            neighbors: set[str] = set()
             for p in c_info.get("prerequisites", []):
                 pid = self._alias_map.get(p.lower(), p)
                 neighbors.add(pid)
@@ -193,16 +186,16 @@ class TwoPassHybridRetriever:
 
             for nbr in neighbors:
                 if nbr == end_id:
-                    return path + [nbr]
+                    return [*path, nbr]
                 if nbr not in visited and nbr in self.concepts_data:
                     visited.add(nbr)
-                    queue.append((nbr, path + [nbr]))
+                    queue.append((nbr, [*path, nbr]))
 
         return None
 
-    def get_upstream_prerequisites(self, anchor_id: str, max_hops: int = 2) -> List[Dict[str, Any]]:
+    def get_upstream_prerequisites(self, anchor_id: str, max_hops: int = 2) -> list[dict[str, Any]]:
         """Traverse upstream foundational prerequisites along REQUIRES edges (k <= 2)."""
-        prereqs: List[Dict[str, Any]] = []
+        prereqs: list[dict[str, Any]] = []
 
         if self.conn is not None:
             try:
@@ -215,12 +208,14 @@ class TwoPassHybridRetriever:
                 res = self.conn.execute(query, {"concept_id": anchor_id})
                 while res.has_next():
                     row = res.get_next()
-                    prereqs.append({
-                        "id": row[0],
-                        "name": row[1] or row[0],
-                        "difficulty": row[2] or "foundational",
-                        "summary": row[3] or "",
-                    })
+                    prereqs.append(
+                        {
+                            "id": row[0],
+                            "name": row[1] or row[0],
+                            "difficulty": row[2] or "foundational",
+                            "summary": row[3] or "",
+                        }
+                    )
                 if prereqs:
                     return prereqs
             except Exception as exc:
@@ -231,17 +226,19 @@ class TwoPassHybridRetriever:
         for p in (cdata.get("prerequisites") or [])[:MAX_PREREQS]:
             pid = self._alias_map.get(p.lower(), p)
             p_info = self.concepts_data.get(pid, {})
-            prereqs.append({
-                "id": pid,
-                "name": p_info.get("name") or p_info.get("label") or p,
-                "difficulty": p_info.get("difficulty", "foundational"),
-                "summary": p_info.get("summary", ""),
-            })
+            prereqs.append(
+                {
+                    "id": pid,
+                    "name": p_info.get("name") or p_info.get("label") or p,
+                    "difficulty": p_info.get("difficulty", "foundational"),
+                    "summary": p_info.get("summary", ""),
+                }
+            )
         return prereqs
 
-    def get_downstream_unlocks(self, anchor_id: str, max_hops: int = 2) -> List[Dict[str, Any]]:
+    def get_downstream_unlocks(self, anchor_id: str, max_hops: int = 2) -> list[dict[str, Any]]:
         """Traverse downstream application concepts along UNLOCKS edges (k <= 2)."""
-        unlocks: List[Dict[str, Any]] = []
+        unlocks: list[dict[str, Any]] = []
 
         if self.conn is not None:
             try:
@@ -254,12 +251,14 @@ class TwoPassHybridRetriever:
                 res = self.conn.execute(query, {"concept_id": anchor_id})
                 while res.has_next():
                     row = res.get_next()
-                    unlocks.append({
-                        "id": row[0],
-                        "name": row[1] or row[0],
-                        "difficulty": row[2] or "intermediate",
-                        "summary": row[3] or "",
-                    })
+                    unlocks.append(
+                        {
+                            "id": row[0],
+                            "name": row[1] or row[0],
+                            "difficulty": row[2] or "intermediate",
+                            "summary": row[3] or "",
+                        }
+                    )
                 if unlocks:
                     return unlocks
             except Exception as exc:
@@ -270,17 +269,21 @@ class TwoPassHybridRetriever:
         for u in (cdata.get("unlocks") or [])[:MAX_UNLOCKS]:
             uid = self._alias_map.get(u.lower(), u)
             u_info = self.concepts_data.get(uid, {})
-            unlocks.append({
-                "id": uid,
-                "name": u_info.get("name") or u_info.get("label") or u,
-                "difficulty": u_info.get("difficulty", "intermediate"),
-                "summary": u_info.get("summary", ""),
-            })
+            unlocks.append(
+                {
+                    "id": uid,
+                    "name": u_info.get("name") or u_info.get("label") or u,
+                    "difficulty": u_info.get("difficulty", "intermediate"),
+                    "summary": u_info.get("summary", ""),
+                }
+            )
         return unlocks
 
-    def get_evidence_chunks(self, anchor_id: str, max_chunks: int = MAX_CHUNKS) -> List[Dict[str, Any]]:
+    def get_evidence_chunks(
+        self, anchor_id: str, max_chunks: int = MAX_CHUNKS
+    ) -> list[dict[str, Any]]:
         """Retrieve verified raw PDF text passages with strict #page=N lineage."""
-        chunks: List[Dict[str, Any]] = []
+        chunks: list[dict[str, Any]] = []
 
         if self.conn is not None:
             try:
@@ -294,14 +297,16 @@ class TwoPassHybridRetriever:
                 res = self.conn.execute(query, {"concept_id": anchor_id})
                 while res.has_next():
                     row = res.get_next()
-                    chunks.append({
-                        "doc_id": row[0],
-                        "doc_title": row[1] or row[0],
-                        "chunk_id": row[2] or f"chunk_{len(chunks)+1}",
-                        "page_number": int(row[3]) if row[3] is not None else 1,
-                        "section_title": row[4] or "",
-                        "text_passage": (row[5] or "").strip(),
-                    })
+                    chunks.append(
+                        {
+                            "doc_id": row[0],
+                            "doc_title": row[1] or row[0],
+                            "chunk_id": row[2] or f"chunk_{len(chunks) + 1}",
+                            "page_number": int(row[3]) if row[3] is not None else 1,
+                            "section_title": row[4] or "",
+                            "text_passage": (row[5] or "").strip(),
+                        }
+                    )
                 if chunks:
                     return chunks
             except Exception as exc:
@@ -311,17 +316,19 @@ class TwoPassHybridRetriever:
         cdata = self.concepts_data.get(anchor_id, {})
         sources = cdata.get("sources") or []
         for s in sources[:max_chunks]:
-            chunks.append({
-                "doc_id": s.get("doc_id", "Institutional Repository"),
-                "doc_title": s.get("doc_title") or s.get("doc_id", "Library Document"),
-                "chunk_id": s.get("chunk_id", f"chunk_{len(chunks)+1}"),
-                "page_number": int(s.get("page_number", 1)),
-                "section_title": s.get("section_title", ""),
-                "text_passage": s.get("text_passage", "").strip(),
-            })
+            chunks.append(
+                {
+                    "doc_id": s.get("doc_id", "Institutional Repository"),
+                    "doc_title": s.get("doc_title") or s.get("doc_id", "Library Document"),
+                    "chunk_id": s.get("chunk_id", f"chunk_{len(chunks) + 1}"),
+                    "page_number": int(s.get("page_number", 1)),
+                    "section_title": s.get("section_title", ""),
+                    "text_passage": s.get("text_passage", "").strip(),
+                }
+            )
         return chunks
 
-    def suggest_topics(self, term: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    def suggest_topics(self, term: str, top_k: int = 5) -> list[dict[str, Any]]:
         """Fuzzy Concept Discovery & Topic Suggestion Engine (Tier 2).
 
         Matches ambiguous user prompts to top 3-5 candidate nodes, fetching their
@@ -329,11 +336,11 @@ class TwoPassHybridRetriever:
         """
         from thefuzz import fuzz
 
-        candidates: List[Dict[str, Any]] = []
+        candidates: list[dict[str, Any]] = []
         qn = term.strip().lower()
         clean_q = _clean_query_tokens(qn)
 
-        scored: List[Tuple[str, float]] = []
+        scored: list[tuple[str, float]] = []
         for cid, cdata in self.concepts_data.items():
             name = (cdata.get("name") or cdata.get("label") or cid).strip()
             score = max(
@@ -343,7 +350,6 @@ class TwoPassHybridRetriever:
             if score >= 0.45:
                 scored.append((cid, score))
 
-
         scored.sort(key=lambda x: -x[1])
         top_cids = [c[0] for c in scored[:top_k]]
 
@@ -352,13 +358,15 @@ class TwoPassHybridRetriever:
             cname = cinfo.get("name") or cinfo.get("label") or cid
             prereqs = self.get_upstream_prerequisites(cid, max_hops=1)
             unlocks = self.get_downstream_unlocks(cid, max_hops=1)
-            candidates.append({
-                "id": cid,
-                "name": cname,
-                "difficulty": cinfo.get("difficulty", "intermediate"),
-                "summary": cinfo.get("summary", ""),
-                "prerequisites": [p["name"] for p in prereqs[:3]],
-                "unlocks": [u["name"] for u in unlocks[:3]],
-            })
+            candidates.append(
+                {
+                    "id": cid,
+                    "name": cname,
+                    "difficulty": cinfo.get("difficulty", "intermediate"),
+                    "summary": cinfo.get("summary", ""),
+                    "prerequisites": [p["name"] for p in prereqs[:3]],
+                    "unlocks": [u["name"] for u in unlocks[:3]],
+                }
+            )
 
         return candidates

@@ -1,7 +1,15 @@
+from collections import Counter
+from typing import Any
+
 from okf.eval._base import *  # noqa: F403
 
-def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict,
-                        raw_extraction_count: int = 0) -> dict:
+
+def evaluate_extraction(
+    okf_results: list[dict[str, Any]],
+    total_chunks: int,
+    graph_export: dict[str, Any],
+    raw_extraction_count: int = 0,
+) -> dict[str, Any]:
     """Compute proxy accuracy metrics for the extraction pipeline."""
     if raw_extraction_count == 0:
         raw_extraction_count = len(okf_results)
@@ -12,11 +20,10 @@ def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict
     # 2. Schema Completeness — required fields present with valid types.
     # Empty prerequisites/unlocks lists are valid (many concepts have none).
     # Do NOT use truthiness on lists — that falsely tanks core completeness.
-    required_fields = ["concept_name", "summary", "prerequisites", "unlocks"]
     expanded_fields = ["concept_type", "difficulty", "related_to", "tags"]
     _list_fields = frozenset({"prerequisites", "unlocks", "related_to", "tags"})
 
-    def _core_complete(row: dict) -> bool:
+    def _core_complete(row: dict[str, Any]) -> bool:
         name = row.get("concept_name")
         summary = row.get("summary")
         if not (isinstance(name, str) and name.strip()):
@@ -25,11 +32,9 @@ def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict
             return False
         if not isinstance(row.get("prerequisites"), list):
             return False
-        if not isinstance(row.get("unlocks"), list):
-            return False
-        return True
+        return isinstance(row.get("unlocks"), list)
 
-    def _expanded_complete(row: dict) -> bool:
+    def _expanded_complete(row: dict[str, Any]) -> bool:
         if not _core_complete(row):
             return False
         for field in expanded_fields:
@@ -43,8 +48,6 @@ def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict
     complete_core = 0
     complete_expanded = 0
     for r in okf_results:
-        if not isinstance(r, dict):
-            continue
         if _core_complete(r):
             complete_core += 1
         if _expanded_complete(r):
@@ -93,7 +96,7 @@ def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict
 
     # 6. Type Distribution — how well does the model differentiate types?
     type_counts = Counter(r.get("concept_type", "unknown") for r in okf_results)
-    type_diversity = len(type_counts)
+    len(type_counts)
 
     # 7. Difficulty Distribution
     diff_counts = Counter(r.get("difficulty", "unknown") for r in okf_results)
@@ -109,16 +112,18 @@ def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict
         connected_ids.add(e["from_id"])
         connected_ids.add(e["to_id"])
     orphan_count = total_concepts - len(connected_ids)
-    connectivity = ((total_concepts - orphan_count) / total_concepts * 100) if total_concepts > 0 else 0
+    connectivity = (
+        ((total_concepts - orphan_count) / total_concepts * 100) if total_concepts > 0 else 0
+    )
 
     # Composite Score (weighted — uses extraction_rate, not post-cleanup count)
     composite = (
-        extraction_rate * 0.15 +
-        schema_completeness_core * 0.15 +
-        concept_quality * 0.15 +
-        relation_consistency * 0.15 +
-        dag_validity * 0.15 +
-        connectivity * 0.25
+        extraction_rate * 0.15
+        + schema_completeness_core * 0.15
+        + concept_quality * 0.15
+        + relation_consistency * 0.15
+        + dag_validity * 0.15
+        + connectivity * 0.25
     )
 
     return {
@@ -147,5 +152,5 @@ def evaluate_extraction(okf_results: list, total_chunks: int, graph_export: dict
             "total_edges_in_graph": total_edges,
             "orphan_nodes": orphan_count,
             "self_loops": self_loops,
-        }
+        },
     }

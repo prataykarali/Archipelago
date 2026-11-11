@@ -1,0 +1,10 @@
+[Unit]
+Description=Advance configured live OPAC discovery daily when enabled
+
+[Timer]
+OnCalendar=*-*-* 10:00:00 Asia/Kolkata
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target

@@ -10,6 +10,7 @@ silently splitting the product's behaviour in two.
 One concern: naming what a reply *is*, independently of how the router reached
 it, and deciding — deterministically — whether the in-chat graph is drawn.
 """
+
 from __future__ import annotations
 
 from typing import NamedTuple

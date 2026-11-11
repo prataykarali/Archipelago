@@ -1,8 +1,11 @@
 """Unit tests for library route detection and library render helpers."""
+
 from archipelago.inference.routing import _detect_library_intent
 from archipelago.inference.synthesis import (
-    prettify_doc_title, render_library_books,
-    render_library_chapters, render_library_chapter_lookup,
+    prettify_doc_title,
+    render_library_books,
+    render_library_chapter_lookup,
+    render_library_chapters,
 )
 
 
@@ -16,7 +19,10 @@ class TestLibraryIntentDetection:
         assert _intent("which chapters of Math for ML contain PCA") == "library_chapter_lookup"
 
     def test_which_chapter_discusses_concept(self):
-        assert _intent("which chapter of the book discusses backpropagation") == "library_chapter_lookup"
+        assert (
+            _intent("which chapter of the book discusses backpropagation")
+            == "library_chapter_lookup"
+        )
 
     def test_chapters_of_book_that_cover_concept(self):
         assert _intent("chapters of Math for ML that cover PCA") == "library_chapter_lookup"
@@ -39,23 +45,30 @@ class TestLibraryIntentDetection:
 
 class TestPrettifyDocTitle:
     def test_known_doc_with_path(self):
-        assert prettify_doc_title("textbooks/Deisenroth_Math_For_ML.pdf") == \
-            "Mathematics for Machine Learning (Deisenroth et al.)"
+        assert (
+            prettify_doc_title("textbooks/Deisenroth_Math_For_ML.pdf")
+            == "Mathematics for Machine Learning (Deisenroth et al.)"
+        )
 
     def test_known_doc_bare(self):
-        assert prettify_doc_title("Hu2021_LoRA.pdf") == \
-            "LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021)"
+        assert (
+            prettify_doc_title("Hu2021_LoRA.pdf")
+            == "LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021)"
+        )
 
     def test_known_markdown_doc(self):
-        assert prettify_doc_title("AI_ML_Archipelago_Corpus_Seed.md") == \
-            "AI/ML Corpus Seed Syllabus"
+        assert (
+            prettify_doc_title("AI_ML_Archipelago_Corpus_Seed.md") == "AI/ML Corpus Seed Syllabus"
+        )
 
     def test_unknown_doc_generic_cleanup(self):
         assert prettify_doc_title("papers/Some_Unknown_Doc.pdf") == "Some Unknown Doc"
 
     def test_already_human_title_untouched(self):
-        assert prettify_doc_title("Mathematics for Machine Learning") == \
-            "Mathematics for Machine Learning"
+        assert (
+            prettify_doc_title("Mathematics for Machine Learning")
+            == "Mathematics for Machine Learning"
+        )
 
     def test_empty(self):
         assert prettify_doc_title("") == ""
@@ -63,19 +76,22 @@ class TestPrettifyDocTitle:
 
 class TestRenderFunctions:
     def test_books_render_uses_pretty_title_keeps_doc_id(self):
-        books = [{
-            "id": "textbooks/Deisenroth_Math_For_ML.pdf",
-            "title": "textbooks/Deisenroth_Math_For_ML.pdf",
-            "mentions": 12,
-            "matched": ["PCA"],
-        }]
+        books = [
+            {
+                "id": "textbooks/Deisenroth_Math_For_ML.pdf",
+                "title": "textbooks/Deisenroth_Math_For_ML.pdf",
+                "mentions": 12,
+                "matched": ["PCA"],
+            }
+        ]
         out = render_library_books("PCA", books)
         assert "Mathematics for Machine Learning (Deisenroth et al.)" in out
         assert "`textbooks/Deisenroth_Math_For_ML.pdf`" in out
 
     def test_chapter_lookup_render_pretty_title(self):
         out = render_library_chapter_lookup(
-            "textbooks/Deisenroth_Math_For_ML.pdf", "PCA",
+            "textbooks/Deisenroth_Math_For_ML.pdf",
+            "PCA",
             [{"section_title": "10 Dimensionality Reduction with PCA", "page_number": 317}],
         )
         assert "Mathematics for Machine Learning (Deisenroth et al.)" in out
@@ -85,7 +101,10 @@ class TestRenderFunctions:
         chapters = [{"section_title": f"{i} Chapter", "page_number": i} for i in range(1, 11)]
         out = render_library_chapters("Devlin2018_BERT.pdf", chapters)
         assert "BERT (Devlin et al., 2018)" in out
-        assert len([l for l in out.splitlines() if l.strip().startswith(tuple("0123456789"))]) == 10
+        assert (
+            len([line for line in out.splitlines() if line.strip().startswith(tuple("0123456789"))])
+            == 10
+        )
 
     def test_chapters_render_large_list_filters_to_top_level(self):
         chapters = [{"section_title": "Foreword", "page_number": 1}]

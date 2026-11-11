@@ -1,14 +1,13 @@
 """Unit tests for okf/evaluate.py."""
 
 import pytest
-import kuzu
 
 from okf.evaluate import compare_concepts, compare_edges, structural_audit
-
 
 # ---------------------------------------------------------------------------
 # compare_concepts tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 def test_compare_concepts_perfect_match():
@@ -57,6 +56,7 @@ def test_compare_concepts_partial_match():
 # compare_edges tests
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 def test_compare_edges_direction_accuracy():
     """One correctly directed edge + one reversed → direction_accuracy = 0.5.
@@ -75,8 +75,8 @@ def test_compare_edges_direction_accuracy():
         {"source": "c", "target": "d", "type": "UNLOCKS"},
     ]
     extracted = [
-        {"source": "a", "target": "b", "type": "UNLOCKS"},   # correct
-        {"source": "d", "target": "c", "type": "UNLOCKS"},   # reversed
+        {"source": "a", "target": "b", "type": "UNLOCKS"},  # correct
+        {"source": "d", "target": "c", "type": "UNLOCKS"},  # reversed
     ]
 
     result = compare_edges(extracted, gold)
@@ -91,18 +91,15 @@ def test_compare_edges_direction_accuracy():
 # structural_audit tests
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.unit
 def test_structural_audit_clean_graph(sample_graph):
     """The sample_graph fixture has no self-loops and no cycles."""
     conn = sample_graph
     audit = structural_audit(conn)
 
-    assert audit["self_edges"] == [], (
-        f"Expected no self-edges, got: {audit['self_edges']}"
-    )
-    assert audit["cycles"] == [], (
-        f"Expected no cycles, got: {audit['cycles']}"
-    )
+    assert audit["self_edges"] == [], f"Expected no self-edges, got: {audit['self_edges']}"
+    assert audit["cycles"] == [], f"Expected no cycles, got: {audit['cycles']}"
     assert "orphan_count" in audit
     assert "orphan_percentage" in audit
 

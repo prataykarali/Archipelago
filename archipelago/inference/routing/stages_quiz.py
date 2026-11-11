@@ -1,4 +1,5 @@
 """Quiz routing stages: diagnostic evaluation, quiz requests, roadmaps."""
+
 from __future__ import annotations
 
 import re
@@ -6,7 +7,9 @@ import re
 from . import _deps as _rt
 
 
-def quiz_route(q_raw: str, history: list | None, ranked: list, best: dict | None, best_cos: float) -> dict | None:
+def quiz_route(
+    q_raw: str, history: list | None, ranked: list, best: dict | None, best_cos: float
+) -> dict | None:
     """Quiz-answer evaluation, diagnostic quiz requests, X→Y roadmaps."""
     # Check if user is replying to a diagnostic quiz with answers
     quiz_answers = _rt._extract_quiz_answers(q_raw)
@@ -14,8 +17,14 @@ def quiz_route(q_raw: str, history: list | None, ranked: list, best: dict | None
     if len(quiz_answers) >= 3:
         is_quiz_response = True
     elif history and len(quiz_answers) >= 1:
-        last_asst = next((h.get("content", "") for h in reversed(history) if h.get("role") == "assistant"), "")
-        if "Knowledge Assessment" in last_asst or "diagnostic question" in last_asst.lower() or "Question 1:" in last_asst:
+        last_asst = next(
+            (h.get("content", "") for h in reversed(history) if h.get("role") == "assistant"), ""
+        )
+        if (
+            "Knowledge Assessment" in last_asst
+            or "diagnostic question" in last_asst.lower()
+            or "Question 1:" in last_asst
+        ):
             is_quiz_response = True
 
     if is_quiz_response:
@@ -35,17 +44,31 @@ def quiz_route(q_raw: str, history: list | None, ranked: list, best: dict | None
         }
 
     # Diagnostic knowledge assessment check (Context-Aware)
-    if re.search(r"\b(quiz\s+me|diagnostic\s+quiz|test\s+my\s+knowledge|assess\s+my\s+knowledge|evaluate\s+my\s+knowledge)\b", q_raw, re.I):
+    if re.search(
+        r"\b(quiz\s+me|diagnostic\s+quiz|test\s+my\s+knowledge|assess\s+my\s+knowledge|evaluate\s+my\s+knowledge)\b",
+        q_raw,
+        re.I,
+    ):
         # 1. Check if user explicitly named a specific concept in this query
         clean_quiz_q = re.sub(
             r"\b(can\s+you\s+)?(quiz\s+me|diagnostic\s+quiz|test\s+my\s+knowledge|assess\s+my\s+knowledge|evaluate\s+my\s+knowledge)\b",
-            " ", q_raw, flags=re.I
+            " ",
+            q_raw,
+            flags=re.I,
         )
-        clean_quiz_q = re.sub(r"\b(on|about|for|to|prerequisites|prereqs|baseline|this|it|that|topic|concept|what\s+we\s+discussed|please)\b", " ", clean_quiz_q, flags=re.I).strip()
+        clean_quiz_q = re.sub(
+            r"\b(on|about|for|to|prerequisites|prereqs|baseline|this|it|that|topic|concept|what\s+we\s+discussed|please)\b",
+            " ",
+            clean_quiz_q,
+            flags=re.I,
+        ).strip()
         target_concept = None
         if clean_quiz_q and len(clean_quiz_q) >= 3:
             specific_ranked = _rt.rank_concepts(clean_quiz_q, top_k=1)
-            if specific_ranked and (float(specific_ranked[0].get("cos", 0)) >= 0.48 or float(specific_ranked[0].get("lexical", 0)) >= 0.70):
+            if specific_ranked and (
+                float(specific_ranked[0].get("cos", 0)) >= 0.48
+                or float(specific_ranked[0].get("lexical", 0)) >= 0.70
+            ):
                 target_concept = specific_ranked[0]["id"]
 
         # 2. If no explicit concept named, or query leans on context ("this", "it"), check history!
@@ -53,7 +76,9 @@ def quiz_route(q_raw: str, history: list | None, ranked: list, best: dict | None
             target_concept = _rt._get_active_concept_from_history(history)
 
         if not target_concept:
-            target_concept = best["id"] if (best and best["id"] != "knowledge_graph") else "low_rank_adaptation"
+            target_concept = (
+                best["id"] if (best and best["id"] != "knowledge_graph") else "low_rank_adaptation"
+            )
 
         return {
             "anchor_id": target_concept,
@@ -66,7 +91,9 @@ def quiz_route(q_raw: str, history: list | None, ranked: list, best: dict | None
         }
 
     # Roadmap between two concepts check (e.g. roadmap from X to Y)
-    roadmap_match = re.search(r"\broadmap\s+(?:from|between)\s+(.+?)\s+(?:to|and)\s+(.+)", q_raw, re.I)
+    roadmap_match = re.search(
+        r"\broadmap\s+(?:from|between)\s+(.+?)\s+(?:to|and)\s+(.+)", q_raw, re.I
+    )
     if roadmap_match:
         from_term = roadmap_match.group(1).strip()
         to_term = roadmap_match.group(2).strip()

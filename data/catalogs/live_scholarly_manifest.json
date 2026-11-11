@@ -1,0 +1,837 @@
+{
+  "version": "1.1.0",
+  "last_updated": "2026-11-11T06:30:14Z",
+  "query": "deep learning architectures, computer networks, data structures and algorithms, distributed systems, natural language processing",
+  "total_cataloged": 40,
+  "source_status": {
+    "arxiv": {
+      "mode": "live",
+      "live_records": 20,
+      "fallback_records": 0,
+      "content_type": "papers"
+    },
+    "opac": {
+      "mode": "unavailable",
+      "live_records": 0,
+      "fallback_records": 0,
+      "content_type": "catalog_books"
+    },
+    "iemcrp": {
+      "mode": "fallback",
+      "live_records": 0,
+      "fallback_records": 17,
+      "content_type": "navigation_links"
+    },
+    "google_scholar": {
+      "mode": "link_only",
+      "live_records": 0,
+      "fallback_records": 0,
+      "content_type": "navigation_links",
+      "verification_url": "https://scholar.google.com/scholar?q=%22deep%20learning%20architectures%2C%20computer%20networks%2C%20data%20structures%20and%20algorithms%2C%20distributed%20systems%2C%20natural%20language%20processing%22"
+    },
+    "openalex": {
+      "mode": "live",
+      "live_records": 20,
+      "fallback_records": 0,
+      "content_type": "papers"
+    }
+  },
+  "items": [
+    {
+      "id": "2105.04026v2",
+      "title": "The Modern Mathematics of Deep Learning",
+      "authors": [
+        "Julius Berner",
+        "Philipp Grohs",
+        "Gitta Kutyniok",
+        "Philipp Petersen"
+      ],
+      "venue": "arXiv",
+      "year": "2021",
+      "abstract": "We describe the new field of mathematical analysis of deep learning. This field emerged around a list of research questions that were not answered within the classical framework of learning theory. These questions concern: the outstanding generalization power of overparametrized neural networks, the",
+      "oa_url": "http://arxiv.org/abs/2105.04026v2",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2105.04026v2",
+      "fetched_at": "2026-11-11T06:30:03.686700Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22The%20Modern%20Mathematics%20of%20Deep%20Learning%22%20Julius%20Berner"
+    },
+    {
+      "id": "2306.11113v2",
+      "title": "Learn to Accumulate Evidence from All Training Samples: Theory and Practice",
+      "authors": [
+        "Deep Pandey",
+        "Qi Yu"
+      ],
+      "venue": "arXiv",
+      "year": "2023",
+      "abstract": "Evidential deep learning, built upon belief theory and subjective logic, offers a principled and computationally efficient way to turn a deterministic neural network uncertainty-aware. The resultant evidential models can quantify fine-grained uncertainty using the learned evidence. To ensure theoret",
+      "oa_url": "http://arxiv.org/abs/2306.11113v2",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2306.11113v2",
+      "fetched_at": "2026-11-11T06:30:03.687056Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Learn%20to%20Accumulate%20Evidence%20from%20All%20Training%20Samples%3A%20Theory%20and%20Practice%22%20Deep%20Pandey"
+    },
+    {
+      "id": "2301.00942v1",
+      "title": "Deep Learning and Computational Physics (Lecture Notes)",
+      "authors": [
+        "Deep Ray",
+        "Orazio Pinti",
+        "Assad A. Oberai"
+      ],
+      "venue": "arXiv",
+      "year": "2023",
+      "abstract": "These notes were compiled as lecture notes for a course developed and taught at the University of the Southern California. They should be accessible to a typical engineering graduate student with a strong background in Applied Mathematics. The main objective of these notes is to introduce a student ",
+      "oa_url": "http://arxiv.org/abs/2301.00942v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2301.00942v1",
+      "fetched_at": "2026-11-11T06:30:03.687281Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Deep%20Learning%20and%20Computational%20Physics%20%28Lecture%20Notes%29%22%20Deep%20Ray"
+    },
+    {
+      "id": "2603.29261v1",
+      "title": "Monodense Deep Neural Model for Determining Item Price Elasticity",
+      "authors": [
+        "Lakshya Garg",
+        "Sai Yaswanth",
+        "Deep Narayan Mishra",
+        "Karthik Kumaran",
+        "Anupriya Sharma",
+        "Mayank Uniyal"
+      ],
+      "venue": "arXiv",
+      "year": "2026",
+      "abstract": "Item Price Elasticity is used to quantify the responsiveness of consumer demand to changes in item prices, enabling businesses to create pricing strategies and optimize revenue management. Sectors such as store retail, e-commerce, and consumer goods rely on elasticity information derived from histor",
+      "oa_url": "http://arxiv.org/abs/2603.29261v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2603.29261v1",
+      "fetched_at": "2026-11-11T06:30:03.687521Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Monodense%20Deep%20Neural%20Model%20for%20Determining%20Item%20Price%20Elasticity%22%20Lakshya%20Garg"
+    },
+    {
+      "id": "https://openalex.org/W2982535365",
+      "title": "Deep Learning Architectures",
+      "authors": [
+        "Mohammad-Parsa Hosseini",
+        "Senbao Lu",
+        "Kavin Kamaraj",
+        "Alexander Slowikowski",
+        "Haygreev C. Venkatesh"
+      ],
+      "venue": "Studies in computational intelligence",
+      "year": "2019",
+      "abstract": "",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2982535365",
+      "fetched_at": "2026-11-11T06:30:05.208855Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Deep%20Learning%20Architectures%22%20Mohammad-Parsa%20Hosseini"
+    },
+    {
+      "id": "https://openalex.org/W2993843842",
+      "title": "Sentiment analysis using deep learning architectures: a review",
+      "authors": [
+        "Ashima Yadav",
+        "Dinesh Kumar Vishwakarma"
+      ],
+      "venue": "Artificial Intelligence Review",
+      "year": "2019",
+      "abstract": "",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2993843842",
+      "fetched_at": "2026-11-11T06:30:05.209022Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Sentiment%20analysis%20using%20deep%20learning%20architectures%3A%20a%20review%22%20Ashima%20Yadav"
+    },
+    {
+      "id": "https://openalex.org/W3006335338",
+      "title": "Deep Learning Architectures",
+      "authors": [
+        "Ovidiu L. Calin"
+      ],
+      "venue": "Springer series in the data sciences",
+      "year": "2020",
+      "abstract": "",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W3006335338",
+      "fetched_at": "2026-11-11T06:30:05.209125Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Deep%20Learning%20Architectures%22%20Ovidiu%20L.%20Calin"
+    },
+    {
+      "id": "https://openalex.org/W2602034649",
+      "title": "Evaluating deep learning architectures for Speech Emotion Recognition",
+      "authors": [
+        "Haytham M. Fayek",
+        "Margaret Lech",
+        "Lawrence Cavedon"
+      ],
+      "venue": "Neural Networks",
+      "year": "2017",
+      "abstract": "",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2602034649",
+      "fetched_at": "2026-11-11T06:30:05.209237Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Evaluating%20deep%20learning%20architectures%20for%20Speech%20Emotion%20Recognition%22%20Haytham%20M.%20Fayek"
+    },
+    {
+      "id": "2411.18199v3",
+      "title": "Semantic Edge Computing and Semantic Communications in 6G Networks: A Unifying Survey and Research Challenges",
+      "authors": [
+        "Milin Zhang",
+        "Mohammad Abdi",
+        "Venkat R. Dasari",
+        "Francesco Restuccia"
+      ],
+      "venue": "arXiv",
+      "year": "2024",
+      "abstract": "Semantic Edge Computing (SEC) and Semantic Communications (SemComs) have been proposed as viable approaches to achieve real-time edge-enabled intelligence in sixth-generation (6G) wireless networks. On one hand, SemCom leverages the strength of Deep Neural Networks (DNNs) to encode and communicate t",
+      "oa_url": "http://arxiv.org/abs/2411.18199v3",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2411.18199v3",
+      "fetched_at": "2026-11-11T06:30:07.169507Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Semantic%20Edge%20Computing%20and%20Semantic%20Communications%20in%206G%20Networks%3A%20A%20Unifying%20Survey%20and%20Research%20Challenges%22%20Milin%20Zhang"
+    },
+    {
+      "id": "2001.03409v1",
+      "title": "Superbubbles as an Empirical Characteristic of Directed Networks",
+      "authors": [
+        "Fabian G\u00e4rtner",
+        "Felix K\u00fchnl",
+        "Carsten R. Seemann",
+        "The Students of the Graphs",
+        "Networks Computer Lab 2018/19",
+        "Christian H\u00f6ner zu Siederdissen",
+        "Peter F. Stadler"
+      ],
+      "venue": "arXiv",
+      "year": "2020",
+      "abstract": "Superbubbles are acyclic induced subgraphs of a digraph with single entrance and exit that naturally arise in the context of genome assembly and the analysis of genome alignments in computational biology. These structures can be computed in linear time and are confined to non-symmetric digraphs. We ",
+      "oa_url": "http://arxiv.org/abs/2001.03409v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2001.03409v1",
+      "fetched_at": "2026-11-11T06:30:07.169719Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Superbubbles%20as%20an%20Empirical%20Characteristic%20of%20Directed%20Networks%22%20Fabian%20G%C3%A4rtner"
+    },
+    {
+      "id": "1910.05300v1",
+      "title": "Patterns of Multiplex Layer Entanglement across Real and Synthetic Networks",
+      "authors": [
+        "Bla\u017e \u0160krlj",
+        "Benjamin Renoust"
+      ],
+      "venue": "arXiv",
+      "year": "2019",
+      "abstract": "Real world complex networks often exhibit multiplex structure, connecting entities from different aspects of physical systems such as social, transportation and biological networks. Little is known about general properties of such networks across disciplines. In this work, we first investigate how c",
+      "oa_url": "http://arxiv.org/abs/1910.05300v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/1910.05300v1",
+      "fetched_at": "2026-11-11T06:30:07.169840Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Patterns%20of%20Multiplex%20Layer%20Entanglement%20across%20Real%20and%20Synthetic%20Networks%22%20Bla%C5%BE%20%C5%A0krlj"
+    },
+    {
+      "id": "2103.04668v2",
+      "title": "The distance backbone of complex networks",
+      "authors": [
+        "Tiago Simas",
+        "Rion Brattig Correia",
+        "Luis M. Rocha"
+      ],
+      "venue": "arXiv",
+      "year": "2021",
+      "abstract": "Redundancy needs more precise characterization as it is a major factor in the evolution and robustness of networks of multivariate interactions. We investigate the complexity of such interactions by inferring a connection transitivity that includes all possible measures of path length for weighted g",
+      "oa_url": "http://arxiv.org/abs/2103.04668v2",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2103.04668v2",
+      "fetched_at": "2026-11-11T06:30:07.169949Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22The%20distance%20backbone%20of%20complex%20networks%22%20Tiago%20Simas"
+    },
+    {
+      "id": "https://openalex.org/W2090530117",
+      "title": "Computer Networks As Social Networks",
+      "authors": [
+        "Barry Wellman"
+      ],
+      "venue": "Science",
+      "year": "2001",
+      "abstract": "Computer networks are inherently social networks, linking people, organizations, and knowledge. They are social institutions that should not be studied in isolation but as integrated into everyday lives. The proliferation of computer networks has facilitated a deemphasis on group solidarities at wor",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2090530117",
+      "fetched_at": "2026-11-11T06:30:07.810383Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Computer%20Networks%20As%20Social%20Networks%22%20Barry%20Wellman"
+    },
+    {
+      "id": "https://openalex.org/W2078500988",
+      "title": "Computer Networks: A Systems Approach",
+      "authors": [
+        "Larry Peterson",
+        "Bruce S. Davie"
+      ],
+      "venue": null,
+      "year": "1996",
+      "abstract": "Computer Networks, 4E is the only introductory computer networking book written by authors who have had first-hand experience with many of the protocols discussed in the book, who have actually designed some of them as well, and who are still actively designing the computer networks today. This newl",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2078500988",
+      "fetched_at": "2026-11-11T06:30:07.810592Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Computer%20Networks%3A%20A%20Systems%20Approach%22%20Larry%20Peterson"
+    },
+    {
+      "id": "https://openalex.org/W1521251986",
+      "title": "Computer networks and Internets",
+      "authors": [],
+      "venue": "Choice Reviews Online",
+      "year": "1997",
+      "abstract": "From the Publisher:\r\nThe Second Edition of this best-selling text continues to answer the question, How do computer networks and internets operate? Douglas Comer, a leading computer networking authority, provides a self-contained tour from the lowest levels of data transmission wiring through the hi",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1521251986",
+      "fetched_at": "2026-11-11T06:30:07.810738Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Computer%20networks%20and%20Internets%22"
+    },
+    {
+      "id": "https://openalex.org/W1987221997",
+      "title": "Notable computer networks",
+      "authors": [
+        "John S. Quarterman",
+        "Josiah C. Hoskins"
+      ],
+      "venue": "Communications of the ACM",
+      "year": "1986",
+      "abstract": "Computer networks are becoming more numerous and more diverse. Collectively, they constitute a worldwide metanetwork.",
+      "oa_url": "https://dl.acm.org/doi/pdf/10.1145/6617.6618",
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1987221997",
+      "fetched_at": "2026-11-11T06:30:07.810892Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Notable%20computer%20networks%22%20John%20S.%20Quarterman"
+    },
+    {
+      "id": "1907.02664v2",
+      "title": "Data Encoding for Byzantine-Resilient Distributed Optimization",
+      "authors": [
+        "Deepesh Data",
+        "Linqi Song",
+        "Suhas Diggavi"
+      ],
+      "venue": "arXiv",
+      "year": "2019",
+      "abstract": "We study distributed optimization in the presence of Byzantine adversaries, where both data and computation are distributed among $m$ worker machines, $t$ of which may be corrupt. The compromised nodes may collaboratively and arbitrarily deviate from their pre-specified programs, and a designated (m",
+      "oa_url": "http://arxiv.org/abs/1907.02664v2",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/1907.02664v2",
+      "fetched_at": "2026-11-11T06:30:08.882331Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Encoding%20for%20Byzantine-Resilient%20Distributed%20Optimization%22%20Deepesh%20Data"
+    },
+    {
+      "id": "2005.07866v1",
+      "title": "Byzantine-Resilient SGD in High Dimensions on Heterogeneous Data",
+      "authors": [
+        "Deepesh Data",
+        "Suhas Diggavi"
+      ],
+      "venue": "arXiv",
+      "year": "2020",
+      "abstract": "We study distributed stochastic gradient descent (SGD) in the master-worker architecture under Byzantine attacks. We consider the heterogeneous data model, where different workers may have different local datasets, and we do not make any probabilistic assumptions on data generation. At the core of o",
+      "oa_url": "http://arxiv.org/abs/2005.07866v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2005.07866v1",
+      "fetched_at": "2026-11-11T06:30:08.882498Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Byzantine-Resilient%20SGD%20in%20High%20Dimensions%20on%20Heterogeneous%20Data%22%20Deepesh%20Data"
+    },
+    {
+      "id": "1110.5626v1",
+      "title": "Constraints on dark energy from H II starburst galaxy apparent magnitude versus redshift data",
+      "authors": [
+        "Data Mania",
+        "Bharat Ratra"
+      ],
+      "venue": "arXiv",
+      "year": "2011",
+      "abstract": "In this paper we use H II starburst galaxy apparent magnitude versus redshift data from Siegel et al. (2005) to constrain dark energy cosmological model parameters. These constraints are generally consistent with those derived using other data sets, but are not as restrictive as the tightest current",
+      "oa_url": "http://arxiv.org/abs/1110.5626v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/1110.5626v1",
+      "fetched_at": "2026-11-11T06:30:08.882590Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Constraints%20on%20dark%20energy%20from%20H%20II%20starburst%20galaxy%20apparent%20magnitude%20versus%20redshift%20data%22%20Data%20Mania"
+    },
+    {
+      "id": "2510.21391v1",
+      "title": "TerraGen: A Unified Multi-Task Layout Generation Framework for Remote Sensing Data Augmentation",
+      "authors": [
+        "Datao Tang",
+        "Hao Wang",
+        "Yudeng Xin",
+        "Hui Qiao",
+        "Dongsheng Jiang",
+        "Yin Li",
+        "Zhiheng Yu",
+        "Xiangyong Cao"
+      ],
+      "venue": "arXiv",
+      "year": "2025",
+      "abstract": "Remote sensing vision tasks require extensive labeled data across multiple, interconnected domains. However, current generative data augmentation frameworks are task-isolated, i.e., each vision task requires training an independent generative model, and ignores the modeling of geographical informati",
+      "oa_url": "http://arxiv.org/abs/2510.21391v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2510.21391v1",
+      "fetched_at": "2026-11-11T06:30:08.882736Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22TerraGen%3A%20A%20Unified%20Multi-Task%20Layout%20Generation%20Framework%20for%20Remote%20Sensing%20Data%20Augmentation%22%20Datao%20Tang"
+    },
+    {
+      "id": "https://openalex.org/W2753176400",
+      "title": "Data Structures and Algorithms",
+      "authors": [],
+      "venue": "Series on software engineering and knowledge engineering",
+      "year": "2003",
+      "abstract": "The course requires a knowledge of basic programming techniques and basic mathematical skills.In particular, you should review the following.",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2753176400",
+      "fetched_at": "2026-11-11T06:30:10.518288Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Structures%20and%20Algorithms%22"
+    },
+    {
+      "id": "https://openalex.org/W4249958171",
+      "title": "Data Structures and Algorithms",
+      "authors": [
+        "Niklaus Wirth"
+      ],
+      "venue": "Scientific American",
+      "year": "1984",
+      "abstract": "",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W4249958171",
+      "fetched_at": "2026-11-11T06:30:10.518443Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Structures%20and%20Algorithms%22%20Niklaus%20Wirth"
+    },
+    {
+      "id": "https://openalex.org/W1997841190",
+      "title": "Information Retrieval: Data Structures and Algorithms",
+      "authors": [
+        "William B. Frakes",
+        "Ricardo A. Baeza-Yates"
+      ],
+      "venue": null,
+      "year": "1992",
+      "abstract": "An edited volume containing data structures and algorithms for information retrieved including a disk with examples written in C. For programmers and students interested in parsing text, automated indexing, its the first collection in book form of the basic data structures and algorithms that are cr",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1997841190",
+      "fetched_at": "2026-11-11T06:30:10.518530Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Information%20Retrieval%3A%20Data%20Structures%20and%20Algorithms%22%20William%20B.%20Frakes"
+    },
+    {
+      "id": "https://openalex.org/W2475478067",
+      "title": "Data Structures and Algorithms 1",
+      "authors": [
+        "Kurt Mehlhorn"
+      ],
+      "venue": "Springer eBooks",
+      "year": "1984",
+      "abstract": "",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2475478067",
+      "fetched_at": "2026-11-11T06:30:10.518639Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Structures%20and%20Algorithms%201%22%20Kurt%20Mehlhorn"
+    },
+    {
+      "id": "1012.1288v5",
+      "title": "Representations of task assignments in distributed systems using Young tableaux and symmetric groups",
+      "authors": [
+        "Dohan Kim"
+      ],
+      "venue": "arXiv",
+      "year": "2010",
+      "abstract": "This paper presents a novel approach to representing task assignments for partitioned agents (respectively, tasks) in distributed systems. A partition of agents (respectively, tasks) is represented by a Young tableau, which is one of the main tools in studying symmetric groups and combinatorics. In ",
+      "oa_url": "http://arxiv.org/abs/1012.1288v5",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/1012.1288v5",
+      "fetched_at": "2026-11-11T06:30:11.627963Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Representations%20of%20task%20assignments%20in%20distributed%20systems%20using%20Young%20tableaux%20and%20symmetric%20groups%22%20Dohan%20Kim"
+    },
+    {
+      "id": "1006.3394v1",
+      "title": "Modular RADAR: An Immune System Inspired Search and Response Strategy for Distributed Systems",
+      "authors": [
+        "Soumya Banerjee",
+        "Melanie Moses"
+      ],
+      "venue": "arXiv",
+      "year": "2010",
+      "abstract": "The Natural Immune System (NIS) is a distributed system that solves challenging search and response problems while operating under constraints imposed by physical space and resource availability. Remarkably, NIS search and response times do not scale appreciably with the physical size of the animal ",
+      "oa_url": "http://arxiv.org/abs/1006.3394v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/1006.3394v1",
+      "fetched_at": "2026-11-11T06:30:11.628151Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Modular%20RADAR%3A%20An%20Immune%20System%20Inspired%20Search%20and%20Response%20Strategy%20for%20Distributed%20Systems%22%20Soumya%20Banerjee"
+    },
+    {
+      "id": "2603.28622v1",
+      "title": "Trust-Aware Routing for Distributed Generative AI Inference at the Edge",
+      "authors": [
+        "Chanh Nguyen",
+        "Erik Elmroth"
+      ],
+      "venue": "arXiv",
+      "year": "2026",
+      "abstract": "Emerging deployments of Generative AI increasingly execute inference across decentralized and heterogeneous edge devices rather than on a single trusted server. In such environments, a single device failure or misbehavior can disrupt the entire inference process, making traditional best-effort peer-",
+      "oa_url": "http://arxiv.org/abs/2603.28622v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2603.28622v1",
+      "fetched_at": "2026-11-11T06:30:11.628268Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Trust-Aware%20Routing%20for%20Distributed%20Generative%20AI%20Inference%20at%20the%20Edge%22%20Chanh%20Nguyen"
+    },
+    {
+      "id": "1001.0196v1",
+      "title": "A distributed file system for a wide-area high performance computing infrastructure",
+      "authors": [
+        "Edward Walker"
+      ],
+      "venue": "arXiv",
+      "year": "2010",
+      "abstract": "We describe our work in implementing a wide-area distributed file system for the NSF TeraGrid. The system, called XUFS, allows private distributed name spaces to be created for transparent access to personal files across over 9000 computer nodes. XUFS builds on many principles from prior distributed",
+      "oa_url": "http://arxiv.org/abs/1001.0196v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/1001.0196v1",
+      "fetched_at": "2026-11-11T06:30:11.628364Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22A%20distributed%20file%20system%20for%20a%20wide-area%20high%20performance%20computing%20infrastructure%22%20Edward%20Walker"
+    },
+    {
+      "id": "https://openalex.org/W1518754760",
+      "title": "Distributed Systems: Concepts and Design",
+      "authors": [
+        "George Coulouris",
+        "Jean Dollimore"
+      ],
+      "venue": null,
+      "year": "1988",
+      "abstract": "Broad and up-to-date coverage of the principles and practice in the fast moving area of Distributed Systems. Distributed Systems provides students of computer science and engineering with the skills they will need to design and maintain software for distributed applications. It will also be invaluab",
+      "oa_url": "http://www3.ub.tu-berlin.de/ihv/000787662.pdf",
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1518754760",
+      "fetched_at": "2026-11-11T06:30:12.449866Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Distributed%20Systems%3A%20Concepts%20and%20Design%22%20George%20Coulouris"
+    },
+    {
+      "id": "https://openalex.org/W2912536603",
+      "title": "Distributed Systems",
+      "authors": [
+        "Sape J. Mullender"
+      ],
+      "venue": null,
+      "year": "1989",
+      "abstract": "",
+      "oa_url": "https://research.utwente.nl/en/publications/distributed-systems(0955c021-ae93-411e-831b-2827e0a12c8c).html",
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2912536603",
+      "fetched_at": "2026-11-11T06:30:12.450030Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Distributed%20Systems%22%20Sape%20J.%20Mullender"
+    },
+    {
+      "id": "https://openalex.org/W1508143344",
+      "title": "Distributed Systems: Principles and Paradigms",
+      "authors": [
+        "Andrew S. Tanenbaum",
+        "Maarten R. van Steen"
+      ],
+      "venue": null,
+      "year": "2001",
+      "abstract": "From the Publisher:\r\nAndrew Tanenbaum and Maarten van Steen cover the principles, advanced concepts, and technologies of distributed systems in detail, including: communication, replication, fault tolerance, and security. Intended for use in a senior/graduate level distributed systems course or by p",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1508143344",
+      "fetched_at": "2026-11-11T06:30:12.450082Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Distributed%20Systems%3A%20Principles%20and%20Paradigms%22%20Andrew%20S.%20Tanenbaum"
+    },
+    {
+      "id": "https://openalex.org/W2052915895",
+      "title": "Optimistic recovery in distributed systems",
+      "authors": [
+        "Rob Strom",
+        "Shaula Yemini"
+      ],
+      "venue": "ACM Transactions on Computer Systems",
+      "year": "1985",
+      "abstract": "Optimistic Recovery is a new technique supporting application-independent transparent recovery from processor failures in distributed systems. In optimistic recovery communication, computation and checkpointing proceed asynchronously. Synchronization is replaced by causal dependency tracking , which",
+      "oa_url": "https://dl.acm.org/doi/pdf/10.1145/3959.3962",
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2052915895",
+      "fetched_at": "2026-11-11T06:30:12.450211Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Optimistic%20recovery%20in%20distributed%20systems%22%20Rob%20Strom"
+    },
+    {
+      "id": "2110.10780v3",
+      "title": "An Open Natural Language Processing Development Framework for EHR-based Clinical Research: A case demonstration using the National COVID Cohort Collaborative (N3C)",
+      "authors": [
+        "Sijia Liu",
+        "Andrew Wen",
+        "Liwei Wang",
+        "Huan He",
+        "Sunyang Fu",
+        "Robert Miller",
+        "Andrew Williams",
+        "Daniel Harris",
+        "Ramakanth Kavuluru",
+        "Mei Liu",
+        "Noor Abu-el-rub",
+        "Dalton Schutte",
+        "Rui Zhang",
+        "Masoud Rouhizadeh",
+        "John D. Osborne",
+        "Yongqun He",
+        "Umit Topaloglu",
+        "Stephanie S Hong",
+        "Joel H Saltz",
+        "Thomas Schaffter",
+        "Emily Pfaff",
+        "Christopher G. Chute",
+        "Tim Duong",
+        "Melissa A. Haendel",
+        "Rafael Fuentes",
+        "Peter Szolovits",
+        "Hua Xu",
+        "Hongfang Liu",
+        "National COVID Cohort Collaborative",
+        "Natural Language Processing",
+        "Subgroup",
+        "National COVID Cohort Collaborative"
+      ],
+      "venue": "arXiv",
+      "year": "2021",
+      "abstract": "While we pay attention to the latest advances in clinical natural language processing (NLP), we can notice some resistance in the clinical and translational research community to adopt NLP models due to limited transparency, interpretability, and usability. In this study, we proposed an open natural",
+      "oa_url": "http://arxiv.org/abs/2110.10780v3",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2110.10780v3",
+      "fetched_at": "2026-11-11T06:30:13.689912Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22An%20Open%20Natural%20Language%20Processing%20Development%20Framework%20for%20EHR-based%20Clinical%20Research%3A%20A%20case%20demonstration%20using%20the%20National%20COVID%20Cohort%20Collaborative%20%28N3C%29%22%20Sijia%20Liu"
+    },
+    {
+      "id": "2306.06371v1",
+      "title": "A Comprehensive Review of State-of-The-Art Methods for Java Code Generation from Natural Language Text",
+      "authors": [
+        "Jessica L\u00f3pez Espejel",
+        "Mahaman Sanoussi Yahaya Alassan",
+        "El Mehdi Chouham",
+        "Walid Dahhane",
+        "El Hassane Ettifouri"
+      ],
+      "venue": "arXiv",
+      "year": "2023",
+      "abstract": "Java Code Generation consists in generating automatically Java code from a Natural Language Text. This NLP task helps in increasing programmers' productivity by providing them with immediate solutions to the simplest and most repetitive tasks. Code generation is a challenging task because of the har",
+      "oa_url": "http://arxiv.org/abs/2306.06371v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2306.06371v1",
+      "fetched_at": "2026-11-11T06:30:13.690192Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22A%20Comprehensive%20Review%20of%20State-of-The-Art%20Methods%20for%20Java%20Code%20Generation%20from%20Natural%20Language%20Text%22%20Jessica%20L%C3%B3pez%20Espejel"
+    },
+    {
+      "id": "2006.16212v1",
+      "title": "Towards the Study of Morphological Processing of the Tangkhul Language",
+      "authors": [
+        "Mirinso Shadang",
+        "Navanath Saharia",
+        "Thoudam Doren Singh"
+      ],
+      "venue": "arXiv",
+      "year": "2020",
+      "abstract": "There is no or little work on natural language processing of Tangkhul language. The current work is a humble beginning of morphological processing of this language using an unsupervised approach. We use a small corpus collected from different sources of text books, short stories and articles of othe",
+      "oa_url": "http://arxiv.org/abs/2006.16212v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2006.16212v1",
+      "fetched_at": "2026-11-11T06:30:13.690299Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Towards%20the%20Study%20of%20Morphological%20Processing%20of%20the%20Tangkhul%20Language%22%20Mirinso%20Shadang"
+    },
+    {
+      "id": "2103.14757v1",
+      "title": "An Automated Multiple-Choice Question Generation Using Natural Language Processing Techniques",
+      "authors": [
+        "Chidinma A. Nwafor",
+        "Ikechukwu E. Onyenwe"
+      ],
+      "venue": "arXiv",
+      "year": "2021",
+      "abstract": "Automatic multiple-choice question generation (MCQG) is a useful yet challenging task in Natural Language Processing (NLP). It is the task of automatic generation of correct and relevant questions from textual data. Despite its usefulness, manually creating sizeable, meaningful and relevant question",
+      "oa_url": "http://arxiv.org/abs/2103.14757v1",
+      "source": "arxiv",
+      "retrieval_mode": "live",
+      "source_url": "http://arxiv.org/abs/2103.14757v1",
+      "fetched_at": "2026-11-11T06:30:13.690394Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22An%20Automated%20Multiple-Choice%20Question%20Generation%20Using%20Natural%20Language%20Processing%20Techniques%22%20Chidinma%20A.%20Nwafor"
+    },
+    {
+      "id": "https://openalex.org/W1521626219",
+      "title": "Natural language processing with Python",
+      "authors": [
+        "Steven Bird",
+        "Ewan Klein",
+        "Edward Loper"
+      ],
+      "venue": "CERN Document Server (European Organization for Nuclear Research)",
+      "year": "2009",
+      "abstract": "This book offers a highly accessible introduction to natural language processing, the field that supports a variety of language technologies, from predictive text and email filtering to automatic summarization and translation. With it, you'll learn how to write Python programs that work with large c",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1521626219",
+      "fetched_at": "2026-11-11T06:30:14.706877Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Natural%20language%20processing%20with%20Python%22%20Steven%20Bird"
+    },
+    {
+      "id": "https://openalex.org/W1410460",
+      "title": "Handbook of Natural Language Processing",
+      "authors": [
+        "Nitin Indurkhya",
+        "Fred J. Damerau"
+      ],
+      "venue": "Chapman & Hall/CRC eBooks",
+      "year": "2010",
+      "abstract": "The Handbook of Natural Language Processing, Second Edition presents practical tools and techniques for implementing natural language processing in computer systems. Along with removing outdated material, this edition updates every chapter and expands the content to include emerging areas, such as s",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1410460",
+      "fetched_at": "2026-11-11T06:30:14.707167Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Handbook%20of%20Natural%20Language%20Processing%22%20Nitin%20Indurkhya"
+    },
+    {
+      "id": "https://openalex.org/W1663984431",
+      "title": "Advances in natural language processing",
+      "authors": [
+        "Julia Hirschberg",
+        "Christopher D. Manning"
+      ],
+      "venue": "Science",
+      "year": "2015",
+      "abstract": "Natural language processing employs computational techniques for the purpose of learning, understanding, and producing human language content. Early computational approaches to language research focused on automating the analysis of the linguistic structure of language and developing basic technolog",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1663984431",
+      "fetched_at": "2026-11-11T06:30:14.707276Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Advances%20in%20natural%20language%20processing%22%20Julia%20Hirschberg"
+    },
+    {
+      "id": "https://openalex.org/W2169818249",
+      "title": "Natural language processing: an introduction",
+      "authors": [
+        "Prakash M. Nadkarni",
+        "Lucila Ohno-machado A",
+        "Wendy W. Chapman"
+      ],
+      "venue": "Journal of the American Medical Informatics Association",
+      "year": "2011",
+      "abstract": "OBJECTIVES: To provide an overview and tutorial of natural language processing (NLP) and modern NLP-system design. TARGET AUDIENCE: This tutorial targets the medical informatics generalist who has limited acquaintance with the principles behind NLP and/or limited knowledge of the current state of th",
+      "oa_url": "https://academic.oup.com/jamia/article-pdf/18/5/544/5962687/18-5-544.pdf",
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2169818249",
+      "fetched_at": "2026-11-11T06:30:14.707408Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Natural%20language%20processing%3A%20an%20introduction%22%20Prakash%20M.%20Nadkarni"
+    }
+  ],
+  "resources": [
+    {
+      "id": "iemcrp_uemk_opac",
+      "title": "UEM Kolkata - Library OPAC Portal",
+      "authors": [
+        "UEM Kolkata Central Library"
+      ],
+      "venue": "IEM CRP \u2014 Online Public Access Catalog",
+      "year": null,
+      "abstract": "Search Books, Journals, Thesis, Project Reports and other Library Resources in UEM Kolkata.",
+      "oa_url": "http://uemk-opac.l2c2.co.in",
+      "source": "iemcrp_manifest",
+      "retrieval_mode": "link_manifest",
+      "source_url": "http://uemk-opac.l2c2.co.in",
+      "fetched_at": "2026-11-11T06:30:12.572511Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22UEM%20Kolkata%20-%20Library%20OPAC%20Portal%22%20UEM%20Kolkata%20Central%20Library"
+    },
+    {
+      "id": "iemcrp_iem_saltlake",
+      "title": "IEM Saltlake - Library Catalogue",
+      "authors": [
+        "IEM Saltlake Library"
+      ],
+      "venue": "IEM CRP \u2014 Online Public Access Catalog",
+      "year": null,
+      "abstract": "Search Physical and Digital Resources in IEM Saltlake Campus.",
+      "oa_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "source": "iemcrp_manifest",
+      "retrieval_mode": "link_manifest",
+      "source_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "fetched_at": "2026-11-11T06:30:12.572595Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22IEM%20Saltlake%20-%20Library%20Catalogue%22%20IEM%20Saltlake%20Library"
+    },
+    {
+      "id": "iemcrp_gurukul_opac",
+      "title": "IEM Gurukul Campus - Library OPAC",
+      "authors": [
+        "IEM Gurukul Campus Library"
+      ],
+      "venue": "IEM CRP \u2014 Online Public Access Catalog",
+      "year": null,
+      "abstract": "Library catalogue and holdings for IEM Gurukul Campus.",
+      "oa_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "source": "iemcrp_manifest",
+      "retrieval_mode": "link_manifest",
+      "source_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "fetched_at": "2026-11-11T06:30:12.572631Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22IEM%20Gurukul%20Campus%20-%20Library%20OPAC%22%20IEM%20Gurukul%20Campus%20Library"
+    },
+    {
+      "id": "iemcrp_digital_library",
+      "title": "IEM-UEM Digital Library Database Access",
+      "authors": [
+        "IEM-UEM Digital Resource Center"
+      ],
+      "venue": "IEM CRP \u2014 Digital Library",
+      "year": null,
+      "abstract": "Access to eBooks, eJournals, High-Performance Compute, and Online Research Databases.",
+      "oa_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "source": "iemcrp_manifest",
+      "retrieval_mode": "link_manifest",
+      "source_url": "https://www.iemcrp.com/iemEn/login.jsp",
+      "fetched_at": "2026-11-11T06:30:12.572661Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22IEM-UEM%20Digital%20Library%20Database%20Access%22%20IEM-UEM%20Digital%20Resource%20Center"
+    }
+  ],
+  "scholar_verification_url": "https://scholar.google.com/scholar?q=%22deep%20learning%20architectures%2C%20computer%20networks%2C%20data%20structures%20and%20algorithms%2C%20distributed%20systems%2C%20natural%20language%20processing%22"
+}

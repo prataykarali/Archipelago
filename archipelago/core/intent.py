@@ -42,7 +42,7 @@ _UNSUPPORTED_PATTERNS = [
         re.I,
     ),
     re.compile(
-        r"\b(scraper|scrape|download\s+all|bypass|jailbreak|exploit|hack|ddos|sql\s+injection)\b",
+        r"\b(scraper|scrape|download\s+all|bypass|jailbreak|exploit\b|hack\b|ddos|(?:run|execute|perform)\s+sql\s+injection)\b",
         re.I,
     ),
 ]

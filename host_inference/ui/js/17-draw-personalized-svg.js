@@ -15,7 +15,7 @@ function drawPersonalizedSVG(svg, nodes, _edges, cardId, anchorLabel) {
     const steps = (nodes || []).filter(node => node && node.id);
     const width = Math.max(320, steps.length * STEP_WIDTH + 60);
     svg.setAttribute('viewBox', `0 0 ${width} ${GRAPH_HEIGHT}`);
-    svg.setAttribute('role', 'img');
+    svg.setAttribute('role', 'group');
     svg.setAttribute('aria-label', `Learning roadmap to ${anchorLabel}. Select a step for details.`);
     svg.style.width = `${width}px`;
     svg.style.height = `${GRAPH_HEIGHT}px`;
@@ -43,7 +43,8 @@ function drawPersonalizedSVG(svg, nodes, _edges, cardId, anchorLabel) {
 
     points.forEach(({ node, x, y }, index) => {
         const color = node.role === 'target' ? '#fbbf24'
-            : node.status === 'review_gap' ? '#fb923c' : '#34d399';
+            : node.status === 'MISSING' || node.missing ? '#fb923c'
+            : node.status === 'MASTERED' ? '#34d399' : '#67e8f9';
         const group = svgElement('g', { transform: `translate(${x}, ${y})`,
             role: 'button', tabindex: '0', 'aria-label': `Step ${index + 1}: ${node.label || node.id}` });
         group.style.cursor = 'pointer';
@@ -90,7 +91,9 @@ function selectPersonalizedNode(cardId, node, anchorLabel) {
     if (summary) summary.textContent = node.summary ||
         `Study ${node.label || node.id} before moving toward ${anchorLabel}.`;
     if (badge) badge.textContent = node.role === 'target' ? 'Goal' :
-        node.status === 'review_gap' ? 'Review this step' : 'Mastered step';
+        node.status === 'CURRENT' ? 'Learn this first' :
+        node.status === 'MISSING' || node.missing ? 'Review this step' :
+        node.status === 'MASTERED' ? 'Mastered step' : 'Upcoming step';
     if (citation) citation.textContent = node.citation || '';
     if (!actions) return;
     actions.replaceChildren();
@@ -98,9 +101,25 @@ function selectPersonalizedNode(cardId, node, anchorLabel) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs';
-        button.textContent = `Open source · p. ${node.printed_page || node.page_number || 1}`;
+        const page = node.printed_page || node.page_number;
+        button.textContent = page ? `Open source · p. ${page}` : 'Open source';
         button.addEventListener('click', () => window.openPrerequisiteRemediationReader(
             node.doc_id, node.page_number || 1, node.label || node.id, node.summary || ''));
+        actions.appendChild(button);
+    } else if (node.url) {
+        const link = document.createElement('a');
+        link.href = node.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs';
+        link.textContent = 'Open source';
+        actions.appendChild(link);
+    } else {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs';
+        button.textContent = 'Explore concept';
+        button.addEventListener('click', () => window.autoPrompt(`Tell me about ${node.label || node.id}`));
         actions.appendChild(button);
     }
 }

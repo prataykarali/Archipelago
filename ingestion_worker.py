@@ -3,16 +3,8 @@ ingestion_worker.py — Background worker thread and GraphLock reader-writer loc
 for safe live ingestion.
 """
 
-import json
-import os
-import shutil
-import threading
 from contextlib import contextmanager
-from pathlib import Path
-from typing import Any, Dict, Optional
-
-from okf.config import BASE_DIR
-from okf.exports import export_vis_json
+import threading
 
 # NOTE: `run_pipeline_staged` / `PipelineAborted` are deliberately NOT imported
 # here. The job-processing code moved to `ingestion_worker_job_mixin`, which
@@ -20,14 +12,15 @@ from okf.exports import export_vis_json
 # test patch targets (`patch("ingestion_worker.run_pipeline_staged")`) pointing
 # at a name the worker never calls, so mocked pipeline runs silently executed
 # the real one.
+from archipelago.inference.graph_lock import graph_lock
 from ingestion_jobs import JobStatus, JobStore
-
 from ingestion_worker_job_mixin import JobProcessingMixin
-
+from okf.config import BASE_DIR
 
 # ---------------------------------------------------------------------------
 # GraphLock (Reader-Writer Lock)
 # ---------------------------------------------------------------------------
+
 
 class GraphLock:
     """
@@ -73,19 +66,20 @@ class GraphLock:
 
 
 # Share one process lock between inference readers and the ingestion swap.
-from archipelago.inference.graph_lock import graph_lock
-
 
 # ---------------------------------------------------------------------------
 # IngestionWorker
 # ---------------------------------------------------------------------------
+
 
 class IngestionWorker(threading.Thread, JobProcessingMixin):
     """
     A single-threaded background worker that processes ingestion jobs sequentially.
     """
 
-    def __init__(self, job_store: JobStore, live_db_path: str = None, graph_lock: GraphLock = None):
+    def __init__(
+        self, job_store: JobStore, live_db_path: str | None = None, graph_lock: GraphLock = None
+    ):
         super().__init__(name="IngestionWorker", daemon=True)
         self.job_store = job_store
         self.live_db_path = live_db_path or str(BASE_DIR / "okf_graph.db")
@@ -107,7 +101,7 @@ class IngestionWorker(threading.Thread, JobProcessingMixin):
     def _process_index_job(self, job_id: str, payload: dict) -> None:
         """Create schema-valid document/chunk/concept provenance for a submitted TOC."""
         import kuzu
-        from ingestion_jobs import JobStatus
+
         from okf.graph.common import _create_schema, _kuzu_escape, _migrate_schema
         from okf.graph.ingest import ensure_concept
         from okf.util import create_concept_id
@@ -116,14 +110,15 @@ class IngestionWorker(threading.Thread, JobProcessingMixin):
         title = str(payload.get("title") or doc_id).strip()
         chapters = payload.get("chapters") or []
         if not doc_id or not isinstance(chapters, list) or not chapters:
-            self.job_store.update_status(job_id, JobStatus.FAILED, error="doc_id and at least one chapter are required")
+            self.job_store.update_status(
+                job_id, JobStatus.FAILED, error="doc_id and at least one chapter are required"
+            )
             return
 
         db = None
         conn = None
         try:
-            from archipelago.graph.engine import KuzuGraphEngine
-            from archipelago.graph.engine import _close_colocated_kuzu_handles
+            from archipelago.graph.engine import KuzuGraphEngine, _close_colocated_kuzu_handles
 
             with (self.graph_lock or graph_lock).write_lock():
                 KuzuGraphEngine.close_all_for_path(self.live_db_path)
@@ -141,14 +136,18 @@ class IngestionWorker(threading.Thread, JobProcessingMixin):
                 )
                 for index, chapter in enumerate(chapters, start=1):
                     chapter_title = str(
-                        chapter.get("title", f"Chapter {index}") if isinstance(chapter, dict) else chapter
+                        chapter.get("title", f"Chapter {index}")
+                        if isinstance(chapter, dict)
+                        else chapter
                     ).strip()[:300]
                     if not chapter_title:
                         continue
                     page_number = index
                     if isinstance(chapter, dict):
                         try:
-                            page_number = max(1, int(chapter.get("page", chapter.get("page_number", index))))
+                            page_number = max(
+                                1, int(chapter.get("page", chapter.get("page_number", index)))
+                            )
                         except (TypeError, ValueError):
                             page_number = index
                     concept_id = create_concept_id(chapter_title)
@@ -177,8 +176,8 @@ class IngestionWorker(threading.Thread, JobProcessingMixin):
                         "MERGE (ch)-[:MENTIONS]->(c)"
                     )
 
-            from okf.graph.export import export_graph
             from okf.exports import build_graph_rag_index, build_visual_graph, write_all_artifacts
+            from okf.graph.export import export_graph
 
             graph_export = export_graph(conn)
             graph_export["visualization"] = build_visual_graph([], graph_export)
@@ -194,12 +193,18 @@ class IngestionWorker(threading.Thread, JobProcessingMixin):
 
             try:
                 from archipelago.inference.state import reload_db
+
                 reload_db()
             except Exception as reload_error:
                 self.job_store.update_status(
                     job_id,
                     JobStatus.COMPLETE,
-                    result={"doc_id": doc_id, "chapters": len(chapters), "mode": "toc_only", "reload_warning": str(reload_error)},
+                    result={
+                        "doc_id": doc_id,
+                        "chapters": len(chapters),
+                        "mode": "toc_only",
+                        "reload_warning": str(reload_error),
+                    },
                 )
                 return
             self.job_store.update_status(
@@ -235,7 +240,6 @@ class IngestionWorker(threading.Thread, JobProcessingMixin):
 
             if job_id:
                 self._process_job(job_id)
-
 
 
 # Module-level singletons

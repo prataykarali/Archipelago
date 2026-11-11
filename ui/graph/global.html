@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global Library Graph · Archipelago</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#08071b;color:#f3edff}
+*{box-sizing:border-box}body{margin:0}header{padding:14px 20px;border-bottom:1px solid #60479b;background:#100a2c;display:flex;gap:20px;align-items:center;flex-wrap:wrap}a{color:#c5b4ff}header strong{font-size:18px}main{display:grid;grid-template-columns:minmax(0,1fr)minmax(270px,330px);height:calc(100vh - 57px)}#graph{min-height:400px;background:radial-gradient(circle,#201852,#08071b 70%)}aside{overflow:auto;border-left:1px solid #60479b;padding:16px;background:#120d30}button,select,input{background:#201744;color:#f3edff;border:1px solid #765da8;border-radius:8px;padding:9px;font:inherit}button{cursor:pointer}button:hover{background:#3a266d}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #c5b4ff}.row{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.row input{min-width:140px;flex:1}.meta{font-size:12px;color:#c7b8e4;line-height:1.5}.legend{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.legend label{font-size:12px;border:1px solid #4b3c72;padding:6px;border-radius:8px}.list{max-height:210px;overflow:auto;border-top:1px solid #4b3c72;margin-top:10px}.list button{width:100%;text-align:left;margin:3px 0}.detail{border-top:1px solid #4b3c72;margin-top:15px;padding-top:10px}.detail h2{font-size:17px}.detail p{font-size:13px;line-height:1.5}#edge-detail{font-size:12px;white-space:pre-wrap}.error{color:#ffadad}@media(max-width:760px){main{display:block;height:auto}#graph{height:45vh;min-height:300px}aside{border-left:0;border-top:1px solid #60479b;min-height:55vh}}
+</style>
+</head>
+<body>
+<header><strong>Archipelago · Global Library Graph</strong><a href="/">Focused graph</a><span id="totals" class="meta">Loading persisted graph…</span></header>
+<main>
+<div id="graph" role="img" aria-label="Paged graph canvas with selected nodes and typed relationships"></div>
+<aside>
+<form id="search-form" class="row"><label for="search" class="sr-only">Search concept, book, author or paper</label><input id="search" placeholder="Concept, book, author or paper"><button>Search</button></form>
+<div class="row"><label for="type">Node type</label><select id="type"><option value="">All types</option></select><button id="clear" type="button">Reset</button></div>
+<div id="legend" class="legend" aria-label="Relation type filters"></div>
+<div class="row"><button id="prev" type="button">Previous</button><button id="next" type="button">Next</button><button id="fit" type="button">Fit</button><button id="zoom-in" type="button">+</button><button id="zoom-out" type="button">−</button></div>
+<p id="status" role="status" class="meta">Loading…</p><p id="version" class="meta"></p>
+<div id="node-list" class="list" aria-label="Nodes on this page"></div>
+<div class="detail"><h2 id="detail-title">Select a node or edge</h2><p id="detail-body">Choose a record to inspect its stored details and relationships.</p><button id="expand" type="button" hidden>Expand relationships</button><div id="source-link"></div><pre id="edge-detail"></pre></div>
+</aside>
+</main>
+<script>
+const MOBILE=matchMedia('(max-width:760px)').matches, PAGE_SIZE=MOBILE?40:100, colors={REQUIRES:'#60a5fa',UNLOCKS:'#f472d0',RELATED:'#a78bfa',HAS_CHUNK:'#2dd4bf',MENTIONS:'#fbbf24',PROVIDES_TEXT:'#34d399',CATEGORIZES:'#fb923c',HAS_ISSUE:'#f87171'};
+const $=id=>document.getElementById(id);
+let offset=0,total=0,cy=null,current=null,lastPage=null,activeRelations=new Set(Object.keys(colors));
+function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error)}
+function graphElements(nodes,edges){
+  const ids=new Set(nodes.map(n=>n.id));
+  return [...nodes.map((n,i)=>({data:{...n,label:n.name||n.id},position:{x:80+(i%(MOBILE?5:10))*(MOBILE?85:130),y:80+Math.floor(i/(MOBILE?5:10))*(MOBILE?85:125)}})),
+    ...edges.filter(e=>ids.has(e.source)&&ids.has(e.target)&&activeRelations.has(e.relation)).map(e=>({data:{...e,label:e.relation}}))];
+}
+function showDetail(node){
+ current=node;$('detail-title').textContent=node.name||node.id;
+ $('detail-body').textContent=[node.kind,node.author,node.summary,node.publisher,node.published_date].filter(Boolean).join(' · ')||'No additional metadata indexed.';
+ $('edge-detail').textContent='';$('expand').hidden=false;$('source-link').replaceChildren();
+ if(node.kind==='Chunk'&&node.page_number){
+   const docEdge=(lastPage?.edges||[]).find(e=>e.relation==='HAS_CHUNK'&&e.target===node.id);
+   if(docEdge){const docId=docEdge.source.replace(/^document:/,'');const a=document.createElement('a');a.href='/api/page-view?doc_id='+encodeURIComponent(docId)+'&page='+node.page_number+'#page='+node.page_number;a.textContent='Open source PDF page';$('source-link').append(a)}
+ }
+}
+function render(nodes,edges){
+ lastPage={nodes,edges};$('node-list').replaceChildren();
+ for(const node of nodes){const b=document.createElement('button');b.textContent=node.name||node.id;b.onclick=()=>showDetail(node);$('node-list').append(b)}
+ if(typeof cytoscape!=='function'){status('Graph canvas unavailable; browse the complete paginated node list.');return}
+ if(cy)cy.destroy();
+ cy=cytoscape({container:$('graph'),elements:graphElements(nodes,edges),layout:{name:'preset',fit:true,padding:35},
+ style:[{selector:'node',style:{'background-color':'#392374','border-width':1,'border-color':'#b298ff','label':'data(label)','color':'#fff','font-size':10,'text-wrap':'ellipsis','text-max-width':100,'width':30,'height':30}},
+ {selector:'edge',style:{'width':1.6,'line-color':e=>colors[e.data('relation')]||'#aaa','target-arrow-color':e=>colors[e.data('relation')]||'#aaa','target-arrow-shape':'triangle','curve-style':'bezier','opacity':.7}},
+ {selector:':selected',style:{'border-color':'#fff','border-width':3,'width':42,'height':42}}]});
+ cy.on('tap','node',e=>showDetail(e.target.data()));
+ cy.on('tap','edge',e=>{const x=e.target.data();$('detail-title').textContent=x.relation;$('detail-body').textContent=x.source+' → '+x.target;$('edge-detail').textContent=x.source_ref?'Provenance: '+x.source_ref:'No edge-level source stored';$('expand').hidden=true});
+}
+async function loadPage(next=0){
+ status('Loading graph page…');const q=new URLSearchParams({kind:'nodes',offset:Math.max(0,next),limit:PAGE_SIZE,node_type:$('type').value,q:$('search').value.trim()});
+ const response=await fetch('/api/graph/global?'+q,{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.detail||data.error||'Graph API unavailable');
+ offset=data.offset;total=data.total;$('totals').textContent=data.counts.nodes+' persisted nodes · '+data.counts.edges+' typed edges · '+data.counts.orphans+' orphans';
+ $('version').textContent='Graph version '+data.version+' · storage modified '+new Date(data.last_sync*1000).toLocaleString();
+ $('prev').disabled=offset===0;$('next').disabled=data.next_offset===null;
+ status('Showing '+data.items.length+' of '+total+' matching nodes · '+data.visible_edges.filter(e=>activeRelations.has(e.relation)).length+' rendered edges');
+ render(data.items,data.visible_edges);
+ if(!$('type').dataset.ready){for(const type of Object.keys(data.counts.node_types)){const o=document.createElement('option');o.value=type;o.textContent=type+' ('+data.counts.node_types[type]+')';$('type').append(o)}$('type').dataset.ready='true'}
+}
+async function expand(){
+ if(!current)return;status('Loading relationships…');
+ const response=await fetch('/api/graph/neighborhood?'+new URLSearchParams({id:current.id,limit:40}),{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'Neighborhood unavailable');
+ render(data.nodes,data.edges);showDetail(data.nodes.find(n=>n.id===current.id)||current);
+ status('Showing '+data.nodes.length+' nodes · '+data.edges.length+' of '+data.total_edges+' direct relationships');
+}
+for(const [relation,color] of Object.entries(colors)){const label=document.createElement('label');const input=document.createElement('input');input.type='checkbox';input.checked=true;input.onchange=()=>{input.checked?activeRelations.add(relation):activeRelations.delete(relation);if(lastPage){render(lastPage.nodes,lastPage.edges);status('Showing '+lastPage.nodes.length+' nodes · '+lastPage.edges.filter(e=>activeRelations.has(e.relation)).length+' rendered edges')}};label.append(input,document.createTextNode(' '+relation));label.style.color=color;$('legend').append(label)}
+$('search-form').onsubmit=e=>{e.preventDefault();loadPage(0).catch(e=>status(e.message,true))};$('type').onchange=()=>loadPage(0).catch(e=>status(e.message,true));
+$('prev').onclick=()=>loadPage(offset-PAGE_SIZE).catch(e=>status(e.message,true));$('next').onclick=()=>loadPage(offset+PAGE_SIZE).catch(e=>status(e.message,true));
+$('clear').onclick=()=>{$('search').value='';$('type').value='';activeRelations=new Set(Object.keys(colors));$('legend').querySelectorAll('input').forEach(x=>x.checked=true);loadPage(0).catch(e=>status(e.message,true))};
+$('fit').onclick=()=>cy?.fit(undefined,35);$('zoom-in').onclick=()=>cy?.zoom(cy.zoom()*1.2);$('zoom-out').onclick=()=>cy?.zoom(cy.zoom()/1.2);
+$('expand').onclick=()=>expand().catch(e=>status(e.message,true));
+loadPage().catch(e=>status(e.message,true));
+</script>
+</body>
+</html>

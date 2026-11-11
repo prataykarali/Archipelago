@@ -1,10 +1,17 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from . import _deps as _rt  # noqa: F401
+from typing import Any
+
+from . import _deps as _rt
 
 
-def build_validated_edges(concepts: list, chunks: list, model_name: str = None) -> list:
+def build_validated_edges(
+    concepts: list[dict[str, Any] | str],
+    chunks: list[dict[str, Any]],
+    model_name: str | None = None,
+) -> list[dict[str, str]]:
     """Build and validate relationships from concepts against chunks using alias-aware matching."""
     from okf.alias_index import build_alias_index, resolve_concept_name
 
@@ -29,10 +36,10 @@ def build_validated_edges(concepts: list, chunks: list, model_name: str = None) 
     edges = []
     seen_edges = set()  # (from_lower, to_lower, edge_type)
 
-    def add_edge(from_name, to_name, edge_type, relation, source):
+    def add_edge(from_name: str, to_name: str, edge_type: str, relation: str, source: str) -> None:
         from_canon = resolve_concept_name(from_name, alias_index)
         to_canon = resolve_concept_name(to_name, alias_index)
-        
+
         fl = from_canon.lower().strip()
         tl = to_canon.lower().strip()
         if fl == tl:
@@ -41,13 +48,15 @@ def build_validated_edges(concepts: list, chunks: list, model_name: str = None) 
         if key in seen_edges:
             return
         seen_edges.add(key)
-        edges.append({
-            "from_name": from_canon,
-            "to_name": to_canon,
-            "relation": relation,
-            "edge_type": edge_type,
-            "source": source
-        })
+        edges.append(
+            {
+                "from_name": from_canon,
+                "to_name": to_canon,
+                "relation": relation,
+                "edge_type": edge_type,
+                "source": source,
+            }
+        )
 
     for c in concepts:
         if not isinstance(c, dict):
@@ -79,7 +88,7 @@ def build_validated_edges(concepts: list, chunks: list, model_name: str = None) 
             diff_b = concept_diffs.get(p_canon.lower(), "intermediate")
             obj_a = {"concept_name": name, "difficulty": diff_a}
             obj_b = {"concept_name": p_canon, "difficulty": diff_b}
-            dir_first, dir_second = _rt.infer_prerequisite_direction(obj_a, obj_b, chunks)
+            dir_first, _dir_second = _rt.infer_prerequisite_direction(obj_a, obj_b, chunks)
 
             src = rel_prov.get(f"prereq:{p.lower()}", default_source)
             if dir_first.lower() == p_canon.lower():
@@ -104,7 +113,7 @@ def build_validated_edges(concepts: list, chunks: list, model_name: str = None) 
             diff_b = concept_diffs.get(u_canon.lower(), "intermediate")
             obj_a = {"concept_name": name, "difficulty": diff_a}
             obj_b = {"concept_name": u_canon, "difficulty": diff_b}
-            dir_first, dir_second = _rt.infer_prerequisite_direction(obj_a, obj_b, chunks)
+            dir_first, _dir_second = _rt.infer_prerequisite_direction(obj_a, obj_b, chunks)
 
             src = rel_prov.get(f"unlock:{u.lower()}", default_source)
             if dir_first.lower() == name.lower():

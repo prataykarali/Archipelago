@@ -2,7 +2,7 @@
 // Feature module 22 of 22.
 import { API_CONTRACT, API_HOST } from './00-current-origin.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
-import { citationPageUrl, copyPearsonCreds, getPearsonBookEntry } from './02--kw-highlights.js';
+import { citationPageUrl, getPearsonBookEntry } from './02--kw-highlights.js';
 import { setChatAvailability } from './03-wrap-library-inventory-secti.js';
 import { updateGraphToggleUI } from './11-populate-topology.js';
 import { setupFilterButtons } from './04-start-new-chat.js';
@@ -155,15 +155,9 @@ import { renderChatHistory } from './20--compact-history.js';
             if (href.includes('pearson.com')) {
                 e.preventDefault();
                 e.stopPropagation();
-                copyPearsonCreds();
-                let targetUrl = href;
-                if (!targetUrl.includes('version=')) {
-                    targetUrl = targetUrl.replace(/\.html\?/, '.html?version=1.0.317.1&');
-                    if (!targetUrl.includes('version=')) {
-                        targetUrl = targetUrl.replace(/\.html/, '.html?version=1.0.317.1');
-                    }
-                }
-                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                const match = href.match(/#book\/([^/]+)(?:\/page\/(\d+))?/);
+                const handoff = match ? `/open/${encodeURIComponent(match[1])}?page=${match[2] || 1}` : '/open';
+                window.open(match ? handoff : 'https://ebooks.elibrary.in.pearson.com/', '_blank', 'noopener,noreferrer');
                 return;
             }
 
@@ -224,21 +218,15 @@ import { renderChatHistory } from './20--compact-history.js';
             // Direct Pearson match
             const pEntry = typeof getPearsonBookEntry === 'function' ? getPearsonBookEntry(doc_id) : null;
             if (pEntry) {
-                copyPearsonCreds();
-                const subId = pEntry.sub || 'debf3e10-c27c-469a-a2aa-8a30c919db91';
-                const bId = pEntry.id || '0fcd531f-3ba1-495e-9c9e-b43b034b88d9';
-                const bType = pEntry.type || 'pdf';
-                const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
-                const pagePart = `/page/${page || 1}`;
-                const pUrl = `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
-                window.open(pUrl, '_blank', 'noopener,noreferrer');
+                window.open(`/open/${encodeURIComponent(pEntry.id)}?page=${page || 1}`, '_blank', 'noopener,noreferrer');
                 return;
             }
 
             const targetUrl = citationPageUrl({ doc_id: doc_id, page_number: page });
             if (targetUrl) {
-                if (targetUrl.includes('pearson.com') || targetUrl.startsWith('/open/')) copyPearsonCreds();
-                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                const match = targetUrl.match(/#book\/([^/]+)(?:\/page\/(\d+))?/);
+                const destination = match ? `/open/${encodeURIComponent(match[1])}?page=${match[2] || 1}` : targetUrl;
+                window.open(destination, '_blank', 'noopener,noreferrer');
             } else {
                 window.open(href, '_blank', 'noopener,noreferrer');
             }

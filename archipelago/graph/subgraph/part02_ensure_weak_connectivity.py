@@ -1,10 +1,12 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-import logging
 from collections import deque
+import logging
 from typing import Any
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 _LOGGER = logging.getLogger("archipelago.graph.subgraph")
 
@@ -49,9 +51,13 @@ def _ensure_weak_connectivity(
             (concepts_data.get(target_id) or {}).get("difficulty", "intermediate"), 2
         )
         if d_rank <= target_rank:
-            new_edges.append({"from_id": target_id, "to_id": d, "relation": "REQUIRES", "weight": 1.0})
+            new_edges.append(
+                {"from_id": target_id, "to_id": d, "relation": "REQUIRES", "weight": 1.0}
+            )
         else:
-            new_edges.append({"from_id": target_id, "to_id": d, "relation": "UNLOCKS", "weight": 1.0})
+            new_edges.append(
+                {"from_id": target_id, "to_id": d, "relation": "UNLOCKS", "weight": 1.0}
+            )
         bridged_nodes.append(d)
 
     return bridged_nodes, new_edges
@@ -67,7 +73,9 @@ def _resolve_kuzu_conn(kuzu_conn: Any | None) -> Any | None:
         return kuzu_conn
     try:
         import kuzu
+
         from archipelago.inference import state as st
+
         if getattr(st, "db", None) is None:
             return None
         return kuzu.Connection(st.db)
@@ -101,6 +109,7 @@ def generate_bounded_subgraph(
     """
     if concepts_data is None:
         from archipelago.inference import state as st
+
         concepts_data = st.CONCEPTS_DATA or {}
 
     kuzu_conn = _resolve_kuzu_conn(kuzu_conn)
@@ -171,7 +180,7 @@ def generate_bounded_subgraph(
                 for nbr in adj_all.get(curr, []):
                     if nbr not in visited:
                         visited.add(nbr)
-                        q.append((nbr, path + [nbr]))
+                        q.append((nbr, [*path, nbr]))
 
         selected_ids = list(path_nodes) if path_nodes else list(targets)
 
@@ -262,6 +271,7 @@ def generate_bounded_subgraph(
                 }
 
     if len(candidates) > max_nodes:
+
         def _candidate_score(item: tuple[str, dict[str, Any]]) -> float:
             cid, meta = item
             if meta["role"] == "target":
@@ -269,7 +279,9 @@ def generate_bounded_subgraph(
             base_prio = float(meta["priority"])
             node_info = _rt._get_node_info(cid, concepts_data)
             diff = node_info["difficulty"]
-            diff_score = 15.0 if diff == "foundational" else (10.0 if diff == "intermediate" else 5.0)
+            diff_score = (
+                15.0 if diff == "foundational" else (10.0 if diff == "intermediate" else 5.0)
+            )
             return base_prio + diff_score
 
         sorted_cand = sorted(candidates.items(), key=_candidate_score, reverse=True)
@@ -280,11 +292,15 @@ def generate_bounded_subgraph(
         target_domain = target_info.get("domain", "")
 
         for cid, data in concepts_data.items():
-            if cid not in candidates and (data.get("difficulty") or "").lower() == "foundational":
-                if target_domain and data.get("domain") == target_domain:
-                    candidates[cid] = {"role": "prereq", "hop": 2, "priority": 25}
-                    if len(candidates) >= min_nodes:
-                        break
+            if (
+                cid not in candidates
+                and (data.get("difficulty") or "").lower() == "foundational"
+                and target_domain
+                and data.get("domain") == target_domain
+            ):
+                candidates[cid] = {"role": "prereq", "hop": 2, "priority": 25}
+                if len(candidates) >= min_nodes:
+                    break
 
         if len(candidates) < min_nodes:
             for uf in _rt._UNIVERSAL_FOUNDATIONS:
@@ -295,7 +311,10 @@ def generate_bounded_subgraph(
 
         if len(candidates) < min_nodes:
             for cid, data in concepts_data.items():
-                if cid not in candidates and (data.get("difficulty") or "").lower() == "foundational":
+                if (
+                    cid not in candidates
+                    and (data.get("difficulty") or "").lower() == "foundational"
+                ):
                     candidates[cid] = {"role": "prereq", "hop": 2, "priority": 15}
                     if len(candidates) >= min_nodes:
                         break
@@ -311,11 +330,13 @@ def generate_bounded_subgraph(
     for cid in selected_ids:
         info = _rt._get_node_info(cid, concepts_data)
         meta = candidates.get(cid, {"role": "context", "hop": 1})
-        nodes_out.append({
-            **info,
-            "role": meta["role"],
-            "hop": meta.get("hop", 1),
-        })
+        nodes_out.append(
+            {
+                **info,
+                "role": meta["role"],
+                "hop": meta.get("hop", 1),
+            }
+        )
 
     return _rt.BoundedSubgraph(
         nodes=nodes_out,

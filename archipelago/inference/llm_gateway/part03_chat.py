@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Dict, List, Optional
 
 from archipelago.inference.llm_gateway import part01_config as config
 from archipelago.inference.llm_gateway.part01_config import (
+    _PINNED_ONLY,
     DEFAULT_NVIDIA_TIMEOUT_SECONDS,
     GEMINI_FALLBACK_MODEL,
     GEMINI_PURPOSE_MAP,
     MAX_XKIRO_ATTEMPTS,
     XKIRO_DEFAULT_MODEL,
-    _PINNED_ONLY,
 )
 from archipelago.inference.llm_gateway.part02_sanitize import (
     _clean_messages_for_openai,
@@ -34,12 +33,12 @@ NVIDIA_MIN_MAX_TOKENS = 512
 
 
 def _chat_xkiro(
-    messages: List[Dict],
-    model: Optional[str] = None,
+    messages: list[dict],
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
-) -> Optional[str]:
+) -> str | None:
     """Execute chat via xkiro OpenAI-compatible API."""
     config.configure_gateway()
     client = config._openai_client
@@ -70,13 +69,13 @@ def _chat_xkiro(
 
 
 def _chat_gemini(
-    messages: List[Dict],
+    messages: list[dict],
     purpose: str = "general",
-    model: Optional[str] = None,
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
-) -> Optional[str]:
+) -> str | None:
     """Execute chat via Gemini API."""
     config.configure_gateway()
     try:
@@ -108,12 +107,12 @@ def _chat_gemini(
 
 
 def _chat_nvidia(
-    messages: List[Dict],
-    model: Optional[str] = None,
+    messages: list[dict],
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_NVIDIA_TIMEOUT_SECONDS,
-) -> Optional[str]:
+) -> str | None:
     """Execute chat via NVIDIA NIM.
 
     The fallback leg of the xkiro → nvidia chain.  Uses ``config.nvidia_chat``
@@ -155,41 +154,50 @@ def _provider_order(provider: str) -> tuple:
 
 def _chat_by_name(
     provider: str,
-    messages: List[Dict],
+    messages: list[dict],
     purpose: str = "general",
-    model: Optional[str] = None,
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
-) -> Optional[str]:
+) -> str | None:
     """Dispatch one chat call to the named provider."""
     if provider == "xkiro":
         return _chat_xkiro(
-            messages, model=model, temperature=temperature,
-            max_tokens=max_tokens, timeout=timeout,
+            messages,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
         )
     if provider == "nvidia":
         return _chat_nvidia(
-            messages, model=model, temperature=temperature,
-            max_tokens=max_tokens, timeout=timeout,
+            messages,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
         )
     if provider == "gemini":
         return _chat_gemini(
-            messages, purpose=purpose, temperature=temperature,
-            max_tokens=max_tokens, timeout=timeout,
+            messages,
+            purpose=purpose,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
         )
     logger.warning("Unknown provider %r; skipping", provider)
     return None
 
 
 def gateway_chat(
-    messages: List[Dict],
+    messages: list[dict],
     purpose: str = "general",
-    model: Optional[str] = None,
+    model: str | None = None,
     temperature: float = 0.0,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
-) -> Optional[str]:
+) -> str | None:
     """Synchronous chat across the provider chain with automatic failover.
 
     Order is ``config.PROVIDER_FALLBACK_ORDER`` (xkiro → nvidia). ``gemini`` is
@@ -204,8 +212,13 @@ def gateway_chat(
     text = None
     for name in order:
         text = _chat_by_name(
-            name, messages, purpose=purpose, model=model,
-            temperature=temperature, max_tokens=max_tokens, timeout=timeout,
+            name,
+            messages,
+            purpose=purpose,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
         )
         if text is not None:
             break

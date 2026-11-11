@@ -36,11 +36,10 @@ STRONG_TITLE_TOKENS = 3
 # Locations with no matching record are the single most damaging failure mode:
 # a student walks to a rack that does not exist. Never guess.
 NO_RECORD_TEMPLATE = (
-    "**{title}.** No physical copy of this title is indexed in the campus "
-    "catalogue for the Central Library.\n\n"
-    "Search the OPAC for the current holdings: http://uemk-opac.l2c2.co.in, "
-    "or ask at the circulation desk. If the library does not hold it, the "
-    "acquisition desk can place a request — this has been logged as demand."
+    "**{title}.** This service cannot verify a physical copy or current circulation "
+    "status for that title.\n\n"
+    "Search the [campus OPAC](https://uemk-opac.l2c2.co.in/) for current holdings "
+    "or ask at the circulation desk."
 )
 
 
@@ -181,7 +180,7 @@ def _copies(record: dict[str, Any]) -> tuple[int, int]:
         except (TypeError, ValueError):
             return 0
 
-    total = as_int(record.get("total_copies")) if "total_copies" in record else 1
+    total = as_int(record.get("total_copies"))
     available = as_int(record.get("available_copies"))
     return max(0, min(available, total)), total
 
@@ -214,7 +213,7 @@ def shelf_card(
     lines.append(f"**Author / year.** {author or 'Unknown'}.")
 
     if biblionumber and biblionumber not in {"0", "Unknown"}:
-        label = "ISBN / shelf locator" if record.get("isbn") else "Call number / shelf location"
+        label = "ISBN" if record.get("isbn") else "Call number"
         lines.append(f"**{label}.** `{biblionumber}`{citation}")
 
     if publisher == "Pearson eLibrary":
@@ -222,11 +221,15 @@ def shelf_card(
             "**Physical inventory.** This is a licensed e-book; no physical copy "
             "or shelf location is verified by this catalog export."
         )
-    else:
+        lines.append("Check the [campus OPAC](https://uemk-opac.l2c2.co.in/) for print holdings.")
+    elif record.get("physical_holdings_verified"):
         lines.append(
-            f"**Live shelf availability.** **{available} physical cop{'y' if available == 1 else 'ies'} "
-            f"available** out of {total} total{citation}."
+            f"**Imported holdings snapshot.** {available} of {total} physical cop"
+            f"{'y' if total == 1 else 'ies'} listed as available{citation}. "
+            "Check the OPAC for current circulation status."
         )
+    else:
+        lines.append("**Physical holdings.** Current copies and shelf location are unverified.")
 
     barcodes = _render_barcodes(record.get("barcodes"))
     if barcodes:
@@ -238,11 +241,6 @@ def shelf_card(
     if doc_link:
         lines.append(f"**Digital passage mapping.** `PROVIDES_TEXT` ➔ {doc_link}")
 
-    lines.append("")
-    lines.append(
-        "Borrowing from the Central Library remains the primary route; "
-        "digital access does not replace the physical collection."
-    )
     return "\n".join(lines)
 
 

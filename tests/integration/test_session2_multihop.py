@@ -71,12 +71,15 @@ def curriculum_graph(flask_test_client, tmp_kuzu_db):
         """)
 
     conn.execute("MERGE (d:Document {id: 'papers/Hu2021_LoRA.pdf'})")
-    for i, (cid, page, passage) in enumerate([
-        ("low_rank_adaptation", 4, "LoRA freezes weights and injects low-rank adapters."),
-        ("full_fine_tuning", 2, "Full fine-tuning updates all parameters."),
-        ("transformer", 1, "Transformers use multi-head attention."),
-        ("matrix_decomposition", 5, "Low-rank matrix decomposition."),
-    ], 1):
+    for i, (cid, page, passage) in enumerate(
+        [
+            ("low_rank_adaptation", 4, "LoRA freezes weights and injects low-rank adapters."),
+            ("full_fine_tuning", 2, "Full fine-tuning updates all parameters."),
+            ("transformer", 1, "Transformers use multi-head attention."),
+            ("matrix_decomposition", 5, "Low-rank matrix decomposition."),
+        ],
+        1,
+    ):
         chunk_id = f"papers/Hu2021_LoRA.pdf_chunk_{i:03d}"
         conn.execute(f"""
             CREATE (c:Chunk {{
@@ -129,7 +132,7 @@ def curriculum_graph(flask_test_client, tmp_kuzu_db):
     # re-exports it.
     from archipelago.inference.aliases import generate_aliases
 
-    for cid, node in inference_server.CONCEPTS_DATA.items():
+    for node in inference_server.CONCEPTS_DATA.values():
         node["aliases"] = generate_aliases(node)
 
     old_db = inference_server.db

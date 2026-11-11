@@ -3,17 +3,17 @@ tests/unit/test_ingestion_jobs.py — Unit tests for the JobStore / JobRecord
 ingestion job management layer.
 """
 
-import pytest
 import threading
 import time
-from pathlib import Path
 
-from ingestion_jobs import JobStatus, JobRecord, JobStore, TERMINAL_STATES
+import pytest
 
+from ingestion_jobs import TERMINAL_STATES, JobRecord, JobStatus, JobStore
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def store(tmp_path):
@@ -25,24 +25,33 @@ def store(tmp_path):
 # JobStatus
 # ---------------------------------------------------------------------------
 
+
 def test_job_status_values():
     expected = {
-        "QUEUED", "PARSING", "EXTRACTION", "CANONICALIZATION",
-        "GRAPH_BUILD", "GRAPH_VALIDATION", "COMPLETE", "FAILED", "CANCELLED",
+        "QUEUED",
+        "PARSING",
+        "EXTRACTION",
+        "CANONICALIZATION",
+        "GRAPH_BUILD",
+        "GRAPH_VALIDATION",
+        "COMPLETE",
+        "FAILED",
+        "CANCELLED",
     }
     assert {s.value for s in JobStatus} == expected
 
 
 def test_terminal_states():
-    assert JobStatus.COMPLETE  in TERMINAL_STATES
-    assert JobStatus.FAILED    in TERMINAL_STATES
+    assert JobStatus.COMPLETE in TERMINAL_STATES
+    assert JobStatus.FAILED in TERMINAL_STATES
     assert JobStatus.CANCELLED in TERMINAL_STATES
-    assert JobStatus.QUEUED    not in TERMINAL_STATES
+    assert JobStatus.QUEUED not in TERMINAL_STATES
 
 
 # ---------------------------------------------------------------------------
 # JobRecord serialisation round-trip
 # ---------------------------------------------------------------------------
+
 
 def test_job_record_round_trip():
     r = JobRecord(
@@ -59,34 +68,39 @@ def test_job_record_round_trip():
     )
     d = r.to_dict()
     r2 = JobRecord.from_dict(d)
-    assert r2.job_id          == r.job_id
-    assert r2.status          == r.status
+    assert r2.job_id == r.job_id
+    assert r2.status == r.status
     assert r2.source_filename == r.source_filename
-    assert r2.progress        == r.progress
-    assert r2.result          == r.result
-    assert r2.graph_version   == r.graph_version
-    assert r2.cancelled       == r.cancelled
+    assert r2.progress == r.progress
+    assert r2.result == r.result
+    assert r2.graph_version == r.graph_version
+    assert r2.cancelled == r.cancelled
 
 
 def test_job_record_summary():
     r = JobRecord(
-        job_id="x", status=JobStatus.COMPLETE, source_filename="f.pdf",
-        created_at="t1", updated_at="t2", graph_version=3,
+        job_id="x",
+        status=JobStatus.COMPLETE,
+        source_filename="f.pdf",
+        created_at="t1",
+        updated_at="t2",
+        graph_version=3,
     )
     s = r.summary()
-    assert s["job_id"]   == "x"
-    assert s["status"]   == "COMPLETE"
+    assert s["job_id"] == "x"
+    assert s["status"] == "COMPLETE"
     assert "progress" not in s
-    assert "error"    not in s
+    assert "error" not in s
 
 
 # ---------------------------------------------------------------------------
 # create_job
 # ---------------------------------------------------------------------------
 
+
 def test_create_job_returns_queued(store):
     job = store.create_job("paper.pdf")
-    assert job.status          == JobStatus.QUEUED
+    assert job.status == JobStatus.QUEUED
     assert job.source_filename == "paper.pdf"
     assert job.job_id
     assert job.created_at
@@ -122,12 +136,16 @@ def test_create_multiple_jobs_distinct_ids(store):
 # update_status
 # ---------------------------------------------------------------------------
 
+
 def test_update_status_transitions(store):
     job = store.create_job("doc.pdf")
     for status in [
-        JobStatus.PARSING, JobStatus.EXTRACTION,
-        JobStatus.CANONICALIZATION, JobStatus.GRAPH_BUILD,
-        JobStatus.GRAPH_VALIDATION, JobStatus.COMPLETE,
+        JobStatus.PARSING,
+        JobStatus.EXTRACTION,
+        JobStatus.CANONICALIZATION,
+        JobStatus.GRAPH_BUILD,
+        JobStatus.GRAPH_VALIDATION,
+        JobStatus.COMPLETE,
     ]:
         updated = store.update_status(job.job_id, status)
         assert updated.status == status
@@ -137,12 +155,10 @@ def test_update_status_transitions(store):
 
 def test_update_status_merges_progress(store):
     job = store.create_job("d.pdf")
-    store.update_status(job.job_id, JobStatus.PARSING,
-                        progress={"PARSING": {"pct": 10}})
-    store.update_status(job.job_id, JobStatus.EXTRACTION,
-                        progress={"EXTRACTION": {"pct": 50}})
+    store.update_status(job.job_id, JobStatus.PARSING, progress={"PARSING": {"pct": 10}})
+    store.update_status(job.job_id, JobStatus.EXTRACTION, progress={"EXTRACTION": {"pct": 50}})
     fetched = store.get_job(job.job_id)
-    assert "PARSING"    in fetched.progress
+    assert "PARSING" in fetched.progress
     assert "EXTRACTION" in fetched.progress
 
 
@@ -156,12 +172,12 @@ def test_update_status_sets_error(store):
 
 def test_update_status_sets_result(store):
     job = store.create_job("f.pdf")
-    store.update_status(job.job_id, JobStatus.COMPLETE,
-                        result={"nodes": 42, "edges": 100},
-                        graph_version=5)
+    store.update_status(
+        job.job_id, JobStatus.COMPLETE, result={"nodes": 42, "edges": 100}, graph_version=5
+    )
     fetched = store.get_job(job.job_id)
     assert fetched.result["nodes"] == 42
-    assert fetched.graph_version   == 5
+    assert fetched.graph_version == 5
 
 
 def test_update_status_unknown_id_returns_none(store):
@@ -173,6 +189,7 @@ def test_update_status_unknown_id_returns_none(store):
 # get_job
 # ---------------------------------------------------------------------------
 
+
 def test_get_job_unknown_returns_none(store):
     assert store.get_job("does-not-exist") is None
 
@@ -180,6 +197,7 @@ def test_get_job_unknown_returns_none(store):
 # ---------------------------------------------------------------------------
 # list_jobs
 # ---------------------------------------------------------------------------
+
 
 def test_list_jobs_empty(store):
     assert store.list_jobs() == []
@@ -216,10 +234,11 @@ def test_list_jobs_newest_first(store):
 # cancel_job
 # ---------------------------------------------------------------------------
 
+
 def test_cancel_queued_job_becomes_cancelled(store):
     job = store.create_job("q.pdf")
     cancelled = store.cancel_job(job.job_id)
-    assert cancelled.status    == JobStatus.CANCELLED
+    assert cancelled.status == JobStatus.CANCELLED
     assert cancelled.cancelled is True
 
 
@@ -248,6 +267,7 @@ def test_cancel_unknown_job_returns_none(store):
 # is_cancelled
 # ---------------------------------------------------------------------------
 
+
 def test_is_cancelled_false_for_new_job(store):
     job = store.create_job("t.pdf")
     assert store.is_cancelled(job.job_id) is False
@@ -263,9 +283,10 @@ def test_is_cancelled_true_after_cancel(store):
 # Thread-safety smoke test
 # ---------------------------------------------------------------------------
 
+
 def test_concurrent_create_jobs(store):
     results = []
-    errors  = []
+    errors = []
 
     def create():
         try:
@@ -281,5 +302,5 @@ def test_concurrent_create_jobs(store):
         t.join()
 
     assert not errors
-    assert len(set(results)) == 20   # all unique IDs
+    assert len(set(results)) == 20  # all unique IDs
     assert len(store.list_jobs()) == 20

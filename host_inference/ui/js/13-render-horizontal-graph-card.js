@@ -38,7 +38,7 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
             const unlockNames = formatConceptList(unlocks, 3);
 
             const existingAdaptive = (window._adaptiveState && window._adaptiveState[msgId]);
-            let quizCompleted = Boolean(existingAdaptive && existingAdaptive.submitted);
+            let quizCompleted = Boolean(existingAdaptive && existingAdaptive.finished);
             try { quizCompleted ||= Boolean(localStorage.getItem(storageKey('archipelago_eval_' + _nodeId(anchor)))); } catch (_) {}
             const hasOngoingQuiz = existingAdaptive && existingAdaptive.current_mcq && !existingAdaptive.submitted;
             const quizBtnLabel = hasOngoingQuiz

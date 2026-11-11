@@ -24,6 +24,7 @@ from . import (
     route_logic,
     telemetry,
 )
+from .citation_format import citation_link, link_answer_sources
 from .constants import (
     CITATION_LINE_PREFIXES,
     HERE,
@@ -81,8 +82,13 @@ class Engine:
 
     def __init__(self, graph_path: Path | None = None):
         self.cache_info = hydrate()
-        path = graph_path or (CACHE / "okf_graph.json")
-        if not path.is_file():
+        if graph_path:
+            path = graph_path
+        elif (HERE.parent / "okf_graph.json").is_file():
+            path = HERE.parent / "okf_graph.json"
+        elif (CACHE / "okf_graph.json").is_file():
+            path = CACHE / "okf_graph.json"
+        else:
             path = HERE.parent / "okf_graph.json"
         self.graph = LibraryGraph(path)
         self.books = load_books()
@@ -154,11 +160,33 @@ class Engine:
         payload["render_rule"] = decision.rule
         payload["logs"] = [{"step": "Hosted inference", "status": "ok", "details": route}]
 
-        if extra.get("hide_graph") or not decision.render:
+        learning_graph_requested = bool(
+            re.search(
+                r"\b(quiz|diagnostic|roadmap|learning path|prerequisite|teach me|i want to learn)\b",
+                query,
+                re.I,
+            )
+        )
+        if (
+            extra.get("hide_graph")
+            or not decision.render
+            or (
+                route
+                in {
+                    "GRAPH_SYNTHESIS",
+                    "GENERAL_EXPLANATION",
+                    "RELATION",
+                    "CROSS_DOMAIN",
+                    "MULTI_CONCEPT",
+                    "RESEARCH_TOPIC",
+                }
+                and not learning_graph_requested
+            )
+        ):
             payload["anchor_concept"] = None
             payload["prerequisites"] = []
             payload["unlocks"] = []
-            if extra.get("hide_graph"):
+            if extra.get("hide_graph") or not learning_graph_requested:
                 payload["render_graph"] = False
                 payload["render_rule"] = "no_verified_graph_for_answer"
 
@@ -166,6 +194,11 @@ class Engine:
             payload["intent_category"] = extra["intent_category"]
         if extra.get("multi_hop"):
             payload["multi_hop"] = extra["multi_hop"]
+
+        if route == "MCQ_DIAGNOSTIC" and anchor_ok:
+            payload["diagnostic_mcqs"] = self.diagnostic_payload(anchor).get("mcqs", [])
+        else:
+            payload["diagnostic_mcqs"] = []
 
         # Contract type 5 carries its projection alongside the reply text.
         if extra.get("projection"):
@@ -213,6 +246,7 @@ class Engine:
             payload["withdrawn_notice"] = notices[0]
             payload["text_override"] = notices[0]
 
+        text = link_answer_sources(text, payload["citations"])
         return {
             "route": route,
             "contract": contract,
@@ -323,6 +357,15 @@ class Engine:
         yield first_token
         if stream is not None:
             yield from stream
+        source_lines = list(
+            dict.fromkeys(
+                f"- {citation_link(citation)}"
+                for citation in payload.get("citations", [])
+                if citation_link(citation)
+            )
+        )
+        if source_lines:
+            yield "\n\n**Sources:**\n" + "\n".join(source_lines)
         if link_lines:
             yield "\n\n" + "\n".join(link_lines)
 

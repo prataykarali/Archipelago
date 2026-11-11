@@ -21,13 +21,15 @@ def _concept(cid, name, summary, ctype="definition", doc="papers/Lewis2020_RAG.p
 
 def _cmap(cid, doc, page=1, topic="T"):
     return {
-        cid: [{
-            "evidence_id": "S1",
-            "doc_id": doc,
-            "page_number": page,
-            "section_title": topic,
-            "text": "evidence",
-        }],
+        cid: [
+            {
+                "evidence_id": "S1",
+                "doc_id": doc,
+                "page_number": page,
+                "section_title": topic,
+                "text": "evidence",
+            }
+        ],
     }
 
 
@@ -63,10 +65,12 @@ def test_curriculum_questions_keep_full_layout_catalog_and_study_depth():
         **_cmap("matrix_rank", "textbooks/Math.pdf", 7, "Matrix Rank"),
         **_cmap("fine_tuning", "papers/Hu2021_LoRA.pdf", 5, "Fine-Tuning"),
     }
-    curriculum_paths = [{
-        "hops": 2,
-        "markdown": "Linear Algebra (p.2) → Fine-Tuning (p.5) → LoRA (p.3)",
-    }]
+    curriculum_paths = [
+        {
+            "hops": 2,
+            "markdown": "Linear Algebra (p.2) → Fine-Tuning (p.5) → LoRA (p.3)",
+        }
+    ]
 
     indices = {
         select_layout_index(f"Trace curriculum path for LoRA variant {i}", "aiml_paper")
@@ -90,7 +94,10 @@ def test_curriculum_questions_keep_full_layout_catalog_and_study_depth():
 def test_field_detection_varies_by_domain():
     rag = _concept("rag", "RAG", "Retrieval-augmented generation.")
     assert detect_answer_field("What is RAG?", rag, _cmap("rag", "papers/Lewis2020_RAG.pdf")) in (
-        "aiml_paper", "aiml_theory", "method", "general",
+        "aiml_paper",
+        "aiml_theory",
+        "method",
+        "general",
     )
     sql = _concept("sql", "SQL", "Structured query language.", doc="papers/foo.pdf")
     assert detect_answer_field("best books on DBMS", sql, {}) == "dbms"
@@ -151,6 +158,7 @@ def test_format_natural_fallback_uses_grounded_renderer():
 def test_summary_does_not_cut_mid_word():
     """Hard slice used to end on 'wit'; sentence/word boundary must win."""
     from archipelago.inference.grounded_answers import _summary
+
     text = (
         "A method that retrieves relevant documents from an external knowledge source "
         "and uses them to augment an LLM, enabling answer generation without relying "

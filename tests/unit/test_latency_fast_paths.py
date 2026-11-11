@@ -1,9 +1,10 @@
 """Regression tests for first-response latency fast paths."""
+
 from __future__ import annotations
 
 import torch
 
-from archipelago.inference import embeddings, intent_gate, synthesis
+from archipelago.inference import embeddings, intent_gate
 
 
 def test_intent_prototypes_are_embedded_in_one_batch(monkeypatch):

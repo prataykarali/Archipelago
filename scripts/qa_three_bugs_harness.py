@@ -14,14 +14,16 @@ Usage:
     python scripts/qa_three_bugs_harness.py
     python scripts/qa_three_bugs_harness.py --verbose
 """
+
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 import importlib.util
+from pathlib import Path
 import re
 import sys
-from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -60,10 +62,8 @@ def check_truncation_budget(failures: list[str]) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
 
     # Gate A: honourable num_predict on large prompts
-    big = ("graph note about retrieval augmented generation. " * 200)
-    num_ctx, num_predict = sb.stream_token_budget(
-        big, reserve_tokens=sb.STUDY_RESERVE_TOKENS
-    )
+    big = "graph note about retrieval augmented generation. " * 200
+    num_ctx, num_predict = sb.stream_token_budget(big, reserve_tokens=sb.STUDY_RESERVE_TOKENS)
     prompt_tokens = sb.estimate_prompt_tokens(big)
     free = max(0, num_ctx - prompt_tokens - sb.CTX_SAFETY_TOKENS)
     honourable = free == 0 or num_predict <= free
@@ -93,7 +93,7 @@ def check_truncation_budget(failures: list[str]) -> list[dict[str, Any]]:
         "The update is expressed as the product BA where B is"
     )
     trimmed = sb.trim_to_completion_boundary(ragged)
-    complete = bool(re.search(r"[.!?…][\"'”’)]?\s*$", trimmed.rstrip()))
+    complete = bool(re.search(r"[.!?…][\"'”’)]?\s*$", trimmed.rstrip()))  # noqa: RUF001
     results.append(
         _gate(
             "trim_boundary",
@@ -104,9 +104,7 @@ def check_truncation_budget(failures: list[str]) -> list[dict[str, Any]]:
     )
 
     # Gate D: finalize path applies trim
-    payloads = [
-        {"evidence_id": "S1", "topic": "LoRA", "doc_id": "lora.pdf", "page_number": 4}
-    ]
+    payloads = [{"evidence_id": "S1", "topic": "LoRA", "doc_id": "lora.pdf", "page_number": 4}]
     draft = (
         "### Low-Rank Adaptation\n\n"
         "LoRA injects trainable low-rank matrices into attention projections. "
@@ -134,8 +132,8 @@ def check_truncation_budget(failures: list[str]) -> list[dict[str, Any]]:
 
 
 def check_link_thresholds(failures: list[str]) -> list[dict[str, Any]]:
-    from archipelago.inference.citations import cleanse_model_citations
     from archipelago.inference import synthesis
+    from archipelago.inference.citations import cleanse_model_citations
     from archipelago.inference.reply_styles import (
         _MAX_INLINE_CITATIONS_REQUESTED,
         _MIN_INLINE_CITATIONS_REQUESTED,
@@ -184,8 +182,7 @@ def check_link_thresholds(failures: list[str]) -> list[dict[str, Any]]:
     results.append(
         _gate(
             "prompt_citation_budget",
-            _MIN_INLINE_CITATIONS_REQUESTED >= 3
-            and _MAX_INLINE_CITATIONS_REQUESTED >= 6,
+            _MIN_INLINE_CITATIONS_REQUESTED >= 3 and _MAX_INLINE_CITATIONS_REQUESTED >= 6,
             f"min={_MIN_INLINE_CITATIONS_REQUESTED} max={_MAX_INLINE_CITATIONS_REQUESTED}",
             failures,
         )

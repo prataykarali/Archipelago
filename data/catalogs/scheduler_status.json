@@ -1,0 +1,214 @@
+{
+  "last_run_timestamp": "2026-11-11T06:30:02.007582+00:00",
+  "duration_seconds": 21.12,
+  "topics_processed": 5,
+  "total_canonical_records": 40,
+  "new_slm_training_pairs": 0,
+  "ingestion_status": "not_started",
+  "harvests": [
+    {
+      "query": "deep learning architectures",
+      "source_status": {
+        "arxiv": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        },
+        "opac": {
+          "mode": "unavailable",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "catalog_books"
+        },
+        "iemcrp": {
+          "mode": "fallback",
+          "live_records": 0,
+          "fallback_records": 4,
+          "content_type": "navigation_links"
+        },
+        "google_scholar": {
+          "mode": "link_only",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "navigation_links",
+          "verification_url": "https://scholar.google.com/scholar?q=%22deep%20learning%20architectures%22"
+        },
+        "openalex": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        }
+      },
+      "total_canonical": 8
+    },
+    {
+      "query": "computer networks",
+      "source_status": {
+        "arxiv": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        },
+        "opac": {
+          "mode": "unavailable",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "catalog_books"
+        },
+        "iemcrp": {
+          "mode": "fallback",
+          "live_records": 0,
+          "fallback_records": 4,
+          "content_type": "navigation_links"
+        },
+        "google_scholar": {
+          "mode": "link_only",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "navigation_links",
+          "verification_url": "https://scholar.google.com/scholar?q=%22computer%20networks%22"
+        },
+        "openalex": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        }
+      },
+      "total_canonical": 8
+    },
+    {
+      "query": "data structures and algorithms",
+      "source_status": {
+        "arxiv": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        },
+        "opac": {
+          "mode": "unavailable",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "catalog_books"
+        },
+        "iemcrp": {
+          "mode": "fallback",
+          "live_records": 0,
+          "fallback_records": 1,
+          "content_type": "navigation_links"
+        },
+        "google_scholar": {
+          "mode": "link_only",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "navigation_links",
+          "verification_url": "https://scholar.google.com/scholar?q=%22data%20structures%20and%20algorithms%22"
+        },
+        "openalex": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        }
+      },
+      "total_canonical": 8
+    },
+    {
+      "query": "distributed systems",
+      "source_status": {
+        "arxiv": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        },
+        "opac": {
+          "mode": "unavailable",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "catalog_books"
+        },
+        "iemcrp": {
+          "mode": "fallback",
+          "live_records": 0,
+          "fallback_records": 4,
+          "content_type": "navigation_links"
+        },
+        "google_scholar": {
+          "mode": "link_only",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "navigation_links",
+          "verification_url": "https://scholar.google.com/scholar?q=%22distributed%20systems%22"
+        },
+        "openalex": {
+          "mode": "live",
+          "live_records": 4,
+          "fallback_records": 0,
+          "content_type": "papers"
+        }
+      },
+      "total_canonical": 8
+    },
+    {
+      "query": "natural language processing",
+      "source_status": {
+        "arxiv": {
+          "mode": "live",
+          "live_records": 20,
+          "fallback_records": 0,
+          "content_type": "papers"
+        },
+        "opac": {
+          "mode": "unavailable",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "catalog_books"
+        },
+        "iemcrp": {
+          "mode": "fallback",
+          "live_records": 0,
+          "fallback_records": 17,
+          "content_type": "navigation_links"
+        },
+        "google_scholar": {
+          "mode": "link_only",
+          "live_records": 0,
+          "fallback_records": 0,
+          "content_type": "navigation_links",
+          "verification_url": "https://scholar.google.com/scholar?q=%22deep%20learning%20architectures%2C%20computer%20networks%2C%20data%20structures%20and%20algorithms%2C%20distributed%20systems%2C%20natural%20language%20processing%22"
+        },
+        "openalex": {
+          "mode": "live",
+          "live_records": 20,
+          "fallback_records": 0,
+          "content_type": "papers"
+        }
+      },
+      "total_canonical": 8
+    }
+  ],
+  "cloud_sync": {
+    "huggingface": {
+      "status": "success",
+      "uploaded_files": [
+        "catalogs/live_scholarly_manifest.json",
+        "catalogs/latest_harvest_summary.json"
+      ],
+      "errors": [],
+      "repo_id": "Prataykarali/graphier"
+    },
+    "vercel": {
+      "timestamp": "2026-11-11T06:30:17Z",
+      "vercel_url": "https://archipelago-blond.vercel.app",
+      "manifest_prepared": true,
+      "deploy_hook_triggered": false,
+      "live_site_reachable": true
+    }
+  },
+  "status": "completed"
+}

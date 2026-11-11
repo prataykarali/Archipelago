@@ -17,6 +17,7 @@ useful contract:
 Both are plain functions returning a JSON-serialisable mapping so the CLI, the
 container healthcheck, and the tests all read the same source of truth.
 """
+
 from __future__ import annotations
 
 import json

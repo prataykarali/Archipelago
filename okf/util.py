@@ -6,21 +6,23 @@ import cycles (e.g. ingest_to_kuzu -> build_visual_graph -> create_concept_id).
 """
 
 import re
+from typing import Any
 
 from okf.config import infer_source_category
 
 
 def create_concept_id(name: str) -> str:
     """Generate a stable, deterministic ID from a concept name."""
-    cid = ''.join(ch if ch.isalnum() else '_' for ch in name.lower())
-    cid = re.sub(r'_+', '_', cid).strip('_')
-    return cid or 'concept'
+    cid = "".join(ch if ch.isalnum() else "_" for ch in name.lower())
+    cid = re.sub(r"_+", "_", cid).strip("_")
+    return cid or "concept"
 
 
-def _source_record(result: dict) -> dict:
+def _source_record(result: dict[str, Any]) -> dict[str, Any]:
     return {
         "doc_id": result.get("doc_id", ""),
-        "source_category": result.get("source_category") or infer_source_category(result.get("doc_id", "")),
+        "source_category": result.get("source_category")
+        or infer_source_category(result.get("doc_id", "")),
         "chunk_id": result.get("chunk_id", ""),
         "page_number": result.get("page_number", 0),
         "section_title": result.get("section_title", ""),
@@ -28,9 +30,9 @@ def _source_record(result: dict) -> dict:
     }
 
 
-def _dedupe_dicts(items: list) -> list:
-    seen = set()
-    deduped = []
+def _dedupe_dicts(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[tuple[tuple[str, Any], ...]] = set()
+    deduped: list[dict[str, Any]] = []
     for item in items:
         key = tuple(sorted(item.items()))
         if key not in seen:
@@ -39,7 +41,7 @@ def _dedupe_dicts(items: list) -> list:
     return deduped
 
 
-def _record_sources(result: dict) -> list:
+def _record_sources(result: dict[str, Any]) -> list[dict[str, Any]]:
     """All provenance records for a single result.
 
     Once records have been through merge_duplicate_results they carry an

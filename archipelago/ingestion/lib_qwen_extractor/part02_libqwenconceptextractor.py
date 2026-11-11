@@ -1,7 +1,13 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-from . import _deps as _rt  # noqa: F401
+import os
+from typing import Any
+
+from okf.academic_prompt import academic_messages
+
+from . import _deps as _rt
 
 
 class LibQwenConceptExtractor:
@@ -9,10 +15,15 @@ class LibQwenConceptExtractor:
 
     def __init__(
         self,
-        model_name: str = _rt.DEFAULT_MODEL,
+        model_name: str | None = None,
         host: str = "http://localhost:11434",
     ):
-        self.model_name = model_name
+        self.model_name = (
+            model_name
+            or os.getenv("ARCHIPELAGO_ACADEMIC_MODEL")
+            or os.getenv("ARCHIPELAGO_INGESTION_MODEL")
+            or _rt.DEFAULT_MODEL
+        )
         self.host = host
         self.client = _rt.ollama.Client(host=self.host) if _rt.OLLAMA_AVAILABLE else None
 
@@ -22,7 +33,7 @@ class LibQwenConceptExtractor:
         book_title: str = "",
         page_number: int = 1,
         domain: str = "",
-    ) -> list[dict]:
+    ) -> list[dict[str, Any]]:
         """Extract structured concepts conforming to the 8-key contract from chunk."""
         if _rt.is_negative_sample(text):
             _rt.logger.debug("Dropped negative boilerplate sample (page %d)", page_number)
@@ -32,20 +43,10 @@ class LibQwenConceptExtractor:
             _rt.logger.warning("Ollama client unavailable, returning empty concept list")
             return []
 
-        prompt = (
-            "You are an OKF extraction engine for the Archipelago knowledge graph.\n"
-            "From the TEXT below, extract 1-5 teachable CONCEPTS as a JSON array.\n\n"
-            "Each object MUST have exactly these keys: concept_name, concept_type, difficulty, summary, prerequisites, unlocks, related_to, tags.\n"
-            "Do not extract celebrities, authors as concepts, or evaluation boilerplate.\n\n"
-            f"SOURCE: '{book_title}' (Domain: {domain}, Page {page_number})\n"
-            "TEXT:\n"
-            f"{text[:2500]}"
-        )
-
         try:
             resp = self.client.chat(
                 model=self.model_name,
-                messages=[{"role": "user", "content": prompt}],
+                messages=academic_messages(text, book_title, domain, page_number),
                 format="json",
                 think=False,
                 options={"temperature": 0.1, "num_predict": 1200},
@@ -71,7 +72,17 @@ class LibQwenConceptExtractor:
                     continue
 
                 # Filter out generic chapter headers
-                if any(h in name.lower() for h in ["chapter", "section", "summary", "exercise", "introduction", "table of"]):
+                if any(
+                    h in name.lower()
+                    for h in [
+                        "chapter",
+                        "section",
+                        "summary",
+                        "exercise",
+                        "introduction",
+                        "table of",
+                    ]
+                ):
                     continue
 
                 cid = _rt.canonical_concept_id(name)
@@ -82,9 +93,13 @@ class LibQwenConceptExtractor:
                 for p in raw_prereqs:
                     p_name = p.get("name") if isinstance(p, dict) else str(p)
                     canon_p = _rt.canonicalize_concept_name(p_name)
-                    if canon_p and len(canon_p) >= 3 and _rt.canonical_concept_id(canon_p) != cid:
-                        if canon_p not in prereqs:
-                            prereqs.append(canon_p)
+                    if (
+                        canon_p
+                        and len(canon_p) >= 3
+                        and _rt.canonical_concept_id(canon_p) != cid
+                        and canon_p not in prereqs
+                    ):
+                        prereqs.append(canon_p)
 
                 # Unlocks (self-loops eliminated, canonicalized)
                 raw_unlocks = c.get("unlocks") or []
@@ -92,21 +107,31 @@ class LibQwenConceptExtractor:
                 for u in raw_unlocks:
                     u_name = u.get("name") if isinstance(u, dict) else str(u)
                     canon_u = _rt.canonicalize_concept_name(u_name)
-                    if canon_u and len(canon_u) >= 3 and _rt.canonical_concept_id(canon_u) != cid:
-                        if canon_u not in unlocks:
-                            unlocks.append(canon_u)
+                    if (
+                        canon_u
+                        and len(canon_u) >= 3
+                        and _rt.canonical_concept_id(canon_u) != cid
+                        and canon_u not in unlocks
+                    ):
+                        unlocks.append(canon_u)
 
                 # Related_to (self-loops eliminated, canonicalized)
                 raw_related = c.get("related_to") or []
                 related_to = []
                 for r in raw_related:
                     if isinstance(r, dict):
-                        r_target = _rt.canonicalize_concept_name(r.get("concept") or r.get("name") or "")
+                        r_target = _rt.canonicalize_concept_name(
+                            r.get("concept") or r.get("name") or ""
+                        )
                         r_rel = (r.get("relation") or "uses").lower().strip()
                     else:
                         r_target = _rt.canonicalize_concept_name(str(r))
                         r_rel = "uses"
-                    if r_target and len(r_target) >= 3 and _rt.canonical_concept_id(r_target) != cid:
+                    if (
+                        r_target
+                        and len(r_target) >= 3
+                        and _rt.canonical_concept_id(r_target) != cid
+                    ):
                         related_to.append({"concept": r_target, "relation": r_rel})
 
                 # Tags
@@ -116,22 +141,24 @@ class LibQwenConceptExtractor:
                     if isinstance(t, str) and len(t.strip()) >= 2
                 ]
 
-                concepts.append({
-                    "id": cid,
-                    "concept_name": name,
-                    "name": name,
-                    "concept_type": ctype,
-                    "difficulty": diff,
-                    "summary": defn,
-                    "definition": defn,
-                    "prerequisites": prereqs,
-                    "unlocks": unlocks,
-                    "related_to": related_to,
-                    "tags": tags,
-                    "domain": domain,
-                    "source_book": book_title,
-                    "page_number": page_number,
-                })
+                concepts.append(
+                    {
+                        "id": cid,
+                        "concept_name": name,
+                        "name": name,
+                        "concept_type": ctype,
+                        "difficulty": diff,
+                        "summary": defn,
+                        "definition": defn,
+                        "prerequisites": prereqs,
+                        "unlocks": unlocks,
+                        "related_to": related_to,
+                        "tags": tags,
+                        "domain": domain,
+                        "source_book": book_title,
+                        "page_number": page_number,
+                    }
+                )
 
             return concepts
 
@@ -146,7 +173,7 @@ class LibQwenConceptExtractor:
         page_number: int = 1,
         book_title: str = "",
         domain: str = "Computer Science",
-    ) -> list[dict]:
+    ) -> list[dict[str, Any]]:
         """Extract structured concepts from text (convenience alias for extract_from_chunk)."""
         return self.extract_from_chunk(
             text=text,
@@ -157,8 +184,8 @@ class LibQwenConceptExtractor:
 
     def second_pass_relation_resolver(
         self,
-        extracted_concepts: list[dict],
-    ) -> list[dict]:
+        extracted_concepts: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
         """
         Validate and resolve relationship integrity:
         1. Eliminate reciprocal dependency cycles (A -> B and B -> A) across prerequisites and unlocks.
@@ -172,14 +199,16 @@ class LibQwenConceptExtractor:
 
         for c in extracted_concepts:
             cid = c["id"]
-            c_name = c["name"]
+            c["name"]
 
             # 1. Prerequisite edges
             valid_prereqs = []
             for p_item in c.get("prerequisites", []):
                 p_name = p_item["name"] if isinstance(p_item, dict) else str(p_item)
                 p_name_canon = _rt.canonicalize_concept_name(p_name)
-                p_id = name_to_id.get(p_name_canon.lower()) or _rt.canonical_concept_id(p_name_canon)
+                p_id = name_to_id.get(p_name_canon.lower()) or _rt.canonical_concept_id(
+                    p_name_canon
+                )
 
                 if p_id == cid:
                     continue  # Self-loop
@@ -197,7 +226,9 @@ class LibQwenConceptExtractor:
             for u_item in c.get("unlocks", []):
                 u_name = u_item["name"] if isinstance(u_item, dict) else str(u_item)
                 u_name_canon = _rt.canonicalize_concept_name(u_name)
-                u_id = name_to_id.get(u_name_canon.lower()) or _rt.canonical_concept_id(u_name_canon)
+                u_id = name_to_id.get(u_name_canon.lower()) or _rt.canonical_concept_id(
+                    u_name_canon
+                )
 
                 if u_id == cid:
                     continue  # Self-loop

@@ -1,8 +1,11 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import re
-from . import _deps as _rt  # noqa: F401
+from typing import Any
+
+from . import _deps as _rt
 
 
 def deduplicate_keywords(keywords: list[str]) -> list[str]:
@@ -32,7 +35,7 @@ def strip_conversational_filler(query: str) -> str:
     return q
 
 
-def build_column_map(header_row: list[str], schema: dict) -> dict[str, int]:
+def build_column_map(header_row: list[str], schema: dict[str, Any]) -> dict[str, int]:
     """Build canonical field_name -> column_index map.
 
     Applies schema canonical_map so real-file headers become ideal field names.
@@ -53,8 +56,7 @@ def build_column_map(header_row: list[str], schema: dict) -> dict[str, int]:
                 break
         if expected not in raw_map and exp_norm not in optional:
             raise _rt.ODSParseError(
-                f"[{schema['name']}] Could not map columns: {[expected]}. "
-                f"Header row: {header_row}"
+                f"[{schema['name']}] Could not map columns: {[expected]}. Header row: {header_row}"
             )
 
     canonical_map = schema.get("canonical_map") or {}
@@ -65,7 +67,9 @@ def build_column_map(header_row: list[str], schema: dict) -> dict[str, int]:
     return col_map
 
 
-def build_column_map_for_rows(rows: list[list[str]], preferred: str | None = None) -> tuple[dict, dict[str, int]]:
+def build_column_map_for_rows(
+    rows: list[list[str]], preferred: str | None = None
+) -> tuple[dict[str, Any], dict[str, int]]:
     """Resolve schema + column map for a full sheet."""
     schema = _rt.resolve_schema(rows, preferred=preferred)
     return schema, build_column_map(rows[0], schema)

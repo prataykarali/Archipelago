@@ -1,4 +1,5 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -8,8 +9,8 @@ import os
 import random
 import re
 from typing import Any
-from . import _deps as _rt  # noqa: F401
 
+from . import _deps as _rt  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class DiagnosticMCQ:
     concept_name: str
     question: str
     options: dict[str, str]  # Exactly 4 options: {"A": ..., "B": ..., "C": ..., "D": ...}
-    correct_option: str       # "A" | "B" | "C" | "D"
+    correct_option: str  # "A" | "B" | "C" | "D"
     explanation: str
     citation: str
     difficulty: str = "intermediate"
@@ -200,10 +201,11 @@ def _generate_slm_mcq(
     ollama_host: str | None = None,
 ) -> DiagnosticMCQ | None:
     """Generate a simple, clear 4-option conceptual MCQ on the spot using the local SLM."""
-    host = ollama_host or os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
-    model = os.getenv("ARCHIPELAGO_OLLAMA_MODEL", "qwen3.5:0.8b")
+    _host = ollama_host or os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
+    _model = os.getenv("ARCHIPELAGO_OLLAMA_MODEL", "qwen3.5:0.8b")
     try:
         from archipelago.inference.llm_gateway import gateway_chat
+
         prompt = (
             f"Generate 1 simple multiple-choice question testing basic conceptual knowledge of '{concept_name}'.\n"
             f"Concept description: {summary}\n\n"
@@ -221,13 +223,16 @@ def _generate_slm_mcq(
             '  "explanation": "..."\n'
             "}"
         )
-        msg_content = gateway_chat(
-            messages=[{"role": "user", "content": prompt}],
-            purpose="synthesis",
-            temperature=0.7,
-            max_tokens=280,
-            timeout=15,
-        ) or ""
+        msg_content = (
+            gateway_chat(
+                messages=[{"role": "user", "content": prompt}],
+                purpose="synthesis",
+                temperature=0.7,
+                max_tokens=280,
+                timeout=15,
+            )
+            or ""
+        )
         if not msg_content:
             return None
         clean_json = re.sub(r"^```(?:json)?\s*", "", msg_content.strip(), flags=re.IGNORECASE)
@@ -284,7 +289,8 @@ def _generate_slm_mcq(
             question=q_text,
             options=clean_opts,
             correct_option=corr,
-            explanation=expl or f"Option {corr} accurately describes the core concept of {concept_name}.",
+            explanation=expl
+            or f"Option {corr} accurately describes the core concept of {concept_name}.",
             citation=cit,
             difficulty=difficulty,
         )

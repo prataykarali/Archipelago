@@ -8,7 +8,7 @@ from archipelago.inference import state as st
 from archipelago.inference.aliases import generate_aliases
 
 
-def init_concepts_data():
+def init_concepts_data() -> None:
     try:
         with open(st.DATA_FILE, encoding="utf-8") as f:
             data = json.load(f)

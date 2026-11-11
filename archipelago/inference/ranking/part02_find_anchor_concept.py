@@ -1,13 +1,19 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import re
+
 from thefuzz import fuzz
+
 from archipelago.inference import state as st
 from archipelago.inference.aliases import (
-    extract_acronym, generate_aliases, _core_concept_bonus, _clean_query_words,
+    _clean_query_words,
+    _core_concept_bonus,
+    generate_aliases,
 )
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
 
 
 def find_anchor_concept(query):
@@ -22,7 +28,7 @@ def find_anchor_concept(query):
 
     try:
         from archipelago.inference.llm_gateway import gateway_chat
-        
+
         candidate_lines = []
         for cand in ranked:
             lbl = cand.get("label") or cand.get("name") or cand["id"]
@@ -41,18 +47,21 @@ def find_anchor_concept(query):
         )
         user_content = f"User Query: {query}\n\nCandidate Concepts:\n{candidates_str}\n\nAnswer:"
 
-        llm_response = gateway_chat(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            purpose="routing",
-            temperature=0.0,
-            max_tokens=30,
-            timeout=10,
-        ) or ""
+        llm_response = (
+            gateway_chat(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+                purpose="routing",
+                temperature=0.0,
+                max_tokens=30,
+                timeout=10,
+            )
+            or ""
+        )
         cleaned_response = llm_response.strip().strip("'\"`").strip()
-        
+
         if cleaned_response.lower() == "none":
             return None, 0.0
 
@@ -135,7 +144,9 @@ def _has_surface_concept_hit(ranked: list, query: str) -> bool:
                 continue
             if al in ql or al in norm:
                 return True
-            if any(t == al or t == al + "s" or (t.endswith("s") and t[:-1] == al) for t in q_tokens):
+            if any(
+                t == al or t == al + "s" or (t.endswith("s") and t[:-1] == al) for t in q_tokens
+            ):
                 return True
     return False
 

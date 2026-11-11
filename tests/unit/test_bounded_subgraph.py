@@ -136,9 +136,13 @@ def mock_concepts_data():
 
 
 def test_mode_c_bounds_and_structure(mock_concepts_data):
-    sub = generate_bounded_subgraph("low_rank_adaptation", mode="mode_c", concepts_data=mock_concepts_data)
+    sub = generate_bounded_subgraph(
+        "low_rank_adaptation", mode="mode_c", concepts_data=mock_concepts_data
+    )
     assert isinstance(sub, BoundedSubgraph)
-    assert 5 <= sub.node_count <= 10, f"Mode C node count {sub.node_count} violates 5 <= N <= 10 bound"
+    assert 5 <= sub.node_count <= 10, (
+        f"Mode C node count {sub.node_count} violates 5 <= N <= 10 bound"
+    )
     assert sub.edge_count >= 1, "Mode C subgraph must have edges"
     assert "low_rank_adaptation" in sub.target_ids
 
@@ -150,14 +154,18 @@ def test_mode_c_bounds_and_structure(mock_concepts_data):
 
 def test_mode_c_pruning(mock_concepts_data):
     # Transformer has many 1-hop and 2-hop neighbors (linear_algebra, softmax, neural_network, gradient_descent, loss_function, bert, gpt, lora)
-    sub = generate_bounded_subgraph("transformer", mode="mode_c", max_nodes=6, concepts_data=mock_concepts_data)
+    sub = generate_bounded_subgraph(
+        "transformer", mode="mode_c", max_nodes=6, concepts_data=mock_concepts_data
+    )
     assert sub.node_count <= 6, f"Pruning failed: got {sub.node_count} nodes > 6"
     assert sub.node_count >= 5, f"Pruning over-pruned: got {sub.node_count} nodes < 5"
 
 
 def test_mode_c_backfill_and_connectivity(mock_concepts_data):
     # isolated_concept has 0 prereqs and 0 unlocks in mock_concepts_data
-    sub = generate_bounded_subgraph("isolated_concept", mode="mode_c", min_nodes=5, concepts_data=mock_concepts_data)
+    sub = generate_bounded_subgraph(
+        "isolated_concept", mode="mode_c", min_nodes=5, concepts_data=mock_concepts_data
+    )
     assert sub.node_count >= 5, f"Backfill failed: got {sub.node_count} nodes < 5"
     assert sub.node_count <= 10, f"Backfill exceeded max: got {sub.node_count} > 10"
 
@@ -185,7 +193,9 @@ def test_mode_b_shortest_path_and_bridges(mock_concepts_data):
 
 
 def test_mode_a_minimal_neighborhood(mock_concepts_data):
-    sub = generate_bounded_subgraph("low_rank_adaptation", mode="mode_a", concepts_data=mock_concepts_data)
+    sub = generate_bounded_subgraph(
+        "low_rank_adaptation", mode="mode_a", concepts_data=mock_concepts_data
+    )
     assert sub.node_count <= 3, f"Mode A node count {sub.node_count} exceeds 3"
     assert sub.query_mode == "mode_a"
     node_ids = {n["id"] for n in sub.nodes}

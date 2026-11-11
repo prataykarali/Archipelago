@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from flask import Response, jsonify, request
+from flask import jsonify, request
+from flask.typing import ResponseReturnValue
 
 from archipelago.api import engine_state as state
 from archipelago.api.engine_state import (
@@ -28,7 +29,7 @@ SUPPORTED_FORMATS_ERROR = "Supported formats: PDF, Markdown (.md), plain text (.
 
 
 @app.route("/api/readiness", methods=["GET"])
-def api_readiness() -> Response:
+def api_readiness() -> ResponseReturnValue:
     """Health check endpoint reporting DB status, concept count, and LLM state."""
     try:
         from archipelago.inference.llm_gateway import is_llm_available
@@ -62,7 +63,7 @@ def api_readiness() -> Response:
 
 
 @app.route("/api/upload", methods=["POST"])
-def api_upload() -> Response:
+def api_upload() -> ResponseReturnValue:
     """Queue a PDF/Markdown/text upload through the canonical staged worker."""
     if "file" not in request.files and "pdf" not in request.files:
         return jsonify({"error": NO_FILE_ERROR}), BAD_REQUEST_STATUS

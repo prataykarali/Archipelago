@@ -1,6 +1,10 @@
 """Graph export payloads: visualization, GraphRAG index, and audits."""
 
+from __future__ import annotations
+
 from collections import Counter
+from pathlib import Path
+from typing import Any
 
 from okf.canonicalize import is_same_concept_reference
 from okf.cleanup import is_valid_concept_name
@@ -8,7 +12,9 @@ from okf.config import infer_source_category
 from okf.util import _dedupe_dicts, _record_sources, create_concept_id
 
 
-def build_visual_graph(okf_results: list, graph_export: dict) -> dict:
+def build_visual_graph(
+    okf_results: list[dict[str, Any]], graph_export: dict[str, Any]
+) -> dict[str, Any]:
     """Build an Obsidian-style graph payload for local visualization."""
     nodes = {}
 
@@ -35,22 +41,25 @@ def build_visual_graph(okf_results: list, graph_export: dict) -> dict:
         if not name:
             continue
         cid = create_concept_id(name)
-        node = nodes.setdefault(cid, {
-            "id": cid,
-            "label": name,
-            "concept_type": result.get("concept_type", "definition"),
-            "difficulty": result.get("difficulty", "intermediate"),
-            "summary": result.get("summary", ""),
-            "tags": [],
-            "sources": [],
-            "source_categories": [],
-            "sections": [],
-            "prerequisites": [],
-            "unlocks": [],
-            "related": [],
-            "degree": 0,
-            "source_count": 0,
-        })
+        node = nodes.setdefault(
+            cid,
+            {
+                "id": cid,
+                "label": name,
+                "concept_type": result.get("concept_type", "definition"),
+                "difficulty": result.get("difficulty", "intermediate"),
+                "summary": result.get("summary", ""),
+                "tags": [],
+                "sources": [],
+                "source_categories": [],
+                "sections": [],
+                "prerequisites": [],
+                "unlocks": [],
+                "related": [],
+                "degree": 0,
+                "source_count": 0,
+            },
+        )
         if len(result.get("summary", "")) > len(node.get("summary", "")):
             node["summary"] = result.get("summary", "")
         node["concept_type"] = result.get("concept_type", node["concept_type"])
@@ -69,25 +78,27 @@ def build_visual_graph(okf_results: list, graph_export: dict) -> dict:
         node["related"].extend(result.get("related_to", []))
 
     links = []
-    degree_counts = Counter()
+    degree_counts: Counter[str] = Counter()
     for idx, edge in enumerate(graph_export.get("edges", []), 1):
         source = edge["from_id"]
         target = edge["to_id"]
         degree_counts[source] += 1
         degree_counts[target] += 1
-        links.append({
-            "id": f"edge_{idx:05d}",
-            "source": source,
-            "target": target,
-            "source_label": edge.get("from_name", source),
-            "target_label": edge.get("to_name", target),
-            "edge_type": edge.get("edge_type", "RELATED"),
-            "relation": edge.get("relation", "related"),
-            "source_ref": edge.get("source", ""),
-        })
+        links.append(
+            {
+                "id": f"edge_{idx:05d}",
+                "source": source,
+                "target": target,
+                "source_label": edge.get("from_name", source),
+                "target_label": edge.get("to_name", target),
+                "edge_type": edge.get("edge_type", "RELATED"),
+                "relation": edge.get("relation", "related"),
+                "source_ref": edge.get("source", ""),
+            }
+        )
 
     for node in nodes.values():
-        node["tags"] = sorted(set(t for t in node["tags"] if t))
+        node["tags"] = sorted({t for t in node["tags"] if t})
         node["sources"] = _dedupe_dicts(node["sources"])
         node["source_categories"] = sorted(set(node["source_categories"]))
         node["sections"] = sorted(set(node["sections"]))
@@ -102,21 +113,25 @@ def build_visual_graph(okf_results: list, graph_export: dict) -> dict:
         "clusters": {
             "by_type": dict(Counter(n["concept_type"] for n in nodes.values())),
             "by_difficulty": dict(Counter(n["difficulty"] for n in nodes.values())),
-            "by_source_category": dict(Counter(
-                category
-                for n in nodes.values()
-                for category in (n.get("source_categories") or ["unknown"])
-            )),
+            "by_source_category": dict(
+                Counter(
+                    category
+                    for n in nodes.values()
+                    for category in (n.get("source_categories") or ["unknown"])
+                )
+            ),
         },
         "stats": {
             "node_count": len(nodes),
             "link_count": len(links),
             "max_degree": max(degree_counts.values()) if degree_counts else 0,
-        }
+        },
     }
 
 
-def build_graph_rag_index(okf_results: list, graph_export: dict) -> dict:
+def build_graph_rag_index(
+    okf_results: list[dict[str, Any]], graph_export: dict[str, Any]
+) -> dict[str, Any]:
     """Create a compact concept-neighborhood index for GraphRAG retrieval."""
     visual = graph_export.get("visualization") or build_visual_graph(okf_results, graph_export)
     by_id = {node["id"]: node for node in visual["nodes"]}
@@ -137,11 +152,16 @@ def build_graph_rag_index(okf_results: list, graph_export: dict) -> dict:
             else:
                 related.append({"concept": target_name, "relation": link["relation"]})
 
-        retrieval_terms = sorted(set(
-            [node["label"], node.get("concept_type", ""), node.get("difficulty", "")] +
-            node.get("tags", []) + requires + unlocks +
-            [r["concept"] for r in related]
-        ))
+        terms_candidates = (
+            [node.get("label") or node.get("id"), node.get("concept_type", ""), node.get("difficulty", "")]
+            + (node.get("tags") or [])
+            + requires
+            + unlocks
+            + [r.get("concept") for r in related if isinstance(r, dict)]
+        )
+        retrieval_terms = sorted(
+            {str(t) for t in terms_candidates if t is not None and str(t).strip()}
+        )
         index[node_id] = {
             "name": node["label"],
             "summary": node.get("summary", ""),
@@ -161,11 +181,11 @@ def build_graph_rag_index(okf_results: list, graph_export: dict) -> dict:
         "stats": {
             "total_concepts": len(index),
             "total_links": len(visual.get("links", [])),
-        }
+        },
     }
 
 
-def audit_graph_export(graph_export: dict) -> dict:
+def audit_graph_export(graph_export: dict[str, Any]) -> dict[str, Any]:
     """Compute deterministic graph issues that fine-tuning cannot guarantee."""
     concepts = graph_export.get("concepts", {})
     edges = graph_export.get("edges", [])
@@ -178,36 +198,33 @@ def audit_graph_export(graph_export: dict) -> dict:
         if not is_valid_concept_name(c.get("name", ""))
     ]
     empty_summary_nodes = [
-        c.get("name", cid)
-        for cid, c in concepts.items()
-        if not (c.get("summary") or "").strip()
+        c.get("name", cid) for cid, c in concepts.items() if not (c.get("summary") or "").strip()
     ]
     placeholder_nodes = [
-        n.get("label", node_id)
-        for node_id, n in visual_nodes.items()
-        if not n.get("sources")
+        n.get("label", node_id) for node_id, n in visual_nodes.items() if not n.get("sources")
     ]
 
     self_edges = [
-        e for e in edges
+        e
+        for e in edges
         if e.get("from_id") == e.get("to_id")
         or is_same_concept_reference(e.get("from_name", ""), e.get("to_name", ""))
     ]
 
     requires_pairs = {
-        (e.get("from_id"), e.get("to_id"))
-        for e in edges
-        if e.get("edge_type") == "REQUIRES"
+        (e.get("from_id"), e.get("to_id")) for e in edges if e.get("edge_type") == "REQUIRES"
     }
     reciprocal_requires = []
     seen = set()
     for a, b in requires_pairs:
         if (b, a) in requires_pairs and tuple(sorted((a, b))) not in seen:
             seen.add(tuple(sorted((a, b))))
-            reciprocal_requires.append({
-                "a": concepts.get(a, {}).get("name", a),
-                "b": concepts.get(b, {}).get("name", b),
-            })
+            reciprocal_requires.append(
+                {
+                    "a": concepts.get(a, {}).get("name", a),
+                    "b": concepts.get(b, {}).get("name", b),
+                }
+            )
 
     return {
         "stats": {
@@ -230,20 +247,20 @@ def audit_graph_export(graph_export: dict) -> dict:
                 for e in self_edges[:25]
             ],
             "reciprocal_requires": reciprocal_requires[:25],
-        }
+        },
     }
 
 
-def export_vis_json(db, nodes_path: str, edges_path: str):
+def export_vis_json(db: Any, nodes_path: str, edges_path: str) -> None:
     """Export visualization nodes and edges to separate JSON files."""
-    import kuzu
     import json
-    if hasattr(db, 'execute'):
-        conn = db
-    else:
-        conn = kuzu.Connection(db)
+
+    import kuzu
+
+    conn = db if hasattr(db, "execute") else kuzu.Connection(db)
 
     from okf.graph_db import export_graph
+
     graph_export = export_graph(conn)
     visual = build_visual_graph([], graph_export)
 
@@ -253,10 +270,14 @@ def export_vis_json(db, nodes_path: str, edges_path: str):
         json.dump(visual["links"], f, indent=2, ensure_ascii=False)
 
 
-def write_all_artifacts(graph_export: dict, okf_results: list, db,
-                        total_chunks: int = None,
-                        successful_chunk_count: int = None,
-                        base_dir=None) -> tuple:
+def write_all_artifacts(
+    graph_export: dict[str, Any],
+    okf_results: list[dict[str, Any]],
+    db: Any,
+    total_chunks: int | None = None,
+    successful_chunk_count: int | None = None,
+    base_dir: Path | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """Write every downstream graph artifact in one place: graph_audit.json,
     root okf_graph.json, graph_ui/okf_graph.json (static fallback hosting),
     _graph_nodes.json/_graph_edges.json and accuracy.json.
@@ -272,14 +293,16 @@ def write_all_artifacts(graph_export: dict, okf_results: list, db,
     Returns (graph_audit, accuracy).
     """
     import json
+
     from okf.config import BASE_DIR
-    from okf.evaluate import evaluate_extraction
+    from okf.eval.metrics import evaluate_extraction
 
     if base_dir is None:
         base_dir = BASE_DIR
     if total_chunks is None:
-        total_chunks = len({(r.get("doc_id", ""), r.get("chunk_id", ""))
-                            for r in okf_results if r.get("chunk_id")})
+        total_chunks = len(
+            {(r.get("doc_id", ""), r.get("chunk_id", "")) for r in okf_results if r.get("chunk_id")}
+        )
     if successful_chunk_count is None:
         successful_chunk_count = total_chunks
 
@@ -294,28 +317,25 @@ def write_all_artifacts(graph_export: dict, okf_results: list, db,
     if static_dest.parent.exists():
         with open(static_dest, "w", encoding="utf-8") as f:
             json.dump(graph_export, f, indent=2, ensure_ascii=False)
-        print(f"  Saved to okf_graph.json, graph_audit.json and graph_ui/okf_graph.json")
+        print("  Saved to okf_graph.json, graph_audit.json and graph_ui/okf_graph.json")
     else:
-        print(f"  Saved to okf_graph.json and graph_audit.json")
+        print("  Saved to okf_graph.json and graph_audit.json")
 
-    export_vis_json(
-        db,
-        str(base_dir / "_graph_nodes.json"),
-        str(base_dir / "_graph_edges.json")
+    export_vis_json(db, str(base_dir / "_graph_nodes.json"), str(base_dir / "_graph_edges.json"))
+    print("  Exported visualization to _graph_nodes.json and _graph_edges.json")
+
+    accuracy = evaluate_extraction(
+        okf_results, total_chunks, graph_export, raw_extraction_count=successful_chunk_count
     )
-    print(f"  Exported visualization to _graph_nodes.json and _graph_edges.json")
-
-    accuracy = evaluate_extraction(okf_results, total_chunks, graph_export,
-                                    raw_extraction_count=successful_chunk_count)
 
     with open(base_dir / "accuracy.json", "w", encoding="utf-8") as f:
         json.dump(accuracy, f, indent=2)
-    print(f"  Saved to accuracy.json")
+    print("  Saved to accuracy.json")
 
     return graph_audit, accuracy
 
 
-def export_full_json(db, output_path: str):
+def export_full_json(db: Any, output_path: str) -> None:
     """Export full graph structure (concepts, edges, stats, visualization, index) to JSON.
 
     Also emits a top-level ``nodes`` array, aliased from ``visualization.nodes``.
@@ -325,14 +345,14 @@ def export_full_json(db, output_path: str):
     entirely, which made every textbook concept invisible to it.  Emitting all
     three, from one source, means a reader can no longer be silently empty.
     """
-    import kuzu
     import json
-    if hasattr(db, 'execute'):
-        conn = db
-    else:
-        conn = kuzu.Connection(db)
+
+    import kuzu
+
+    conn = db if hasattr(db, "execute") else kuzu.Connection(db)
 
     from okf.graph_db import export_graph
+
     graph_export = export_graph(conn)
     graph_export["visualization"] = build_visual_graph([], graph_export)
     graph_export["graph_rag_index"] = build_graph_rag_index([], graph_export)
@@ -361,4 +381,3 @@ def export_full_json(db, output_path: str):
 
 
 # Import auxiliary functions from okf.exports_extra
-from okf.exports_extra import export_gold_template, export_cytoscape, diff_graphs

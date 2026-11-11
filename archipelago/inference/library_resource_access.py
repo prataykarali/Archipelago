@@ -1,4 +1,5 @@
 """Safe, student-facing e-resource access responses."""
+
 from __future__ import annotations
 
 from archipelago.inference.library_credentials import (

@@ -1,4 +1,5 @@
 """Unit tests for the 5-stage local-retrieve → Gemini synthesis pipeline."""
+
 from __future__ import annotations
 
 from archipelago.inference import pipeline as pl
@@ -94,7 +95,9 @@ def test_stage2_kill_switch_rejects_weak_hits(monkeypatch) -> None:
 
 
 def test_run_pipeline_kill_switch_message(monkeypatch) -> None:
-    monkeypatch.setattr(pl, "_stage1_guardrails", lambda q: {"reject": False, "normalized_query": q})
+    monkeypatch.setattr(
+        pl, "_stage1_guardrails", lambda q: {"reject": False, "normalized_query": q}
+    )
     monkeypatch.setattr(pl, "_stage2_vector_search", lambda q: None)
     result = pl.run_archipelago_inference("unrelated trivia about sports")
     assert result["routing"]["route"] == "kill_switch"

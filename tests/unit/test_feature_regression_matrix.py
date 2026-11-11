@@ -87,13 +87,13 @@ def test_regression_suites_actually_contain_tests(suite):
 
 
 class FakeGraph:
-    nodes = {
+    nodes = {  # noqa: RUF012
         "graph_retrieval": {"summary": "Retrieval over a graph."},
         "embeddings": {"summary": "Vector representations."},
         "indexing": {"summary": "Organising searchable data."},
     }
-    out = {"graph_retrieval": [("REQUIRES", "indexing")]}
-    inn = {"graph_retrieval": [("UNLOCKS", "embeddings")]}
+    out = {"graph_retrieval": [("REQUIRES", "indexing")]}  # noqa: RUF012
+    inn = {"graph_retrieval": [("UNLOCKS", "embeddings")]}  # noqa: RUF012
 
     def rank(self, query, top_k=1):
         return [(0.9, "graph_retrieval")]
@@ -128,7 +128,10 @@ class FakeEngine:
         self.books = []
         self.cache_info = {"source": "test"}
 
-    def stream_chat(self, query):
+    def answer(self, query):
+        return {"route": "concept", "query": query}
+
+    def stream_chat(self, query, **_kwargs):
         meta = {
             "target_id": "graph_retrieval",
             "citations": [{"doc_id": "papers/graph_retrieval.pdf", "page_number": 7}],
@@ -284,14 +287,12 @@ def test_public_api_stays_open_when_auth_required(guarded_app):
     assert client.post("/api/chat", json={"query": "explain graph retrieval"}).status_code == 401
 
 
-def test_chat_rate_limit_returns_429_with_retry_after():
+def test_chat_transport_rate_limit_returns_429_with_retry_after():
     from hostapp.security import RateLimiter
 
     app, _ = _build_app(auth_required=False, limiter=RateLimiter())
     client = app.test_client()
     assert client.post("/api/chat", json={"query": "first"}).status_code == 200
-    # CHAT_RATE_MIN_GAP_SEC is 1.0s, so an immediate second state-changing call
-    # is throttled.
     blocked = client.post("/api/chat", json={"query": "second"})
     assert blocked.status_code == 429
     assert int(blocked.headers["Retry-After"]) >= 1

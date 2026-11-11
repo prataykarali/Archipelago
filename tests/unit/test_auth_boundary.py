@@ -1,13 +1,12 @@
 """Auth-boundary regression across the three services.
 
-With ``ARCHIPELAGO_AUTH_REQUIRED=1`` every *protected* mutating endpoint must
-reject an unauthenticated caller (401/403), and the endpoints that are
-deliberately public (chat, roadmap, quiz, page-view, session login/logout) must
-NOT be rejected as unauthenticated.
+With ``ARCHIPELAGO_AUTH_REQUIRED=1`` protected mutating endpoints reject
+unauthenticated callers (401/403). Session logout remains publicly reachable.
 
 The rate limiter is cleared between probes so a 429 can never masquerade as a
 success for a protected route.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -52,6 +51,12 @@ PROTECTED = {
         ("DELETE", "/api/users/user-1"),
     ],
     "hostapp": [
+        ("POST", "/api/chat"),
+        ("POST", "/api/roadmap"),
+        ("POST", "/api/quiz"),
+        ("POST", "/api/page-view"),
+        ("POST", "/api/chat/telemetry"),
+        ("POST", "/api/chat/adaptive-step"),
         ("POST", "/api/library/import"),
         ("POST", "/api/auth/session"),
     ],
@@ -61,14 +66,6 @@ PROTECTED = {
 PUBLIC = {
     "chat_server": [
         ("DELETE", "/api/auth/session"),
-    ],
-    "hostapp": [
-        ("POST", "/api/chat"),
-        ("POST", "/api/roadmap"),
-        ("POST", "/api/quiz"),
-        ("POST", "/api/page-view"),
-        ("POST", "/api/chat/telemetry"),
-        ("POST", "/api/chat/adaptive-step"),
     ],
 }
 

@@ -12,8 +12,8 @@ self-loops are the hard structural gates used by pilot_readiness.sh).
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
+import sys
 
 import kuzu
 
@@ -108,10 +108,7 @@ def main() -> int:
 
     failures: list[str] = []
     if self_loops > max_self_loops:
-        msg = (
-            f"structural audit found {self_loops} self-loop(s) "
-            f"(max allowed={max_self_loops})"
-        )
+        msg = f"structural audit found {self_loops} self-loop(s) (max allowed={max_self_loops})"
         failures.append(msg)
         print(f"ERROR: {msg}", file=sys.stderr)
 

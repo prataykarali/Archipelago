@@ -1,5 +1,4 @@
 """Rate limiter for public / Hugging Face demos."""
-import os
 
 from archipelago.inference.rate_limit import SlidingWindowLimiter, check_chat_rate_limit
 
@@ -51,16 +50,16 @@ def test_disabled_env_bypasses(monkeypatch):
 
 def test_check_chat_rate_limit_uses_xff(monkeypatch):
     monkeypatch.setenv("ARCHIPELAGO_RATE_LIMIT_DISABLED", "1")
-    ok, meta = check_chat_rate_limit(_FakeReq(xff="9.9.9.9, 1.1.1.1"), "sess1")
+    ok, _meta = check_chat_rate_limit(_FakeReq(xff="9.9.9.9, 1.1.1.1"), "sess1")
     assert ok
 
 
 def test_rate_limit_response_message(app_context=None):
     from archipelago.inference.rate_limit import rate_limit_response
     from archipelago.inference.state import app
+
     with app.test_request_context():
         resp = rate_limit_response({"retry_after_s": 15, "scope": "per_client"})
         data = resp.get_json()
         assert resp.status_code == 429
         assert "library is too busy ! you are in queue, retrying after-15s" in data["error"]
-

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from archipelago.inference.corpus_inventory import inventory_for_books
 from archipelago.inference.demo_query_books import (
     books_for_query,
     citation_overlays_for_query,
@@ -11,7 +12,6 @@ from archipelago.inference.demo_query_books import (
     resolve_doc_id,
 )
 from archipelago.inference.math_text import fix_math_expressions
-from archipelago.inference.corpus_inventory import inventory_for_books
 
 QUERIES = [
     "What is Low-Rank Adaptation (LoRA)?",

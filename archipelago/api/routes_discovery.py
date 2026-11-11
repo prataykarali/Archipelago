@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
-from flask import Response, jsonify, request
+from flask import jsonify, request
+from flask.typing import ResponseReturnValue
 
 from archipelago.api import engine_state as state
 from archipelago.api.engine_state import (
@@ -16,6 +18,9 @@ from archipelago.api.engine_state import (
     concept_node,
     ensure_engine,
 )
+from archipelago.scholarly.access import ResearchCapability, require_research
+from archipelago.scholarly.discovery.orchestrator import DiscoveryOrchestrator
+from archipelago.scholarly.pipeline.routes import _store
 
 logger = logging.getLogger("archipelago.api")
 
@@ -25,9 +30,11 @@ QUESTION_COUNT = 3
 ROADMAP_MASTERY_THRESHOLD = 0.66
 ROADMAP_STEP_COUNT = 3
 ROADMAP_DEFAULT_CONCEPT = "Deep Learning"
+MAX_SCHOLARLY_QUERY_CHARS = 200
+SCHOLARLY_RESULTS_PER_SOURCE = 5
 
 
-def _requested_concept(data: dict) -> str:
+def _requested_concept(data: dict[str, Any]) -> str:
     """Resolve the target concept id from args or JSON body."""
     return (
         request.args.get("concept")
@@ -39,19 +46,44 @@ def _requested_concept(data: dict) -> str:
 
 
 @app.route("/api/topics/suggest", methods=["GET"])
-def api_topic_suggest() -> Response:
+def api_topic_suggest() -> ResponseReturnValue:
     """Fuzzy concept discovery returning top candidates with prerequisite roadmap."""
     query = request.args.get("q", "").strip()
     if not query:
         return jsonify({"error": "Query parameter 'q' is required"}), BAD_REQUEST_STATUS
 
     ensure_engine()
+    assert state._retriever is not None and state._synthesis is not None
     candidates = state._retriever.suggest_topics(query, top_k=TOPIC_SUGGEST_LIMIT)
     return jsonify(state._synthesis.generate_topic_suggestions(query, candidates)), SUCCESS_STATUS
 
 
+@app.get("/api/scholarly/discover")
+@require_research(ResearchCapability.SEARCH)
+def api_scholarly_discover() -> ResponseReturnValue:
+    """Return staff-only scholarly metadata with honest live source status."""
+    query = request.args.get("q", "").strip()
+    if not query or len(query) > MAX_SCHOLARLY_QUERY_CHARS:
+        return jsonify({"error": "q must contain 1 to 200 characters"}), BAD_REQUEST_STATUS
+    if _store() is None:
+        return jsonify({"error": "research_disabled"}), 503
+    candidates, sources = DiscoveryOrchestrator().discover_with_status(
+        query, limit_per_source=SCHOLARLY_RESULTS_PER_SOURCE
+    )
+    return jsonify(
+        {
+            "query": query,
+            "source_status": sources,
+            "candidates": [
+                {"paper": item["paper"].model_dump(mode="json"), "source": item.get("source")}
+                for item in candidates
+            ],
+        }
+    ), SUCCESS_STATUS
+
+
 @app.route("/api/roadmap/quiz", methods=["POST"])
-def api_roadmap_quiz() -> Response:
+def api_roadmap_quiz() -> ResponseReturnValue:
     """Evaluate diagnostic MCQ answers and produce a custom learning roadmap."""
     data = request.get_json(silent=True) or {}
     concept = data.get("concept", ROADMAP_DEFAULT_CONCEPT)
@@ -90,7 +122,7 @@ def api_roadmap_quiz() -> Response:
 
 
 @app.route("/api/chat/diagnostic-mcqs", methods=["GET", "POST"])
-def api_chat_diagnostic_mcqs() -> Response:
+def api_chat_diagnostic_mcqs() -> ResponseReturnValue:
     """Retrieve diagnostic MCQs and prerequisite sequence for target concept."""
     try:
         data = request.get_json(silent=True) or {}
@@ -115,10 +147,11 @@ def api_chat_diagnostic_mcqs() -> Response:
         )
 
         t_node = concept_node(target_id)
-        prereqs = [
-            p.get("id") if isinstance(p, dict) else str(p)
-            for p in (t_node.get("prerequisites") or [])
-        ]
+        prereqs: list[str] = []
+        for prerequisite in t_node.get("prerequisites") or []:
+            value = prerequisite.get("id") if isinstance(prerequisite, dict) else prerequisite
+            if value:
+                prereqs.append(str(value))
         mcqs = generate_diagnostic_mcqs(
             target_id,
             prereq_ids=prereqs,
@@ -158,7 +191,7 @@ def api_chat_diagnostic_mcqs() -> Response:
 
 
 @app.route("/api/chat/verify-mcq", methods=["POST"])
-def api_chat_verify_mcq() -> Response:
+def api_chat_verify_mcq() -> ResponseReturnValue:
     """Validate user answers for diagnostic MCQs and calculate prerequisite mastery."""
     try:
         data = request.get_json(force=True) or {}
@@ -190,7 +223,7 @@ def api_chat_verify_mcq() -> Response:
 
 
 @app.route("/api/chat/adaptive-step", methods=["POST"])
-def api_chat_adaptive_step() -> Response:
+def api_chat_adaptive_step() -> ResponseReturnValue:
     """Execute an on-the-spot adaptive leap-back skip-list step."""
     try:
         data = request.get_json(force=True) or {}
@@ -204,7 +237,7 @@ def api_chat_adaptive_step() -> Response:
 
 
 @app.route("/api/chat/telemetry", methods=["POST"])
-def api_chat_telemetry() -> Response:
+def api_chat_telemetry() -> ResponseReturnValue:
     """Track choice analytics (Personalized vs Normal graph selections)."""
     try:
         data = request.get_json(silent=True) or {}

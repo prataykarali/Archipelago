@@ -7,6 +7,7 @@ atomic graph swap in flight is never killed mid-rename.
 Kept as a real module rather than an inline ``python -c`` so it can be linted,
 tested, and pointed at by the compose healthcheck.
 """
+
 from __future__ import annotations
 
 import logging

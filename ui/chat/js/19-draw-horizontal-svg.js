@@ -40,7 +40,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 ? subNodes.length 
                 : (effectivePrereqs.length + allUnlocks.length + allRelated.length + 1);
             
-            const w = Math.max(860, Math.min(1380, totalCandidateCount * 115));
+            const w = Math.max(1100, Math.min(2400, totalCandidateCount * 160));
             const h = 230;
             svgElement.setAttribute('viewBox', `0 0 ${w} ${h}`);
             svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -117,21 +117,21 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 }
 
                 // Place 2-hop foundational prerequisites (comfortably inset from left)
-                const p2X = Math.max(135, cx - 225);
+                const p2X = w * 0.2;
                 p2.forEach((p, i) => {
                     const y = (h / (p2.length + 1)) * (i + 1);
                     nodes.push({ id: p.id, label: _nodeLabel(p), summary: _nodeSummary(p), x: p2X, y: y, type: 'prereq', data: p });
                 });
 
                 // Place 1-hop immediate prerequisites closer to center
-                const p1X = cx - 115;
+                const p1X = w * 0.35;
                 p1.forEach((p, i) => {
                     const y = (h / (p1.length + 1)) * (i + 1);
                     nodes.push({ id: p.id, label: _nodeLabel(p), summary: _nodeSummary(p), x: p1X, y: y, type: 'prereq', data: p });
                 });
 
                 // Place unlocks closer to center
-                const unlX = cx + 115;
+                const unlX = w * 0.65;
                 unls.forEach((u, i) => {
                     const y = (h / (unls.length + 1)) * (i + 1);
                     nodes.push({ id: u.id, label: _nodeLabel(u), summary: _nodeSummary(u), x: unlX, y: y, type: 'unlock', data: u });
@@ -140,7 +140,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 // Place others / bridge nodes
                 others.forEach((o, i) => {
                     const isTop = i % 2 === 0;
-                    const xOff = (i - 1) * 75;
+                    const xOff = (i - 1.5) * 140;
                     nodes.push({ id: o.id, label: _nodeLabel(o), summary: _nodeSummary(o), x: cx + xOff, y: isTop ? 34 : h - 34, type: 'related', data: o });
                 });
 
@@ -175,7 +175,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 const deepUnlocks = allUnlocks.slice(3, 8);
 
                 if (deepPrereqs.length > 0) {
-                    const deepX = Math.max(135, cx - 225);
+                    const deepX = w * 0.2;
                     deepPrereqs.forEach((p, i) => {
                         const y = (h / (deepPrereqs.length + 1)) * (i + 1);
                         nodes.push({ id: _nodeId(p, 'dp' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: deepX, y: y, type: 'prereq', data: p });
@@ -184,16 +184,16 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
 
                 immPrereqs.forEach((p, i) => {
                     const y = (h / (immPrereqs.length + 1)) * (i + 1);
-                    nodes.push({ id: _nodeId(p, 'p' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: cx - 115, y: y, type: 'prereq', data: p });
+                    nodes.push({ id: _nodeId(p, 'p' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: w * 0.35, y: y, type: 'prereq', data: p });
                 });
 
                 immUnlocks.forEach((u, i) => {
                     const y = (h / (immUnlocks.length + 1)) * (i + 1);
-                    nodes.push({ id: _nodeId(u, 'u' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: cx + 115, y: y, type: 'unlock', data: u });
+                    nodes.push({ id: _nodeId(u, 'u' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: w * 0.65, y: y, type: 'unlock', data: u });
                 });
 
                 if (deepUnlocks.length > 0) {
-                    const deepUnlX = Math.min(w - 135, cx + 225);
+                    const deepUnlX = w * 0.8;
                     deepUnlocks.forEach((u, i) => {
                         const y = (h / (deepUnlocks.length + 1)) * (i + 1);
                         nodes.push({ id: _nodeId(u, 'du' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: deepUnlX, y: y, type: 'unlock', data: u });
@@ -202,7 +202,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
 
                 allRelated.slice(0, 4).forEach((r, i) => {
                     const isTop = i % 2 === 0;
-                    const xOff = (i - 1) * 75;
+                    const xOff = (i - 1.5) * 140;
                     nodes.push({
                         id: _nodeId(r, 'r' + i),
                         label: _nodeLabel(r),
@@ -255,8 +255,18 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 g.setAttribute('data-node-id', n.id);
                 g.setAttribute('data-node-label', n.label);
                 g.setAttribute('data-node-type', n.type);
+                g.setAttribute('role', 'button');
+                g.setAttribute('tabindex', '0');
+                g.setAttribute('aria-label', n.label);
                 g.style.color = c.stroke;
                 g.style.cursor = 'pointer';
+                g.style.pointerEvents = 'all';
+                g.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        selectHorizontalNode(cardId, n.id, n.data, anchor, prereqs, unlocks, related);
+                    }
+                });
 
                 g.addEventListener('click', (ev) => {
                     ev.stopPropagation();
@@ -361,7 +371,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 if (canvasContainer) {
                     const anchorNode = nodes.find(n => n.type === 'anchor') || nodes[0];
                     if (anchorNode) {
-                        canvasContainer.scrollLeft = Math.max(0, anchorNode.x - (canvasContainer.clientWidth / 2));
+                        canvasContainer.scrollLeft = 0;
                     }
                 }
             }, 60);

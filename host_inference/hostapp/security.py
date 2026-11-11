@@ -28,6 +28,7 @@ from .config import (
     CHAT_RATE_MIN_GAP_SEC,
     RATE_WINDOW_SEC,
 )
+from .runtime_state import hosted_runtime, runtime_rpc
 
 SUPABASE_USER_TIMEOUT_SEC = 10
 SUPABASE_PROFILE_TIMEOUT_SEC = 8
@@ -39,11 +40,15 @@ CLIENT_IP_HEADERS = ("CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
 # per-minute ceiling still applies to every method.
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 IDLE_TIMEOUT_SECONDS = 300
-DAILY_QUERY_LIMIT = 35
-QUERY_COOLDOWN_AFTER = 7
+DAILY_QUERY_LIMIT = 40
+QUERY_COOLDOWN_AFTER = 10
 QUERY_COOLDOWN_SECONDS = 3600
 QUERY_DAY_SECONDS = 86400
-DEFAULT_QUOTA_DB = Path(__file__).resolve().parent.parent / "cache" / "query_quota.sqlite3"
+DEFAULT_QUOTA_DB = (
+    Path("/tmp/archipelago/query_quota.sqlite3")
+    if os.environ.get("VERCEL")
+    else Path(__file__).resolve().parent.parent / "cache" / "query_quota.sqlite3"
+)
 
 
 class AuthGuard:
@@ -179,10 +184,20 @@ class RateLimiter:
             "(user_id TEXT NOT NULL, target TEXT NOT NULL, result TEXT NOT NULL, "
             "PRIMARY KEY (user_id, target))"
         )
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS ai_request "
+            "(user_id TEXT NOT NULL, request_id TEXT NOT NULL, "
+            "PRIMARY KEY (user_id, request_id))"
+        )
         return connection
 
     def completed_quiz(self, user_id: str, target: str) -> dict | None:
         """Return this account's first completed diagnostic, if present."""
+        if hosted_runtime():
+            return runtime_rpc(
+                "archipelago_runtime_quiz_result",
+                {"p_user_id": user_id, "p_target": target},
+            )
         with closing(self._quota_connection()) as connection:
             row = connection.execute(
                 "SELECT result FROM completed_quiz WHERE user_id = ? AND target = ?",
@@ -192,24 +207,52 @@ class RateLimiter:
 
     def save_completed_quiz(self, user_id: str, target: str, result: dict) -> None:
         """Persist the first result so repeated starts cannot issue a new quiz."""
+        if hosted_runtime():
+            runtime_rpc(
+                "archipelago_runtime_quiz_result",
+                {"p_user_id": user_id, "p_target": target, "p_result": result},
+            )
+            return
         with closing(self._quota_connection()) as connection, connection:
             connection.execute(
                 "INSERT OR IGNORE INTO completed_quiz (user_id, target, result) VALUES (?, ?, ?)",
                 (user_id, target, json.dumps(result)),
             )
 
-    def check_daily_chat(self, user_id: str) -> tuple[bool, dict]:
+    def check_daily_chat(self, user_id: str, request_id: str = "") -> tuple[bool, dict]:
         """Count accepted AI queries per account and enforce hourly pauses."""
+        if hosted_runtime():
+            quota = runtime_rpc(
+                "archipelago_runtime_consume" if request_id else "archipelago_runtime_query",
+                {"p_user_id": user_id, "p_request_id": request_id}
+                if request_id
+                else {"p_user_id": user_id, "p_consume": True},
+            )
+            return bool(quota["limited"]), quota
         now = time.time()
+        period = now - now % QUERY_DAY_SECONDS
         with self._daily_lock, closing(self._quota_connection()) as connection, connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
                 "SELECT day_start, used, cooldown_until FROM quota WHERE user_id = ?",
                 (user_id,),
             ).fetchone()
-            start, count, cooldown = row if row else (now, 0, 0.0)
-            if now - start >= QUERY_DAY_SECONDS:
-                start, count, cooldown = now, 0, 0.0
+            if (
+                request_id
+                and connection.execute(
+                    "SELECT 1 FROM ai_request WHERE user_id = ? AND request_id = ?",
+                    (user_id, request_id),
+                ).fetchone()
+            ):
+                return True, {
+                    "limit_reason": "duplicate",
+                    "used": row[1] if row else 0,
+                    "remaining": DAILY_QUERY_LIMIT - (row[1] if row else 0),
+                    "retry_after": 0,
+                }
+            start, count, cooldown = row if row else (period, 0, 0.0)
+            if start < period:
+                start, count, cooldown = period, 0, 0.0
             if count >= DAILY_QUERY_LIMIT:
                 return True, {
                     "remaining": 0,
@@ -221,7 +264,16 @@ class RateLimiter:
                     "retry_after": int(cooldown - now) + 1,
                 }
             count += 1
-            cooldown = now + QUERY_COOLDOWN_SECONDS if count % QUERY_COOLDOWN_AFTER == 0 else 0.0
+            if request_id:
+                connection.execute(
+                    "INSERT INTO ai_request (user_id, request_id) VALUES (?, ?)",
+                    (user_id, request_id),
+                )
+            cooldown = (
+                now + QUERY_COOLDOWN_SECONDS
+                if count % QUERY_COOLDOWN_AFTER == 0 and count < DAILY_QUERY_LIMIT
+                else 0.0
+            )
             connection.execute(
                 "INSERT INTO quota (user_id, day_start, used, cooldown_until) "
                 "VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET "
@@ -237,13 +289,19 @@ class RateLimiter:
 
     def quota_status(self, user_id: str) -> dict:
         """Read this account's query count without consuming a request."""
+        if hosted_runtime():
+            return runtime_rpc(
+                "archipelago_runtime_query",
+                {"p_user_id": user_id, "p_consume": False},
+            )
         now = time.time()
+        period = now - now % QUERY_DAY_SECONDS
         with closing(self._quota_connection()) as connection:
             row = connection.execute(
                 "SELECT day_start, used, cooldown_until FROM quota WHERE user_id = ?",
                 (user_id,),
             ).fetchone()
-        if not row or now - row[0] >= QUERY_DAY_SECONDS:
+        if not row or row[0] < period:
             return {"used": 0, "remaining": DAILY_QUERY_LIMIT, "retry_after": 0}
         start, used, cooldown = row
         retry = int(cooldown - now) + 1 if cooldown > now else 0

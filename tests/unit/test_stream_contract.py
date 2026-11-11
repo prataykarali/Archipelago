@@ -8,7 +8,7 @@ import sys
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _ui_source import chat_ui_source, local_script_files  # noqa: E402
+from _ui_source import chat_ui_source, local_script_files
 
 try:
     from archipelago.inference.synthesis import _is_followup_query
@@ -92,13 +92,12 @@ def test_chat_bubble_body_font_is_readable() -> None:
     assert "font-size: 1.0rem !important;" in source
     # Locate the Warfield CSS block that controls bubble body copy.
     warfield_block_start = source.index("WARFIELD CHAT MESSAGE FONT")
-    warfield_block = source[warfield_block_start:warfield_block_start + 3000]
+    warfield_block = source[warfield_block_start : warfield_block_start + 3000]
     # Body must not regress to the old oversized 1.05 or the too-small 0.82.
     assert "font-size: 1.05rem" not in warfield_block
     assert "font-size: 0.82rem" not in warfield_block
     # Guard: old 0.90rem baseline should be gone from the Warfield block.
     assert "font-size: 0.90rem" not in warfield_block
-
 
 
 def test_static_stream_buffer_accumulates_chunks() -> None:
@@ -173,7 +172,9 @@ def test_dangling_citation_bracket_stripped_during_live_stream() -> None:
     stripped before they reach the DOM, preventing visual noise like '[S'."""
     ui_source = _read_chat_ui()
     # The trailing-incomplete-bracket regex must be present
-    assert r"processedText.replace(/\[S\d*" in ui_source or "trailing incomplete bracket" in ui_source
+    assert (
+        r"processedText.replace(/\[S\d*" in ui_source or "trailing incomplete bracket" in ui_source
+    )
 
 
 def test_stream_text_in_chunks_splits_properly() -> None:
@@ -215,4 +216,3 @@ def test_stream_text_in_chunks_splits_properly() -> None:
     assert list(_stream_text_in_chunks("Hello")) == ["Hello"]
     # Empty text yields nothing
     assert list(_stream_text_in_chunks("")) == []
-

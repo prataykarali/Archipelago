@@ -1,9 +1,10 @@
 """synthesis_library.py — Renderers and link injectors for physical library and catalog resources."""
+
 from __future__ import annotations
 
 import re
-import urllib.parse
 from typing import Any
+import urllib.parse
 
 
 def view_page_url(doc_id: str, page: int | None = None, highlight: str | None = None) -> str:
@@ -13,17 +14,18 @@ def view_page_url(doc_id: str, page: int | None = None, highlight: str | None = 
     p_num = page if isinstance(page, int) and page > 0 else 1
     try:
         from archipelago.resolver.pearson import resolve as pearson_resolve
+
         pearson_url = pearson_resolve(str(doc_id), page=p_num)
         if pearson_url:
             return pearson_url
     except Exception:
         pass
-    params = [f"doc={urllib.parse.quote(doc_id, safe="")}"]
+    params = [f"doc={urllib.parse.quote(doc_id, safe='')}"]
     if page is not None:
         params.append(f"page={p_num}")
     if highlight:
         params.append(f"highlight={urllib.parse.quote(highlight)}")
-    return f"view-page?{"&".join(params)}"
+    return f"view-page?{'&'.join(params)}"
 
 
 def _availability_line(total: int | None, available: int | None) -> str:
@@ -69,7 +71,7 @@ def inject_view_page_links(text: str, known_docs: list[tuple[str, str]] | None =
         if not matched_entry:
             return match.group(0)
 
-        doc_id, full_title = matched_entry
+        doc_id, _full_title = matched_entry
         url = view_page_url(doc_id, page=int(page_str), highlight=concept)
         return f"[View Page {page_str} of {book_raw}]({url})"
 
@@ -110,7 +112,9 @@ def render_catalog_resources(query: str, resources: list[dict[str, Any]]) -> str
     return render_physical_resources(query, resources)
 
 
-def render_resource_availability(title: str | dict[str, Any], resource: dict[str, Any] | None = None) -> str:
+def render_resource_availability(
+    title: str | dict[str, Any], resource: dict[str, Any] | None = None
+) -> str:
     """Format availability for a title or a resource record."""
     if resource is None and isinstance(title, dict):
         resource = title
@@ -121,7 +125,9 @@ def render_resource_availability(title: str | dict[str, Any], resource: dict[str
     return f"**{title}** ({kind}): {avail}"
 
 
-def render_journal_status(subject: str | dict[str, Any], journals: list[dict[str, Any]] | None = None) -> str:
+def render_journal_status(
+    subject: str | dict[str, Any], journals: list[dict[str, Any]] | None = None
+) -> str:
     """Format subscription and issue status from a subject or status record."""
     if isinstance(subject, dict):
         summary = subject
@@ -134,11 +140,20 @@ def render_journal_status(subject: str | dict[str, Any], journals: list[dict[str
     heading = "Late issues" if only_late else f"Journal & Periodical Status: {subject}"
     lines = [f"### 📰 {heading}\n"]
     if not journals:
-        message = f"Subscriptions for {subject} are up to date; no late issues were reported." if only_late else f"No active periodical subscriptions found for {subject}."
+        message = (
+            f"Subscriptions for {subject} are up to date; no late issues were reported."
+            if only_late
+            else f"No active periodical subscriptions found for {subject}."
+        )
         lines.append(message)
         return "\n".join(lines)
     for journal in journals:
-        title = journal.get("resource_title") or journal.get("journal_title") or journal.get("title") or "Unknown Journal"
+        title = (
+            journal.get("resource_title")
+            or journal.get("journal_title")
+            or journal.get("title")
+            or "Unknown Journal"
+        )
         status = journal.get("status") or "Up to date"
         lines.append(f"- **{title}**: **{status}**")
     return "\n".join(lines)

@@ -7,7 +7,7 @@ directory remains a development-only fallback.
 from archipelago.supabase_auth.part01_verify import (
     VALID_ROLES,
     AuthPrincipal,
-    _admin_headers,
+    _admin_headers,  # noqa: F401
     account_email,
     authenticate_request,
     get_service_role_key,
@@ -16,11 +16,11 @@ from archipelago.supabase_auth.part01_verify import (
     public_config,
 )
 from archipelago.supabase_auth.part02_local_store import (
-    LOCAL_USERS_FILE,
-    _ensure_local_users_file,
-    _local_user_store_allowed,
-    _read_local_users,
-    _write_local_users,
+    LOCAL_USERS_FILE,  # noqa: F401
+    _ensure_local_users_file,  # noqa: F401
+    _local_user_store_allowed,  # noqa: F401
+    _read_local_users,  # noqa: F401
+    _write_local_users,  # noqa: F401
 )
 from archipelago.supabase_auth.part03_manage_create import (
     create_managed_user,

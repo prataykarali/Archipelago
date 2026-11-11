@@ -1,4 +1,5 @@
 """Compound-query parser: split multi-topic asks into topic phrases."""
+
 from __future__ import annotations
 
 import re
@@ -21,14 +22,15 @@ def parse_multi_topic_query(query: str) -> list[str]:
         q,
         re.I,
     )
-    cleaned = q[prefix_match.end():] if prefix_match else q
+    cleaned = q[prefix_match.end() :] if prefix_match else q
     cleaned = cleaned.rstrip("?.! ")
 
     # Check for dependent explanatory clauses with 'and' (e.g. 'and how', 'and why', 'and what', 'and its')
     # If the conjunction is explanatory, do not split on 'and'
-    if re.search(r"\band\s+(?:how|why|what|where|when|which|who|its|their|the\s+way)\b", cleaned, re.I):
-        if not re.search(r"\+|\bvs\.?\b|\bversus\b", cleaned, re.I):
-            return [cleaned]
+    if re.search(
+        r"\band\s+(?:how|why|what|where|when|which|who|its|their|the\s+way)\b", cleaned, re.I
+    ) and not re.search(r"\+|\bvs\.?\b|\bversus\b", cleaned, re.I):
+        return [cleaned]
 
     # Delimiters: '+', 'vs', 'versus', 'differ from', or ',' / 'and'
     if "+" in cleaned:

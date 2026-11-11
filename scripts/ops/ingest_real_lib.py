@@ -8,11 +8,9 @@ Features:
   3. Isolated Subprocess: Each PDF runs in a fresh Python process so memory is 100% freed on exit.
 """
 
-import os
-import sys
+from pathlib import Path
 import subprocess
 import time
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REAL_LIB_DIR = ROOT / "pdfs" / "real-lib"
@@ -70,14 +68,16 @@ def main():
             continue
 
         print(f"\n[{idx}/{len(pdfs)}] Ingesting: {rel_path}")
-        print(f"  Size: {pdf_path.stat().st_size / (1024*1024):.2f} MB | Log: {log_file.name}")
+        print(f"  Size: {pdf_path.stat().st_size / (1024 * 1024):.2f} MB | Log: {log_file.name}")
 
         cmd = [str(PY), "okf_pipeline.py", "--add", str(rel_path), "--ollama"]
-        
+
         t0 = time.time()
         try:
             with open(log_file, "w", encoding="utf-8") as lf:
-                res = subprocess.run(cmd, cwd=str(ROOT), stdout=lf, stderr=subprocess.STDOUT, timeout=1800)
+                res = subprocess.run(
+                    cmd, cwd=str(ROOT), stdout=lf, stderr=subprocess.STDOUT, timeout=1800
+                )
             elapsed = time.time() - t0
 
             if res.returncode == 0:
@@ -98,7 +98,7 @@ def main():
 
     total_time = time.time() - start_total
     print("\n" + "=" * 65)
-    print(f" Batch Ingestion Finished in {total_time/60:.1f} minutes")
+    print(f" Batch Ingestion Finished in {total_time / 60:.1f} minutes")
     print(f" Newly Ingested: {completed} | Skipped (Done): {skipped} | Failed: {failed}")
     print("=" * 65)
 

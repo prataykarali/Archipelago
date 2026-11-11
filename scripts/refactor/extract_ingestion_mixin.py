@@ -1,4 +1,5 @@
 """Extract IngestionWorker._process_job into a JobProcessingMixin module."""
+
 from __future__ import annotations
 
 import ast
@@ -14,7 +15,8 @@ meth = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 
 segment = ast.get_source_segment(text, meth) or ""
 assert segment.count("\n") > 300, "method block unexpectedly small"
 
-mixin = '''"""JobProcessingMixin: staged pipeline job processing for IngestionWorker.
+mixin = (
+    '''"""JobProcessingMixin: staged pipeline job processing for IngestionWorker.
 
 Split out of ingestion_worker.py to keep every file under 400 lines; the
 method body is byte-identical to the original.
@@ -34,7 +36,10 @@ from okf.pipeline import PipelineAborted, run_pipeline_staged
 
 
 class JobProcessingMixin:
-''' + segment + "\n"
+'''
+    + segment
+    + "\n"
+)
 
 MIXIN.write_text(mixin, encoding="utf-8")
 
@@ -45,9 +50,7 @@ out: list[str] = []
 for i, line in enumerate(lines, 1):
     if i == cls.lineno:
         out.append(new_cls_line + "\n")
-    elif start <= i <= end:
-        continue
-    elif line.strip() == "class IngestionWorker(threading.Thread):":
+    elif start <= i <= end or line.strip() == "class IngestionWorker(threading.Thread):":
         continue
     else:
         out.append(line)

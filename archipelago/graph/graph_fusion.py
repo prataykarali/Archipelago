@@ -9,9 +9,7 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 import logging
-import os
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("archipelago.graph.graph_fusion")
 
@@ -49,7 +47,7 @@ class GraphFusionEngine:
                 continue
 
             test_edges = all_edges | {(u, v)}
-            in_degree = {n: 0 for n in all_nodes}
+            in_degree = dict.fromkeys(all_nodes, 0)
             adj = defaultdict(list)
 
             for src, dst in test_edges:
@@ -79,7 +77,7 @@ class GraphFusionEngine:
     def merge_batch(
         self,
         extracted_concepts: list[dict],
-        kuzu_engine = None,
+        kuzu_engine=None,
         max_batch_nodes: int = MAX_BATCH_NODES,
     ) -> dict:
         """
@@ -114,7 +112,9 @@ class GraphFusionEngine:
                 res = kuzu_engine.conn.execute("MATCH (c:Concept) RETURN c.id")
                 while res.has_next():
                     existing_nodes.add(res.get_next()[0])
-                res_edges = kuzu_engine.conn.execute("MATCH (a:Concept)-[:REQUIRES]->(b:Concept) RETURN a.id, b.id")
+                res_edges = kuzu_engine.conn.execute(
+                    "MATCH (a:Concept)-[:REQUIRES]->(b:Concept) RETURN a.id, b.id"
+                )
                 while res_edges.has_next():
                     row = res_edges.get_next()
                     existing_edges.add((row[0], row[1]))
@@ -122,7 +122,7 @@ class GraphFusionEngine:
                 logger.debug("Could not read existing graph, assuming fresh batch: %s", e)
 
         # Run Kahn cycle verification
-        is_dag, rejected_edges = self.validate_dag_kahn(
+        _is_dag, rejected_edges = self.validate_dag_kahn(
             existing_nodes=existing_nodes,
             existing_edges=existing_edges,
             new_nodes=candidate_nodes,
@@ -137,7 +137,7 @@ class GraphFusionEngine:
 
         if kuzu_engine and getattr(kuzu_engine, "conn", None):
             # Collect all nodes (extracted + prerequisite targets)
-            all_node_ids = set(c["id"] for c in extracted_concepts)
+            all_node_ids = {c["id"] for c in extracted_concepts}
             for u, v in accepted_edges:
                 all_node_ids.add(u)
                 all_node_ids.add(v)
@@ -149,7 +149,11 @@ class GraphFusionEngine:
                 name = raw_name.replace("'", "''")
                 diff = c.get("difficulty") or "intermediate"
                 concept_type = c.get("concept_type") or "definition"
-                raw_summary = c.get("summary") or c.get("definition") or f"{raw_name} is a fundamental concept."
+                raw_summary = (
+                    c.get("summary")
+                    or c.get("definition")
+                    or f"{raw_name} is a fundamental concept."
+                )
                 summary = raw_summary.replace("'", "''")
                 try:
                     kuzu_engine.conn.execute(

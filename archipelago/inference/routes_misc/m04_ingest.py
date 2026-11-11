@@ -1,36 +1,41 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
-import threading
+from datetime import UTC
 from pathlib import Path
+import threading
 from typing import Any
 
-from flask import jsonify, send_from_directory, request, redirect
-from ingestion_jobs import JobStatus
-from ingestion_worker import job_store, get_worker, graph_lock
-from archipelago.auth import require_librarian, librarian_token_expected
-from archipelago.inference import state as st
+from flask import jsonify, request
+
 from archipelago import supabase_auth
+from archipelago.auth import librarian_token_expected, require_librarian
+from archipelago.inference import state as st
+from ingestion_jobs import JobStatus
+from ingestion_worker import get_worker, job_store
 
 
 @st.app.route("/api/ingest/capabilities", methods=["GET"])
 def ingestion_capabilities():
     """Advertise upload API capabilities (librarian-only mutations)."""
-    return jsonify({
-        "upload_api_enabled": True,
-        "delete_api_enabled": True,
-        "librarian_only": True,
-        "student_upload_enabled": False,
-        "auth_required": bool(librarian_token_expected()) or supabase_auth.is_auth_required(),
-        "list_documents_api": "/api/documents",
-        "delete_document_api": "DELETE /api/documents/<doc_id>",
-        "max_file_size_mb": 50,
-        "supported_formats": ["pdf", "md", "markdown", "txt"],
-        "note": (
-            "Upload/delete is only available from the Graph UI Librarian "
-            "console with a librarian token. Student chat cannot mutate the corpus."
-        ),
-    }), 200
+    return jsonify(
+        {
+            "upload_api_enabled": True,
+            "delete_api_enabled": True,
+            "librarian_only": True,
+            "student_upload_enabled": False,
+            "auth_required": bool(librarian_token_expected()) or supabase_auth.is_auth_required(),
+            "list_documents_api": "/api/documents",
+            "delete_document_api": "DELETE /api/documents/<doc_id>",
+            "max_file_size_mb": 50,
+            "supported_formats": ["pdf", "md", "markdown", "txt"],
+            "note": (
+                "Upload/delete is only available from the Graph UI Librarian "
+                "console with a librarian token. Student chat cannot mutate the corpus."
+            ),
+        }
+    ), 200
 
 
 @st.app.route("/api/ingest", methods=["POST"])
@@ -49,9 +54,11 @@ def ingest_upload():
     lower = filename.lower()
     allowed = (".pdf", ".md", ".markdown", ".txt")
     if not any(lower.endswith(ext) for ext in allowed):
-        return jsonify({
-            "error": "Supported formats: PDF, Markdown (.md), plain text (.txt)",
-        }), 400
+        return jsonify(
+            {
+                "error": "Supported formats: PDF, Markdown (.md), plain text (.txt)",
+            }
+        ), 400
 
     # Check file size (<= 50 MB)
     f.seek(0, 2)
@@ -71,18 +78,20 @@ def ingest_upload():
     get_worker().enqueue(job.job_id)
 
     ext = Path(filename).suffix.lower().replace(".markdown", ".md") or ".pdf"
-    return jsonify({
-        "job_id": job.job_id,
-        "status": "queued",
-        "filename": filename,
-        "format": ext.lstrip("."),
-    }), 202
+    return jsonify(
+        {
+            "job_id": job.job_id,
+            "status": "queued",
+            "filename": filename,
+            "format": ext.lstrip("."),
+        }
+    ), 202
 
 
 @st.app.route("/api/ingest/<job_id>", methods=["GET"])
 def ingest_status(job_id):
     """Return only the canonical ingestion job status and result."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     record = job_store.get_job(job_id)
     if record is None:
@@ -91,22 +100,24 @@ def ingest_status(job_id):
     # Compute elapsed seconds
     try:
         created = datetime.fromisoformat(record.created_at)
-        elapsed = (datetime.now(timezone.utc) - created).total_seconds()
+        elapsed = (datetime.now(UTC) - created).total_seconds()
     except Exception:
         elapsed = None
 
-    return jsonify({
-        "job_id":          record.job_id,
-        "status":          record.status.value.lower(),
-        "source_filename": record.source_filename,
-        "created_at":      record.created_at,
-        "updated_at":      record.updated_at,
-        "elapsed_seconds": elapsed,
-        "progress":        record.progress,
-        "error":           record.error,
-        "result":          record.result,
-        "graph_version":   record.graph_version,
-    }), 200
+    return jsonify(
+        {
+            "job_id": record.job_id,
+            "status": record.status.value.lower(),
+            "source_filename": record.source_filename,
+            "created_at": record.created_at,
+            "updated_at": record.updated_at,
+            "elapsed_seconds": elapsed,
+            "progress": record.progress,
+            "error": record.error,
+            "result": record.result,
+            "graph_version": record.graph_version,
+        }
+    ), 200
 
 
 @st.app.route("/api/ingest/<job_id>/cancel", methods=["GET", "POST"])
@@ -116,11 +127,13 @@ def ingest_cancel(job_id):
     record = job_store.cancel_job(job_id)
     if record is None:
         return jsonify({"error": f"Job {job_id} not found"}), 404
-    return jsonify({
-        "job_id": record.job_id,
-        "status": record.status.value,
-        "cancelled": record.cancelled,
-    }), 200
+    return jsonify(
+        {
+            "job_id": record.job_id,
+            "status": record.status.value,
+            "cancelled": record.cancelled,
+        }
+    ), 200
 
 
 @st.app.route("/api/ingest", methods=["GET"])
@@ -131,12 +144,14 @@ def ingest_list():
 
 class SlidingWindowLimiter:
     """Simple in-memory sliding window rate limiter."""
+
     def __init__(self):
         self._windows: dict = {}
         self._lock = threading.Lock()
 
     def check(self, key: str, per_min: int = 10, burst: int = 5) -> tuple:
         import time as _time
+
         now = _time.time()
         with self._lock:
             window = self._windows.setdefault(key, [])
@@ -154,10 +169,16 @@ _ingest_limiter = SlidingWindowLimiter()
 @require_librarian
 def ingest_index():
     """TOC-only ingestion: create Document + Concept stubs without a physical PDF."""
-    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "127.0.0.1").split(",")[0].strip()
+    client_ip = (
+        request.headers.get("X-Forwarded-For", request.remote_addr or "127.0.0.1")
+        .split(",")[0]
+        .strip()
+    )
     allowed, meta = _ingest_limiter.check(f"ingest:{client_ip}", per_min=10, burst=5)
     if not allowed:
-        return jsonify({"error": "rate_limit_exceeded", "detail": "Too many ingestion requests", **meta}), 429
+        return jsonify(
+            {"error": "rate_limit_exceeded", "detail": "Too many ingestion requests", **meta}
+        ), 429
 
     data = request.get_json(silent=True) or {}
     doc_id = data.get("doc_id") or data.get("book_id") or ""
@@ -167,17 +188,28 @@ def ingest_index():
         return jsonify({"error": "doc_id is required"}), 400
 
     if not isinstance(chapters, list) or not chapters or len(chapters) > 1000:
-        return jsonify({"error": "chapters must contain 1–1000 entries"}), 400
+        return jsonify({"error": "chapters must contain 1-1000 entries"}), 400
 
     try:
         job = job_store.create_job(source_filename=f"index:{doc_id}")
         from ingestion_worker import get_worker
+
         worker = get_worker()
-        worker._process_index_job(job.job_id, {"doc_id": doc_id, "title": title, "chapters": chapters})
+        worker._process_index_job(
+            job.job_id, {"doc_id": doc_id, "title": title, "chapters": chapters}
+        )
         current = job_store.get_job(job.job_id)
         if current is None or current.status != JobStatus.COMPLETE:
-            return jsonify({"job_id": job.job_id, "status": "failed", "error": current.error if current else "Index ingestion failed"}), 500
-        return jsonify({"job_id": job.job_id, "status": "complete", "doc_id": doc_id, "result": current.result}), 201
+            return jsonify(
+                {
+                    "job_id": job.job_id,
+                    "status": "failed",
+                    "error": current.error if current else "Index ingestion failed",
+                }
+            ), 500
+        return jsonify(
+            {"job_id": job.job_id, "status": "complete", "doc_id": doc_id, "result": current.result}
+        ), 201
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
 
@@ -193,10 +225,7 @@ def estimate_ingestion_time(file_size_bytes: int, filename: str) -> dict[str, An
     else:
         secs = int(max(10, size_mb * 15))
 
-    if secs < 60:
-        fmt = f"{secs} seconds"
-    else:
-        fmt = f"{secs // 60}m {secs % 60}s"
+    fmt = f"{secs} seconds" if secs < 60 else f"{secs // 60}m {secs % 60}s"
 
     return {
         "estimated_seconds": secs,

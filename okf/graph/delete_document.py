@@ -13,17 +13,18 @@ Policy
 5. Caller is responsible for ``graph_lock.write_lock()``, artifact rewrite,
    and inference reload/embeddings.
 """
+
 from __future__ import annotations
 
 import json
 import logging
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
+from okf.exports import build_graph_rag_index, build_visual_graph, write_all_artifacts
 from okf.graph.common import _kuzu_escape
 from okf.graph.export import export_graph
-from okf.exports import build_visual_graph, build_graph_rag_index, write_all_artifacts
 
 logger = logging.getLogger(__name__)
 
@@ -40,22 +41,18 @@ def _source_belongs_to_doc(source: str | None, doc_id: str) -> bool:
         return True
     # bare filename match (upload jobs sometimes store basename only)
     base = d.rsplit("/", 1)[-1]
-    if base and (s == base or s.startswith(base + ":") or s.startswith(base + "/")):
-        return True
-    return False
+    return bool(base and (s == base or s.startswith(base + ":") or s.startswith(base + "/")))
 
 
-def list_documents(conn) -> list[dict]:
+def list_documents(conn: Any) -> list[dict[str, Any]]:
     """Return [{id, title, chunk_count}] for all Document nodes."""
-    docs: dict[str, dict] = {}
+    docs: dict[str, dict[str, Any]] = {}
     try:
         res = conn.execute("MATCH (d:Document) RETURN d.id, d.title")
         while res.has_next():
             did, title = res.get_next()
             docs[did] = {"id": did, "title": title or did, "chunk_count": 0}
-        res = conn.execute(
-            "MATCH (d:Document)-[:HAS_CHUNK]->(c:Chunk) RETURN d.id, count(c)"
-        )
+        res = conn.execute("MATCH (d:Document)-[:HAS_CHUNK]->(c:Chunk) RETURN d.id, count(c)")
         while res.has_next():
             did, n = res.get_next()
             if did in docs:
@@ -65,7 +62,7 @@ def list_documents(conn) -> list[dict]:
     return sorted(docs.values(), key=lambda x: x["id"])
 
 
-def delete_document_from_graph(conn, doc_id: str) -> dict[str, Any]:
+def delete_document_from_graph(conn: Any, doc_id: str) -> dict[str, Any]:
     """Unmerge ``doc_id`` from an open Kuzu connection.
 
     Returns a stats dict. Raises ValueError if the document is not found.
@@ -171,7 +168,7 @@ def delete_document_from_graph(conn, doc_id: str) -> dict[str, Any]:
         # Delete orphaned chunks that were only linked to this doc
         # (chunk ids are typically unique per doc)
         res = conn.execute(
-            f"""
+            """
             MATCH (chk:Chunk)
             WHERE NOT (:Document)-[:HAS_CHUNK]->(chk)
             RETURN chk.id
@@ -182,9 +179,7 @@ def delete_document_from_graph(conn, doc_id: str) -> dict[str, Any]:
             orphan_chunks.append(res.get_next()[0])
         for cid in orphan_chunks:
             try:
-                conn.execute(
-                    f"MATCH (chk:Chunk {{id: '{_kuzu_escape(cid)}'}}) DELETE chk"
-                )
+                conn.execute(f"MATCH (chk:Chunk {{id: '{_kuzu_escape(cid)}'}}) DELETE chk")
             except Exception as e:
                 logger.warning("chunk delete %s: %s", cid, e)
     except Exception as e:
@@ -227,28 +222,27 @@ def delete_document_from_graph(conn, doc_id: str) -> dict[str, Any]:
     return stats
 
 
-def filter_okf_results(okf_results: list, doc_id: str) -> list:
+def filter_okf_results(okf_results: list[dict[str, Any]], doc_id: str) -> list[dict[str, Any]]:
     """Drop extraction records belonging to ``doc_id``."""
     out = []
     for r in okf_results or []:
         rid = (r.get("doc_id") or "").replace("\\", "/")
         d = doc_id.replace("\\", "/")
         base = d.rsplit("/", 1)[-1]
-        if rid == d or rid.endswith("/" + base) or rid == base:
+        if rid in (d, base) or rid.endswith("/" + base):
             continue
         # Also drop edge provenance-only records if present
         out.append(r)
     return out
 
 
-def rebuild_artifacts_after_delete(db, base_dir: Path, okf_results: list | None = None) -> dict:
+def rebuild_artifacts_after_delete(
+    db: Any, base_dir: Path, okf_results: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     """Re-export graph JSON artifacts from the live DB after a delete."""
     import kuzu
 
-    if hasattr(db, "execute"):
-        conn = db
-    else:
-        conn = kuzu.Connection(db)
+    conn = db if hasattr(db, "execute") else kuzu.Connection(db)
 
     graph_export = export_graph(conn)
     if okf_results is None:
@@ -256,20 +250,22 @@ def rebuild_artifacts_after_delete(db, base_dir: Path, okf_results: list | None 
         okf_results = []
         for cid, c in (graph_export.get("concepts") or {}).items():
             for src in c.get("sources") or []:
-                okf_results.append({
-                    "concept_name": c.get("name") or cid,
-                    "concept_type": c.get("concept_type") or "definition",
-                    "difficulty": c.get("difficulty") or "intermediate",
-                    "summary": c.get("summary") or "",
-                    "doc_id": src.get("doc_id") or "",
-                    "chunk_id": src.get("chunk_id") or "",
-                    "page_number": src.get("page_number") or 0,
-                    "section_title": src.get("section_title") or "",
-                    "prerequisites": [],
-                    "unlocks": [],
-                    "related_to": [],
-                    "tags": [],
-                })
+                okf_results.append(
+                    {
+                        "concept_name": c.get("name") or cid,
+                        "concept_type": c.get("concept_type") or "definition",
+                        "difficulty": c.get("difficulty") or "intermediate",
+                        "summary": c.get("summary") or "",
+                        "doc_id": src.get("doc_id") or "",
+                        "chunk_id": src.get("chunk_id") or "",
+                        "page_number": src.get("page_number") or 0,
+                        "section_title": src.get("section_title") or "",
+                        "prerequisites": [],
+                        "unlocks": [],
+                        "related_to": [],
+                        "tags": [],
+                    }
+                )
 
     graph_export["visualization"] = build_visual_graph(okf_results, graph_export)
     graph_export["graph_rag_index"] = build_graph_rag_index(okf_results, graph_export)
@@ -283,11 +279,11 @@ def rebuild_artifacts_after_delete(db, base_dir: Path, okf_results: list | None 
         logger.warning("could not write okf_results.json: %s", e)
 
     write_all_artifacts(graph_export, okf_results, db, base_dir=Path(base_dir))
-    return graph_export
+    return cast(dict[str, Any], graph_export)
 
 
 def delete_document_end_to_end(
-    db,
+    db: Any,
     doc_id: str,
     *,
     base_dir: Path,
@@ -298,10 +294,7 @@ def delete_document_end_to_end(
     """Full unmerge: Kuzu delete + artifact rewrite. Caller holds write lock."""
     import kuzu
 
-    if hasattr(db, "execute"):
-        conn = db
-    else:
-        conn = kuzu.Connection(db)
+    conn = db if hasattr(db, "execute") else kuzu.Connection(db)
 
     stats = delete_document_from_graph(conn, doc_id)
     resolved = stats["doc_id"]

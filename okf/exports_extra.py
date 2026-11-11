@@ -1,50 +1,63 @@
-"""exports_extra.py — Auxiliary graph export payloads and diffing utilities."""
-import json
+"""Auxiliary graph export payloads and diffing utilities."""
 
-def export_gold_template(db, output_path: str):
+from __future__ import annotations
+
+import json
+import logging
+from pathlib import Path
+from typing import Any
+
+from okf.query_rows import query_rows
+
+logger = logging.getLogger(__name__)
+
+
+def export_gold_template(db: Any, output_path: str | Path) -> None:
     """Export a gold-standard template based on current database content."""
     import kuzu
-    if hasattr(db, 'execute'):
-        conn = db
-    else:
-        conn = kuzu.Connection(db)
 
-    prereqs_map = {}
-    unlocks_map = {}
-    related_map = {}
+    conn = db if hasattr(db, "execute") else kuzu.Connection(db)
+
+    prereqs_map: dict[str, list[str]] = {}
+    unlocks_map: dict[str, list[str]] = {}
+    related_map: dict[str, list[dict[str, str]]] = {}
 
     try:
-        res = conn.execute("MATCH (a:Concept)-[:REQUIRES]->(b:Concept) RETURN a.id, b.name")
-        while res.has_next():
-            row = res.get_next()
+        for row in query_rows(
+            conn, "MATCH (a:Concept)-[:REQUIRES]->(b:Concept) RETURN a.id, b.name"
+        ):
             prereqs_map.setdefault(row[0], []).append(row[1])
     except Exception:
-        pass
+        logger.exception("Could not export prerequisite relations")
 
     try:
-        res = conn.execute("MATCH (a:Concept)-[:UNLOCKS]->(b:Concept) RETURN a.id, b.name")
-        while res.has_next():
-            row = res.get_next()
+        for row in query_rows(
+            conn, "MATCH (a:Concept)-[:UNLOCKS]->(b:Concept) RETURN a.id, b.name"
+        ):
             unlocks_map.setdefault(row[0], []).append(row[1])
     except Exception:
-        pass
+        logger.exception("Could not export unlock relations")
 
     try:
-        res = conn.execute("MATCH (a:Concept)-[r:RELATED]->(b:Concept) RETURN a.id, b.name, r.relation_type")
-        while res.has_next():
-            row = res.get_next()
-            related_map.setdefault(row[0], []).append({"concept": row[1], "relation": row[2] or "related"})
+        for row in query_rows(
+            conn, "MATCH (a:Concept)-[r:RELATED]->(b:Concept) RETURN a.id, b.name, r.relation_type"
+        ):
+            related_map.setdefault(row[0], []).append(
+                {"concept": row[1], "relation": row[2] or "related"}
+            )
     except Exception:
-        pass
+        logger.exception("Could not export related concepts")
 
-    res = conn.execute("""
+    rows = query_rows(
+        conn,
+        """
         MATCH (doc:Document)-[:HAS_CHUNK]->(chk:Chunk)-[:MENTIONS]->(c:Concept)
         RETURN doc.id, chk.chunk_id, c.id, c.name, c.concept_type, c.difficulty, c.summary
-    """)
+    """,
+    )
 
-    chunks_dict = {}
-    while res.has_next():
-        row = res.get_next()
+    chunks_dict: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for row in rows:
         doc_id = row[0]
         chunk_id = row[1]
         cid = row[2]
@@ -58,76 +71,82 @@ def export_gold_template(db, output_path: str):
             chunks_dict[key] = []
 
         if not any(x["concept_name"] == cname for x in chunks_dict[key]):
-            chunks_dict[key].append({
-                "concept_name": cname,
-                "concept_type": ctype,
-                "difficulty": cdiff,
-                "summary": csummary,
-                "prerequisites": sorted(prereqs_map.get(cid, [])),
-                "unlocks": sorted(unlocks_map.get(cid, [])),
-                "related_to": related_map.get(cid, []),
-                "tags": []
-            })
+            chunks_dict[key].append(
+                {
+                    "concept_name": cname,
+                    "concept_type": ctype,
+                    "difficulty": cdiff,
+                    "summary": csummary,
+                    "prerequisites": sorted(prereqs_map.get(cid, [])),
+                    "unlocks": sorted(unlocks_map.get(cid, [])),
+                    "related_to": related_map.get(cid, []),
+                    "tags": [],
+                }
+            )
 
     gold_template = []
     for (doc_id, chunk_id), concepts_list in chunks_dict.items():
-        gold_template.append({
-            "doc_id": doc_id,
-            "chunk_id": chunk_id,
-            "concepts": concepts_list
-        })
+        gold_template.append({"doc_id": doc_id, "chunk_id": chunk_id, "concepts": concepts_list})
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(gold_template, f, indent=2, ensure_ascii=False)
 
 
-def export_cytoscape(db, output_path: str):
+def export_cytoscape(db: Any, output_path: str | Path) -> None:
     """Export database graph to Cytoscape JSON format."""
     import kuzu
-    if hasattr(db, 'execute'):
-        conn = db
-    else:
-        conn = kuzu.Connection(db)
+
+    conn = db if hasattr(db, "execute") else kuzu.Connection(db)
 
     from okf.graph_db import export_graph
+
     graph_export = export_graph(conn)
 
     elements = []
 
     # Add nodes
     for cid, concept in graph_export.get("concepts", {}).items():
-        elements.append({
-            "data": {
-                "id": cid,
-                "label": concept.get("name", cid),
-                "concept_type": concept.get("concept_type", "definition"),
-                "difficulty": concept.get("difficulty", "intermediate"),
-                "summary": concept.get("summary", "")
+        elements.append(
+            {
+                "data": {
+                    "id": cid,
+                    "label": concept.get("name", cid),
+                    "concept_type": concept.get("concept_type", "definition"),
+                    "difficulty": concept.get("difficulty", "intermediate"),
+                    "summary": concept.get("summary", ""),
+                }
             }
-        })
+        )
 
     # Add edges
     for idx, edge in enumerate(graph_export.get("edges", []), 1):
-        elements.append({
-            "data": {
-                "id": f"edge_{idx}",
-                "source": edge["from_id"],
-                "target": edge["to_id"],
-                "relation": edge.get("relation", "related"),
-                "edge_type": edge.get("edge_type", "RELATED")
+        elements.append(
+            {
+                "data": {
+                    "id": f"edge_{idx}",
+                    "source": edge["from_id"],
+                    "target": edge["to_id"],
+                    "relation": edge.get("relation", "related"),
+                    "edge_type": edge.get("edge_type", "RELATED"),
+                }
             }
-        })
+        )
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(elements, f, indent=2, ensure_ascii=False)
 
 
-def diff_graphs(old_json, new_json) -> dict:
+def diff_graphs(
+    old_json: str | dict[str, Any] | None,
+    new_json: str | dict[str, Any] | None,
+) -> dict[str, Any]:
     """Calculate differences between two graph structures."""
-    def _load_graph_dict(g):
+
+    def _load_graph_dict(g: str | dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(g, str):
-            with open(g, "r", encoding="utf-8") as f:
-                return json.load(f)
+            with open(g, encoding="utf-8") as f:
+                loaded = json.load(f)
+                return loaded if isinstance(loaded, dict) else {}
         return g or {}
 
     old_graph = _load_graph_dict(old_json)
@@ -153,8 +172,8 @@ def diff_graphs(old_json, new_json) -> dict:
         if changes:
             modified_concepts[cid] = changes
 
-    def get_edge_set(graph):
-        edges = set()
+    def get_edge_set(graph: dict[str, Any]) -> set[tuple[Any, Any, Any, Any]]:
+        edges: set[tuple[Any, Any, Any, Any]] = set()
         for e in graph.get("edges", []):
             edges.add((e.get("from_id"), e.get("to_id"), e.get("edge_type"), e.get("relation")))
         return edges
@@ -169,7 +188,7 @@ def diff_graphs(old_json, new_json) -> dict:
         "concepts": {
             "added": list(added_concepts),
             "deleted": list(deleted_concepts),
-            "modified": modified_concepts
+            "modified": modified_concepts,
         },
         "edges": {
             "added": [
@@ -179,6 +198,6 @@ def diff_graphs(old_json, new_json) -> dict:
             "deleted": [
                 {"from_id": e[0], "to_id": e[1], "edge_type": e[2], "relation": e[3]}
                 for e in deleted_edges
-            ]
-        }
+            ],
+        },
     }

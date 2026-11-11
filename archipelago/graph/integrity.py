@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 
 @dataclass
@@ -28,7 +28,7 @@ class GraphIntegrityReport:
 class GraphIntegrityValidator:
     """Validates structural DAG integrity using Kahn's algorithm."""
 
-    DIFFICULTY_RANKS = {
+    DIFFICULTY_RANKS: ClassVar[dict[str, int]] = {
         "foundational": 1,
         "intermediate": 2,
         "advanced": 3,
@@ -47,7 +47,9 @@ class GraphIntegrityValidator:
         return loops
 
     @classmethod
-    def check_reciprocal_cycles(cls, edges: list[dict[str, Any]], edge_type: str = "REQUIRES") -> list[tuple[str, str]]:
+    def check_reciprocal_cycles(
+        cls, edges: list[dict[str, Any]], edge_type: str = "REQUIRES"
+    ) -> list[tuple[str, str]]:
         """Detect mutual dependencies (A REQUIRES B and B REQUIRES A)."""
         typed_edges = set()
         for edge in edges:
@@ -60,7 +62,7 @@ class GraphIntegrityValidator:
 
         reciprocal: list[tuple[str, str]] = []
         seen = set()
-        for (u, v) in typed_edges:
+        for u, v in typed_edges:
             if (v, u) in typed_edges and (v, u) not in seen:
                 reciprocal.append((u, v))
                 seen.add((u, v))
@@ -71,7 +73,7 @@ class GraphIntegrityValidator:
         cls, nodes: list[str] | set[str], edges: list[dict[str, Any]], edge_type: str = "REQUIRES"
     ) -> tuple[bool, list[str]]:
         """Run Kahn's topological sort algorithm to detect directed cycles.
-        
+
         Returns:
             (is_dag, topological_order_or_unvisited_nodes)
         """
@@ -132,7 +134,7 @@ class GraphIntegrityValidator:
     ) -> GraphIntegrityReport:
         """Execute the complete structural graph validation suite."""
         node_ids = list(concepts.keys()) if isinstance(concepts, dict) else list(concepts)
-        
+
         self_loops = cls.check_self_loops(edges)
         reciprocal = cls.check_reciprocal_cycles(edges, edge_type="REQUIRES")
         is_dag, unvisited = cls.run_kahn_dag_sort(node_ids, edges, edge_type="REQUIRES")

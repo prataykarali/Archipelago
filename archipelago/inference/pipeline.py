@@ -3,24 +3,21 @@
 Re-exports pipeline execution functions from synthesis_pipeline while maintaining
 backwards compatibility and maintaining module size <= 500 lines.
 """
+
 from __future__ import annotations
 
 import logging
 import threading
 from typing import Any
 
-from archipelago.inference import synthesis_pipeline as _pipeline
 from archipelago.inference import state as st
+from archipelago.inference import synthesis_pipeline as _pipeline
 from archipelago.inference.synthesis_pipeline import (
     _stage1_guardrails,
     _stage2_vector_search,
     _stage3_graph_traversal,
     _stage4_build_payload,
     _stage5_ollama_synthesis,
-    run_archipelago_inference,
-    _acquire_ollama,
-    _release_ollama,
-    _ollama_client,
 )
 
 _PIPELINE_COMPAT_LOCK = threading.RLock()
@@ -48,6 +45,7 @@ def run_archipelago_inference(query: str, history: list[Any] | None = None) -> d
             for name, implementation in previous.items():
                 setattr(_pipeline, name, implementation)
 
+
 logger = logging.getLogger(__name__)
 
 __all__ = [
@@ -57,4 +55,5 @@ __all__ = [
     "_stage4_build_payload",
     "_stage5_ollama_synthesis",
     "run_archipelago_inference",
+    "st",
 ]

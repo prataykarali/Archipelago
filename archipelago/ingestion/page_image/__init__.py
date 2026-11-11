@@ -4,6 +4,7 @@ Lets a librarian click an image of a book's index (table of contents) or
 content page and auto-populate the ingestion record, resolving the exact
 verified source page from the title/ISBN that was read off the page.
 """
+
 from __future__ import annotations
 
 from archipelago.ingestion.page_image.part01_ocr import (
@@ -16,8 +17,8 @@ from archipelago.ingestion.page_image.part01_ocr import (
 )
 from archipelago.ingestion.page_image.part02_parse import (
     PageExtraction,
-    extract_page_fields,
     extract_isbn_field,
+    extract_page_fields,
     extract_publisher,
     extract_toc,
     extract_year,

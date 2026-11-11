@@ -5,48 +5,68 @@ This module OWNS the local PyTorch model state (LOCAL_MODEL / LOCAL_TOKENIZER
 must query the state through is_local_mode()/is_model_loaded() instead of
 importing the raw globals (a `from ... import LOCAL_MODEL` would snapshot the
 pre-load None forever)."""
-from __future__ import annotations
 
-from .part01_local_model import (  # noqa: F401
-    load_local_model,
-)
-from .part02_is_local_mode import (  # noqa: F401
-    is_local_mode,
-    is_model_loaded,
-    _strip_json_fences,
-    _extract_json_payload,
-    _string_list,
-    _normalize_related,
-    normalize_okf_item,
-    _generate_local,
-    extract_okf_v15,
-)
-from .part03_extract_chunks_with_model import (  # noqa: F401
-    extract_chunks_with_model,
-)
+from __future__ import annotations
 
 import json  # noqa: F401
 import sys  # noqa: F401
 import time  # noqa: F401
+from typing import Any
+
 import ollama  # noqa: F401
+
 from okf.cleanup import is_valid_concept_name  # noqa: F401
 from okf.config import (
-    BASE_DIR,
-    EXTRACTION_PROMPT_V15,
-    MAX_CHARS_TO_SLM,
-    MAX_RETRIES,
-    MODEL_NAME,
-    VALID_DIFFICULTIES,
-    VALID_RELATIONS,
-    VALID_TYPES,
-    _local_path,
-    infer_source_category,
-)  # noqa: F401
-from . import part01_local_model as _state  # noqa: F401
+    BASE_DIR,  # noqa: F401
+    EXTRACTION_PROMPT_V15,  # noqa: F401
+    MAX_CHARS_TO_SLM,  # noqa: F401
+    MAX_RETRIES,  # noqa: F401
+    MODEL_NAME,  # noqa: F401
+    VALID_DIFFICULTIES,  # noqa: F401
+    VALID_RELATIONS,  # noqa: F401
+    VALID_TYPES,  # noqa: F401
+    _local_path,  # noqa: F401
+    infer_source_category,  # noqa: F401
+)
 
-def __getattr__(name: str):
+from . import part01_local_model as _state
+from .part01_local_model import (
+    load_local_model,
+)
+from .part02_is_local_mode import (
+    _extract_json_payload,
+    _generate_local,
+    _normalize_related,
+    _string_list,
+    _strip_json_fences,
+    extract_okf_v15,
+    is_local_mode,
+    is_model_loaded,
+    normalize_okf_item,
+)
+from .part03_extract_chunks_with_model import (
+    extract_chunks_with_model,
+)
+
+
+def __getattr__(name: str) -> Any:
     """Late-bind ``global``-rebound state (PEP 562)."""
     return getattr(_state, name)
 
 
-__all__ = ["LOCAL_MODEL", "LOCAL_TOKENIZER", "LOCAL_MODE", "is_local_mode", "is_model_loaded", "_strip_json_fences", "_extract_json_payload", "_string_list", "_normalize_related", "normalize_okf_item", "load_local_model", "_generate_local", "extract_okf_v15", "extract_chunks_with_model"]
+__all__ = [
+    "LOCAL_MODE",
+    "LOCAL_MODEL",
+    "LOCAL_TOKENIZER",
+    "_extract_json_payload",
+    "_generate_local",
+    "_normalize_related",
+    "_string_list",
+    "_strip_json_fences",
+    "extract_chunks_with_model",
+    "extract_okf_v15",
+    "is_local_mode",
+    "is_model_loaded",
+    "load_local_model",
+    "normalize_okf_item",
+]

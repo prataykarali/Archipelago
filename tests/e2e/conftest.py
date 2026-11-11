@@ -12,8 +12,8 @@ import fitz
 import pytest
 import requests
 
-
 # ── Live service URL fixtures (env-overridable) ───────────────────────────────
+
 
 @pytest.fixture(scope="session")
 def GRAPH_URL() -> str:
@@ -37,6 +37,7 @@ def OLLAMA_URL() -> str:
 
 # ── Health / readiness waiter ─────────────────────────────────────────────────
 
+
 def wait_until_ready(url: str, timeout: float = 60, interval: float = 1) -> requests.Response:
     """Poll ``url`` until it returns a successful HTTP response or timeout.
 
@@ -58,6 +59,7 @@ def wait_until_ready(url: str, timeout: float = 60, interval: float = 1) -> requ
 
 
 # ── Synthetic multi-page PDF for ingestion tests ──────────────────────────────
+
 
 @pytest.fixture
 def test_pdf_path(tmp_path):

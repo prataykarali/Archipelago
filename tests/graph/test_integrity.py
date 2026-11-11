@@ -4,7 +4,7 @@ Verifies structural graph integrity guarantees including acyclicity, self-loop
 rejection, reciprocal cycle detection, and orphan node reporting.
 """
 
-from archipelago.graph.integrity import GraphIntegrityValidator, GraphIntegrityReport
+from archipelago.graph.integrity import GraphIntegrityValidator
 
 
 def test_valid_dag_kahn_sort():
@@ -34,7 +34,9 @@ def test_cycle_detection():
         {"from": "C", "to": "A", "relation": "REQUIRES"},
     ]
 
-    is_dag, unvisited = GraphIntegrityValidator.run_kahn_dag_sort(nodes, edges, edge_type="REQUIRES")
+    is_dag, unvisited = GraphIntegrityValidator.run_kahn_dag_sort(
+        nodes, edges, edge_type="REQUIRES"
+    )
     assert is_dag is False
     assert set(unvisited) == {"A", "B", "C"}
 

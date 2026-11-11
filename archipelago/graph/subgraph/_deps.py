@@ -1,4 +1,5 @@
 """Late-bound access to this package namespace (monkeypatch contract)."""
+
 from __future__ import annotations
 
 import archipelago.graph.subgraph as _pkg

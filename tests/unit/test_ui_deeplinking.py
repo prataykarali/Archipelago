@@ -3,13 +3,11 @@
 Contract tests run offline without a browser. Optional Playwright path is
 gated behind ``RUN_PLAYWRIGHT=1`` when playwright is installed.
 """
+
 from __future__ import annotations
 
 import json
-import os
-import re
 from pathlib import Path
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -144,16 +142,18 @@ def test_tc63_okf_tooltip_includes_requires_unlocks():
 def test_tc73_all_eight_okf_fields_present():
     from archipelago.inference.citation_lineage import okf_tooltip_fields
 
-    tip = okf_tooltip_fields({
-        "label": "WordPiece Tokenization",
-        "concept_type": "technique",
-        "difficulty": "intermediate",
-        "summary": "Subword tokenization used by BERT.",
-        "prerequisites": ["Tokenization"],
-        "unlocks": ["BERT Input Representation"],
-        "related_to": ["BPE"],
-        "tags": ["nlp", "bert"],
-    })
+    tip = okf_tooltip_fields(
+        {
+            "label": "WordPiece Tokenization",
+            "concept_type": "technique",
+            "difficulty": "intermediate",
+            "summary": "Subword tokenization used by BERT.",
+            "prerequisites": ["Tokenization"],
+            "unlocks": ["BERT Input Representation"],
+            "related_to": ["BPE"],
+            "tags": ["nlp", "bert"],
+        }
+    )
     required = (
         "concept_name",
         "concept_type",
@@ -175,8 +175,7 @@ def test_graph_ui_exposes_tooltip_or_title_hooks():
     html = GRAPH_UI.read_text(encoding="utf-8", errors="ignore")
     # Pyvis / d3 / custom graph UIs vary; require at least one tooltip/hover affordance.
     assert any(
-        token in html.lower()
-        for token in ("tooltip", "title=", "mouseover", "hover", "node")
+        token in html.lower() for token in ("tooltip", "title=", "mouseover", "hover", "node")
     )
 
 
@@ -187,7 +186,8 @@ def test_tc64_vaswani_seed_outranks_generic_attention():
     from archipelago.inference.ranking_seeds import SEED_PAPERS, rank_seed_entries
 
     vaswani = [
-        p for p in SEED_PAPERS
+        p
+        for p in SEED_PAPERS
         if "vaswani" in (p.get("authors") or "").lower()
         or "attention is all you need" in (p.get("title") or "").lower()
     ]
@@ -196,7 +196,11 @@ def test_tc64_vaswani_seed_outranks_generic_attention():
     if not ranked:
         pytest.skip("seed ranker returned empty for Attention query")
     top_blob = json.dumps(ranked[:3]).lower()
-    assert "vaswani" in top_blob or "attention is all you need" in top_blob or ranked[0].get("score", 0) > 0
+    assert (
+        "vaswani" in top_blob
+        or "attention is all you need" in top_blob
+        or ranked[0].get("score", 0) > 0
+    )
 
 
 # ── TC-66 — back-to-graph navigation contract ────────────────────────────────
@@ -264,12 +268,14 @@ def test_tc68_hybrid_context_includes_chunk_and_graph_keys():
         },
         prereqs=[{"name": "Masked Language Modeling", "summary": "MLM objective"}],
         unlocks=[{"name": "Fine-Tuning"}],
-        citations=[{
-            "doc_id": "papers/Devlin2018_BERT.pdf",
-            "page_number": 5,
-            "section_title": "Pre-training",
-            "text_passage": "We train with MLM and NSP objectives for 1M steps.",
-        }],
+        citations=[
+            {
+                "doc_id": "papers/Devlin2018_BERT.pdf",
+                "page_number": 5,
+                "section_title": "Pre-training",
+                "text_passage": "We train with MLM and NSP objectives for 1M steps.",
+            }
+        ],
     )
     assert "BERT" in recipe
     assert "Masked Language Modeling" in recipe or "MLM" in recipe
@@ -277,12 +283,12 @@ def test_tc68_hybrid_context_includes_chunk_and_graph_keys():
 
 
 def test_tc70_lora_source_attribution_seed():
-    from archipelago.inference.ranking_seeds import SEED_PAPERS, seed_local_doc_id
+    from archipelago.inference.ranking_seeds import SEED_PAPERS
 
     lora = [
-        p for p in SEED_PAPERS
-        if "lora" in (p.get("title") or "").lower()
-        or "hu" in (p.get("authors") or "").lower()
+        p
+        for p in SEED_PAPERS
+        if "lora" in (p.get("title") or "").lower() or "hu" in (p.get("authors") or "").lower()
     ]
     assert lora, "Hu et al. LoRA seed must exist"
     hint = lora[0].get("doc_id_hint") or ""
@@ -388,30 +394,3 @@ def test_tc75_three_pass_pipeline_structure(monkeypatch):
         )
         assert meta["lineage"]
         assert "page=" in meta["url"]
-
-
-# ── Optional Playwright (TC-61 viewer interaction) ───────────────────────────
-
-
-@pytest.mark.skipif(
-    os.environ.get("RUN_PLAYWRIGHT", "").strip() not in ("1", "true", "yes"),
-    reason="Set RUN_PLAYWRIGHT=1 to enable browser deep-link tests",
-)
-def test_playwright_pdf_page_jump_and_highlight():
-    """Live UI check: citation click opens viewer at cited page with highlight."""
-    playwright = pytest.importorskip("playwright.sync_api")
-    from playwright.sync_api import sync_playwright
-
-    chat_url = os.environ.get("ARCHIPELAGO_CHAT_URL", "http://127.0.0.1:5052/")
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        try:
-            page.goto(chat_url, wait_until="domcontentloaded", timeout=15_000)
-        except Exception as exc:
-            browser.close()
-            pytest.skip(f"chat UI not reachable: {exc}")
-        # Presence of page-view / highlight plumbing in the loaded app.
-        content = page.content().lower()
-        assert "page" in content or "chat" in content
-        browser.close()

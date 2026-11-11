@@ -1,0 +1,122 @@
+    html {
+      overflow-x: clip;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #000000;
+      margin: 0;
+      padding: 0;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .btn-cut {
+      clip-path: polygon(
+        12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+        calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+      );
+    }
+
+    .btn-cut-outline {
+      position: relative;
+      background: rgba(255, 255, 255, 0.15);
+      clip-path: polygon(
+        12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px),
+        calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px
+      );
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+    }
+
+    /* Glassmorphic Cards so Butterfly Background is Fully Visible */
+    .glass-card {
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .scope-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-left: 3px solid #3b82f6;
+    }
+
+    /* Give the interactive book scene the same immersive scale as the landing film. */
+    #sec-ebook {
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100vw - 2rem);
+    }
+
+    #sec-ebook #library-3d-shelf,
+    #sec-ebook #library-3d-shelf > canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #sec-ebook .shelf-viewport {
+      height: min(78svh, 900px) !important;
+      min-height: 520px;
+    }
+
+    #library-graph-links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      max-width: 900px;
+      margin: 0 auto 2rem;
+    }
+
+    #library-graph-links a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 86px;
+      padding: 1.3rem 1.6rem;
+      border: 1px solid rgba(191, 155, 255, .55);
+      border-radius: 16px;
+      background: rgba(35, 15, 59, .85);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, .35);
+      color: white;
+      font-weight: 800;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      text-decoration: none;
+    }
+
+    #library-graph-links a:last-child {
+      background: linear-gradient(125deg, rgba(96, 26, 133, .9), rgba(149, 26, 119, .85));
+    }
+
+    #library-graph-links a:hover,
+    #library-graph-links a:focus-visible {
+      border-color: #f3c7ff;
+      outline: 2px solid #f3c7ff;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 640px) {
+      #library-graph-links { grid-template-columns: 1fr; }
+      #sec-ods-reports > .glass-card > .flex:first-child {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+
+      #sec-ods-reports > .glass-card > .flex:first-child > .flex {
+        flex-wrap: wrap;
+      }
+    }

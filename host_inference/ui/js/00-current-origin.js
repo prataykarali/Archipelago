@@ -33,17 +33,14 @@
 
         delete API_CONTRACT.cancelJob;
 
-        // Librarian avatar story — 5 clips play in sequence, then loop
-        // hi → think → type → goit → success → (repeat)
+        // Cycle only the two Librarian clips shipped with the web app.
         const AVATAR_STORY = [
             { key: 'hi', src: '/ui/assets/library_hi.mp4' },
             { key: 'think', src: '/ui/assets/library_think.mp4' },
-            { key: 'type', src: '/ui/assets/library_type.mp4' },
-            { key: 'goit', src: '/ui/assets/library_goit.mp4' },
-            { key: 'success', src: '/ui/assets/library_sucess%20(1).mp4' },
         ];
 
         const AVATAR_THINK_KEY = 'think';
+        const AVATAR_POSTER = '/ui/assets/library_avatar_poster.jpg';
 
         // Back-compat aliases for any remaining references
         const AVATAR_HI_SRC = AVATAR_STORY[0].src;
@@ -54,16 +51,16 @@
             const start = activeKey || 'hi';
             return AVATAR_STORY.map((clip) => {
                 const hidden = clip.key === start ? '' : ' is-hidden';
-                return `<video data-avatar-clip="${clip.key}" class="avatar-clip${hidden}" src="${clip.src}" muted playsinline webkit-playsinline preload="auto"></video>`;
+                return `<video data-avatar-clip="${clip.key}" class="avatar-clip${hidden}" src="${clip.src}" poster="${AVATAR_POSTER}" muted playsinline webkit-playsinline preload="auto"></video>`;
             }).join('\n');
         }
 
 const CHAT_RESPONSE_TIMEOUT_MS = 45000;
 
         // Stream watchdogs: idle gap between chunks vs absolute wall-clock cap.
-        const STREAM_IDLE_TIMEOUT_MS = 25000;
+        const STREAM_IDLE_TIMEOUT_MS = 45000;
 
-        const STREAM_HARD_TIMEOUT_MS = 120000;
+        const STREAM_HARD_TIMEOUT_MS = 180000;
 
         // Cap history sent to the API so long chats stay under request size limits.
         const MAX_HISTORY_TURNS_SENT = 12;
@@ -83,6 +80,7 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
             vid.autoplay = false;
             vid.loop = false;
             vid.preload = 'auto';
+            vid.poster = AVATAR_POSTER;
             vid.removeAttribute('autoplay');
             vid.removeAttribute('loop');
             vid.setAttribute('muted', '');
@@ -94,7 +92,7 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
         function playAvatarVideo(vid) {
             if (!vid) return;
             const go = () => {
-                try { if (vid.currentTime > 0.05) vid.currentTime = 0; } catch (_) {}
+                try { if (vid.ended) vid.currentTime = 0; } catch (_) {}
                 const p = vid.play();
                 if (p && typeof p.catch === 'function') p.catch(() => {});
             };
@@ -135,9 +133,10 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
             root.dataset.avatarIndex = String(idx);
             clips.forEach((vid, i) => {
                 if (i === idx) {
+                    const wasHidden = vid.classList.contains('is-hidden');
                     vid.classList.remove('is-hidden');
                     vid.loop = root.dataset.avatarMode === 'think';
-                    playAvatarVideo(vid);
+                    if (wasHidden || vid.paused || vid.ended) playAvatarVideo(vid);
                 } else {
                     vid.classList.add('is-hidden');
                     vid.loop = false;
@@ -166,7 +165,7 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
         function wireAvatarVideos(root, preferThink = false) {
             if (!root) return;
 
-            // Ensure all 5 story clips exist (upgrade legacy 2-clip shells)
+            // Ensure both available clips exist in restored chat shells.
             AVATAR_STORY.forEach((clip) => {
                 let vid = root.querySelector(`video[data-avatar-clip="${clip.key}"]`);
                 if (!vid) {
@@ -277,10 +276,21 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
             if (welcome) setAvatarThinking(welcome, !!thinking);
         }
 
-        // Wire welcome avatar as soon as script runs — full story loop idle
+        // Wire welcome avatar as soon as script runs; cycle the available clips.
         wireAvatarVideos(document.getElementById('welcome-avatar'), false);
 
         hideStickyAvatar();
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible') return;
+            for (const root of [document.getElementById('welcome-avatar'), getStickyAvatar()]) {
+                if (!root || root.dataset.avatarWired !== '1' || root.dataset.avatarMode === 'paused') continue;
+                const activeIndex = root.dataset.avatarMode === 'think'
+                    ? _avatarIndexForKey(AVATAR_THINK_KEY)
+                    : Number(root.dataset.avatarIndex) || 0;
+                _showAvatarClipAt(root, activeIndex);
+            }
+        });
 
         // Wire graph browse link (students may browse; only librarians upload there)
         // ═══════════════════════════════════════════════════════════════

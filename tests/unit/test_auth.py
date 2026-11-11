@@ -1,10 +1,11 @@
 """Unit tests for archipelago.auth librarian vs student roles."""
+
 from __future__ import annotations
 
-import pytest
 from flask import Flask, jsonify
+import pytest
 
-from archipelago.auth import require_token, require_librarian, require_student_or_open
+from archipelago.auth import require_librarian, require_student_or_open, require_token
 
 
 @pytest.fixture()

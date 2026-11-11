@@ -31,7 +31,7 @@ def _kuzu_escape(value: str) -> str:
     return (value or "").replace("\\", "\\\\").replace("'", "\\'")
 
 
-def _kuzu_literal(value) -> str:
+def _kuzu_literal(value: Any) -> str:
     """Render a Python value as an inline Kuzu Cypher literal (None -> NULL)."""
     if value is None:
         return "NULL"
@@ -227,7 +227,6 @@ def _create_schema(conn: Any) -> None:
 def _migrate_schema(conn: Any) -> None:
     """ALTER pre-existing tables to add the citation-correctness columns."""
     _run_ddl(conn, (f"ALTER TABLE {t} ADD {c} {k}" for t, c, k in _MIGRATION_COLUMNS))
-
 
 
 __all__ = [

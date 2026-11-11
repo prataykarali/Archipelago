@@ -1,12 +1,15 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import sys
 import time
-from . import _deps as _rt  # noqa: F401
+from typing import Any
+
+from . import _deps as _rt
 
 
-def extract_chunks_with_model(chunks: list) -> tuple[list, int]:
+def extract_chunks_with_model(chunks: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
     """Run OKF extraction over prose chunks with per-chunk progress output.
 
     Returns (okf_results, successful_chunk_count). Shared by run_pipeline and
@@ -15,11 +18,12 @@ def extract_chunks_with_model(chunks: list) -> tuple[list, int]:
     okf_results = []
     successful_chunk_count = 0
     for i, chunk in enumerate(chunks):
-        progress = f"[{i+1}/{len(chunks)}]"
+        progress = f"[{i + 1}/{len(chunks)}]"
         section = chunk.get("section_title", "?")[:40]
         # Skip bibliography / references chunks entirely (page-14 LoRA noise)
         try:
             from okf.cleanup_parts.directionality import is_bibliography_section
+
             if is_bibliography_section(chunk.get("section_title") or ""):
                 print(f"  Skipping bibliography chunk {chunk.get('chunk_id')}: {section}")
                 continue

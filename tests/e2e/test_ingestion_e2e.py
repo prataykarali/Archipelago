@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -51,7 +50,7 @@ def test_csv_ingestion_workflow(tmp_path: Path) -> None:
         }
     ]
 
-    cleaned = clean_pipeline(raw_concepts)
+    cleaned = clean_pipeline(raw_concepts, chunks=[])
     assert len(cleaned) == 1
     assert cleaned[0]["concept_name"] == "Artificial Neural Network"
     assert cleaned[0]["difficulty"] == "intermediate"
@@ -66,16 +65,20 @@ def test_jobstore_lifecycle(tmp_path: Path) -> None:
     store = JobStore(str(jobs_dir))
 
     # Create job
-    job = store.create(filename="test_book.csv", title="Test Neural Networks Book")
-    job_id = job["id"]
-    assert job["status"] == JobStatus.QUEUED.value
+    job = store.create_job("test_book.csv")
+    job_id = job.job_id
+    assert job.status == JobStatus.QUEUED
 
     # Update through statuses
     store.update_status(job_id, JobStatus.PARSING)
-    assert store.get(job_id)["status"] == JobStatus.PARSING.value
+    assert store.get_job(job_id).status == JobStatus.PARSING
 
-    store.update_status(job_id, JobStatus.EXTRACTION, progress="Extracting concepts")
-    assert store.get(job_id)["status"] == JobStatus.EXTRACTION.value
+    store.update_status(
+        job_id,
+        JobStatus.EXTRACTION,
+        progress={"EXTRACTION": {"detail": "Extracting concepts"}},
+    )
+    assert store.get_job(job_id).status == JobStatus.EXTRACTION
 
     store.update_status(job_id, JobStatus.COMPLETE)
-    assert store.get(job_id)["status"] == JobStatus.COMPLETE.value
+    assert store.get_job(job_id).status == JobStatus.COMPLETE

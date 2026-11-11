@@ -1,9 +1,9 @@
 """Auto-split from synthesis.py — do not edit blocks by hand."""
+
 from __future__ import annotations
 
 import os
 import re
-
 
 DOC_TITLE_MAP = {
     "Deisenroth_Math_For_ML.pdf": "Mathematics for Machine Learning (Deisenroth et al.)",
@@ -27,7 +27,9 @@ def prettify_doc_title(doc_id_or_title: str) -> str:
     if basename in DOC_TITLE_MAP:
         return DOC_TITLE_MAP[basename]
     # Only rewrite path-like ids; leave already-human titles untouched.
-    if re.search(r"\.(pdf|md|txt|epub)$", raw, re.IGNORECASE) or raw.startswith(("/", "./", "../", "textbooks/", "papers/", "ostep_")):
+    if re.search(r"\.(pdf|md|txt|epub)$", raw, re.IGNORECASE) or raw.startswith(
+        ("/", "./", "../", "textbooks/", "papers/", "ostep_")
+    ):
         name = re.sub(r"\.(pdf|md|txt|epub)$", "", basename, flags=re.IGNORECASE)
         return name.replace("_", " ").strip() or raw
     if " " not in raw and "_" in raw:
@@ -59,6 +61,7 @@ def render_library_books(topic: str, books: list[dict]) -> str:
         if not reader_url:
             try:
                 from archipelago.resolver.pearson import resolve as pearson_resolve
+
                 reader_url = pearson_resolve(doc_id) or (pearson_resolve(title) if title else "")
             except Exception:
                 pass
@@ -95,7 +98,8 @@ def render_library_chapters(book_title: str, chapters: list[dict]) -> str:
     shown = chapters
     if total > 40:
         top_level = [
-            ch for ch in chapters
+            ch
+            for ch in chapters
             if _TOP_LEVEL_CHAPTER_RE.match((ch.get("section_title") or "").strip())
             or _FRONTMATTER_RE.match((ch.get("section_title") or "").strip())
         ]

@@ -1,4 +1,5 @@
 """Rate Limiting and Negative Caching Service for Link Resolution."""
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -70,14 +71,16 @@ class ResolverCache:
         """
         expiry = time.time() + self.negative_ttl_sec
         record: dict[str, Any] = dict(context or {})
-        record.update({
-            "working": False,
-            "error": error_msg,
-            "status": 404,
-            "url": None,
-            "cached_negative": True,
-            "checked_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        })
+        record.update(
+            {
+                "working": False,
+                "error": error_msg,
+                "status": 404,
+                "url": None,
+                "cached_negative": True,
+                "checked_at": datetime.datetime.now(datetime.UTC).isoformat(),
+            }
+        )
         self.cache[key] = (record, expiry)
 
     def clear(self) -> None:

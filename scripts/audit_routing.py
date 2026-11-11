@@ -16,6 +16,7 @@ Run it against either stack:
 Exit code is 1 when any prompt lands under the wrong contract, so it can gate
 CI as well as inform a person.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -50,20 +51,40 @@ PROBES = tuple(
     }
     for prompt, expected, expecting, corpus_dependent in (
         # 1. Pedagogical Graph Traversal
-        ("What foundational math must I master before studying Self-Attention?",
-         "GRAPH_SYNTHESIS", (), False),
+        (
+            "What foundational math must I master before studying Self-Attention?",
+            "GRAPH_SYNTHESIS",
+            (),
+            False,
+        ),
         ("How does Softmax connect to Self-Attention?", "GRAPH_SYNTHESIS", (), False),
         ("Explain third normal form", "GRAPH_SYNTHESIS", ("third normal form",), True),
         # 2. Physical Shelf & Catalog Routing
-        ("Where can I find a physical copy of 'Database System Concepts' on campus?",
-         "CATALOG_SHELF_ROUTING", (), False),
-        ("What is the call number for Database System Concepts?",
-         "CATALOG_SHELF_ROUTING", (), False),
-        ("How many copies of Operating System Internals are available?",
-         "CATALOG_SHELF_ROUTING", (), False),
+        (
+            "Where can I find a physical copy of 'Database System Concepts' on campus?",
+            "CATALOG_SHELF_ROUTING",
+            (),
+            False,
+        ),
+        (
+            "What is the call number for Database System Concepts?",
+            "CATALOG_SHELF_ROUTING",
+            (),
+            False,
+        ),
+        (
+            "How many copies of Operating System Internals are available?",
+            "CATALOG_SHELF_ROUTING",
+            (),
+            False,
+        ),
         # 3. Administrative & E-Resource Auth
-        ("How do I access IEEE Xplore off-campus, and what are library Sunday hours?",
-         "AUTH_GATEWAY", ("24",), False),
+        (
+            "How do I access IEEE Xplore off-campus, and what are library Sunday hours?",
+            "AUTH_GATEWAY",
+            ("24",),
+            False,
+        ),
         ("What are the library opening hours?", "AUTH_GATEWAY", ("24",), False),
         ("library Sunday hours", "AUTH_GATEWAY", ("24",), False),
         ("How do I log in to Scopus?", "AUTH_GATEWAY", (), False),
@@ -73,8 +94,12 @@ PROBES = tuple(
         ("Show learning roadmap for BERT", "MCQ_DIAGNOSTIC", (), False),
         ("What should I study first for LoRA?", "MCQ_DIAGNOSTIC", (), False),
         # 5. Live Paper Ingestion & Analysis
-        ("Analyze this uploaded PDF and extract its Open Knowledge Format (OKF) nodes.",
-         "INGESTION_ANALYSIS", (), False),
+        (
+            "Analyze this uploaded PDF and extract its Open Knowledge Format (OKF) nodes.",
+            "INGESTION_ANALYSIS",
+            (),
+            False,
+        ),
         ("Extract the OKF nodes from my uploaded paper", "INGESTION_ANALYSIS", (), False),
         # 6. Guardrail & Scope Intercept
         ("Write a Python web scraper", "GUARDRAIL_INTERCEPT", (), False),
@@ -110,6 +135,9 @@ def _library_classifier():
     0.0 and would report all of contract type 1 as out-of-scope — an artefact of
     the harness, not a routing defect.
     """
+    import os
+
+    os.environ["ARCHIPELAGO_AUTH_REQUIRED"] = "0"
     from archipelago.api.app import app
 
     app.config.update(TESTING=True)
@@ -180,8 +208,10 @@ def run_stack(name: str, classifier) -> list[Result]:
 def report(stack: str, results: list[Result]) -> bool:
     """Print a per-contract table. Returns True when every prompt passed."""
     width = max(len(row["prompt"]) for row in results)
-    counts = {v: sum(1 for r in results if r["verdict"] == v) for v in
-              ("pass", "route", "corpus", "content", "error")}
+    counts = {
+        v: sum(1 for r in results if r["verdict"] == v)
+        for v in ("pass", "route", "corpus", "content", "error")
+    }
     print(f"\n=== {stack} stack ===")
     print(f"{'EXPECTED':<24} {'ACTUAL':<24} {'VERDICT':<9} PROMPT")
     print("-" * (57 + min(width, 46)))

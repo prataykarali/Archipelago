@@ -1,7 +1,7 @@
-import subprocess
-import time
-import sys
 import os
+import subprocess
+import sys
+import time
 
 # Stop any running processes first
 print("Stopping any existing services...")
@@ -9,37 +9,42 @@ subprocess.run(["./scripts/ops/serve.sh", "stop"])
 
 # Python interpreter from venv
 venv_python = os.path.abspath(".venv/bin/python")
-lt_path = '/home/pratay-karali/.nvm/versions/node/v22.23.1/bin/lt'
+lt_path = "/home/pratay-karali/.nvm/versions/node/v22.23.1/bin/lt"
 
 processes = []
 
 try:
-    # 1. Start Inference Server (port 5051)
-    print("Starting Inference Server on port 5051...")
-    proc_inference = subprocess.Popen(
-        [venv_python, "-m", "archipelago.apps.inference_app"],
-        stdout=open("logs/inference_run.log", "w"),
-        stderr=subprocess.STDOUT
-    )
-    processes.append(proc_inference)
+    with (
+        open("logs/inference_run.log", "w") as f_inf,
+        open("logs/graph_run.log", "w") as f_graph,
+        open("logs/chat_run.log", "w") as f_chat,
+    ):
+        # 1. Start Inference Server (port 5051)
+        print("Starting Inference Server on port 5051...")
+        proc_inference = subprocess.Popen(
+            [venv_python, "-m", "archipelago.apps.inference_app"],
+            stdout=f_inf,
+            stderr=subprocess.STDOUT,
+        )
+        processes.append(proc_inference)
 
-    # 2. Start Graph Server (port 5050)
-    print("Starting Graph Server on port 5050...")
-    proc_graph = subprocess.Popen(
-        [venv_python, "graph_server.py"],
-        stdout=open("logs/graph_run.log", "w"),
-        stderr=subprocess.STDOUT
-    )
-    processes.append(proc_graph)
+        # 2. Start Graph Server (port 5050)
+        print("Starting Graph Server on port 5050...")
+        proc_graph = subprocess.Popen(
+            [venv_python, "graph_server.py"],
+            stdout=f_graph,
+            stderr=subprocess.STDOUT,
+        )
+        processes.append(proc_graph)
 
-    # 3. Start Chat Server (port 5052)
-    print("Starting Chat Server on port 5052...")
-    proc_chat = subprocess.Popen(
-        [venv_python, "chat_server.py"],
-        stdout=open("logs/chat_run.log", "w"),
-        stderr=subprocess.STDOUT
-    )
-    processes.append(proc_chat)
+        # 3. Start Chat Server (port 5052)
+        print("Starting Chat Server on port 5052...")
+        proc_chat = subprocess.Popen(
+            [venv_python, "chat_server.py"],
+            stdout=f_chat,
+            stderr=subprocess.STDOUT,
+        )
+        processes.append(proc_chat)
 
     # Wait for the servers to bind (let's wait 12s to load embedding models)
     print("Waiting 12 seconds for servers to initialize...")
@@ -48,35 +53,35 @@ try:
     # 4. Start Chat UI LocalTunnel (port 5052)
     print("Starting Chat UI LocalTunnel...")
     proc_lt_chat = subprocess.Popen(
-        [lt_path, '--port', '5052'],
+        [lt_path, "--port", "5052"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=1,
     )
     processes.append(proc_lt_chat)
 
     # 5. Start Graph UI LocalTunnel (port 5050)
     print("Starting Graph UI LocalTunnel...")
     proc_lt_graph = subprocess.Popen(
-        [lt_path, '--port', '5050'],
+        [lt_path, "--port", "5050"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=1,
     )
     processes.append(proc_lt_graph)
 
     # Read Chat UI URL
     chat_url_line = proc_lt_chat.stdout.readline()
     print(f"Chat UI Public URL: {chat_url_line.strip()}")
-    with open('logs/lt_chat.log', 'w') as f:
+    with open("logs/lt_chat.log", "w") as f:
         f.write(chat_url_line)
 
     # Read Graph UI URL
     graph_url_line = proc_lt_graph.stdout.readline()
     print(f"Graph UI Public URL: {graph_url_line.strip()}")
-    with open('logs/lt_graph.log', 'w') as f:
+    with open("logs/lt_graph.log", "w") as f:
         f.write(graph_url_line)
 
     print("All services and tunnels started successfully! Keeping alive...")

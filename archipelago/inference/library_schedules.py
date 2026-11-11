@@ -1,25 +1,25 @@
 """Library Schedules — Fixed Operating Hours Lookup (SCH-1).
 
 Grounded in institutional poster ``docs/time_library.png``:
-  - Library is open 24 × 7 × 365 (including night hours and break time).
+  - Library is open 24/7/365 (including night hours and break time).
   - Open on Saturdays and Sundays; book issue/return unavailable on weekends.
   - Open-access shelves; OPAC at https://uemk-opac.l2c2.co.in
 
 Bypasses topological RAG and language models entirely.
 """
+
 from __future__ import annotations
 
-import re
 from datetime import datetime
+import re
 from typing import Any
-
 
 # ── SCH-1: Static Library Schedule (from time_library.png) ────────────────
 
 LIBRARY_SCHEDULES: dict[str, dict[str, Any]] = {
     "always": {
-        "label": "All Days (24 × 7 × 365)",
-        "hours": "Open 24 hours (24 × 7 × 365)",
+        "label": "All Days (24/7/365)",
+        "hours": "Open 24 hours (24/7/365)",
         "open_24_7": True,
         "note": (
             "Students may use the Library before or after class hours, "
@@ -27,7 +27,7 @@ LIBRARY_SCHEDULES: dict[str, dict[str, Any]] = {
         ),
     },
     "weekday": {
-        "label": "Weekdays (Monday – Friday)",
+        "label": "Weekdays (Monday - Friday)",
         "hours": "Open 24 hours",
         "open_24_7": True,
         "book_issue": True,
@@ -48,7 +48,7 @@ LIBRARY_SCHEDULES: dict[str, dict[str, Any]] = {
         "hours": "Open 24 hours",
         "open_24_7": True,
         "book_issue": False,
-        "note": "Reading room access follows the 24×7 policy; confirm notices for service desks.",
+        "note": "Reading room access follows the 24/7 policy; confirm notices for service desks.",
     },
 }
 
@@ -84,17 +84,17 @@ def _parse_clock_token(token: str) -> int | None:
 
 
 def is_library_open(day: str | None = None, time_token: str | None = None) -> dict[str, Any]:
-    """Answer open/closed for a day (+ optional clock time). Always open under 24×7 policy."""
+    """Answer open/closed for a day (+ optional clock time). Always open under 24/7 policy."""
     day_lower = (day or "today").strip().lower()
     if day_lower == "today":
         day_lower = datetime.now().strftime("%A").lower()
     schedule_key = _DAY_SCHEDULE_MAP.get(day_lower, "always")
     entry = LIBRARY_SCHEDULES.get(schedule_key, LIBRARY_SCHEDULES["always"])
     minutes = _parse_clock_token(time_token) if time_token else None
-    # 24×7 policy → open at any valid clock time (and when no time given).
+    # 24/7 policy → open at any valid clock time (and when no time given).
     open_now = True
     if time_token and minutes is None:
-        # Unparseable time still treated as open under 24×7, with a note.
+        # Unparseable time still treated as open under 24/7, with a note.
         open_now = True
     return {
         "open": open_now,
@@ -125,16 +125,17 @@ def get_library_hours(day: str | None = None) -> dict[str, Any]:
     day_lower = day.strip().lower()
 
     # Allow free-text like "sunday at 8 PM"
-    time_match = re.search(
-        r"\b(?:at\s+)?(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b", day_lower, re.I
-    )
+    time_match = re.search(r"\b(?:at\s+)?(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b", day_lower, re.I)
     time_token = time_match.group(1) if time_match else None
 
     if day_lower == "today" or "today" in day_lower:
         now = datetime.now()
         day_name = now.strftime("%A").lower()
         schedule_key = _DAY_SCHEDULE_MAP.get(day_name, "always")
-        entry = {**LIBRARY_SCHEDULES.get(schedule_key, LIBRARY_SCHEDULES["always"]), "day": day_name}
+        entry = {
+            **LIBRARY_SCHEDULES.get(schedule_key, LIBRARY_SCHEDULES["always"]),
+            "day": day_name,
+        }
         open_info = is_library_open(day_name, time_token)
         return {
             "schedule": entry,
@@ -146,7 +147,10 @@ def get_library_hours(day: str | None = None) -> dict[str, Any]:
     for dname in _DAY_SCHEDULE_MAP:
         if dname in day_lower or day_lower == dname:
             schedule_key = _DAY_SCHEDULE_MAP[dname]
-            entry = {**LIBRARY_SCHEDULES.get(schedule_key, LIBRARY_SCHEDULES["always"]), "day": dname}
+            entry = {
+                **LIBRARY_SCHEDULES.get(schedule_key, LIBRARY_SCHEDULES["always"]),
+                "day": dname,
+            }
             open_info = is_library_open(dname, time_token)
             return {
                 "schedule": entry,
@@ -179,9 +183,9 @@ def format_schedule_for_response(schedule_result: dict[str, Any]) -> str:
             status = "YES — open" if open_info.get("open") else "NO — closed"
             t = open_info.get("time")
             if t:
-                open_line = f"\n   **Open at {t}?** {status} (24×7×365 policy)."
+                open_line = f"\n   **Open at {t}?** {status} (24/7/365 policy)."
             else:
-                open_line = f"\n   **Open?** {status} (24×7×365 policy)."
+                open_line = f"\n   **Open?** {status} (24/7/365 policy)."
             if open_info.get("book_issue") is False:
                 open_line += "\n   _Book issue/return is not available on weekends._"
         return (
@@ -193,7 +197,7 @@ def format_schedule_for_response(schedule_result: dict[str, Any]) -> str:
     lines = [
         "📚 **IEM/UEM Library Operating Hours**",
         "",
-        "**Policy**: Open **24 × 7 × 365** (including night hours and break time).",
+        "**Policy**: Open **24/7/365** (including night hours and break time).",
         "",
     ]
     for key in ("always", "weekday", "weekend", "holiday"):
@@ -229,7 +233,7 @@ _SCHEDULE_KEYWORDS = re.compile(
     rf"{_INSTITUTION}\s+(?:timing|timings|schedule)|"
     rf"{_INSTITUTION}\s+open\s+on\s+\w+|open\s+on\s+(?:sundays?|weekends?)|"
     r"weekend\s+hours?|sunday\s+hours?|holiday\s+schedule|"
-    r"24\s*[x×]\s*7|24/?7|"
+    r"24\s*[xX]\s*7|24/?7|"
     rf"is\s+the\s+{_INSTITUTION}\s+open|"
     rf"{_INSTITUTION}\s+open"
     r")",
@@ -243,7 +247,7 @@ _DAY_PATTERN = re.compile(
 )
 
 
-def detect_library_hours_query(query: str) -> dict | None:
+def detect_library_hours_query(query: str) -> dict[str, Any] | None:
     """Check if a user query is asking about library operating hours."""
     if not query:
         return None
@@ -252,14 +256,18 @@ def detect_library_hours_query(query: str) -> dict | None:
         day_match = _DAY_PATTERN.search(query)
         raw_day = day_match.group(1).lower() if day_match else None
         # Normalize plurals: "sundays" → "sunday"
-        day = raw_day.rstrip("s") if raw_day and raw_day != "today" and raw_day.endswith("s") else raw_day
+        day = (
+            raw_day.rstrip("s")
+            if raw_day and raw_day != "today" and raw_day.endswith("s")
+            else raw_day
+        )
         if day == "today":
             pass
         # Free-text (with clock time) is passed through for get_library_hours parsing.
         day_arg = query if (day and re.search(r"\d", query)) else day
         return {
             "route": "library_hours",
-            "day": day,          # canonical day name for tests / slots
+            "day": day,  # canonical day name for tests / slots
             "day_arg": day_arg,  # free-text for time-aware lookup
             "raw_query": query,
         }

@@ -4,6 +4,7 @@ This is a one-time, administrator-run tool. The input CSV is intentionally not
 stored by Archipelago and must be deleted from the administrator workstation
 after the import completes.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -100,7 +101,9 @@ def provision_account(
         timeout=REQUEST_TIMEOUT_SECONDS,
     )
     if role_response.status_code not in {200, 204}:
-        raise RuntimeError(f"Could not assign role to {username!r}: HTTP {role_response.status_code}")
+        raise RuntimeError(
+            f"Could not assign role to {username!r}: HTTP {role_response.status_code}"
+        )
 
 
 def main() -> int:

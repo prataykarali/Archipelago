@@ -1,13 +1,15 @@
 """Proxy accuracy metrics for the extraction pipeline."""
 
 from collections import Counter
+from importlib import import_module
+from types import ModuleType
 
-from okf.canonicalize import canonicalize_name, _concept_key
+from okf.canonicalize import _concept_key, canonicalize_name
 
 # Fuzzy fallback for gold comparison (P1.8). rapidfuzz backs thefuzz (see
 # requirements.txt); import it directly for token_set_ratio scoring.
 try:
-    from rapidfuzz import fuzz as _rf_fuzz
+    _rf_fuzz: ModuleType | None = import_module("rapidfuzz.fuzz")
 except Exception:  # pragma: no cover - optional dependency
     _rf_fuzz = None
 
@@ -15,9 +17,9 @@ except Exception:  # pragma: no cover - optional dependency
 FUZZY_MATCH_THRESHOLD = 90
 
 __all__ = [
-    'Counter',
-    'FUZZY_MATCH_THRESHOLD',
-    '_concept_key',
-    'canonicalize_name',
-    '_rf_fuzz',
+    "FUZZY_MATCH_THRESHOLD",
+    "Counter",
+    "_concept_key",
+    "_rf_fuzz",
+    "canonicalize_name",
 ]

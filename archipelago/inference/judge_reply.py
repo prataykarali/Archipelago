@@ -31,8 +31,14 @@ def build_judge_user_content(
         "allowed_evidence_ids": sorted(str(item) for item in (allowed_evidence_ids or [])),
         "presentation": "SoFerence 8-tier grounded answer; omit unsupported tiers.",
         "reply_architecture": [
-            "Overview", "Mathematical Formulation", "Technical Mechanism",
-            "Domain Detail", "Learning Path", "Evidence", "Pilot Context", "Next Reading",
+            "Overview",
+            "Mathematical Formulation",
+            "Technical Mechanism",
+            "Domain Detail",
+            "Learning Path",
+            "Evidence",
+            "Pilot Context",
+            "Next Reading",
         ],
     }
     return "UNTRUSTED_DATA_JSON:\n" + json.dumps(payload, ensure_ascii=False)

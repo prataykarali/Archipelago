@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from flask import Flask
@@ -45,29 +45,31 @@ DEFAULT_MCQ_CORRECT = 2
 DEFAULT_MCQ_SCORE = 0.5
 
 _PUBLIC_AUTH_PATHS = frozenset({"/api/readiness", "/api/auth/config"})
-_LIBRARIAN_OR_ADMIN_PATHS = frozenset({
-    "/api/upload",
-    "/api/users",
-    # Procurement signals: what students asked for that the library does not
-    # hold, and what could be bought to fix it. Never student-facing.
-    "/api/librarian/demand-digest",
-    "/api/librarian/acquisition-plan",
-})
+_LIBRARIAN_OR_ADMIN_PATHS = frozenset(
+    {
+        "/api/upload",
+        "/api/users",
+        # Procurement signals: what students asked for that the library does not
+        # hold, and what could be bought to fix it. Never student-facing.
+        "/api/librarian/demand-digest",
+        "/api/librarian/acquisition-plan",
+    }
+)
 _LIBRARIAN_OR_ADMIN_ROLES = frozenset({"librarian", "administrator"})
 _UPLOAD_ALLOWED_SUFFIXES = (".pdf", ".md", ".markdown", ".txt")
 
 app = Flask(__name__)
 
 # Global instances initialized lazily or on startup
-_router: Optional[QueryRouter] = None
-_retriever: Optional[TwoPassHybridRetriever] = None
-_assembler: Optional[PromptPayloadAssembler] = None
-_synthesis: Optional[SynthesisService] = None
-_concepts_data: Dict[str, Any] = {}
-_kuzu_conn: Optional[Any] = None
+_router: QueryRouter | None = None
+_retriever: TwoPassHybridRetriever | None = None
+_assembler: PromptPayloadAssembler | None = None
+_synthesis: SynthesisService | None = None
+_concepts_data: dict[str, Any] = {}
+_kuzu_conn: Any | None = None
 
 
-def get_kuzu_connection() -> Optional[Any]:
+def get_kuzu_connection() -> Any | None:
     """Obtain or reuse KùzuDB connection safely."""
     global _kuzu_conn
     if _kuzu_conn is not None:
@@ -163,4 +165,4 @@ def concept_node(concept_id: str) -> dict[str, Any]:
 def concept_name(concept_id: str, node: dict[str, Any] | None = None) -> str:
     """Human-readable name for a concept id."""
     info = node if node is not None else concept_node(concept_id)
-    return info.get("name") or info.get("label") or concept_id
+    return str(info.get("name") or info.get("label") or concept_id)
