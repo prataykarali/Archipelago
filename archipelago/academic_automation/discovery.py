@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
 import requests  # type: ignore[import-untyped]
 
 from .candidate_from_source import queue_verified_source
+from .open_books import find_open_book, queue_open_book
 from .external_sources import crossref_article, europe_pmc_open_article, open_library_edition
 from .reconcile import reconcile
 from .store import AcademicStore
@@ -44,6 +46,15 @@ def hunt_record(store: AcademicStore, root: Path, record: dict[str, Any]) -> dic
                     jobs.append(job_id)
         except (OSError, ValueError, KeyError, requests.RequestException) as exc:
             errors.append(f"open_library:{type(exc).__name__}")
+        try:
+            for hit in find_open_book(
+                store, record_key, title, str(record["isbn"]), str(record.get("author") or "")
+            ):
+                found.append({"provider": hit["provider"], "status": hit["content_status"], "url": hit["source_url"]})
+                if hit["eligible_extraction"] and os.getenv("ARCHIPELAGO_ACADEMIC_AUTO_DOWNLOAD") == "1":
+                    jobs.append(queue_open_book(store, root, hit))
+        except (OSError, ValueError, KeyError, requests.RequestException) as exc:
+            errors.append(f"open_books:{type(exc).__name__}")
     elif kind != "journal":
         try:
             article = crossref_article(title)

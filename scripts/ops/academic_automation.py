@@ -18,9 +18,12 @@ sys.path.insert(0, str(ROOT / "host_research"))
 
 from archipelago.academic_automation import AcademicStore  # noqa: E402
 from archipelago.academic_automation.candidate import enqueue_manifest  # noqa: E402
+from archipelago.academic_automation.discovery import discover_opac_query  # noqa: E402
 from archipelago.academic_automation.gpu import gpu_snapshot  # noqa: E402
+from archipelago.academic_automation.open_books import PROVIDERS, find_open_book, harvest, queue_open_book  # noqa: E402
 from archipelago.academic_automation.matching import match_repository  # noqa: E402
 from archipelago.academic_automation.publication import publish_reviewed  # noqa: E402
+from archipelago.academic_automation.scan import scan_configured_queries  # noqa: E402
 from archipelago.academic_automation.scheduler import sync_sources  # noqa: E402
 from archipelago.academic_automation.worker import run_once  # noqa: E402
 
@@ -54,12 +57,39 @@ def _sources(include_opac: bool) -> dict[str, Any]:
     return sources
 
 
+def _queue_open_book(store: AcademicStore, record_key: str) -> dict[str, Any]:
+    """Re-verify the indexed match, then explicitly download and queue its eligible PDF."""
+    record = next((r for r in store.match_rows() if r["record_key"] == record_key), None)
+    if record is None:
+        raise ValueError("Unknown record key")
+    hits = find_open_book(
+        store, record_key, str(record["title"]), str(record.get("isbn") or ""), str(record.get("author") or "")
+    )
+    eligible = [h for h in hits if h["eligible_extraction"] and h["provider"] == "oapen"]
+    if not eligible:
+        return {"queued": False, "evidence": [{k: h[k] for k in ("provider", "content_status", "reason")} for h in hits]}
+    return {"queued": True, "job_id": queue_open_book(store, ROOT, eligible[0])}
+
+
 def main() -> int:
     """Execute one explicit local operation; no command silently starts GPU work."""
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
     sync = sub.add_parser("sync")
     sync.add_argument("--skip-live-opac", action="store_true")
+    discover = sub.add_parser("discover")
+    discover.add_argument("--query", required=True)
+    discover.add_argument("--offset", type=int, default=0)
+    discover.add_argument("--max-records", type=int, default=20)
+    configured = sub.add_parser("scan-configured")
+    configured.add_argument(
+        "--queries-file", type=Path, default=ROOT / "infrastructure" / "academic-opac-queries.json"
+    )
+    harvest_cmd = sub.add_parser("harvest")
+    harvest_cmd.add_argument("--provider", choices=sorted(PROVIDERS), required=True)
+    harvest_cmd.add_argument("--max-pages", type=int, default=50)
+    open_cmd = sub.add_parser("queue-open-book")
+    open_cmd.add_argument("--record-key", required=True)
     sub.add_parser("worker-once")
     sub.add_parser("worker-loop")
     sub.add_parser("status")
@@ -98,6 +128,16 @@ def main() -> int:
                     "error": type(exc).__name__,
                 }
             )
+    elif args.command == "discover":
+        output = discover_opac_query(
+            store, ROOT, args.query, offset=args.offset, max_records=args.max_records
+        )
+    elif args.command == "harvest":
+        output = harvest(store, args.provider, max_pages=args.max_pages)
+    elif args.command == "queue-open-book":
+        output = _queue_open_book(store, args.record_key)
+    elif args.command == "scan-configured":
+        output = scan_configured_queries(store, ROOT, args.queries_file)
     elif args.command == "worker-once":
         store.recover_stale()
         output = run_once(store, ROOT)

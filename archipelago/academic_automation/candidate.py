@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from .store import AcademicStore
 
-ALLOWED_LICENSES = frozenset({"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "public-domain"})
+ALLOWED_LICENSES = frozenset({"CC0-1.0", "CC-BY-3.0", "CC-BY-4.0", "CC-BY-SA-4.0", "public-domain"})
 
 
 def enqueue_manifest(store: AcademicStore, root: Path, manifest_path: Path) -> str:
