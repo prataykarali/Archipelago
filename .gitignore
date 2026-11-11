@@ -77,6 +77,11 @@ ingest/
 # Linter / test caches
 .ruff_cache/
 .pytest_cache/
+.mypy_cache/
+
+# Generated release packages and the separate local release worktree
+/.release-artifacts/
+/.codex-release/
 
 # Generated audit / visualization outputs
 source_audit.json
@@ -110,11 +115,15 @@ data/catalogs/pearson_session_cache.json
 # Local identity, uploads, and generated library caches
 /data/local_users.json
 /data/uploads/
+/data/private/
 # Source lifecycle ledger + librarian ingest-proposal queue are institutional
 # state that changes on every provider sweep; keep them out of version control.
 # Templates for both live in data/.
 /data/source_lifecycle.json
 /data/ingest_proposals.json
+/data/academic_automation/
+/data/academic_candidates/
+/data/academic_jobs/
 /data/catalogs/pearson_bookshelf.json
 /data/catalogs/batch*_ingestion_summary.json
 /data/datasets/

@@ -11,6 +11,8 @@ from flask import Flask, Response, g, jsonify, redirect, request, send_from_dire
 import requests
 
 from archipelago import supabase_auth
+from archipelago.academic_automation import AcademicStore
+from archipelago.academic_automation.gpu import gpu_snapshot
 from archipelago.middleware.log_redaction import install_log_redaction
 
 # Access logs must never capture the `?token=`/Authorization values used here.
@@ -39,7 +41,7 @@ def enforce_graph_auth():
     if principal is not None and principal.role in {"librarian", "administrator"}:
         g.archipelago_principal = principal
         return None
-    if principal is None and request.path in {"/", "/archipelago_graph.html"}:
+    if principal is None and request.path in {"/", "/archipelago_graph.html", "/academic-automation.html"}:
         config = supabase_auth.public_config()
         chat_origin = config.get("chatUrl")
         graph_origin = config.get("graphUrl") or request.host_url.rstrip("/")
@@ -109,6 +111,20 @@ def api_graph():
         "source_ref": edge.get("source", ""),
     } for index, edge in enumerate(raw_edges)]
     return jsonify({"nodes": nodes, "edges": edges, "stats": data.get("stats", {}), "clusters": visualization.get("clusters", {})})
+
+
+@app.get("/api/academic-automation/status")
+def api_academic_automation_status():
+    """Show durable academic metadata and GPU job state to staff."""
+    state = Path(
+        os.environ.get(
+            "ARCHIPELAGO_ACADEMIC_STATE",
+            str(BASE_DIR / "data" / "academic_automation" / "state.sqlite3"),
+        )
+    )
+    if not state.exists():
+        return jsonify({"configured": False, "message": "Academic synchronization has not run."})
+    return jsonify({"configured": True, **AcademicStore(state).dashboard(), "gpu": gpu_snapshot()})
 
 
 @app.route("/api/schema")

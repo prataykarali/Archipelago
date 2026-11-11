@@ -52,6 +52,7 @@ def read_inventory(base_dir: Path | str | None = None, use_cache: bool = True) -
     Never raises: a missing or corrupt inventory is an empty library, not a
     failed request.
     """
+    global _cached_rows, _cached_stamp
     path = inventory_path(base_dir)
     with _cache_lock:
         stamp = _stamp(path)
@@ -70,7 +71,6 @@ def read_inventory(base_dir: Path | str | None = None, use_cache: bool = True) -
             rows = []
 
     with _cache_lock:
-        global _cached_rows, _cached_stamp
         _cached_rows, _cached_stamp = rows, stamp
     return list(rows)
 

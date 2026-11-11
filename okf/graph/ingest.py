@@ -1,31 +1,59 @@
 """ingest.py — Kùzu graph submodule."""
-from okf.graph.common import (
-    _DEFAULT_DB_PATH, _kuzu_escape, _kuzu_literal, _SCHEMA_DDL,
-    _create_schema, _migrate_schema, logger, build_visual_graph,
-    build_graph_rag_index,
-)
-from okf.cleanup import is_valid_concept_name
-from okf.util import create_concept_id, _source_record
-from okf.config import infer_source_category
-from okf.graph.export import enforce_dag, export_graph
-import os
+
+from __future__ import annotations
+
 import logging
+import os
+from pathlib import Path
+from typing import Any
+
+import kuzu
+
+from okf.cleanup import is_valid_concept_name
+from okf.graph.common import (
+    _DEFAULT_DB_PATH,
+    _create_schema,
+    _kuzu_escape,
+    _kuzu_literal,
+    _migrate_schema,
+    build_graph_rag_index,
+    build_visual_graph,
+    logger,
+)
+from okf.graph.export import enforce_dag, export_graph
+from okf.util import _source_record, create_concept_id
+
 # logger may come from common
 try:
-    logger
+    _logger = logger
 except NameError:
     logger = logging.getLogger(__name__)
 
 
 from okf.graph.ingest_manual import create_edge, ensure_concept  # noqa: F401
 
-def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
+
+def ingest_to_kuzu(
+    okf_results: list[dict[str, Any]],
+    db_path: str = _DEFAULT_DB_PATH,
+    incremental: bool = False,
+) -> tuple[kuzu.Connection, kuzu.Database, dict[str, Any]]:
     """Ingest OKF results into KùzuDB with normalized schema and MERGE semantics."""
-    import kuzu
     import shutil
 
-    # Clean existing DB
-    if os.path.exists(db_path):
+    target_resolved = Path(db_path).resolve()
+    prod_resolved = Path(_DEFAULT_DB_PATH).resolve()
+
+    # CRITICAL SAFETY GATE: Production DB must NEVER be deleted in-place
+    if target_resolved == prod_resolved and not incremental:
+        raise PermissionError(
+            f"Direct deletion or in-place rebuild of production graph ({target_resolved}) is prohibited. "
+            "Rebuilds must occur in an isolated staging location with transactional pre-validation "
+            "and atomic publication via KuzuGraphEngine.atomic_swap."
+        )
+
+    # Clean staging scratch path if not incremental
+    if not incremental and os.path.exists(db_path):
         try:
             os.remove(db_path)
         except Exception:
@@ -41,31 +69,38 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
     _migrate_schema(conn)
 
     # Best-effort summary lookup for placeholder nodes created from edge refs.
-    _summary_lookup = {}
+    _summary_lookup: dict[str, str] = {}
     for _r in okf_results:
         _name = _r.get("concept_name", "")
         _s = _r.get("summary", "")
         if _s and len(_s) > len(_summary_lookup.get(_name, "")):
             _summary_lookup[_name] = _s
 
-    def ensure_document(doc_id):
+    def ensure_document(doc_id: str) -> None:
         if not doc_id:
             return
         safe_doc_id = _kuzu_escape(doc_id)
         try:
-            from catalog_bridge import _pretty_title
-
-            safe_title = _kuzu_escape(_pretty_title(doc_id))
+            safe_title = _kuzu_escape(Path(doc_id).stem.replace("_", " ").strip() or doc_id)
             conn.execute(
-                f"MERGE (d:Document {{id: '{safe_doc_id}'}}) "
-                f"ON CREATE SET d.title = '{safe_title}'"
+                f"MERGE (d:Document {{id: '{safe_doc_id}'}}) ON CREATE SET d.title = '{safe_title}'"
             )
         except Exception as e:
             logger.warning("ensure_document failed for %s: %s", doc_id, e)
 
-    def ensure_chunk(doc_id, chunk_id, page_number, section_title, text_passage,
-                     text_offset_start=None, text_offset_end=None,
-                     block_x=None, block_y=None, block_w=None, block_h=None):
+    def ensure_chunk(
+        doc_id: str,
+        chunk_id: str,
+        page_number: int,
+        section_title: str,
+        text_passage: str,
+        text_offset_start: int | None = None,
+        text_offset_end: int | None = None,
+        block_x: float | None = None,
+        block_y: float | None = None,
+        block_w: float | None = None,
+        block_h: float | None = None,
+    ) -> str:
         if not doc_id or not chunk_id:
             return ""
         cid = f"{doc_id}_{chunk_id}"
@@ -98,8 +133,13 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
             logger.warning("ensure_chunk failed for %s -> %s: %s", doc_id, cid, e)
         return cid
 
-    def ensure_concept(name, concept_type="definition", difficulty="intermediate",
-                       summary="", is_placeholder=False):
+    def ensure_concept(  # noqa: F811
+        name: str,
+        concept_type: str = "definition",
+        difficulty: str = "intermediate",
+        summary: str = "",
+        is_placeholder: bool = False,
+    ) -> str:
         if not is_valid_concept_name(name):
             return ""
         cid = create_concept_id(name)
@@ -132,7 +172,7 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
             logger.warning("ensure_concept failed for %s (%s): %s", name, cid, e)
         return cid
 
-    def link_chunk_concept(chunk_db_id, concept_id):
+    def link_chunk_concept(chunk_db_id: str, concept_id: str) -> None:
         if not chunk_db_id or not concept_id:
             return
         safe_chunk_db_id = _kuzu_escape(chunk_db_id)
@@ -145,15 +185,19 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
         except Exception as e:
             logger.warning(
                 "link_chunk_concept failed: %s -> %s: %s",
-                chunk_db_id, concept_id, e,
+                chunk_db_id,
+                concept_id,
+                e,
             )
 
-    def create_edge(from_id, to_id, rel_table, rel_type, source):
+    def create_edge(  # noqa: F811
+        from_id: str, to_id: str, rel_table: str, rel_type: str, source: str
+    ) -> bool:
         """Create a relationship edge using MERGE to prevent duplicate edges."""
         if from_id == to_id:
             logger.warning(f"Self-loop detected and skipped: {from_id} -> {to_id}")
             return False
-        
+
         try:
             if rel_table == "REQUIRES":
                 enforce_dag(conn, to_id, from_id)
@@ -175,7 +219,11 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
         except Exception as e:
             logger.warning(
                 "create_edge failed: %s %s -> %s (%s): %s",
-                rel_table, from_id, to_id, rel_type, e,
+                rel_table,
+                from_id,
+                to_id,
+                rel_type,
+                e,
             )
             return False
 
@@ -192,7 +240,7 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
             name,
             result.get("concept_type", "definition"),
             result.get("difficulty", "intermediate"),
-            result.get("summary", "")
+            result.get("summary", ""),
         )
         if concept_id:
             unique_concept_ids.add(concept_id)
@@ -217,11 +265,17 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
 
             # 2. Ensure Chunk & Link Document -> Chunk
             chunk_db_id = ensure_chunk(
-                doc_id, chunk_id, page_number, section_title, text_passage,
+                doc_id,
+                chunk_id,
+                page_number,
+                section_title,
+                text_passage,
                 text_offset_start=src.get("text_offset_start"),
                 text_offset_end=src.get("text_offset_end"),
-                block_x=src.get("block_x"), block_y=src.get("block_y"),
-                block_w=src.get("block_w"), block_h=src.get("block_h"),
+                block_x=src.get("block_x"),
+                block_y=src.get("block_y"),
+                block_w=src.get("block_w"),
+                block_h=src.get("block_h"),
             )
 
             # 4. Link Chunk -> Concept
@@ -240,8 +294,7 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
     # Canonical concept inventory: only names some record actually extracted
     # may be edge targets. Anything else is skipped and counted.
     extracted_names = {
-        r.get("concept_name", "").strip().lower()
-        for r in okf_results if r.get("concept_name")
+        r.get("concept_name", "").strip().lower() for r in okf_results if r.get("concept_name")
     }
     skipped_unknown_targets = 0
     edge_count = 0
@@ -278,7 +331,11 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
                     edge_count += 1
 
         for rel in result.get("related_to", []):
-            if isinstance(rel, dict) and rel.get("concept") and is_valid_concept_name(rel["concept"]):
+            if (
+                isinstance(rel, dict)
+                and rel.get("concept")
+                and is_valid_concept_name(rel["concept"])
+            ):
                 if rel["concept"].strip().lower() not in extracted_names:
                     skipped_unknown_targets += 1
                     continue
@@ -297,8 +354,10 @@ def ingest_to_kuzu(okf_results: list, db_path: str = _DEFAULT_DB_PATH):
 
     print(f"    -> {edge_count} edges created")
     if skipped_unknown_targets:
-        print(f"    -> {skipped_unknown_targets} edges skipped "
-              f"(target not in extracted concept inventory)")
+        print(
+            f"    -> {skipped_unknown_targets} edges skipped "
+            f"(target not in extracted concept inventory)"
+        )
 
     # Export graph to JSON
     print("  Exporting graph...")

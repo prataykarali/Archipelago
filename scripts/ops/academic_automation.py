@@ -1,0 +1,125 @@
+"""Local academic metadata checks, gated OKF staging, and reviewed publication."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import sys
+import time
+from typing import Any
+
+import requests
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "host_research"))
+
+from archipelago.academic_automation import AcademicStore  # noqa: E402
+from archipelago.academic_automation.candidate import enqueue_manifest  # noqa: E402
+from archipelago.academic_automation.gpu import gpu_snapshot  # noqa: E402
+from archipelago.academic_automation.matching import match_repository  # noqa: E402
+from archipelago.academic_automation.publication import publish_reviewed  # noqa: E402
+from archipelago.academic_automation.scheduler import sync_sources  # noqa: E402
+from archipelago.academic_automation.worker import run_once  # noqa: E402
+
+WORKER_POLL_SECONDS = 30
+STATE_PATH = Path(
+    os.getenv(
+        "ARCHIPELAGO_ACADEMIC_STATE", str(ROOT / "data" / "academic_automation" / "state.sqlite3")
+    )
+)
+
+
+def _sources(include_opac: bool) -> dict[str, Any]:
+    from koha_snapshot import build_snapshot
+    from opac_daily import fetch_daily_opac
+
+    def koha() -> list[dict[str, Any]]:
+        return list(build_snapshot(ROOT / "data" / "koha")["holdings"])
+
+    def pearson() -> list[dict[str, Any]]:
+        raw = json.loads(
+            (ROOT / "data" / "catalogs" / "pearson_bookshelf.json").read_text(encoding="utf-8")
+        )
+        rows = raw.get("books", []) if isinstance(raw, dict) else raw
+        if not isinstance(rows, list):
+            raise ValueError("Pearson bookshelf must contain books")
+        return rows
+
+    sources = {"koha_export": koha, "pearson_bookshelf": pearson}
+    if include_opac:
+        sources["opac_arrivals"] = lambda: list(fetch_daily_opac()["new_arrivals"])
+    return sources
+
+
+def main() -> int:
+    """Execute one explicit local operation; no command silently starts GPU work."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    sync = sub.add_parser("sync")
+    sync.add_argument("--skip-live-opac", action="store_true")
+    sub.add_parser("worker-once")
+    sub.add_parser("worker-loop")
+    sub.add_parser("status")
+    queue = sub.add_parser("queue")
+    queue.add_argument("manifest", type=Path)
+    publish = sub.add_parser("publish")
+    publish.add_argument("job_id")
+    publish.add_argument("--reviewer", required=True)
+    cancel = sub.add_parser("cancel")
+    cancel.add_argument("job_id")
+    revoke = sub.add_parser("revoke")
+    revoke.add_argument("grant_id")
+    args = parser.parse_args()
+    store = AcademicStore(STATE_PATH)
+    if args.command == "sync":
+        output = sync_sources(store, _sources(not args.skip_live_opac))
+        try:
+            from repository_feed import discover_repository_items
+
+            repository_items, _metadata = discover_repository_items()
+            matched = match_repository(store, repository_items)
+            store.provider_result("institutional_repository")
+            output.append(
+                {
+                    "provider": "institutional_repository",
+                    "status": "metadata_only",
+                    "matches": matched,
+                }
+            )
+        except (OSError, ValueError, ImportError, requests.RequestException) as exc:
+            store.provider_result("institutional_repository", error=type(exc).__name__)
+            output.append(
+                {
+                    "provider": "institutional_repository",
+                    "status": "unavailable",
+                    "error": type(exc).__name__,
+                }
+            )
+    elif args.command == "worker-once":
+        store.recover_stale()
+        output = run_once(store, ROOT)
+    elif args.command == "worker-loop":
+        while True:
+            store.recover_stale()
+            output = run_once(store, ROOT)
+            print(json.dumps(output or {"status": "idle"}, sort_keys=True), flush=True)
+            time.sleep(WORKER_POLL_SECONDS)
+    elif args.command == "queue":
+        output = {"job_id": enqueue_manifest(store, ROOT, args.manifest)}
+    elif args.command == "publish":
+        output = publish_reviewed(store, args.job_id, ROOT, reviewer=args.reviewer)
+    elif args.command == "cancel":
+        output = {"cancelled": store.cancel(args.job_id, "local_operator")}
+    elif args.command == "revoke":
+        output = {"revoked": store.revoke(args.grant_id, "local_operator")}
+    else:
+        output = {**store.dashboard(), "gpu": gpu_snapshot()}
+    print(json.dumps(output, sort_keys=True, default=str))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

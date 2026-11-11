@@ -1,0 +1,10 @@
+[Unit]
+Description=Poll approved academic ingestion jobs when enabled by an operator
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

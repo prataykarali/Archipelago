@@ -1,0 +1,9 @@
+[Unit]
+Description=Local consent-gated academic OKF worker
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Desktop/archipelago/Archipelago
+ExecStart=/usr/bin/python3 %h/Desktop/archipelago/Archipelago/scripts/ops/academic_automation.py worker-once
+TimeoutStartSec=70min

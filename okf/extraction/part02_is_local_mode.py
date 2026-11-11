@@ -1,11 +1,16 @@
 """Auto-split from monolith — blocks are verbatim."""
+
 from __future__ import annotations
 
 import json
+import os
+from typing import Any
+
 import ollama
+
+from okf.academic_prompt import academic_messages
 from okf.cleanup import is_valid_concept_name
 from okf.config import (
-    BASE_DIR,
     EXTRACTION_PROMPT_V15,
     MAX_CHARS_TO_SLM,
     MAX_RETRIES,
@@ -13,15 +18,17 @@ from okf.config import (
     VALID_DIFFICULTIES,
     VALID_RELATIONS,
     VALID_TYPES,
-    _local_path,
     infer_source_category,
 )
-from . import _deps as _rt  # noqa: F401
+
+from . import _deps as _rt
+
+SHARED_MODEL_MAX_TOKENS = 768
 
 
 def is_local_mode() -> bool:
     """Live LOCAL_MODE value (may flip after a failed load_local_model)."""
-    return _rt.LOCAL_MODE
+    return bool(_rt.LOCAL_MODE)
 
 
 def is_model_loaded() -> bool:
@@ -48,15 +55,18 @@ def _extract_json_payload(raw: str) -> str:
     object_start = cleaned.find("{")
     object_end = cleaned.rfind("}")
 
-    if array_start != -1 and array_end > array_start:
-        if object_start == -1 or array_start < object_start:
-            return cleaned[array_start:array_end + 1]
+    if (
+        array_start != -1
+        and array_end > array_start
+        and (object_start == -1 or array_start < object_start)
+    ):
+        return cleaned[array_start : array_end + 1]
     if object_start != -1 and object_end > object_start:
-        return cleaned[object_start:object_end + 1]
+        return cleaned[object_start : object_end + 1]
     return cleaned
 
 
-def _string_list(value) -> list:
+def _string_list(value: object) -> list[str]:
     """Normalize scalar/nested list model output into a list of strings."""
     if value is None:
         return []
@@ -65,7 +75,7 @@ def _string_list(value) -> list:
     if not isinstance(value, list):
         return []
 
-    items = []
+    items: list[str] = []
     for item in value:
         if isinstance(item, list):
             items.extend(str(x).strip() for x in item if isinstance(x, str) and x.strip())
@@ -74,11 +84,11 @@ def _string_list(value) -> list:
     return list(dict.fromkeys(items))
 
 
-def _normalize_related(value) -> list:
+def _normalize_related(value: object) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
 
-    related = []
+    related: list[dict[str, str]] = []
     seen = set()
     for item in value:
         if isinstance(item, str):
@@ -100,11 +110,18 @@ def _normalize_related(value) -> list:
     return related
 
 
-def normalize_okf_item(data: dict, doc_id: str, chunk_id: str,
-                       page_number: int, section_title: str,
-                       doc_hash: str = None, page_count: int = None,
-                       doc_title: str = None, edition: str = None,
-                       page_label_map: dict = None) -> dict | None:
+def normalize_okf_item(
+    data: object,
+    doc_id: str,
+    chunk_id: str,
+    page_number: int,
+    section_title: str,
+    doc_hash: str | None = None,
+    page_count: int | None = None,
+    doc_title: str | None = None,
+    edition: str | None = None,
+    page_label_map: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     """Validate and normalize one OKF concept object with provenance."""
     if not isinstance(data, dict):
         return None
@@ -123,6 +140,7 @@ def normalize_okf_item(data: dict, doc_id: str, chunk_id: str,
     if isinstance(ctype, list) and ctype:
         ctype = ctype[0]
     ctype = str(ctype).lower() if ctype else "definition"
+    ctype = {"core": "definition", "algorithm": "method", "theorem": "theory"}.get(ctype, ctype)
     if ctype not in VALID_TYPES:
         ctype = "definition"
 
@@ -176,15 +194,20 @@ def normalize_okf_item(data: dict, doc_id: str, chunk_id: str,
 def _generate_local(prompt: str, max_new_tokens: int = 2048) -> str:
     """One local-model generation with the same chat templating as extraction."""
     import torch
+
     messages = [{"role": "user", "content": prompt}]
     try:
         templated_prompt = _rt.LOCAL_TOKENIZER.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True,
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
             enable_thinking=False,
         )
     except Exception:
         templated_prompt = _rt.LOCAL_TOKENIZER.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True,
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
         )
     inputs = _rt.LOCAL_TOKENIZER(templated_prompt, return_tensors="pt").to(_rt.LOCAL_MODEL.device)
     with torch.no_grad():
@@ -195,14 +218,21 @@ def _generate_local(prompt: str, max_new_tokens: int = 2048) -> str:
             do_sample=False,
         )
     input_len = inputs.input_ids.shape[1]
-    return _rt.LOCAL_TOKENIZER.decode(outputs[0][input_len:], skip_special_tokens=True).strip()
+    return str(_rt.LOCAL_TOKENIZER.decode(outputs[0][input_len:], skip_special_tokens=True).strip())
 
 
-def extract_okf_v15(text: str, doc_id: str = "", chunk_id: str = "",
-                    page_number: int = 0, section_title: str = "",
-                    doc_hash: str = None, page_count: int = None,
-                    doc_title: str = None, edition: str = None,
-                    page_label_map: dict = None) -> list:
+def extract_okf_v15(
+    text: str,
+    doc_id: str = "",
+    chunk_id: str = "",
+    page_number: int = 0,
+    section_title: str = "",
+    doc_hash: str | None = None,
+    page_count: int | None = None,
+    doc_title: str | None = None,
+    edition: str | None = None,
+    page_label_map: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     """Extract OKF v1.6 concepts from a text chunk using Ollama or local model.
 
     We never send a whole page/book: the chunk is already section/paragraph
@@ -221,7 +251,23 @@ def extract_okf_v15(text: str, doc_id: str = "", chunk_id: str = "",
 
     for attempt in range(MAX_RETRIES + 1):
         try:
-            if _rt.LOCAL_MODE:
+            shared_model = os.getenv("ARCHIPELAGO_INGESTION_MODEL", "").strip()
+            if shared_model:
+                shared_options = {"temperature": 0, "num_predict": SHARED_MODEL_MAX_TOKENS}
+                if os.getenv("ARCHIPELAGO_ACADEMIC_CPU_ONLY") == "1":
+                    shared_options["num_gpu"] = 0
+                response = ollama.chat(
+                    model=shared_model,
+                    messages=academic_messages(
+                        text, doc_title or section_title or doc_id, page=page_number
+                    ),
+                    format="json",
+                    stream=False,
+                    think=False,
+                    options=shared_options,
+                )
+                full_response = response.message.content or ""
+            elif _rt.LOCAL_MODE:
                 # Local PyTorch/Transformers inference
                 messages = [{"role": "user", "content": prompt}]
                 try:
@@ -237,9 +283,12 @@ def extract_okf_v15(text: str, doc_id: str = "", chunk_id: str = "",
                         tokenize=False,
                         add_generation_prompt=True,
                     )
-                inputs = _rt.LOCAL_TOKENIZER(templated_prompt, return_tensors="pt").to(_rt.LOCAL_MODEL.device)
+                inputs = _rt.LOCAL_TOKENIZER(templated_prompt, return_tensors="pt").to(
+                    _rt.LOCAL_MODEL.device
+                )
 
                 import torch
+
                 with torch.no_grad():
                     outputs = _rt.LOCAL_MODEL.generate(
                         **inputs,
@@ -248,7 +297,9 @@ def extract_okf_v15(text: str, doc_id: str = "", chunk_id: str = "",
                         do_sample=False,
                     )
                 input_len = inputs.input_ids.shape[1]
-                full_response = _rt.LOCAL_TOKENIZER.decode(outputs[0][input_len:], skip_special_tokens=True).strip()
+                full_response = _rt.LOCAL_TOKENIZER.decode(
+                    outputs[0][input_len:], skip_special_tokens=True
+                ).strip()
             else:
                 # Ollama inference
                 response_stream = ollama.chat(
@@ -275,9 +326,20 @@ def extract_okf_v15(text: str, doc_id: str = "", chunk_id: str = "",
                 return []
 
             normalized = [
-                item for item in (
-                    normalize_okf_item(x, doc_id, chunk_id, page_number, section_title,
-                                       doc_hash, page_count, doc_title, edition, page_label_map)
+                item
+                for item in (
+                    normalize_okf_item(
+                        x,
+                        doc_id,
+                        chunk_id,
+                        page_number,
+                        section_title,
+                        doc_hash,
+                        page_count,
+                        doc_title,
+                        edition,
+                        page_label_map,
+                    )
                     for x in data[:5]
                 )
                 if item

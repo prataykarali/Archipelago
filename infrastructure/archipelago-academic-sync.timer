@@ -1,0 +1,10 @@
+[Unit]
+Description=Check academic metadata daily when enabled by an operator
+
+[Timer]
+OnCalendar=*-*-* 09:30:00 Asia/Kolkata
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

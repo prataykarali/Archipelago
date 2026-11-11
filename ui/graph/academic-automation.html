@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academic Automation · Archipelago</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color-scheme:dark;background:#08071b;color:#f3edff}body{margin:0}header{padding:20px;background:#120d30;border-bottom:1px solid #60479b}main{max-width:1200px;margin:auto;padding:24px}a{color:#c5b4ff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.card{background:#171337;border:1px solid #60479b;border-radius:12px;padding:16px}h1{margin:0 0 8px}h2{font-size:18px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid #4c3c70;overflow-wrap:anywhere}th{color:#d0bfff}section{margin-top:28px;overflow:auto}.muted{color:#bcb0d3}.error{color:#ffb3b3}button{background:#31205d;color:#fff;border:1px solid #8268b3;border-radius:8px;padding:9px;cursor:pointer}
+</style>
+</head>
+<body><header><a href="/global.html">← Global graph</a><h1>Academic automation</h1><p class="muted">Catalog checks and local GPU jobs are tracked separately from research automation.</p></header>
+<main><p id="state" role="status">Loading status…</p><div id="totals" class="grid"></div>
+<section><h2>Source checks</h2><table><thead><tr><th>Provider</th><th>Status</th><th>Last attempt</th><th>Last success</th><th>Error</th></tr></thead><tbody id="providers"></tbody></table></section>
+<section><h2>Ingestion and review queue</h2><table><thead><tr><th>Job</th><th>Record</th><th>Status</th><th>Mode</th><th>Progress</th><th>Updated</th></tr></thead><tbody id="jobs"></tbody></table></section>
+<section><h2>GPU permission grants</h2><table><thead><tr><th>Scope</th><th>Job</th><th>Expires</th><th>Revoked</th></tr></thead><tbody id="grants"></tbody></table></section>
+<section><h2>Recent audit events</h2><table><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Subject</th></tr></thead><tbody id="audit"></tbody></table></section>
+<p class="muted">GPU consent and graph publication are performed on the authorized local workstation. This page cannot approve or publish a job.</p><button id="refresh">Refresh</button></main>
+<script>
+const $=id=>document.getElementById(id);
+function cell(row,value){const td=document.createElement('td');td.textContent=String(value??'—');row.append(td)}
+function rows(id,items,fields){$(id).replaceChildren();for(const item of items){const tr=document.createElement('tr');for(const key of fields)cell(tr,item[key]);$(id).append(tr)}}
+function card(label,value){const div=document.createElement('div');div.className='card';const heading=document.createElement('h2');heading.textContent=label;const text=document.createElement('strong');text.textContent=String(value);div.append(heading,text);$('totals').append(div)}
+async function load(){try{const response=await fetch('/api/academic-automation/status',{cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'Status unavailable');$('totals').replaceChildren();if(!data.configured){$('state').textContent=data.message;return}
+const jobs=data.jobs||[];card('Catalog records',Object.values(data.record_counts||{}).reduce((a,b)=>a+b,0));card('Discovered new / revised',(data.discovery_counts?.record_new||0)+' / '+(data.discovery_counts?.record_changed||0));card('Eligible content',jobs.filter(j=>j.rights==='open_permitted').length);card('Pending GPU approval',jobs.filter(j=>j.status==='awaiting_approval').length);card('Active jobs',jobs.filter(j=>['claimed','running'].includes(j.status)).length);card('Review queue',jobs.filter(j=>j.status==='review_ready').length);card('Published jobs',jobs.filter(j=>j.status==='published').length);card('Failures',jobs.filter(j=>['dead_letter','publication_failed'].includes(j.status)).length);card('GPU',data.gpu?.available?`${data.gpu.memory_used_mib}/${data.gpu.memory_total_mib} MiB · ${data.gpu.utilization_percent}% · ${data.gpu.compute_process_count} processes`:data.gpu?.reason||'Unavailable');
+rows('providers',data.providers||[],['name','status','last_attempt','last_success','error']);rows('jobs',jobs,['job_id','record_key','status','mode','progress','updated_at']);rows('grants',data.grants||[],['scope','job_id','expires_at','revoked_at']);rows('audit',data.audit||[],['at','actor','action','subject']);$('state').textContent='Showing durable local state. Refresh to see new checkpoints.'}catch(error){$('state').textContent=error.message;$('state').className='error'}}
+$('refresh').onclick=load;load();
+</script></body></html>
