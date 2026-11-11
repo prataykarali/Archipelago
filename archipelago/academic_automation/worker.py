@@ -138,6 +138,24 @@ def stage_job(store: AcademicStore, job: dict[str, Any], root: Path) -> dict[str
     incoming = [row for row in results if str(row.get("doc_id")) == doc_id]
     if not incoming:
         raise ValueError("No source-linked concepts were extracted")
+    sidecar = source.with_suffix(".source.json")
+    if sidecar.is_file():
+        provenance = json.loads(sidecar.read_text(encoding="utf-8"))
+        if (
+            provenance.get("content_sha256") != job["content_sha256"]
+            or provenance.get("record_key") != job["record_key"]
+        ):
+            raise ValueError("Source provenance does not match the candidate")
+        for row in incoming:
+            row.update(
+                {
+                    "source_url": provenance["source_url"],
+                    "source_provider": provenance["provider"],
+                    "source_kind": provenance["source_kind"],
+                    "source_license": provenance["license"],
+                    "retrieved_at": provenance.get("retrieved_at"),
+                }
+            )
     prepare_staging_database(stage_path, graph_path)
     connection, staged_db, _merged_export = ingest_to_kuzu(
         incoming,

@@ -21,7 +21,9 @@ def _plain(value: Any) -> str:
 def _revision(row: dict[str, Any]) -> str:
     """Hash only source-backed metadata; retrieval time is not a revision."""
     content = {
-        key: value for key, value in row.items() if key not in {"retrieved_at", "checked_at"}
+        key: value
+        for key, value in row.items()
+        if key not in {"retrieved_at", "checked_at", "fetched_at"}
     }
     return sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()
 
@@ -68,6 +70,29 @@ def normalize_opac(row: dict[str, Any]) -> tuple[dict[str, str], dict[str, Any]]
     }, row
 
 
+def normalize_live_opac(row: dict[str, Any]) -> tuple[dict[str, str], dict[str, Any]]:
+    """Keep one live OPAC detail response distinct from arrival metadata."""
+    source_id = _plain(row.get("biblionumber"))
+    title = _plain(row.get("title"))
+    if not source_id.isdigit() or not title:
+        raise ValueError("Live OPAC record needs a numeric biblionumber and title")
+    isbn = re.sub(r"[^0-9X]", "", _plain(row.get("isbn")).upper())
+    edition_match = _EDITION.search(title)
+    edition = _plain(row.get("edition")) or (edition_match.group(1) if edition_match else "")
+    identity = f"isbn:{isbn}:edition:{edition}" if isbn else f"koha:{source_id}"
+    holdings = row.get("holdings")
+    return {
+        "provider": "opac_live",
+        "source_id": source_id,
+        "title": title,
+        "isbn": isbn,
+        "edition": edition,
+        "identity_key": identity,
+        "revision": _revision(row),
+        "availability_status": "live_opac_response" if isinstance(holdings, list) else "metadata_only",
+    }, row
+
+
 def normalize_pearson(row: dict[str, Any]) -> tuple[dict[str, str], dict[str, Any]]:
     """Retain licensed bookshelf metadata without implying extractable text."""
     source_id = _plain(row.get("id"))
@@ -98,6 +123,7 @@ def normalize_pearson(row: dict[str, Any]) -> tuple[dict[str, str], dict[str, An
 NORMALIZERS = {
     "koha_export": normalize_koha,
     "opac_arrivals": normalize_opac,
+    "opac_live": normalize_live_opac,
     "pearson_bookshelf": normalize_pearson,
 }
 
