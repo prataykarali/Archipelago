@@ -24,7 +24,9 @@ def test_concept_question_does_not_become_a_paper_lookup() -> None:
 
     assert concept["route"] != "BOOK_PAGE"
     assert paper["route"] == "BOOK_PAGE"
-    assert paper["payload"]["citations"][0]["page_number"] == 2
+    citation = paper["payload"]["citations"][0]
+    assert citation["url"].endswith("page=2")
+    assert citation["page_number"] is None
 
 
 def test_hosted_ingestion_fails_closed_without_worker(monkeypatch: pytest.MonkeyPatch) -> None:
