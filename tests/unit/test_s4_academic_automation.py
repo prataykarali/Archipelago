@@ -285,6 +285,18 @@ def test_publication_requires_exact_human_approval(store: AcademicStore, tmp_pat
     assert canonical.read_bytes() == b"old graph"
 
 
+def test_review_digest_changes_with_scientific_decision_ledger(
+    store: AcademicStore, tmp_path: Path
+) -> None:
+    """An approval cannot survive changes to the exact evidence ledger."""
+    job_id, _canonical = _review_ready(store, tmp_path)
+    job = store.job(job_id)
+    before = review_digest(job, tmp_path)
+    ledger = tmp_path / "data" / "academic_jobs" / job_id / "review_recommendations.json"
+    ledger.write_text('{"decision":"reject"}', encoding="utf-8")
+    assert review_digest(job, tmp_path) != before
+
+
 def test_failed_publication_validation_keeps_graph(
     store: AcademicStore,
     tmp_path: Path,

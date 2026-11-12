@@ -12,7 +12,6 @@ from uuid import uuid4
 MAX_PENDING_JOBS = 100
 MAX_RETRIES = 3
 RETRY_BASE_SECONDS = 60
-CLASS_GRANT_HOURS = 24
 DEFER_MINUTES = 60
 AGING_POINTS_PER_DAY = 24
 STALE_JOB_HOURS = 2
@@ -96,47 +95,16 @@ class AcademicStore:
             """)
 
     def review_decision(self, job_id: str) -> dict[str, Any] | None:
-        """Read an attributable decision for one exact staging candidate."""
-        with self._connect() as db:
-            row = db.execute("SELECT * FROM human_reviews WHERE job_id=?", (job_id,)).fetchone()
-        return dict(row) if row else None
+        """Read an attributable review decision."""
+        from .store_review import review_decision
+
+        return review_decision(self, job_id)
 
     def record_review(self, job_id: str, decision: dict[str, Any]) -> None:
-        """Replace a review only while the staging candidate remains pending."""
-        with self._connect() as db:
-            db.execute("BEGIN IMMEDIATE")
-            row = db.execute("SELECT status FROM jobs WHERE job_id=?", (job_id,)).fetchone()
-            if row is None or row["status"] != "review_ready":
-                raise ValueError("Job is not awaiting human review")
-            db.execute(
-                "INSERT INTO human_reviews(job_id,decision,reviewer_id,reviewer_name,"
-                "reviewer_role,review_digest,at,note,concept_count,edge_count) "
-                "VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(job_id) DO UPDATE SET "
-                "decision=excluded.decision,reviewer_id=excluded.reviewer_id,"
-                "reviewer_name=excluded.reviewer_name,reviewer_role=excluded.reviewer_role,"
-                "review_digest=excluded.review_digest,at=excluded.at,note=excluded.note,"
-                "concept_count=excluded.concept_count,edge_count=excluded.edge_count",
-                (
-                    job_id,
-                    *(
-                        decision[key]
-                        for key in (
-                            "decision",
-                            "reviewer_id",
-                            "reviewer_name",
-                            "reviewer_role",
-                            "review_digest",
-                            "at",
-                            "note",
-                            "concept_count",
-                            "edge_count",
-                        )
-                    ),
-                ),
-            )
-        self.audit(
-            decision["reviewer_id"], "human_review_" + decision["decision"], job_id, decision
-        )
+        """Record an attributable review decision."""
+        from .store_review import record_review
+
+        record_review(self, job_id, decision)
 
     def audit(self, actor: str, action: str, subject: str, detail: dict[str, Any]) -> None:
         """Append a structured audit event."""
@@ -359,46 +327,22 @@ class AcademicStore:
         self.audit(actor, "job_deferred", job_id, {"reason": reason, "next_attempt_at": next_at})
 
     def grant(self, *, scope: str, actor: str, job_id: str | None = None) -> str:
-        """Record explicit, revocable permission for one job or a bounded class."""
-        if scope not in {"job", "trusted_academic_open_content"}:
-            raise ValueError("Invalid GPU permission scope")
-        if scope == "job" and not job_id:
-            raise ValueError("Job scope requires a job ID")
-        grant_id = str(uuid4())
-        expiry = (datetime.now(UTC) + timedelta(hours=CLASS_GRANT_HOURS)).isoformat()
-        with self._connect() as db:
-            db.execute(
-                "INSERT INTO grants(grant_id,scope,job_id,expires_at,actor,created_at) VALUES(?,?,?,?,?,?)",
-                (grant_id, scope, job_id, expiry, actor, now()),
-            )
-        self.audit(
-            actor,
-            "gpu_grant_created",
-            grant_id,
-            {"scope": scope, "job_id": job_id, "expires_at": expiry},
-        )
-        return grant_id
+        """Record explicit, revocable GPU permission."""
+        from .store_review import grant
+
+        return grant(self, scope=scope, actor=actor, job_id=job_id)
 
     def revoke(self, grant_id: str, actor: str) -> bool:
         """Revoke a GPU grant immediately."""
-        with self._connect() as db:
-            changed = db.execute(
-                "UPDATE grants SET revoked_at=? WHERE grant_id=? AND revoked_at IS NULL",
-                (now(), grant_id),
-            ).rowcount
-        if changed:
-            self.audit(actor, "gpu_grant_revoked", grant_id, {})
-        return bool(changed)
+        from .store_review import revoke
+
+        return revoke(self, grant_id, actor)
 
     def has_grant(self, job_id: str) -> bool:
-        """Check the current job or trusted open-content class permission."""
-        with self._connect() as db:
-            row = db.execute(
-                "SELECT 1 FROM grants WHERE revoked_at IS NULL AND expires_at>? "
-                "AND ((scope='job' AND job_id=?) OR scope='trusted_academic_open_content') LIMIT 1",
-                (now(), job_id),
-            ).fetchone()
-        return row is not None
+        """Check for active GPU consent."""
+        from .store_review import has_grant
+
+        return has_grant(self, job_id)
 
     def retry(self, job_id: str, error: str) -> str:
         """Apply bounded exponential backoff; exhaust into a review queue."""

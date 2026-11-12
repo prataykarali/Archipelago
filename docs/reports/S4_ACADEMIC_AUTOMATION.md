@@ -1,5 +1,7 @@
 # S4 academic automation acceptance, 2026-11-11
 
+**Current review candidate:** The initial 12-row/21-edge staging counts below are historical. See [S4 D2L scientific correction](S4_D2L_SCIENTIFIC_CORRECTION.md) for the corrected 10-row/8-edge candidate, exact disposition ledger, digests, and current BLOCKED status. The canonical and hosted graphs remain unchanged.
+
 Branch: `codex/s4-academic-automation`. Starting remote commit: `ac56b212877ea3b82aef005ac93b8d269a30802a`. The final pushed commit is reported in the task handoff because a commit cannot contain its own SHA.
 
 ## Live source evidence

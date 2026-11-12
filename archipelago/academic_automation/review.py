@@ -30,7 +30,11 @@ def review_digest(job: dict[str, Any], root: Path) -> str:
     if not staging.is_relative_to(directory.resolve()) or not staging.is_file():
         raise ValueError("Staged graph is unavailable")
     digest = sha256(str(job["baseline_version"]).encode())
-    for path in (directory / "results.json", staging):
+    evidence = directory / "review_recommendations.json"
+    paths = [directory / "results.json", staging]
+    if evidence.is_file():
+        paths.append(evidence)
+    for path in paths:
         _hash_file(digest, path)
     return digest.hexdigest()
 
@@ -69,6 +73,20 @@ def review_packet(store: AcademicStore, job_id: str, root: Path) -> dict[str, An
         for edge in staged["edges"]
         if (edge["from_id"], edge["to_id"], edge["type"]) not in existing
     )
+    staging_digest = sha256()
+    _hash_file(staging_digest, Path(str(job["staging_path"])))
+    diff = {
+        "added_concept_ids": sorted(staged["concept_ids"] - baseline["concept_ids"]),
+        "removed_concept_ids": sorted(baseline["concept_ids"] - staged["concept_ids"]),
+        "added_document_ids": sorted(staged["doc_ids"] - baseline["doc_ids"]),
+        "removed_document_ids": sorted(baseline["doc_ids"] - staged["doc_ids"]),
+        "added_chunk_ids": sorted(staged["chunk_ids"] - baseline["chunk_ids"]),
+        "removed_chunk_ids": sorted(baseline["chunk_ids"] - staged["chunk_ids"]),
+        "added_edges": len(proposed),
+        "removed_edges": len(
+            existing - {(edge["from_id"], edge["to_id"], edge["type"]) for edge in staged["edges"]}
+        ),
+    }
     passages: dict[str, dict[str, Any]] = {}
     for row in rows:
         for source in row.get("sources") or []:
@@ -94,19 +112,30 @@ def review_packet(store: AcademicStore, job_id: str, root: Path) -> dict[str, An
         edges.append(
             {"from_id": source_id, "to_id": target_id, "type": relation, "evidence": evidence}
         )
+    current_digest = review_digest(job, root)
+    decision_record = store.review_decision(job_id)
     return {
         "job_id": job_id,
         "status": job["status"],
         "publication_status": (
             "APPROVED"
-            if (store.review_decision(job_id) or {}).get("decision") == "approve"
+            if decision_record is not None
+            and decision_record["decision"] == "approve"
+            and decision_record["review_digest"] == current_digest
             else "BLOCKED"
         ),
-        "review_digest": review_digest(job, root),
+        "review_digest": current_digest,
+        "staging_sha256": staging_digest.hexdigest(),
+        "graph_diff": diff,
         "baseline_version": job["baseline_version"],
         "rows": rows,
         "edges": edges,
-        "decision": store.review_decision(job_id),
+        "correction_audit": json.loads(
+            (directory / "review_recommendations.json").read_text(encoding="utf-8")
+        )
+        if (directory / "review_recommendations.json").is_file()
+        else None,
+        "decision": decision_record,
     }
 
 
