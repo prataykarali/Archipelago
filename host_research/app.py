@@ -75,6 +75,7 @@ ASSETS = frozenset(
         "auth_bridge.js",
         "research_signin.css",
         "signin.js",
+        "password_visibility.js",
         "academic_koha.js",
         "academic_opac_live.js",
         "librarian.css",

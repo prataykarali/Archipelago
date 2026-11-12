@@ -1,4 +1,5 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import "./password_visibility.js";
 
 const status = document.querySelector("#login-status");
 document.querySelector("#login-panel").hidden = false;

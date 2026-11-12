@@ -1,4 +1,5 @@
 import "./user_management_modal.js";
+import "./password_visibility.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const API_PREFIX = "/api/";
