@@ -11,7 +11,7 @@ Focused tests: 44 passed, 2 pre-existing/independent cases deselected in the com
 | Requirement | Status | Evidence or blocker |
 |---|---|---|
 | Main landing before sign-in | PASS | `https://archipelago-blond.vercel.app/` returned HTTP 200 with the cinematic landing title; auth appears on entry actions. The separate shinaura Vercel domain is intercepted by Vercel SSO. |
-| Librarian and academic page code | PARTIAL | Librarian `/research#topic-form` now renders S5 search instead of local OCR/SLM ingestion; academic graph links to it and remains separate. Not yet deployed to the librarian production URL. |
+| Librarian and academic page code | PARTIAL | The protected librarian preview renders `/research#topic-form` with S5 search and `/academic/graph` with the research link. The named production URL still serves the old page because protected hosted acceptance has not passed. |
 | Hosted runtime packaging | PASS | `vercel build` preview succeeded; function manifest includes S5 search, enrichment, Postgres and workbook modules and excludes `.env` files. |
 | Durable storage schema and code | PARTIAL | Private Postgres migration and adapter written, but migration is unapplied and no database URL is configured in Vercel preview. |
 | Live local search | PASS | `recent efficient retrieval augmented generation` returned three selected papers from live OpenAlex, Crossref and arXiv; Semantic Scholar reported rate limiting. |
@@ -23,3 +23,12 @@ Focused tests: 44 passed, 2 pre-existing/independent cases deselected in the com
 | Protected hosted E2E and release | BLOCKED | Archipelago Supabase project is not exposed by the connected plugin; Vercel has no research DB URL. No production promotion or S4 publication was performed. |
 
 The focused S5 unit suite passed locally, and the repository-wide quality gate still fails on existing Ruff, mypy and file-size debt. This update does not claim a working hosted search or production readiness.
+
+### Protected preview evidence
+
+Commit `61c5035f2f94043f8759b31a949407a7715ca83e` was pushed to `feature/s5-research-intelligence` and deployed to two protected preview targets:
+
+- Main inference: `https://archipelago-mweul2l7v-archipelago-6383.vercel.app` (`dpl_BwCqBKR26jt8qRTLS9NbxoRPPo9m`). Protected preview `/research` served the S5 form; readiness reported `runtime_packaged=true` and `durable_storage_configured=false`; an unauthenticated run request returned 401.
+- Librarian: `https://archipelago-librarian-aa52hiqiw-shinaura.vercel.app` (`dpl_kf7sgMgWX7dBQki5CKxCZrtj4qMe`). Protected preview `/research` served the S5 topic form without the old workstation/SLM copy; `/academic/graph` served the new Research Intelligence link. The librarian preview does not have its production Supabase environment variables, so its authenticated flow is unverified.
+
+Both public preview requests redirected to Vercel authentication. The main public domain `https://archipelago-blond.vercel.app/` still served the landing page with HTTP 200. The named librarian production URL was not promoted, consistent with the brief's protected-preview-first release gate. The local monitor test additionally confirmed owner-scoped history and updates, failed-provider history, and lease release; no deployed scheduler or Postgres-backed monitor was exercised.

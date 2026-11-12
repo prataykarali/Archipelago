@@ -122,3 +122,31 @@ def test_monitor_is_opt_in_and_unchanged_refresh_is_idempotent(tmp_path, monkeyp
     assert first["status"] == "updated"
     assert second == {"status": "unchanged", "run_id": first["run_id"], "new_papers": []}
     assert len(store.list_runs("alice")) == 1
+    assert len(store.list_history(monitor_id, "alice")) == 2
+    assert store.list_history(monitor_id, "bob") == []
+    assert [event["kind"] for event in store.list_events("alice")] == ["newly_indexed_paper"]
+    assert store.list_events("bob") == []
+
+
+@pytest.mark.unit
+def test_monitor_records_provider_failure_and_releases_lease(tmp_path, monkeypatch):
+    from archipelago.scholarly.intelligence import monitor
+
+    store = ResearchStore(tmp_path / "monitor-failure.sqlite3")
+    monitor_id = store.save_monitor("alice", validate_options({"topic": "graph neural networks"}))
+    assert store.set_monitor_enabled(monitor_id, "alice", True)
+    monkeypatch.setattr(
+        monitor,
+        "discover",
+        lambda _options: {"papers": [], "sources": [{"status": "rate_limited"}]},
+    )
+    first = run_monitor(monitor_id, store)
+    second = run_monitor(monitor_id, store)
+    assert first == {"status": "failed", "error": "RuntimeError"}
+    assert second == first
+    assert [row["status"] for row in store.list_history(monitor_id, "alice")] == [
+        "failed",
+        "failed",
+    ]
+    assert all(event["kind"] == "monitor_failed" for event in store.list_events("alice"))
+    assert store.list_events("bob") == []
