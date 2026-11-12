@@ -3,3 +3,5 @@ gunicorn>=22
 numpy>=1.26
 requests>=2.31
 openpyxl>=3.1.0
+pydantic>=2.0,<3
+psycopg[binary]>=3.2,<4

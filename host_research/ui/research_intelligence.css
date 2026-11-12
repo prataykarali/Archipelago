@@ -1,0 +1,8 @@
+.s5-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin:1.2rem 0}
+.s5-filters label{display:flex;flex-direction:column;gap:.4rem;font-weight:600}
+.s5-filters input,.s5-filters select{max-width:100%;padding:.6rem;border:1px solid #8e7aa9;border-radius:.5rem;background:#fff;color:#1c1230}
+#paper-results{display:grid;gap:1rem;margin-top:1.5rem}
+#paper-results .research-card{padding:1.2rem}
+#run-history{display:flex;flex-wrap:wrap;gap:.5rem}
+#graph-summary{white-space:pre-wrap;overflow-wrap:anywhere}
+#monitor-list p{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}

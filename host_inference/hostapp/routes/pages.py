@@ -6,6 +6,7 @@ is computed from the live graph, never hard-coded.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 
 from flask import Flask, jsonify, redirect, request, send_from_directory
@@ -120,6 +121,12 @@ def register(app: Flask, ctx: AppContext) -> None:
                         )
                     ),
                     "scope": "scholarly_metadata_and_institutional_html",
+                },
+                "research_intelligence": {
+                    "runtime_packaged": importlib.util.find_spec("archipelago") is not None,
+                    "durable_storage_configured": bool(
+                        os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL")
+                    ),
                 },
                 "cache_metrics": ctx.cache_metrics.stats(),
             }

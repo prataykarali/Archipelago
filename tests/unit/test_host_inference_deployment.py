@@ -16,7 +16,7 @@ from library_inventory import inventory_stats, parse_inventory_csv  # noqa: E402
 
 
 def test_hosted_package_imports_without_repository_package():
-    """Vercel uploads only host_inference, so it cannot import archipelago."""
+    """Vercel uploads only host_inference, including its copied S5 runtime."""
     result = subprocess.run(
         [sys.executable, "-c", "from hostapp.factory import create_app; print('ready')"],
         cwd=HOST,
@@ -143,9 +143,7 @@ def test_graph_page_and_bounded_graph_api_work(hosted_app):
 
     assert page.status_code == 302
     assert page.headers["Location"] == "https://archipelago-librarian.vercel.app/academic/graph"
-    assert "https://archipelago-librarian.vercel.app" in page.headers[
-        "Content-Security-Policy"
-    ]
+    assert "https://archipelago-librarian.vercel.app" in page.headers["Content-Security-Policy"]
     assert client.get("/academic_koha.js").status_code == 200
     assert response.status_code == 200
     data = response.get_json()
@@ -188,10 +186,55 @@ def test_student_metadata_access_does_not_open_staff_research(hosted_app, monkey
     )
     client = hosted_app.app.test_client()
     assert client.get("/api/research/intelligence/runs").status_code == 200
-    assert client.post("/api/research/intelligence/monitors", json={"topic": "graphs"}).status_code == 403
+    assert (
+        client.post("/api/research/intelligence/monitors", json={"topic": "graphs"}).status_code
+        == 403
+    )
     assert client.get("/api/research/intake/records").status_code == 403
     monkeypatch.setattr(context.auth, "principal", lambda: (None, "expired"))
     assert client.get("/api/research/intelligence/runs").status_code == 401
+
+
+def test_s5_run_export_graph_and_monitor_are_owner_scoped(hosted_app, monkeypatch, tmp_path):
+    from archipelago.scholarly.intelligence.storage import ResearchStore
+
+    monkeypatch.setenv("ARCHIPELAGO_RESEARCH_DB", str(tmp_path / "research.sqlite3"))
+    context = hosted_app.app.extensions["archipelago"]
+    owner = {"id": "user-a"}
+    monkeypatch.setattr(
+        context.auth,
+        "principal",
+        lambda: ({"id": owner["id"], "role": "faculty"}, None),
+    )
+    client = hosted_app.app.test_client()
+    run_id = ResearchStore(tmp_path / "research.sqlite3").save_run(
+        "user-a",
+        {
+            "schema": "archipelago.research_intelligence.v1",
+            "options": {"topic": "graphs"},
+            "retrieved_at": "2026-11-12T00:00:00+00:00",
+            "sources": [],
+            "candidate_count": 0,
+            "filtered_count": 0,
+            "papers": [],
+        },
+    )
+    monitor_id = client.post(
+        "/api/research/intelligence/monitors", json={"topic": "graph neural networks"}
+    ).json["monitor_id"]
+    assert client.get(f"/api/research/intelligence/runs/{run_id}").status_code == 200
+    assert client.get(f"/api/research/intelligence/runs/{run_id}/graph").status_code == 200
+    assert client.get(f"/api/research/intelligence/runs/{run_id}/xlsx").status_code == 200
+    owner["id"] = "user-b"
+    assert client.get(f"/api/research/intelligence/runs/{run_id}").status_code == 404
+    assert client.get(f"/api/research/intelligence/runs/{run_id}/graph").status_code == 404
+    assert client.get(f"/api/research/intelligence/runs/{run_id}/xlsx").status_code == 404
+    assert (
+        client.patch(
+            f"/api/research/intelligence/monitors/{monitor_id}", json={"enabled": True}
+        ).status_code
+        == 404
+    )
 
 
 def test_library_details_stay_on_library_without_session(hosted_app, monkeypatch):

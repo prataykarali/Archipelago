@@ -36,6 +36,9 @@ HEADERS = {
         "h-index",
         "i10-index",
         "Source",
+        "Metric definition",
+        "Coverage",
+        "Observed at",
     ],
     "Venues": [
         "Venue ID",
@@ -111,6 +114,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
 
     authors: dict[str, dict[str, Any]] = {}
     venues: dict[str, dict[str, Any]] = {}
+    author_observations = {row["id"]: row for row in run.get("author_observations", [])}
     for paper in run["papers"]:
         pid = paper["paper_id"]
         ids = paper["identifiers"]
@@ -131,8 +135,10 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 paper["evidence_status"],
             ],
         )
-        for author in paper["authors"]:
-            key = author.get("orcid") or f"unverified:{pid}:{author['name']}"
+        provider_ids = paper.get("source_metadata", {}).get("author_openalex_ids") or []
+        for index, author in enumerate(paper["authors"]):
+            provider_id = provider_ids[index] if index < len(provider_ids) else None
+            key = provider_id or author.get("orcid") or f"unverified:{pid}:{index}"
             authors.setdefault(key, author)
         if paper["venue"]:
             venues.setdefault(paper["venue"], paper)
@@ -170,33 +176,41 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         if not ids.get("doi"):
             add("Errors_Review", [pid, "doi_unavailable", "Other provider identifier retained"])
     for key, author in authors.items():
+        observation = author_observations.get(key.rsplit("/", 1)[-1], {})
+        metrics = observation.get("metrics") or {}
         add(
             "Authors",
             [
                 key,
-                author.get("orcid"),
-                author["name"],
+                observation.get("orcid") or author.get("orcid"),
+                observation.get("name") or author["name"],
                 "; ".join(author.get("institutions") or []),
-                None,
-                None,
-                None,
-                None,
-                "paper metadata",
+                metrics.get("publication_count"),
+                metrics.get("citation_count"),
+                metrics.get("h_index"),
+                metrics.get("i10_index"),
+                observation.get("provider") or "paper metadata",
+                metrics.get("definition"),
+                metrics.get("coverage"),
+                observation.get("retrieved_at"),
             ],
         )
     for venue, paper in venues.items():
-        metadata = paper["source_metadata"]
+        details = paper.get("venue_details") or {}
+        issn = details.get("issn") or []
+        if isinstance(issn, str):
+            issn = [issn]
         add(
             "Venues",
             [
+                details.get("id") or venue,
                 venue,
-                venue,
+                details.get("type"),
+                details.get("publisher"),
+                "; ".join(issn),
                 None,
-                metadata.get("publisher"),
-                None,
-                None,
-                paper["citation_provider"],
-                run["retrieved_at"],
+                details.get("provider"),
+                details.get("retrieved_at") or run["retrieved_at"],
             ],
         )
     for edge in build_graph(run)["edges"]:

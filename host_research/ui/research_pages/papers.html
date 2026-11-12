@@ -1,0 +1,35 @@
+<section id="topic-form" class="research-simple" aria-labelledby="s5-heading">
+  <p class="eyebrow">SCHOLARLY METADATA / S5</p>
+  <h2 id="s5-heading">Research intelligence</h2>
+  <p>Search scholarly metadata from OpenAlex, Crossref, Semantic Scholar and arXiv. Results are source linked and limited to the returned provider coverage.</p>
+  <form id="intelligence-form" class="research-search">
+    <label for="topic-input">Research topic</label>
+    <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="200" required placeholder="e.g. efficient retrieval augmented generation"><button type="submit">Find papers</button></div>
+    <div class="s5-filters">
+      <label>Top K <input name="top_k" type="number" min="1" max="50" value="20"></label>
+      <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
+      <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
+      <label>Paper type <input name="paper_type" placeholder="article"></label>
+      <label>Field <input name="field" placeholder="Computer science"></label>
+      <label>Venue <input name="venue" placeholder="Conference or journal"></label>
+      <label>Open access <select name="open_access"><option value="">Any</option><option value="true">Yes</option><option value="false">No</option></select></label>
+      <label>Sort <select name="sort"><option value="relevance">Relevance</option><option value="newest">Newest</option></select></label>
+    </div>
+  </form>
+  <p id="intelligence-status" role="status">Ready to search.</p>
+  <section id="intelligence-results" hidden aria-labelledby="results-heading">
+    <h2 id="results-heading">Paper results</h2><p id="provider-status"></p><p id="retrieved-at"></p>
+    <a id="excel-link" href="#">Download nine-sheet Excel report</a>
+    <button id="graph-button" type="button">Inspect research graph</button>
+    <pre id="graph-summary" hidden></pre><div id="paper-results"></div>
+  </section>
+  <section aria-labelledby="history-heading"><h2 id="history-heading">Previous searches</h2><div id="run-history"></div></section>
+  <section id="monitor-section" hidden aria-labelledby="monitor-heading">
+    <h2 id="monitor-heading">Topic monitoring</h2>
+    <p>Save a topic, activate it explicitly, and inspect each metadata refresh.</p>
+    <button id="monitor-save" type="button">Save current topic</button>
+    <p id="monitor-status" role="status"></p>
+    <div id="monitor-list"></div>
+    <h3>Research updates</h3><div id="research-updates" aria-live="polite"></div>
+  </section>
+</section>

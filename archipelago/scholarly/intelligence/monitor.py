@@ -6,13 +6,14 @@ from datetime import UTC, datetime, timedelta
 import json
 from typing import Any
 
+from .postgres_storage import PostgresResearchStore
 from .search import discover
 from .storage import ResearchStore
 
 LEASE_MINUTES = 10
 
 
-def run_monitor(monitor_id: str, store: ResearchStore) -> dict[str, Any]:
+def run_monitor(monitor_id: str, store: ResearchStore | PostgresResearchStore) -> dict[str, Any]:
     """Refresh one authorized monitor; repeated unchanged runs create no snapshot."""
     now = datetime.now(UTC)
     monitor = store.claim_monitor(
@@ -39,6 +40,29 @@ def run_monitor(monitor_id: str, store: ResearchStore) -> dict[str, Any]:
             return {"status": "unchanged", "run_id": monitor["last_run"], "new_papers": []}
         run_id = store.save_run(owner, current)
         store.finish_monitor(monitor_id, run_id, None)
+        for row in current["papers"]:
+            if row["paper_id"] in added:
+                store.add_event(
+                    owner,
+                    monitor_id,
+                    run_id,
+                    "newly_indexed_paper",
+                    row["paper_id"],
+                    {
+                        "title": row["title"],
+                        "publication_date": row["publication_date"],
+                        "discovered_at": current["retrieved_at"],
+                    },
+                )
+            elif row["paper_id"] in citation_changes:
+                store.add_event(
+                    owner,
+                    monitor_id,
+                    run_id,
+                    "citation_observation_changed",
+                    row["paper_id"],
+                    {"title": row["title"], "observations": row["citation_observations"]},
+                )
         return {
             "status": "updated",
             "run_id": run_id,
@@ -48,4 +72,12 @@ def run_monitor(monitor_id: str, store: ResearchStore) -> dict[str, Any]:
         }
     except (OSError, RuntimeError, ValueError) as exc:
         store.finish_monitor(monitor_id, None, type(exc).__name__)
+        store.add_event(
+            owner,
+            monitor_id,
+            None,
+            "monitor_failed",
+            type(exc).__name__,
+            {"error": type(exc).__name__, "occurred_at": datetime.now(UTC).isoformat()},
+        )
         return {"status": "failed", "error": type(exc).__name__}

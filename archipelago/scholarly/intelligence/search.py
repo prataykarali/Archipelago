@@ -11,6 +11,8 @@ from archipelago.scholarly.discovery.canonicalizer import normalize_title
 from archipelago.scholarly.discovery.orchestrator import DiscoveryOrchestrator
 from archipelago.scholarly.pipeline.relevance import relevance_score
 
+from .enrichment import enrich_authors, venue_observation
+
 DEFAULT_TOP_K = 20
 MAX_TOP_K = 50
 SOURCE_MULTIPLIER = 2
@@ -215,12 +217,16 @@ def discover(
     selected = rows[: options["top_k"]]
     for rank, row in enumerate(selected, 1):
         row["rank"] = rank
+    retrieved_at = datetime.now(UTC).isoformat()
+    for row in selected:
+        row["venue_details"] = venue_observation(row, retrieved_at)
     return {
         "schema": "archipelago.research_intelligence.v1",
         "options": options,
-        "retrieved_at": datetime.now(UTC).isoformat(),
+        "retrieved_at": retrieved_at,
         "sources": sources,
         "candidate_count": len(candidates),
         "filtered_count": len(rows),
         "papers": selected,
+        "author_observations": enrich_authors(selected) if orchestrator is None else [],
     }

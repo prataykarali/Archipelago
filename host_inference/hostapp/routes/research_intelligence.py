@@ -12,7 +12,6 @@ from flask.typing import ResponseReturnValue
 from ..context import AppContext
 
 LOGGER = logging.getLogger(__name__)
-MANAGER_ROLES = frozenset({"librarian", "administrator"})
 MONITOR_ROLES = frozenset({"faculty", "librarian", "administrator"})
 
 
@@ -21,12 +20,10 @@ def _principal() -> dict[str, str]:
 
 
 def _run(run_id: uuid.UUID) -> dict | None:
-    from archipelago.scholarly.intelligence.storage import ResearchStore
+    from archipelago.scholarly.intelligence.storage import hosted_store
 
     principal = _principal()
-    return ResearchStore().get_run(
-        str(run_id), str(principal["id"]), principal["role"] in MANAGER_ROLES
-    )
+    return hosted_store().get_run(str(run_id), str(principal["id"]))
 
 
 def register(app: Flask, _ctx: AppContext) -> None:
@@ -44,7 +41,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
     @app.post("/api/research/intelligence/search")  # type: ignore[misc]
     def intelligence_search() -> ResponseReturnValue:
         from archipelago.scholarly.intelligence.search import discover
-        from archipelago.scholarly.intelligence.storage import ResearchStore
+        from archipelago.scholarly.intelligence.storage import hosted_store
 
         payload = request.get_json(silent=True)
         try:
@@ -53,7 +50,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
                 return jsonify(
                     {"error": "providers_unavailable", "sources": result["sources"]}
                 ), 503
-            run_id = ResearchStore().save_run(str(_principal()["id"]), result)
+            run_id = hosted_store().save_run(str(_principal()["id"]), result)
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
         except (OSError, RuntimeError):
@@ -63,9 +60,9 @@ def register(app: Flask, _ctx: AppContext) -> None:
 
     @app.get("/api/research/intelligence/runs")  # type: ignore[misc]
     def intelligence_runs() -> ResponseReturnValue:
-        from archipelago.scholarly.intelligence.storage import ResearchStore
+        from archipelago.scholarly.intelligence.storage import hosted_store
 
-        return jsonify({"runs": ResearchStore().list_runs(str(_principal()["id"]))})
+        return jsonify({"runs": hosted_store().list_runs(str(_principal()["id"]))})
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>")  # type: ignore[misc]
     def intelligence_run(run_id: uuid.UUID) -> ResponseReturnValue:
@@ -96,7 +93,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
     @app.post("/api/research/intelligence/monitors")  # type: ignore[misc]
     def intelligence_monitor() -> ResponseReturnValue:
         from archipelago.scholarly.intelligence.search import validate_options
-        from archipelago.scholarly.intelligence.storage import ResearchStore
+        from archipelago.scholarly.intelligence.storage import hosted_store
 
         if _principal()["role"] not in MONITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
@@ -105,20 +102,20 @@ def register(app: Flask, _ctx: AppContext) -> None:
             options = validate_options(payload if isinstance(payload, dict) else {})
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
-        monitor_id = ResearchStore().save_monitor(str(_principal()["id"]), options)
+        monitor_id = hosted_store().save_monitor(str(_principal()["id"]), options)
         return jsonify({"monitor_id": monitor_id, "enabled": False}), 201
 
     @app.get("/api/research/intelligence/monitors")  # type: ignore[misc]
     def intelligence_monitors() -> ResponseReturnValue:
-        from archipelago.scholarly.intelligence.storage import ResearchStore
+        from archipelago.scholarly.intelligence.storage import hosted_store
 
         if _principal()["role"] not in MONITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
-        return jsonify({"monitors": ResearchStore().list_monitors(str(_principal()["id"]))})
+        return jsonify({"monitors": hosted_store().list_monitors(str(_principal()["id"]))})
 
     @app.patch("/api/research/intelligence/monitors/<uuid:monitor_id>")  # type: ignore[misc]
     def intelligence_monitor_activation(monitor_id: uuid.UUID) -> ResponseReturnValue:
-        from archipelago.scholarly.intelligence.storage import ResearchStore
+        from archipelago.scholarly.intelligence.storage import hosted_store
 
         if _principal()["role"] not in MONITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
@@ -126,7 +123,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
         enabled = payload.get("enabled") if isinstance(payload, dict) else None
         if not isinstance(enabled, bool):
             return jsonify({"error": "invalid_enabled"}), 400
-        updated = ResearchStore().set_monitor_enabled(
+        updated = hosted_store().set_monitor_enabled(
             str(monitor_id), str(_principal()["id"]), enabled
         )
         return (
@@ -134,3 +131,36 @@ def register(app: Flask, _ctx: AppContext) -> None:
             if updated
             else (jsonify({"error": "not_found"}), 404)
         )
+
+    @app.get("/api/research/intelligence/monitors/<uuid:monitor_id>/history")  # type: ignore[misc]
+    def intelligence_monitor_history(monitor_id: uuid.UUID) -> ResponseReturnValue:
+        from archipelago.scholarly.intelligence.storage import hosted_store
+
+        if _principal()["role"] not in MONITOR_ROLES:
+            return jsonify({"error": "forbidden"}), 403
+        store = hosted_store()
+        owner = str(_principal()["id"])
+        if not any(row["id"] == str(monitor_id) for row in store.list_monitors(owner)):
+            return jsonify({"error": "not_found"}), 404
+        return jsonify({"history": store.list_history(str(monitor_id), owner)})
+
+    @app.get("/api/research/intelligence/updates")  # type: ignore[misc]
+    def intelligence_updates() -> ResponseReturnValue:
+        from archipelago.scholarly.intelligence.storage import hosted_store
+
+        if _principal()["role"] not in MONITOR_ROLES:
+            return jsonify({"error": "forbidden"}), 403
+        return jsonify({"updates": hosted_store().list_events(str(_principal()["id"]))})
+
+    @app.post("/api/research/intelligence/monitors/<uuid:monitor_id>/run")  # type: ignore[misc]
+    def intelligence_monitor_run(monitor_id: uuid.UUID) -> ResponseReturnValue:
+        from archipelago.scholarly.intelligence.monitor import run_monitor
+        from archipelago.scholarly.intelligence.storage import hosted_store
+
+        if _principal()["role"] not in MONITOR_ROLES:
+            return jsonify({"error": "forbidden"}), 403
+        store = hosted_store()
+        if not store.make_monitor_due(str(monitor_id), str(_principal()["id"])):
+            return jsonify({"error": "not_found_or_disabled"}), 404
+        result = run_monitor(str(monitor_id), store)
+        return jsonify(result), 200 if result["status"] != "failed" else 503

@@ -128,6 +128,11 @@ class OpenAlexAdapter:
             "pdf_url": pdf_url or oa_url,
             "source_metadata": {
                 "publisher": source_obj.get("host_organization_name"),
+                "venue_id": source_obj.get("id"),
+                "venue_type": source_obj.get("type"),
+                "venue_issn": source_obj.get("issn"),
+                "venue_url": source_obj.get("homepage_url"),
+                "venue_is_oa": source_obj.get("is_oa"),
                 "reference_count": len(item["referenced_works"])
                 if isinstance(item.get("referenced_works"), list)
                 else None,

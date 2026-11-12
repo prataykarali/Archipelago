@@ -1,4 +1,4 @@
-<section class="research-simple" aria-labelledby="s5-heading">
+<section id="topic-form" class="research-simple" aria-labelledby="s5-heading">
   <p class="eyebrow">SCHOLARLY METADATA / S5</p>
   <h2 id="s5-heading">Research intelligence</h2>
   <p>Search scholarly metadata from OpenAlex, Crossref, Semantic Scholar and arXiv. Results are source linked and limited to the returned provider coverage.</p>
@@ -26,9 +26,10 @@
   <section aria-labelledby="history-heading"><h2 id="history-heading">Previous searches</h2><div id="run-history"></div></section>
   <section id="monitor-section" hidden aria-labelledby="monitor-heading">
     <h2 id="monitor-heading">Topic monitoring</h2>
-    <p>Save a topic, then activate it explicitly. Scheduled refresh requires a configured research worker.</p>
+    <p>Save a topic, activate it explicitly, and inspect each metadata refresh.</p>
     <button id="monitor-save" type="button">Save current topic</button>
     <p id="monitor-status" role="status"></p>
     <div id="monitor-list"></div>
+    <h3>Research updates</h3><div id="research-updates" aria-live="polite"></div>
   </section>
 </section>
