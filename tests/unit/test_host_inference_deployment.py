@@ -154,7 +154,7 @@ def test_graph_page_and_bounded_graph_api_work(hosted_app):
     assert all("data" in edge for edge in data["edges"])
 
 
-def test_research_page_redirects_to_staff_only_transport(hosted_app, monkeypatch):
+def test_research_page_replaces_redirect_and_keeps_staff_graph_private(hosted_app, monkeypatch):
     context = hosted_app.app.extensions["archipelago"]
     client = hosted_app.app.test_client()
     role = {"value": "student"}
@@ -165,8 +165,8 @@ def test_research_page_redirects_to_staff_only_transport(hosted_app, monkeypatch
     )
 
     page = client.get("/research")
-    assert page.status_code == 302
-    assert page.headers["Location"] == "https://archipelago-librarian.vercel.app/research"
+    assert page.status_code == 200
+    assert b"Research intelligence" in page.data
     assert client.get("/research.html").status_code == 404
     assert client.get("/api/research/graph/subgraph?q=graph").status_code == 403
     role["value"] = "faculty"
@@ -176,6 +176,22 @@ def test_research_page_redirects_to_staff_only_transport(hosted_app, monkeypatch
         "https://archipelago-librarian.vercel.app/research/progress"
     )
     assert client.get("/api/research/graph/subgraph?q=graph").status_code == 200
+
+
+def test_student_metadata_access_does_not_open_staff_research(hosted_app, monkeypatch, tmp_path):
+    context = hosted_app.app.extensions["archipelago"]
+    monkeypatch.setenv("ARCHIPELAGO_RESEARCH_DB", str(tmp_path / "research.sqlite3"))
+    monkeypatch.setattr(
+        context.auth,
+        "principal",
+        lambda: ({"id": "student-one", "role": "student"}, None),
+    )
+    client = hosted_app.app.test_client()
+    assert client.get("/api/research/intelligence/runs").status_code == 200
+    assert client.post("/api/research/intelligence/monitors", json={"topic": "graphs"}).status_code == 403
+    assert client.get("/api/research/intake/records").status_code == 403
+    monkeypatch.setattr(context.auth, "principal", lambda: (None, "expired"))
+    assert client.get("/api/research/intelligence/runs").status_code == 401
 
 
 def test_library_details_stay_on_library_without_session(hosted_app, monkeypatch):

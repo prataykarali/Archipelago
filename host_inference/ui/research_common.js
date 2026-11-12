@@ -1,7 +1,7 @@
 window.archipelagoResearchReady = new Promise(resolve => {
   window.addEventListener('load', async () => {
     await window.archipelagoAuthReady;
-    resolve(await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']));
+    resolve(await window.archipelagoAuthorizePage(['student', 'faculty', 'librarian', 'administrator']));
   });
 });
 

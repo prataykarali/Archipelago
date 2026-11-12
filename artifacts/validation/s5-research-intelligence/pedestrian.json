@@ -1,0 +1,2230 @@
+{
+  "schema": "archipelago.research_intelligence.v1",
+  "options": {
+    "topic": "pedestrian detection",
+    "top_k": 10,
+    "year_from": null,
+    "year_to": null,
+    "sort": "relevance",
+    "open_access": null,
+    "paper_type": "",
+    "field": "",
+    "venue": ""
+  },
+  "retrieved_at": "2026-11-12T01:19:07.623345+00:00",
+  "sources": [
+    {
+      "source": "openalex",
+      "requested_at": "2026-11-12T01:19:06.254469+00:00",
+      "status": "live",
+      "record_count": 6,
+      "raw_sha256": "af7b16f41b06097fecfb17309333a7f514c191d52c6a6135bf45fbf5daf45eba",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "crossref",
+      "requested_at": "2026-11-12T01:19:06.256611+00:00",
+      "status": "live",
+      "record_count": 17,
+      "raw_sha256": "e94939f70d257787284362304a3f7355e7884843e34fa75423688fa06809a21d",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "arxiv",
+      "requested_at": "2026-11-12T01:19:06.259457+00:00",
+      "status": "live",
+      "record_count": 20,
+      "raw_sha256": "b0b08e52d7faec02d7bcd089f902fd80d80de9660cc12c1ac02b6dede51333c8",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "semantic_scholar",
+      "requested_at": "2026-11-12T01:19:06.261781+00:00",
+      "status": "rate_limited",
+      "record_count": 0,
+      "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+      "request_id": "aad37ccc-590a-49c9-b164-a8b728a0d212",
+      "http_status": 429,
+      "error": "HTTP 429",
+      "rate_limited": true
+    }
+  ],
+  "candidate_count": 43,
+  "filtered_count": 43,
+  "papers": [
+    {
+      "paper_id": "7923540d-8864-5d41-80eb-41679577b4d4",
+      "title": "Pedestrian Detection: An Evaluation of the State of the Art",
+      "year": 2011,
+      "publication_date": "2011-08-15",
+      "doi": "10.1109/tpami.2011.155",
+      "identifiers": {
+        "doi": "10.1109/tpami.2011.155",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W2031454541",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Piotr Doll\u00e1r",
+          "orcid": null,
+          "institutions": [
+            "California Institute of Technology"
+          ]
+        },
+        {
+          "name": "Christian Wojek",
+          "orcid": null,
+          "institutions": [
+            "Max Planck Institute for Informatics"
+          ]
+        },
+        {
+          "name": "Bernt Schiele",
+          "orcid": "https://orcid.org/0000-0001-9683-5237",
+          "institutions": [
+            "Max Planck Institute for Informatics"
+          ]
+        },
+        {
+          "name": "Pietro Perona",
+          "orcid": "https://orcid.org/0000-0002-7583-5809",
+          "institutions": [
+            "California Institute of Technology"
+          ]
+        }
+      ],
+      "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+      "publication_type": "article",
+      "abstract": "Pedestrian detection is a key problem in computer vision, with several applications that have the potential to positively impact quality of life. In recent years, the number of approaches to detecting pedestrians in monocular images has grown steadily. However, multiple data sets and widely varying evaluation protocols are used, making direct comparisons difficult. To address these shortcomings, we perform an extensive evaluation of the state of the art in a unified framework. We make three primary contributions: 1) We put together a large, well-annotated, and realistic monocular pedestrian detection data set and study the statistics of the size, position, and occlusion patterns of pedestrians in urban scenes, 2) we propose a refined per-frame evaluation methodology that allows us to carry out probing and informative comparisons, including measuring performance in relation to scale and occlusion, and 3) we evaluate the performance of sixteen pretrained state-of-the-art detectors across six data sets. Our study allows us to assess the state of the art and provides a framework for gauging future efforts. Our experiments show that despite significant progress, performance still has much room for improvement. In particular, detection is disappointing at low resolutions and for partially occluded pedestrians.",
+      "is_open_access": false,
+      "url": "https://openalex.org/W2031454541",
+      "citation_count": 3236,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 3236
+        }
+      ],
+      "references": [
+        "https://openalex.org/W396735907",
+        "https://openalex.org/W1536943225",
+        "https://openalex.org/W1551429860",
+        "https://openalex.org/W1558057344",
+        "https://openalex.org/W1560380655",
+        "https://openalex.org/W1565746575",
+        "https://openalex.org/W1571998429",
+        "https://openalex.org/W1573508639",
+        "https://openalex.org/W1576445103",
+        "https://openalex.org/W1595717062",
+        "https://openalex.org/W1608462934",
+        "https://openalex.org/W1628152601",
+        "https://openalex.org/W1885921277",
+        "https://openalex.org/W1906375339",
+        "https://openalex.org/W1949116567",
+        "https://openalex.org/W1956559956",
+        "https://openalex.org/W1992825118",
+        "https://openalex.org/W1995444699",
+        "https://openalex.org/W1999268518",
+        "https://openalex.org/W1999853363",
+        "https://openalex.org/W2031489346",
+        "https://openalex.org/W2034869517",
+        "https://openalex.org/W2035379092",
+        "https://openalex.org/W2044465660",
+        "https://openalex.org/W2067191186",
+        "https://openalex.org/W2073152679",
+        "https://openalex.org/W2077513643",
+        "https://openalex.org/W2089181482",
+        "https://openalex.org/W2096112371",
+        "https://openalex.org/W2096349671",
+        "https://openalex.org/W2097324787",
+        "https://openalex.org/W2098699644",
+        "https://openalex.org/W2098838628",
+        "https://openalex.org/W2099355420",
+        "https://openalex.org/W2100052226",
+        "https://openalex.org/W2100968369",
+        "https://openalex.org/W2101974252",
+        "https://openalex.org/W2103897297",
+        "https://openalex.org/W2104511990",
+        "https://openalex.org/W2104679563",
+        "https://openalex.org/W2104974755",
+        "https://openalex.org/W2106300334",
+        "https://openalex.org/W2107775979",
+        "https://openalex.org/W2110764733",
+        "https://openalex.org/W2113201641",
+        "https://openalex.org/W2115733720",
+        "https://openalex.org/W2116022929",
+        "https://openalex.org/W2117203466",
+        "https://openalex.org/W2119823327",
+        "https://openalex.org/W2120419212",
+        "https://openalex.org/W2121955477",
+        "https://openalex.org/W2123533187",
+        "https://openalex.org/W2124285714",
+        "https://openalex.org/W2125896931",
+        "https://openalex.org/W2127420331",
+        "https://openalex.org/W2134380836",
+        "https://openalex.org/W2138302688",
+        "https://openalex.org/W2139479830",
+        "https://openalex.org/W2139783272",
+        "https://openalex.org/W2142645932",
+        "https://openalex.org/W2143998680",
+        "https://openalex.org/W2144502914",
+        "https://openalex.org/W2149077040",
+        "https://openalex.org/W2150183285",
+        "https://openalex.org/W2151103935",
+        "https://openalex.org/W2151525117",
+        "https://openalex.org/W2152066136",
+        "https://openalex.org/W2152473410",
+        "https://openalex.org/W2154422044",
+        "https://openalex.org/W2154740476",
+        "https://openalex.org/W2155541267",
+        "https://openalex.org/W2156539399",
+        "https://openalex.org/W2159386181",
+        "https://openalex.org/W2160225842",
+        "https://openalex.org/W2161969291",
+        "https://openalex.org/W2162846286",
+        "https://openalex.org/W2163352848",
+        "https://openalex.org/W2166623283",
+        "https://openalex.org/W2167308983",
+        "https://openalex.org/W2168356304",
+        "https://openalex.org/W2169284845",
+        "https://openalex.org/W2169671170",
+        "https://openalex.org/W2182023692",
+        "https://openalex.org/W2219315858",
+        "https://openalex.org/W2325227998",
+        "https://openalex.org/W2337904331",
+        "https://openalex.org/W2534262995",
+        "https://openalex.org/W2535410496",
+        "https://openalex.org/W2548197316",
+        "https://openalex.org/W2548910458",
+        "https://openalex.org/W2574372438",
+        "https://openalex.org/W3003662786",
+        "https://openalex.org/W3097096317",
+        "https://openalex.org/W4253363118",
+        "https://openalex.org/W6634343353"
+      ],
+      "source_metadata": {
+        "publisher": "IEEE Computer Society",
+        "reference_count": 95,
+        "referenced_works": [
+          "https://openalex.org/W396735907",
+          "https://openalex.org/W1536943225",
+          "https://openalex.org/W1551429860",
+          "https://openalex.org/W1558057344",
+          "https://openalex.org/W1560380655",
+          "https://openalex.org/W1565746575",
+          "https://openalex.org/W1571998429",
+          "https://openalex.org/W1573508639",
+          "https://openalex.org/W1576445103",
+          "https://openalex.org/W1595717062",
+          "https://openalex.org/W1608462934",
+          "https://openalex.org/W1628152601",
+          "https://openalex.org/W1885921277",
+          "https://openalex.org/W1906375339",
+          "https://openalex.org/W1949116567",
+          "https://openalex.org/W1956559956",
+          "https://openalex.org/W1992825118",
+          "https://openalex.org/W1995444699",
+          "https://openalex.org/W1999268518",
+          "https://openalex.org/W1999853363",
+          "https://openalex.org/W2031489346",
+          "https://openalex.org/W2034869517",
+          "https://openalex.org/W2035379092",
+          "https://openalex.org/W2044465660",
+          "https://openalex.org/W2067191186",
+          "https://openalex.org/W2073152679",
+          "https://openalex.org/W2077513643",
+          "https://openalex.org/W2089181482",
+          "https://openalex.org/W2096112371",
+          "https://openalex.org/W2096349671",
+          "https://openalex.org/W2097324787",
+          "https://openalex.org/W2098699644",
+          "https://openalex.org/W2098838628",
+          "https://openalex.org/W2099355420",
+          "https://openalex.org/W2100052226",
+          "https://openalex.org/W2100968369",
+          "https://openalex.org/W2101974252",
+          "https://openalex.org/W2103897297",
+          "https://openalex.org/W2104511990",
+          "https://openalex.org/W2104679563",
+          "https://openalex.org/W2104974755",
+          "https://openalex.org/W2106300334",
+          "https://openalex.org/W2107775979",
+          "https://openalex.org/W2110764733",
+          "https://openalex.org/W2113201641",
+          "https://openalex.org/W2115733720",
+          "https://openalex.org/W2116022929",
+          "https://openalex.org/W2117203466",
+          "https://openalex.org/W2119823327",
+          "https://openalex.org/W2120419212",
+          "https://openalex.org/W2121955477",
+          "https://openalex.org/W2123533187",
+          "https://openalex.org/W2124285714",
+          "https://openalex.org/W2125896931",
+          "https://openalex.org/W2127420331",
+          "https://openalex.org/W2134380836",
+          "https://openalex.org/W2138302688",
+          "https://openalex.org/W2139479830",
+          "https://openalex.org/W2139783272",
+          "https://openalex.org/W2142645932",
+          "https://openalex.org/W2143998680",
+          "https://openalex.org/W2144502914",
+          "https://openalex.org/W2149077040",
+          "https://openalex.org/W2150183285",
+          "https://openalex.org/W2151103935",
+          "https://openalex.org/W2151525117",
+          "https://openalex.org/W2152066136",
+          "https://openalex.org/W2152473410",
+          "https://openalex.org/W2154422044",
+          "https://openalex.org/W2154740476",
+          "https://openalex.org/W2155541267",
+          "https://openalex.org/W2156539399",
+          "https://openalex.org/W2159386181",
+          "https://openalex.org/W2160225842",
+          "https://openalex.org/W2161969291",
+          "https://openalex.org/W2162846286",
+          "https://openalex.org/W2163352848",
+          "https://openalex.org/W2166623283",
+          "https://openalex.org/W2167308983",
+          "https://openalex.org/W2168356304",
+          "https://openalex.org/W2169284845",
+          "https://openalex.org/W2169671170",
+          "https://openalex.org/W2182023692",
+          "https://openalex.org/W2219315858",
+          "https://openalex.org/W2325227998",
+          "https://openalex.org/W2337904331",
+          "https://openalex.org/W2534262995",
+          "https://openalex.org/W2535410496",
+          "https://openalex.org/W2548197316",
+          "https://openalex.org/W2548910458",
+          "https://openalex.org/W2574372438",
+          "https://openalex.org/W3003662786",
+          "https://openalex.org/W3097096317",
+          "https://openalex.org/W4253363118",
+          "https://openalex.org/W6634343353"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 83
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 114
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 154
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 204
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 222
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 270
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 299
+          },
+          {
+            "year": 2019,
+            "cited_by_count": 311
+          },
+          {
+            "year": 2018,
+            "cited_by_count": 285
+          },
+          {
+            "year": 2017,
+            "cited_by_count": 298
+          },
+          {
+            "year": 2016,
+            "cited_by_count": 282
+          },
+          {
+            "year": 2015,
+            "cited_by_count": 270
+          },
+          {
+            "year": 2014,
+            "cited_by_count": 216
+          },
+          {
+            "year": 2013,
+            "cited_by_count": 159
+          },
+          {
+            "year": 2012,
+            "cited_by_count": 68
+          }
+        ],
+        "keywords": [
+          "pedestrian detection",
+          "monocular images",
+          "benchmark dataset",
+          "occlusion",
+          "scale variation",
+          "evaluation methodology",
+          "urban scenes",
+          "performance comparison"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Advanced Neural Network Applications",
+          "Video Surveillance and Tracking Methods",
+          "Human Pose and Action Recognition"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5057866698",
+          "https://openalex.org/A5026667648",
+          "https://openalex.org/A5051534545",
+          "https://openalex.org/A5026825380"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_3cc0fbd1",
+          "source_type": "openalex",
+          "artifact_sha256": "af7b16f41b06097fecfb17309333a7f514c191d52c6a6135bf45fbf5daf45eba",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W2031454541",
+          "json_pointer": "/results/https://openalex.org/W2031454541",
+          "source_url": "https://openalex.org/W2031454541",
+          "fetched_at": "2026-11-12T01:19:07.565957Z"
+        }
+      ],
+      "relevance_score": 1.05,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 1.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 1
+    },
+    {
+      "paper_id": "8230edf4-d3e3-5cf6-9f45-662c0e32c295",
+      "title": "Monocular Pedestrian Detection: Survey and Experiments",
+      "year": 2008,
+      "publication_date": "2008-10-28",
+      "doi": "10.1109/tpami.2008.260",
+      "identifiers": {
+        "doi": "10.1109/tpami.2008.260",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W2139479830",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Markus Enzweiler",
+          "orcid": "https://orcid.org/0000-0001-9211-9882",
+          "institutions": [
+            "Heidelberg University"
+          ]
+        },
+        {
+          "name": "Dariu M. Gavrila",
+          "orcid": "https://orcid.org/0000-0002-1810-4196",
+          "institutions": [
+            "University of Amsterdam",
+            "Daimler (Germany)"
+          ]
+        }
+      ],
+      "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+      "publication_type": "article",
+      "abstract": "Pedestrian detection is a rapidly evolving area in computer vision with key applications in intelligent vehicles, surveillance, and advanced robotics. The objective of this paper is to provide an overview of the current state of the art from both methodological and experimental perspectives. The first part of the paper consists of a survey. We cover the main components of a pedestrian detection system and the underlying models. The second (and larger) part of the paper contains a corresponding experimental study. We consider a diverse set of state-of-the-art systems: wavelet-based AdaBoost cascade [74], HOG/linSVM [11], NN/LRF [75], and combined shape-texture detection [23]. Experiments are performed on an extensive data set captured onboard a vehicle driving through urban environment. The data set includes many thousands of training samples as well as a 27-minute test sequence involving more than 20,000 images with annotated pedestrian locations. We consider a generic evaluation setting and one specific to pedestrian detection onboard a vehicle. Results indicate a clear advantage of HOG/linSVM at higher image resolutions and lower processing speeds, and a superiority of the wavelet-based AdaBoost cascade approach at lower image resolutions and (near) real-time processing speeds. The data set (8.5 GB) is made public for benchmarking purposes.",
+      "is_open_access": false,
+      "url": "https://openalex.org/W2139479830",
+      "citation_count": 1236,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 1236
+        }
+      ],
+      "references": [
+        "https://openalex.org/W28960163",
+        "https://openalex.org/W396735907",
+        "https://openalex.org/W1533614607",
+        "https://openalex.org/W1552529795",
+        "https://openalex.org/W1570420153",
+        "https://openalex.org/W1595717062",
+        "https://openalex.org/W1605884429",
+        "https://openalex.org/W1608462934",
+        "https://openalex.org/W1676888341",
+        "https://openalex.org/W1910898529",
+        "https://openalex.org/W1987118352",
+        "https://openalex.org/W1988790447",
+        "https://openalex.org/W1992825118",
+        "https://openalex.org/W2012330712",
+        "https://openalex.org/W2032481801",
+        "https://openalex.org/W2064707019",
+        "https://openalex.org/W2069537876",
+        "https://openalex.org/W2071476775",
+        "https://openalex.org/W2096349671",
+        "https://openalex.org/W2097743041",
+        "https://openalex.org/W2097873612",
+        "https://openalex.org/W2098347925",
+        "https://openalex.org/W2098699644",
+        "https://openalex.org/W2098838628",
+        "https://openalex.org/W2099355420",
+        "https://openalex.org/W2100428290",
+        "https://openalex.org/W2100603339",
+        "https://openalex.org/W2101885438",
+        "https://openalex.org/W2106300334",
+        "https://openalex.org/W2107634464",
+        "https://openalex.org/W2108537850",
+        "https://openalex.org/W2109026452",
+        "https://openalex.org/W2109258005",
+        "https://openalex.org/W2109799729",
+        "https://openalex.org/W2113926057",
+        "https://openalex.org/W2117082318",
+        "https://openalex.org/W2119350939",
+        "https://openalex.org/W2120995095",
+        "https://openalex.org/W2121504967",
+        "https://openalex.org/W2121899951",
+        "https://openalex.org/W2122190623",
+        "https://openalex.org/W2123533187",
+        "https://openalex.org/W2123564153",
+        "https://openalex.org/W2125066085",
+        "https://openalex.org/W2125896931",
+        "https://openalex.org/W2127206500",
+        "https://openalex.org/W2131251246",
+        "https://openalex.org/W2132549764",
+        "https://openalex.org/W2133715437",
+        "https://openalex.org/W2134203912",
+        "https://openalex.org/W2135457387",
+        "https://openalex.org/W2139593995",
+        "https://openalex.org/W2142645932",
+        "https://openalex.org/W2144124341",
+        "https://openalex.org/W2144409879",
+        "https://openalex.org/W2146036766",
+        "https://openalex.org/W2147953023",
+        "https://openalex.org/W2151103935",
+        "https://openalex.org/W2152473410",
+        "https://openalex.org/W2154740476",
+        "https://openalex.org/W2156539399",
+        "https://openalex.org/W2156594793",
+        "https://openalex.org/W2156909104",
+        "https://openalex.org/W2157939923",
+        "https://openalex.org/W2158461740",
+        "https://openalex.org/W2160337655",
+        "https://openalex.org/W2161406034",
+        "https://openalex.org/W2161969291",
+        "https://openalex.org/W2163272476",
+        "https://openalex.org/W2164042219",
+        "https://openalex.org/W2165828254",
+        "https://openalex.org/W2166623283",
+        "https://openalex.org/W2167542692",
+        "https://openalex.org/W2167765625",
+        "https://openalex.org/W2169566837",
+        "https://openalex.org/W2169671170",
+        "https://openalex.org/W2170302354",
+        "https://openalex.org/W2222512263",
+        "https://openalex.org/W4248437541",
+        "https://openalex.org/W4301868816"
+      ],
+      "source_metadata": {
+        "publisher": "IEEE Computer Society",
+        "reference_count": 80,
+        "referenced_works": [
+          "https://openalex.org/W28960163",
+          "https://openalex.org/W396735907",
+          "https://openalex.org/W1533614607",
+          "https://openalex.org/W1552529795",
+          "https://openalex.org/W1570420153",
+          "https://openalex.org/W1595717062",
+          "https://openalex.org/W1605884429",
+          "https://openalex.org/W1608462934",
+          "https://openalex.org/W1676888341",
+          "https://openalex.org/W1910898529",
+          "https://openalex.org/W1987118352",
+          "https://openalex.org/W1988790447",
+          "https://openalex.org/W1992825118",
+          "https://openalex.org/W2012330712",
+          "https://openalex.org/W2032481801",
+          "https://openalex.org/W2064707019",
+          "https://openalex.org/W2069537876",
+          "https://openalex.org/W2071476775",
+          "https://openalex.org/W2096349671",
+          "https://openalex.org/W2097743041",
+          "https://openalex.org/W2097873612",
+          "https://openalex.org/W2098347925",
+          "https://openalex.org/W2098699644",
+          "https://openalex.org/W2098838628",
+          "https://openalex.org/W2099355420",
+          "https://openalex.org/W2100428290",
+          "https://openalex.org/W2100603339",
+          "https://openalex.org/W2101885438",
+          "https://openalex.org/W2106300334",
+          "https://openalex.org/W2107634464",
+          "https://openalex.org/W2108537850",
+          "https://openalex.org/W2109026452",
+          "https://openalex.org/W2109258005",
+          "https://openalex.org/W2109799729",
+          "https://openalex.org/W2113926057",
+          "https://openalex.org/W2117082318",
+          "https://openalex.org/W2119350939",
+          "https://openalex.org/W2120995095",
+          "https://openalex.org/W2121504967",
+          "https://openalex.org/W2121899951",
+          "https://openalex.org/W2122190623",
+          "https://openalex.org/W2123533187",
+          "https://openalex.org/W2123564153",
+          "https://openalex.org/W2125066085",
+          "https://openalex.org/W2125896931",
+          "https://openalex.org/W2127206500",
+          "https://openalex.org/W2131251246",
+          "https://openalex.org/W2132549764",
+          "https://openalex.org/W2133715437",
+          "https://openalex.org/W2134203912",
+          "https://openalex.org/W2135457387",
+          "https://openalex.org/W2139593995",
+          "https://openalex.org/W2142645932",
+          "https://openalex.org/W2144124341",
+          "https://openalex.org/W2144409879",
+          "https://openalex.org/W2146036766",
+          "https://openalex.org/W2147953023",
+          "https://openalex.org/W2151103935",
+          "https://openalex.org/W2152473410",
+          "https://openalex.org/W2154740476",
+          "https://openalex.org/W2156539399",
+          "https://openalex.org/W2156594793",
+          "https://openalex.org/W2156909104",
+          "https://openalex.org/W2157939923",
+          "https://openalex.org/W2158461740",
+          "https://openalex.org/W2160337655",
+          "https://openalex.org/W2161406034",
+          "https://openalex.org/W2161969291",
+          "https://openalex.org/W2163272476",
+          "https://openalex.org/W2164042219",
+          "https://openalex.org/W2165828254",
+          "https://openalex.org/W2166623283",
+          "https://openalex.org/W2167542692",
+          "https://openalex.org/W2167765625",
+          "https://openalex.org/W2169566837",
+          "https://openalex.org/W2169671170",
+          "https://openalex.org/W2170302354",
+          "https://openalex.org/W2222512263",
+          "https://openalex.org/W4248437541",
+          "https://openalex.org/W4301868816"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 31
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 20
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 41
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 38
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 61
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 78
+          },
+          {
+            "year": 2019,
+            "cited_by_count": 69
+          },
+          {
+            "year": 2018,
+            "cited_by_count": 75
+          },
+          {
+            "year": 2017,
+            "cited_by_count": 95
+          },
+          {
+            "year": 2016,
+            "cited_by_count": 106
+          },
+          {
+            "year": 2015,
+            "cited_by_count": 122
+          },
+          {
+            "year": 2014,
+            "cited_by_count": 116
+          },
+          {
+            "year": 2013,
+            "cited_by_count": 119
+          },
+          {
+            "year": 2012,
+            "cited_by_count": 100
+          }
+        ],
+        "keywords": [
+          "vehicle-mounted camera",
+          "real-time processing",
+          "benchmarking",
+          "intelligent vehicles",
+          "autonomous driving"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Advanced Neural Network Applications",
+          "Autonomous Vehicle Technology and Safety",
+          "Video Surveillance and Tracking Methods"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5040116973",
+          "https://openalex.org/A5085298812"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_daf23b51",
+          "source_type": "openalex",
+          "artifact_sha256": "af7b16f41b06097fecfb17309333a7f514c191d52c6a6135bf45fbf5daf45eba",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W2139479830",
+          "json_pointer": "/results/https://openalex.org/W2139479830",
+          "source_url": "https://openalex.org/W2139479830",
+          "fetched_at": "2026-11-12T01:19:07.566889Z"
+        }
+      ],
+      "relevance_score": 1.05,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 1.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 2
+    },
+    {
+      "paper_id": "d6040403-ad41-509d-899e-82f8640c9acc",
+      "title": "Scale-aware Fast R-CNN for Pedestrian Detection",
+      "year": 2017,
+      "publication_date": "2017-01-01",
+      "doi": "10.1109/tmm.2017.2759508",
+      "identifiers": {
+        "doi": "10.1109/tmm.2017.2759508",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W2963315052",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Jianan Li",
+          "orcid": "https://orcid.org/0000-0002-6936-9485",
+          "institutions": [
+            "Beijing Institute of Technology"
+          ]
+        },
+        {
+          "name": "Xiaodan Liang",
+          "orcid": "https://orcid.org/0000-0003-3213-3062",
+          "institutions": [
+            "Carnegie Mellon University"
+          ]
+        },
+        {
+          "name": "ShengMei Shen",
+          "orcid": null,
+          "institutions": [
+            "Panasonic (Japan)"
+          ]
+        },
+        {
+          "name": "Tingfa Xu",
+          "orcid": "https://orcid.org/0000-0001-5452-2662",
+          "institutions": [
+            "Beijing Institute of Technology"
+          ]
+        },
+        {
+          "name": "Jiashi Feng",
+          "orcid": "https://orcid.org/0000-0001-6843-0064",
+          "institutions": [
+            "National University of Singapore"
+          ]
+        },
+        {
+          "name": "Shuicheng Yan",
+          "orcid": "https://orcid.org/0000-0001-8906-3777",
+          "institutions": [
+            "National University of Singapore"
+          ]
+        }
+      ],
+      "venue": "IEEE Transactions on Multimedia",
+      "publication_type": "article",
+      "abstract": "In this paper, we consider the problem of pedestrian detection in natural scenes. Intuitively, instances of pedestrians with different spatial scales may exhibit dramatically different features. Thus, large variance in instance scales, which results in undesirable large intracategory variance in features, may severely hurt the performance of modern object instance detection methods. We argue that this issue can be substantially alleviated by the divide-and-conquer philosophy. Taking pedestrian detection as an example, we illustrate how we can leverage this philosophy to develop a Scale-Aware Fast R-CNN (SAF R-CNN) framework. The model introduces multiple built-in subnetworks which detect pedestrians with scales from disjoint ranges. Outputs from all of the subnetworks are then adaptively combined to generate the final detection results that are shown to be robust to large variance in instance scales, via a gate function defined over the sizes of object proposals. Extensive evaluations on several challenging pedestrian detection datasets well demonstrate the effectiveness of the proposed SAF R-CNN. Particularly, our method achieves state-of-the-art performance on Caltech, and obtains competitive results on INRIA, ETH, and KITTI.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W2963315052",
+      "citation_count": 835,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 835
+        }
+      ],
+      "references": [
+        "https://openalex.org/W7746136",
+        "https://openalex.org/W82130502",
+        "https://openalex.org/W115232434",
+        "https://openalex.org/W639708223",
+        "https://openalex.org/W1475617732",
+        "https://openalex.org/W1483870316",
+        "https://openalex.org/W1487583988",
+        "https://openalex.org/W1519128923",
+        "https://openalex.org/W1524680991",
+        "https://openalex.org/W1536680647",
+        "https://openalex.org/W1560380655",
+        "https://openalex.org/W1650122911",
+        "https://openalex.org/W1686810756",
+        "https://openalex.org/W1800922288",
+        "https://openalex.org/W1903127635",
+        "https://openalex.org/W1922904362",
+        "https://openalex.org/W1961891967",
+        "https://openalex.org/W1968386686",
+        "https://openalex.org/W1976818984",
+        "https://openalex.org/W1982925187",
+        "https://openalex.org/W1986905809",
+        "https://openalex.org/W1991367009",
+        "https://openalex.org/W1992825118",
+        "https://openalex.org/W2008624038",
+        "https://openalex.org/W2031454541",
+        "https://openalex.org/W2042704780",
+        "https://openalex.org/W2058757422",
+        "https://openalex.org/W2066624635",
+        "https://openalex.org/W2074777933",
+        "https://openalex.org/W2081021369",
+        "https://openalex.org/W2088049833",
+        "https://openalex.org/W2092581874",
+        "https://openalex.org/W2098064689",
+        "https://openalex.org/W2098699644",
+        "https://openalex.org/W2102605133",
+        "https://openalex.org/W2109255472",
+        "https://openalex.org/W2110226160",
+        "https://openalex.org/W2115471590",
+        "https://openalex.org/W2122853526",
+        "https://openalex.org/W2125556102",
+        "https://openalex.org/W2128715914",
+        "https://openalex.org/W2133755669",
+        "https://openalex.org/W2136724559",
+        "https://openalex.org/W2137401668",
+        "https://openalex.org/W2139427956",
+        "https://openalex.org/W2150066425",
+        "https://openalex.org/W2155893237",
+        "https://openalex.org/W2156547346",
+        "https://openalex.org/W2158688659",
+        "https://openalex.org/W2159386181",
+        "https://openalex.org/W2161969291",
+        "https://openalex.org/W2162741153",
+        "https://openalex.org/W2163605009",
+        "https://openalex.org/W2168356304",
+        "https://openalex.org/W2170101770",
+        "https://openalex.org/W2179352600",
+        "https://openalex.org/W2184393491",
+        "https://openalex.org/W2200528286",
+        "https://openalex.org/W2212123867",
+        "https://openalex.org/W2263859149",
+        "https://openalex.org/W2295594159",
+        "https://openalex.org/W2350280062",
+        "https://openalex.org/W2481401919",
+        "https://openalex.org/W2497039038",
+        "https://openalex.org/W2510373542",
+        "https://openalex.org/W2518077721",
+        "https://openalex.org/W2529780763",
+        "https://openalex.org/W2548197316",
+        "https://openalex.org/W2949493420",
+        "https://openalex.org/W2949847849",
+        "https://openalex.org/W2951548327",
+        "https://openalex.org/W2962850098",
+        "https://openalex.org/W2963093690",
+        "https://openalex.org/W2963542991",
+        "https://openalex.org/W3097096317",
+        "https://openalex.org/W3106250896",
+        "https://openalex.org/W3151111735",
+        "https://openalex.org/W6686211706",
+        "https://openalex.org/W7098642242"
+      ],
+      "source_metadata": {
+        "publisher": "Institute of Electrical and Electronics Engineers",
+        "reference_count": 79,
+        "referenced_works": [
+          "https://openalex.org/W7746136",
+          "https://openalex.org/W82130502",
+          "https://openalex.org/W115232434",
+          "https://openalex.org/W639708223",
+          "https://openalex.org/W1475617732",
+          "https://openalex.org/W1483870316",
+          "https://openalex.org/W1487583988",
+          "https://openalex.org/W1519128923",
+          "https://openalex.org/W1524680991",
+          "https://openalex.org/W1536680647",
+          "https://openalex.org/W1560380655",
+          "https://openalex.org/W1650122911",
+          "https://openalex.org/W1686810756",
+          "https://openalex.org/W1800922288",
+          "https://openalex.org/W1903127635",
+          "https://openalex.org/W1922904362",
+          "https://openalex.org/W1961891967",
+          "https://openalex.org/W1968386686",
+          "https://openalex.org/W1976818984",
+          "https://openalex.org/W1982925187",
+          "https://openalex.org/W1986905809",
+          "https://openalex.org/W1991367009",
+          "https://openalex.org/W1992825118",
+          "https://openalex.org/W2008624038",
+          "https://openalex.org/W2031454541",
+          "https://openalex.org/W2042704780",
+          "https://openalex.org/W2058757422",
+          "https://openalex.org/W2066624635",
+          "https://openalex.org/W2074777933",
+          "https://openalex.org/W2081021369",
+          "https://openalex.org/W2088049833",
+          "https://openalex.org/W2092581874",
+          "https://openalex.org/W2098064689",
+          "https://openalex.org/W2098699644",
+          "https://openalex.org/W2102605133",
+          "https://openalex.org/W2109255472",
+          "https://openalex.org/W2110226160",
+          "https://openalex.org/W2115471590",
+          "https://openalex.org/W2122853526",
+          "https://openalex.org/W2125556102",
+          "https://openalex.org/W2128715914",
+          "https://openalex.org/W2133755669",
+          "https://openalex.org/W2136724559",
+          "https://openalex.org/W2137401668",
+          "https://openalex.org/W2139427956",
+          "https://openalex.org/W2150066425",
+          "https://openalex.org/W2155893237",
+          "https://openalex.org/W2156547346",
+          "https://openalex.org/W2158688659",
+          "https://openalex.org/W2159386181",
+          "https://openalex.org/W2161969291",
+          "https://openalex.org/W2162741153",
+          "https://openalex.org/W2163605009",
+          "https://openalex.org/W2168356304",
+          "https://openalex.org/W2170101770",
+          "https://openalex.org/W2179352600",
+          "https://openalex.org/W2184393491",
+          "https://openalex.org/W2200528286",
+          "https://openalex.org/W2212123867",
+          "https://openalex.org/W2263859149",
+          "https://openalex.org/W2295594159",
+          "https://openalex.org/W2350280062",
+          "https://openalex.org/W2481401919",
+          "https://openalex.org/W2497039038",
+          "https://openalex.org/W2510373542",
+          "https://openalex.org/W2518077721",
+          "https://openalex.org/W2529780763",
+          "https://openalex.org/W2548197316",
+          "https://openalex.org/W2949493420",
+          "https://openalex.org/W2949847849",
+          "https://openalex.org/W2951548327",
+          "https://openalex.org/W2962850098",
+          "https://openalex.org/W2963093690",
+          "https://openalex.org/W2963542991",
+          "https://openalex.org/W3097096317",
+          "https://openalex.org/W3106250896",
+          "https://openalex.org/W3151111735",
+          "https://openalex.org/W6686211706",
+          "https://openalex.org/W7098642242"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 18
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 42
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 61
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 97
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 83
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 125
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 146
+          },
+          {
+            "year": 2019,
+            "cited_by_count": 127
+          },
+          {
+            "year": 2018,
+            "cited_by_count": 88
+          },
+          {
+            "year": 2017,
+            "cited_by_count": 37
+          },
+          {
+            "year": 2016,
+            "cited_by_count": 11
+          }
+        ],
+        "keywords": [
+          "pedestrian detection",
+          "Fast R-CNN",
+          "divide-and-conquer",
+          "gate function"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Advanced Neural Network Applications",
+          "Advanced Image and Video Retrieval Techniques",
+          "Visual Attention and Saliency Detection"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5100448292",
+          "https://openalex.org/A5047878798",
+          "https://openalex.org/A5085503596",
+          "https://openalex.org/A5019242095",
+          "https://openalex.org/A5100668696",
+          "https://openalex.org/A5100381753"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_cdf8a4b6",
+          "source_type": "openalex",
+          "artifact_sha256": "af7b16f41b06097fecfb17309333a7f514c191d52c6a6135bf45fbf5daf45eba",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W2963315052",
+          "json_pointer": "/results/https://openalex.org/W2963315052",
+          "source_url": "https://openalex.org/W2963315052",
+          "fetched_at": "2026-11-12T01:19:07.566742Z"
+        }
+      ],
+      "relevance_score": 1.0487,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 0.9739,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 3
+    },
+    {
+      "paper_id": "5866edbe-c453-599e-834e-dd23c04eefcb",
+      "title": "Pedestrian Detection and Tracking With Night Vision",
+      "year": 2005,
+      "publication_date": "2005-03-01",
+      "doi": "10.1109/tits.2004.838222",
+      "identifiers": {
+        "doi": "10.1109/tits.2004.838222",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W2133984628",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Fang Xu",
+          "orcid": "https://orcid.org/0000-0002-0622-6663",
+          "institutions": [
+            "The Ohio State University"
+          ]
+        },
+        {
+          "name": "X. Liu",
+          "orcid": null,
+          "institutions": [
+            "The Ohio State University"
+          ]
+        },
+        {
+          "name": "Kikuo Fujimura",
+          "orcid": "https://orcid.org/0009-0008-8945-7889",
+          "institutions": [
+            "Honda Research Institute, USA"
+          ]
+        }
+      ],
+      "venue": "IEEE Transactions on Intelligent Transportation Systems",
+      "publication_type": "article",
+      "abstract": "This paper presents a method for pedestrian detection and tracking using a single night-vision video camera installed on the vehicle. To deal with the nonrigid nature of human appearance on the road, a two-step detection/tracking method is proposed. The detection phase is performed by a support vector machine (SVM) with size-normalized pedestrian candidates and the tracking phase is a combination of Kalman filter prediction and mean shift tracking. The detection phase is further strengthened by information obtained by a road-detection module that provides key information for pedestrian validation. Experimental comparisons (e.g., grayscale SVM recognition versus binary SVM recognition and entire-body detection versus upper-body detection) have been carried out to illustrate the feasibility of our approach.",
+      "is_open_access": false,
+      "url": "https://openalex.org/W2133984628",
+      "citation_count": 387,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 387
+        }
+      ],
+      "references": [
+        "https://openalex.org/W1482428446",
+        "https://openalex.org/W1544640522",
+        "https://openalex.org/W1661142713",
+        "https://openalex.org/W1676612073",
+        "https://openalex.org/W1909440849",
+        "https://openalex.org/W1985597060",
+        "https://openalex.org/W1992825118",
+        "https://openalex.org/W2022686119",
+        "https://openalex.org/W2040013490",
+        "https://openalex.org/W2081140080",
+        "https://openalex.org/W2095091362",
+        "https://openalex.org/W2095742909",
+        "https://openalex.org/W2104671481",
+        "https://openalex.org/W2104908641",
+        "https://openalex.org/W2113960148",
+        "https://openalex.org/W2114701396",
+        "https://openalex.org/W2118605474",
+        "https://openalex.org/W2124351082",
+        "https://openalex.org/W2125824324",
+        "https://openalex.org/W2129317335",
+        "https://openalex.org/W2131570738",
+        "https://openalex.org/W2136559873",
+        "https://openalex.org/W2139593995",
+        "https://openalex.org/W2140220698",
+        "https://openalex.org/W2141294180",
+        "https://openalex.org/W2143023146",
+        "https://openalex.org/W2143026545",
+        "https://openalex.org/W2144124341",
+        "https://openalex.org/W2144307599",
+        "https://openalex.org/W2145938889",
+        "https://openalex.org/W2152074180",
+        "https://openalex.org/W2152473410",
+        "https://openalex.org/W2156656005",
+        "https://openalex.org/W2156909104",
+        "https://openalex.org/W2159128898",
+        "https://openalex.org/W2161657986",
+        "https://openalex.org/W2163272476",
+        "https://openalex.org/W2165688580",
+        "https://openalex.org/W3022404379",
+        "https://openalex.org/W3151111735",
+        "https://openalex.org/W4229561215",
+        "https://openalex.org/W4230674625"
+      ],
+      "source_metadata": {
+        "publisher": "Institute of Electrical and Electronics Engineers",
+        "reference_count": 42,
+        "referenced_works": [
+          "https://openalex.org/W1482428446",
+          "https://openalex.org/W1544640522",
+          "https://openalex.org/W1661142713",
+          "https://openalex.org/W1676612073",
+          "https://openalex.org/W1909440849",
+          "https://openalex.org/W1985597060",
+          "https://openalex.org/W1992825118",
+          "https://openalex.org/W2022686119",
+          "https://openalex.org/W2040013490",
+          "https://openalex.org/W2081140080",
+          "https://openalex.org/W2095091362",
+          "https://openalex.org/W2095742909",
+          "https://openalex.org/W2104671481",
+          "https://openalex.org/W2104908641",
+          "https://openalex.org/W2113960148",
+          "https://openalex.org/W2114701396",
+          "https://openalex.org/W2118605474",
+          "https://openalex.org/W2124351082",
+          "https://openalex.org/W2125824324",
+          "https://openalex.org/W2129317335",
+          "https://openalex.org/W2131570738",
+          "https://openalex.org/W2136559873",
+          "https://openalex.org/W2139593995",
+          "https://openalex.org/W2140220698",
+          "https://openalex.org/W2141294180",
+          "https://openalex.org/W2143023146",
+          "https://openalex.org/W2143026545",
+          "https://openalex.org/W2144124341",
+          "https://openalex.org/W2144307599",
+          "https://openalex.org/W2145938889",
+          "https://openalex.org/W2152074180",
+          "https://openalex.org/W2152473410",
+          "https://openalex.org/W2156656005",
+          "https://openalex.org/W2156909104",
+          "https://openalex.org/W2159128898",
+          "https://openalex.org/W2161657986",
+          "https://openalex.org/W2163272476",
+          "https://openalex.org/W2165688580",
+          "https://openalex.org/W3022404379",
+          "https://openalex.org/W3151111735",
+          "https://openalex.org/W4229561215",
+          "https://openalex.org/W4230674625"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 3
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 2
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 5
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 11
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 5
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 10
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 13
+          },
+          {
+            "year": 2019,
+            "cited_by_count": 24
+          },
+          {
+            "year": 2018,
+            "cited_by_count": 8
+          },
+          {
+            "year": 2017,
+            "cited_by_count": 21
+          },
+          {
+            "year": 2016,
+            "cited_by_count": 18
+          },
+          {
+            "year": 2015,
+            "cited_by_count": 20
+          },
+          {
+            "year": 2014,
+            "cited_by_count": 16
+          },
+          {
+            "year": 2013,
+            "cited_by_count": 15
+          },
+          {
+            "year": 2012,
+            "cited_by_count": 19
+          }
+        ],
+        "keywords": [
+          "pedestrian detection",
+          "pedestrian tracking",
+          "night vision",
+          "vehicle-mounted camera",
+          "support vector machine",
+          "Kalman filter",
+          "mean shift tracking",
+          "road detection"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Video Surveillance and Tracking Methods",
+          "Autonomous Vehicle Technology and Safety",
+          "Advanced Neural Network Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5100755366",
+          null,
+          "https://openalex.org/A5112249344"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_bd7cc44b",
+          "source_type": "openalex",
+          "artifact_sha256": "af7b16f41b06097fecfb17309333a7f514c191d52c6a6135bf45fbf5daf45eba",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W2133984628",
+          "json_pointer": "/results/https://openalex.org/W2133984628",
+          "source_url": "https://openalex.org/W2133984628",
+          "fetched_at": "2026-11-12T01:19:07.566253Z"
+        }
+      ],
+      "relevance_score": 1.0431,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 0.8628,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 4
+    },
+    {
+      "paper_id": "9ced2173-9bd2-5f06-9fac-5cc15ca34179",
+      "title": "A TRAINABLE PEDESTRIAN DETECTION SYSTEM",
+      "year": 1998,
+      "publication_date": "1998-01-01",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W1482428446",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Constantine Papgeorgiou",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Theodoros Evgeniou",
+          "orcid": "https://orcid.org/0000-0001-9525-6110",
+          "institutions": []
+        },
+        {
+          "name": "Tomaso Poggio",
+          "orcid": "https://orcid.org/0000-0002-3944-0455",
+          "institutions": []
+        }
+      ],
+      "venue": null,
+      "publication_type": "article",
+      "abstract": "In the near future, we can expect on-board automotive vision systems that inform or alert the driver about pedestrians, track surrounding vehicles, and read street signs. Object detection is fundamental to the success of this type of next-generation vision system. In this paper, w e present a trainable object detection system that automatically learns to detect objects of a certain class in unconstrained scenes. We apply our system to the task of pedestrian detection. Unlike previous approaches to pedestrian detection that rely heavily on hand-crafted models and motion information, our system learns the pedestrian model from examples and uses no motion cues. The system can easily be extended to include motion information. We review our previous system, describe a new system that exhibits significantly better performance, provide a comparison between using different combinations of feature sets with classifiers of varying complexity, and describe improvements that increase the system\u2019s processing speed by two orders of magnitude.",
+      "is_open_access": false,
+      "url": "https://openalex.org/W1482428446",
+      "citation_count": 174,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 174
+        }
+      ],
+      "references": [
+        "https://openalex.org/W26816478",
+        "https://openalex.org/W1486540228",
+        "https://openalex.org/W1535843679",
+        "https://openalex.org/W1564518192",
+        "https://openalex.org/W1676612073",
+        "https://openalex.org/W1740624497",
+        "https://openalex.org/W1992050835",
+        "https://openalex.org/W2030989822",
+        "https://openalex.org/W2038033160",
+        "https://openalex.org/W2070028497",
+        "https://openalex.org/W2087347434",
+        "https://openalex.org/W2104671481",
+        "https://openalex.org/W2115763357",
+        "https://openalex.org/W2132984323",
+        "https://openalex.org/W2134203912",
+        "https://openalex.org/W2139212933",
+        "https://openalex.org/W2140235142",
+        "https://openalex.org/W2140487300",
+        "https://openalex.org/W2156909104",
+        "https://openalex.org/W2243271508"
+      ],
+      "source_metadata": {
+        "publisher": null,
+        "reference_count": 20,
+        "referenced_works": [
+          "https://openalex.org/W26816478",
+          "https://openalex.org/W1486540228",
+          "https://openalex.org/W1535843679",
+          "https://openalex.org/W1564518192",
+          "https://openalex.org/W1676612073",
+          "https://openalex.org/W1740624497",
+          "https://openalex.org/W1992050835",
+          "https://openalex.org/W2030989822",
+          "https://openalex.org/W2038033160",
+          "https://openalex.org/W2070028497",
+          "https://openalex.org/W2087347434",
+          "https://openalex.org/W2104671481",
+          "https://openalex.org/W2115763357",
+          "https://openalex.org/W2132984323",
+          "https://openalex.org/W2134203912",
+          "https://openalex.org/W2139212933",
+          "https://openalex.org/W2140235142",
+          "https://openalex.org/W2140487300",
+          "https://openalex.org/W2156909104",
+          "https://openalex.org/W2243271508"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2024,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 2
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 2
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 2
+          },
+          {
+            "year": 2018,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2017,
+            "cited_by_count": 2
+          },
+          {
+            "year": 2016,
+            "cited_by_count": 3
+          },
+          {
+            "year": 2015,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2014,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2013,
+            "cited_by_count": 6
+          },
+          {
+            "year": 2012,
+            "cited_by_count": 8
+          }
+        ],
+        "keywords": [
+          "pedestrian detection",
+          "automotive vision",
+          "feature sets",
+          "classifier complexity",
+          "processing speed",
+          "motion cues",
+          "driver assistance"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Advanced Neural Network Applications",
+          "Video Surveillance and Tracking Methods",
+          "Autonomous Vehicle Technology and Safety"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5017041489",
+          "https://openalex.org/A5022937525",
+          "https://openalex.org/A5001833084"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_c11caafe",
+          "source_type": "openalex",
+          "artifact_sha256": "af7b16f41b06097fecfb17309333a7f514c191d52c6a6135bf45fbf5daf45eba",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W1482428446",
+          "json_pointer": "/results/https://openalex.org/W1482428446",
+          "source_url": "https://openalex.org/W1482428446",
+          "fetched_at": "2026-11-12T01:19:07.566575Z"
+        }
+      ],
+      "relevance_score": 1.0374,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 0.7476,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 5
+    },
+    {
+      "paper_id": "b675e38b-a20b-5f57-ba90-09a7bd2a947b",
+      "title": "Single-Pedestrian Detection Aided by Two-Pedestrian Detection",
+      "year": 2014,
+      "publication_date": "2014-12-19",
+      "doi": "10.1109/tpami.2014.2377734",
+      "identifiers": {
+        "doi": "10.1109/tpami.2014.2377734",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W2083896825",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Wanli Ouyang",
+          "orcid": "https://orcid.org/0000-0002-9163-2761",
+          "institutions": [
+            "Chinese University of Hong Kong"
+          ]
+        },
+        {
+          "name": "Xingyu Zeng",
+          "orcid": "https://orcid.org/0009-0002-5776-8101",
+          "institutions": [
+            "Chinese University of Hong Kong"
+          ]
+        },
+        {
+          "name": "Xiaogang Wang",
+          "orcid": "https://orcid.org/0000-0002-7929-5889",
+          "institutions": [
+            "Chinese University of Hong Kong"
+          ]
+        }
+      ],
+      "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+      "publication_type": "article",
+      "abstract": "In this paper, we address the challenging problem of detecting pedestrians who appear in groups. A new approach is proposed for single-pedestrian detection aided by two-pedestrian detection. A mixture model of two-pedestrian detectors is designed to capture the unique visual cues which are formed by nearby pedestrians but cannot be captured by single-pedestrian detectors. A probabilistic framework is proposed to model the relationship between the configurations estimated by single- and two-pedestrian detectors, and to refine the single-pedestrian detection result using two-pedestrian detection. The two-pedestrian detector can integrate with any single-pedestrian detector. Twenty-five state-of-the-art single-pedestrian detection approaches are combined with the two-pedestrian detector on three widely used public datasets: Caltech, TUD-Brussels, and ETH. Experimental results show that our framework improves all these approaches. The average improvement is 9 percent on the Caltech-Test dataset, 11 percent on the TUD-Brussels dataset and 17 percent on the ETH dataset in terms of average miss rate. The lowest average miss rate is reduced from 37 to percent on the Caltech-Test dataset, from 55 to 50 percent on the TUD-Brussels dataset and from 43 to 38 percent on the ETH dataset.",
+      "is_open_access": false,
+      "url": "https://openalex.org/W2083896825",
+      "citation_count": 54,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 54
+        }
+      ],
+      "references": [
+        "https://openalex.org/W94414152",
+        "https://openalex.org/W1517303303",
+        "https://openalex.org/W1536943225",
+        "https://openalex.org/W1560380655",
+        "https://openalex.org/W1595717062",
+        "https://openalex.org/W1608462934",
+        "https://openalex.org/W1864464506",
+        "https://openalex.org/W1885921277",
+        "https://openalex.org/W1906375339",
+        "https://openalex.org/W1932758808",
+        "https://openalex.org/W1950935069",
+        "https://openalex.org/W1965865731",
+        "https://openalex.org/W1973109943",
+        "https://openalex.org/W1977470347",
+        "https://openalex.org/W1986905809",
+        "https://openalex.org/W1987118352",
+        "https://openalex.org/W1992825118",
+        "https://openalex.org/W1993149133",
+        "https://openalex.org/W1994529670",
+        "https://openalex.org/W1995444699",
+        "https://openalex.org/W1996478295",
+        "https://openalex.org/W1999853363",
+        "https://openalex.org/W2010340098",
+        "https://openalex.org/W2013039598",
+        "https://openalex.org/W2024665880",
+        "https://openalex.org/W2028742349",
+        "https://openalex.org/W2030536784",
+        "https://openalex.org/W2031454541",
+        "https://openalex.org/W2031489346",
+        "https://openalex.org/W2034779469",
+        "https://openalex.org/W2037511607",
+        "https://openalex.org/W2044313232",
+        "https://openalex.org/W2046349920",
+        "https://openalex.org/W2046589395",
+        "https://openalex.org/W2049705550",
+        "https://openalex.org/W2049768550",
+        "https://openalex.org/W2056025798",
+        "https://openalex.org/W2077493928",
+        "https://openalex.org/W2077513643",
+        "https://openalex.org/W2083342768",
+        "https://openalex.org/W2084997728",
+        "https://openalex.org/W2085805060",
+        "https://openalex.org/W2089584121",
+        "https://openalex.org/W2096349671",
+        "https://openalex.org/W2097324787",
+        "https://openalex.org/W2098699644",
+        "https://openalex.org/W2099355420",
+        "https://openalex.org/W2105557521",
+        "https://openalex.org/W2108598243",
+        "https://openalex.org/W2113201641",
+        "https://openalex.org/W2116022929",
+        "https://openalex.org/W2116299025",
+        "https://openalex.org/W2117687030",
+        "https://openalex.org/W2118061983",
+        "https://openalex.org/W2121955477",
+        "https://openalex.org/W2122146326",
+        "https://openalex.org/W2122853526",
+        "https://openalex.org/W2125556102",
+        "https://openalex.org/W2127242687",
+        "https://openalex.org/W2127420331",
+        "https://openalex.org/W2131263044",
+        "https://openalex.org/W2133755669",
+        "https://openalex.org/W2134380836",
+        "https://openalex.org/W2136579260",
+        "https://openalex.org/W2136724559",
+        "https://openalex.org/W2139479830",
+        "https://openalex.org/W2139783272",
+        "https://openalex.org/W2141357020",
+        "https://openalex.org/W2141364309",
+        "https://openalex.org/W2142037471",
+        "https://openalex.org/W2143729633",
+        "https://openalex.org/W2145142957",
+        "https://openalex.org/W2146036766",
+        "https://openalex.org/W2146352414",
+        "https://openalex.org/W2149077040",
+        "https://openalex.org/W2150066425",
+        "https://openalex.org/W2150385913",
+        "https://openalex.org/W2151454023",
+        "https://openalex.org/W2153185908",
+        "https://openalex.org/W2153565331",
+        "https://openalex.org/W2154740476",
+        "https://openalex.org/W2156547346",
+        "https://openalex.org/W2159386181",
+        "https://openalex.org/W2159564241",
+        "https://openalex.org/W2161969291",
+        "https://openalex.org/W2162741153",
+        "https://openalex.org/W2162846286",
+        "https://openalex.org/W2164877691",
+        "https://openalex.org/W2165720259",
+        "https://openalex.org/W2165874743",
+        "https://openalex.org/W2167765625",
+        "https://openalex.org/W2168356304",
+        "https://openalex.org/W2169671170",
+        "https://openalex.org/W2534262995",
+        "https://openalex.org/W2535410496",
+        "https://openalex.org/W2538008885",
+        "https://openalex.org/W2548197316",
+        "https://openalex.org/W3097096317",
+        "https://openalex.org/W4241222664",
+        "https://openalex.org/W4299862134"
+      ],
+      "source_metadata": {
+        "publisher": "IEEE Computer Society",
+        "reference_count": 100,
+        "referenced_works": [
+          "https://openalex.org/W94414152",
+          "https://openalex.org/W1517303303",
+          "https://openalex.org/W1536943225",
+          "https://openalex.org/W1560380655",
+          "https://openalex.org/W1595717062",
+          "https://openalex.org/W1608462934",
+          "https://openalex.org/W1864464506",
+          "https://openalex.org/W1885921277",
+          "https://openalex.org/W1906375339",
+          "https://openalex.org/W1932758808",
+          "https://openalex.org/W1950935069",
+          "https://openalex.org/W1965865731",
+          "https://openalex.org/W1973109943",
+          "https://openalex.org/W1977470347",
+          "https://openalex.org/W1986905809",
+          "https://openalex.org/W1987118352",
+          "https://openalex.org/W1992825118",
+          "https://openalex.org/W1993149133",
+          "https://openalex.org/W1994529670",
+          "https://openalex.org/W1995444699",
+          "https://openalex.org/W1996478295",
+          "https://openalex.org/W1999853363",
+          "https://openalex.org/W2010340098",
+          "https://openalex.org/W2013039598",
+          "https://openalex.org/W2024665880",
+          "https://openalex.org/W2028742349",
+          "https://openalex.org/W2030536784",
+          "https://openalex.org/W2031454541",
+          "https://openalex.org/W2031489346",
+          "https://openalex.org/W2034779469",
+          "https://openalex.org/W2037511607",
+          "https://openalex.org/W2044313232",
+          "https://openalex.org/W2046349920",
+          "https://openalex.org/W2046589395",
+          "https://openalex.org/W2049705550",
+          "https://openalex.org/W2049768550",
+          "https://openalex.org/W2056025798",
+          "https://openalex.org/W2077493928",
+          "https://openalex.org/W2077513643",
+          "https://openalex.org/W2083342768",
+          "https://openalex.org/W2084997728",
+          "https://openalex.org/W2085805060",
+          "https://openalex.org/W2089584121",
+          "https://openalex.org/W2096349671",
+          "https://openalex.org/W2097324787",
+          "https://openalex.org/W2098699644",
+          "https://openalex.org/W2099355420",
+          "https://openalex.org/W2105557521",
+          "https://openalex.org/W2108598243",
+          "https://openalex.org/W2113201641",
+          "https://openalex.org/W2116022929",
+          "https://openalex.org/W2116299025",
+          "https://openalex.org/W2117687030",
+          "https://openalex.org/W2118061983",
+          "https://openalex.org/W2121955477",
+          "https://openalex.org/W2122146326",
+          "https://openalex.org/W2122853526",
+          "https://openalex.org/W2125556102",
+          "https://openalex.org/W2127242687",
+          "https://openalex.org/W2127420331",
+          "https://openalex.org/W2131263044",
+          "https://openalex.org/W2133755669",
+          "https://openalex.org/W2134380836",
+          "https://openalex.org/W2136579260",
+          "https://openalex.org/W2136724559",
+          "https://openalex.org/W2139479830",
+          "https://openalex.org/W2139783272",
+          "https://openalex.org/W2141357020",
+          "https://openalex.org/W2141364309",
+          "https://openalex.org/W2142037471",
+          "https://openalex.org/W2143729633",
+          "https://openalex.org/W2145142957",
+          "https://openalex.org/W2146036766",
+          "https://openalex.org/W2146352414",
+          "https://openalex.org/W2149077040",
+          "https://openalex.org/W2150066425",
+          "https://openalex.org/W2150385913",
+          "https://openalex.org/W2151454023",
+          "https://openalex.org/W2153185908",
+          "https://openalex.org/W2153565331",
+          "https://openalex.org/W2154740476",
+          "https://openalex.org/W2156547346",
+          "https://openalex.org/W2159386181",
+          "https://openalex.org/W2159564241",
+          "https://openalex.org/W2161969291",
+          "https://openalex.org/W2162741153",
+          "https://openalex.org/W2162846286",
+          "https://openalex.org/W2164877691",
+          "https://openalex.org/W2165720259",
+          "https://openalex.org/W2165874743",
+          "https://openalex.org/W2167765625",
+          "https://openalex.org/W2168356304",
+          "https://openalex.org/W2169671170",
+          "https://openalex.org/W2534262995",
+          "https://openalex.org/W2535410496",
+          "https://openalex.org/W2538008885",
+          "https://openalex.org/W2548197316",
+          "https://openalex.org/W3097096317",
+          "https://openalex.org/W4241222664",
+          "https://openalex.org/W4299862134"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 5
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 8
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2019,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2018,
+            "cited_by_count": 5
+          },
+          {
+            "year": 2017,
+            "cited_by_count": 5
+          },
+          {
+            "year": 2016,
+            "cited_by_count": 10
+          },
+          {
+            "year": 2015,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "pedestrian detection",
+          "mixture models",
+          "probabilistic framework",
+          "visual cues"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Advanced Neural Network Applications",
+          "Video Surveillance and Tracking Methods",
+          "Autonomous Vehicle Technology and Safety"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5087818121",
+          "https://openalex.org/A5060379760",
+          "https://openalex.org/A5100444820"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_76b6b0cd",
+          "source_type": "openalex",
+          "artifact_sha256": "af7b16f41b06097fecfb17309333a7f514c191d52c6a6135bf45fbf5daf45eba",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W2083896825",
+          "json_pointer": "/results/https://openalex.org/W2083896825",
+          "source_url": "https://openalex.org/W2083896825",
+          "fetched_at": "2026-11-12T01:19:07.566402Z"
+        }
+      ],
+      "relevance_score": 1.029,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 0.58,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 6
+    },
+    {
+      "paper_id": "9e4893d5-811c-5768-9012-ca7c11228f41",
+      "title": "PEDESTRIAN: An Egocentric Vision Dataset for Obstacle Detection on Pavements",
+      "year": 2025,
+      "publication_date": "2025-12-22",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "2512.19190v1",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Marios Thoma",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Zenonas Theodosiou",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Harris Partaourides",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Vassilis Vassiliades",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Loizos Michael",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Andreas Lanitis",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "Walking has always been a primary mode of transportation and is recognized as an essential activity for maintaining good health. Despite the need for safe walking conditions in urban environments, sidewalks are frequently obstructed by various obstacles that hinder free pedestrian movement. Any object obstructing a pedestrian's path can pose a safety hazard. The advancement of pervasive computing and egocentric vision techniques offers the potential to design systems that can automatically detect such obstacles in real time, thereby enhancing pedestrian safety. The development of effective and efficient identification algorithms relies on the availability of comprehensive and well-balanced datasets of egocentric data. In this work, we introduce the PEDESTRIAN dataset, comprising egocentric data for 29 different obstacles commonly found on urban sidewalks. A total of 340 videos were collected using mobile phone cameras, capturing a pedestrian's point of view. Additionally, we present the results of a series of experiments that involved training several state-of-the-art deep learning algorithms using the proposed dataset, which can be used as a benchmark for obstacle detection and recognition tasks. The dataset can be used for training pavement obstacle detectors to enhance the safety of pedestrians in urban areas.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2512.19190v1",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_4f5c88ba",
+          "source_type": "arxiv",
+          "artifact_sha256": "b0b08e52d7faec02d7bcd089f902fd80d80de9660cc12c1ac02b6dede51333c8",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2512.19190v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2512.19190v1",
+          "fetched_at": "2026-11-12T01:19:06.458779Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 7
+    },
+    {
+      "paper_id": "533a8717-73fe-5a13-ade7-6bae99c0d89d",
+      "title": "Audio-Based Pedestrian Detection in the Presence of Vehicular Noise",
+      "year": 2025,
+      "publication_date": "2025-09-23",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "2509.19295v1",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Yonghyun Kim",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Chaeyeon Han",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Akash Sarode",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Noah Posner",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Subhrajit Guhathakurta",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Alexander Lerch",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "Audio-based pedestrian detection is a challenging task and has, thus far, only been explored in noise-limited environments. We present a new dataset, results, and a detailed analysis of the state-of-the-art in audio-based pedestrian detection in the presence of vehicular noise. In our study, we conduct three analyses: (i) cross-dataset evaluation between noisy and noise-limited environments, (ii) an assessment of the impact of noisy data on model performance, highlighting the influence of acoustic context, and (iii) an evaluation of the model's predictive robustness on out-of-domain sounds. The new dataset is a comprehensive 1321-hour roadside dataset. It incorporates traffic-rich soundscapes. Each recording includes 16kHz audio synchronized with frame-level pedestrian annotations and 1fps video thumbnails.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2509.19295v1",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_33762f2e",
+          "source_type": "arxiv",
+          "artifact_sha256": "b0b08e52d7faec02d7bcd089f902fd80d80de9660cc12c1ac02b6dede51333c8",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2509.19295v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2509.19295v1",
+          "fetched_at": "2026-11-12T01:19:06.461303Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 8
+    },
+    {
+      "paper_id": "dcd46fb7-d388-5705-a4b4-f9591b0df8fe",
+      "title": "Pedestrian detection with high-resolution event camera",
+      "year": 2023,
+      "publication_date": "2023-06-02",
+      "doi": "10.36227/techrxiv.23256911.v1",
+      "identifiers": {
+        "doi": "10.36227/techrxiv.23256911.v1",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Piotr Wzorek",
+          "orcid": "https://orcid.org/0000-0003-3885-600X",
+          "institutions": []
+        },
+        {
+          "name": "Tomasz Kryjak",
+          "orcid": "https://orcid.org/0000-0001-6798-4444",
+          "institutions": [
+            "AGH University of Krakow"
+          ]
+        }
+      ],
+      "venue": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "publication_type": "posted-content",
+      "abstract": "<jats:p>Despite the dynamic development of computer vision algorithms, the\nimplementation of perception and control systems for autonomous vehicles\nsuch as drones and self-driving cars still poses many challenges. A\nvideo stream captured by traditional cameras is often prone to problems\nsuch as motion blur or degraded image quality due to challenging\nlighting conditions. In addition, the frame rate - typically 30 or 60\nframes per second - can be a limiting factor in certain scenarios. Event\ncameras (DVS \u2013 Dynamic Vision Sensor) are a potentially interesting\ntechnology to address the above mentioned problems. In this paper, we\ncompare two methods of processing event data by means of deep learning\nfor the task of pedestrian detection. We used a representation in the\nform of video frames, convolutional neural networks and asynchronous\nsparse convolutional neural networks. The results obtained illustrate\nthe potential of event cameras and allow the evaluation of the accuracy\nand efficiency of the methods used for high-resolution (1280 x 720\npixels) footage.</jats:p>",
+      "is_open_access": null,
+      "url": "https://doi.org/10.36227/techrxiv.23256911.v1",
+      "citation_count": 0,
+      "citation_provider": "crossref",
+      "citation_observations": [
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+        "reference_count": 0,
+        "referenced_works": [],
+        "publication_versions": null
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_bf06a17c",
+          "source_type": "crossref",
+          "artifact_sha256": "e94939f70d257787284362304a3f7355e7884843e34fa75423688fa06809a21d",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.36227/techrxiv.23256911.v1",
+          "json_pointer": "/message/items/10.36227/techrxiv.23256911.v1",
+          "source_url": "https://doi.org/10.36227/techrxiv.23256911.v1",
+          "fetched_at": "2026-11-12T01:19:07.597675Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.4,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 9
+    },
+    {
+      "paper_id": "64b45599-29ea-572f-ad32-fdb9822c3c5e",
+      "title": "LRPD: Long Range 3D Pedestrian Detection Leveraging Specific Strengths of LiDAR and RGB",
+      "year": 2020,
+      "publication_date": "2020-06-17",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "2006.09738v1",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Michael F\u00fcrst",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Oliver Wasenm\u00fcller",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Didier Stricker",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "While short range 3D pedestrian detection is sufficient for emergency breaking, long range detections are required for smooth breaking and gaining trust in autonomous vehicles. The current state-of-the-art on the KITTI benchmark performs suboptimal in detecting the position of pedestrians at long range. Thus, we propose an approach specifically targeting long range 3D pedestrian detection (LRPD), leveraging the density of RGB and the precision of LiDAR. Therefore, for proposals, RGB instance segmentation and LiDAR point based proposal generation are combined, followed by a second stage using both sensor modalities symmetrically. This leads to a significant improvement in mAP on long range compared to the current state-of-the art. The evaluation of our LRPD approach was done on the pedestrians from the KITTI benchmark.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2006.09738v1",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_59527b68",
+          "source_type": "arxiv",
+          "artifact_sha256": "b0b08e52d7faec02d7bcd089f902fd80d80de9660cc12c1ac02b6dede51333c8",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2006.09738v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2006.09738v1",
+          "fetched_at": "2026-11-12T01:19:06.461652Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 10
+    }
+  ]
+}

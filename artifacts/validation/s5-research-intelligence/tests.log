@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/pratay-karali/Desktop/archipelago/Archipelago
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.15.1, locust-2.46.5
+collected 46 items / 2 deselected / 44 selected
+
+tests/unit/test_s5_research_intelligence.py .....                        [ 11%]
+tests/unit/test_research_pipeline.py ..............                      [ 43%]
+tests/unit/test_host_inference_deployment.py ...............             [ 77%]
+tests/unit/test_host_inference_pages.py ..........                       [100%]
+
+=============================== warnings summary ===============================
+tests/unit/test_host_inference_deployment.py::test_hosted_research_permissions_match_pipeline_roles
+  /home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning:
+
+  All support for the `google.generativeai` package has ended. It will no longer be receiving
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+    import google.generativeai as genai
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 44 passed, 2 deselected, 1 warning in 9.82s ==================

@@ -1,0 +1,3151 @@
+{
+  "schema": "archipelago.research_intelligence.v1",
+  "options": {
+    "topic": "recent efficient retrieval augmented generation",
+    "top_k": 20,
+    "year_from": 2021,
+    "year_to": null,
+    "sort": "newest",
+    "open_access": null,
+    "paper_type": "",
+    "field": "",
+    "venue": ""
+  },
+  "retrieved_at": "2026-11-12T01:19:21.796549+00:00",
+  "sources": [
+    {
+      "source": "openalex",
+      "requested_at": "2026-11-12T01:19:18.759763+00:00",
+      "status": "live",
+      "record_count": 22,
+      "raw_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "crossref",
+      "requested_at": "2026-11-12T01:19:18.761618+00:00",
+      "status": "live",
+      "record_count": 31,
+      "raw_sha256": "f4a01299db89a098bfe1b44505adbc13f78736458ec90b8b6b6567e17e069e03",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "arxiv",
+      "requested_at": "2026-11-12T01:19:18.763571+00:00",
+      "status": "live",
+      "record_count": 25,
+      "raw_sha256": "c9e6550271900b5378bfdbe3a74464fb2f4d52ec3819d068a4540d8d27285dd8",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "semantic_scholar",
+      "requested_at": "2026-11-12T01:19:18.765931+00:00",
+      "status": "rate_limited",
+      "record_count": 0,
+      "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+      "request_id": "0e5c1f06-6450-4468-8b52-7791dba709f1",
+      "http_status": 429,
+      "error": "HTTP 429",
+      "rate_limited": true
+    }
+  ],
+  "candidate_count": 77,
+  "filtered_count": 67,
+  "papers": [
+    {
+      "paper_id": "a84a62ae-4b5d-563d-a2cf-d766d05e5a60",
+      "title": "Energy-Efficient Retrieval-Augmented Generation: A Systematic Review of Retrieval, Reranking, Caching, and Context-Management Strategies",
+      "year": 2026,
+      "publication_date": "2026-09-27",
+      "doi": "10.59324/ejaset.2026.4(5).11",
+      "identifiers": {
+        "doi": "10.59324/ejaset.2026.4(5).11",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7214796080",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Anupam Dhakal",
+          "orcid": "https://orcid.org/0009-0000-9071-0062",
+          "institutions": []
+        },
+        {
+          "name": "Prashant Pokharel",
+          "orcid": "https://orcid.org/0009-0003-1257-8272",
+          "institutions": []
+        },
+        {
+          "name": "Sabin Adhikari",
+          "orcid": "https://orcid.org/0009-0000-3373-229X",
+          "institutions": []
+        }
+      ],
+      "venue": "European Journal of Applied Science Engineering and Technology",
+      "publication_type": "review",
+      "abstract": "Retrieval-Augmented Generation (RAG) has become a standard paradigm for grounding large language models (LLMs) in external knowledge, but typical deployments introduce substantial energy, latency, and cost overhead due to expensive retrieval and context-processing pipelines. Recent work in \"Green AI\" and sustainable machine learning has highlighted the need to treat energy efficiency as a first-class quality attribute alongside accuracy and latency, yet systematic guidance for energy-aware RAG design remains limited. This review synthesizes emerging research on energy-efficient RAG, organizing techniques across four stages of the pipeline: retrieval, reranking, caching, and context management. Building on recent RAG surveys and controlled experiments with production-like systems, we examine empirical evidence showing that adjusting similarity thresholds, reducing embedding dimensionality, applying vector indexing, and using lightweight rerankers can reduce energy consumption by 20\u201360% in realistic workloads, sometimes without sacrificing accuracy. We also integrate cross-cutting work on token reduction, KV-cache management, semantic caching, green prompt engineering, and phase-level energy analysis for LLM inference. The resulting taxonomy highlights concrete design patterns\u2014adaptive retrieval, redundancy-aware context selection, semantic caching of prompts and responses, and babbling suppression\u2014that jointly reduce compute while preserving grounding fidelity. The paper concludes with practical recommendations and open research questions for building future RAG systems that are not only accurate and robust but also environmentally responsible [1-8].",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7214796080",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4394947112",
+        "https://openalex.org/W4414371540",
+        "https://openalex.org/W4414888095",
+        "https://openalex.org/W7117977185",
+        "https://openalex.org/W7118475080",
+        "https://openalex.org/W7127953631",
+        "https://openalex.org/W7135226651"
+      ],
+      "source_metadata": {
+        "publisher": null,
+        "reference_count": 7,
+        "referenced_works": [
+          "https://openalex.org/W4394947112",
+          "https://openalex.org/W4414371540",
+          "https://openalex.org/W4414888095",
+          "https://openalex.org/W7117977185",
+          "https://openalex.org/W7118475080",
+          "https://openalex.org/W7127953631",
+          "https://openalex.org/W7135226651"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "energy efficiency",
+          "large language models",
+          "re-ranking",
+          "caching",
+          "context management",
+          "similarity threshold",
+          "embedding dimension",
+          "vector indexing",
+          "KV cache management",
+          "semantic caching",
+          "token reduction",
+          "green AI",
+          "sustainable machine learning",
+          "energy-aware design"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Green IT and Sustainability",
+          "Energy Efficiency in Computing"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5125693885",
+          "https://openalex.org/A5125768489",
+          "https://openalex.org/A5130554107"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_1da93148",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7214796080",
+          "json_pointer": "/results/https://openalex.org/W7214796080",
+          "source_url": "https://openalex.org/W7214796080",
+          "fetched_at": "2026-11-12T01:19:21.571689Z"
+        }
+      ],
+      "relevance_score": 1.25,
+      "topic_relevance": 1.0,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 1
+    },
+    {
+      "paper_id": "e8ec23a7-ac64-51b8-8b57-4539f54b1614",
+      "title": "VikingRAG: Accurate and Token-efficient Retrieval-augmented Generation over Structured Documents",
+      "year": 2026,
+      "publication_date": "2026-09-10",
+      "doi": "10.48550/arxiv.2609.11390",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2609.11390",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7212305821",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Peiyuan Gao",
+          "orcid": null,
+          "institutions": [
+            "Renmin University of China"
+          ]
+        },
+        {
+          "name": "Gaoyuan Zhang",
+          "orcid": "https://orcid.org/0000-0003-3374-4092",
+          "institutions": [
+            "Renmin University of China"
+          ]
+        },
+        {
+          "name": "Haojie Qin",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Yahui Sun",
+          "orcid": null,
+          "institutions": [
+            "Renmin University of China"
+          ]
+        },
+        {
+          "name": "Qianyi Zhang",
+          "orcid": "https://orcid.org/0000-0003-0973-0037",
+          "institutions": [
+            "Renmin University of China"
+          ]
+        },
+        {
+          "name": "Yunhao Zhang",
+          "orcid": null,
+          "institutions": [
+            "Renmin University of China"
+          ]
+        },
+        {
+          "name": "Zeyu Wang",
+          "orcid": null,
+          "institutions": [
+            "Fudan University"
+          ]
+        },
+        {
+          "name": "Wei Lu",
+          "orcid": null,
+          "institutions": [
+            "Renmin University of China"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "State-of-the-art retrieval-augmented generation (RAG) methods exploit document structures to acquire sufficient evidence, but often incur substantial token costs. To reduce structural-context tokens without compromising high RAG accuracy, we present {\\sf VikingRAG}, a directory-aware semantic data management system that tightly integrates semantic and structural access to support structural-context-efficient, evidence-gap-driven multi-round retrieval. To further reduce token overhead of multi-round interaction, we materialize agentic multi-round retrieval traces as experience edges, and reuse these edges for similar queries, avoiding repeated multi-round exploration. To additionally reduce token costs when agentic multi-round retrieval is unnecessary, we introduce an adaptive escalation strategy that answers from one-round experience-augmented retrieval when the evidence is sufficient, and invokes agentic multi-round retrieval only otherwise. Experiments on real datasets show that the base system {\\sf VikingRAG} matches high accuracy of state-of-the-art methods while consuming only 11.6\\%--51.9\\% of their tokens. With retrieval-trace reuse and adaptive escalation, token costs drop to 5.1\\%--32.5\\% while maintaining competitive accuracy and practical document-storage performance, showing the utility of this work for emerging AI knowledge bases.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7212305821",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2909544278",
+        "https://openalex.org/W4388926382",
+        "https://openalex.org/W4395686609",
+        "https://openalex.org/W4406840433",
+        "https://openalex.org/W4416383127",
+        "https://openalex.org/W7128055812",
+        "https://openalex.org/W7134854352",
+        "https://openalex.org/W7161688451"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 8,
+        "referenced_works": [
+          "https://openalex.org/W2909544278",
+          "https://openalex.org/W4388926382",
+          "https://openalex.org/W4395686609",
+          "https://openalex.org/W4406840433",
+          "https://openalex.org/W4416383127",
+          "https://openalex.org/W7128055812",
+          "https://openalex.org/W7134854352",
+          "https://openalex.org/W7161688451"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "structured documents",
+          "token efficiency",
+          "agentic retrieval",
+          "semantic data management",
+          "evidence gaps",
+          "token cost reduction"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Information Retrieval and Search Behavior",
+          "Advanced Database Systems and Queries"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5153499975",
+          "https://openalex.org/A5025337794",
+          "https://openalex.org/A5151323024",
+          "https://openalex.org/A5151308345",
+          "https://openalex.org/A5024493594",
+          "https://openalex.org/A5143550389",
+          "https://openalex.org/A5151304950",
+          "https://openalex.org/A5151389809"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_865d6bab",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7212305821",
+          "json_pointer": "/results/https://openalex.org/W7212305821",
+          "source_url": "https://openalex.org/W7212305821",
+          "fetched_at": "2026-11-12T01:19:21.571092Z"
+        }
+      ],
+      "relevance_score": 1.25,
+      "topic_relevance": 1.0,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 2
+    },
+    {
+      "paper_id": "cd4a97d9-9bfa-5fb3-a641-5a825beec71a",
+      "title": "Efficient Retrieval-Augmented Generation for Vulnerability Assessment and Penetration Testing in Automotive Engineering",
+      "year": 2026,
+      "publication_date": "2026-07-07",
+      "doi": "10.3390/a19070555",
+      "identifiers": {
+        "doi": "10.3390/a19070555",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7167616927",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "AURORA GENSALE",
+          "orcid": "https://orcid.org/0009-0008-1602-9867",
+          "institutions": [
+            "Politecnico di Torino"
+          ]
+        },
+        {
+          "name": "Luca Cagliero",
+          "orcid": "https://orcid.org/0000-0002-7185-5247",
+          "institutions": [
+            "Politecnico di Torino"
+          ]
+        },
+        {
+          "name": "Cataldo Basile",
+          "orcid": "https://orcid.org/0000-0002-8016-1490",
+          "institutions": [
+            "Politecnico di Torino"
+          ]
+        },
+        {
+          "name": "Paolo Garza",
+          "orcid": "https://orcid.org/0000-0002-1263-7522",
+          "institutions": [
+            "Politecnico di Torino"
+          ]
+        },
+        {
+          "name": "Luca Ferrua",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "Algorithms",
+      "publication_type": "article",
+      "abstract": "Hundreds of connected components expose vehicle systems to an increasing number of cyber attacks. Vehicle manufacturers must establish the most appropriate procedures for vulnerability assessment and penetration testing using a mix of proprietary solutions and open-source standards. The spread of Large Language Models (LLMs) simplifies the interaction between automotive experts and domain-specific knowledge bases. While proprietary LLM services can be expensive and raise data privacy concerns, open-source LLMs are potentially more cost-effective and better suited to in-house solutions. However, the effectiveness of open-source models in retrieving automotive-related cybersecurity information remains unclear. While adopting open-source LLMs with a few billion parameters, their reasoning and generative capabilities under in-context learning settings are questionable. To bridge this gap, this paper explores efficient solutions for Retrieval-Augmented Generation (RAG) architecture for automotive cybersecurity relying on open-source LLMs. The ultimate goal is to enable cost-effective retrieval and question answering from in-domain knowledge bases, overcoming the privacy and confidentiality issues raised by automotive experts. Using a Graph Knowledge Base designed for a corporate scenario, this paper first defines an expert-curated testing benchmark to evaluate in-domain question-answering performance across multiple aspects. Next, it proposes different RAG system variants based on various retrieval strategies and LLMs, both proprietary and open-source. Finally, it quantitatively evaluates the effectiveness of the content retrieval strategies and compares the pertinence, conciseness, and completeness of generated answers through human validation. Notably, within the scope of the performed analysis, RAGs that rely on open-source models demonstrate promising and competitive performance in some respects compared to the OpenAI GPT model. RAG retrieval performance also surpasses that of state-of-the-art solutions on existing cybersecurity benchmarks (Recall@K above 0.95 vs. 0.65 for state-of-the-art in-domain RAGs).",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7167616927",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W3035863525",
+        "https://openalex.org/W3170475622",
+        "https://openalex.org/W4213009331",
+        "https://openalex.org/W4284880677",
+        "https://openalex.org/W4308605894",
+        "https://openalex.org/W4327810158",
+        "https://openalex.org/W4362519986",
+        "https://openalex.org/W4379113489",
+        "https://openalex.org/W4385231937",
+        "https://openalex.org/W4387156782",
+        "https://openalex.org/W4387561528",
+        "https://openalex.org/W4387994989",
+        "https://openalex.org/W4389306349",
+        "https://openalex.org/W4392996195",
+        "https://openalex.org/W4400484606",
+        "https://openalex.org/W4401306886",
+        "https://openalex.org/W4401306979",
+        "https://openalex.org/W4401871261",
+        "https://openalex.org/W4402766208",
+        "https://openalex.org/W4402811916",
+        "https://openalex.org/W4407163436",
+        "https://openalex.org/W4407937958",
+        "https://openalex.org/W4408566170",
+        "https://openalex.org/W4409061246",
+        "https://openalex.org/W4410357080",
+        "https://openalex.org/W4411630045",
+        "https://openalex.org/W4412377217",
+        "https://openalex.org/W4416016993",
+        "https://openalex.org/W7131132771"
+      ],
+      "source_metadata": {
+        "publisher": "Multidisciplinary Digital Publishing Institute",
+        "reference_count": 29,
+        "referenced_works": [
+          "https://openalex.org/W3035863525",
+          "https://openalex.org/W3170475622",
+          "https://openalex.org/W4213009331",
+          "https://openalex.org/W4284880677",
+          "https://openalex.org/W4308605894",
+          "https://openalex.org/W4327810158",
+          "https://openalex.org/W4362519986",
+          "https://openalex.org/W4379113489",
+          "https://openalex.org/W4385231937",
+          "https://openalex.org/W4387156782",
+          "https://openalex.org/W4387561528",
+          "https://openalex.org/W4387994989",
+          "https://openalex.org/W4389306349",
+          "https://openalex.org/W4392996195",
+          "https://openalex.org/W4400484606",
+          "https://openalex.org/W4401306886",
+          "https://openalex.org/W4401306979",
+          "https://openalex.org/W4401871261",
+          "https://openalex.org/W4402766208",
+          "https://openalex.org/W4402811916",
+          "https://openalex.org/W4407163436",
+          "https://openalex.org/W4407937958",
+          "https://openalex.org/W4408566170",
+          "https://openalex.org/W4409061246",
+          "https://openalex.org/W4410357080",
+          "https://openalex.org/W4411630045",
+          "https://openalex.org/W4412377217",
+          "https://openalex.org/W4416016993",
+          "https://openalex.org/W7131132771"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "automotive cybersecurity",
+          "vulnerability assessment",
+          "penetration testing",
+          "open-source large language models",
+          "in-context learning",
+          "data privacy",
+          "connected vehicles"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Adversarial Robustness in Machine Learning",
+          "Information Retrieval and Search Behavior"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5133333743",
+          "https://openalex.org/A5001746215",
+          "https://openalex.org/A5015749928",
+          "https://openalex.org/A5074057809",
+          "https://openalex.org/A5133325821"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_c7d5ddf3",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7167616927",
+          "json_pointer": "/results/https://openalex.org/W7167616927",
+          "source_url": "https://openalex.org/W7167616927",
+          "fetched_at": "2026-11-12T01:19:21.571343Z"
+        }
+      ],
+      "relevance_score": 1.25,
+      "topic_relevance": 1.0,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 3
+    },
+    {
+      "paper_id": "aeb9b4ff-4877-52f3-8fab-633da006fcf6",
+      "title": "Efficient Retrieval-Augmented Generation via Token Co-occurrence Graphs",
+      "year": 2026,
+      "publication_date": "2026-06-29",
+      "doi": "10.48550/arxiv.2606.30093",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2606.30093",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7166674050",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Gianluca Bonifazi",
+          "orcid": "https://orcid.org/0000-0002-1947-8667",
+          "institutions": [
+            "Marche Polytechnic University"
+          ]
+        },
+        {
+          "name": "Christopher Buratti",
+          "orcid": "https://orcid.org/0009-0007-1675-0155",
+          "institutions": [
+            "Marche Polytechnic University"
+          ]
+        },
+        {
+          "name": "Michele Marchetti",
+          "orcid": "https://orcid.org/0000-0003-3692-3600",
+          "institutions": [
+            "Marche Polytechnic University"
+          ]
+        },
+        {
+          "name": "Federica Parlapiano",
+          "orcid": "https://orcid.org/0009-0009-5475-8101",
+          "institutions": [
+            "Marche Polytechnic University"
+          ]
+        },
+        {
+          "name": "Giulia Quaglieri",
+          "orcid": null,
+          "institutions": [
+            "Marche Polytechnic University"
+          ]
+        },
+        {
+          "name": "Davide Traini",
+          "orcid": "https://orcid.org/0009-0007-3098-9349",
+          "institutions": [
+            "University of Modena and Reggio Emilia"
+          ]
+        },
+        {
+          "name": "Domenico Ursino",
+          "orcid": "https://orcid.org/0000-0003-1360-8499",
+          "institutions": [
+            "Marche Polytechnic University"
+          ]
+        },
+        {
+          "name": "Luca Virgili",
+          "orcid": "https://orcid.org/0000-0003-1509-783X",
+          "institutions": [
+            "Marche Polytechnic University"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Retrieval-Augmented Generation (RAG) mitigates hallucinations in Large Language Models (LLMs) by grounding the generation process on external knowledge. However, standard RAG approaches struggle with multi-hop reasoning. While recent graph-based RAG methods improve the retrieval of interconnected chunks, they often rely on computationally expensive and error-prone LLM-based extraction pipelines. To address these issues, we propose TIGRAG (Token-Induced GraphRAG), an efficient graph-augmented RAG framework based on a token co-occurrence Knowledge Graph. TIGRAG directly models topological relationships between tokens using sliding-window co-occurrence statistics, thus enabling scalable graph construction. During inference, it combines graph-based semantic expansion and neural reranking to retrieve interconnected evidence for multi-hop reasoning. Specifically, it introduces an iterative entity-driven retrieval strategy that progressively expands the query using bridging entities extracted from previously retrieved contexts. We evaluated TIGRAG on three widely adopted multi-hop Question Answering (QA) benchmarks. Experimental results demonstrated that our framework consistently outperforms dense retrieval and graph-based RAG methods in both retrieval and downstream QA tasks, while substantially reducing indexing time, inference latency, and prompt footprint.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7166674050",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4387390444",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4391948454",
+        "https://openalex.org/W4395686609",
+        "https://openalex.org/W4402955078",
+        "https://openalex.org/W4414791282",
+        "https://openalex.org/W4415190906",
+        "https://openalex.org/W4415344234",
+        "https://openalex.org/W4417280583",
+        "https://openalex.org/W4417307696"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 10,
+        "referenced_works": [
+          "https://openalex.org/W4387390444",
+          "https://openalex.org/W4389984066",
+          "https://openalex.org/W4391948454",
+          "https://openalex.org/W4395686609",
+          "https://openalex.org/W4402955078",
+          "https://openalex.org/W4414791282",
+          "https://openalex.org/W4415190906",
+          "https://openalex.org/W4415344234",
+          "https://openalex.org/W4417280583",
+          "https://openalex.org/W4417307696"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "multi-hop reasoning",
+          "question answering",
+          "graph-based RAG",
+          "neural reranking",
+          "hallucination mitigation",
+          "large language models"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Information Retrieval and Search Behavior",
+          "Multimodal Machine Learning Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5029700605",
+          "https://openalex.org/A5116665745",
+          "https://openalex.org/A5085401294",
+          "https://openalex.org/A5116665746",
+          "https://openalex.org/A5139848142",
+          "https://openalex.org/A5116937652",
+          "https://openalex.org/A5032253415",
+          "https://openalex.org/A5012954825"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_654722a7",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7166674050",
+          "json_pointer": "/results/https://openalex.org/W7166674050",
+          "source_url": "https://openalex.org/W7166674050",
+          "fetched_at": "2026-11-12T01:19:21.570053Z"
+        }
+      ],
+      "relevance_score": 1.25,
+      "topic_relevance": 1.0,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 4
+    },
+    {
+      "paper_id": "60fa05fb-1f3c-5f05-a705-47496bd93e86",
+      "title": "Efficient Retrieval Augmented Generation Based QA Chatbot Builder Using LLaMA 3.2B with LoRA",
+      "year": 2025,
+      "publication_date": "2025-09-24",
+      "doi": "10.20944/preprints202509.1917.v1",
+      "identifiers": {
+        "doi": "10.20944/preprints202509.1917.v1",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4414523109",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Shreya Singh",
+          "orcid": "https://orcid.org/0009-0008-3590-1649",
+          "institutions": []
+        }
+      ],
+      "venue": "Preprints.org",
+      "publication_type": "preprint",
+      "abstract": "The emergence of large language models (LLMs) has enabled advanced conversational systems; however, challenges such as hallucination, limited domain adaptation, and high fine-tuning costs persist. To overcome these limitations, this work presents an Efficient Retrieval-Augmented Generation (RAG) based QA Chatbot Builder leveraging LLaMA 3.2B with Low-Rank Adaptation (LoRA). The proposed framework integrates retrieval mechanisms with generative modeling, enabling the chatbot to ground its responses in domain specific, dynamically retrieved knowledge sources. This approach improves the accuracy of facts, reduces hallucinations, and ensures adaptability in diverse domains. To further improve efficiency, LoRA is employed as a parameter efficient fine-tuning method, significantly lowering computational requirements by updating only a small subset of the model\u2019s parameters. This allows LLaMA 3.2B a lightweight yet powerful LLM which is to be fine-tuned effectively even in resource-constrained environments, making deployment practical for organizations lacking large-scale infrastructure. The synergy of RAG and LoRA ensures responses that are not only contextually relevant and verifiable but also computationally efficient and scalable. The resulting chatbot builder empowers users to create customizable, reliable, and transparent QA systems tailored for enterprise, education, healthcare, and research applications. Overall, this study contributes to advancing conversational AI by balancing accuracy, efficiency, and real-world applicability.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4414523109",
+      "citation_count": 2,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 2
+        },
+        {
+          "provider": "crossref",
+          "count": 1
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4283026156",
+        "https://openalex.org/W4288099735",
+        "https://openalex.org/W4307291914",
+        "https://openalex.org/W4327810158",
+        "https://openalex.org/W4352991484",
+        "https://openalex.org/W4362466759",
+        "https://openalex.org/W4377078148",
+        "https://openalex.org/W4385957805",
+        "https://openalex.org/W4385988359",
+        "https://openalex.org/W4386711999",
+        "https://openalex.org/W4388585358",
+        "https://openalex.org/W4389984066",
+        "https://openalex.org/W4400531852",
+        "https://openalex.org/W4400681340",
+        "https://openalex.org/W4414847356",
+        "https://openalex.org/W7155906632"
+      ],
+      "source_metadata": {
+        "publisher": "MDPI AG",
+        "reference_count": 16,
+        "referenced_works": [
+          "https://openalex.org/W4283026156",
+          "https://openalex.org/W4288099735",
+          "https://openalex.org/W4307291914",
+          "https://openalex.org/W4327810158",
+          "https://openalex.org/W4352991484",
+          "https://openalex.org/W4362466759",
+          "https://openalex.org/W4377078148",
+          "https://openalex.org/W4385957805",
+          "https://openalex.org/W4385988359",
+          "https://openalex.org/W4386711999",
+          "https://openalex.org/W4388585358",
+          "https://openalex.org/W4389984066",
+          "https://openalex.org/W4400531852",
+          "https://openalex.org/W4400681340",
+          "https://openalex.org/W4414847356",
+          "https://openalex.org/W7155906632"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "retrieval-augmented generation",
+          "low-rank adaptation",
+          "hallucination mitigation",
+          "parameter-efficient fine-tuning",
+          "domain adaptation",
+          "conversational AI",
+          "knowledge retrieval"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Speech and dialogue systems",
+          "Information Retrieval and Search Behavior"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5049636808"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_008db8a3",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4414523109",
+          "json_pointer": "/results/https://openalex.org/W4414523109",
+          "source_url": "https://openalex.org/W4414523109",
+          "fetched_at": "2026-11-12T01:19:21.571526Z"
+        },
+        {
+          "provenance_id": "prov_f959771f",
+          "source_type": "crossref",
+          "artifact_sha256": "f4a01299db89a098bfe1b44505adbc13f78736458ec90b8b6b6567e17e069e03",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.20944/preprints202509.1917.v1",
+          "json_pointer": "/message/items/10.20944/preprints202509.1917.v1",
+          "source_url": "https://doi.org/10.20944/preprints202509.1917.v1",
+          "fetched_at": "2026-11-12T01:19:21.742321Z"
+        }
+      ],
+      "relevance_score": 1.2,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.159,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2025"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 5
+    },
+    {
+      "paper_id": "d7ca4d8e-f602-5033-b17d-7076497f56a0",
+      "title": "E-VRAG: Enhancing Long Video Understanding with Resource-Efficient Retrieval Augmented Generation",
+      "year": 2025,
+      "publication_date": "2025-08-03",
+      "doi": "10.48550/arxiv.2508.01546",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2508.01546",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4417099205",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Zeyu Xu",
+          "orcid": "https://orcid.org/0000-0002-7695-3356",
+          "institutions": [
+            "Honor Device (China)"
+          ]
+        },
+        {
+          "name": "Zhang, Junkang",
+          "orcid": null,
+          "institutions": [
+            "Honor Device (China)"
+          ]
+        },
+        {
+          "name": "Qiang Wang",
+          "orcid": "https://orcid.org/0000-0002-9392-475X",
+          "institutions": [
+            "Honor Device (China)"
+          ]
+        },
+        {
+          "name": "Yi Liu",
+          "orcid": "https://orcid.org/0000-0002-6577-4862",
+          "institutions": [
+            "Honor Device (China)"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Vision-Language Models (VLMs) have enabled substantial progress in video understanding by leveraging cross-modal reasoning capabilities. However, their effectiveness is limited by the restricted context window and the high computational cost required to process long videos with thousands of frames. Retrieval-augmented generation (RAG) addresses this challenge by selecting only the most relevant frames as input, thereby reducing the computational burden. Nevertheless, existing video RAG methods struggle to balance retrieval efficiency and accuracy, particularly when handling diverse and complex video content. To address these limitations, we propose E-VRAG, a novel and efficient video RAG framework for video understanding. We first apply a frame pre-filtering method based on hierarchical query decomposition to eliminate irrelevant frames, reducing computational costs at the data level. We then employ a lightweight VLM for frame scoring, further reducing computational costs at the model level. Additionally, we propose a frame retrieval strategy that leverages the global statistical distribution of inter-frame scores to mitigate the potential performance degradation from using a lightweight VLM. Finally, we introduce a multi-view question answering scheme for the retrieved frames, enhancing the VLM's capability to extract and comprehend information from long video contexts. Experiments on four public benchmarks show that E-VRAG achieves about 70% reduction in computational cost and higher accuracy compared to baseline methods, all without additional training. These results demonstrate the effectiveness of E-VRAG in improving both efficiency and accuracy for video RAG tasks.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4417099205",
+      "citation_count": 11,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 11
+        }
+      ],
+      "references": [
+        "https://openalex.org/W3001279689",
+        "https://openalex.org/W3135367836",
+        "https://openalex.org/W4399655895",
+        "https://openalex.org/W4400024885",
+        "https://openalex.org/W4402671548",
+        "https://openalex.org/W4402702917",
+        "https://openalex.org/W4402727272",
+        "https://openalex.org/W4402753952",
+        "https://openalex.org/W4403370767",
+        "https://openalex.org/W4403760933",
+        "https://openalex.org/W4403928665",
+        "https://openalex.org/W4404002553",
+        "https://openalex.org/W4404304985",
+        "https://openalex.org/W4404648887",
+        "https://openalex.org/W4404724811",
+        "https://openalex.org/W4404784276",
+        "https://openalex.org/W4405172832",
+        "https://openalex.org/W4405425349",
+        "https://openalex.org/W4405595839",
+        "https://openalex.org/W4406031826",
+        "https://openalex.org/W4406780478",
+        "https://openalex.org/W4407794264",
+        "https://openalex.org/W4412887777",
+        "https://openalex.org/W4412888065",
+        "https://openalex.org/W4413146798",
+        "https://openalex.org/W4413147769",
+        "https://openalex.org/W4414384364",
+        "https://openalex.org/W4414578462",
+        "https://openalex.org/W4414683558",
+        "https://openalex.org/W4414939355",
+        "https://openalex.org/W4415101752",
+        "https://openalex.org/W4415307413",
+        "https://openalex.org/W4415328937",
+        "https://openalex.org/W4415798317",
+        "https://openalex.org/W4416034406",
+        "https://openalex.org/W6948405068",
+        "https://openalex.org/W7108068597",
+        "https://openalex.org/W7166493911"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 38,
+        "referenced_works": [
+          "https://openalex.org/W3001279689",
+          "https://openalex.org/W3135367836",
+          "https://openalex.org/W4399655895",
+          "https://openalex.org/W4400024885",
+          "https://openalex.org/W4402671548",
+          "https://openalex.org/W4402702917",
+          "https://openalex.org/W4402727272",
+          "https://openalex.org/W4402753952",
+          "https://openalex.org/W4403370767",
+          "https://openalex.org/W4403760933",
+          "https://openalex.org/W4403928665",
+          "https://openalex.org/W4404002553",
+          "https://openalex.org/W4404304985",
+          "https://openalex.org/W4404648887",
+          "https://openalex.org/W4404724811",
+          "https://openalex.org/W4404784276",
+          "https://openalex.org/W4405172832",
+          "https://openalex.org/W4405425349",
+          "https://openalex.org/W4405595839",
+          "https://openalex.org/W4406031826",
+          "https://openalex.org/W4406780478",
+          "https://openalex.org/W4407794264",
+          "https://openalex.org/W4412887777",
+          "https://openalex.org/W4412888065",
+          "https://openalex.org/W4413146798",
+          "https://openalex.org/W4413147769",
+          "https://openalex.org/W4414384364",
+          "https://openalex.org/W4414578462",
+          "https://openalex.org/W4414683558",
+          "https://openalex.org/W4414939355",
+          "https://openalex.org/W4415101752",
+          "https://openalex.org/W4415307413",
+          "https://openalex.org/W4415328937",
+          "https://openalex.org/W4415798317",
+          "https://openalex.org/W4416034406",
+          "https://openalex.org/W6948405068",
+          "https://openalex.org/W7108068597",
+          "https://openalex.org/W7166493911"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 11
+          }
+        ],
+        "keywords": [
+          "retrieval-augmented generation",
+          "long video understanding",
+          "vision-language models",
+          "computational efficiency"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Multimodal Machine Learning Applications",
+          "Video Analysis and Summarization",
+          "Human Pose and Action Recognition"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5101510647",
+          null,
+          "https://openalex.org/A5025187681",
+          "https://openalex.org/A5100330461"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_9938ecca",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4417099205",
+          "json_pointer": "/results/https://openalex.org/W4417099205",
+          "source_url": "https://openalex.org/W4417099205",
+          "fetched_at": "2026-11-12T01:19:21.570783Z"
+        }
+      ],
+      "relevance_score": 1.2,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.3597,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2025"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 6
+    },
+    {
+      "paper_id": "c276a7f8-1ab4-51ba-84c3-572ef8677f2c",
+      "title": "Adaptiveann: Query-Aware Self-Tuning Vector Search For Cost-Efficient Retrieval-Augmented Generation",
+      "year": 2025,
+      "publication_date": "2025-01-01",
+      "doi": "10.29284/fc95vg15",
+      "identifiers": {
+        "doi": "10.29284/fc95vg15",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7220364092",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Sunil Kumar P",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Venkata Ratna Kumar Bonagiri",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "International Journal of Advances in Signal and Image Sciences",
+      "publication_type": "article",
+      "abstract": "Retrieval-augmented generation (RAG) systems depend on approximate nearest neighbor (ANN) search to retrieve relevant passages from large vector indexes, yet most production deployments apply a single static configuration of search parameters, such as nprobe, ef_search, and rerank depth, uniformly to every incoming query regardless of how difficult that query is to retrieve for. This one-size-fits-all strategy forces an unnecessary trade-off: configurations tuned for hard queries waste compute on easy ones, while configurations tuned for easy queries under-retrieve for hard ones and quietly degrade downstream answer quality. This study introduces AdaptiveANN, a query-aware self-tuning framework that predicts near-optimal ANN search parameters for each incoming query from lightweight, precomputable query features and adjusts the retrieval configuration in real time, before the search is executed. AdaptiveANN is evaluated against three static baselines, Static-Low, Static-Medium, and Static-High, and an oracle upper bound on a large-scale passage corpus, using Recall@10, latency percentiles, per-query monetary cost, and throughput as evaluation criteria, and canonical correlation analysis (CCA) is used to characterize the relationship between query features and the parameters the controller selects. Results show that AdaptiveANN recovers 95.1% Recall@10 while reducing median latency by 59.5% and cost per 1,000 queries by 61.5% relative to Static-High, and canonical correlation analysis reveals a strong association (r = 0.75) between query-difficulty features and tuned parameters. An ablation study further shows that centroid-distance and retrieval-entropy features contribute the most to controller accuracy, together accounting for over half of total feature importance. These findings indicate that query-aware self-tuning is a practical and low-overhead route to cost-efficient, high-recall retrieval for production RAG pipelines.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7220364092",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4389984066"
+      ],
+      "source_metadata": {
+        "publisher": null,
+        "reference_count": 1,
+        "referenced_works": [
+          "https://openalex.org/W4389984066"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "approximate nearest neighbor search",
+          "self-tuning",
+          "canonical correlation analysis",
+          "vector search",
+          "centroid distance",
+          "production deployment"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Information Retrieval and Search Behavior",
+          "Topic Modeling",
+          "Advanced Image and Video Retrieval Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5157600180",
+          "https://openalex.org/A5121634621"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_f44e463d",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7220364092",
+          "json_pointer": "/results/https://openalex.org/W7220364092",
+          "source_url": "https://openalex.org/W7220364092",
+          "fetched_at": "2026-11-12T01:19:21.571978Z"
+        }
+      ],
+      "relevance_score": 1.2,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2025"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 7
+    },
+    {
+      "paper_id": "54703a40-0c49-5860-bca3-702f2ef6903a",
+      "title": "Efficient retrieval-augmented generation via multi-signal token compression",
+      "year": 2026,
+      "publication_date": "2026-08-09",
+      "doi": "10.1038/s41598-026-65702-2",
+      "identifiers": {
+        "doi": "10.1038/s41598-026-65702-2",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7202042930",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Faraz Masood",
+          "orcid": "https://orcid.org/0000-0003-4156-6310",
+          "institutions": [
+            "Aligarh Muslim University"
+          ]
+        },
+        {
+          "name": "Saurav Singh",
+          "orcid": "https://orcid.org/0009-0009-6734-1591",
+          "institutions": [
+            "Aligarh Muslim University"
+          ]
+        },
+        {
+          "name": "Arman Rasool Faridi",
+          "orcid": "https://orcid.org/0000-0001-7672-0790",
+          "institutions": [
+            "Aligarh Muslim University"
+          ]
+        },
+        {
+          "name": "Ali Haider Shamsan",
+          "orcid": "https://orcid.org/0000-0003-0230-6110",
+          "institutions": [
+            "University of Science and Technology"
+          ]
+        }
+      ],
+      "venue": "Scientific Reports",
+      "publication_type": "article",
+      "abstract": "Retrieval-augmented generation (RAG) improves question answering by grounding large language models in retrieved passages, but long contexts increase prompt-token cost and latency. We introduce HLLC, a deterministic, generator-agnostic framework that compresses corpus chunks during indexing using linguistic features, smoothed corpus-level lexical salience, and embedding-based semantic contribution. Because compression is performed before retrieval, the compressed index can be reused across queries without retraining the retriever or modifying the downstream model. HLLC is evaluated on the multiple-choice RACE and QuALITY benchmarks across publicly available open-weight language models and is compared with LLMLingua and LLMLingua-2. Moderate compression reduces retrieved-context tokens while retaining a substantial proportion of uncompressed exact-match accuracy, and indexing-stage compression avoids repeated query-time compression overhead. We additionally report ROUGE, BLEU, BGE-large cosine similarity, and named-entity retention as chunk-level preservation diagnostics. These measures describe semantic, lexical, and factual-anchor retention but do not establish open-ended answer quality or preservation of complete reasoning chains. The conclusions are therefore restricted to text-based, multiple-choice RAG under the evaluated datasets, models, and execution environment.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7202042930",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W1816313093",
+        "https://openalex.org/W1978394996",
+        "https://openalex.org/W2593864460",
+        "https://openalex.org/W2606964149",
+        "https://openalex.org/W2885185669",
+        "https://openalex.org/W2970641574",
+        "https://openalex.org/W3015883388",
+        "https://openalex.org/W4287888039",
+        "https://openalex.org/W4389519226",
+        "https://openalex.org/W4402670850",
+        "https://openalex.org/W4402671835",
+        "https://openalex.org/W4404781754",
+        "https://openalex.org/W4411119429",
+        "https://openalex.org/W4412888692",
+        "https://openalex.org/W4415795887",
+        "https://openalex.org/W4416034925"
+      ],
+      "source_metadata": {
+        "publisher": "Nature Portfolio",
+        "reference_count": 16,
+        "referenced_works": [
+          "https://openalex.org/W1816313093",
+          "https://openalex.org/W1978394996",
+          "https://openalex.org/W2593864460",
+          "https://openalex.org/W2606964149",
+          "https://openalex.org/W2885185669",
+          "https://openalex.org/W2970641574",
+          "https://openalex.org/W3015883388",
+          "https://openalex.org/W4287888039",
+          "https://openalex.org/W4389519226",
+          "https://openalex.org/W4402670850",
+          "https://openalex.org/W4402671835",
+          "https://openalex.org/W4404781754",
+          "https://openalex.org/W4411119429",
+          "https://openalex.org/W4412888692",
+          "https://openalex.org/W4415795887",
+          "https://openalex.org/W4416034925"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "token compression",
+          "multiple-choice question answering",
+          "open-weight language models"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Information Retrieval and Search Behavior",
+          "Natural Language Processing Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5017404584",
+          "https://openalex.org/A5139215324",
+          "https://openalex.org/A5084193447",
+          "https://openalex.org/A5026569007"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_13a97022",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7202042930",
+          "json_pointer": "/results/https://openalex.org/W7202042930",
+          "source_url": "https://openalex.org/W7202042930",
+          "fetched_at": "2026-11-12T01:19:21.570941Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 8
+    },
+    {
+      "paper_id": "23b2741c-4ae0-5a60-a6f7-ea35797f3d22",
+      "title": "LazyAttention: Efficient Retrieval-Augmented Generation with Deferred Positional Encoding",
+      "year": 2026,
+      "publication_date": "2026-06-03",
+      "doi": "10.48550/arxiv.2606.04302",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2606.04302",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7163529589",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Haocheng Xia",
+          "orcid": "https://orcid.org/0000-0002-8317-6217",
+          "institutions": []
+        },
+        {
+          "name": "Mihir Pamnani",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Hanxi Fang",
+          "orcid": "https://orcid.org/0009-0001-5877-6202",
+          "institutions": []
+        },
+        {
+          "name": "Supawit Chockchowwat",
+          "orcid": "https://orcid.org/0000-0003-2881-8501",
+          "institutions": []
+        },
+        {
+          "name": "Yongjoo Park",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Key-value (KV) caching accelerates inference of large language models (LLMs) by reusing past computations for generated tokens. Its importance becomes even greater in long-context applications such as retrieval-augmented generation (RAG) and in-context learning (ICL). However, conventional KV caching embeds positional information directly into the cache, limiting its reusability. Existing solutions either restrict reuse to prefixes or require expensive memory materialization for positional re-encoding. We introduce LazyAttention, a novel attention mechanism that kernelizes deferred positional encoding to enable zero-copy, position-agnostic KV reuse. By adjusting positional encoding within attention kernels on-the-fly, LazyAttention resolves the materialization bottleneck, allowing a single physical KV copy to serve multiple logical requests at arbitrary positions. Leveraging attention kernels tailored for prefilling and decoding, our system achieves significant efficiency improvements: under skewed document distributions, it reduces time-to-first-token (TTFT) by 1.37$\\times$ and increases inference throughput by 1.40$\\times$ compared to the state-of-the-art Block-Attention, while maintaining comparable output quality.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7163529589",
+      "citation_count": 2,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 2
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2612431505",
+        "https://openalex.org/W2889787757",
+        "https://openalex.org/W2954698171",
+        "https://openalex.org/W3039017601",
+        "https://openalex.org/W4385570290",
+        "https://openalex.org/W4385570326",
+        "https://openalex.org/W4387321091",
+        "https://openalex.org/W4388778348",
+        "https://openalex.org/W4388979610",
+        "https://openalex.org/W4389157038",
+        "https://openalex.org/W4391376033",
+        "https://openalex.org/W4414371540",
+        "https://openalex.org/W4414939355",
+        "https://openalex.org/W4416037017",
+        "https://openalex.org/W4416060025",
+        "https://openalex.org/W4417531184"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 16,
+        "referenced_works": [
+          "https://openalex.org/W2612431505",
+          "https://openalex.org/W2889787757",
+          "https://openalex.org/W2954698171",
+          "https://openalex.org/W3039017601",
+          "https://openalex.org/W4385570290",
+          "https://openalex.org/W4385570326",
+          "https://openalex.org/W4387321091",
+          "https://openalex.org/W4388778348",
+          "https://openalex.org/W4388979610",
+          "https://openalex.org/W4389157038",
+          "https://openalex.org/W4391376033",
+          "https://openalex.org/W4414371540",
+          "https://openalex.org/W4414939355",
+          "https://openalex.org/W4416037017",
+          "https://openalex.org/W4416060025",
+          "https://openalex.org/W4417531184"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 2
+          }
+        ],
+        "keywords": [
+          "key-value caching",
+          "retrieval-augmented generation",
+          "in-context learning",
+          "large language models",
+          "long-context inference",
+          "time-to-first-token",
+          "inference throughput"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Natural Language Processing Techniques",
+          "Information Retrieval and Search Behavior"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5102598008",
+          "https://openalex.org/A5120414000",
+          "https://openalex.org/A5001927645",
+          "https://openalex.org/A5039513625",
+          "https://openalex.org/A5137881406"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_5b648fe2",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7163529589",
+          "json_pointer": "/results/https://openalex.org/W7163529589",
+          "source_url": "https://openalex.org/W7163529589",
+          "fetched_at": "2026-11-12T01:19:21.569913Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.159,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 9
+    },
+    {
+      "paper_id": "14bd488e-4181-5b53-a42f-f3f09bc5c48b",
+      "title": "Caustic Retrieval and Adaptive Token Pooling: Two Orthogonal Compute Levers for Efficient Retrieval-Augmented Generation",
+      "year": 2026,
+      "publication_date": "2026-05-14",
+      "doi": "10.5281/zenodo.20184908",
+      "identifiers": {
+        "doi": "10.5281/zenodo.20184908",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7161126311",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Cole Cantrell",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+      "publication_type": "preprint",
+      "abstract": "We introduce two complementary mechanisms for reducing compute in retrieval-augmented generation (RAG) pipelines, and show they operate on orthogonal axes: one governs corpus search cost, the other governs query representation quality. The first, **Caustic Retrieval**, routes queries to a geometrically determined data subset before any search occurs, reducing corpus touched by **43.7%** with no statistically detectable accuracy loss at matched candidate count (McNemar p=0.73, n=500). The savings are retrieval-side bound: 97% of total token-equivalent cost resides in corpus candidate processing, not answer evaluation, making the mechanism effective precisely in the high-volume deployments where cost matters most. The second mechanism applies P(t) variants from this series \u2014 specifically V2 Holt two-timescale and V9 CUSUM \u2014 to the autoregressive token generation process described in Wang et al. (2026), \"The Truth Lies Somewhere in the Middle of the Generated Tokens.\" Wang et al. show that mean pooling across generated tokens yields richer semantic representations than any individual token, but identify linear-in-T generation cost as their primary limitation. P(t) V2 detects the plateau onset in the alignment trajectory and stops generation early; P(t) V9 detects the recall phase boundary and identifies when to begin pooling. In preliminary simulation on phase-constrained reconstructions of Wang et al.'s published alignment trajectories, these variants suggest a possible 50-67% reduction in generation cost with approximately 91% retained alignment. We treat this component as a falsifiable proposal requiring validation on real hidden-state trajectories, not an established empirical result. The two mechanisms are structurally independent: Caustic Retrieval targets which data is searched; adaptive token pooling targets how queries are represented before and during search. Deployers can tune each independently, providing a two-parameter control surface over the cost-quality frontier. Both mechanisms require no end-to-end retraining of the generator or retriever. **Keywords:** retrieval-augmented generation, geometric routing, query classification, inverse propensity weighting, token pooling, adaptive stopping, P(t), LIF neuron, caustic, mean pooling",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7161126311",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "European Organization for Nuclear Research",
+        "reference_count": 0,
+        "referenced_works": [],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "CUSUM",
+          "mean pooling",
+          "computational efficiency",
+          "inverse propensity weighting"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Information Retrieval and Search Behavior",
+          "Natural Language Processing Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5134374797"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_97f743ce",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7161126311",
+          "json_pointer": "/results/https://openalex.org/W7161126311",
+          "source_url": "https://openalex.org/W7161126311",
+          "fetched_at": "2026-11-12T01:19:21.572139Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 10
+    },
+    {
+      "paper_id": "4d57f71f-cf65-55c6-8f72-b008e4784139",
+      "title": "CubeGraph: Efficient Retrieval-Augmented Generation for Spatial and Temporal Data",
+      "year": 2026,
+      "publication_date": "2026-04-08",
+      "doi": "10.48550/arxiv.2604.06616",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2604.06616",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7152556347",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Mingyu Yang",
+          "orcid": null,
+          "institutions": [
+            "Hong Kong University of Science and Technology",
+            "The Hong Kong University of Science and Technology (Guangzhou)"
+          ]
+        },
+        {
+          "name": "Wentao Li",
+          "orcid": "https://orcid.org/0000-0003-4941-8814",
+          "institutions": [
+            "University of Leicester"
+          ]
+        },
+        {
+          "name": "Wei Wang",
+          "orcid": "https://orcid.org/0000-0002-1568-2396",
+          "institutions": [
+            "Hong Kong University of Science and Technology",
+            "The Hong Kong University of Science and Technology (Guangzhou)"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Hybrid queries combining high-dimensional vector similarity search with spatio-temporal filters are increasingly critical for modern retrieval-augmented generation (RAG) systems. Existing systems typically handle these workloads by nesting vector indices within low-dimensional spatial structures, such as R-trees. However, this decoupled architecture fragments the vector space, forcing the query engine to invoke multiple disjoint sub-indices per query. This fragmentation destroys graph routing connectivity, incurs severe traversal overhead, and struggles to optimize for complex spatial boundaries. In this paper, we propose CubeGraph, a novel indexing framework designed to natively integrate vector search with arbitrary spatial constraints. CubeGraph partitions the spatial domain using a hierarchical grid, maintaining modular vector graphs within each cell. During query execution, CubeGraph dynamically stitches together adjacent cube-level indices on the fly whenever their spatial cells intersect with the query filter. This dynamic graph integration restores global connectivity, enabling a unified, single-pass nearest-neighbor traversal that eliminates the overhead of fragmented sub-index invocations. Extensive evaluations on real-world datasets demonstrate that CubeGraph significantly outperforms state-of-the-art baselines, offering superior query execution performance, scalability, and flexibility for complex hybrid workloads.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7152556347",
+      "citation_count": 1,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 1
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4221155747",
+        "https://openalex.org/W4380433185",
+        "https://openalex.org/W4381329139",
+        "https://openalex.org/W4390647563",
+        "https://openalex.org/W4404401081",
+        "https://openalex.org/W4405623356",
+        "https://openalex.org/W4410544010",
+        "https://openalex.org/W4411403284",
+        "https://openalex.org/W4413349799",
+        "https://openalex.org/W4414266937",
+        "https://openalex.org/W4414980934",
+        "https://openalex.org/W4416125048",
+        "https://openalex.org/W7130328445",
+        "https://openalex.org/W7130713747",
+        "https://openalex.org/W7138897806",
+        "https://openalex.org/W7140282278",
+        "https://openalex.org/W7162869422"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 17,
+        "referenced_works": [
+          "https://openalex.org/W4221155747",
+          "https://openalex.org/W4380433185",
+          "https://openalex.org/W4381329139",
+          "https://openalex.org/W4390647563",
+          "https://openalex.org/W4404401081",
+          "https://openalex.org/W4405623356",
+          "https://openalex.org/W4410544010",
+          "https://openalex.org/W4411403284",
+          "https://openalex.org/W4413349799",
+          "https://openalex.org/W4414266937",
+          "https://openalex.org/W4414980934",
+          "https://openalex.org/W4416125048",
+          "https://openalex.org/W7130328445",
+          "https://openalex.org/W7130713747",
+          "https://openalex.org/W7138897806",
+          "https://openalex.org/W7140282278",
+          "https://openalex.org/W7162869422"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "retrieval-augmented generation",
+          "spatio-temporal data",
+          "vector similarity search",
+          "hybrid indexing",
+          "spatial filtering",
+          "graph connectivity"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Data Management and Algorithms",
+          "Advanced Image and Video Retrieval Techniques",
+          "Advanced Database Systems and Queries"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5133268413",
+          "https://openalex.org/A5100451429",
+          "https://openalex.org/A5100391888"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_f7e1c5d1",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7152556347",
+          "json_pointer": "/results/https://openalex.org/W7152556347",
+          "source_url": "https://openalex.org/W7152556347",
+          "fetched_at": "2026-11-12T01:19:21.570187Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.1003,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 11
+    },
+    {
+      "paper_id": "7e92df05-9513-5eef-bef9-483fb344526e",
+      "title": "Two-Gate Adaptive Context Selection: A Training-Free Framework for Efficient Document Filtering in Retrieval-Augmented Generation",
+      "year": 2026,
+      "publication_date": "2026-03-05",
+      "doi": "10.36227/techrxiv.177272775.52620074/v1",
+      "identifiers": {
+        "doi": "10.36227/techrxiv.177272775.52620074/v1",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Devesh V. Tripathi",
+          "orcid": null,
+          "institutions": [
+            "Independent Researcher Atlanta"
+          ]
+        },
+        {
+          "name": "Reyan Adil",
+          "orcid": "https://orcid.org/0009-0001-5865-7633",
+          "institutions": [
+            "Independent Researcher Atlanta"
+          ]
+        }
+      ],
+      "venue": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "publication_type": "posted-content",
+      "abstract": "<jats:p>Retrieval-Augmented Generation (RAG) systems frequently retrieve noisy document sets that dilute context quality and inflate inference costs. While recent approaches employ auxiliary language models or learned filters, they introduce computational overhead incompatible with production latency requirements. We present Two-Gate Adaptive Context Selection, a deterministic, training-free filtering algorithm that operates in O(N) time with submillisecond latency. Our method combines: (1) a safety trigger ensuring graceful degradation, (2) a purely relative threshold adapting to query-specific score distributions, and (3) a metric-aligned floor to prevent over-aggressive filtering. We validate on a suite of three diverse public benchmarks from BEIR (NFCorpus, SciFact, FiQA) covering medical, scientific, and financial domains, alongside a production dataset of 487 queries with 5,995 humanannotated relevance judgments. On all public benchmarks, Two-Gate matches the saturation quality of Top-10/Top-20 baselines exactly (NDCG differences &lt; 0.0001) while halving context size. On production data, it achieves 96% context reduction compared to the unfiltered retrieval set (140.5 \u2192 5.7 documents) and 69% reduction compared to a strong Top-20 baseline (18.2 \u2192 5.7), while maintaining statistically identical quality (p &gt; 0.05). Unlike Self-RAG or Cluster-based Adaptive Retrieval, Two-Gate is parameter-free and adds only 0.03ms latency. The deterministic logic of the Two-Gate algorithm is detailed herein, facilitating straightforward integration into production RAG frameworks.</jats:p>",
+      "is_open_access": null,
+      "url": "https://doi.org/10.36227/techrxiv.177272775.52620074/v1",
+      "citation_count": 0,
+      "citation_provider": "crossref",
+      "citation_observations": [
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+        "reference_count": 0,
+        "referenced_works": [],
+        "publication_versions": null
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_fef1a18a",
+          "source_type": "crossref",
+          "artifact_sha256": "f4a01299db89a098bfe1b44505adbc13f78736458ec90b8b6b6567e17e069e03",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.36227/techrxiv.177272775.52620074/v1",
+          "json_pointer": "/message/items/10.36227/techrxiv.177272775.52620074/v1",
+          "source_url": "https://doi.org/10.36227/techrxiv.177272775.52620074/v1",
+          "fetched_at": "2026-11-12T01:19:21.742531Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 12
+    },
+    {
+      "paper_id": "b1dfe6dc-0678-5dcb-a721-03391dfb1e9c",
+      "title": "AgenticOCR: Parsing Only What You Need for Efficient Retrieval-Augmented Generation",
+      "year": 2026,
+      "publication_date": "2026-02-27",
+      "doi": "10.48550/arxiv.2602.24134",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2602.24134",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7133243847",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Zhengren Wang",
+          "orcid": null,
+          "institutions": [
+            "Peking University",
+            "Shanghai Artificial Intelligence Laboratory"
+          ]
+        },
+        {
+          "name": "Dongsheng Ma",
+          "orcid": null,
+          "institutions": [
+            "Peking University",
+            "Shanghai Artificial Intelligence Laboratory"
+          ]
+        },
+        {
+          "name": "Huaping Zhong",
+          "orcid": null,
+          "institutions": [
+            "Sensetime (China)"
+          ]
+        },
+        {
+          "name": "Jiayu Li",
+          "orcid": null,
+          "institutions": [
+            "Shanghai Artificial Intelligence Laboratory"
+          ]
+        },
+        {
+          "name": "Wentao Zhang",
+          "orcid": null,
+          "institutions": [
+            "Peking University",
+            "Shanghai Artificial Intelligence Laboratory"
+          ]
+        },
+        {
+          "name": "Bin Wang",
+          "orcid": null,
+          "institutions": [
+            "Shanghai Artificial Intelligence Laboratory"
+          ]
+        },
+        {
+          "name": "Conghui He",
+          "orcid": null,
+          "institutions": [
+            "Shanghai Artificial Intelligence Laboratory"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "The expansion of retrieval-augmented generation (RAG) into multimodal domains has intensified the challenge for processing complex visual documents, such as financial reports. While page-level chunking and retrieval is a natural starting point, it creates a critical bottleneck: delivering entire pages to the generator introduces excessive extraneous context. This not only overloads the generator's attention mechanism but also dilutes the most salient evidence. Moreover, compressing these information-rich pages into a limited visual token budget further increases the risk of hallucinations. To address this, we introduce AgenticOCR, a dynamic parsing paradigm that transforms optical character recognition (OCR) from a static, full-text process into a query-driven, on-demand extraction system. By autonomously analyzing document layout in a \"thinking with images\" manner, AgenticOCR identifies and selectively recognizes regions of interest. This approach performs on-demand decompression of visual tokens precisely where needed, effectively decoupling retrieval granularity from rigid page-level chunking. AgenticOCR has the potential to serve as the \"third building block\" of the visual document RAG stack, operating alongside and enhancing standard Embedding and Reranking modules. Experimental results demonstrate that AgenticOCR improves both the efficiency and accuracy of visual RAG systems, achieving expert-level performance in long document understanding. Code and models are available at https://github.com/OpenDataLab/AgenticOCR.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7133243847",
+      "citation_count": 14,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 14
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4386228584",
+        "https://openalex.org/W4390041933",
+        "https://openalex.org/W4400373146",
+        "https://openalex.org/W4402955109",
+        "https://openalex.org/W4403571069",
+        "https://openalex.org/W4403799507",
+        "https://openalex.org/W4404354175",
+        "https://openalex.org/W4404404855",
+        "https://openalex.org/W4407719597",
+        "https://openalex.org/W4415145276",
+        "https://openalex.org/W4415854763",
+        "https://openalex.org/W4416035591",
+        "https://openalex.org/W4416036851",
+        "https://openalex.org/W4416055645",
+        "https://openalex.org/W4416138682",
+        "https://openalex.org/W4416271960",
+        "https://openalex.org/W4416288918",
+        "https://openalex.org/W4416331536",
+        "https://openalex.org/W4416338815",
+        "https://openalex.org/W4417032112",
+        "https://openalex.org/W4417160737",
+        "https://openalex.org/W4417298651",
+        "https://openalex.org/W4417298859",
+        "https://openalex.org/W4417298996",
+        "https://openalex.org/W6891932366",
+        "https://openalex.org/W6929471834",
+        "https://openalex.org/W6966994511",
+        "https://openalex.org/W7075994152",
+        "https://openalex.org/W7105764488",
+        "https://openalex.org/W7106785538",
+        "https://openalex.org/W7119754357",
+        "https://openalex.org/W7120003758",
+        "https://openalex.org/W7126026301",
+        "https://openalex.org/W7127158216",
+        "https://openalex.org/W7137897857",
+        "https://openalex.org/W7166804103",
+        "https://openalex.org/W7166845830"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 37,
+        "referenced_works": [
+          "https://openalex.org/W4386228584",
+          "https://openalex.org/W4390041933",
+          "https://openalex.org/W4400373146",
+          "https://openalex.org/W4402955109",
+          "https://openalex.org/W4403571069",
+          "https://openalex.org/W4403799507",
+          "https://openalex.org/W4404354175",
+          "https://openalex.org/W4404404855",
+          "https://openalex.org/W4407719597",
+          "https://openalex.org/W4415145276",
+          "https://openalex.org/W4415854763",
+          "https://openalex.org/W4416035591",
+          "https://openalex.org/W4416036851",
+          "https://openalex.org/W4416055645",
+          "https://openalex.org/W4416138682",
+          "https://openalex.org/W4416271960",
+          "https://openalex.org/W4416288918",
+          "https://openalex.org/W4416331536",
+          "https://openalex.org/W4416338815",
+          "https://openalex.org/W4417032112",
+          "https://openalex.org/W4417160737",
+          "https://openalex.org/W4417298651",
+          "https://openalex.org/W4417298859",
+          "https://openalex.org/W4417298996",
+          "https://openalex.org/W6891932366",
+          "https://openalex.org/W6929471834",
+          "https://openalex.org/W6966994511",
+          "https://openalex.org/W7075994152",
+          "https://openalex.org/W7105764488",
+          "https://openalex.org/W7106785538",
+          "https://openalex.org/W7119754357",
+          "https://openalex.org/W7120003758",
+          "https://openalex.org/W7126026301",
+          "https://openalex.org/W7127158216",
+          "https://openalex.org/W7137897857",
+          "https://openalex.org/W7166804103",
+          "https://openalex.org/W7166845830"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 14
+          }
+        ],
+        "keywords": [
+          "retrieval-augmented generation",
+          "visual document understanding",
+          "optical character recognition",
+          "document layout analysis",
+          "region of interest extraction",
+          "hallucination mitigation",
+          "financial statements",
+          "multimodal retrieval"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Multimodal Machine Learning Applications",
+          "Topic Modeling"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5127859270",
+          "https://openalex.org/A5127781605",
+          "https://openalex.org/A5069276737",
+          "https://openalex.org/A5127780495",
+          "https://openalex.org/A5127786339",
+          "https://openalex.org/A5127834209",
+          "https://openalex.org/A5123983327"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_84badbf3",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7133243847",
+          "json_pointer": "/results/https://openalex.org/W7133243847",
+          "source_url": "https://openalex.org/W7133243847",
+          "fetched_at": "2026-11-12T01:19:21.570495Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.392,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 13
+    },
+    {
+      "paper_id": "328083ed-bffb-58a9-a3eb-c9f283933699",
+      "title": "A HYBRID ADAPTIVE AND SEMANTIC CACHING MECHANISM FOR EFFICIENT RETRIEVAL-AUGMENTED GENERATION IN LLM S",
+      "year": 2026,
+      "publication_date": "2026-01-01",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7155474365",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "VALENTINO RYO KOESDARTO",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "Unika Repositor (Unika)",
+      "publication_type": "dissertation",
+      "abstract": "Large Language Models (LLMs) have the ability to understand and generate natural language, but they still face limitations in providing accurate answers for knowledge beyond the training data, which triggers hallucination issues. Retrieval-Augmented Generation (RAG) presents itself as a solution by adding an external context retrieval stage to enhance answer relevance, but it causes significant overhead due to the embedding process, document search, and context integration, which slow down response time and increase computational costs. This research develops a hybrid caching system that combines an Adaptive LRFU caching mechanism that dynamically adjusts cache priorities based on access recency, frequency patterns, and cache hit/miss behavior, with semantic caching based on embedding to detect meaning similarity between queries. The system is designed using a dataset of 10,000 question-answer pairs in ChromaDB with the BAAI/bge-large-en-v1.5 embedding model, as well as FAISS and Chroma-based semantic matching techniques. Evaluation was conducted using five main metrics: Cache Hit Ratio (CHR), Average Response Time (ART), Answer Accuracy (AA), Memory Utilization Efficiency (MUE), and Cache Update Overhead (CUO). The result is expected that the hybrid approach can outperform static baselines and single caching methods by delivering faster responses, reducing redundant computations, and maintaining answer quality.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7155474365",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "Universitas Katolik Santo Thomas",
+        "reference_count": 0,
+        "referenced_works": [],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "hybrid caching",
+          "LRU caching",
+          "adaptive caching",
+          "semantic caching",
+          "large language models",
+          "hallucinations",
+          "ChromaDB",
+          "FAISS",
+          "cache hit rate",
+          "response time reduction",
+          "memory usage"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Information Retrieval and Search Behavior",
+          "Natural Language Processing Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5134400968"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_ef20acaa",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7155474365",
+          "json_pointer": "/results/https://openalex.org/W7155474365",
+          "source_url": "https://openalex.org/W7155474365",
+          "fetched_at": "2026-11-12T01:19:21.571838Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 14
+    },
+    {
+      "paper_id": "2a3e546d-5836-5bbd-aefd-430453ee153b",
+      "title": "Retrieval-Augmented Generation and Parameter-Efficient Fine-Tuning for Financial Question Answering: Evidence from the FinQA Benchmark",
+      "year": 2026,
+      "publication_date": "2026-01-01",
+      "doi": "10.2139/ssrn.7659718",
+      "identifiers": {
+        "doi": "10.2139/ssrn.7659718",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Mohammed Asif",
+          "orcid": "https://orcid.org/0009-0003-6939-786X",
+          "institutions": []
+        }
+      ],
+      "venue": "Elsevier BV",
+      "publication_type": "posted-content",
+      "abstract": "<jats:p>General-purpose large language models (LLMs) answer finance questions poorly when firm-specific evidence is unavailable at inference time: asked cold, a 4-billion-parameter model solves only 17.2% of the FinQA benchmark of numerical questions over S&amp;amp;P 500 earnings reports. This paper asks where the accuracy of a grounded financial question-answering system comes from, and what that ac curacy costs. Westudyafullyself-hostedexperimentalpipelinethatcombineslayout-awaredocument parsing (Docling), hybrid dense\u2013sparse retrieval with bge-m3 and BM25, cross-encoder re-ranking, citation-grounded generation with Qwen3-4B served by vLLM, and deterministic execution of the final arithmetic. Holding the generator fixed and manipulating only the evidence supply, retrieval augmentation raises exact-match accuracy from 17.2% to 64.4%\u2014a 47.2-point, 3.7\u00d7 relative gain. A QLoRA fine-tune of the same model on 12,000 instruction-format examples from the FinQA training split reaches 63.9% under the identical protocol\u2014parity within half a point\u2014while training only 33M parameters (0.81% of the model) in 3.5 hours at a 6.34 GB peak VRAM on a single consumer-grade 12 GB GPU.The decomposition isolates access to external evidence, not parametric capacity, as the binding constraint on domain question answering at this scale, and it characterises what parameter efficient adaptation does and does not add. Error analysis of the residual failures identifies retrieval misses, table-cell grounding, and multi-step composition as the dominant remaining barriers. AI Dis closure: AI-assisted tools were used in preparing this manuscript and in developing the experimental system; all results were produced and verified by the author, who takes full responsibility for the content.</jats:p>",
+      "is_open_access": null,
+      "url": "https://doi.org/10.2139/ssrn.7659718",
+      "citation_count": 0,
+      "citation_provider": "crossref",
+      "citation_observations": [
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "Elsevier BV",
+        "reference_count": 0,
+        "referenced_works": [],
+        "publication_versions": null
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_e2c7e6d0",
+          "source_type": "crossref",
+          "artifact_sha256": "f4a01299db89a098bfe1b44505adbc13f78736458ec90b8b6b6567e17e069e03",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.2139/ssrn.7659718",
+          "json_pointer": "/message/items/10.2139/ssrn.7659718",
+          "source_url": "https://doi.org/10.2139/ssrn.7659718",
+          "fetched_at": "2026-11-12T01:19:21.742383Z"
+        }
+      ],
+      "relevance_score": 1.1625,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2026"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 15
+    },
+    {
+      "paper_id": "814b15f0-6b98-5890-9196-bbc49e7bc9af",
+      "title": "EasyRAG: Efficient Retrieval-Augmented Generation Framework for Automated Network Operations",
+      "year": 2024,
+      "publication_date": "2024-10-14",
+      "doi": "10.48550/arxiv.2410.10315",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2410.10315",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4403572754",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Zhangchi Feng",
+          "orcid": "https://orcid.org/0009-0005-2673-3784",
+          "institutions": [
+            "Beihang University"
+          ]
+        },
+        {
+          "name": "Dongdong Kuang",
+          "orcid": null,
+          "institutions": [
+            "Beihang University"
+          ]
+        },
+        {
+          "name": "Zhongyuan Wang",
+          "orcid": "https://orcid.org/0000-0002-9796-488X",
+          "institutions": [
+            "Beihang University"
+          ]
+        },
+        {
+          "name": "Zhijie Nie",
+          "orcid": "https://orcid.org/0009-0004-3933-0522",
+          "institutions": [
+            "Beihang University"
+          ]
+        },
+        {
+          "name": "Yaowei Zheng",
+          "orcid": "https://orcid.org/0000-0001-6028-8032",
+          "institutions": [
+            "Beihang University"
+          ]
+        },
+        {
+          "name": "Richong Zhang",
+          "orcid": "https://orcid.org/0000-0002-1207-0300",
+          "institutions": [
+            "Beihang University"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "This paper presents EasyRAG, a simple, lightweight, and efficient retrieval-augmented generation framework for automated network operations. Our framework has three advantages. The first is accurate question answering. We designed a straightforward RAG scheme based on (1) a specific data processing workflow (2) dual-route sparse retrieval for coarse ranking (3) LLM Reranker for reranking (4) LLM answer generation and optimization. This approach achieved first place in the GLM4 track in the preliminary round and second place in the GLM4 track in the semifinals. The second is simple deployment. Our method primarily consists of BM25 retrieval and BGE-reranker reranking, requiring no fine-tuning of any models, occupying minimal VRAM, easy to deploy, and highly scalable; we provide a flexible code library with various search and generation strategies, facilitating custom process implementation. The last one is efficient inference. We designed an efficient inference acceleration scheme for the entire coarse ranking, reranking, and generation process that significantly reduces the inference latency of RAG while maintaining a good level of accuracy; each acceleration scheme can be plug-and-play into any component of the RAG process, consistently enhancing the efficiency of the RAG system. Our code and data are released at \\url{https://github.com/BUAADreamer/EasyRAG}.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4403572754",
+      "citation_count": 6,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 6
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4385565351",
+        "https://openalex.org/W4385681674",
+        "https://openalex.org/W4389520758",
+        "https://openalex.org/W4399837985",
+        "https://openalex.org/W4400433884",
+        "https://openalex.org/W4402670856",
+        "https://openalex.org/W4402671835"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 7,
+        "referenced_works": [
+          "https://openalex.org/W4385565351",
+          "https://openalex.org/W4385681674",
+          "https://openalex.org/W4389520758",
+          "https://openalex.org/W4399837985",
+          "https://openalex.org/W4400433884",
+          "https://openalex.org/W4402670856",
+          "https://openalex.org/W4402671835"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 3
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 3
+          }
+        ],
+        "keywords": [
+          "retrieval-augmented generation",
+          "BM25 retrieval",
+          "re-ranking",
+          "large language models"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Information Retrieval and Search Behavior",
+          "Natural Language Processing Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5071268429",
+          "https://openalex.org/A5114335835",
+          "https://openalex.org/A5100741750",
+          "https://openalex.org/A5043077962",
+          "https://openalex.org/A5037995911",
+          "https://openalex.org/A5027015677"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_dede493c",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4403572754",
+          "json_pointer": "/results/https://openalex.org/W4403572754",
+          "source_url": "https://openalex.org/W4403572754",
+          "fetched_at": "2026-11-12T01:19:21.569751Z"
+        }
+      ],
+      "relevance_score": 1.15,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.6,
+      "citation_signal": 0.2817,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2024"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 16
+    },
+    {
+      "paper_id": "44e2fbf0-cd9a-5f15-ab1a-33d4680ce614",
+      "title": "Efficient retrieval-augmented generation",
+      "year": 2024,
+      "publication_date": "2024-05-01",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7220810187",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Ziyi Chen",
+          "orcid": null,
+          "institutions": [
+            "University of Illinois Urbana-Champaign"
+          ]
+        }
+      ],
+      "venue": "Illinois Digital Environment for Access to Learning and Scholarship (University of Illinois at Urbana-Champaign)",
+      "publication_type": "article",
+      "abstract": "Retrieval-Augmented Generation (RAG) is a technique to augment language models with external knowledge of corpus.Despite the rapid evolution of large language models, RAG is still a promising method for solving the difficulty of updating information and unreliable memorization of large language models as many research endeavors and commercial services leveraged retrieval-augmented generation to improve reliability.However, RAG has its drawbacks including high latency and intensive computational resource utilization.The inefficiency resides in two aspects: the long input due to retrieved documents and slow autoregressive generation.To address these two issues, we propose Efficient Title Reranker, a fast reranker to select important documents for input, and Cascade Speculative Drafting which improves upon speculative decoding to increase the generation efficiency of large language models.The Efficient Title Reranker achieves state-of-the-art in retrieval accuracy while being more efficient than the baseline on the KILT knowledge benchmark.On the other hand, Cascade Speculative Drafting outperforms Speculative Decoding in generation speed on both GSM8k and MMLU without additional training.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7220810187",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2612431505",
+        "https://openalex.org/W2789566302",
+        "https://openalex.org/W2898875342",
+        "https://openalex.org/W2982596739",
+        "https://openalex.org/W4307079201",
+        "https://openalex.org/W4319166707",
+        "https://openalex.org/W4367046920",
+        "https://openalex.org/W4385749968",
+        "https://openalex.org/W4412158322"
+      ],
+      "source_metadata": {
+        "publisher": "University of Illinois System",
+        "reference_count": 9,
+        "referenced_works": [
+          "https://openalex.org/W2612431505",
+          "https://openalex.org/W2789566302",
+          "https://openalex.org/W2898875342",
+          "https://openalex.org/W2982596739",
+          "https://openalex.org/W4307079201",
+          "https://openalex.org/W4319166707",
+          "https://openalex.org/W4367046920",
+          "https://openalex.org/W4385749968",
+          "https://openalex.org/W4412158322"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "retrieval-augmented generation",
+          "re-ranking",
+          "speculative decoding",
+          "power generation efficiency",
+          "large language models",
+          "document selection",
+          "GSM8K",
+          "MMLU"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Information Retrieval and Search Behavior",
+          "Natural Language Processing Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5157771344"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_5f9ebdcc",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7220810187",
+          "json_pointer": "/results/https://openalex.org/W7220810187",
+          "source_url": "https://openalex.org/W7220810187",
+          "fetched_at": "2026-11-12T01:19:21.568924Z"
+        }
+      ],
+      "relevance_score": 1.15,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.6,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "publication year 2024"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 17
+    },
+    {
+      "paper_id": "e375351a-1216-55d3-8961-4029f8da71eb",
+      "title": "RAGCache: Efficient Knowledge Caching for Retrieval-Augmented Generation",
+      "year": 2025,
+      "publication_date": "2025-09-20",
+      "doi": "10.1145/3768628",
+      "identifiers": {
+        "doi": "10.1145/3768628",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4414371540",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Chao Jin",
+          "orcid": "https://orcid.org/0009-0006-1355-4995",
+          "institutions": [
+            "Peking University"
+          ]
+        },
+        {
+          "name": "Zili Zhang",
+          "orcid": "https://orcid.org/0000-0003-4209-9451",
+          "institutions": [
+            "Peking University"
+          ]
+        },
+        {
+          "name": "Xuanlin Jiang",
+          "orcid": "https://orcid.org/0009-0006-2265-1877",
+          "institutions": [
+            "Peking University"
+          ]
+        },
+        {
+          "name": "Fangyue Liu",
+          "orcid": "https://orcid.org/0009-0001-9791-046X",
+          "institutions": [
+            "Peking University"
+          ]
+        },
+        {
+          "name": "Shufan Liu",
+          "orcid": "https://orcid.org/0009-0007-1978-4983",
+          "institutions": [
+            "ByteDance (China)"
+          ]
+        },
+        {
+          "name": "Xuanzhe Liu",
+          "orcid": "https://orcid.org/0000-0002-7908-8484",
+          "institutions": [
+            "Peking University"
+          ]
+        },
+        {
+          "name": "Xin Jin",
+          "orcid": "https://orcid.org/0000-0001-8741-5847",
+          "institutions": [
+            "Peking University"
+          ]
+        }
+      ],
+      "venue": "ACM Transactions on Computer Systems",
+      "publication_type": "article",
+      "abstract": "Retrieval-Augmented Generation (RAG) has demonstrated substantial advancements in various natural language processing tasks by integrating the strengths of large language models (LLMs) and external knowledge databases. However, the retrieval step introduces long sequence generation and extra data dependency, resulting in long end-to-end latency. Our analysis benchmarks current RAG systems and reveals that, while the retrieval step poses performance challenges, it also offers optimization opportunities through its retrieval pattern and streaming search behavior. We propose RAGCache, a latency-optimized serving system tailored for RAG. RAGCache leverages the retrieval pattern to organize and cache the intermediate states of retrieved knowledge in a knowledge tree across the GPU and host memory hierarchy, reducing LLM generation time. RAGCache employs dynamic speculative pipelining to exploit the streaming search behavior, overlapping retrieval with LLM generation to minimize end-to-end latency. We implement RAGCache based on vLLM and Faiss, and evaluate it on both open-source and production datasets. Experimental results demonstrate that RAGCache reduces the time to first token (TTFT) by up to 4\u00d7 and improves the throughput by up to 2.1\u00d7 compared to vLLM integrated with Faiss.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4414371540",
+      "citation_count": 226,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 226
+        }
+      ],
+      "references": [
+        "https://openalex.org/W95608104",
+        "https://openalex.org/W2171572695",
+        "https://openalex.org/W2340222647",
+        "https://openalex.org/W2612431505",
+        "https://openalex.org/W2912924812",
+        "https://openalex.org/W2954698171",
+        "https://openalex.org/W2963284996",
+        "https://openalex.org/W2963469388",
+        "https://openalex.org/W3000779003",
+        "https://openalex.org/W3029693508",
+        "https://openalex.org/W3083410900",
+        "https://openalex.org/W4224308101",
+        "https://openalex.org/W4225108562",
+        "https://openalex.org/W4226350810",
+        "https://openalex.org/W4313304293",
+        "https://openalex.org/W4317898419",
+        "https://openalex.org/W4319166707",
+        "https://openalex.org/W4322718191",
+        "https://openalex.org/W4327810158",
+        "https://openalex.org/W4376167141",
+        "https://openalex.org/W4385571271",
+        "https://openalex.org/W4387294617",
+        "https://openalex.org/W4387321091",
+        "https://openalex.org/W4387355950",
+        "https://openalex.org/W4387561528",
+        "https://openalex.org/W4387804741",
+        "https://openalex.org/W4388584589",
+        "https://openalex.org/W4388778348",
+        "https://openalex.org/W4389518760",
+        "https://openalex.org/W4390723197",
+        "https://openalex.org/W4391045969",
+        "https://openalex.org/W4391272538",
+        "https://openalex.org/W4391876619",
+        "https://openalex.org/W4393147129",
+        "https://openalex.org/W4401175629",
+        "https://openalex.org/W4401176373",
+        "https://openalex.org/W4401211704",
+        "https://openalex.org/W4401399383",
+        "https://openalex.org/W4402671542",
+        "https://openalex.org/W4405418476",
+        "https://openalex.org/W4405903187",
+        "https://openalex.org/W4408848702",
+        "https://openalex.org/W4411471721",
+        "https://openalex.org/W4411485933",
+        "https://openalex.org/W4411486516",
+        "https://openalex.org/W4415797413",
+        "https://openalex.org/W6910238582",
+        "https://openalex.org/W6948196230",
+        "https://openalex.org/W7133224090",
+        "https://openalex.org/W7133244816"
+      ],
+      "source_metadata": {
+        "publisher": "Association for Computing Machinery",
+        "reference_count": 50,
+        "referenced_works": [
+          "https://openalex.org/W95608104",
+          "https://openalex.org/W2171572695",
+          "https://openalex.org/W2340222647",
+          "https://openalex.org/W2612431505",
+          "https://openalex.org/W2912924812",
+          "https://openalex.org/W2954698171",
+          "https://openalex.org/W2963284996",
+          "https://openalex.org/W2963469388",
+          "https://openalex.org/W3000779003",
+          "https://openalex.org/W3029693508",
+          "https://openalex.org/W3083410900",
+          "https://openalex.org/W4224308101",
+          "https://openalex.org/W4225108562",
+          "https://openalex.org/W4226350810",
+          "https://openalex.org/W4313304293",
+          "https://openalex.org/W4317898419",
+          "https://openalex.org/W4319166707",
+          "https://openalex.org/W4322718191",
+          "https://openalex.org/W4327810158",
+          "https://openalex.org/W4376167141",
+          "https://openalex.org/W4385571271",
+          "https://openalex.org/W4387294617",
+          "https://openalex.org/W4387321091",
+          "https://openalex.org/W4387355950",
+          "https://openalex.org/W4387561528",
+          "https://openalex.org/W4387804741",
+          "https://openalex.org/W4388584589",
+          "https://openalex.org/W4388778348",
+          "https://openalex.org/W4389518760",
+          "https://openalex.org/W4390723197",
+          "https://openalex.org/W4391045969",
+          "https://openalex.org/W4391272538",
+          "https://openalex.org/W4391876619",
+          "https://openalex.org/W4393147129",
+          "https://openalex.org/W4401175629",
+          "https://openalex.org/W4401176373",
+          "https://openalex.org/W4401211704",
+          "https://openalex.org/W4401399383",
+          "https://openalex.org/W4402671542",
+          "https://openalex.org/W4405418476",
+          "https://openalex.org/W4405903187",
+          "https://openalex.org/W4408848702",
+          "https://openalex.org/W4411471721",
+          "https://openalex.org/W4411485933",
+          "https://openalex.org/W4411486516",
+          "https://openalex.org/W4415797413",
+          "https://openalex.org/W6910238582",
+          "https://openalex.org/W6948196230",
+          "https://openalex.org/W7133224090",
+          "https://openalex.org/W7133244816"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 117
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 94
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 15
+          }
+        ],
+        "keywords": [
+          "retrieval-augmented generation",
+          "latency optimization",
+          "large language models",
+          "tree of knowledge",
+          "GPU memory hierarchy",
+          "time-to-first-token",
+          "vLLM",
+          "FAISS"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Natural Language Processing Techniques",
+          "Information Retrieval and Search Behavior"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5102021404",
+          "https://openalex.org/A5100603108",
+          "https://openalex.org/A5102652594",
+          "https://openalex.org/A5111178462",
+          null,
+          "https://openalex.org/A5052249316",
+          "https://openalex.org/A5101882004"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_b200cf02",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4414371540",
+          "json_pointer": "/results/https://openalex.org/W4414371540",
+          "source_url": "https://openalex.org/W4414371540",
+          "fetched_at": "2026-11-12T01:19:21.572483Z"
+        }
+      ],
+      "relevance_score": 1.1125,
+      "topic_relevance": 0.9125,
+      "recency_signal": 0.8,
+      "citation_signal": 0.7852,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2025"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 18
+    },
+    {
+      "paper_id": "2c4c29ad-14a3-5b7f-acf6-a754e337851a",
+      "title": "Cache-Craft: Managing Chunk-Caches for Efficient Retrieval-Augmented Generation",
+      "year": 2025,
+      "publication_date": "2025-06-17",
+      "doi": "10.1145/3725273",
+      "identifiers": {
+        "doi": "10.1145/3725273",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4411403197",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Shubham Agarwal",
+          "orcid": "https://orcid.org/0000-0003-3290-6328",
+          "institutions": [
+            "Adobe Systems (United States)"
+          ]
+        },
+        {
+          "name": "Sai Sundaresan",
+          "orcid": "https://orcid.org/0009-0004-6908-6823",
+          "institutions": [
+            "Adobe Systems (United States)"
+          ]
+        },
+        {
+          "name": "Subrata Mitra",
+          "orcid": "https://orcid.org/0009-0009-8436-3119",
+          "institutions": [
+            "Adobe Systems (United States)"
+          ]
+        },
+        {
+          "name": "Debabrata Mahapatra",
+          "orcid": "https://orcid.org/0000-0001-7229-2944",
+          "institutions": [
+            "Adobe Systems (United States)"
+          ]
+        },
+        {
+          "name": "Archit Gupta",
+          "orcid": "https://orcid.org/0009-0008-2707-9958",
+          "institutions": [
+            "Indian Institute of Technology Bombay"
+          ]
+        },
+        {
+          "name": "Rounak Sharma",
+          "orcid": "https://orcid.org/0009-0009-8205-040X",
+          "institutions": [
+            "Indian Institute of Technology Kanpur"
+          ]
+        },
+        {
+          "name": "Kapu Nirmal Joshua",
+          "orcid": null,
+          "institutions": [
+            "Indian Institute of Technology Kanpur"
+          ]
+        },
+        {
+          "name": "Tong Yu",
+          "orcid": "https://orcid.org/0000-0002-5991-2050",
+          "institutions": [
+            "Adobe Systems (United States)"
+          ]
+        },
+        {
+          "name": "Shiv Kumar Saini",
+          "orcid": "https://orcid.org/0000-0001-6568-7104",
+          "institutions": [
+            "Adobe Systems (United States)"
+          ]
+        }
+      ],
+      "venue": "Proceedings of the ACM on Management of Data",
+      "publication_type": "article",
+      "abstract": "Retrieval-Augmented Generation (RAG) is often used with Large Language Models (LLMs) to infuse domain knowledge or user-specific information. In RAG, given a user query, a retriever extracts chunks of relevant text from a knowledge base. These chunks are sent to an LLM as part of the input prompt. Typically, any given chunk is repeatedly retrieved across user questions. However, currently, for every question, attention layers in LLMs fully compute the Keys and Values (KVs) repeatedly for the input chunks, as state-of-the-art methods cannot reuse KV-caches when chunks appear at arbitrary locations or with arbitrary contexts. Naive reuse leads to output quality degradation. This leads to potentially redundant computations on expensive GPUs and increases latency. In this work, we propose Cache-Craft , a system for managing and reusing precomputed KVs corresponding to the text chunks (which we call chunk-caches ) in RAG-based systems. We present how to identify chunk-caches that are reusable, how to efficiently perform a small fraction of recomputation to fix the cache and maintain output quality, and how to efficiently store and evict chunk-caches in the hardware for maximizing reuse while masking any overheads. With real production workloads as well as synthetic datasets, we show that Cache-Craft reduces redundant computation by 51% over SOTA prefix-caching and 75% over full recomputation. Additionally, with continuous batching on a real production workload, we get a 1.6\u00d7 speed up in throughput for both the LLama-3-8B and 70B models and a 2.1\u00d7 and 2\u00d7 reduction in end-to-end response latency respectively, compared to prefix-caching, while maintaining generation quality.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4411403197",
+      "citation_count": 52,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 52
+        }
+      ],
+      "references": [
+        "https://openalex.org/W95608104",
+        "https://openalex.org/W1586825695",
+        "https://openalex.org/W2035642982",
+        "https://openalex.org/W2049009664",
+        "https://openalex.org/W2173213060",
+        "https://openalex.org/W2734941459",
+        "https://openalex.org/W2765113847",
+        "https://openalex.org/W2795530455",
+        "https://openalex.org/W2811266412",
+        "https://openalex.org/W2944301653",
+        "https://openalex.org/W2951365061",
+        "https://openalex.org/W2952942550",
+        "https://openalex.org/W2963748441",
+        "https://openalex.org/W2963929190",
+        "https://openalex.org/W2982157693",
+        "https://openalex.org/W2983309655",
+        "https://openalex.org/W3027879771",
+        "https://openalex.org/W3029685757",
+        "https://openalex.org/W3037785458",
+        "https://openalex.org/W3046872152",
+        "https://openalex.org/W3095488153",
+        "https://openalex.org/W3111036603",
+        "https://openalex.org/W3115947671",
+        "https://openalex.org/W3130554079",
+        "https://openalex.org/W3173814445",
+        "https://openalex.org/W3189877953",
+        "https://openalex.org/W3190126809",
+        "https://openalex.org/W3196447082",
+        "https://openalex.org/W4214686755",
+        "https://openalex.org/W4313483544",
+        "https://openalex.org/W4322718191",
+        "https://openalex.org/W4366341968",
+        "https://openalex.org/W4386977707",
+        "https://openalex.org/W4387321091",
+        "https://openalex.org/W4388584589",
+        "https://openalex.org/W4388717437",
+        "https://openalex.org/W4388979610",
+        "https://openalex.org/W4389315095",
+        "https://openalex.org/W4389519226",
+        "https://openalex.org/W4391376033",
+        "https://openalex.org/W4391871644",
+        "https://openalex.org/W4391876619",
+        "https://openalex.org/W4392679398",
+        "https://openalex.org/W4392736881",
+        "https://openalex.org/W4392867129",
+        "https://openalex.org/W4393853379",
+        "https://openalex.org/W4394892775",
+        "https://openalex.org/W4401043055",
+        "https://openalex.org/W4401176373",
+        "https://openalex.org/W4401306886",
+        "https://openalex.org/W4402671766",
+        "https://openalex.org/W4402671835",
+        "https://openalex.org/W4402727245",
+        "https://openalex.org/W4402778510",
+        "https://openalex.org/W4407422879",
+        "https://openalex.org/W4414371540",
+        "https://openalex.org/W4415799217",
+        "https://openalex.org/W7131102605",
+        "https://openalex.org/W7133186778",
+        "https://openalex.org/W7133227460"
+      ],
+      "source_metadata": {
+        "publisher": "Association for Computing Machinery",
+        "reference_count": 60,
+        "referenced_works": [
+          "https://openalex.org/W95608104",
+          "https://openalex.org/W1586825695",
+          "https://openalex.org/W2035642982",
+          "https://openalex.org/W2049009664",
+          "https://openalex.org/W2173213060",
+          "https://openalex.org/W2734941459",
+          "https://openalex.org/W2765113847",
+          "https://openalex.org/W2795530455",
+          "https://openalex.org/W2811266412",
+          "https://openalex.org/W2944301653",
+          "https://openalex.org/W2951365061",
+          "https://openalex.org/W2952942550",
+          "https://openalex.org/W2963748441",
+          "https://openalex.org/W2963929190",
+          "https://openalex.org/W2982157693",
+          "https://openalex.org/W2983309655",
+          "https://openalex.org/W3027879771",
+          "https://openalex.org/W3029685757",
+          "https://openalex.org/W3037785458",
+          "https://openalex.org/W3046872152",
+          "https://openalex.org/W3095488153",
+          "https://openalex.org/W3111036603",
+          "https://openalex.org/W3115947671",
+          "https://openalex.org/W3130554079",
+          "https://openalex.org/W3173814445",
+          "https://openalex.org/W3189877953",
+          "https://openalex.org/W3190126809",
+          "https://openalex.org/W3196447082",
+          "https://openalex.org/W4214686755",
+          "https://openalex.org/W4313483544",
+          "https://openalex.org/W4322718191",
+          "https://openalex.org/W4366341968",
+          "https://openalex.org/W4386977707",
+          "https://openalex.org/W4387321091",
+          "https://openalex.org/W4388584589",
+          "https://openalex.org/W4388717437",
+          "https://openalex.org/W4388979610",
+          "https://openalex.org/W4389315095",
+          "https://openalex.org/W4389519226",
+          "https://openalex.org/W4391376033",
+          "https://openalex.org/W4391871644",
+          "https://openalex.org/W4391876619",
+          "https://openalex.org/W4392679398",
+          "https://openalex.org/W4392736881",
+          "https://openalex.org/W4392867129",
+          "https://openalex.org/W4393853379",
+          "https://openalex.org/W4394892775",
+          "https://openalex.org/W4401043055",
+          "https://openalex.org/W4401176373",
+          "https://openalex.org/W4401306886",
+          "https://openalex.org/W4402671766",
+          "https://openalex.org/W4402671835",
+          "https://openalex.org/W4402727245",
+          "https://openalex.org/W4402778510",
+          "https://openalex.org/W4407422879",
+          "https://openalex.org/W4414371540",
+          "https://openalex.org/W4415799217",
+          "https://openalex.org/W7131102605",
+          "https://openalex.org/W7133186778",
+          "https://openalex.org/W7133227460"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 40
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 12
+          }
+        ],
+        "keywords": [
+          "retrieval-augmented generation",
+          "large language models",
+          "KV cache management",
+          "cache eviction",
+          "continuous batching",
+          "redundant computation reduction"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Topic Modeling",
+          "Parallel Computing and Optimization Techniques",
+          "Natural Language Processing Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5100613382",
+          null,
+          null,
+          null,
+          null,
+          "https://openalex.org/A5140805044",
+          "https://openalex.org/A5099166343",
+          "https://openalex.org/A5100767817",
+          "https://openalex.org/A5055018529"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_1cd1991a",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4411403197",
+          "json_pointer": "/results/https://openalex.org/W4411403197",
+          "source_url": "https://openalex.org/W4411403197",
+          "fetched_at": "2026-11-12T01:19:21.569204Z"
+        }
+      ],
+      "relevance_score": 1.1125,
+      "topic_relevance": 0.9125,
+      "recency_signal": 0.8,
+      "citation_signal": 0.5747,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2025"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 19
+    },
+    {
+      "paper_id": "9f0e6958-7e07-559f-a481-7da70a8b07a9",
+      "title": "Compute-Enabled CXL Memory Expansion for Efficient Retrieval Augmented Generation",
+      "year": 2025,
+      "publication_date": "2025-06-03",
+      "doi": "10.1109/mm.2025.3575280",
+      "identifiers": {
+        "doi": "10.1109/mm.2025.3575280",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4410986208",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Derrick Quinn",
+          "orcid": "https://orcid.org/0009-0000-5862-6565",
+          "institutions": [
+            "Cornell University"
+          ]
+        },
+        {
+          "name": "Neel Patel",
+          "orcid": "https://orcid.org/0000-0002-8055-4243",
+          "institutions": [
+            "Cornell University"
+          ]
+        },
+        {
+          "name": "Mohammad Alian",
+          "orcid": "https://orcid.org/0000-0002-4622-2181",
+          "institutions": [
+            "Cornell University"
+          ]
+        }
+      ],
+      "venue": "IEEE Micro",
+      "publication_type": "article",
+      "abstract": "Conventional near-memory processing architectures often strike a trade-off between memory capacity and memory bandwidth, leading to high initial data movement or high capital costs due to memory stranding. In this work, we introduce compute-enabled memory expansion enabled by CXL as a solution for the widespread adoption of near-memory processing at scale. We present the Intelligent Knowledge Store (IKS), which is fundamentally a memory expander with lightweight near-memory accelerators that leverage high internal memory bandwidth to accelerate dense retrieval, a key component of retrieval-augmented generation (RAG). IKS disaggregates its internal memory capacity and supports both spatial and temporal multi-tenancy. It significantly accelerates high-quality dense retrieval while enabling multi-tenancy with modest memory access interference.",
+      "is_open_access": false,
+      "url": "https://openalex.org/W4410986208",
+      "citation_count": 1,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 1
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2112300321",
+        "https://openalex.org/W2982008795",
+        "https://openalex.org/W3015883388",
+        "https://openalex.org/W3039017601",
+        "https://openalex.org/W3189166979",
+        "https://openalex.org/W4238135788",
+        "https://openalex.org/W4318541517",
+        "https://openalex.org/W4399677840",
+        "https://openalex.org/W4407197060"
+      ],
+      "source_metadata": {
+        "publisher": "Institute of Electrical and Electronics Engineers",
+        "reference_count": 9,
+        "referenced_works": [
+          "https://openalex.org/W2112300321",
+          "https://openalex.org/W2982008795",
+          "https://openalex.org/W3015883388",
+          "https://openalex.org/W3039017601",
+          "https://openalex.org/W3189166979",
+          "https://openalex.org/W4238135788",
+          "https://openalex.org/W4318541517",
+          "https://openalex.org/W4399677840",
+          "https://openalex.org/W4407197060"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2025,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "CXL",
+          "memory expansion",
+          "near-memory computing",
+          "retrieval-augmented generation",
+          "dense retrieval",
+          "memory bandwidth",
+          "multi-tenancy",
+          "memory disaggregation"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Parallel Computing and Optimization Techniques",
+          "Advanced Database Systems and Queries",
+          "Advanced Memory and Neural Computing"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5023012463",
+          "https://openalex.org/A5042812673",
+          "https://openalex.org/A5069911395"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_86fe5645",
+          "source_type": "openalex",
+          "artifact_sha256": "2d51533ed9358f40713a706b0407f5fc3824e062b86c4d68745e4a635702a187",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4410986208",
+          "json_pointer": "/results/https://openalex.org/W4410986208",
+          "source_url": "https://openalex.org/W4410986208",
+          "fetched_at": "2026-11-12T01:19:21.571215Z"
+        }
+      ],
+      "relevance_score": 1.1125,
+      "topic_relevance": 0.9125,
+      "recency_signal": 0.8,
+      "citation_signal": 0.1003,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "publication year 2025"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 20
+    }
+  ]
+}

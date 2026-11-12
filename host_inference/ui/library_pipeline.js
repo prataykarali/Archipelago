@@ -48,7 +48,7 @@ async function loadLibraryPipeline() {
     const response = await fetch('/api/auth/me', { cache: 'no-store' });
     const data = await response.json();
     document.getElementById('pipeline-research-link').hidden = !response.ok ||
-      !data.authenticated || !['faculty', 'librarian', 'administrator'].includes(data.role);
+      !data.authenticated || !['student', 'faculty', 'librarian', 'administrator'].includes(data.role);
   } catch (_error) {
     document.getElementById('pipeline-research-link').hidden = true;
   }

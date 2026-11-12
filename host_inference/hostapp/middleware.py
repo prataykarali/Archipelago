@@ -51,6 +51,8 @@ def _research_capability(path: str, method: str) -> ResearchCapability:
         return ResearchCapability.EVIDENCE_READ
     if path.startswith("/api/research/connectors/"):
         return ResearchCapability.CONNECTOR_CONFIG
+    if path.startswith("/api/research/intelligence/monitors"):
+        return ResearchCapability.TOPIC_TRACK
     if path == "/api/research/topics" and method == "POST":
         return ResearchCapability.TOPIC_TRACK
     if path == "/api/research/jobs" and method == "POST":
@@ -83,7 +85,12 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
                 )
                 return jsonify({"error": "unauthorized"}), 401
             capability = _research_capability(path, request.method)
-            if not allowed(principal.get("role"), capability):
+            student_metadata = (
+                path.startswith("/api/research/intelligence/")
+                and principal.get("role") == "student"
+                and capability == ResearchCapability.SEARCH
+            )
+            if not student_metadata and not allowed(principal.get("role"), capability):
                 audit_action(
                     user_id=str(principal["id"]),
                     role=principal.get("role"),

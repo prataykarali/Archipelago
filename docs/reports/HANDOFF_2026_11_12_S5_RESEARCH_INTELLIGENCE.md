@@ -1,0 +1,5 @@
+# Handoff: S5 research intelligence
+
+Built a metadata-first Top-K path using existing official scholarly adapters, separate SQLite run snapshots, a source-backed research graph, a nine-sheet workbook, opt-in monitor state, and a replacement `/research` page reached from Library Details. Captured eight live topic runs and a browser rendering screenshot from saved live payloads. Academic S4 state and librarian upload paths were not modified.
+
+Deferred hosted deployment because the Vercel image packages only `host_inference`, while S5 imports the sibling `archipelago` package and needs durable storage. The hosted S5 API reports 503 in that state. Next pair: package the research runtime as a separately deployed service or include it in a durable server image; provision owner-scoped durable storage; integrate the Research page with a real authenticated session; obtain human relevance/identity/venue judgments; then enable only explicitly authorized monitors. Preserve the S4 approval boundary.

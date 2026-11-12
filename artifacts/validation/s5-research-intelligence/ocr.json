@@ -1,0 +1,1890 @@
+{
+  "schema": "archipelago.research_intelligence.v1",
+  "options": {
+    "topic": "OCR and document understanding",
+    "top_k": 10,
+    "year_from": null,
+    "year_to": null,
+    "sort": "relevance",
+    "open_access": null,
+    "paper_type": "",
+    "field": "",
+    "venue": ""
+  },
+  "retrieved_at": "2026-11-12T01:19:06.242510+00:00",
+  "sources": [
+    {
+      "source": "openalex",
+      "requested_at": "2026-11-12T01:19:03.526400+00:00",
+      "status": "live",
+      "record_count": 10,
+      "raw_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "crossref",
+      "requested_at": "2026-11-12T01:19:03.527666+00:00",
+      "status": "live",
+      "record_count": 18,
+      "raw_sha256": "6b72236662e0397b09cf8d1f2b63841e89286fe075918372d9372eae72f9f3a0",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "arxiv",
+      "requested_at": "2026-11-12T01:19:03.533390+00:00",
+      "status": "live",
+      "record_count": 20,
+      "raw_sha256": "f7daf65433153ab39859703d2cffdb6e70d744d6088bcd4f61381ed591b6dcf0",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "semantic_scholar",
+      "requested_at": "2026-11-12T01:19:03.535351+00:00",
+      "status": "rate_limited",
+      "record_count": 0,
+      "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+      "request_id": "f7a1d93a-924f-434c-87be-e2432307dcc8",
+      "http_status": 429,
+      "error": "HTTP 429",
+      "rate_limited": true
+    }
+  ],
+  "candidate_count": 43,
+  "filtered_count": 40,
+  "papers": [
+    {
+      "paper_id": "76145645-78ca-50b8-a499-b5d2ed5257fc",
+      "title": "Towards Visual Document Understanding of Meitei Mayek: A Survey of Layout Analysis and OCR Techniques",
+      "year": 2026,
+      "publication_date": "2026-01-01",
+      "doi": "10.2139/ssrn.6574554",
+      "identifiers": {
+        "doi": "10.2139/ssrn.6574554",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Melinda Laiphangbam",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "Elsevier BV",
+      "publication_type": "posted-content",
+      "abstract": "<jats:p>Digitizing documents in regional and low-resource scripts is challenging, particularly in the presence of complex layouts. Meitei Mayek, the native script of the Manipuri language, has seen increased adoption in recent years. However, most existing research focuses on isolated character recognition, with limited attention to document-level understanding. Key aspects such as layout analysis and structural segmentation have received comparatively less attention. This paper presents a survey of document layout analysis and optical character recognition (OCR) techniques for Meitei Mayek documents. It reviews key stages of the document analysis pipeline, including preprocessing, layout analysis, text segmentation, and recognition. The study also examines available datasets and tools, identifies key limitations, and outlines future research directions for developing scalable and reliable document analysis systems.</jats:p>",
+      "is_open_access": null,
+      "url": "https://doi.org/10.2139/ssrn.6574554",
+      "citation_count": 0,
+      "citation_provider": "crossref",
+      "citation_observations": [
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "Elsevier BV",
+        "reference_count": 17,
+        "referenced_works": [],
+        "publication_versions": null
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_a322d196",
+          "source_type": "crossref",
+          "artifact_sha256": "6b72236662e0397b09cf8d1f2b63841e89286fe075918372d9372eae72f9f3a0",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.2139/ssrn.6574554",
+          "json_pointer": "/message/items/10.2139/ssrn.6574554",
+          "source_url": "https://doi.org/10.2139/ssrn.6574554",
+          "fetched_at": "2026-11-12T01:19:04.775720Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 1
+    },
+    {
+      "paper_id": "75d90535-5465-58ab-80ce-0f091890035f",
+      "title": "DavarOCR: A Toolbox for OCR and Multi-Modal Document Understanding",
+      "year": 2022,
+      "publication_date": "2022-07-14",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "2207.06695v1",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Liang Qiao",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Hui Jiang",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Ying Chen",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Can Li",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Pengfei Li",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Zaisheng Li",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Baorui Zou",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Dashan Guo",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Yingda Xu",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Yunlu Xu",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Zhanzhan Cheng",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Yi Niu",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "This paper presents DavarOCR, an open-source toolbox for OCR and document understanding tasks. DavarOCR currently implements 19 advanced algorithms, covering 9 different task forms. DavarOCR provides detailed usage instructions and the trained models for each algorithm. Compared with the previous opensource OCR toolbox, DavarOCR has relatively more complete support for the sub-tasks of the cutting-edge technology of document understanding. In order to promote the development and application of OCR technology in academia and industry, we pay more attention to the use of modules that different sub-domains of technology can share. DavarOCR is publicly released at https://github.com/hikopensource/Davar-Lab-OCR.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2207.06695v1",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_42a197c4",
+          "source_type": "arxiv",
+          "artifact_sha256": "f7daf65433153ab39859703d2cffdb6e70d744d6088bcd4f61381ed591b6dcf0",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2207.06695v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2207.06695v1",
+          "fetched_at": "2026-11-12T01:19:03.782076Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.2,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 2
+    },
+    {
+      "paper_id": "e43b3eaf-f155-5f46-851e-1a975a5bad54",
+      "title": "A Survey of Deep Learning Approaches for OCR and Document Understanding",
+      "year": 2020,
+      "publication_date": "2020-11-27",
+      "doi": "10.48550/arxiv.2011.13534",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2011.13534",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W3109569233",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Nishant Subramani",
+          "orcid": null,
+          "institutions": [
+            "Intel (United States)"
+          ]
+        },
+        {
+          "name": "Alexandre Matton",
+          "orcid": null,
+          "institutions": [
+            "Intel (United States)"
+          ]
+        },
+        {
+          "name": "Malcolm Watson Greaves",
+          "orcid": null,
+          "institutions": [
+            "Intel (United States)"
+          ]
+        },
+        {
+          "name": "Lam, Adrian",
+          "orcid": null,
+          "institutions": [
+            "Intel (United States)"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Documents are a core part of many businesses in many fields such as law, finance, and technology among others. Automatic understanding of documents such as invoices, contracts, and resumes is lucrative, opening up many new avenues of business. The fields of natural language processing and computer vision have seen tremendous progress through the development of deep learning such that these methods have started to become infused in contemporary document understanding systems. In this survey paper, we review different techniques for document understanding for documents written in English and consolidate methodologies present in literature to act as a jumping-off point for researchers exploring this area.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W3109569233",
+      "citation_count": 115,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 115
+        }
+      ],
+      "references": [
+        "https://openalex.org/W291468462",
+        "https://openalex.org/W639708223",
+        "https://openalex.org/W1483870316",
+        "https://openalex.org/W1491389626",
+        "https://openalex.org/W1571689097",
+        "https://openalex.org/W1827297289",
+        "https://openalex.org/W1901129140",
+        "https://openalex.org/W1903029394",
+        "https://openalex.org/W1964101267",
+        "https://openalex.org/W2008806374",
+        "https://openalex.org/W2022351003",
+        "https://openalex.org/W2051265407",
+        "https://openalex.org/W2064675550",
+        "https://openalex.org/W2099926976",
+        "https://openalex.org/W2103504761",
+        "https://openalex.org/W2117130368",
+        "https://openalex.org/W2124404372",
+        "https://openalex.org/W2127141656",
+        "https://openalex.org/W2130942839",
+        "https://openalex.org/W2132679783",
+        "https://openalex.org/W2140567548",
+        "https://openalex.org/W2151103935",
+        "https://openalex.org/W2152628086",
+        "https://openalex.org/W2157331557",
+        "https://openalex.org/W2163605009",
+        "https://openalex.org/W2194775991",
+        "https://openalex.org/W2286929393",
+        "https://openalex.org/W2343052201",
+        "https://openalex.org/W2464918637",
+        "https://openalex.org/W2519818067",
+        "https://openalex.org/W2533973874",
+        "https://openalex.org/W2550687635",
+        "https://openalex.org/W2565639579",
+        "https://openalex.org/W2604243686",
+        "https://openalex.org/W2613904329",
+        "https://openalex.org/W2626778328",
+        "https://openalex.org/W2740819638",
+        "https://openalex.org/W2752225195",
+        "https://openalex.org/W2761053380",
+        "https://openalex.org/W2765715907",
+        "https://openalex.org/W2766895242",
+        "https://openalex.org/W2771490691",
+        "https://openalex.org/W2772800855",
+        "https://openalex.org/W2784050770",
+        "https://openalex.org/W2787560479",
+        "https://openalex.org/W2787835872",
+        "https://openalex.org/W2796347433",
+        "https://openalex.org/W2798826627",
+        "https://openalex.org/W2810028092",
+        "https://openalex.org/W2891117443",
+        "https://openalex.org/W2895738283",
+        "https://openalex.org/W2914121031",
+        "https://openalex.org/W2922714365",
+        "https://openalex.org/W2935408319",
+        "https://openalex.org/W2940744433",
+        "https://openalex.org/W2947697927",
+        "https://openalex.org/W2956352737",
+        "https://openalex.org/W2962784628",
+        "https://openalex.org/W2962810613",
+        "https://openalex.org/W2962986948",
+        "https://openalex.org/W2963150697",
+        "https://openalex.org/W2963341956",
+        "https://openalex.org/W2963460857",
+        "https://openalex.org/W2963517393",
+        "https://openalex.org/W2964018263",
+        "https://openalex.org/W2964199361",
+        "https://openalex.org/W2964294787",
+        "https://openalex.org/W2964296749",
+        "https://openalex.org/W2964308564",
+        "https://openalex.org/W2964346820",
+        "https://openalex.org/W2965373594",
+        "https://openalex.org/W2967615747",
+        "https://openalex.org/W2969605360",
+        "https://openalex.org/W2980913015",
+        "https://openalex.org/W2988098900",
+        "https://openalex.org/W2994673210",
+        "https://openalex.org/W2995580406",
+        "https://openalex.org/W2998405168",
+        "https://openalex.org/W2999038738",
+        "https://openalex.org/W3003478049",
+        "https://openalex.org/W3003484198",
+        "https://openalex.org/W3003711898",
+        "https://openalex.org/W3003791552",
+        "https://openalex.org/W3004040469",
+        "https://openalex.org/W3004042913",
+        "https://openalex.org/W3015468748",
+        "https://openalex.org/W3034573343",
+        "https://openalex.org/W3035222584",
+        "https://openalex.org/W3058766270",
+        "https://openalex.org/W3090669478",
+        "https://openalex.org/W3091156754",
+        "https://openalex.org/W3091806362",
+        "https://openalex.org/W3094024803",
+        "https://openalex.org/W3104953317",
+        "https://openalex.org/W3106031848",
+        "https://openalex.org/W3106250896",
+        "https://openalex.org/W3107064625",
+        "https://openalex.org/W3107284742",
+        "https://openalex.org/W3110398855",
+        "https://openalex.org/W3113753692",
+        "https://openalex.org/W3163021734",
+        "https://openalex.org/W3167392131",
+        "https://openalex.org/W3173306993"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 103,
+        "referenced_works": [
+          "https://openalex.org/W291468462",
+          "https://openalex.org/W639708223",
+          "https://openalex.org/W1483870316",
+          "https://openalex.org/W1491389626",
+          "https://openalex.org/W1571689097",
+          "https://openalex.org/W1827297289",
+          "https://openalex.org/W1901129140",
+          "https://openalex.org/W1903029394",
+          "https://openalex.org/W1964101267",
+          "https://openalex.org/W2008806374",
+          "https://openalex.org/W2022351003",
+          "https://openalex.org/W2051265407",
+          "https://openalex.org/W2064675550",
+          "https://openalex.org/W2099926976",
+          "https://openalex.org/W2103504761",
+          "https://openalex.org/W2117130368",
+          "https://openalex.org/W2124404372",
+          "https://openalex.org/W2127141656",
+          "https://openalex.org/W2130942839",
+          "https://openalex.org/W2132679783",
+          "https://openalex.org/W2140567548",
+          "https://openalex.org/W2151103935",
+          "https://openalex.org/W2152628086",
+          "https://openalex.org/W2157331557",
+          "https://openalex.org/W2163605009",
+          "https://openalex.org/W2194775991",
+          "https://openalex.org/W2286929393",
+          "https://openalex.org/W2343052201",
+          "https://openalex.org/W2464918637",
+          "https://openalex.org/W2519818067",
+          "https://openalex.org/W2533973874",
+          "https://openalex.org/W2550687635",
+          "https://openalex.org/W2565639579",
+          "https://openalex.org/W2604243686",
+          "https://openalex.org/W2613904329",
+          "https://openalex.org/W2626778328",
+          "https://openalex.org/W2740819638",
+          "https://openalex.org/W2752225195",
+          "https://openalex.org/W2761053380",
+          "https://openalex.org/W2765715907",
+          "https://openalex.org/W2766895242",
+          "https://openalex.org/W2771490691",
+          "https://openalex.org/W2772800855",
+          "https://openalex.org/W2784050770",
+          "https://openalex.org/W2787560479",
+          "https://openalex.org/W2787835872",
+          "https://openalex.org/W2796347433",
+          "https://openalex.org/W2798826627",
+          "https://openalex.org/W2810028092",
+          "https://openalex.org/W2891117443",
+          "https://openalex.org/W2895738283",
+          "https://openalex.org/W2914121031",
+          "https://openalex.org/W2922714365",
+          "https://openalex.org/W2935408319",
+          "https://openalex.org/W2940744433",
+          "https://openalex.org/W2947697927",
+          "https://openalex.org/W2956352737",
+          "https://openalex.org/W2962784628",
+          "https://openalex.org/W2962810613",
+          "https://openalex.org/W2962986948",
+          "https://openalex.org/W2963150697",
+          "https://openalex.org/W2963341956",
+          "https://openalex.org/W2963460857",
+          "https://openalex.org/W2963517393",
+          "https://openalex.org/W2964018263",
+          "https://openalex.org/W2964199361",
+          "https://openalex.org/W2964294787",
+          "https://openalex.org/W2964296749",
+          "https://openalex.org/W2964308564",
+          "https://openalex.org/W2964346820",
+          "https://openalex.org/W2965373594",
+          "https://openalex.org/W2967615747",
+          "https://openalex.org/W2969605360",
+          "https://openalex.org/W2980913015",
+          "https://openalex.org/W2988098900",
+          "https://openalex.org/W2994673210",
+          "https://openalex.org/W2995580406",
+          "https://openalex.org/W2998405168",
+          "https://openalex.org/W2999038738",
+          "https://openalex.org/W3003478049",
+          "https://openalex.org/W3003484198",
+          "https://openalex.org/W3003711898",
+          "https://openalex.org/W3003791552",
+          "https://openalex.org/W3004040469",
+          "https://openalex.org/W3004042913",
+          "https://openalex.org/W3015468748",
+          "https://openalex.org/W3034573343",
+          "https://openalex.org/W3035222584",
+          "https://openalex.org/W3058766270",
+          "https://openalex.org/W3090669478",
+          "https://openalex.org/W3091156754",
+          "https://openalex.org/W3091806362",
+          "https://openalex.org/W3094024803",
+          "https://openalex.org/W3104953317",
+          "https://openalex.org/W3106031848",
+          "https://openalex.org/W3106250896",
+          "https://openalex.org/W3107064625",
+          "https://openalex.org/W3107284742",
+          "https://openalex.org/W3110398855",
+          "https://openalex.org/W3113753692",
+          "https://openalex.org/W3163021734",
+          "https://openalex.org/W3167392131",
+          "https://openalex.org/W3173306993"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 29
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 36
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 22
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 18
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 3
+          }
+        ],
+        "keywords": [
+          "optical character recognition",
+          "document understanding",
+          "deep learning",
+          "English documents",
+          "invoices",
+          "contracts",
+          "curriculum vitae",
+          "document analysis"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Topic Modeling",
+          "Vehicle License Plate Recognition"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5109481132",
+          "https://openalex.org/A5073850168",
+          "https://openalex.org/A5111626971",
+          null
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_6d05a80f",
+          "source_type": "openalex",
+          "artifact_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W3109569233",
+          "json_pointer": "/results/https://openalex.org/W3109569233",
+          "source_url": "https://openalex.org/W3109569233",
+          "fetched_at": "2026-11-12T01:19:06.211100Z"
+        }
+      ],
+      "relevance_score": 0.9469,
+      "topic_relevance": 0.9125,
+      "recency_signal": 0.0,
+      "citation_signal": 0.6881,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 3
+    },
+    {
+      "paper_id": "a02c084e-bf63-55c9-a30a-617db43170bf",
+      "title": "From OCR to VLM: A Survey and Position on Document Understanding Architectures",
+      "year": 2026,
+      "publication_date": "2026-08-31",
+      "doi": "10.20944/preprints202608.2256.v1",
+      "identifiers": {
+        "doi": "10.20944/preprints202608.2256.v1",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7204784593",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Yao Fehlis",
+          "orcid": "https://orcid.org/0009-0004-1300-7364",
+          "institutions": []
+        },
+        {
+          "name": "Zhangzhang Si",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Steve Kramer",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Analysa M. Gonzales",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Michael Wharton",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "Preprints.org",
+      "publication_type": "preprint",
+      "abstract": "The evolution from optical character recognition (OCR) to modern vision-language models (VLMs) represents a fundamental shift in how machines understand documents. This paper surveys the architectural landscape and argues that the field's divergence into two evolutionary paths\u2014one optimizing for pixel-level precision, another for semantic reasoning\u2014reflects fundamental and persistent tradeoffs, not transient limitations awaiting a unified solution. We move beyond simple taxonomies to characterize models along five capability dimensions: text recognition, structural understanding, output flexibility, spatial awareness, and task adaptability. We trace the architectural lineage from convolutional neural networks (CNNs) through Vision Transformers (ViT) to contemporary multimodal systems, and take the position that convergence between these paths, while progressing, will not eliminate the need for principled architectural selection. Through analysis of real-world applications, particularly complex forms with non-textual elements like checkboxes, we demonstrate how architectural choices fundamentally determine what problems models can solve. We propose that practitioners should adopt dimensional capability mapping rather than benchmark chasing, and provide decision frameworks grounded in the tradeoff space of accuracy, cost, latency, and flexibility.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7204784593",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        },
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "MDPI AG",
+        "reference_count": 0,
+        "referenced_works": [],
+        "counts_by_year": [],
+        "keywords": [
+          "document understanding",
+          "optical character recognition",
+          "vision-language models",
+          "document image analysis",
+          "text recognition",
+          "structural understanding",
+          "spatial awareness",
+          "multimodal models",
+          "vision transformer",
+          "convolutional neural networks",
+          "form processing",
+          "capability mapping"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Multimodal Machine Learning Applications",
+          "Advanced Neural Network Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5093428865",
+          "https://openalex.org/A5013974468",
+          "https://openalex.org/A5003457727",
+          "https://openalex.org/A5068247500",
+          "https://openalex.org/A5121084271"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_76acc44b",
+          "source_type": "openalex",
+          "artifact_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7204784593",
+          "json_pointer": "/results/https://openalex.org/W7204784593",
+          "source_url": "https://openalex.org/W7204784593",
+          "fetched_at": "2026-11-12T01:19:06.212102Z"
+        },
+        {
+          "provenance_id": "prov_e81f21a5",
+          "source_type": "crossref",
+          "artifact_sha256": "6b72236662e0397b09cf8d1f2b63841e89286fe075918372d9372eae72f9f3a0",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.20944/preprints202608.2256.v1",
+          "json_pointer": "/message/items/10.20944/preprints202608.2256.v1",
+          "source_url": "https://doi.org/10.20944/preprints202608.2256.v1",
+          "fetched_at": "2026-11-12T01:19:04.776140Z"
+        }
+      ],
+      "relevance_score": 0.9125,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 4
+    },
+    {
+      "paper_id": "69319dfd-2155-5053-8547-8b21980864df",
+      "title": "EACS Dataset 4,407 Real-World Bangladeshi Admit Card Images with Field-level Ground Truth for OCR and Document Understanding",
+      "year": 2026,
+      "publication_date": "2026-01-01",
+      "doi": "10.2139/ssrn.7527718",
+      "identifiers": {
+        "doi": "10.2139/ssrn.7527718",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7214621483",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Baizid  MD Ashadzzaman",
+          "orcid": "https://orcid.org/0009-0008-4137-5905",
+          "institutions": [
+            "International Islamic University Chittagong"
+          ]
+        }
+      ],
+      "venue": "SSRN Electronic Journal",
+      "publication_type": "preprint",
+      "abstract": "<jats:p>Educational institutions in South Asia issue large volumes of machine-printed examination admit cards, yet no openly available corpus exists for research on optical character recognition (OCR) or automated verification of such documents. This data paper presents the EACS (Exam Admit Card) Dataset: 4,407 admit card images collected between 2022 and 2025 from the NationalSchoolIntra enterprise resource planning platform operated by Al Quran Academy, Chattogram, Bangladesh. Each record is a standardised 800 \u00d7 460 pixel JPEG rendering of one card and carries nine textual fields (student name, father's name, mother's name, institutional student identifier, examination roll number, class, session, group and semester) together with the list of registered subjects and the scheduled examination date. A companion metadata file supplies a verified ground-truth transcription for every field of every card, so that recognition error can be measured at character, word and field level. The images were exported from the live production system rather than generated synthetically, and consequently retain the typographic, alignment and print-quality variation that synthetic corpora typically omit, a property that materially affects measured OCR accuracy. Student photographs, contact details and signatures were removed, and all personal names and identifiers were systematically randomised while preserving their structural and linguistic characteristics, allowing the corpus to be distributed openly. The dataset is released on Mendeley Data (version 1, doi: 10.17632/mvzdksjzvb.1). Intended applications include OCR benchmarking, document layout analysis, key-information extraction from administrative documents, and the development of tamper-detection mechanisms for academic credentials.</jats:p>",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7214621483",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        },
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "RELX Group (Netherlands)",
+        "reference_count": 0,
+        "referenced_works": [],
+        "counts_by_year": [],
+        "keywords": [
+          "optical character recognition",
+          "document understanding",
+          "document layout analysis",
+          "key information extraction",
+          "document authentication",
+          "academic qualifications",
+          "tamper detection",
+          "Bangladesh"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Vehicle License Plate Recognition",
+          "Advanced Neural Network Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5133182857"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_2c62e66b",
+          "source_type": "openalex",
+          "artifact_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7214621483",
+          "json_pointer": "/results/https://openalex.org/W7214621483",
+          "source_url": "https://openalex.org/W7214621483",
+          "fetched_at": "2026-11-12T01:19:06.211415Z"
+        },
+        {
+          "provenance_id": "prov_25aec439",
+          "source_type": "crossref",
+          "artifact_sha256": "6b72236662e0397b09cf8d1f2b63841e89286fe075918372d9372eae72f9f3a0",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.2139/ssrn.7527718",
+          "json_pointer": "/message/items/10.2139/ssrn.7527718",
+          "source_url": "https://doi.org/10.2139/ssrn.7527718",
+          "fetched_at": "2026-11-12T01:19:04.775856Z"
+        }
+      ],
+      "relevance_score": 0.9125,
+      "topic_relevance": 0.9125,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 5
+    },
+    {
+      "paper_id": "c2dc01ae-935b-5740-9b35-7ab97e64a929",
+      "title": "TextMonkey: An OCR-Free Large Multimodal Model for Understanding Document",
+      "year": 2026,
+      "publication_date": "2026-01-27",
+      "doi": "10.1109/tpami.2026.3653415",
+      "identifiers": {
+        "doi": "10.1109/tpami.2026.3653415",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7125812135",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Yuliang Liu",
+          "orcid": "https://orcid.org/0000-0002-3037-173X",
+          "institutions": [
+            "Huazhong University of Science and Technology"
+          ]
+        },
+        {
+          "name": "Biao Yang",
+          "orcid": "https://orcid.org/0000-0003-2621-2020",
+          "institutions": [
+            "Huazhong University of Science and Technology"
+          ]
+        },
+        {
+          "name": "Qiang Liu",
+          "orcid": "https://orcid.org/0009-0002-3786-6476",
+          "institutions": [
+            "Kingsoft (China)"
+          ]
+        },
+        {
+          "name": "Zhang Li",
+          "orcid": "https://orcid.org/0009-0008-7266-3950",
+          "institutions": [
+            "Huazhong University of Science and Technology"
+          ]
+        },
+        {
+          "name": "Zhiyin Ma",
+          "orcid": null,
+          "institutions": [
+            "Huazhong University of Science and Technology"
+          ]
+        },
+        {
+          "name": "Shuo Zhang",
+          "orcid": "https://orcid.org/0009-0001-4491-2568",
+          "institutions": [
+            "Huazhong University of Science and Technology"
+          ]
+        },
+        {
+          "name": "Xiang Bai",
+          "orcid": "https://orcid.org/0000-0002-3449-5940",
+          "institutions": [
+            "Huazhong University of Science and Technology"
+          ]
+        }
+      ],
+      "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+      "publication_type": "article",
+      "abstract": "We present TextMonkey, a large multimodal model (LMM) tailored for text-centric tasks. Our approach introduces enhancement across several dimensions: By adopting Shifted Window Attention layer, we achieve cross-window connectivity at higher input resolutions and stabilize early training; We hypothesize that images may contain redundant tokens, and by using similarity to filter out significant tokens, we can not only streamline the token length but also enhance the model's performance. Moreover, by expanding our model's capabilities to encompass text spotting and grounding, and incorporating positional information into responses, we enhance interpretability. Evaluation on 12 benchmarks shows notable improvements: 5.2% in Scene Text-Centric tasks (including STVQA, TextVQA, and OCRVQA), 6.9% in Document-Oriented tasks (such as DocVQA, InfoVQA, ChartVQA, DeepForm, Kleister Charity, and WikiTableQuestions), and 2.8% in Key Information Extraction tasks (comprising FUNSD, SROIE, and POIE). It outperforms in scene text spotting with a 10.9% increase and sets a new standard on OCRBench, a comprehensive benchmark consisting of 29 OCR-related assessments, with a score of 561, surpassing previous open-sourced large multimodal models for document understanding.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7125812135",
+      "citation_count": 243,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 243
+        }
+      ],
+      "references": [
+        "https://openalex.org/W1966382373",
+        "https://openalex.org/W2144554289",
+        "https://openalex.org/W2766895242",
+        "https://openalex.org/W2914492226",
+        "https://openalex.org/W2936135081",
+        "https://openalex.org/W2947555604",
+        "https://openalex.org/W2947697927",
+        "https://openalex.org/W2956161426",
+        "https://openalex.org/W2963899988",
+        "https://openalex.org/W2997154779",
+        "https://openalex.org/W3003484198",
+        "https://openalex.org/W3004268082",
+        "https://openalex.org/W3120043490",
+        "https://openalex.org/W3138516171",
+        "https://openalex.org/W3160293046",
+        "https://openalex.org/W3162234211",
+        "https://openalex.org/W3176851559",
+        "https://openalex.org/W3196976036",
+        "https://openalex.org/W3205981739",
+        "https://openalex.org/W4285255856",
+        "https://openalex.org/W4304013646",
+        "https://openalex.org/W4304080540",
+        "https://openalex.org/W4312233877",
+        "https://openalex.org/W4312351507",
+        "https://openalex.org/W4312988011",
+        "https://openalex.org/W4320481960",
+        "https://openalex.org/W4367367040",
+        "https://openalex.org/W4382766522",
+        "https://openalex.org/W4383604278",
+        "https://openalex.org/W4385571998",
+        "https://openalex.org/W4385574075",
+        "https://openalex.org/W4385990846",
+        "https://openalex.org/W4386065837",
+        "https://openalex.org/W4386141732",
+        "https://openalex.org/W4386185600",
+        "https://openalex.org/W4386453743",
+        "https://openalex.org/W4388963471",
+        "https://openalex.org/W4389519972",
+        "https://openalex.org/W4389708725",
+        "https://openalex.org/W4391376827",
+        "https://openalex.org/W4391377114",
+        "https://openalex.org/W4393149524",
+        "https://openalex.org/W4393154852",
+        "https://openalex.org/W4401024359",
+        "https://openalex.org/W4402671775",
+        "https://openalex.org/W4402713111",
+        "https://openalex.org/W4402716330",
+        "https://openalex.org/W4402727764",
+        "https://openalex.org/W4405399726",
+        "https://openalex.org/W4405416283",
+        "https://openalex.org/W4409767398",
+        "https://openalex.org/W4413145313",
+        "https://openalex.org/W7133193597",
+        "https://openalex.org/W7133196460",
+        "https://openalex.org/W7133220561",
+        "https://openalex.org/W7133224126",
+        "https://openalex.org/W7166845830"
+      ],
+      "source_metadata": {
+        "publisher": "IEEE Computer Society",
+        "reference_count": 57,
+        "referenced_works": [
+          "https://openalex.org/W1966382373",
+          "https://openalex.org/W2144554289",
+          "https://openalex.org/W2766895242",
+          "https://openalex.org/W2914492226",
+          "https://openalex.org/W2936135081",
+          "https://openalex.org/W2947555604",
+          "https://openalex.org/W2947697927",
+          "https://openalex.org/W2956161426",
+          "https://openalex.org/W2963899988",
+          "https://openalex.org/W2997154779",
+          "https://openalex.org/W3003484198",
+          "https://openalex.org/W3004268082",
+          "https://openalex.org/W3120043490",
+          "https://openalex.org/W3138516171",
+          "https://openalex.org/W3160293046",
+          "https://openalex.org/W3162234211",
+          "https://openalex.org/W3176851559",
+          "https://openalex.org/W3196976036",
+          "https://openalex.org/W3205981739",
+          "https://openalex.org/W4285255856",
+          "https://openalex.org/W4304013646",
+          "https://openalex.org/W4304080540",
+          "https://openalex.org/W4312233877",
+          "https://openalex.org/W4312351507",
+          "https://openalex.org/W4312988011",
+          "https://openalex.org/W4320481960",
+          "https://openalex.org/W4367367040",
+          "https://openalex.org/W4382766522",
+          "https://openalex.org/W4383604278",
+          "https://openalex.org/W4385571998",
+          "https://openalex.org/W4385574075",
+          "https://openalex.org/W4385990846",
+          "https://openalex.org/W4386065837",
+          "https://openalex.org/W4386141732",
+          "https://openalex.org/W4386185600",
+          "https://openalex.org/W4386453743",
+          "https://openalex.org/W4388963471",
+          "https://openalex.org/W4389519972",
+          "https://openalex.org/W4389708725",
+          "https://openalex.org/W4391376827",
+          "https://openalex.org/W4391377114",
+          "https://openalex.org/W4393149524",
+          "https://openalex.org/W4393154852",
+          "https://openalex.org/W4401024359",
+          "https://openalex.org/W4402671775",
+          "https://openalex.org/W4402713111",
+          "https://openalex.org/W4402716330",
+          "https://openalex.org/W4402727764",
+          "https://openalex.org/W4405399726",
+          "https://openalex.org/W4405416283",
+          "https://openalex.org/W4409767398",
+          "https://openalex.org/W4413145313",
+          "https://openalex.org/W7133193597",
+          "https://openalex.org/W7133196460",
+          "https://openalex.org/W7133220561",
+          "https://openalex.org/W7133224126",
+          "https://openalex.org/W7166845830"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 82
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 113
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 46
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "large multimodal models",
+          "document understanding",
+          "shifted window attention",
+          "text spotting",
+          "visual grounding",
+          "scene text",
+          "document question answering",
+          "key information extraction"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Multimodal Machine Learning Applications",
+          "Advanced Neural Network Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5100389396",
+          "https://openalex.org/A5123912629",
+          "https://openalex.org/A5124028528",
+          "https://openalex.org/A5124050408",
+          "https://openalex.org/A5123910854",
+          "https://openalex.org/A5123918737",
+          "https://openalex.org/A5039363991"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_175d2e5d",
+          "source_type": "openalex",
+          "artifact_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7125812135",
+          "json_pointer": "/results/https://openalex.org/W7125812135",
+          "source_url": "https://openalex.org/W7125812135",
+          "fetched_at": "2026-11-12T01:19:06.211517Z"
+        }
+      ],
+      "relevance_score": 0.8773,
+      "topic_relevance": 0.8375,
+      "recency_signal": 1.0,
+      "citation_signal": 0.7957,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 6
+    },
+    {
+      "paper_id": "813f5db2-1092-5641-8035-7b5777cdb27f",
+      "title": "Beyond OCR: Multi-faceted understanding of handwritten document characteristics",
+      "year": 2016,
+      "publication_date": "2016-09-24",
+      "doi": "10.1016/j.patcog.2016.09.017",
+      "identifiers": {
+        "doi": "10.1016/j.patcog.2016.09.017",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W2522010881",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Sheng He",
+          "orcid": "https://orcid.org/0000-0003-4159-8611",
+          "institutions": [
+            "University of Groningen"
+          ]
+        },
+        {
+          "name": "Lambert Schomaker",
+          "orcid": "https://orcid.org/0000-0003-2351-930X",
+          "institutions": [
+            "University of Groningen"
+          ]
+        }
+      ],
+      "venue": "Pattern Recognition",
+      "publication_type": "article",
+      "abstract": "Handwritten document understanding is a fundamental research problem in pattern recognition and it relies on the effective features. In this paper, we propose a joint feature distribution (JFD) principle to design novel discriminative features which could be the joint distribution of features on adjacent positions or the joint distribution of different features on the same location. Following the proposed JFD principle, we introduce seventeen features, including twelve textural-based and five grapheme-based features. We evaluate these features for different applications from four different perspectives to understand handwritten documents beyond OCR (optical character reognition), by writer identification, script recognition, historical manuscript dating and localization. Extensive experimental results demonstrate that our novel QuadHinge and CoHinge features following the JFD principle provide promising results on these four applications.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W2522010881",
+      "citation_count": 55,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 55
+        },
+        {
+          "provider": "crossref",
+          "count": 49
+        }
+      ],
+      "references": [
+        "https://openalex.org/W23758216",
+        "https://openalex.org/W114375244",
+        "https://openalex.org/W135426905",
+        "https://openalex.org/W601793257",
+        "https://openalex.org/W1481719263",
+        "https://openalex.org/W1899216531",
+        "https://openalex.org/W1955815912",
+        "https://openalex.org/W1966917421",
+        "https://openalex.org/W1976123136",
+        "https://openalex.org/W1987027478",
+        "https://openalex.org/W1993487275",
+        "https://openalex.org/W2013361743",
+        "https://openalex.org/W2030349334",
+        "https://openalex.org/W2044465660",
+        "https://openalex.org/W2048171373",
+        "https://openalex.org/W2050995497",
+        "https://openalex.org/W2053544201",
+        "https://openalex.org/W2055527244",
+        "https://openalex.org/W2057175746",
+        "https://openalex.org/W2062310461",
+        "https://openalex.org/W2074812954",
+        "https://openalex.org/W2076107430",
+        "https://openalex.org/W2098134779",
+        "https://openalex.org/W2106488920",
+        "https://openalex.org/W2107034620",
+        "https://openalex.org/W2108598243",
+        "https://openalex.org/W2119123874",
+        "https://openalex.org/W2120987116",
+        "https://openalex.org/W2121979056",
+        "https://openalex.org/W2130478883",
+        "https://openalex.org/W2139916508",
+        "https://openalex.org/W2143842970",
+        "https://openalex.org/W2150881387",
+        "https://openalex.org/W2152446828",
+        "https://openalex.org/W2152928267",
+        "https://openalex.org/W2153884110",
+        "https://openalex.org/W2157394211",
+        "https://openalex.org/W2163352848",
+        "https://openalex.org/W2170737087",
+        "https://openalex.org/W2177274842",
+        "https://openalex.org/W2178665133",
+        "https://openalex.org/W2196303045",
+        "https://openalex.org/W2206728794",
+        "https://openalex.org/W2222317246",
+        "https://openalex.org/W2317477910",
+        "https://openalex.org/W2328840452",
+        "https://openalex.org/W2330639095",
+        "https://openalex.org/W2425282355",
+        "https://openalex.org/W2444313793",
+        "https://openalex.org/W2515298326",
+        "https://openalex.org/W2518234415",
+        "https://openalex.org/W2527189503",
+        "https://openalex.org/W2544725465",
+        "https://openalex.org/W2576338440",
+        "https://openalex.org/W4243745315",
+        "https://openalex.org/W4253929574"
+      ],
+      "source_metadata": {
+        "publisher": "Elsevier BV",
+        "reference_count": 56,
+        "referenced_works": [
+          "https://openalex.org/W23758216",
+          "https://openalex.org/W114375244",
+          "https://openalex.org/W135426905",
+          "https://openalex.org/W601793257",
+          "https://openalex.org/W1481719263",
+          "https://openalex.org/W1899216531",
+          "https://openalex.org/W1955815912",
+          "https://openalex.org/W1966917421",
+          "https://openalex.org/W1976123136",
+          "https://openalex.org/W1987027478",
+          "https://openalex.org/W1993487275",
+          "https://openalex.org/W2013361743",
+          "https://openalex.org/W2030349334",
+          "https://openalex.org/W2044465660",
+          "https://openalex.org/W2048171373",
+          "https://openalex.org/W2050995497",
+          "https://openalex.org/W2053544201",
+          "https://openalex.org/W2055527244",
+          "https://openalex.org/W2057175746",
+          "https://openalex.org/W2062310461",
+          "https://openalex.org/W2074812954",
+          "https://openalex.org/W2076107430",
+          "https://openalex.org/W2098134779",
+          "https://openalex.org/W2106488920",
+          "https://openalex.org/W2107034620",
+          "https://openalex.org/W2108598243",
+          "https://openalex.org/W2119123874",
+          "https://openalex.org/W2120987116",
+          "https://openalex.org/W2121979056",
+          "https://openalex.org/W2130478883",
+          "https://openalex.org/W2139916508",
+          "https://openalex.org/W2143842970",
+          "https://openalex.org/W2150881387",
+          "https://openalex.org/W2152446828",
+          "https://openalex.org/W2152928267",
+          "https://openalex.org/W2153884110",
+          "https://openalex.org/W2157394211",
+          "https://openalex.org/W2163352848",
+          "https://openalex.org/W2170737087",
+          "https://openalex.org/W2177274842",
+          "https://openalex.org/W2178665133",
+          "https://openalex.org/W2196303045",
+          "https://openalex.org/W2206728794",
+          "https://openalex.org/W2222317246",
+          "https://openalex.org/W2317477910",
+          "https://openalex.org/W2328840452",
+          "https://openalex.org/W2330639095",
+          "https://openalex.org/W2425282355",
+          "https://openalex.org/W2444313793",
+          "https://openalex.org/W2515298326",
+          "https://openalex.org/W2518234415",
+          "https://openalex.org/W2527189503",
+          "https://openalex.org/W2544725465",
+          "https://openalex.org/W2576338440",
+          "https://openalex.org/W4243745315",
+          "https://openalex.org/W4253929574"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 9
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 6
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 9
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 2
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2019,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2018,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2017,
+            "cited_by_count": 3
+          }
+        ],
+        "keywords": [
+          "discriminative features",
+          "textural properties",
+          "authorship attribution",
+          "script recognition"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Image Processing and 3D Reconstruction",
+          "Vehicle License Plate Recognition"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5064975660",
+          "https://openalex.org/A5028858025"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_61dfb3cb",
+          "source_type": "openalex",
+          "artifact_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W2522010881",
+          "json_pointer": "/results/https://openalex.org/W2522010881",
+          "source_url": "https://openalex.org/W2522010881",
+          "fetched_at": "2026-11-12T01:19:06.211977Z"
+        },
+        {
+          "provenance_id": "prov_854922f9",
+          "source_type": "crossref",
+          "artifact_sha256": "6b72236662e0397b09cf8d1f2b63841e89286fe075918372d9372eae72f9f3a0",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.1016/j.patcog.2016.09.017",
+          "json_pointer": "/message/items/10.1016/j.patcog.2016.09.017",
+          "source_url": "https://doi.org/10.1016/j.patcog.2016.09.017",
+          "fetched_at": "2026-11-12T01:19:04.776192Z"
+        }
+      ],
+      "relevance_score": 0.8666,
+      "topic_relevance": 0.8375,
+      "recency_signal": 0.0,
+      "citation_signal": 0.5826,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 7
+    },
+    {
+      "paper_id": "dfda7c74-3b29-511b-a727-27a19ceb21bd",
+      "title": "Donut: Document Understanding Transformer without OCR",
+      "year": 2021,
+      "publication_date": "2021-11-30",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W3216533828",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Geewook Kim",
+          "orcid": "https://orcid.org/0009-0001-6713-3858",
+          "institutions": []
+        },
+        {
+          "name": "Teakgyu Hong",
+          "orcid": "https://orcid.org/0009-0008-8685-810X",
+          "institutions": []
+        },
+        {
+          "name": "Moonbin Yim",
+          "orcid": "https://orcid.org/0000-0002-7272-2198",
+          "institutions": []
+        },
+        {
+          "name": "Jinyoung Park",
+          "orcid": "https://orcid.org/0000-0003-3962-5668",
+          "institutions": []
+        },
+        {
+          "name": "Jinyeong Yim",
+          "orcid": "https://orcid.org/0009-0001-3450-5758",
+          "institutions": []
+        },
+        {
+          "name": "Wonseok Hwang",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Sangdoo Yun",
+          "orcid": "https://orcid.org/0000-0002-0417-8450",
+          "institutions": []
+        },
+        {
+          "name": "Dongyoon Han",
+          "orcid": "https://orcid.org/0000-0002-9130-8195",
+          "institutions": []
+        },
+        {
+          "name": "Seunghyun Park",
+          "orcid": "https://orcid.org/0000-0001-5260-1252",
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Understanding document images (e.g., invoices) has been an important research topic and has many applications in document processing automation. Through the latest advances in deep learning-based Optical Character Recognition (OCR), current Visual Document Understanding (VDU) systems have come to be designed based on OCR. Although such OCR-based approach promise reasonable performance, they suffer from critical problems induced by the OCR, e.g., (1) expensive computational costs and (2) performance degradation due to the OCR error propagation. In this paper, we propose a novel VDU model that is end-to-end trainable without underpinning OCR framework. To this end, we propose a new task and a synthetic document image generator to pre-train the model to mitigate the dependencies on large-scale real document images. Our approach achieves state-of-the-art performance on various document understanding tasks in public benchmark datasets and private industrial service datasets. Through extensive experiments and analysis, we demonstrate the effectiveness of the proposed model especially with consideration for a real-world application.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W3216533828",
+      "citation_count": 17,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 17
+        }
+      ],
+      "references": [
+        "https://openalex.org/W117491841",
+        "https://openalex.org/W1491389626",
+        "https://openalex.org/W1529557790",
+        "https://openalex.org/W1966382373",
+        "https://openalex.org/W1981283549",
+        "https://openalex.org/W1998042868",
+        "https://openalex.org/W2016589492",
+        "https://openalex.org/W2028571532",
+        "https://openalex.org/W2108598243",
+        "https://openalex.org/W2130723172",
+        "https://openalex.org/W2140132917",
+        "https://openalex.org/W2144554289",
+        "https://openalex.org/W2146835493",
+        "https://openalex.org/W2167629582",
+        "https://openalex.org/W2194187530",
+        "https://openalex.org/W2339589954",
+        "https://openalex.org/W2343052201",
+        "https://openalex.org/W2519818067",
+        "https://openalex.org/W2550687635",
+        "https://openalex.org/W2593572697",
+        "https://openalex.org/W2626778328",
+        "https://openalex.org/W2752225195",
+        "https://openalex.org/W2784050770",
+        "https://openalex.org/W2809273748",
+        "https://openalex.org/W2891117443",
+        "https://openalex.org/W2949650786",
+        "https://openalex.org/W2952439627",
+        "https://openalex.org/W2953894958",
+        "https://openalex.org/W2963150697",
+        "https://openalex.org/W2963341956",
+        "https://openalex.org/W2963517393",
+        "https://openalex.org/W2963836589",
+        "https://openalex.org/W2964121744",
+        "https://openalex.org/W2967615747",
+        "https://openalex.org/W2982399380",
+        "https://openalex.org/W2998913931",
+        "https://openalex.org/W3003478049",
+        "https://openalex.org/W3003484198",
+        "https://openalex.org/W3004846386",
+        "https://openalex.org/W3013262970",
+        "https://openalex.org/W3034864438",
+        "https://openalex.org/W3092515419",
+        "https://openalex.org/W3104933204",
+        "https://openalex.org/W3104953317",
+        "https://openalex.org/W3113463745",
+        "https://openalex.org/W3119786062",
+        "https://openalex.org/W3120043490",
+        "https://openalex.org/W3123089036",
+        "https://openalex.org/W3132244696",
+        "https://openalex.org/W3138516171",
+        "https://openalex.org/W3173306993",
+        "https://openalex.org/W3173325518",
+        "https://openalex.org/W3176664887",
+        "https://openalex.org/W3184921135",
+        "https://openalex.org/W3197857628"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 55,
+        "referenced_works": [
+          "https://openalex.org/W117491841",
+          "https://openalex.org/W1491389626",
+          "https://openalex.org/W1529557790",
+          "https://openalex.org/W1966382373",
+          "https://openalex.org/W1981283549",
+          "https://openalex.org/W1998042868",
+          "https://openalex.org/W2016589492",
+          "https://openalex.org/W2028571532",
+          "https://openalex.org/W2108598243",
+          "https://openalex.org/W2130723172",
+          "https://openalex.org/W2140132917",
+          "https://openalex.org/W2144554289",
+          "https://openalex.org/W2146835493",
+          "https://openalex.org/W2167629582",
+          "https://openalex.org/W2194187530",
+          "https://openalex.org/W2339589954",
+          "https://openalex.org/W2343052201",
+          "https://openalex.org/W2519818067",
+          "https://openalex.org/W2550687635",
+          "https://openalex.org/W2593572697",
+          "https://openalex.org/W2626778328",
+          "https://openalex.org/W2752225195",
+          "https://openalex.org/W2784050770",
+          "https://openalex.org/W2809273748",
+          "https://openalex.org/W2891117443",
+          "https://openalex.org/W2949650786",
+          "https://openalex.org/W2952439627",
+          "https://openalex.org/W2953894958",
+          "https://openalex.org/W2963150697",
+          "https://openalex.org/W2963341956",
+          "https://openalex.org/W2963517393",
+          "https://openalex.org/W2963836589",
+          "https://openalex.org/W2964121744",
+          "https://openalex.org/W2967615747",
+          "https://openalex.org/W2982399380",
+          "https://openalex.org/W2998913931",
+          "https://openalex.org/W3003478049",
+          "https://openalex.org/W3003484198",
+          "https://openalex.org/W3004846386",
+          "https://openalex.org/W3013262970",
+          "https://openalex.org/W3034864438",
+          "https://openalex.org/W3092515419",
+          "https://openalex.org/W3104933204",
+          "https://openalex.org/W3104953317",
+          "https://openalex.org/W3113463745",
+          "https://openalex.org/W3119786062",
+          "https://openalex.org/W3120043490",
+          "https://openalex.org/W3123089036",
+          "https://openalex.org/W3132244696",
+          "https://openalex.org/W3138516171",
+          "https://openalex.org/W3173306993",
+          "https://openalex.org/W3173325518",
+          "https://openalex.org/W3176664887",
+          "https://openalex.org/W3184921135",
+          "https://openalex.org/W3197857628"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2025,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 8
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "visual document understanding",
+          "optical character recognition",
+          "pre-training",
+          "document automation"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Advanced Neural Network Applications",
+          "Multimodal Machine Learning Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5082063964",
+          "https://openalex.org/A5064513745",
+          "https://openalex.org/A5069451145",
+          null,
+          "https://openalex.org/A5044445939",
+          "https://openalex.org/A5014643514",
+          "https://openalex.org/A5003220288",
+          "https://openalex.org/A5017685264",
+          "https://openalex.org/A5048067770"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_c5210490",
+          "source_type": "openalex",
+          "artifact_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W3216533828",
+          "json_pointer": "/results/https://openalex.org/W3216533828",
+          "source_url": "https://openalex.org/W3216533828",
+          "fetched_at": "2026-11-12T01:19:06.211697Z"
+        }
+      ],
+      "relevance_score": 0.8584,
+      "topic_relevance": 0.8375,
+      "recency_signal": 0.0,
+      "citation_signal": 0.4184,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 8
+    },
+    {
+      "paper_id": "bc3410e6-58d1-54f2-a562-8d5e805e0311",
+      "title": "Practical Guide on Document Understanding: From OCR to VLM",
+      "year": 2025,
+      "publication_date": "2025-12-22",
+      "doi": "10.5281/zenodo.18020023",
+      "identifiers": {
+        "doi": "10.5281/zenodo.18020023",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7116835413",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Yao Fehlis",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Zhangzhang Si",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Steve Kramer",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Analysa M. Gonzales",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Michael Wharton",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+      "publication_type": "preprint",
+      "abstract": "Project page (Google Scholar indexing):https://yafehlis.github.io/document-understanding-paper/ The evolution from optical character recognition (OCR) to modern vision-language models (VLMs) represents a fundamental shift in how machines understand documents. This paper provides a practical framework for navigating this landscape, moving beyond simple taxonomies to characterize models along five capability dimensions: text recognition, structural understanding, output flexibility, spatial awareness, and task adaptability. We trace the architectural lineage from convolutional neural networks (CNNs) through Vision Transformers (ViT) to contemporary multimodal systems, revealing two distinct evolutionary paths: one optimizing for pixel-level precision, another for semantic reasoning. Through analysis of real-world applications, particularly complex forms with non-textual elements like checkboxes, we illustrate how architectural choices fundamentally determine what problems models can solve. Our framework enables practitioners to match model capabilities to application requirements by explicitly mapping the tradeoff space of accuracy, cost, latency, and flexibility.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7116835413",
+      "citation_count": 1,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 1
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "European Organization for Nuclear Research",
+        "reference_count": 0,
+        "referenced_works": [],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "document understanding",
+          "optical character recognition",
+          "vision-language models",
+          "text recognition",
+          "vision transformer",
+          "convolutional neural networks",
+          "multimodal models",
+          "shape recognition",
+          "check boxes",
+          "model selection"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Handwritten Text Recognition Techniques",
+          "Multimodal Machine Learning Applications",
+          "Advanced Neural Network Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5121049197",
+          "https://openalex.org/A5013974468",
+          "https://openalex.org/A5003457727",
+          "https://openalex.org/A5068247500",
+          "https://openalex.org/A5121084271"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_b55a5185",
+          "source_type": "openalex",
+          "artifact_sha256": "28d08877d9c22654789d85dac8091b6626f90ab5a33805944550921835669608",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7116835413",
+          "json_pointer": "/results/https://openalex.org/W7116835413",
+          "source_url": "https://openalex.org/W7116835413",
+          "fetched_at": "2026-11-12T01:19:06.211861Z"
+        }
+      ],
+      "relevance_score": 0.8425,
+      "topic_relevance": 0.8375,
+      "recency_signal": 0.8,
+      "citation_signal": 0.1003,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 9
+    },
+    {
+      "paper_id": "5a29ef83-24b5-5bed-8c3b-8664576299a5",
+      "title": "From Pixels to Structure: Lightweight Vision-Language Models for Document OCR and Structured JSON Extraction",
+      "year": 2026,
+      "publication_date": "2026-10-08",
+      "doi": "10.1007/978-3-032-36039-7_30",
+      "identifiers": {
+        "doi": "10.1007/978-3-032-36039-7_30",
+        "arxiv_id": "2610.11818v1",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Uddipan Basu Bir",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Vincent Christlein",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Andreas Maier",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Mathias Zinnen",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "While massive, closed-source Vision-Language Models (VLMs) set strong benchmarks for document understanding, their dependence on commercial APIs limits adoption in institutional archives due to data autonomy concerns, recurring costs, and the environmental footprint of hyperscale computing. This is especially acute in heritage digitization, where documents include historical handwriting, domain-specific terminology (e.g., jewelry, prehistory, architecture), and non-standard layouts requiring high-dimensional structured extraction. We present a comparative study of eight open-source lightweight VLMs (up to 7B parameters) for Optical Character Recognition (OCR)-to-structure across three university heritage collections. Given a document image, models must extract text and generate schema-compliant JSON, enabling automatic validation and downstream use. We evaluate models under a constraint-aware protocol across zero-shot, few-shot, and fine-tuning settings, measuring extraction fidelity and structured-output quality using Character Error Rate (CER), Approximate Normalized Levenshtein Similarity (ANLS*), and mean Average Precision F1 (mAP-F1). Against a fine-tuning baseline, we further test the independent impact of (i) hyperparameter optimization, (ii) classical image preprocessing (illumination flattening, denoising, and CLAHE), and (iii) multi-stage training. Finally, we analyze the trade-off between dataset-specific fine-tuning and a single multi-dataset checkpoint, where joint training enables one model to operate across collections but can shift performance between datasets. Overall, we show that carefully adapted VLMs with up to 7B parameters can provide a sustainable, private, high-performing alternative to manual transcription or commercial black-box systems, and we offer actionable guidance for heritage institutions seeking institution-controlled OCR-to-JSON extraction.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2610.11818v1",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_a74a9ef6",
+          "source_type": "arxiv",
+          "artifact_sha256": "f7daf65433153ab39859703d2cffdb6e70d744d6088bcd4f61381ed591b6dcf0",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2610.11818v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2610.11818v1",
+          "fetched_at": "2026-11-12T01:19:03.780596Z"
+        }
+      ],
+      "relevance_score": 0.8375,
+      "topic_relevance": 0.8375,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 10
+    }
+  ]
+}

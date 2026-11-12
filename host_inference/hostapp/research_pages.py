@@ -16,7 +16,7 @@ PAGE_DETAILS = {
     "topic": ("Topic dossier", "Source-backed overview of all saved papers for one topic."),
 }
 PAGE_SCRIPTS = {
-    "papers": ("research_okf_ui.js", "research_home.js"),
+    "papers": ("research_intelligence.js",),
     "progress": ("research_progress.js",),
     "topics": ("research_topics.js",),
     "paper": ("research_paper.js",),
@@ -24,7 +24,7 @@ PAGE_SCRIPTS = {
 }
 SHELL = UI / "research_shell.html"
 FRAGMENTS = UI / "research_pages"
-ASSET_VERSION = "20261027e"
+ASSET_VERSION = "20261112s5"
 
 
 def render_research_page(page: str) -> Response:

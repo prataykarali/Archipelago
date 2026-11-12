@@ -1,0 +1,5 @@
+# S5 automation runbook
+
+An authorized faculty, librarian or administrator can save a topic via `POST /api/research/intelligence/monitors`; it starts disabled. The same owner explicitly activates it with `PATCH /api/research/intelligence/monitors/<id>` and `{"enabled": true}`. Students cannot create or activate monitors. An operator may then invoke `python -m scripts.ops.research_monitor <monitor-id>` from a persistent research service. No timer is installed or enabled by this change.
+
+The worker claims a ten-minute SQLite lease, re-fetches official metadata, compares stable paper IDs and provider-attributed citation observations, saves a new run only when changed, and returns new paper IDs/citation changes for an external notifier. An unchanged second run is idempotent in the unit test. All-provider failure retains the previous run and records an error. The operator must configure a persistent volume, cron/task scheduler, alert delivery and retry policy before production monitoring. Publication date and retrieval timestamp are both kept; the worker's `discovered_at` is the retrieval time, not a claim of publication.

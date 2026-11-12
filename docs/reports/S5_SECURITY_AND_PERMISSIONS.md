@@ -1,0 +1,5 @@
+# S5 security and permissions
+
+The hosted middleware authenticates all `/api/research/intelligence/*` routes. Students may use metadata search, owner-scoped run reads and export; only faculty/librarian/administrator may save and activate monitors. Other research, graph and librarian routes preserve their prior role gates. Owner checks protect saved run/Excel/graph reads; managers can inspect run IDs but history listings remain owner scoped. No user-supplied provider URL is accepted, so discovery requests use fixed API hosts. The workbook escapes leading formula operators in external metadata. External source text is rendered with `textContent` in the Research page.
+
+Open issues: the hosted S5 runtime is not packaged into the standalone Vercel image and SQLite cannot persist there. The route explicitly reports 503 when the package is absent. There is no release authorization for a hosted durable database migration. Manual role checks with actual Supabase sessions, provider key quota validation, and scheduled endpoint tests remain required. Existing credentialed academic upload is unchanged.

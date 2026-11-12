@@ -145,9 +145,9 @@ def test_research_page_renders_new_atlas_and_versioned_controls() -> None:
     from hostapp.research_pages import render_research_page
 
     html = render_research_page("papers").get_data(as_text=True)
-    assert "Ideas are islands" in html
-    assert "Ingest 25 papers locally" in html
-    assert "research_home.js?v=20261026i" in html
+    assert "Research intelligence" in html
+    assert "Top K" in html
+    assert "research_intelligence.js?v=20261112s5" in html
 
 
 def test_research_login_preserves_progress_job_link() -> None:

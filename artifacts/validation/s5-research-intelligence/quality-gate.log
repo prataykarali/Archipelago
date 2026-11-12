@@ -1,0 +1,225 @@
+
+============================================================
+  Archipelago Quality Gate (Skill 4 — 5-pass review)
+============================================================
+  Root: /home/pratay-karali/Desktop/archipelago/Archipelago
+  Max file lines: 400
+============================================================
+
+--- Pass 1: Lint ---
+[FAIL] Pass 1: Lint (ruff)
+       ruff check failed:
+         F401 [*] `typing.Any` imported but unused
+           --> archipelago/core/intent.py:19:20
+            |
+         17 | import enum
+         18 | import re
+         19 | from typing import Any
+            |                    ^^^
+            |
+         help: Remove unused import: `typing.Any`
+
+         I001 [*] Import block is un-sorted or un-formatted
+           --> archipelago/core/multi_hop.py:6:1
+            |
+          4 |   """
+          5 |
+          6 | / from __future__ import annotations
+          7 | |
+          8 | | import sys
+          9 | | from pathlib import Path
+            | |________________________^
+       ruff format --check failed:
+         Would reformat: archipelago/academic_automation/reconcile.py
+         Would reformat: archipelago/academic_automation/scan.py
+         Would reformat: archipelago/academic_automation/worker.py
+         Would reformat: archipelago/core/intent.py
+         Would reformat: archipelago/core/router.py
+         Would reformat: archipelago/resolver/opac_enrichment.py
+         Would reformat: host_inference/demo_cards.py
+         Would reformat: host_inference/engine/academic_sources.py
+         Would reformat: host_inference/engine/intent.py
+         Would reformat: host_inference/engine/routing_constants.py
+         Would reformat: host_inference/hostapp/conversation.py
+         Would reformat: host_research/opac_live.py
+         Would reformat: okf/exports.py
+         Would reformat: okf/graph/ingest.py
+         Would reformat: scripts/ingest_academic_foundations.py
+         Would reformat: tests/unit/test_host_inference_deployment.py
+         Would reformat: tests/unit/test_research_abstract_fields.py
+         Would reformat: tests/unit/test_research_fulltext_fallback.py
+         Would reformat: tests/unit/test_research_pipeline.py
+         Would reformat: tests/unit/test_s1_intent_routing.py
+
+--- Pass 2: Types ---
+[FAIL] Pass 2: Types (baseline)
+       mypy --strict: 897 existing error(s)
+       archipelago/academic_automation/discovery.py|attr-defined|Module "archipelago.academic_automation.open_books" does not explicitly export attribute "find_open_book" (+1)
+       archipelago/academic_automation/discovery.py|attr-defined|Module "archipelago.academic_automation.open_books" does not explicitly export attribute "queue_open_book" (+1)
+       archipelago/academic_automation/discovery.py|import-not-found|Cannot find implementation or library stub for module named "opac_live" (+1)
+       archipelago/academic_automation/external_sources.py|import-untyped|Library stubs not installed for "defusedxml" (+1)
+       archipelago/academic_automation/open_books_actions.py|import-untyped|Library stubs not installed for "defusedxml" (+1)
+       archipelago/api/engine_state.py|import-not-found|Cannot find implementation or library stub for module named "dotenv" (+1)
+       archipelago/api/engine_state.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/middleware.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/middleware.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/middleware.py|untyped-decorator|Untyped decorator makes function "add_cors" untyped (+1)
+       archipelago/api/middleware.py|untyped-decorator|Untyped decorator makes function "require_supabase_session" untyped (+1)
+       archipelago/api/routes_acquisition.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_acquisition.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/routes_acquisition.py|untyped-decorator|Untyped decorator makes function "librarian_acquisition_plan" untyped (+1)
+       archipelago/api/routes_acquisition.py|untyped-decorator|Untyped decorator makes function "librarian_demand_digest" untyped (+1)
+       archipelago/api/routes_auth.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_auth.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/routes_auth.py|untyped-decorator|Untyped decorator makes function "api_auth_config" untyped (+1)
+       archipelago/api/routes_auth.py|untyped-decorator|Untyped decorator makes function "api_auth_me" untyped (+1)
+       archipelago/api/routes_auth.py|untyped-decorator|Untyped decorator makes function "api_manage_users" untyped (+2)
+       archipelago/api/routes_chat.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_chat.py|untyped-decorator|Untyped decorator makes function "api_chat" untyped (+1)
+       archipelago/api/routes_discovery.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_discovery.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_adaptive_step" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_diagnostic_mcqs" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_telemetry" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_verify_mcq" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_roadmap_quiz" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_scholarly_discover" untyped (+1)
+       ⚠ Interim baseline active; strict typing is still failing
+
+--- Pass 3: Banned patterns ---
+[PASS] Pass 3: Banned patterns
+       No banned patterns found
+
+--- Pass 3b: Magic numbers ---
+[PASS] Pass 3b: Magic numbers
+       No magic numbers found
+
+--- Pass 4: Architecture ---
+[FAIL] Pass 4a: File size (baseline)
+       8 existing file(s) exceed 400 lines
+       host_inference/engine/route_logic.py: 497 lines (baseline 0)
+       scripts/ingest_academic_foundations.py: 482 lines (baseline 0)
+       chat_ui/library-inline-1.js: 478 lines (baseline 0)
+       host_inference/ui/library-inline-1.js: 478 lines (baseline 0)
+       host_inference/engine/compose.py: 448 lines (baseline 0)
+       host_inference/engine/answer.py: 442 lines (baseline 0)
+       tests/unit/test_research_pipeline.py: 427 lines (baseline 0)
+       host_inference/hostapp/research_okf.py: 401 lines (baseline 0)
+       ⚠ Interim baseline active; strict source-size check is still failing
+[PASS] Pass 4b: Dependency direction
+       All imports follow downward-only dependency rules
+[PASS] Pass 4c: No except: pass
+       No except: pass patterns found
+
+============================================================
+  QUALITY GATE SUMMARY
+============================================================
+  ✗ [FAIL] Pass 1: Lint (ruff)
+  ✗ [FAIL] Pass 2: Types (baseline)
+  ✓ [PASS] Pass 3: Banned patterns
+  ✓ [PASS] Pass 3b: Magic numbers
+  ✗ [FAIL] Pass 4a: File size (baseline)
+  ✓ [PASS] Pass 4b: Dependency direction
+  ✓ [PASS] Pass 4c: No except: pass
+
+  Total: 4/7 passed, 3 failed
+============================================================
+
+Failed gates:
+
+  [FAIL] Pass 1: Lint (ruff)
+       ruff check failed:
+         F401 [*] `typing.Any` imported but unused
+           --> archipelago/core/intent.py:19:20
+            |
+         17 | import enum
+         18 | import re
+         19 | from typing import Any
+            |                    ^^^
+            |
+         help: Remove unused import: `typing.Any`
+
+         I001 [*] Import block is un-sorted or un-formatted
+           --> archipelago/core/multi_hop.py:6:1
+            |
+          4 |   """
+          5 |
+          6 | / from __future__ import annotations
+          7 | |
+          8 | | import sys
+          9 | | from pathlib import Path
+            | |________________________^
+       ruff format --check failed:
+         Would reformat: archipelago/academic_automation/reconcile.py
+         Would reformat: archipelago/academic_automation/scan.py
+         Would reformat: archipelago/academic_automation/worker.py
+         Would reformat: archipelago/core/intent.py
+         Would reformat: archipelago/core/router.py
+         Would reformat: archipelago/resolver/opac_enrichment.py
+         Would reformat: host_inference/demo_cards.py
+         Would reformat: host_inference/engine/academic_sources.py
+         Would reformat: host_inference/engine/intent.py
+         Would reformat: host_inference/engine/routing_constants.py
+         Would reformat: host_inference/hostapp/conversation.py
+         Would reformat: host_research/opac_live.py
+         Would reformat: okf/exports.py
+         Would reformat: okf/graph/ingest.py
+         Would reformat: scripts/ingest_academic_foundations.py
+         Would reformat: tests/unit/test_host_inference_deployment.py
+         Would reformat: tests/unit/test_research_abstract_fields.py
+         Would reformat: tests/unit/test_research_fulltext_fallback.py
+         Would reformat: tests/unit/test_research_pipeline.py
+         Would reformat: tests/unit/test_s1_intent_routing.py
+
+  [FAIL] Pass 2: Types (baseline)
+       mypy --strict: 897 existing error(s)
+       archipelago/academic_automation/discovery.py|attr-defined|Module "archipelago.academic_automation.open_books" does not explicitly export attribute "find_open_book" (+1)
+       archipelago/academic_automation/discovery.py|attr-defined|Module "archipelago.academic_automation.open_books" does not explicitly export attribute "queue_open_book" (+1)
+       archipelago/academic_automation/discovery.py|import-not-found|Cannot find implementation or library stub for module named "opac_live" (+1)
+       archipelago/academic_automation/external_sources.py|import-untyped|Library stubs not installed for "defusedxml" (+1)
+       archipelago/academic_automation/open_books_actions.py|import-untyped|Library stubs not installed for "defusedxml" (+1)
+       archipelago/api/engine_state.py|import-not-found|Cannot find implementation or library stub for module named "dotenv" (+1)
+       archipelago/api/engine_state.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/middleware.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/middleware.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/middleware.py|untyped-decorator|Untyped decorator makes function "add_cors" untyped (+1)
+       archipelago/api/middleware.py|untyped-decorator|Untyped decorator makes function "require_supabase_session" untyped (+1)
+       archipelago/api/routes_acquisition.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_acquisition.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/routes_acquisition.py|untyped-decorator|Untyped decorator makes function "librarian_acquisition_plan" untyped (+1)
+       archipelago/api/routes_acquisition.py|untyped-decorator|Untyped decorator makes function "librarian_demand_digest" untyped (+1)
+       archipelago/api/routes_auth.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_auth.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/routes_auth.py|untyped-decorator|Untyped decorator makes function "api_auth_config" untyped (+1)
+       archipelago/api/routes_auth.py|untyped-decorator|Untyped decorator makes function "api_auth_me" untyped (+1)
+       archipelago/api/routes_auth.py|untyped-decorator|Untyped decorator makes function "api_manage_users" untyped (+2)
+       archipelago/api/routes_chat.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_chat.py|untyped-decorator|Untyped decorator makes function "api_chat" untyped (+1)
+       archipelago/api/routes_discovery.py|import-not-found|Cannot find implementation or library stub for module named "flask" (+1)
+       archipelago/api/routes_discovery.py|import-not-found|Cannot find implementation or library stub for module named "flask.typing" (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_adaptive_step" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_diagnostic_mcqs" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_telemetry" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_chat_verify_mcq" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_roadmap_quiz" untyped (+1)
+       archipelago/api/routes_discovery.py|untyped-decorator|Untyped decorator makes function "api_scholarly_discover" untyped (+1)
+       ⚠ Interim baseline active; strict typing is still failing
+
+  [FAIL] Pass 4a: File size (baseline)
+       8 existing file(s) exceed 400 lines
+       host_inference/engine/route_logic.py: 497 lines (baseline 0)
+       scripts/ingest_academic_foundations.py: 482 lines (baseline 0)
+       chat_ui/library-inline-1.js: 478 lines (baseline 0)
+       host_inference/ui/library-inline-1.js: 478 lines (baseline 0)
+       host_inference/engine/compose.py: 448 lines (baseline 0)
+       host_inference/engine/answer.py: 442 lines (baseline 0)
+       tests/unit/test_research_pipeline.py: 427 lines (baseline 0)
+       host_inference/hostapp/research_okf.py: 401 lines (baseline 0)
+       ⚠ Interim baseline active; strict source-size check is still failing
+
+============================================================
+  Fix the issues above and re-run: python scripts/quality_gate.py
+============================================================
+
+  ✗ 3 gate(s) failed — code does not meet quality standards.
+exit_code=1

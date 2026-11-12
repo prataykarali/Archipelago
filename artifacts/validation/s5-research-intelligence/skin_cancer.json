@@ -1,0 +1,2798 @@
+{
+  "schema": "archipelago.research_intelligence.v1",
+  "options": {
+    "topic": "skin cancer image classification",
+    "top_k": 10,
+    "year_from": null,
+    "year_to": null,
+    "sort": "relevance",
+    "open_access": null,
+    "paper_type": "",
+    "field": "",
+    "venue": ""
+  },
+  "retrieved_at": "2026-11-12T01:19:12.357129+00:00",
+  "sources": [
+    {
+      "source": "openalex",
+      "requested_at": "2026-11-12T01:19:10.422868+00:00",
+      "status": "live",
+      "record_count": 13,
+      "raw_sha256": "f539da0a5754aab026c34fd419ab4d790fbfacb407587b2707684c50e3aff51e",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "crossref",
+      "requested_at": "2026-11-12T01:19:10.424656+00:00",
+      "status": "live",
+      "record_count": 18,
+      "raw_sha256": "d4d46b4361dcf4a622bc0ae60b0fc1e15d35db64a367ea96bbf4af9641616906",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "arxiv",
+      "requested_at": "2026-11-12T01:19:10.426453+00:00",
+      "status": "live",
+      "record_count": 20,
+      "raw_sha256": "903c74275ecc13dcea17fab11a4cc5bbf5a70309e73a3f4468eeb3eb6d299734",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "semantic_scholar",
+      "requested_at": "2026-11-12T01:19:10.428184+00:00",
+      "status": "rate_limited",
+      "record_count": 0,
+      "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+      "request_id": "dcb0d823-1a12-418d-b5d5-625bc7532786",
+      "http_status": 429,
+      "error": "HTTP 429",
+      "rate_limited": true
+    }
+  ],
+  "candidate_count": 48,
+  "filtered_count": 47,
+  "papers": [
+    {
+      "paper_id": "e999e2ee-cc58-5d51-b310-8fa5aca665a5",
+      "title": "Enhanced MobileNet for skin cancer image classification with fused spatial channel attention mechanism",
+      "year": 2024,
+      "publication_date": "2024-11-21",
+      "doi": "10.1038/s41598-024-80087-w",
+      "identifiers": {
+        "doi": "10.1038/s41598-024-80087-w",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4404595317",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Hebin Cheng",
+          "orcid": null,
+          "institutions": [
+            "Shandong Management University"
+          ]
+        },
+        {
+          "name": "Jian Lian",
+          "orcid": "https://orcid.org/0000-0003-0305-8454",
+          "institutions": [
+            "Shandong Management University"
+          ]
+        },
+        {
+          "name": "Wanzhen Jiao",
+          "orcid": "https://orcid.org/0000-0001-6762-2937",
+          "institutions": [
+            "Shandong Provincial Hospital",
+            "Shandong First Medical University"
+          ]
+        }
+      ],
+      "venue": "Scientific Reports",
+      "publication_type": "article",
+      "abstract": "Skin Cancer, which leads to a large number of deaths annually, has been extensively considered as the most lethal tumor around the world. Accurate detection of skin cancer in its early stage can significantly raise the survival rate of patients and reduce the burden on public health. Currently, the diagnosis of skin cancer relies heavily on human visual system for screening and dermoscopy. However, manual inspection is laborious, time-consuming, and error-prone. In consequence, the development of an automatic machine vision algorithm for skin cancer classification turns into imperative. Various machine learning techniques have been presented for the last few years. Although these methods have yielded promising outcome in skin cancer detection and recognition, there is still a certain gap in machine learning algorithms and clinical applications. To enhance the performance of classification, this study proposes a novel deep learning model for discriminating clinical skin cancer images. The proposed model incorporates a convolutional neural network for extracting local receptive field information and a novel attention mechanism for revealing the global associations within an image. Experimental results of the proposed approach demonstrate its superiority over the state-of-the-art algorithms on the publicly available dataset International Skin Imaging Collaboration 2019 (ISIC-2019) in terms of Precision, Recall, F1-score. From the experimental results, it can be observed that the proposed approach is a potentially valuable instrument for skin cancer classification.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4404595317",
+      "citation_count": 45,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 45
+        }
+      ],
+      "references": [
+        "https://openalex.org/W197962081",
+        "https://openalex.org/W2040600853",
+        "https://openalex.org/W2164273268",
+        "https://openalex.org/W2194775991",
+        "https://openalex.org/W2346705140",
+        "https://openalex.org/W2611157489",
+        "https://openalex.org/W2794825826",
+        "https://openalex.org/W2883780447",
+        "https://openalex.org/W2884585870",
+        "https://openalex.org/W2889646458",
+        "https://openalex.org/W2914959431",
+        "https://openalex.org/W2944779197",
+        "https://openalex.org/W2949186462",
+        "https://openalex.org/W2963420686",
+        "https://openalex.org/W2963446712",
+        "https://openalex.org/W2970971581",
+        "https://openalex.org/W3034552520",
+        "https://openalex.org/W3047736417",
+        "https://openalex.org/W3049146198",
+        "https://openalex.org/W3094502228",
+        "https://openalex.org/W3102785203",
+        "https://openalex.org/W3114236412",
+        "https://openalex.org/W3155292494",
+        "https://openalex.org/W3160780104",
+        "https://openalex.org/W3161435941",
+        "https://openalex.org/W3175925542",
+        "https://openalex.org/W3177052299",
+        "https://openalex.org/W3202579583",
+        "https://openalex.org/W4210897777",
+        "https://openalex.org/W4281485012",
+        "https://openalex.org/W4289925587",
+        "https://openalex.org/W4308650966",
+        "https://openalex.org/W4313451613",
+        "https://openalex.org/W4316673314",
+        "https://openalex.org/W4378650393",
+        "https://openalex.org/W4384827994",
+        "https://openalex.org/W4390706842",
+        "https://openalex.org/W4396712954",
+        "https://openalex.org/W4401567681",
+        "https://openalex.org/W4403827189",
+        "https://openalex.org/W6766394743"
+      ],
+      "source_metadata": {
+        "publisher": "Nature Portfolio",
+        "reference_count": 41,
+        "referenced_works": [
+          "https://openalex.org/W197962081",
+          "https://openalex.org/W2040600853",
+          "https://openalex.org/W2164273268",
+          "https://openalex.org/W2194775991",
+          "https://openalex.org/W2346705140",
+          "https://openalex.org/W2611157489",
+          "https://openalex.org/W2794825826",
+          "https://openalex.org/W2883780447",
+          "https://openalex.org/W2884585870",
+          "https://openalex.org/W2889646458",
+          "https://openalex.org/W2914959431",
+          "https://openalex.org/W2944779197",
+          "https://openalex.org/W2949186462",
+          "https://openalex.org/W2963420686",
+          "https://openalex.org/W2963446712",
+          "https://openalex.org/W2970971581",
+          "https://openalex.org/W3034552520",
+          "https://openalex.org/W3047736417",
+          "https://openalex.org/W3049146198",
+          "https://openalex.org/W3094502228",
+          "https://openalex.org/W3102785203",
+          "https://openalex.org/W3114236412",
+          "https://openalex.org/W3155292494",
+          "https://openalex.org/W3160780104",
+          "https://openalex.org/W3161435941",
+          "https://openalex.org/W3175925542",
+          "https://openalex.org/W3177052299",
+          "https://openalex.org/W3202579583",
+          "https://openalex.org/W4210897777",
+          "https://openalex.org/W4281485012",
+          "https://openalex.org/W4289925587",
+          "https://openalex.org/W4308650966",
+          "https://openalex.org/W4313451613",
+          "https://openalex.org/W4316673314",
+          "https://openalex.org/W4378650393",
+          "https://openalex.org/W4384827994",
+          "https://openalex.org/W4390706842",
+          "https://openalex.org/W4396712954",
+          "https://openalex.org/W4401567681",
+          "https://openalex.org/W4403827189",
+          "https://openalex.org/W6766394743"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 25
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 19
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "skin cancer classification",
+          "MobileNet",
+          "channel and spatial attention",
+          "attention mechanism",
+          "convolutional neural networks",
+          "ISIC 2019",
+          "dermoscopic images"
+        ],
+        "research_domain": "Health Sciences",
+        "topics": [
+          "Cutaneous Melanoma Detection and Management",
+          "AI in cancer detection",
+          "Advanced Neural Network Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5101328349",
+          "https://openalex.org/A5014684415",
+          "https://openalex.org/A5009311442"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_92bea208",
+          "source_type": "openalex",
+          "artifact_sha256": "f539da0a5754aab026c34fd419ab4d790fbfacb407587b2707684c50e3aff51e",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4404595317",
+          "json_pointer": "/results/https://openalex.org/W4404595317",
+          "source_url": "https://openalex.org/W4404595317",
+          "fetched_at": "2026-11-12T01:19:12.255782Z"
+        }
+      ],
+      "relevance_score": 1.0277,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.6,
+      "citation_signal": 0.5542,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 1
+    },
+    {
+      "paper_id": "06f331f0-8a80-5fa8-a863-8be7aa790475",
+      "title": "Skin cancer image classification using hybrid quantum deep learning model with BiLSTM and MobileNetV2",
+      "year": 2025,
+      "publication_date": "2025-06-13",
+      "doi": "10.1007/s42484-025-00288-y",
+      "identifiers": {
+        "doi": "10.1007/s42484-025-00288-y",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4411282170",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Ahmed A. Hussein",
+          "orcid": "https://orcid.org/0009-0006-9651-3119",
+          "institutions": [
+            "Sohag University"
+          ]
+        },
+        {
+          "name": "Ahmed Mohamed Montaser",
+          "orcid": "https://orcid.org/0000-0003-1377-1392",
+          "institutions": [
+            "Sohag University"
+          ]
+        },
+        {
+          "name": "Hend A. Elsayed",
+          "orcid": "https://orcid.org/0000-0002-0714-6032",
+          "institutions": [
+            "Damanhour University"
+          ]
+        }
+      ],
+      "venue": "Quantum Machine Intelligence",
+      "publication_type": "article",
+      "abstract": "Abstract Skin cancer image classification is known to be extremely complex due to the subtle visual differences between benign and malignant lesions. In this study, we propose a novel hybrid model that leverages the hierarchical feature extraction capabilities of the hybrid quantum convolutional neural network (HQCNN), the temporal dynamics captured by the bidirectional long short-term memory neural networks (BiLSTM) model, and the efficient feature extraction capabilities of MobileNetV2. We evaluated the proposed model on a clinically relevant skin cancer dataset, using images resized to 32 \u00d7 32 and 128 \u00d7 128 pixels to investigate the impact of resolution on classification performance. The HQCNN model augmented with BiLSTM and MobileNetV2 achieved a training accuracy of 97.7% and a test accuracy of 89.3% on 128 \u00d7 128-pixel color images, along with an F1 score of 89.81% and a recall of 94.33% for malignant cases, confirming clinical reliability and strong sensitivity in cancer detection. These results demonstrate robust feature extraction, improved contextual learning, and strong generalization for complex medical image classification tasks.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4411282170",
+      "citation_count": 24,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 24
+        }
+      ],
+      "references": [
+        "https://openalex.org/W1914538576",
+        "https://openalex.org/W1984132569",
+        "https://openalex.org/W2085989497",
+        "https://openalex.org/W2147800946",
+        "https://openalex.org/W2194775991",
+        "https://openalex.org/W2770795622",
+        "https://openalex.org/W2896712926",
+        "https://openalex.org/W2944779197",
+        "https://openalex.org/W2963446712",
+        "https://openalex.org/W3035741257",
+        "https://openalex.org/W3041279471",
+        "https://openalex.org/W3109224671",
+        "https://openalex.org/W3160412534",
+        "https://openalex.org/W3167224217",
+        "https://openalex.org/W3199013370",
+        "https://openalex.org/W4210791664",
+        "https://openalex.org/W4223890509",
+        "https://openalex.org/W4225786523",
+        "https://openalex.org/W4226068675",
+        "https://openalex.org/W4229777598",
+        "https://openalex.org/W4282596355",
+        "https://openalex.org/W4293162951",
+        "https://openalex.org/W4311304837",
+        "https://openalex.org/W4312080395",
+        "https://openalex.org/W4312820606",
+        "https://openalex.org/W4312858610",
+        "https://openalex.org/W4318820267",
+        "https://openalex.org/W4365518054",
+        "https://openalex.org/W4365816805",
+        "https://openalex.org/W4367681442",
+        "https://openalex.org/W4378650257",
+        "https://openalex.org/W4387546350",
+        "https://openalex.org/W4390614711",
+        "https://openalex.org/W4392173253",
+        "https://openalex.org/W4392942466",
+        "https://openalex.org/W4393339488",
+        "https://openalex.org/W4393405726",
+        "https://openalex.org/W4399040877",
+        "https://openalex.org/W4399369266",
+        "https://openalex.org/W4400089158",
+        "https://openalex.org/W4401070125",
+        "https://openalex.org/W4401692705",
+        "https://openalex.org/W4402620455",
+        "https://openalex.org/W4405117247",
+        "https://openalex.org/W4405203823",
+        "https://openalex.org/W4405824199",
+        "https://openalex.org/W4406898111",
+        "https://openalex.org/W4407128430",
+        "https://openalex.org/W4407338216",
+        "https://openalex.org/W4407557663",
+        "https://openalex.org/W4407914632",
+        "https://openalex.org/W4409263284",
+        "https://openalex.org/W6600234944",
+        "https://openalex.org/W6603884005",
+        "https://openalex.org/W6604285789",
+        "https://openalex.org/W6604344240",
+        "https://openalex.org/W6730654186"
+      ],
+      "source_metadata": {
+        "publisher": "Springer Science+Business Media",
+        "reference_count": 57,
+        "referenced_works": [
+          "https://openalex.org/W1914538576",
+          "https://openalex.org/W1984132569",
+          "https://openalex.org/W2085989497",
+          "https://openalex.org/W2147800946",
+          "https://openalex.org/W2194775991",
+          "https://openalex.org/W2770795622",
+          "https://openalex.org/W2896712926",
+          "https://openalex.org/W2944779197",
+          "https://openalex.org/W2963446712",
+          "https://openalex.org/W3035741257",
+          "https://openalex.org/W3041279471",
+          "https://openalex.org/W3109224671",
+          "https://openalex.org/W3160412534",
+          "https://openalex.org/W3167224217",
+          "https://openalex.org/W3199013370",
+          "https://openalex.org/W4210791664",
+          "https://openalex.org/W4223890509",
+          "https://openalex.org/W4225786523",
+          "https://openalex.org/W4226068675",
+          "https://openalex.org/W4229777598",
+          "https://openalex.org/W4282596355",
+          "https://openalex.org/W4293162951",
+          "https://openalex.org/W4311304837",
+          "https://openalex.org/W4312080395",
+          "https://openalex.org/W4312820606",
+          "https://openalex.org/W4312858610",
+          "https://openalex.org/W4318820267",
+          "https://openalex.org/W4365518054",
+          "https://openalex.org/W4365816805",
+          "https://openalex.org/W4367681442",
+          "https://openalex.org/W4378650257",
+          "https://openalex.org/W4387546350",
+          "https://openalex.org/W4390614711",
+          "https://openalex.org/W4392173253",
+          "https://openalex.org/W4392942466",
+          "https://openalex.org/W4393339488",
+          "https://openalex.org/W4393405726",
+          "https://openalex.org/W4399040877",
+          "https://openalex.org/W4399369266",
+          "https://openalex.org/W4400089158",
+          "https://openalex.org/W4401070125",
+          "https://openalex.org/W4401692705",
+          "https://openalex.org/W4402620455",
+          "https://openalex.org/W4405117247",
+          "https://openalex.org/W4405203823",
+          "https://openalex.org/W4405824199",
+          "https://openalex.org/W4406898111",
+          "https://openalex.org/W4407128430",
+          "https://openalex.org/W4407338216",
+          "https://openalex.org/W4407557663",
+          "https://openalex.org/W4407914632",
+          "https://openalex.org/W4409263284",
+          "https://openalex.org/W6600234944",
+          "https://openalex.org/W6603884005",
+          "https://openalex.org/W6604285789",
+          "https://openalex.org/W6604344240",
+          "https://openalex.org/W6730654186"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 18
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 6
+          }
+        ],
+        "keywords": [
+          "skin cancer classification",
+          "skin lesion images",
+          "bidirectional LSTM",
+          "MobileNetV2",
+          "image resolution effects",
+          "benign versus malignant differentiation",
+          "medical image classification"
+        ],
+        "research_domain": "Health Sciences",
+        "topics": [
+          "Cutaneous Melanoma Detection and Management",
+          "AI in cancer detection",
+          "Advanced Neural Network Applications"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          null,
+          "https://openalex.org/A5051461200",
+          "https://openalex.org/A5109498220"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_42142265",
+          "source_type": "openalex",
+          "artifact_sha256": "f539da0a5754aab026c34fd419ab4d790fbfacb407587b2707684c50e3aff51e",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4411282170",
+          "json_pointer": "/results/https://openalex.org/W4411282170",
+          "source_url": "https://openalex.org/W4411282170",
+          "fetched_at": "2026-11-12T01:19:12.256241Z"
+        }
+      ],
+      "relevance_score": 1.0233,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.4659,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 2
+    },
+    {
+      "paper_id": "57f118e7-8621-51d9-97bf-959733476296",
+      "title": "Acceleration of Hyperspectral Skin Cancer Image Classification through Parallel Machine-Learning Methods",
+      "year": 2024,
+      "publication_date": "2024-02-21",
+      "doi": "10.3390/s24051399",
+      "identifiers": {
+        "doi": "10.3390/s24051399",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4392077930",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Bernardo Petracchi",
+          "orcid": "https://orcid.org/0009-0000-4685-961X",
+          "institutions": [
+            "University of Pavia"
+          ]
+        },
+        {
+          "name": "Emanuele Torti",
+          "orcid": "https://orcid.org/0000-0001-8437-8227",
+          "institutions": [
+            "University of Pavia"
+          ]
+        },
+        {
+          "name": "Elisa Marenzi",
+          "orcid": "https://orcid.org/0000-0003-4537-5618",
+          "institutions": [
+            "University of Pavia"
+          ]
+        },
+        {
+          "name": "Francesco Leporati",
+          "orcid": "https://orcid.org/0000-0003-2901-4935",
+          "institutions": [
+            "University of Pavia"
+          ]
+        }
+      ],
+      "venue": "Sensors",
+      "publication_type": "article",
+      "abstract": "Hyperspectral imaging (HSI) has become a very compelling technique in different scientific areas; indeed, many researchers use it in the fields of remote sensing, agriculture, forensics, and medicine. In the latter, HSI plays a crucial role as a diagnostic support and for surgery guidance. However, the computational effort in elaborating hyperspectral data is not trivial. Furthermore, the demand for detecting diseases in a short time is undeniable. In this paper, we take up this challenge by parallelizing three machine-learning methods among those that are the most intensively used: Support Vector Machine (SVM), Random Forest (RF), and eXtreme Gradient Boosting (XGB) algorithms using the Compute Unified Device Architecture (CUDA) to accelerate the classification of hyperspectral skin cancer images. They all showed a good performance in HS image classification, in particular when the size of the dataset is limited, as demonstrated in the literature. We illustrate the parallelization techniques adopted for each approach, highlighting the suitability of Graphical Processing Units (GPUs) to this aim. Experimental results show that parallel SVM and XGB algorithms significantly improve the classification times in comparison with their serial counterparts.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4392077930",
+      "citation_count": 18,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 18
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2044186217",
+        "https://openalex.org/W2063907334",
+        "https://openalex.org/W2104269704",
+        "https://openalex.org/W2133338688",
+        "https://openalex.org/W2161372002",
+        "https://openalex.org/W2295598076",
+        "https://openalex.org/W2571388620",
+        "https://openalex.org/W2604808181",
+        "https://openalex.org/W2652074165",
+        "https://openalex.org/W2744526485",
+        "https://openalex.org/W2765366036",
+        "https://openalex.org/W2773607603",
+        "https://openalex.org/W2782865993",
+        "https://openalex.org/W2783108747",
+        "https://openalex.org/W2790485410",
+        "https://openalex.org/W2891911973",
+        "https://openalex.org/W2901580175",
+        "https://openalex.org/W2911964244",
+        "https://openalex.org/W2941551699",
+        "https://openalex.org/W2979965673",
+        "https://openalex.org/W2998441646",
+        "https://openalex.org/W2999096879",
+        "https://openalex.org/W3028015151",
+        "https://openalex.org/W3030464300",
+        "https://openalex.org/W3086576952",
+        "https://openalex.org/W3120891898",
+        "https://openalex.org/W3124870508",
+        "https://openalex.org/W3124925910",
+        "https://openalex.org/W3125608330",
+        "https://openalex.org/W3126194146",
+        "https://openalex.org/W3134499048",
+        "https://openalex.org/W3136991075",
+        "https://openalex.org/W3147142721",
+        "https://openalex.org/W3164577728",
+        "https://openalex.org/W3165685657",
+        "https://openalex.org/W3213941487",
+        "https://openalex.org/W4200434276",
+        "https://openalex.org/W4225712758",
+        "https://openalex.org/W4234549270",
+        "https://openalex.org/W4291288469",
+        "https://openalex.org/W4294252858",
+        "https://openalex.org/W4297004507",
+        "https://openalex.org/W4297150890",
+        "https://openalex.org/W4313496545",
+        "https://openalex.org/W4318820267",
+        "https://openalex.org/W4361192309",
+        "https://openalex.org/W4384945428",
+        "https://openalex.org/W4389492840"
+      ],
+      "source_metadata": {
+        "publisher": "Multidisciplinary Digital Publishing Institute",
+        "reference_count": 48,
+        "referenced_works": [
+          "https://openalex.org/W2044186217",
+          "https://openalex.org/W2063907334",
+          "https://openalex.org/W2104269704",
+          "https://openalex.org/W2133338688",
+          "https://openalex.org/W2161372002",
+          "https://openalex.org/W2295598076",
+          "https://openalex.org/W2571388620",
+          "https://openalex.org/W2604808181",
+          "https://openalex.org/W2652074165",
+          "https://openalex.org/W2744526485",
+          "https://openalex.org/W2765366036",
+          "https://openalex.org/W2773607603",
+          "https://openalex.org/W2782865993",
+          "https://openalex.org/W2783108747",
+          "https://openalex.org/W2790485410",
+          "https://openalex.org/W2891911973",
+          "https://openalex.org/W2901580175",
+          "https://openalex.org/W2911964244",
+          "https://openalex.org/W2941551699",
+          "https://openalex.org/W2979965673",
+          "https://openalex.org/W2998441646",
+          "https://openalex.org/W2999096879",
+          "https://openalex.org/W3028015151",
+          "https://openalex.org/W3030464300",
+          "https://openalex.org/W3086576952",
+          "https://openalex.org/W3120891898",
+          "https://openalex.org/W3124870508",
+          "https://openalex.org/W3124925910",
+          "https://openalex.org/W3125608330",
+          "https://openalex.org/W3126194146",
+          "https://openalex.org/W3134499048",
+          "https://openalex.org/W3136991075",
+          "https://openalex.org/W3147142721",
+          "https://openalex.org/W3164577728",
+          "https://openalex.org/W3165685657",
+          "https://openalex.org/W3213941487",
+          "https://openalex.org/W4200434276",
+          "https://openalex.org/W4225712758",
+          "https://openalex.org/W4234549270",
+          "https://openalex.org/W4291288469",
+          "https://openalex.org/W4294252858",
+          "https://openalex.org/W4297004507",
+          "https://openalex.org/W4297150890",
+          "https://openalex.org/W4313496545",
+          "https://openalex.org/W4318820267",
+          "https://openalex.org/W4361192309",
+          "https://openalex.org/W4384945428",
+          "https://openalex.org/W4389492840"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 5
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 6
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 7
+          }
+        ],
+        "keywords": [
+          "hyperspectral imaging",
+          "skin cancer classification",
+          "parallel machine learning",
+          "GPU acceleration",
+          "CUDA",
+          "support vector machine",
+          "random forest",
+          "XGBoost",
+          "computational efficiency",
+          "small datasets"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Remote-Sensing Image Classification",
+          "Cutaneous Melanoma Detection and Management",
+          "Parallel Computing and Optimization Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5093450710",
+          "https://openalex.org/A5036097895",
+          "https://openalex.org/A5072329103",
+          "https://openalex.org/A5089394950"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_d18b201f",
+          "source_type": "openalex",
+          "artifact_sha256": "f539da0a5754aab026c34fd419ab4d790fbfacb407587b2707684c50e3aff51e",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4392077930",
+          "json_pointer": "/results/https://openalex.org/W4392077930",
+          "source_url": "https://openalex.org/W4392077930",
+          "fetched_at": "2026-11-12T01:19:12.257066Z"
+        }
+      ],
+      "relevance_score": 1.0213,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.6,
+      "citation_signal": 0.4262,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 3
+    },
+    {
+      "paper_id": "475dd0fa-5316-5fc6-8eba-bfb4500c9c47",
+      "title": "A genetic programming approach with adaptive region detection to skin cancer image classification",
+      "year": 2024,
+      "publication_date": "2024-08-31",
+      "doi": "10.1016/j.jai.2024.08.003",
+      "identifiers": {
+        "doi": "10.1016/j.jai.2024.08.003",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4402113223",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Kunjie Yu",
+          "orcid": "https://orcid.org/0000-0001-9945-1976",
+          "institutions": [
+            "Zhengzhou University"
+          ]
+        },
+        {
+          "name": "Jintao Lian",
+          "orcid": "https://orcid.org/0009-0003-1624-5379",
+          "institutions": [
+            "Zhengzhou University"
+          ]
+        },
+        {
+          "name": "Ying Bi",
+          "orcid": "https://orcid.org/0000-0003-2758-6067",
+          "institutions": [
+            "Zhengzhou University"
+          ]
+        },
+        {
+          "name": "Jing Liang",
+          "orcid": "https://orcid.org/0000-0003-0811-0223",
+          "institutions": [
+            "Zhengzhou University",
+            "Henan Institute of Technology"
+          ]
+        },
+        {
+          "name": "Bing Xue",
+          "orcid": "https://orcid.org/0000-0002-4865-8026",
+          "institutions": [
+            "Victoria University of Wellington"
+          ]
+        },
+        {
+          "name": "Mengjie Zhang",
+          "orcid": "https://orcid.org/0000-0003-4463-9538",
+          "institutions": [
+            "Victoria University of Wellington"
+          ]
+        }
+      ],
+      "venue": "Journal of Automation and Intelligence",
+      "publication_type": "article",
+      "abstract": "Dermatologists typically require extensive experience to accurately classify skin cancer. In recent years, the development of computer vision and machine learning has provided new methods for assisted diagnosis. Existing skin cancer image classification methods have certain limitations, such as poor interpretability, the requirement of domain knowledge for feature extraction, and the neglect of lesion area information in skin images. This paper proposes a new genetic programming (GP) approach to automatically learn global and/or local features from skin images for classification. To achieve this, a new function set and a new terminal set have been developed. The proposed GP method can automatically and flexibly extract effective local/global features from different types of input images, thus providing a comprehensive description of skin images. A new region detection function has been developed to select the lesion areas from skin images for feature extraction. The performance of this approach is evaluated on three skin cancer image classification tasks, and compared with three GP methods and six non-GP methods. The experimental results show that the new approach achieves significantly better or similar performance in most cases. Further analysis validates the effectiveness of our parameter settings, visualizes the multiple region detection functions used in the individual evolved by the proposed approach, and demonstrates its good convergence ability.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4402113223",
+      "citation_count": 12,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 12
+        }
+      ],
+      "references": [
+        "https://openalex.org/W1507875776",
+        "https://openalex.org/W2000853273",
+        "https://openalex.org/W2026720263",
+        "https://openalex.org/W2040492000",
+        "https://openalex.org/W2061253660",
+        "https://openalex.org/W2101234009",
+        "https://openalex.org/W2107262494",
+        "https://openalex.org/W2115770731",
+        "https://openalex.org/W2161969291",
+        "https://openalex.org/W2163352848",
+        "https://openalex.org/W2380925912",
+        "https://openalex.org/W2579362932",
+        "https://openalex.org/W2581082771",
+        "https://openalex.org/W2581419616",
+        "https://openalex.org/W2607910417",
+        "https://openalex.org/W2794825826",
+        "https://openalex.org/W3016719582",
+        "https://openalex.org/W3019493961",
+        "https://openalex.org/W3036020790",
+        "https://openalex.org/W3036298167",
+        "https://openalex.org/W3045827876",
+        "https://openalex.org/W3091074923",
+        "https://openalex.org/W3102785203",
+        "https://openalex.org/W3129119512",
+        "https://openalex.org/W3140854437",
+        "https://openalex.org/W3190568003",
+        "https://openalex.org/W4225910603",
+        "https://openalex.org/W4284881204",
+        "https://openalex.org/W4292921884",
+        "https://openalex.org/W4310748454",
+        "https://openalex.org/W4315700889",
+        "https://openalex.org/W4315754639",
+        "https://openalex.org/W4365457146",
+        "https://openalex.org/W4401414118",
+        "https://openalex.org/W6633658626"
+      ],
+      "source_metadata": {
+        "publisher": "Elsevier BV",
+        "reference_count": 35,
+        "referenced_works": [
+          "https://openalex.org/W1507875776",
+          "https://openalex.org/W2000853273",
+          "https://openalex.org/W2026720263",
+          "https://openalex.org/W2040492000",
+          "https://openalex.org/W2061253660",
+          "https://openalex.org/W2101234009",
+          "https://openalex.org/W2107262494",
+          "https://openalex.org/W2115770731",
+          "https://openalex.org/W2161969291",
+          "https://openalex.org/W2163352848",
+          "https://openalex.org/W2380925912",
+          "https://openalex.org/W2579362932",
+          "https://openalex.org/W2581082771",
+          "https://openalex.org/W2581419616",
+          "https://openalex.org/W2607910417",
+          "https://openalex.org/W2794825826",
+          "https://openalex.org/W3016719582",
+          "https://openalex.org/W3019493961",
+          "https://openalex.org/W3036020790",
+          "https://openalex.org/W3036298167",
+          "https://openalex.org/W3045827876",
+          "https://openalex.org/W3091074923",
+          "https://openalex.org/W3102785203",
+          "https://openalex.org/W3129119512",
+          "https://openalex.org/W3140854437",
+          "https://openalex.org/W3190568003",
+          "https://openalex.org/W4225910603",
+          "https://openalex.org/W4284881204",
+          "https://openalex.org/W4292921884",
+          "https://openalex.org/W4310748454",
+          "https://openalex.org/W4315700889",
+          "https://openalex.org/W4315754639",
+          "https://openalex.org/W4365457146",
+          "https://openalex.org/W4401414118",
+          "https://openalex.org/W6633658626"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 7
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 5
+          }
+        ],
+        "keywords": [
+          "skin cancer classification",
+          "genetic programming",
+          "automatic feature extraction",
+          "computer-aided diagnosis",
+          "skin lesion images"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Evolutionary Algorithms and Applications",
+          "Cutaneous Melanoma Detection and Management",
+          "AI in cancer detection"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5042789966",
+          "https://openalex.org/A5114218737",
+          "https://openalex.org/A5076701363",
+          "https://openalex.org/A5100676081",
+          "https://openalex.org/A5077569089",
+          "https://openalex.org/A5100400258"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_c397a168",
+          "source_type": "openalex",
+          "artifact_sha256": "f539da0a5754aab026c34fd419ab4d790fbfacb407587b2707684c50e3aff51e",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4402113223",
+          "json_pointer": "/results/https://openalex.org/W4402113223",
+          "source_url": "https://openalex.org/W4402113223",
+          "fetched_at": "2026-11-12T01:19:12.255960Z"
+        }
+      ],
+      "relevance_score": 1.0186,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.6,
+      "citation_signal": 0.3713,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 4
+    },
+    {
+      "paper_id": "8163721b-2564-5c47-89fe-f146e234c9de",
+      "title": "Skin Cancer Detection and Classification Through Medical Image Analysis Using EfficientNet",
+      "year": 2025,
+      "publication_date": "2025-09-26",
+      "doi": "10.3390/ndt3040023",
+      "identifiers": {
+        "doi": "10.3390/ndt3040023",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Sima Das",
+          "orcid": "https://orcid.org/0000-0001-8048-6597",
+          "institutions": [
+            "Department of Computer Science and Engineering, Bengal College of Engineering and Technology, Durgapur 713212, West Bengal, India"
+          ]
+        },
+        {
+          "name": "Rishabh Kumar Addya",
+          "orcid": "https://orcid.org/0009-0008-7848-956X",
+          "institutions": [
+            "Department of Data Analytics, Institute of Management Study, Kolkata 700099, West Bengal, India"
+          ]
+        }
+      ],
+      "venue": "NDT",
+      "publication_type": "journal-article",
+      "abstract": "<jats:p>Skin cancer is one of the most prevalent and potentially lethal cancers worldwide, highlighting the need for accurate and timely diagnosis. Convolutional neural networks (CNNs) have demonstrated strong potential in automating skin lesion classification. In this study, we propose a multi-class classification model using EfficientNet-B0, a lightweight yet powerful CNN architecture, trained on the HAM10000 dermoscopic image dataset. All images were resized to 224 \u00d7 224 pixels and normalized using ImageNet statistics to ensure compatibility with the pre-trained network. Data augmentation and preprocessing addressed class imbalance, resulting in a balanced dataset of 7512 images across seven diagnostic categories. The baseline model achieved 77.39% accuracy, which improved to 89.36% with transfer learning by freezing the convolutional base and training only the classification layer. Full network fine-tuning with test-time augmentation increased the accuracy to 96%, and the final model reached 97.15% when combined with Monte Carlo dropout. These results demonstrate EfficientNet-B0\u2019s effectiveness for automated skin lesion classification and its potential as a clinical decision support tool.</jats:p>",
+      "is_open_access": null,
+      "url": "https://doi.org/10.3390/ndt3040023",
+      "citation_count": 7,
+      "citation_provider": "crossref",
+      "citation_observations": [
+        {
+          "provider": "crossref",
+          "count": 7
+        }
+      ],
+      "references": [
+        "10.1007/s10791-025-09541-1",
+        "10.1016/j.procs.2024.04.264",
+        "10.1109/ACCESS.2020.3001507",
+        "10.1007/s00521-022-07762-9",
+        "10.3390/diagnostics15010099",
+        "10.3390/app14177447",
+        "10.3390/life13112123",
+        "10.3390/diagnostics13111911",
+        "10.1186/s12885-024-13423-y",
+        "10.3390/biomedinformatics4040121",
+        "10.1109/ACCESS.2022.3220329",
+        "10.1186/s43046-024-00210-w",
+        "10.3390/cancers17010028",
+        "10.3390/cancers15072179",
+        "10.3390/math12071030",
+        "10.3390/s22186915",
+        "10.3390/bdcc9040097",
+        "10.3390/healthcare10071183",
+        "10.1201/9781032631738-16",
+        "10.7494/csci.2023.24.3.4844",
+        "10.1186/s44147-024-00573-w",
+        "10.7717/peerj-cs.1884",
+        "10.1038/s41598-025-08954-8",
+        "10.3390/app13021210",
+        "10.3390/electronics13122298",
+        "10.3390/diagnostics13071319"
+      ],
+      "source_metadata": {
+        "publisher": "MDPI AG",
+        "reference_count": 27,
+        "referenced_works": [
+          "10.1007/s10791-025-09541-1",
+          "10.1016/j.procs.2024.04.264",
+          "10.1109/ACCESS.2020.3001507",
+          "10.1007/s00521-022-07762-9",
+          "10.3390/diagnostics15010099",
+          "10.3390/app14177447",
+          "10.3390/life13112123",
+          "10.3390/diagnostics13111911",
+          "10.1186/s12885-024-13423-y",
+          "10.3390/biomedinformatics4040121",
+          "10.1109/ACCESS.2022.3220329",
+          "10.1186/s43046-024-00210-w",
+          "10.3390/cancers17010028",
+          "10.3390/cancers15072179",
+          "10.3390/math12071030",
+          "10.3390/s22186915",
+          "10.3390/bdcc9040097",
+          "10.3390/healthcare10071183",
+          "10.1201/9781032631738-16",
+          "10.7494/csci.2023.24.3.4844",
+          "10.1186/s44147-024-00573-w",
+          "10.7717/peerj-cs.1884",
+          "10.1038/s41598-025-08954-8",
+          "10.3390/app13021210",
+          "10.3390/electronics13122298",
+          "10.3390/diagnostics13071319"
+        ],
+        "publication_versions": null
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_535306d4",
+          "source_type": "crossref",
+          "artifact_sha256": "d4d46b4361dcf4a622bc0ae60b0fc1e15d35db64a367ea96bbf4af9641616906",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.3390/ndt3040023",
+          "json_pointer": "/message/items/10.3390/ndt3040023",
+          "source_url": "https://doi.org/10.3390/ndt3040023",
+          "fetched_at": "2026-11-12T01:19:12.327853Z"
+        }
+      ],
+      "relevance_score": 1.015,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.301,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [
+        "80a7bd02-e321-5df2-854b-a99c15417604"
+      ],
+      "rank": 5
+    },
+    {
+      "paper_id": "1860c994-7d7b-56e3-93cc-0bad55ad60f3",
+      "title": "Genetic Programming based Feature Manipulation for Skin Cancer Image Classification",
+      "year": 2020,
+      "publication_date": "2020-01-01",
+      "doi": "10.26686/wgtn.17151719",
+      "identifiers": {
+        "doi": "10.26686/wgtn.17151719",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4225910603",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Qurrat Ul Ain",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "Open Access Victoria University of Wellington | Te Herenga Waka (Figshare)",
+      "publication_type": "dissertation",
+      "abstract": "Skin image classification involves the development of computational methods for solving problems such as cancer detection in lesion images, and their use for biomedical research and clinical care. Such methods aim at extracting relevant information or knowledge from skin images that can significantly assist in the early detection of disease. Skin images are enormous, and come with various artifacts that hinder effective feature extraction leading to inaccurate classification. Feature selection and feature construction can significantly reduce the amount of data while improving classification performance by selecting prominent features and constructing high-level features. Existing approaches mostly rely on expert intervention and follow multiple stages for pre-processing, feature extraction, and classification, which decreases the reliability, and increases the computational complexity. Since good generalization accuracy is not always the primary objective, clinicians are also interested in analyzing specific features such as pigment network, streaks, and blobs responsible for developing the disease; interpretable methods are favored. In Evolutionary Computation, Genetic Programming (GP) can automatically evolve an interpretable model and address the curse of dimensionality (through feature selection and construction). GP has been successfully applied to many areas, but its potential for feature selection, feature construction, and classification in skin images has not been thoroughly investigated. The overall goal of this thesis is to develop a new GP approach to skin image classification by utilizing GP to evolve programs that are capable of automatically selecting prominent image features, constructing new high level features, interpreting useful image features which can help dermatologist to diagnose a type of cancer, and are robust to processing skin images captured from specialized instruments and standard cameras. This thesis focuses on utilizing a wide range of texture, color, frequency-based, local, and global image properties at the terminal nodes of GP to classify skin cancer images from multiple modalities effectively. This thesis develops new two-stage GP methods using embedded and wrapper feature selection and construction approaches to automatically generating a feature vector of selected and constructed features for classification. The results show that wrapper approach outperforms the embedded approach, the existing baseline GP and other machine learning methods, but the embedded approach is faster than the wrapper approach. This thesis develops a multi-tree GP based embedded feature selection approach for melanoma detection using domain specific and domain independent features. It explores suitable crossover and mutation operators to evolve GP classifiers effectively and further extends this approach using a weighted fitness function. The results show that these multi-tree approaches outperformed single tree GP and other classification methods. They identify that a specific feature extraction method extracts most suitable features for particular images taken from a specific optical instrument. This thesis develops the first GP method utilizing frequency-based wavelet features, where the wrapper based feature selection and construction methods automatically evolve useful constructed features to improve the classification performance. The results show the evidence of successful feature construction by significantly outperforming existing GP approaches, state-of-the-art CNN, and other classification methods. This thesis develops a GP approach to multiple feature construction for ensemble learning in classification. The results show that the ensemble method outperformed existing GP approaches, state-of-the-art skin image classification, and commonly used ensemble methods. Further analysis of the evolved constructed features identified important image features that can potentially help the dermatologist identify further medical procedures in real-world situations.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4225910603",
+      "citation_count": 3,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 3
+        },
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W42643001",
+        "https://openalex.org/W73565369",
+        "https://openalex.org/W75892284",
+        "https://openalex.org/W97119009",
+        "https://openalex.org/W99449809",
+        "https://openalex.org/W196470127",
+        "https://openalex.org/W325784746",
+        "https://openalex.org/W331853746",
+        "https://openalex.org/W639589423",
+        "https://openalex.org/W1044489389",
+        "https://openalex.org/W1480009832",
+        "https://openalex.org/W1483551924",
+        "https://openalex.org/W1483736078",
+        "https://openalex.org/W1486003553",
+        "https://openalex.org/W1486968485",
+        "https://openalex.org/W1491721956",
+        "https://openalex.org/W1502374754",
+        "https://openalex.org/W1503398984",
+        "https://openalex.org/W1507875776",
+        "https://openalex.org/W1508503833",
+        "https://openalex.org/W1508859274",
+        "https://openalex.org/W1525798690",
+        "https://openalex.org/W1531202235",
+        "https://openalex.org/W1545286883",
+        "https://openalex.org/W1556461092",
+        "https://openalex.org/W1564160963",
+        "https://openalex.org/W1570448133",
+        "https://openalex.org/W1575333164",
+        "https://openalex.org/W1575800543",
+        "https://openalex.org/W1576818901",
+        "https://openalex.org/W1581584868",
+        "https://openalex.org/W1596324102",
+        "https://openalex.org/W1600376878",
+        "https://openalex.org/W1604434652",
+        "https://openalex.org/W1605353467",
+        "https://openalex.org/W1676314349",
+        "https://openalex.org/W1781337833",
+        "https://openalex.org/W1907470218",
+        "https://openalex.org/W1909613632",
+        "https://openalex.org/W1925701698",
+        "https://openalex.org/W1947097685",
+        "https://openalex.org/W1952697361",
+        "https://openalex.org/W1963767852",
+        "https://openalex.org/W1967657094",
+        "https://openalex.org/W1969297757",
+        "https://openalex.org/W1973800053",
+        "https://openalex.org/W1977211930",
+        "https://openalex.org/W1978381081",
+        "https://openalex.org/W1981223475",
+        "https://openalex.org/W1984728871",
+        "https://openalex.org/W1989344766",
+        "https://openalex.org/W1992338826",
+        "https://openalex.org/W1992395967",
+        "https://openalex.org/W1992455269",
+        "https://openalex.org/W1993717695",
+        "https://openalex.org/W1996049503",
+        "https://openalex.org/W1998409879",
+        "https://openalex.org/W1998451602",
+        "https://openalex.org/W1999201312",
+        "https://openalex.org/W2000984446",
+        "https://openalex.org/W2007358443",
+        "https://openalex.org/W2009077855",
+        "https://openalex.org/W2010925231",
+        "https://openalex.org/W2012595795",
+        "https://openalex.org/W2016683332",
+        "https://openalex.org/W2026720263",
+        "https://openalex.org/W2027649494",
+        "https://openalex.org/W2027649639",
+        "https://openalex.org/W2030806168",
+        "https://openalex.org/W2034180248",
+        "https://openalex.org/W2036932722",
+        "https://openalex.org/W2039051707",
+        "https://openalex.org/W2043564866",
+        "https://openalex.org/W2043851963",
+        "https://openalex.org/W2047751098",
+        "https://openalex.org/W2048060899",
+        "https://openalex.org/W2054846776",
+        "https://openalex.org/W2065829097",
+        "https://openalex.org/W2069036068",
+        "https://openalex.org/W2069403261",
+        "https://openalex.org/W2070019526",
+        "https://openalex.org/W2073619928",
+        "https://openalex.org/W2076157809",
+        "https://openalex.org/W2076618162",
+        "https://openalex.org/W2077307030",
+        "https://openalex.org/W2078187356",
+        "https://openalex.org/W2083652081",
+        "https://openalex.org/W2092455934",
+        "https://openalex.org/W2100111947",
+        "https://openalex.org/W2100677568",
+        "https://openalex.org/W2100987536",
+        "https://openalex.org/W2102793608",
+        "https://openalex.org/W2103588123",
+        "https://openalex.org/W2103592462",
+        "https://openalex.org/W2105981176",
+        "https://openalex.org/W2107008379",
+        "https://openalex.org/W2109364787",
+        "https://openalex.org/W2113824004",
+        "https://openalex.org/W2113834117",
+        "https://openalex.org/W2115652054",
+        "https://openalex.org/W2115770731",
+        "https://openalex.org/W2115884121",
+        "https://openalex.org/W2118286367",
+        "https://openalex.org/W2119330427",
+        "https://openalex.org/W2121238376",
+        "https://openalex.org/W2121928854",
+        "https://openalex.org/W2123092006",
+        "https://openalex.org/W2124386111",
+        "https://openalex.org/W2131489803",
+        "https://openalex.org/W2133388624",
+        "https://openalex.org/W2135733427",
+        "https://openalex.org/W2147800946",
+        "https://openalex.org/W2151525510",
+        "https://openalex.org/W2152950860",
+        "https://openalex.org/W2154403686",
+        "https://openalex.org/W2155318601",
+        "https://openalex.org/W2158934641",
+        "https://openalex.org/W2162515926",
+        "https://openalex.org/W2165097780",
+        "https://openalex.org/W2165698076",
+        "https://openalex.org/W2167935381",
+        "https://openalex.org/W2168977926",
+        "https://openalex.org/W2172567400",
+        "https://openalex.org/W2180648740",
+        "https://openalex.org/W2181504377",
+        "https://openalex.org/W2197223281",
+        "https://openalex.org/W2240536489",
+        "https://openalex.org/W2268118031",
+        "https://openalex.org/W2284583894",
+        "https://openalex.org/W2288228418",
+        "https://openalex.org/W2293157060",
+        "https://openalex.org/W2295985801",
+        "https://openalex.org/W2297395784",
+        "https://openalex.org/W2343420905",
+        "https://openalex.org/W2344480160",
+        "https://openalex.org/W2380925912",
+        "https://openalex.org/W2404812871",
+        "https://openalex.org/W2411338455",
+        "https://openalex.org/W2418532740",
+        "https://openalex.org/W2426398770",
+        "https://openalex.org/W2426942631",
+        "https://openalex.org/W2483242265",
+        "https://openalex.org/W2483714401",
+        "https://openalex.org/W2492579077",
+        "https://openalex.org/W2542643314",
+        "https://openalex.org/W2557644620",
+        "https://openalex.org/W2559090303",
+        "https://openalex.org/W2559126051",
+        "https://openalex.org/W2564782580",
+        "https://openalex.org/W2579362932",
+        "https://openalex.org/W2581082771",
+        "https://openalex.org/W2581419616",
+        "https://openalex.org/W2588792172",
+        "https://openalex.org/W2599486115",
+        "https://openalex.org/W2607620597",
+        "https://openalex.org/W2613176274",
+        "https://openalex.org/W2618753359",
+        "https://openalex.org/W2623293810",
+        "https://openalex.org/W2732300860",
+        "https://openalex.org/W2734020236",
+        "https://openalex.org/W2734398116",
+        "https://openalex.org/W2741457819",
+        "https://openalex.org/W2745104503",
+        "https://openalex.org/W2762798900",
+        "https://openalex.org/W2762990942",
+        "https://openalex.org/W2785950614",
+        "https://openalex.org/W2787894218",
+        "https://openalex.org/W2792881890",
+        "https://openalex.org/W2806853752",
+        "https://openalex.org/W2884209928",
+        "https://openalex.org/W2885385435",
+        "https://openalex.org/W2891680306",
+        "https://openalex.org/W2896064450",
+        "https://openalex.org/W2896074600",
+        "https://openalex.org/W2899142219",
+        "https://openalex.org/W2900287961",
+        "https://openalex.org/W2904494117",
+        "https://openalex.org/W2937845902",
+        "https://openalex.org/W2949296127",
+        "https://openalex.org/W2953233419",
+        "https://openalex.org/W2953921242",
+        "https://openalex.org/W2959246410",
+        "https://openalex.org/W2967473922",
+        "https://openalex.org/W2967759511",
+        "https://openalex.org/W2991770164",
+        "https://openalex.org/W2999292259",
+        "https://openalex.org/W3003566741",
+        "https://openalex.org/W3006056021",
+        "https://openalex.org/W3020931570",
+        "https://openalex.org/W3036020790",
+        "https://openalex.org/W3046558224",
+        "https://openalex.org/W3118091963",
+        "https://openalex.org/W3142708931",
+        "https://openalex.org/W3163925244",
+        "https://openalex.org/W3195705271",
+        "https://openalex.org/W3196869265",
+        "https://openalex.org/W4200014273",
+        "https://openalex.org/W4200084300",
+        "https://openalex.org/W4200394859",
+        "https://openalex.org/W4205238219",
+        "https://openalex.org/W4205445229",
+        "https://openalex.org/W4205902690",
+        "https://openalex.org/W4206070770",
+        "https://openalex.org/W4206237891",
+        "https://openalex.org/W4245251632",
+        "https://openalex.org/W4250643386",
+        "https://openalex.org/W4251142838",
+        "https://openalex.org/W4256486341",
+        "https://openalex.org/W4293209991",
+        "https://openalex.org/W4298289432",
+        "https://openalex.org/W4376562455",
+        "https://openalex.org/W4388297464",
+        "https://openalex.org/W4400252019",
+        "https://openalex.org/W6600168703",
+        "https://openalex.org/W6600417784",
+        "https://openalex.org/W6600561556",
+        "https://openalex.org/W6600665824",
+        "https://openalex.org/W6600669965",
+        "https://openalex.org/W6601385440",
+        "https://openalex.org/W6602522970",
+        "https://openalex.org/W6602737189",
+        "https://openalex.org/W6603817215",
+        "https://openalex.org/W6604650361",
+        "https://openalex.org/W6604770866",
+        "https://openalex.org/W6607435005",
+        "https://openalex.org/W6607510496",
+        "https://openalex.org/W6608914597",
+        "https://openalex.org/W6612602908",
+        "https://openalex.org/W6628843392",
+        "https://openalex.org/W6629259071",
+        "https://openalex.org/W6677008656",
+        "https://openalex.org/W6691713953",
+        "https://openalex.org/W6699755906",
+        "https://openalex.org/W6705038372",
+        "https://openalex.org/W6811851346",
+        "https://openalex.org/W6851024827"
+      ],
+      "source_metadata": {
+        "publisher": "Figshare (United Kingdom)",
+        "reference_count": 236,
+        "referenced_works": [
+          "https://openalex.org/W42643001",
+          "https://openalex.org/W73565369",
+          "https://openalex.org/W75892284",
+          "https://openalex.org/W97119009",
+          "https://openalex.org/W99449809",
+          "https://openalex.org/W196470127",
+          "https://openalex.org/W325784746",
+          "https://openalex.org/W331853746",
+          "https://openalex.org/W639589423",
+          "https://openalex.org/W1044489389",
+          "https://openalex.org/W1480009832",
+          "https://openalex.org/W1483551924",
+          "https://openalex.org/W1483736078",
+          "https://openalex.org/W1486003553",
+          "https://openalex.org/W1486968485",
+          "https://openalex.org/W1491721956",
+          "https://openalex.org/W1502374754",
+          "https://openalex.org/W1503398984",
+          "https://openalex.org/W1507875776",
+          "https://openalex.org/W1508503833",
+          "https://openalex.org/W1508859274",
+          "https://openalex.org/W1525798690",
+          "https://openalex.org/W1531202235",
+          "https://openalex.org/W1545286883",
+          "https://openalex.org/W1556461092",
+          "https://openalex.org/W1564160963",
+          "https://openalex.org/W1570448133",
+          "https://openalex.org/W1575333164",
+          "https://openalex.org/W1575800543",
+          "https://openalex.org/W1576818901",
+          "https://openalex.org/W1581584868",
+          "https://openalex.org/W1596324102",
+          "https://openalex.org/W1600376878",
+          "https://openalex.org/W1604434652",
+          "https://openalex.org/W1605353467",
+          "https://openalex.org/W1676314349",
+          "https://openalex.org/W1781337833",
+          "https://openalex.org/W1907470218",
+          "https://openalex.org/W1909613632",
+          "https://openalex.org/W1925701698",
+          "https://openalex.org/W1947097685",
+          "https://openalex.org/W1952697361",
+          "https://openalex.org/W1963767852",
+          "https://openalex.org/W1967657094",
+          "https://openalex.org/W1969297757",
+          "https://openalex.org/W1973800053",
+          "https://openalex.org/W1977211930",
+          "https://openalex.org/W1978381081",
+          "https://openalex.org/W1981223475",
+          "https://openalex.org/W1984728871",
+          "https://openalex.org/W1989344766",
+          "https://openalex.org/W1992338826",
+          "https://openalex.org/W1992395967",
+          "https://openalex.org/W1992455269",
+          "https://openalex.org/W1993717695",
+          "https://openalex.org/W1996049503",
+          "https://openalex.org/W1998409879",
+          "https://openalex.org/W1998451602",
+          "https://openalex.org/W1999201312",
+          "https://openalex.org/W2000984446",
+          "https://openalex.org/W2007358443",
+          "https://openalex.org/W2009077855",
+          "https://openalex.org/W2010925231",
+          "https://openalex.org/W2012595795",
+          "https://openalex.org/W2016683332",
+          "https://openalex.org/W2026720263",
+          "https://openalex.org/W2027649494",
+          "https://openalex.org/W2027649639",
+          "https://openalex.org/W2030806168",
+          "https://openalex.org/W2034180248",
+          "https://openalex.org/W2036932722",
+          "https://openalex.org/W2039051707",
+          "https://openalex.org/W2043564866",
+          "https://openalex.org/W2043851963",
+          "https://openalex.org/W2047751098",
+          "https://openalex.org/W2048060899",
+          "https://openalex.org/W2054846776",
+          "https://openalex.org/W2065829097",
+          "https://openalex.org/W2069036068",
+          "https://openalex.org/W2069403261",
+          "https://openalex.org/W2070019526",
+          "https://openalex.org/W2073619928",
+          "https://openalex.org/W2076157809",
+          "https://openalex.org/W2076618162",
+          "https://openalex.org/W2077307030",
+          "https://openalex.org/W2078187356",
+          "https://openalex.org/W2083652081",
+          "https://openalex.org/W2092455934",
+          "https://openalex.org/W2100111947",
+          "https://openalex.org/W2100677568",
+          "https://openalex.org/W2100987536",
+          "https://openalex.org/W2102793608",
+          "https://openalex.org/W2103588123",
+          "https://openalex.org/W2103592462",
+          "https://openalex.org/W2105981176",
+          "https://openalex.org/W2107008379",
+          "https://openalex.org/W2109364787",
+          "https://openalex.org/W2113824004",
+          "https://openalex.org/W2113834117",
+          "https://openalex.org/W2115652054",
+          "https://openalex.org/W2115770731",
+          "https://openalex.org/W2115884121",
+          "https://openalex.org/W2118286367",
+          "https://openalex.org/W2119330427",
+          "https://openalex.org/W2121238376",
+          "https://openalex.org/W2121928854",
+          "https://openalex.org/W2123092006",
+          "https://openalex.org/W2124386111",
+          "https://openalex.org/W2131489803",
+          "https://openalex.org/W2133388624",
+          "https://openalex.org/W2135733427",
+          "https://openalex.org/W2147800946",
+          "https://openalex.org/W2151525510",
+          "https://openalex.org/W2152950860",
+          "https://openalex.org/W2154403686",
+          "https://openalex.org/W2155318601",
+          "https://openalex.org/W2158934641",
+          "https://openalex.org/W2162515926",
+          "https://openalex.org/W2165097780",
+          "https://openalex.org/W2165698076",
+          "https://openalex.org/W2167935381",
+          "https://openalex.org/W2168977926",
+          "https://openalex.org/W2172567400",
+          "https://openalex.org/W2180648740",
+          "https://openalex.org/W2181504377",
+          "https://openalex.org/W2197223281",
+          "https://openalex.org/W2240536489",
+          "https://openalex.org/W2268118031",
+          "https://openalex.org/W2284583894",
+          "https://openalex.org/W2288228418",
+          "https://openalex.org/W2293157060",
+          "https://openalex.org/W2295985801",
+          "https://openalex.org/W2297395784",
+          "https://openalex.org/W2343420905",
+          "https://openalex.org/W2344480160",
+          "https://openalex.org/W2380925912",
+          "https://openalex.org/W2404812871",
+          "https://openalex.org/W2411338455",
+          "https://openalex.org/W2418532740",
+          "https://openalex.org/W2426398770",
+          "https://openalex.org/W2426942631",
+          "https://openalex.org/W2483242265",
+          "https://openalex.org/W2483714401",
+          "https://openalex.org/W2492579077",
+          "https://openalex.org/W2542643314",
+          "https://openalex.org/W2557644620",
+          "https://openalex.org/W2559090303",
+          "https://openalex.org/W2559126051",
+          "https://openalex.org/W2564782580",
+          "https://openalex.org/W2579362932",
+          "https://openalex.org/W2581082771",
+          "https://openalex.org/W2581419616",
+          "https://openalex.org/W2588792172",
+          "https://openalex.org/W2599486115",
+          "https://openalex.org/W2607620597",
+          "https://openalex.org/W2613176274",
+          "https://openalex.org/W2618753359",
+          "https://openalex.org/W2623293810",
+          "https://openalex.org/W2732300860",
+          "https://openalex.org/W2734020236",
+          "https://openalex.org/W2734398116",
+          "https://openalex.org/W2741457819",
+          "https://openalex.org/W2745104503",
+          "https://openalex.org/W2762798900",
+          "https://openalex.org/W2762990942",
+          "https://openalex.org/W2785950614",
+          "https://openalex.org/W2787894218",
+          "https://openalex.org/W2792881890",
+          "https://openalex.org/W2806853752",
+          "https://openalex.org/W2884209928",
+          "https://openalex.org/W2885385435",
+          "https://openalex.org/W2891680306",
+          "https://openalex.org/W2896064450",
+          "https://openalex.org/W2896074600",
+          "https://openalex.org/W2899142219",
+          "https://openalex.org/W2900287961",
+          "https://openalex.org/W2904494117",
+          "https://openalex.org/W2937845902",
+          "https://openalex.org/W2949296127",
+          "https://openalex.org/W2953233419",
+          "https://openalex.org/W2953921242",
+          "https://openalex.org/W2959246410",
+          "https://openalex.org/W2967473922",
+          "https://openalex.org/W2967759511",
+          "https://openalex.org/W2991770164",
+          "https://openalex.org/W2999292259",
+          "https://openalex.org/W3003566741",
+          "https://openalex.org/W3006056021",
+          "https://openalex.org/W3020931570",
+          "https://openalex.org/W3036020790",
+          "https://openalex.org/W3046558224",
+          "https://openalex.org/W3118091963",
+          "https://openalex.org/W3142708931",
+          "https://openalex.org/W3163925244",
+          "https://openalex.org/W3195705271",
+          "https://openalex.org/W3196869265",
+          "https://openalex.org/W4200014273",
+          "https://openalex.org/W4200084300",
+          "https://openalex.org/W4200394859",
+          "https://openalex.org/W4205238219",
+          "https://openalex.org/W4205445229",
+          "https://openalex.org/W4205902690",
+          "https://openalex.org/W4206070770",
+          "https://openalex.org/W4206237891",
+          "https://openalex.org/W4245251632",
+          "https://openalex.org/W4250643386",
+          "https://openalex.org/W4251142838",
+          "https://openalex.org/W4256486341",
+          "https://openalex.org/W4293209991",
+          "https://openalex.org/W4298289432",
+          "https://openalex.org/W4376562455",
+          "https://openalex.org/W4388297464",
+          "https://openalex.org/W4400252019",
+          "https://openalex.org/W6600168703",
+          "https://openalex.org/W6600417784",
+          "https://openalex.org/W6600561556",
+          "https://openalex.org/W6600665824",
+          "https://openalex.org/W6600669965",
+          "https://openalex.org/W6601385440",
+          "https://openalex.org/W6602522970",
+          "https://openalex.org/W6602737189",
+          "https://openalex.org/W6603817215",
+          "https://openalex.org/W6604650361",
+          "https://openalex.org/W6604770866",
+          "https://openalex.org/W6607435005",
+          "https://openalex.org/W6607510496",
+          "https://openalex.org/W6608914597",
+          "https://openalex.org/W6612602908",
+          "https://openalex.org/W6628843392",
+          "https://openalex.org/W6629259071",
+          "https://openalex.org/W6677008656",
+          "https://openalex.org/W6691713953",
+          "https://openalex.org/W6699755906",
+          "https://openalex.org/W6705038372",
+          "https://openalex.org/W6811851346",
+          "https://openalex.org/W6851024827"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2024,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "genetic programming",
+          "skin cancer classification",
+          "melanoma detection",
+          "feature selection",
+          "feature construction",
+          "interpretable models",
+          "wavelet features",
+          "texture features",
+          "color features",
+          "crossover and mutation operators",
+          "dermoscopic images",
+          "skin lesion images",
+          "early cancer detection",
+          "domain-specific features",
+          "domain-independent features",
+          "curse of dimensionality"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Evolutionary Algorithms and Applications",
+          "Cutaneous Melanoma Detection and Management",
+          "Image Retrieval and Classification Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5074286784"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_bfb130de",
+          "source_type": "openalex",
+          "artifact_sha256": "f539da0a5754aab026c34fd419ab4d790fbfacb407587b2707684c50e3aff51e",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4225910603",
+          "json_pointer": "/results/https://openalex.org/W4225910603",
+          "source_url": "https://openalex.org/W4225910603",
+          "fetched_at": "2026-11-12T01:19:12.256506Z"
+        },
+        {
+          "provenance_id": "prov_ee334b80",
+          "source_type": "crossref",
+          "artifact_sha256": "d4d46b4361dcf4a622bc0ae60b0fc1e15d35db64a367ea96bbf4af9641616906",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.26686/wgtn.17151719",
+          "json_pointer": "/message/items/10.26686/wgtn.17151719",
+          "source_url": "https://doi.org/10.26686/wgtn.17151719",
+          "fetched_at": "2026-11-12T01:19:12.327372Z"
+        }
+      ],
+      "relevance_score": 1.01,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 0.2007,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 6
+    },
+    {
+      "paper_id": "80a7bd02-e321-5df2-854b-a99c15417604",
+      "title": "Skin Cancer Detection and Classification Through Medical Image Analysis Using EfficientNet",
+      "year": 2025,
+      "publication_date": "2025-07-25",
+      "doi": "10.20944/preprints202507.2171.v1",
+      "identifiers": {
+        "doi": "10.20944/preprints202507.2171.v1",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Sima Das",
+          "orcid": "https://orcid.org/0000-0001-8048-6597",
+          "institutions": []
+        },
+        {
+          "name": "Rishabh Kumar Addya",
+          "orcid": "https://orcid.org/0009-0008-7848-956X",
+          "institutions": []
+        }
+      ],
+      "venue": "MDPI AG",
+      "publication_type": "posted-content",
+      "abstract": "<jats:p>Skin cancer is one of the most frequently occurring and life-threatening forms of cancer globally, highlighting the importance of timely and precise diagnosis to enhance treatment success.Automated skin lesion classification has greatly benefited from deep learning methods, especially convolutional neural networks. This study utilizes the EfficientNet-B0 architecture, a lightweight yet robust CNN, to develop a reliable multi-class skin cancer classifier using the HAM10000 dermoscopic image dataset. To ensure compatibility with the pre-trained EfficientNet-B0 model, images were uniformly scaled to 224\u00d7224 pixels and normalized according to ImageNet data to achieve consistent dimensions and brightness levels. Addressing class imbalance, minority classes such as actinic keratoses, basal cell carcinoma, dermatofibroma, and vascular lesions were increased to 1,000 images each through augmentation, whereas the majority class, melanocytic nevi (nv), was reduced to 1,300 images.This resulted in a balanced dataset comprising 7512 images distributed evenly across seven classes. Initially, transfer learning was applied by freezing the base layers and fine-tuning the final layer, achieving 77.39% accuracy. Further full-network fine-tuning improved accuracy to 89.36%. Test-time augmentation  with flips increased performance to 90.16%, and integrating TTA with Monte Carlo Dropout and additional augmentations boosted the final accuracy to 92.29%. The results highlight the potential of EfficientNet-B0. This research improved classification model for skin lesion detection can aid healthcare professionals in early diagnosis, ultimately enhancing patient care and reducing the burden on healthcare systems.</jats:p>",
+      "is_open_access": null,
+      "url": "https://doi.org/10.20944/preprints202507.2171.v1",
+      "citation_count": 2,
+      "citation_provider": "crossref",
+      "citation_observations": [
+        {
+          "provider": "crossref",
+          "count": 2
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "MDPI AG",
+        "reference_count": 0,
+        "referenced_works": [],
+        "publication_versions": {
+          "is-preprint-of": [
+            {
+              "id-type": "doi",
+              "id": "10.3390/ndt3040023",
+              "asserted-by": "subject"
+            }
+          ]
+        }
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_cb2e959f",
+          "source_type": "crossref",
+          "artifact_sha256": "d4d46b4361dcf4a622bc0ae60b0fc1e15d35db64a367ea96bbf4af9641616906",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.20944/preprints202507.2171.v1",
+          "json_pointer": "/message/items/10.20944/preprints202507.2171.v1",
+          "source_url": "https://doi.org/10.20944/preprints202507.2171.v1",
+          "fetched_at": "2026-11-12T01:19:12.327565Z"
+        }
+      ],
+      "relevance_score": 1.008,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.159,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 7
+    },
+    {
+      "paper_id": "d57f7bba-ad0e-5c8a-91f2-0ecbcea42820",
+      "title": "Enhancing Skin Cancer Detection: A Study on Feature Selection Methods for Image Classification",
+      "year": 2025,
+      "publication_date": "2025-02-06",
+      "doi": "10.33411/ijist/202571272285",
+      "identifiers": {
+        "doi": "10.33411/ijist/202571272285",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [],
+      "venue": "International Journal of Agriculture &amp; Sustainable Development",
+      "publication_type": "journal-article",
+      "abstract": "<jats:p>Visually similar images can be easily identified by the human eye; however, expert knowledge is required  to  accurately  interpret  medical  images,  particularly  those  depicting  skin  affected  by cancer.As skin cancer is becoming more commonplace worldwide, there is a growing need for qualified  specialists  to  help  with  its  diagnosis. Severalintricate  genetic  abnormalities  lead  to cancer, one of the most serious illnesses. Skin cancer is the most frequently diagnosed type of cancer. The present research examines two main methods: segmentation and feature extraction, since  early  identificationis  essential  to  enhancing  treatment  results.  Our  research focuseson identifying malignant melanoma, which is caused by an overabundance of melanocytes in the dermis  layer  of  the  skin.  We  used  the  well-known  dermatological  approach  known  as Asymmetry, Border, Color, and Differential(ABCD) dermo copyto aid in early identification. Asymmetry (differences in shape and structure), border irregularity (uneven or jagged borders), colorvariation (differing pigmentation inside the lesion), and differential structure (development in size and appearance over time) are the criteria used in this technique to analyzeskin lesions. CNN-based  deep  learning  models  are  used  for  image  pre-processing,  segmentation,  feature extraction, and classification in the organizedprocess of the suggested framework. Additionally, sophisticated digital image processing methods like size estimates, coloridentification, border analysis,  and  symmetry  detection  are  included.  By  using  CNNs  to  collect  texture-based information, feature extraction is improved and skin lesions can be precisely categorized. We suggest  using  a  Backpropagation  Neural  Network (BPNN)  to  increase  classification  accuracy and make efficient decisions when distinguishing between benign and malignant skin diseases.To  overcome  this  difficulty,  machine  learning  classifiers  have  surfaced  as  a  viable  way  to automate the classification of images for skin cancer. In this paper, deep Convolutional Neural Networks (CNNs) are used to construct a predictive model for skin cancer diagnosis. Usingthe HAM10000 dataset, the suggested method produced a 92% accuracy rate.</jats:p>",
+      "is_open_access": null,
+      "url": "https://doi.org/10.33411/ijist/202571272285",
+      "citation_count": 0,
+      "citation_provider": "crossref",
+      "citation_observations": [
+        {
+          "provider": "crossref",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "50Sea",
+        "reference_count": 0,
+        "referenced_works": [],
+        "publication_versions": null
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_92dcc584",
+          "source_type": "crossref",
+          "artifact_sha256": "d4d46b4361dcf4a622bc0ae60b0fc1e15d35db64a367ea96bbf4af9641616906",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "10.33411/ijist/202571272285",
+          "json_pointer": "/message/items/10.33411/ijist/202571272285",
+          "source_url": "https://doi.org/10.33411/ijist/202571272285",
+          "fetched_at": "2026-11-12T01:19:12.328138Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 8
+    },
+    {
+      "paper_id": "51eddfae-4e9d-5fb5-ba29-d072c548ac4a",
+      "title": "Artificial Intelligence-Based Image Classification for Diagnosis of Skin Cancer: Challenges and Opportunities",
+      "year": 2019,
+      "publication_date": "2019-11-26",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "1911.11872v3",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Manu Goyal",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Thomas Knackstedt",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Shaofeng Yan",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Saeed Hassanpour",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "Recently, there has been great interest in developing Artificial Intelligence (AI) enabled computer-aided diagnostics solutions for the diagnosis of skin cancer. With the increasing incidence of skin cancers, low awareness among a growing population, and a lack of adequate clinical expertise and services, there is an immediate need for AI systems to assist clinicians in this domain. A large number of skin lesion datasets are available publicly, and researchers have developed AI-based image classification solutions, particularly deep learning algorithms, to distinguish malignant skin lesions from benign lesions in different image modalities such as dermoscopic, clinical, and histopathology images. Despite the various claims of AI systems achieving higher accuracy than dermatologists in the classification of different skin lesions, these AI systems are still in the very early stages of clinical application in terms of being ready to aid clinicians in the diagnosis of skin cancers. In this review, we discuss advancements in the digital image-based AI solutions for the diagnosis of skin cancer, along with some challenges and future opportunities to improve these AI systems to support dermatologists and enhance their ability to diagnose skin cancer.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/1911.11872v3",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_c1071572",
+          "source_type": "arxiv",
+          "artifact_sha256": "903c74275ecc13dcea17fab11a4cc5bbf5a70309e73a3f4468eeb3eb6d299734",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "1911.11872v3",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/1911.11872v3",
+          "fetched_at": "2026-11-12T01:19:10.721374Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 9
+    },
+    {
+      "paper_id": "3e32852c-3457-5861-8494-14d140a5a3ae",
+      "title": "Systematic outperformance of 112 dermatologists in multiclass skin cancer image classification by convolutional neural networks",
+      "year": 2019,
+      "publication_date": "2019-08-13",
+      "doi": "10.1016/j.ejca.2019.06.013",
+      "identifiers": {
+        "doi": "10.1016/j.ejca.2019.06.013",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W2968318837",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Roman C. Maron",
+          "orcid": "https://orcid.org/0000-0002-2120-901X",
+          "institutions": [
+            "German Cancer Research Center",
+            "National Center for Tumor Diseases"
+          ]
+        },
+        {
+          "name": "Michael Weichenthal",
+          "orcid": "https://orcid.org/0000-0002-9060-4961",
+          "institutions": [
+            "University Hospital Schleswig-Holstein",
+            "Universit\u00e4ts Hautklinik Kiel"
+          ]
+        },
+        {
+          "name": "Jochen Sven Utikal",
+          "orcid": "https://orcid.org/0000-0001-5316-0241",
+          "institutions": [
+            "German Cancer Research Center",
+            "Heidelberg University"
+          ]
+        },
+        {
+          "name": "Achim Hekler",
+          "orcid": "https://orcid.org/0000-0002-4974-2457",
+          "institutions": [
+            "German Cancer Research Center",
+            "National Center for Tumor Diseases"
+          ]
+        },
+        {
+          "name": "Carola Berking",
+          "orcid": "https://orcid.org/0000-0003-0229-8931",
+          "institutions": [
+            "LMU Klinikum",
+            "Ludwig-Maximilians-Universit\u00e4t M\u00fcnchen"
+          ]
+        },
+        {
+          "name": "Axel Hauschild",
+          "orcid": "https://orcid.org/0000-0002-1212-9587",
+          "institutions": [
+            "University Hospital Schleswig-Holstein",
+            "Universit\u00e4ts Hautklinik Kiel"
+          ]
+        },
+        {
+          "name": "Alexander Heinrich Enk",
+          "orcid": "https://orcid.org/0000-0002-7358-185X",
+          "institutions": [
+            "University Hospital Heidelberg"
+          ]
+        },
+        {
+          "name": "Sebastian Haferkamp",
+          "orcid": "https://orcid.org/0000-0002-3894-8345",
+          "institutions": [
+            "University Hospital Regensburg"
+          ]
+        },
+        {
+          "name": "Joachim Klode",
+          "orcid": "https://orcid.org/0000-0001-9239-7014",
+          "institutions": [
+            "Essen University Hospital"
+          ]
+        },
+        {
+          "name": "Dirk Schadendorf",
+          "orcid": "https://orcid.org/0000-0003-3524-7858",
+          "institutions": [
+            "Essen University Hospital"
+          ]
+        },
+        {
+          "name": "Philipp Jansen",
+          "orcid": "https://orcid.org/0000-0003-3139-2118",
+          "institutions": [
+            "Essen University Hospital"
+          ]
+        },
+        {
+          "name": "Tim Holland\u2010Letz",
+          "orcid": "https://orcid.org/0000-0003-0348-8163",
+          "institutions": [
+            "German Cancer Research Center"
+          ]
+        },
+        {
+          "name": "Bastian Schilling",
+          "orcid": "https://orcid.org/0000-0001-8859-4103",
+          "institutions": [
+            "Universit\u00e4tsklinikum W\u00fcrzburg"
+          ]
+        },
+        {
+          "name": "Christof V. Kalle",
+          "orcid": "https://orcid.org/0000-0001-9221-3297",
+          "institutions": [
+            "German Cancer Research Center",
+            "National Center for Tumor Diseases"
+          ]
+        },
+        {
+          "name": "Stefan Fr\u00f6hling",
+          "orcid": "https://orcid.org/0000-0001-6169-0808",
+          "institutions": [
+            "German Cancer Research Center",
+            "National Center for Tumor Diseases"
+          ]
+        },
+        {
+          "name": "Maria Rita Gaiser",
+          "orcid": "https://orcid.org/0000-0002-7936-8865",
+          "institutions": [
+            "German Cancer Research Center",
+            "Heidelberg University"
+          ]
+        },
+        {
+          "name": "Daniela Hartmann",
+          "orcid": "https://orcid.org/0000-0002-1002-8133",
+          "institutions": [
+            "LMU Klinikum",
+            "Ludwig-Maximilians-Universit\u00e4t M\u00fcnchen"
+          ]
+        },
+        {
+          "name": "Anja Gesierich",
+          "orcid": "https://orcid.org/0009-0003-7129-3699",
+          "institutions": [
+            "Universit\u00e4tsklinikum W\u00fcrzburg"
+          ]
+        },
+        {
+          "name": "Katharina Charlotte K\u00e4hler",
+          "orcid": "https://orcid.org/0000-0001-9953-0893",
+          "institutions": [
+            "University Hospital Schleswig-Holstein",
+            "Universit\u00e4ts Hautklinik Kiel"
+          ]
+        },
+        {
+          "name": "Ulrike Wehkamp",
+          "orcid": "https://orcid.org/0000-0002-7398-4261",
+          "institutions": [
+            "University Hospital Schleswig-Holstein",
+            "Universit\u00e4ts Hautklinik Kiel"
+          ]
+        },
+        {
+          "name": "Ante Karoglan",
+          "orcid": "https://orcid.org/0000-0002-6100-5927",
+          "institutions": [
+            "University Hospital Magdeburg"
+          ]
+        },
+        {
+          "name": "Claudia Maria B\u00e4r",
+          "orcid": "https://orcid.org/0000-0002-4510-8205",
+          "institutions": [
+            "University Hospital Magdeburg"
+          ]
+        },
+        {
+          "name": "Titus J. Brinker",
+          "orcid": "https://orcid.org/0000-0002-3620-5919",
+          "institutions": [
+            "German Cancer Research Center",
+            "Heidelberg University",
+            "University Hospital Heidelberg",
+            "National Center for Tumor Diseases"
+          ]
+        },
+        {
+          "name": "Laurenz Schmitt",
+          "orcid": "https://orcid.org/0000-0003-0989-5587",
+          "institutions": []
+        },
+        {
+          "name": "Wiebke K. Peitsch",
+          "orcid": "https://orcid.org/0000-0003-2478-2951",
+          "institutions": []
+        },
+        {
+          "name": "Friederike Hoffmann",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "J\u00fcrgen Christian Becker",
+          "orcid": "https://orcid.org/0000-0001-9183-653X",
+          "institutions": []
+        },
+        {
+          "name": "Christina Drusio",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Philipp Jansen",
+          "orcid": "https://orcid.org/0000-0003-3139-2118",
+          "institutions": [
+            "Essen University Hospital"
+          ]
+        },
+        {
+          "name": "Joachim Klode",
+          "orcid": "https://orcid.org/0000-0001-9239-7014",
+          "institutions": [
+            "Essen University Hospital"
+          ]
+        },
+        {
+          "name": "Georg Christian Lodde",
+          "orcid": "https://orcid.org/0000-0002-6930-2694",
+          "institutions": []
+        },
+        {
+          "name": "Stefanie Sammet",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Dirk Schadendorf",
+          "orcid": "https://orcid.org/0000-0003-3524-7858",
+          "institutions": [
+            "Essen University Hospital"
+          ]
+        },
+        {
+          "name": "Wiebke Sondermann",
+          "orcid": "https://orcid.org/0000-0002-3684-3523",
+          "institutions": []
+        },
+        {
+          "name": "Selma Ugurel",
+          "orcid": "https://orcid.org/0000-0002-9384-6704",
+          "institutions": []
+        },
+        {
+          "name": "Jeannine Zader",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Alexander Heinrich Enk",
+          "orcid": "https://orcid.org/0000-0002-7358-185X",
+          "institutions": [
+            "University Hospital Heidelberg"
+          ]
+        },
+        {
+          "name": "Martin Salzmann",
+          "orcid": "https://orcid.org/0000-0003-4310-4822",
+          "institutions": []
+        },
+        {
+          "name": "Sarah Sch\u00e4fer",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Knut Sch\u00e4kel",
+          "orcid": "https://orcid.org/0000-0001-6344-7799",
+          "institutions": []
+        },
+        {
+          "name": "Julia Katharina Winkler",
+          "orcid": "https://orcid.org/0000-0003-3197-9867",
+          "institutions": []
+        },
+        {
+          "name": "Priscilla W\u00f6lbing",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Hiba Asper",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Ann\u2010Sophie Bohne",
+          "orcid": "https://orcid.org/0000-0003-3234-4281",
+          "institutions": []
+        },
+        {
+          "name": "Victoria A. Brown",
+          "orcid": "https://orcid.org/0000-0003-4776-1539",
+          "institutions": []
+        },
+        {
+          "name": "Bianca Burba",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Sophia Deffaa",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Cecilia Dietrich",
+          "orcid": "https://orcid.org/0000-0003-3174-163X",
+          "institutions": []
+        },
+        {
+          "name": "Matthias Dietrich",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Katharina Antonia Drerup",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Friederike Egberts",
+          "orcid": "https://orcid.org/0000-0003-0839-4350",
+          "institutions": []
+        },
+        {
+          "name": "Anna\u2010Sophie Erkens",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Salim Greven",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Viola Harde",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Marion Jost",
+          "orcid": "https://orcid.org/0000-0001-8314-9879",
+          "institutions": []
+        },
+        {
+          "name": "Merit Kaeding",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Katharina Kosova",
+          "orcid": null,
+          "institutions": [
+            "University Hospital Schleswig-Holstein",
+            "Universit\u00e4ts Hautklinik Kiel"
+          ]
+        },
+        {
+          "name": "Stephan Lischner",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Maria Maagk",
+          "orcid": null,
+          "institutions": [
+            "German Cancer Research Center",
+            "Heidelberg University"
+          ]
+        },
+        {
+          "name": "Anna Laetitia Messinger",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Malte Metzner",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Rogina Motamedi",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Ann-Christine Rosenthal",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Ulrich Seidl",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Jana Stemmermann",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Kaspar Torz",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Juliana Giraldo Velez",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Jennifer Haiduk",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Mareike Alter",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Claudia Maria B\u00e4r",
+          "orcid": "https://orcid.org/0000-0002-4510-8205",
+          "institutions": [
+            "University Hospital Magdeburg"
+          ]
+        },
+        {
+          "name": "Paul Bergenthal",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Anne Gerlach",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Christian Holtorf",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Ante Karoglan",
+          "orcid": "https://orcid.org/0000-0002-6100-5927",
+          "institutions": [
+            "University Hospital Magdeburg"
+          ]
+        },
+        {
+          "name": "Sophie Kindermann",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Luise Kraas",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Moritz Felcht",
+          "orcid": "https://orcid.org/0000-0002-8032-9716",
+          "institutions": []
+        },
+        {
+          "name": "Maria Rita Gaiser",
+          "orcid": "https://orcid.org/0000-0002-7936-8865",
+          "institutions": [
+            "German Cancer Research Center",
+            "Heidelberg University"
+          ]
+        },
+        {
+          "name": "Claus\u2010Detlev Klemke",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Hjalmar Kurzen",
+          "orcid": "https://orcid.org/0000-0002-0093-2081",
+          "institutions": []
+        },
+        {
+          "name": "Thomas Leibing",
+          "orcid": "https://orcid.org/0000-0002-7157-1201",
+          "institutions": []
+        },
+        {
+          "name": "Verena Alexandra M\u00fcller",
+          "orcid": "https://orcid.org/0000-0002-0967-6723",
+          "institutions": []
+        },
+        {
+          "name": "Raphael R. Reinhard",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Jochen Sven Utikal",
+          "orcid": "https://orcid.org/0000-0001-5316-0241",
+          "institutions": [
+            "German Cancer Research Center",
+            "Heidelberg University"
+          ]
+        },
+        {
+          "name": "Franziska Winter",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Carola Berking",
+          "orcid": "https://orcid.org/0000-0003-0229-8931",
+          "institutions": [
+            "LMU Klinikum",
+            "Ludwig-Maximilians-Universit\u00e4t M\u00fcnchen"
+          ]
+        },
+        {
+          "name": "Laurie Eicher",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Daniela Hartmann",
+          "orcid": "https://orcid.org/0000-0002-1002-8133",
+          "institutions": [
+            "LMU Klinikum",
+            "Ludwig-Maximilians-Universit\u00e4t M\u00fcnchen"
+          ]
+        },
+        {
+          "name": "Markus Vincent Heppt",
+          "orcid": "https://orcid.org/0000-0003-4603-1825",
+          "institutions": []
+        },
+        {
+          "name": "Katharina Kilian",
+          "orcid": null,
+          "institutions": [
+            "University Hospital Schleswig-Holstein",
+            "Universit\u00e4ts Hautklinik Kiel"
+          ]
+        },
+        {
+          "name": "Sebastian Krammer",
+          "orcid": "https://orcid.org/0000-0001-7968-9821",
+          "institutions": [
+            "University Hospital Regensburg"
+          ]
+        },
+        {
+          "name": "Diana Lill",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Anne\u2010Charlotte Niesert",
+          "orcid": "https://orcid.org/0000-0001-5684-3240",
+          "institutions": []
+        },
+        {
+          "name": "Eva Maria Oppel",
+          "orcid": "https://orcid.org/0000-0002-8412-2667",
+          "institutions": []
+        },
+        {
+          "name": "Elke Sattler",
+          "orcid": "https://orcid.org/0000-0001-8677-3028",
+          "institutions": []
+        },
+        {
+          "name": "Sonja Senner",
+          "orcid": "https://orcid.org/0000-0002-8617-935X",
+          "institutions": []
+        },
+        {
+          "name": "Jens Wallmichrath",
+          "orcid": "https://orcid.org/0000-0001-9725-0951",
+          "institutions": []
+        },
+        {
+          "name": "Hans Wolff",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Tina Giner",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Valerie Glutsch",
+          "orcid": "https://orcid.org/0000-0001-9291-1327",
+          "institutions": []
+        }
+      ],
+      "venue": "European Journal of Cancer",
+      "publication_type": "article",
+      "abstract": "BACKGROUND: Recently, convolutional neural networks (CNNs) systematically outperformed dermatologists in distinguishing dermoscopic melanoma and nevi images. However, such a binary classification does not reflect the clinical reality of skin cancer screenings in which multiple diagnoses need to be taken into account. METHODS: Using 11,444 dermoscopic images, which covered dermatologic diagnoses comprising the majority of commonly pigmented skin lesions commonly faced in skin cancer screenings, a CNN was trained through novel deep learning techniques. A test set of 300 biopsy-verified images was used to compare the classifier's performance with that of 112 dermatologists from 13 German university hospitals. The primary end-point was the correct classification of the different lesions into benign and malignant. The secondary end-point was the correct classification of the images into one of the five diagnostic categories. FINDINGS: Sensitivity and specificity of dermatologists for the primary end-point were 74.4% (95% confidence interval [CI]: 67.0-81.8%) and 59.8% (95% CI: 49.8-69.8%), respectively. At equal sensitivity, the algorithm achieved a specificity of 91.3% (95% CI: 85.5-97.1%). For the secondary end-point, the mean sensitivity and specificity of the dermatologists were at 56.5% (95% CI: 42.8-70.2%) and 89.2% (95% CI: 85.0-93.3%), respectively. At equal sensitivity, the algorithm achieved a specificity of 98.8%. Two-sided McNemar tests revealed significance for the primary end-point (p < 0.001). For the secondary end-point, outperformance (p < 0.001) was achieved except for basal cell carcinoma (on-par performance). INTERPRETATION: Our findings show that automated classification of dermoscopic melanoma and nevi images is extendable to a multiclass classification problem, thus better reflecting clinical differential diagnoses, while still outperforming dermatologists at a significant level (p < 0.001).",
+      "is_open_access": true,
+      "url": "https://openalex.org/W2968318837",
+      "citation_count": 232,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 232
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2113790176",
+        "https://openalex.org/W2147598185",
+        "https://openalex.org/W2167917621",
+        "https://openalex.org/W2330607398",
+        "https://openalex.org/W2581082771",
+        "https://openalex.org/W2621161783",
+        "https://openalex.org/W2786147899",
+        "https://openalex.org/W2794825826",
+        "https://openalex.org/W2806853752",
+        "https://openalex.org/W2891595725",
+        "https://openalex.org/W2892053105",
+        "https://openalex.org/W2903060508",
+        "https://openalex.org/W2917303411",
+        "https://openalex.org/W2921785317",
+        "https://openalex.org/W2937742783",
+        "https://openalex.org/W2940790545",
+        "https://openalex.org/W2945626616",
+        "https://openalex.org/W2963258365",
+        "https://openalex.org/W2967039036",
+        "https://openalex.org/W2967473922",
+        "https://openalex.org/W2972588473",
+        "https://openalex.org/W3102785203",
+        "https://openalex.org/W4211223138",
+        "https://openalex.org/W6759831634"
+      ],
+      "source_metadata": {
+        "publisher": "Elsevier BV",
+        "reference_count": 24,
+        "referenced_works": [
+          "https://openalex.org/W2113790176",
+          "https://openalex.org/W2147598185",
+          "https://openalex.org/W2167917621",
+          "https://openalex.org/W2330607398",
+          "https://openalex.org/W2581082771",
+          "https://openalex.org/W2621161783",
+          "https://openalex.org/W2786147899",
+          "https://openalex.org/W2794825826",
+          "https://openalex.org/W2806853752",
+          "https://openalex.org/W2891595725",
+          "https://openalex.org/W2892053105",
+          "https://openalex.org/W2903060508",
+          "https://openalex.org/W2917303411",
+          "https://openalex.org/W2921785317",
+          "https://openalex.org/W2937742783",
+          "https://openalex.org/W2940790545",
+          "https://openalex.org/W2945626616",
+          "https://openalex.org/W2963258365",
+          "https://openalex.org/W2967039036",
+          "https://openalex.org/W2967473922",
+          "https://openalex.org/W2972588473",
+          "https://openalex.org/W3102785203",
+          "https://openalex.org/W4211223138",
+          "https://openalex.org/W6759831634"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 22
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 35
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 29
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 35
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 41
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 38
+          },
+          {
+            "year": 2020,
+            "cited_by_count": 25
+          },
+          {
+            "year": 2019,
+            "cited_by_count": 6
+          }
+        ],
+        "keywords": [
+          "dermoscopic image classification",
+          "skin cancer screening",
+          "melanoma",
+          "nevi",
+          "convolutional neural networks",
+          "multi-class classification",
+          "basal cell carcinoma",
+          "automated diagnosis"
+        ],
+        "research_domain": "Health Sciences",
+        "topics": [
+          "Cutaneous Melanoma Detection and Management",
+          "AI in cancer detection",
+          "Artificial Intelligence in Healthcare"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5059931259",
+          "https://openalex.org/A5022293880",
+          "https://openalex.org/A5007887862",
+          "https://openalex.org/A5057226132",
+          "https://openalex.org/A5056685282",
+          "https://openalex.org/A5044736874",
+          "https://openalex.org/A5077469980",
+          "https://openalex.org/A5025256131",
+          "https://openalex.org/A5038031102",
+          "https://openalex.org/A5034365278",
+          "https://openalex.org/A5054299697",
+          "https://openalex.org/A5050943602",
+          "https://openalex.org/A5008750058",
+          "https://openalex.org/A5084073390",
+          "https://openalex.org/A5102745449",
+          "https://openalex.org/A5018377200",
+          "https://openalex.org/A5078426768",
+          "https://openalex.org/A5017486762",
+          "https://openalex.org/A5031315234",
+          "https://openalex.org/A5052915645",
+          "https://openalex.org/A5086408535",
+          "https://openalex.org/A5088191184",
+          "https://openalex.org/A5086466437",
+          "https://openalex.org/A5034303822",
+          "https://openalex.org/A5103117487",
+          null,
+          "https://openalex.org/A5067045121",
+          "https://openalex.org/A5042804370",
+          "https://openalex.org/A5054299697",
+          "https://openalex.org/A5038031102",
+          "https://openalex.org/A5043133296",
+          "https://openalex.org/A5058585683",
+          "https://openalex.org/A5034365278",
+          "https://openalex.org/A5058670875",
+          "https://openalex.org/A5057381405",
+          "https://openalex.org/A5022724352",
+          "https://openalex.org/A5077469980",
+          "https://openalex.org/A5017586274",
+          null,
+          "https://openalex.org/A5082049025",
+          "https://openalex.org/A5103159414",
+          "https://openalex.org/A5060106461",
+          "https://openalex.org/A5081758394",
+          "https://openalex.org/A5080522810",
+          "https://openalex.org/A5009318874",
+          "https://openalex.org/A5035031186",
+          "https://openalex.org/A5066493873",
+          "https://openalex.org/A5043225068",
+          "https://openalex.org/A5067294488",
+          "https://openalex.org/A5031411766",
+          "https://openalex.org/A5083190162",
+          "https://openalex.org/A5065411502",
+          "https://openalex.org/A5067331009",
+          "https://openalex.org/A5023117937",
+          "https://openalex.org/A5082462741",
+          "https://openalex.org/A5050804867",
+          "https://openalex.org/A5006035748",
+          "https://openalex.org/A5002975297",
+          "https://openalex.org/A5088470446",
+          "https://openalex.org/A5030379748",
+          "https://openalex.org/A5031145267",
+          "https://openalex.org/A5063078645",
+          "https://openalex.org/A5072244623",
+          null,
+          "https://openalex.org/A5021872645",
+          "https://openalex.org/A5006551783",
+          "https://openalex.org/A5037732691",
+          "https://openalex.org/A5065520758",
+          "https://openalex.org/A5037386546",
+          "https://openalex.org/A5088191184",
+          "https://openalex.org/A5066080645",
+          "https://openalex.org/A5056733855",
+          null,
+          "https://openalex.org/A5086408535",
+          "https://openalex.org/A5006422111",
+          "https://openalex.org/A5087325631",
+          "https://openalex.org/A5009970399",
+          "https://openalex.org/A5018377200",
+          "https://openalex.org/A5112384615",
+          "https://openalex.org/A5043325804",
+          "https://openalex.org/A5008542235",
+          "https://openalex.org/A5030765130",
+          "https://openalex.org/A5060560993",
+          "https://openalex.org/A5007887862",
+          null,
+          "https://openalex.org/A5056685282",
+          "https://openalex.org/A5025835030",
+          "https://openalex.org/A5078426768",
+          "https://openalex.org/A5072203765",
+          "https://openalex.org/A5054330151",
+          "https://openalex.org/A5042939635",
+          "https://openalex.org/A5000660548",
+          "https://openalex.org/A5015184212",
+          "https://openalex.org/A5008175017",
+          "https://openalex.org/A5067997906",
+          "https://openalex.org/A5081887722",
+          "https://openalex.org/A5076914354",
+          null,
+          "https://openalex.org/A5051775390",
+          "https://openalex.org/A5078932407"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_30bbffa2",
+          "source_type": "openalex",
+          "artifact_sha256": "f539da0a5754aab026c34fd419ab4d790fbfacb407587b2707684c50e3aff51e",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W2968318837",
+          "json_pointer": "/results/https://openalex.org/W2968318837",
+          "source_url": "https://openalex.org/W2968318837",
+          "fetched_at": "2026-11-12T01:19:12.255556Z"
+        }
+      ],
+      "relevance_score": 0.952,
+      "topic_relevance": 0.9125,
+      "recency_signal": 0.0,
+      "citation_signal": 0.789,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.75",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 10
+    }
+  ]
+}

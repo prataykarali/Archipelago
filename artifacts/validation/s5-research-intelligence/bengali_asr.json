@@ -1,0 +1,1297 @@
+{
+  "schema": "archipelago.research_intelligence.v1",
+  "options": {
+    "topic": "Bengali automatic speech recognition",
+    "top_k": 10,
+    "year_from": null,
+    "year_to": null,
+    "sort": "relevance",
+    "open_access": null,
+    "paper_type": "",
+    "field": "",
+    "venue": ""
+  },
+  "retrieved_at": "2026-11-12T01:19:10.413653+00:00",
+  "sources": [
+    {
+      "source": "openalex",
+      "requested_at": "2026-11-12T01:19:07.632719+00:00",
+      "status": "live",
+      "record_count": 7,
+      "raw_sha256": "a5b70cdfa456dbe15f8614535f1ebebf305c8b95be555897d5f67e2fd511aafd",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "crossref",
+      "requested_at": "2026-11-12T01:19:07.634295+00:00",
+      "status": "live",
+      "record_count": 17,
+      "raw_sha256": "a4067ad8c02d712afd7a682bd32f2d0bb738e794302b68c6acf33bbaf6183772",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "arxiv",
+      "requested_at": "2026-11-12T01:19:07.636423+00:00",
+      "status": "live",
+      "record_count": 20,
+      "raw_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+      "request_id": null,
+      "http_status": 200,
+      "error": null,
+      "rate_limited": false
+    },
+    {
+      "source": "semantic_scholar",
+      "requested_at": "2026-11-12T01:19:07.637233+00:00",
+      "status": "rate_limited",
+      "record_count": 0,
+      "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+      "request_id": "06c20791-8291-4972-8519-e34e1ec9c805",
+      "http_status": 429,
+      "error": "HTTP 429",
+      "rate_limited": true
+    }
+  ],
+  "candidate_count": 41,
+  "filtered_count": 41,
+  "papers": [
+    {
+      "paper_id": "8e737f6a-1425-58f8-8d04-938df0ed3306",
+      "title": "Bengali Common Voice Speech Dataset for Automatic Speech Recognition",
+      "year": 2022,
+      "publication_date": "2022-06-28",
+      "doi": "10.48550/arxiv.2206.14053",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2206.14053",
+        "arxiv_id": "2206.14053v2",
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4283755617",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Samiul Alam",
+          "orcid": "https://orcid.org/0000-0002-8458-4642",
+          "institutions": [
+            "Michigan State University"
+          ]
+        },
+        {
+          "name": "Asif Shahriyar Sushmit",
+          "orcid": null,
+          "institutions": [
+            "Rensselaer Polytechnic Institute"
+          ]
+        },
+        {
+          "name": "Zaowad Abdullah",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Shahrin Nakkhatra",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Md. Nazmuddoha Ansary",
+          "orcid": "https://orcid.org/0000-0002-8087-6189",
+          "institutions": []
+        },
+        {
+          "name": "Syed Mobassir Hossen",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Sazia Mehnaz",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Tahsin Reasat",
+          "orcid": "https://orcid.org/0000-0001-9451-6814",
+          "institutions": [
+            "Vanderbilt University"
+          ]
+        },
+        {
+          "name": "Ahmed Imtiaz Humayun",
+          "orcid": "https://orcid.org/0000-0002-9530-1134",
+          "institutions": [
+            "Rice University"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Bengali is one of the most spoken languages in the world with over 300 million speakers globally. Despite its popularity, research into the development of Bengali speech recognition systems is hindered due to the lack of diverse open-source datasets. As a way forward, we have crowdsourced the Bengali Common Voice Speech Dataset, which is a sentence-level automatic speech recognition corpus. Collected on the Mozilla Common Voice platform, the dataset is part of an ongoing campaign that has led to the collection of over 400 hours of data in 2 months and is growing rapidly. Our analysis shows that this dataset has more speaker, phoneme, and environmental diversity compared to the OpenSLR Bengali ASR dataset, the largest existing open-source Bengali speech dataset. We present insights obtained from the dataset and discuss key linguistic challenges that need to be addressed in future versions. Additionally, we report the current performance of a few Automatic Speech Recognition (ASR) algorithms and set a benchmark for future research.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4283755617",
+      "citation_count": 26,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 26
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2895676041",
+        "https://openalex.org/W2995929068",
+        "https://openalex.org/W4206348758",
+        "https://openalex.org/W4249042990"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 4,
+        "referenced_works": [
+          "https://openalex.org/W2895676041",
+          "https://openalex.org/W2995929068",
+          "https://openalex.org/W4206348758",
+          "https://openalex.org/W4249042990"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 6
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 6
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 8
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 5
+          },
+          {
+            "year": 2022,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "Mozilla Common Voice",
+          "speaker diversity",
+          "environmental diversity",
+          "low-resource languages"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Speech Recognition and Synthesis",
+          "Speech and Audio Processing",
+          "Phonetics and Phonology Research"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5084705208",
+          "https://openalex.org/A5017058085",
+          "https://openalex.org/A5075524653",
+          "https://openalex.org/A5041802555",
+          "https://openalex.org/A5017651123",
+          "https://openalex.org/A5069032175",
+          "https://openalex.org/A5003621961",
+          "https://openalex.org/A5028185751",
+          "https://openalex.org/A5046358586"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_9561ae67",
+          "source_type": "openalex",
+          "artifact_sha256": "a5b70cdfa456dbe15f8614535f1ebebf305c8b95be555897d5f67e2fd511aafd",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4283755617",
+          "json_pointer": "/results/https://openalex.org/W4283755617",
+          "source_url": "https://openalex.org/W4283755617",
+          "fetched_at": "2026-11-12T01:19:10.391398Z"
+        },
+        {
+          "provenance_id": "prov_5f3e0113",
+          "source_type": "arxiv",
+          "artifact_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2206.14053v2",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2206.14053v2",
+          "fetched_at": "2026-11-12T01:19:07.991041Z"
+        }
+      ],
+      "relevance_score": 1.0239,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.2,
+      "citation_signal": 0.4771,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 1
+    },
+    {
+      "paper_id": "be7bf9dd-ec1e-532a-a66c-c81a206637f3",
+      "title": "An Automatic Speech Recognition System for Bengali Language based on Wav2Vec2 and Transfer Learning",
+      "year": 2022,
+      "publication_date": "2022-09-16",
+      "doi": "10.48550/arxiv.2209.08119",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2209.08119",
+        "arxiv_id": "2209.08119v2",
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4296612094",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Tushar Talukder Showrav",
+          "orcid": "https://orcid.org/0009-0004-4457-701X",
+          "institutions": [
+            "Bangladesh University of Engineering and Technology"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "An independent, automated method of decoding and transcribing oral speech is known as automatic speech recognition (ASR). A typical ASR system extracts feature from audio recordings or streams and run one or more algorithms to map the features to corresponding texts. Numerous of research has been done in the field of speech signal processing in recent years. When given adequate resources, both conventional ASR and emerging end-to-end (E2E) speech recognition have produced promising results. However, for low-resource languages like Bengali, the current state of ASR lags behind, although the low resource state does not reflect upon the fact that this language is spoken by over 500 million people all over the world. Despite its popularity, there aren't many diverse open-source datasets available, which makes it difficult to conduct research on Bengali speech recognition systems. This paper is a part of the competition named `BUET CSE Fest DL Sprint'. The purpose of this paper is to improve the speech recognition performance of the Bengali language by adopting speech recognition technology on the E2E structure based on the transfer learning framework. The proposed method effectively models the Bengali language and achieves 3.819 score in `Levenshtein Mean Distance' on the test dataset of 7747 samples, when only 1000 samples of train dataset were used to train.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4296612094",
+      "citation_count": 8,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 8
+        }
+      ],
+      "references": [
+        "https://openalex.org/W4283755617"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 1,
+        "referenced_works": [
+          "https://openalex.org/W4283755617"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2026,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2025,
+            "cited_by_count": 4
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 2
+          }
+        ],
+        "keywords": [
+          "wav2vec 2.0",
+          "transfer learning",
+          "end-to-end speech recognition",
+          "low-resource languages",
+          "speech transcription",
+          "audio-to-text",
+          "Bengali language"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Speech Recognition and Synthesis",
+          "Speech and Audio Processing",
+          "Music and Audio Processing"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5041232406"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_6d72c661",
+          "source_type": "openalex",
+          "artifact_sha256": "a5b70cdfa456dbe15f8614535f1ebebf305c8b95be555897d5f67e2fd511aafd",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4296612094",
+          "json_pointer": "/results/https://openalex.org/W4296612094",
+          "source_url": "https://openalex.org/W4296612094",
+          "fetched_at": "2026-11-12T01:19:10.391618Z"
+        },
+        {
+          "provenance_id": "prov_7cc1c5b8",
+          "source_type": "arxiv",
+          "artifact_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2209.08119v2",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2209.08119v2",
+          "fetched_at": "2026-11-12T01:19:07.991822Z"
+        }
+      ],
+      "relevance_score": 1.0159,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.2,
+      "citation_signal": 0.318,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 2
+    },
+    {
+      "paper_id": "1bc13457-b174-599c-a891-451f4c25f346",
+      "title": "Automatic Speech Recognition for Biomedical Data in Bengali Language",
+      "year": 2024,
+      "publication_date": "2024-06-16",
+      "doi": "10.48550/arxiv.2406.12931",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2406.12931",
+        "arxiv_id": "2406.12931v1",
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W4399912074",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Kabir, Shariar",
+          "orcid": null,
+          "institutions": [
+            "University of Birmingham"
+          ]
+        },
+        {
+          "name": "Nahar, Nazmun",
+          "orcid": null,
+          "institutions": [
+            "University of Birmingham"
+          ]
+        },
+        {
+          "name": "Shyamasree Saha",
+          "orcid": "https://orcid.org/0000-0001-8867-1770",
+          "institutions": [
+            "University of Birmingham"
+          ]
+        },
+        {
+          "name": "Mamunur Rashid",
+          "orcid": "https://orcid.org/0000-0003-4958-6041",
+          "institutions": [
+            "University of Birmingham"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "This paper presents the development of a prototype Automatic Speech Recognition (ASR) system specifically designed for Bengali biomedical data. Recent advancements in Bengali ASR are encouraging, but a lack of domain-specific data limits the creation of practical healthcare ASR models. This project bridges this gap by developing an ASR system tailored for Bengali medical terms like symptoms, severity levels, and diseases, encompassing two major dialects: Bengali and Sylheti. We train and evaluate two popular ASR frameworks on a comprehensive 46-hour Bengali medical corpus. Our core objective is to create deployable health-domain ASR systems for digital health applications, ultimately increasing accessibility for non-technical users in the healthcare sector.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W4399912074",
+      "citation_count": 2,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 2
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2936774411"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 1,
+        "referenced_works": [
+          "https://openalex.org/W2936774411"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2025,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2024,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "speech recognition",
+          "Bengali language",
+          "medical terminology",
+          "medical corpora",
+          "health care access",
+          "digital health applications",
+          "low-resource languages"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Speech Recognition and Synthesis",
+          "Speech and Audio Processing",
+          "Speech and dialogue systems"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          null,
+          null,
+          "https://openalex.org/A5024020888",
+          "https://openalex.org/A5003668423"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_0cb635d1",
+          "source_type": "openalex",
+          "artifact_sha256": "a5b70cdfa456dbe15f8614535f1ebebf305c8b95be555897d5f67e2fd511aafd",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W4399912074",
+          "json_pointer": "/results/https://openalex.org/W4399912074",
+          "source_url": "https://openalex.org/W4399912074",
+          "fetched_at": "2026-11-12T01:19:10.391532Z"
+        },
+        {
+          "provenance_id": "prov_071bf85b",
+          "source_type": "arxiv",
+          "artifact_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2406.12931v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2406.12931v1",
+          "fetched_at": "2026-11-12T01:19:07.991683Z"
+        }
+      ],
+      "relevance_score": 1.008,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.6,
+      "citation_signal": 0.159,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 3
+    },
+    {
+      "paper_id": "2cb11f19-915c-56a7-a060-a303ad5169d9",
+      "title": "Multi-Level Embedding Conformer Framework for Bengali Automatic Speech Recognition",
+      "year": 2025,
+      "publication_date": "2025-12-23",
+      "doi": "10.48550/arxiv.2601.09710",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2601.09710",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7124448227",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Md. Nazmus Sakib",
+          "orcid": "https://orcid.org/0000-0002-7008-1120",
+          "institutions": []
+        },
+        {
+          "name": "Golam Mahmud",
+          "orcid": null,
+          "institutions": [
+            "Dhaka International University"
+          ]
+        },
+        {
+          "name": "Md. Maruf Bangabashi",
+          "orcid": "https://orcid.org/0009-0009-2950-2139",
+          "institutions": []
+        },
+        {
+          "name": "Umme Ara Mahinur Istia",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Md. Jahidul Islam",
+          "orcid": "https://orcid.org/0000-0002-2844-6691",
+          "institutions": []
+        },
+        {
+          "name": "Partha Sarker",
+          "orcid": null,
+          "institutions": [
+            "Dhaka International University"
+          ]
+        },
+        {
+          "name": "Afra Yeamini Prity",
+          "orcid": null,
+          "institutions": [
+            "Dhaka University of Engineering & Technology"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Bengali, spoken by over 300 million people, is a morphologically rich and lowresource language, posing challenges for automatic speech recognition (ASR). This research presents an end-to-end framework for Bengali ASR, building on a Conformer-CTC backbone with a multi-level embedding fusion mechanism that incorporates phoneme, syllable, and wordpiece representations. By enriching acoustic features with these linguistic embeddings, the model captures fine-grained phonetic cues and higher-level contextual patterns. The architecture employs early and late Conformer stages, with preprocessing steps including silence trimming, resampling, Log-Mel spectrogram extraction, and SpecAugment augmentation. The experimental results demonstrate the strong potential of the model, achieving a word error rate (WER) of 10.01% and a character error rate (CER) of 5.03%. These results demonstrate the effectiveness of combining multi-granular linguistic information with acoustic modeling, providing a scalable approach for low-resource ASR development.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7124448227",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 0,
+        "referenced_works": [],
+        "counts_by_year": [],
+        "keywords": [
+          "low-resource languages",
+          "morphologically rich languages",
+          "end-to-end speech recognition",
+          "acoustic modeling",
+          "SpecAugment"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Speech Recognition and Synthesis",
+          "Speech and Audio Processing",
+          "Phonetics and Phonology Research"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5123197482",
+          "https://openalex.org/A5123222994",
+          "https://openalex.org/A5123175754",
+          "https://openalex.org/A5117757447",
+          "https://openalex.org/A5008265363",
+          "https://openalex.org/A5016660254",
+          "https://openalex.org/A5119662090"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_daa8aa03",
+          "source_type": "openalex",
+          "artifact_sha256": "a5b70cdfa456dbe15f8614535f1ebebf305c8b95be555897d5f67e2fd511aafd",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7124448227",
+          "json_pointer": "/results/https://openalex.org/W7124448227",
+          "source_url": "https://openalex.org/W7124448227",
+          "fetched_at": "2026-11-12T01:19:10.391211Z"
+        }
+      ],
+      "relevance_score": 1.0,
+      "topic_relevance": 1.0,
+      "recency_signal": 0.8,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 4
+    },
+    {
+      "paper_id": "29052296-4a35-5203-adfc-0c5ce8033fde",
+      "title": "End-to-End Bengali Speech Recognition",
+      "year": 2020,
+      "publication_date": "2020-09-21",
+      "doi": "10.48550/arxiv.2009.09615",
+      "identifiers": {
+        "doi": "10.48550/arxiv.2009.09615",
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W3087588949",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Sayan Mandal",
+          "orcid": "https://orcid.org/0000-0002-0861-6905",
+          "institutions": []
+        },
+        {
+          "name": "Sarthak Yadav",
+          "orcid": "https://orcid.org/0000-0002-1979-9460",
+          "institutions": []
+        },
+        {
+          "name": "Rai, Atul",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Bengali is a prominent language of the Indian subcontinent. However, while many state-of-the-art acoustic models exist for prominent languages spoken in the region, research and resources for Bengali are few and far between. In this work, we apply CTC based CNN-RNN networks, a prominent deep learning based end-to-end automatic speech recognition technique, to the Bengali ASR task. We also propose and evaluate the applicability and efficacy of small 7x3 and 3x3 convolution kernels which are prominently used in the computer vision domain primarily because of their FLOPs and parameter efficient nature. We propose two CNN blocks, 2-layer Block A and 4-layer Block B, with the first layer comprising of 7x3 kernel and the subsequent layers comprising solely of 3x3 kernels. Using the publicly available Large Bengali ASR Training data set, we benchmark and evaluate the performance of seven deep neural network configurations of varying complexities and depth on the Bengali ASR task. Our best model, with Block B, has a WER of 13.67, having an absolute reduction of 1.39% over comparable model with larger convolution kernels of size 41x11 and 21x11.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W3087588949",
+      "citation_count": 4,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 4
+        }
+      ],
+      "references": [
+        "https://openalex.org/W854541894",
+        "https://openalex.org/W1686810756",
+        "https://openalex.org/W1836465849",
+        "https://openalex.org/W1922655562",
+        "https://openalex.org/W2127141656",
+        "https://openalex.org/W2134800885",
+        "https://openalex.org/W2156876426",
+        "https://openalex.org/W2183341477",
+        "https://openalex.org/W2193413348",
+        "https://openalex.org/W2194775991",
+        "https://openalex.org/W2274287116",
+        "https://openalex.org/W2302255633",
+        "https://openalex.org/W2327501763",
+        "https://openalex.org/W2808998745",
+        "https://openalex.org/W2889082438",
+        "https://openalex.org/W2889368306",
+        "https://openalex.org/W2895676041",
+        "https://openalex.org/W2963446712",
+        "https://openalex.org/W2963993763",
+        "https://openalex.org/W2964137095"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 20,
+        "referenced_works": [
+          "https://openalex.org/W854541894",
+          "https://openalex.org/W1686810756",
+          "https://openalex.org/W1836465849",
+          "https://openalex.org/W1922655562",
+          "https://openalex.org/W2127141656",
+          "https://openalex.org/W2134800885",
+          "https://openalex.org/W2156876426",
+          "https://openalex.org/W2183341477",
+          "https://openalex.org/W2193413348",
+          "https://openalex.org/W2194775991",
+          "https://openalex.org/W2274287116",
+          "https://openalex.org/W2302255633",
+          "https://openalex.org/W2327501763",
+          "https://openalex.org/W2808998745",
+          "https://openalex.org/W2889082438",
+          "https://openalex.org/W2889368306",
+          "https://openalex.org/W2895676041",
+          "https://openalex.org/W2963446712",
+          "https://openalex.org/W2963993763",
+          "https://openalex.org/W2964137095"
+        ],
+        "counts_by_year": [
+          {
+            "year": 2024,
+            "cited_by_count": 1
+          },
+          {
+            "year": 2023,
+            "cited_by_count": 2
+          },
+          {
+            "year": 2021,
+            "cited_by_count": 1
+          }
+        ],
+        "keywords": [
+          "end-to-end speech recognition",
+          "CTC",
+          "CNN-RNN",
+          "model compression",
+          "parameter efficiency",
+          "low-resource languages",
+          "word error rate"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Speech Recognition and Synthesis",
+          "Speech and Audio Processing",
+          "Handwritten Text Recognition Techniques"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5100686470",
+          "https://openalex.org/A5000317921",
+          null
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_a7f6b86a",
+          "source_type": "openalex",
+          "artifact_sha256": "a5b70cdfa456dbe15f8614535f1ebebf305c8b95be555897d5f67e2fd511aafd",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W3087588949",
+          "json_pointer": "/results/https://openalex.org/W3087588949",
+          "source_url": "https://openalex.org/W3087588949",
+          "fetched_at": "2026-11-12T01:19:10.391925Z"
+        }
+      ],
+      "relevance_score": 0.8491,
+      "topic_relevance": 0.8375,
+      "recency_signal": 0.0,
+      "citation_signal": 0.233,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 5
+    },
+    {
+      "paper_id": "5813cc12-fc1a-5ef9-b339-4fe4aa134af8",
+      "title": "BanglaNum -- A Public Dataset for Bengali Digit Recognition from Speech",
+      "year": 2024,
+      "publication_date": "2024-03-20",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "2403.13465v1",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Mir Sayeed Mohammad",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Azizul Zahid",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Md Asif Iqbal",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "Automatic speech recognition (ASR) converts the human voice into readily understandable and categorized text or words. Although Bengali is one of the most widely spoken languages in the world, there have been very few studies on Bengali ASR, particularly on Bangladeshi-accented Bengali. In this study, audio recordings of spoken digits (0-9) from university students were used to create a Bengali speech digits dataset that may be employed to train artificial neural networks for voice-based digital input systems. This paper also compares the Bengali digit recognition accuracy of several Convolutional Neural Networks (CNNs) using spectrograms and shows that a test accuracy of 98.23% is achievable using parameter-efficient models such as SqueezeNet on our dataset.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2403.13465v1",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_698dd9b1",
+          "source_type": "arxiv",
+          "artifact_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2403.13465v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2403.13465v1",
+          "fetched_at": "2026-11-12T01:19:07.993263Z"
+        }
+      ],
+      "relevance_score": 0.8375,
+      "topic_relevance": 0.8375,
+      "recency_signal": 0.6,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 6
+    },
+    {
+      "paper_id": "9e1e477d-c0c3-5975-a8ec-247284885ad1",
+      "title": "Challenges and Opportunities of Speech Recognition for Bengali Language",
+      "year": 2021,
+      "publication_date": "2021-09-27",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "2109.13217v1",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "M. F. Mridha",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Abu Quwsar Ohi",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Md. Abdul Hamid",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Muhammad Mostafa Monowar",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "Speech recognition is a fascinating process that offers the opportunity to interact and command the machine in the field of human-computer interactions. Speech recognition is a language-dependent system constructed directly based on the linguistic and textual properties of any language. Automatic Speech Recognition (ASR) systems are currently being used to translate speech to text flawlessly. Although ASR systems are being strongly executed in international languages, ASR systems' implementation in the Bengali language has not reached an acceptable state. In this research work, we sedulously disclose the current status of the Bengali ASR system's research endeavors. In what follows, we acquaint the challenges that are mostly encountered while constructing a Bengali ASR system. We split the challenges into language-dependent and language-independent challenges and guide how the particular complications may be overhauled. Following a rigorous investigation and highlighting the challenges, we conclude that Bengali ASR systems require specific construction of ASR architectures based on the Bengali language's grammatical and phonetic structure.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2109.13217v1",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_f9f5327c",
+          "source_type": "arxiv",
+          "artifact_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2109.13217v1",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2109.13217v1",
+          "fetched_at": "2026-11-12T01:19:07.992654Z"
+        }
+      ],
+      "relevance_score": 0.8375,
+      "topic_relevance": 0.8375,
+      "recency_signal": 0.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 1.00"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 7
+    },
+    {
+      "paper_id": "f00a5928-bbcc-56ac-a1a7-2a8e4485f5b9",
+      "title": "Unsupervised Automatic Speech Recognition: A Review",
+      "year": 2021,
+      "publication_date": "2021-06-09",
+      "doi": "10.1016/j.specom.2022.02.005",
+      "identifiers": {
+        "doi": "10.1016/j.specom.2022.02.005",
+        "arxiv_id": "2106.04897v2",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Hanan Aldarmaki",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Asad Ullah",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Nazar Zaki",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "Automatic Speech Recognition (ASR) systems can be trained to achieve remarkable performance given large amounts of manually transcribed speech, but large labeled data sets can be difficult or expensive to acquire for all languages of interest. In this paper, we review the research literature to identify models and ideas that could lead to fully unsupervised ASR, including unsupervised segmentation of the speech signal, unsupervised mapping from speech segments to text, and semi-supervised models with nominal amounts of labeled examples. The objective of the study is to identify the limitations of what can be learned from speech data alone and to understand the minimum requirements for speech recognition. Identifying these limitations would help optimize the resources and efforts in ASR development for low-resource languages.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2106.04897v2",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_ba7eee7f",
+          "source_type": "arxiv",
+          "artifact_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2106.04897v2",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2106.04897v2",
+          "fetched_at": "2026-11-12T01:19:07.993046Z"
+        }
+      ],
+      "relevance_score": 0.75,
+      "topic_relevance": 0.75,
+      "recency_signal": 0.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 0.75"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 8
+    },
+    {
+      "paper_id": "0310af99-2438-5fab-8a65-857a8844918d",
+      "title": "A Density Ratio Approach to Language Model Fusion in End-To-End Automatic Speech Recognition",
+      "year": 2020,
+      "publication_date": "2020-02-26",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": "2002.11268v3",
+        "isbn": null,
+        "openalex_id": null,
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Erik McDermott",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Hasim Sak",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Ehsan Variani",
+          "orcid": null,
+          "institutions": []
+        }
+      ],
+      "venue": "arXiv",
+      "publication_type": "preprint",
+      "abstract": "This article describes a density ratio approach to integrating external Language Models (LMs) into end-to-end models for Automatic Speech Recognition (ASR). Applied to a Recurrent Neural Network Transducer (RNN-T) ASR model trained on a given domain, a matched in-domain RNN-LM, and a target domain RNN-LM, the proposed method uses Bayes' Rule to define RNN-T posteriors for the target domain, in a manner directly analogous to the classic hybrid model for ASR based on Deep Neural Networks (DNNs) or LSTMs in the Hidden Markov Model (HMM) framework (Bourlard & Morgan, 1994). The proposed approach is evaluated in cross-domain and limited-data scenarios, for which a significant amount of target domain text data is used for LM training, but only limited (or no) {audio, transcript} training data pairs are used to train the RNN-T. Specifically, an RNN-T model trained on paired audio & transcript data from YouTube is evaluated for its ability to generalize to Voice Search data. The Density Ratio method was found to consistently outperform the dominant approach to LM and end-to-end ASR integration, Shallow Fusion.",
+      "is_open_access": true,
+      "url": "http://arxiv.org/abs/2002.11268v3",
+      "citation_count": null,
+      "citation_provider": null,
+      "citation_observations": [],
+      "references": [],
+      "source_metadata": {},
+      "provenance": [
+        {
+          "provenance_id": "prov_eac99595",
+          "source_type": "arxiv",
+          "artifact_sha256": "e3167ceaf9474345dc4eeacdbf4ee220972a100a9f12fd80a27ff483bddcdd4b",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "2002.11268v3",
+          "json_pointer": null,
+          "source_url": "http://arxiv.org/abs/2002.11268v3",
+          "fetched_at": "2026-11-12T01:19:07.991188Z"
+        }
+      ],
+      "relevance_score": 0.75,
+      "topic_relevance": 0.75,
+      "recency_signal": 0.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 0.75",
+        "abstract query coverage 0.75"
+      ],
+      "evidence_status": "ABSTRACT_AVAILABLE",
+      "identity_review": [],
+      "rank": 9
+    },
+    {
+      "paper_id": "e228fa36-51f4-5ca7-a3f3-616d763f52c2",
+      "title": "Automatic Sentence Completion Using Bengali Audio Speech with a Transformer-Based Early Speech Recognition System",
+      "year": 2026,
+      "publication_date": "2026-10-15",
+      "doi": null,
+      "identifiers": {
+        "doi": null,
+        "arxiv_id": null,
+        "isbn": null,
+        "openalex_id": "https://openalex.org/W7222852332",
+        "semantic_scholar_id": null
+      },
+      "authors": [
+        {
+          "name": "Md Asif Akram",
+          "orcid": null,
+          "institutions": []
+        },
+        {
+          "name": "Arif Faisal",
+          "orcid": "https://orcid.org/0009-0004-6777-7823",
+          "institutions": [
+            "Daffodil International University"
+          ]
+        },
+        {
+          "name": "Sakir Hossain Faruque",
+          "orcid": "https://orcid.org/0009-0008-5068-8567",
+          "institutions": [
+            "Daffodil International University"
+          ]
+        },
+        {
+          "name": "Sharun Akter Khushbu",
+          "orcid": "https://orcid.org/0000-0002-8900-8580",
+          "institutions": [
+            "Daffodil International University"
+          ]
+        }
+      ],
+      "venue": "arXiv (Cornell University)",
+      "publication_type": "preprint",
+      "abstract": "Dementia severely impairs communication abilities and turns everyday conversations into challenging experiences. Individuals affected by dementia frequently struggle to express their thoughts or complete sentences, making it difficult for family members and caregivers to understand their needs. This study proposes a novel approach to assist dementia patients by developing an integrated system that detects signs of dementia through Bangla speech and text analysis and provides sentence auto-completion support during conversations. To achieve this, recorded voices from individuals with and without dementia were analysed, and key acoustic features were extracted to capture vocal patterns associated with cognitive decline. A transformer-based model was employed to transcribe voice signals into text for linguistic analysis. In the classification task, several Machine Learning (ML) and Deep Learning (DL) models were evaluated using both acoustic and textual representations, and the LSTM model architectures demonstrated strong capabilities for modelling contextual patterns in speech and language data. For the sentence auto-completion task, a sequential learning model based on a Bidirectional LSTM (Bi-LSTM) network with an attention mechanism was developed to sequentially complete partially expressed Bangla sentences during conversation. This research bridges the gap in dementia analysis in an underrepresented language and implements a sentence auto-completion framework for cognitive disorders.",
+      "is_open_access": true,
+      "url": "https://openalex.org/W7222852332",
+      "citation_count": 0,
+      "citation_provider": "openalex",
+      "citation_observations": [
+        {
+          "provider": "openalex",
+          "count": 0
+        }
+      ],
+      "references": [
+        "https://openalex.org/W2109140840",
+        "https://openalex.org/W2793398224",
+        "https://openalex.org/W2903517662",
+        "https://openalex.org/W2997604048",
+        "https://openalex.org/W3016396388",
+        "https://openalex.org/W3048772370",
+        "https://openalex.org/W3128387916",
+        "https://openalex.org/W3197051898",
+        "https://openalex.org/W3212095784",
+        "https://openalex.org/W4205131079",
+        "https://openalex.org/W4206055706",
+        "https://openalex.org/W4310386991",
+        "https://openalex.org/W4311000453",
+        "https://openalex.org/W4327928783",
+        "https://openalex.org/W4386122867",
+        "https://openalex.org/W4389977535",
+        "https://openalex.org/W4392436426",
+        "https://openalex.org/W4394714747",
+        "https://openalex.org/W4399714298",
+        "https://openalex.org/W4401890484",
+        "https://openalex.org/W4409431035",
+        "https://openalex.org/W4410950911",
+        "https://openalex.org/W6926333519",
+        "https://openalex.org/W6941368856",
+        "https://openalex.org/W7130524255"
+      ],
+      "source_metadata": {
+        "publisher": "Cornell University",
+        "reference_count": 25,
+        "referenced_works": [
+          "https://openalex.org/W2109140840",
+          "https://openalex.org/W2793398224",
+          "https://openalex.org/W2903517662",
+          "https://openalex.org/W2997604048",
+          "https://openalex.org/W3016396388",
+          "https://openalex.org/W3048772370",
+          "https://openalex.org/W3128387916",
+          "https://openalex.org/W3197051898",
+          "https://openalex.org/W3212095784",
+          "https://openalex.org/W4205131079",
+          "https://openalex.org/W4206055706",
+          "https://openalex.org/W4310386991",
+          "https://openalex.org/W4311000453",
+          "https://openalex.org/W4327928783",
+          "https://openalex.org/W4386122867",
+          "https://openalex.org/W4389977535",
+          "https://openalex.org/W4392436426",
+          "https://openalex.org/W4394714747",
+          "https://openalex.org/W4399714298",
+          "https://openalex.org/W4401890484",
+          "https://openalex.org/W4409431035",
+          "https://openalex.org/W4410950911",
+          "https://openalex.org/W6926333519",
+          "https://openalex.org/W6941368856",
+          "https://openalex.org/W7130524255"
+        ],
+        "counts_by_year": [],
+        "keywords": [
+          "dementia detection",
+          "sentence completion",
+          "Bangla speech",
+          "speech recognition",
+          "transformer models",
+          "bidirectional LSTM",
+          "attention mechanism",
+          "acoustic features",
+          "cognitive decline",
+          "augmentative and alternative communication",
+          "low-resource languages"
+        ],
+        "research_domain": "Physical Sciences",
+        "topics": [
+          "Speech Recognition and Synthesis",
+          "Dementia and Cognitive Impairment Research",
+          "Speech and dialogue systems"
+        ],
+        "retraction_status": false,
+        "author_openalex_ids": [
+          "https://openalex.org/A5101338723",
+          "https://openalex.org/A5079275567",
+          "https://openalex.org/A5111215510",
+          "https://openalex.org/A5052865748"
+        ]
+      },
+      "provenance": [
+        {
+          "provenance_id": "prov_0ab2423f",
+          "source_type": "openalex",
+          "artifact_sha256": "a5b70cdfa456dbe15f8614535f1ebebf305c8b95be555897d5f67e2fd511aafd",
+          "page": null,
+          "section_id": null,
+          "tei_xpath": null,
+          "char_start": null,
+          "char_end": null,
+          "bbox": null,
+          "table_id": null,
+          "row": null,
+          "column": null,
+          "source_record_id": "https://openalex.org/W7222852332",
+          "json_pointer": "/results/https://openalex.org/W7222852332",
+          "source_url": "https://openalex.org/W7222852332",
+          "fetched_at": "2026-11-12T01:19:10.391748Z"
+        }
+      ],
+      "relevance_score": 0.7375,
+      "topic_relevance": 0.7375,
+      "recency_signal": 1.0,
+      "citation_signal": 0.0,
+      "ranking_reasons": [
+        "title query coverage 1.00",
+        "abstract query coverage 0.25",
+        "small citation visibility signal; not a quality rating"
+      ],
+      "evidence_status": "REFERENCE_METADATA_AVAILABLE",
+      "identity_review": [],
+      "rank": 10
+    }
+  ]
+}

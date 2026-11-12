@@ -225,6 +225,8 @@ class Canonicalizer:
             {
                 "source": incoming.get("source"),
                 "signals": signals,
+                "provenance": incoming.get("provenance"),
+                "citation_count": incoming.get("citation_count"),
             }
         )
         base_paper.canonical_version += 1
