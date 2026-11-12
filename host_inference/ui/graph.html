@@ -18,7 +18,7 @@
     .graph-toolbar { position: absolute; z-index: 3; left: 24px; top: 24px; width: min(620px, calc(100% - 390px)); }
     .graph-toolbar input { background: #100a2ccf; backdrop-filter: blur(12px); }
     main { max-width: none !important; padding: 0 !important; }
-    .academic-hero { display: none !important; }
+    .academic-hero { min-height: 250px; display: flex; align-items: center; margin: 24px 24px 0; padding: clamp(24px, 5vw, 56px); background-image: linear-gradient(90deg, #110521f2 0%, #18072bc9 45%, #18072b35 100%), url('/assets/research_archipelago_v2.png') !important; background-position: center; background-size: cover; }
     .graph-frame { border-radius: 0; border: 0; }
     @media(max-width: 760px) { .graph-panel { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 31vh; } .graph-toolbar { left: 12px; top: 12px; width: calc(100% - 24px); } #graph { height: calc(100vh - 70px); min-height: 580px; } }
     .graph-panel [hidden] { display: none !important; }
@@ -39,6 +39,9 @@
     </div>
   </header>
   <main class="mx-auto max-w-7xl px-5 py-8">
+    <section class="academic-hero" aria-labelledby="academic-hero-title">
+      <div class="academic-hero-copy"><p class="text-xs font-bold uppercase tracking-[.22em] text-fuchsia-200">Archipelago / Academic atlas</p><h1 id="academic-hero-title" class="mt-3 text-4xl font-bold tracking-tight text-white">A universe of connected ideas</h1><p class="mt-3 max-w-xl text-violet-100">Explore the library knowledge graph, then follow a topic into scholarly research.</p></div>
+    </section>
     <div class="graph-stage">
       <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-violet-200">Academic atlas · select a circle to focus its connections</p><form id="search-form" class="flex w-full gap-2">
         <label for="query" class="sr-only">Search a concept</label>
