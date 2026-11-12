@@ -128,6 +128,8 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
     def _is_protected_api(path: str) -> bool:
         if not path.startswith("/api/"):
             return False
+        if path == "/api/internal/s5-monitor-tick":
+            return False  # The route requires CRON_SECRET instead of a user session.
         if path in PUBLIC_API or path.startswith(PUBLIC_API_PREFIXES):
             return False
         return ctx.auth.required()

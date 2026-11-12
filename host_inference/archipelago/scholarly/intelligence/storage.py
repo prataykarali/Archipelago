@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 import json
 import os
 from pathlib import Path
@@ -15,6 +15,23 @@ if TYPE_CHECKING:
 
 DEFAULT_PATH = Path("data/research_intelligence.sqlite3")
 MAX_LIST_ROWS = 30
+DEFAULT_CADENCE_HOURS = 24
+MIN_CADENCE_HOURS = 1
+MAX_CADENCE_HOURS = 720
+RETRY_BASE_MINUTES = 5
+RETRY_MAX_EXPONENT = 4
+RETRY_MAX_MINUTES = 60
+
+
+def validate_cadence(value: object) -> int:
+    """Accept only bounded whole-hour refresh intervals."""
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or not MIN_CADENCE_HOURS <= value <= MAX_CADENCE_HOURS
+    ):
+        raise ValueError("invalid_cadence_hours")
+    return value
 
 
 class ResearchStore:
@@ -30,6 +47,19 @@ class ResearchStore:
             db.execute(
                 "CREATE TABLE IF NOT EXISTS monitors (id TEXT PRIMARY KEY, owner TEXT NOT NULL, options TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 0, last_run TEXT, last_error TEXT, lease_until TEXT)"
             )
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(monitors)")}
+            if "cadence_hours" not in columns:
+                db.execute(
+                    f"ALTER TABLE monitors ADD COLUMN cadence_hours INTEGER NOT NULL DEFAULT {DEFAULT_CADENCE_HOURS}"
+                )
+            if "next_run_at" not in columns:
+                db.execute("ALTER TABLE monitors ADD COLUMN next_run_at TEXT")
+            if "consecutive_failures" not in columns:
+                db.execute(
+                    "ALTER TABLE monitors ADD COLUMN consecutive_failures INTEGER NOT NULL DEFAULT 0"
+                )
+            if "last_success_at" not in columns:
+                db.execute("ALTER TABLE monitors ADD COLUMN last_success_at TEXT")
             db.execute(
                 "CREATE TABLE IF NOT EXISTS monitor_history "
                 "(id TEXT PRIMARY KEY, monitor_id TEXT NOT NULL, owner TEXT NOT NULL, "
@@ -80,13 +110,15 @@ class ResearchStore:
             for row in rows
         ]
 
-    def save_monitor(self, owner: str, options: dict[str, Any]) -> str:
+    def save_monitor(
+        self, owner: str, options: dict[str, Any], cadence_hours: int = DEFAULT_CADENCE_HOURS
+    ) -> str:
         """Save a disabled topic; activation requires an explicit action."""
         monitor_id = str(uuid.uuid4())
         with self._connect() as db:
             db.execute(
-                "INSERT INTO monitors (id, owner, options) VALUES (?, ?, ?)",
-                (monitor_id, owner, json.dumps(options)),
+                "INSERT INTO monitors (id, owner, options, cadence_hours) VALUES (?, ?, ?, ?)",
+                (monitor_id, owner, json.dumps(options), validate_cadence(cadence_hours)),
             )
         return monitor_id
 
@@ -101,6 +133,10 @@ class ResearchStore:
                 "enabled": bool(row["enabled"]),
                 "last_run": row["last_run"],
                 "last_error": row["last_error"],
+                "cadence_hours": row["cadence_hours"],
+                "next_run_at": row["next_run_at"],
+                "last_success_at": row["last_success_at"],
+                "consecutive_failures": row["consecutive_failures"],
             }
             for row in rows
         ]
@@ -109,9 +145,43 @@ class ResearchStore:
         """Change activation only after the caller's role is checked by the route."""
         with self._connect() as db:
             cursor = db.execute(
-                "UPDATE monitors SET enabled = ? WHERE id = ? AND owner = ?",
-                (int(enabled), monitor_id, owner),
+                "UPDATE monitors SET enabled = ?, next_run_at = ?, lease_until = NULL "
+                "WHERE id = ? AND owner = ?",
+                (
+                    int(enabled),
+                    datetime.now(UTC).isoformat() if enabled else None,
+                    monitor_id,
+                    owner,
+                ),
             )
+        return cursor.rowcount == 1
+
+    def set_monitor_cadence(self, monitor_id: str, owner: str, cadence_hours: int) -> bool:
+        """Change an owned monitor interval without a forced collection."""
+        cadence = validate_cadence(cadence_hours)
+        with self._connect() as db:
+            cursor = db.execute(
+                "UPDATE monitors SET cadence_hours = ?, next_run_at = CASE WHEN enabled = 1 "
+                "THEN ? ELSE NULL END "
+                "WHERE id = ? AND owner = ?",
+                (
+                    cadence,
+                    (datetime.now(UTC) + timedelta(hours=cadence)).isoformat(),
+                    monitor_id,
+                    owner,
+                ),
+            )
+        return cursor.rowcount == 1
+
+    def delete_monitor(self, monitor_id: str, owner: str) -> bool:
+        """Delete an owned monitor and its local history and notifications."""
+        with self._connect() as db:
+            cursor = db.execute(
+                "DELETE FROM monitors WHERE id = ? AND owner = ?", (monitor_id, owner)
+            )
+            if cursor.rowcount == 1:
+                db.execute("DELETE FROM monitor_history WHERE monitor_id = ?", (monitor_id,))
+                db.execute("DELETE FROM monitor_events WHERE monitor_id = ?", (monitor_id,))
         return cursor.rowcount == 1
 
     def make_monitor_due(self, monitor_id: str, owner: str) -> bool:
@@ -138,24 +208,45 @@ class ResearchStore:
     def finish_monitor(self, monitor_id: str, run_id: str | None, error: str | None) -> None:
         """Release the lease and retain run/error history."""
         with self._connect() as db:
-            db.execute(
-                "UPDATE monitors SET last_run = COALESCE(?, last_run), last_error = ?, lease_until = NULL WHERE id = ?",
-                (run_id, error, monitor_id),
-            )
-            row = db.execute("SELECT owner FROM monitors WHERE id = ?", (monitor_id,)).fetchone()
-            if row:
-                db.execute(
-                    "INSERT INTO monitor_history VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (
-                        str(uuid.uuid4()),
-                        monitor_id,
-                        row["owner"],
-                        run_id,
-                        "failed" if error else "updated" if run_id else "unchanged",
-                        error,
-                        datetime.now(UTC).isoformat(),
-                    ),
+            row = db.execute(
+                "SELECT owner, enabled, cadence_hours, consecutive_failures FROM monitors WHERE id = ?",
+                (monitor_id,),
+            ).fetchone()
+            if row is None:
+                return
+            now = datetime.now(UTC)
+            failures = row["consecutive_failures"] + 1 if error else 0
+            delay = (
+                timedelta(
+                    minutes=min(
+                        RETRY_MAX_MINUTES,
+                        RETRY_BASE_MINUTES
+                        * 2 ** min(row["consecutive_failures"], RETRY_MAX_EXPONENT),
+                    )
                 )
+                if error
+                else timedelta(hours=row["cadence_hours"])
+            )
+            next_run = (now + delay).isoformat() if row["enabled"] else None
+            db.execute(
+                "UPDATE monitors SET last_run = COALESCE(?, last_run), last_error = ?, "
+                "lease_until = NULL, next_run_at = ?, consecutive_failures = ?, "
+                "last_success_at = CASE WHEN ? IS NULL THEN ? ELSE last_success_at END "
+                "WHERE id = ?",
+                (run_id, error, next_run, failures, error, now.isoformat(), monitor_id),
+            )
+            db.execute(
+                "INSERT INTO monitor_history VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (
+                    str(uuid.uuid4()),
+                    monitor_id,
+                    row["owner"],
+                    run_id,
+                    "failed" if error else "updated" if run_id else "unchanged",
+                    error,
+                    now.isoformat(),
+                ),
+            )
 
     def list_history(self, monitor_id: str, owner: str) -> list[dict[str, Any]]:
         """Read recent runs for one owned monitor."""

@@ -201,6 +201,7 @@ def test_s5_run_export_graph_and_monitor_are_owner_scoped(hosted_app, monkeypatc
     monkeypatch.setenv("ARCHIPELAGO_RESEARCH_DB", str(tmp_path / "research.sqlite3"))
     context = hosted_app.app.extensions["archipelago"]
     owner = {"id": "user-a"}
+    monkeypatch.setattr(context.limiter, "check_api", lambda: (False, 0))
     monkeypatch.setattr(
         context.auth,
         "principal",
@@ -234,6 +235,40 @@ def test_s5_run_export_graph_and_monitor_are_owner_scoped(hosted_app, monkeypatc
             f"/api/research/intelligence/monitors/{monitor_id}", json={"enabled": True}
         ).status_code
         == 404
+    )
+    assert client.delete(f"/api/research/intelligence/monitors/{monitor_id}").status_code == 404
+    owner["id"] = "user-a"
+    assert (
+        client.patch(
+            f"/api/research/intelligence/monitors/{monitor_id}", json={"cadence_hours": 6}
+        ).status_code
+        == 200
+    )
+    assert (
+        client.get("/api/research/intelligence/monitors").json["monitors"][0]["cadence_hours"] == 6
+    )
+    assert client.delete(f"/api/research/intelligence/monitors/{monitor_id}").status_code == 200
+
+
+def test_s5_scheduler_endpoint_requires_secret_and_explicit_enable(hosted_app, monkeypatch):
+    client = hosted_app.app.test_client()
+    monkeypatch.delenv("CRON_SECRET", raising=False)
+    assert client.get("/api/internal/s5-monitor-tick").status_code == 503
+    monkeypatch.setenv("CRON_SECRET", "test-secret")
+    assert client.get("/api/internal/s5-monitor-tick").status_code == 401
+    assert (
+        client.get(
+            "/api/internal/s5-monitor-tick", headers={"Authorization": "Bearer test-secret"}
+        ).status_code
+        == 503
+    )
+    monkeypatch.setenv("ARCHIPELAGO_S5_SCHEDULER_ENABLED", "1")
+    monkeypatch.delenv("ARCHIPELAGO_RESEARCH_DATABASE_URL", raising=False)
+    assert (
+        client.get(
+            "/api/internal/s5-monitor-tick", headers={"Authorization": "Bearer test-secret"}
+        ).status_code
+        == 503
     )
 
 

@@ -6,3 +6,7 @@ Open issues: the hosted S5 runtime is not packaged into the standalone Vercel im
 # S5-B security update, 2026-11-12
 
 The hosted S5 store now requires a server-only Postgres URL and refuses to use ephemeral SQLite on Vercel. Private `research_intelligence.s5_*` tables revoke browser-role access and enable RLS; server queries bind the verified principal's owner UUID in read and mutation predicates. The API cross-user test covers run, graph, workbook and monitor activation. The preview build manifest was inspected and contains no `.env` files after adding `excludeFiles` to the Vercel functions. These are local code/build checks: the migration has not been applied and Supabase-authenticated two-user tests against real Postgres remain blocked.
+
+## S5-C verification
+
+The research API continues to require a Supabase verified principal whose role comes from the protected `profiles` table. Owner checks now cover cadence changes and monitor removal. The scheduled endpoint uses a separate `CRON_SECRET` and an explicit enable flag; no schedule is registered. A live local PostgreSQL instance rejected direct `authenticated` schema access after the research-only migrations. The librarian proxy accepts a server-controlled preview origin only when it is an HTTPS `*.vercel.app` origin without credentials, port, path or query. The target Archipelago Supabase migration, real two-user hosted session test, preview proxy configuration and protected scheduler test remain pending.

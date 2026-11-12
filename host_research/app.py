@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import os
 from secrets import compare_digest
+from urllib.parse import urlsplit
 
 from discovery import discover
 from flask import Flask, Response, g, jsonify, request, send_from_directory
@@ -30,6 +31,29 @@ PROXY_TIMEOUT_SECONDS = 180
 REDIRECT_MIN_STATUS = 300
 REDIRECT_MAX_STATUS = 400
 ORIGINAL_RESEARCH_ORIGIN = "https://archipelago-blond.vercel.app"
+
+
+def research_backend_origin() -> str:
+    """Allow a server-configured Vercel preview origin without user-controlled URLs."""
+    candidate = os.getenv("ARCHIPELAGO_RESEARCH_ORIGIN", "").strip().rstrip("/")
+    if not candidate:
+        return ORIGINAL_RESEARCH_ORIGIN
+    parsed = urlsplit(candidate)
+    if (
+        parsed.scheme != "https"
+        or not parsed.hostname
+        or not parsed.hostname.endswith(".vercel.app")
+        or parsed.port is not None
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError("invalid_research_origin")
+    return candidate
+
+
 ASSETS = frozenset(
     {
         "research.css",
@@ -322,7 +346,10 @@ def graph_proxy() -> Response | tuple[object, int]:
 
 def _forward(path: str) -> Response | tuple[object, int]:
     """Relay a fixed-origin backend request with the verified user token."""
-    url = f"{ORIGINAL_RESEARCH_ORIGIN}{path}"
+    try:
+        url = f"{research_backend_origin()}{path}"
+    except ValueError:
+        return jsonify({"error": "research_backend_misconfigured"}), 503
     headers = {
         "Authorization": request.headers.get("Authorization", ""),
         "Accept": "application/json",

@@ -3,6 +3,14 @@
 const s5 = id => document.getElementById(id);
 let activeRunId = null;
 
+function currentSearchOptions() {
+  const payload = Object.fromEntries(new FormData(s5('intelligence-form')));
+  payload.top_k = Number(payload.top_k);
+  for (const field of ['year_from', 'year_to']) payload[field] = payload[field] ? Number(payload[field]) : null;
+  payload.open_access = payload.open_access === '' ? null : payload.open_access === 'true';
+  return payload;
+}
+
 async function s5Json(url, options = {}) {
   const response = await fetch(url, { cache: 'no-store', ...options });
   const data = await response.json();
@@ -93,7 +101,7 @@ async function loadMonitors() {
   for (const monitor of data.monitors) {
     const row = document.createElement('p');
     const label = document.createElement('span');
-    label.textContent = `${monitor.options.topic} · ${monitor.enabled ? 'active' : 'disabled'} · last run ${monitor.last_run || 'never'} · next check ${monitor.next_run_at || 'not scheduled'}${monitor.last_error ? ` · error ${monitor.last_error}` : ''}`;
+    label.textContent = `${monitor.options.topic} · ${monitor.enabled ? 'active' : 'disabled'} · last successful check ${monitor.last_success_at || 'never'} · next check ${monitor.next_run_at || 'not scheduled'}${monitor.last_error ? ` · error ${monitor.last_error} (retry ${monitor.consecutive_failures || 0})` : ''}`;
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.textContent = monitor.enabled ? 'Disable' : 'Activate';
@@ -108,6 +116,27 @@ async function loadMonitors() {
       } catch (error) { s5('monitor-status').textContent = error.message; }
     });
     row.append(label, toggle);
+    const cadenceLabel = document.createElement('label');
+    cadenceLabel.textContent = 'Check every ';
+    const cadence = document.createElement('select');
+    cadence.setAttribute('aria-label', `Refresh frequency for ${monitor.options.topic}`);
+    for (const [hours, caption] of [['6', '6 hours'], ['24', '24 hours'], ['168', '7 days']]) {
+      const option = new Option(caption, hours);
+      cadence.append(option);
+    }
+    cadence.value = String(monitor.cadence_hours || 24);
+    cadence.addEventListener('change', async () => {
+      try {
+        await s5Json(`/api/research/intelligence/monitors/${monitor.id}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cadence_hours: Number(cadence.value) })
+        });
+        s5('monitor-status').textContent = 'Monitoring frequency updated.';
+        await loadMonitors();
+      } catch (error) { s5('monitor-status').textContent = error.message; }
+    });
+    cadenceLabel.append(cadence);
+    row.append(cadenceLabel);
     if (monitor.enabled) {
       const refresh = document.createElement('button');
       refresh.type = 'button';
@@ -142,6 +171,20 @@ async function loadMonitors() {
       } catch (error) { history.append(document.createTextNode(error.message)); }
     });
     row.append(history);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = 'Remove monitor';
+    remove.setAttribute('aria-label', `Remove monitor for ${monitor.options.topic}`);
+    remove.addEventListener('click', async () => {
+      if (!confirm(`Remove monitoring for ${monitor.options.topic} and its update history?`)) return;
+      try {
+        await s5Json(`/api/research/intelligence/monitors/${monitor.id}`, { method: 'DELETE' });
+        s5('monitor-status').textContent = 'Monitor removed.';
+        await loadMonitors();
+        await loadUpdates();
+      } catch (error) { s5('monitor-status').textContent = error.message; }
+    });
+    row.append(remove);
     list.append(row);
   }
 }
@@ -172,12 +215,13 @@ window.addEventListener('load', async () => {
     }
   } catch (_) { /* Monitoring remains unavailable without a verified role. */ }
   s5('monitor-save').addEventListener('click', async () => {
-    const topic = s5('topic-input').value.trim();
+    const options = currentSearchOptions();
+    const topic = options.topic.trim();
     if (topic.length < 3) { s5('monitor-status').textContent = 'Enter a topic first.'; return; }
     try {
       await s5Json('/api/research/intelligence/monitors', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic })
+        body: JSON.stringify({ ...options, cadence_hours: Number(s5('monitor-cadence').value) })
       });
       s5('monitor-status').textContent = 'Topic saved disabled. Activate it when ready.';
       await loadMonitors();
@@ -186,10 +230,7 @@ window.addEventListener('load', async () => {
   s5('intelligence-form').addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget;
-    const payload = Object.fromEntries(new FormData(form));
-    payload.top_k = Number(payload.top_k);
-    for (const field of ['year_from', 'year_to']) payload[field] = payload[field] ? Number(payload[field]) : null;
-    payload.open_access = payload.open_access === '' ? null : payload.open_access === 'true';
+    const payload = currentSearchOptions();
     s5('intelligence-status').textContent = 'Searching scholarly providers…';
     form.querySelector('button[type="submit"]').disabled = true;
     try {

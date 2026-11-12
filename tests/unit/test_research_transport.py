@@ -61,7 +61,11 @@ def test_auth_and_cron_boundary(transport: object, monkeypatch: pytest.MonkeyPat
     monkeypatch.setenv("CRON_SECRET", "test-only-secret")
     assert client.get("/api/research/intake/scheduled").status_code == 401
     monkeypatch.setattr(module, "verify_user", lambda token: token == "valid")
-    monkeypatch.setattr(module, "recent_records", lambda topic="": [{"title": "Saved paper"}])
+    monkeypatch.setattr(
+        module,
+        "_forward",
+        lambda path: (module.jsonify({"records": [{"title": "Saved paper"}]}), 200),
+    )
     response = client.get("/api/research/intake/records", headers={"Authorization": "Bearer valid"})
     assert response.status_code == 200
     assert response.json["records"][0]["title"] == "Saved paper"
@@ -84,3 +88,15 @@ def test_cron_reports_proposals_without_persisting(
     assert response.status_code == 200
     assert response.json["ingestion_status"] == "not_started"
     discover.assert_called_once()
+
+
+def test_preview_backend_origin_is_server_configured_and_https_only(
+    transport: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A deployment may target a Vercel preview without opening an SSRF URL."""
+    module = transport
+    monkeypatch.setenv("ARCHIPELAGO_RESEARCH_ORIGIN", "https://archipelago-preview.vercel.app")
+    assert module.research_backend_origin() == "https://archipelago-preview.vercel.app"
+    monkeypatch.setenv("ARCHIPELAGO_RESEARCH_ORIGIN", "http://127.0.0.1:8000")
+    with pytest.raises(ValueError, match="invalid_research_origin"):
+        module.research_backend_origin()

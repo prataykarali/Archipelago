@@ -11,7 +11,12 @@ import uuid
 import psycopg
 from psycopg.rows import dict_row
 
+from .storage import DEFAULT_CADENCE_HOURS, validate_cadence
+
 MAX_LIST_ROWS = 30
+RETRY_BASE_MINUTES = 5
+RETRY_MAX_EXPONENT = 4
+RETRY_MAX_MINUTES = 60
 
 
 class PostgresResearchStore:
@@ -22,6 +27,22 @@ class PostgresResearchStore:
 
     def _connect(self) -> psycopg.Connection[Any]:
         return psycopg.connect(self.dsn, row_factory=dict_row, connect_timeout=10)
+
+    def check_ready(self) -> bool:
+        """Verify the private research schema is reachable from this deployment."""
+        with self._connect() as db, db.cursor() as cursor:
+            cursor.execute(
+                "SELECT to_regclass('research_intelligence.s5_runs') IS NOT NULL AS runs, "
+                "to_regclass('research_intelligence.s5_monitors') IS NOT NULL AS monitors, "
+                "to_regclass('research_intelligence.s5_monitor_history') IS NOT NULL AS history, "
+                "to_regclass('research_intelligence.s5_events') IS NOT NULL AS events"
+            )
+            row = cursor.fetchone()
+            cursor.execute(
+                "SELECT consecutive_failures, last_success_at "
+                "FROM research_intelligence.s5_monitors LIMIT 0"
+            )
+        return bool(row and all(row.values()))
 
     def save_run(self, owner: str, payload: dict[str, Any]) -> str:
         """Write a versioned snapshot in one committed transaction."""
@@ -69,14 +90,16 @@ class PostgresResearchStore:
             for row in rows
         ]
 
-    def save_monitor(self, owner: str, options: dict[str, Any]) -> str:
+    def save_monitor(
+        self, owner: str, options: dict[str, Any], cadence_hours: int = DEFAULT_CADENCE_HOURS
+    ) -> str:
         """Save a disabled monitor; activation requires an explicit request."""
         monitor_id = str(uuid.uuid4())
         with self._connect() as db, db.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO research_intelligence.s5_monitors (id, owner_id, options) "
-                "VALUES (%s, %s, %s)",
-                (monitor_id, owner, json.dumps(options)),
+                "INSERT INTO research_intelligence.s5_monitors (id, owner_id, options, cadence_hours) "
+                "VALUES (%s, %s, %s, %s)",
+                (monitor_id, owner, json.dumps(options), validate_cadence(cadence_hours)),
             )
         return monitor_id
 
@@ -84,7 +107,8 @@ class PostgresResearchStore:
         """List only monitors owned by the caller."""
         with self._connect() as db, db.cursor() as cursor:
             cursor.execute(
-                "SELECT id, options, enabled, cadence_hours, next_run_at, last_run_id, last_error "
+                "SELECT id, options, enabled, cadence_hours, next_run_at, last_run_id, "
+                "last_error, last_success_at, consecutive_failures "
                 "FROM research_intelligence.s5_monitors WHERE owner_id = %s "
                 "ORDER BY created_at DESC LIMIT %s",
                 (owner, MAX_LIST_ROWS),
@@ -99,6 +123,10 @@ class PostgresResearchStore:
                 "next_run_at": row["next_run_at"].isoformat() if row["next_run_at"] else None,
                 "last_run": str(row["last_run_id"]) if row["last_run_id"] else None,
                 "last_error": row["last_error"],
+                "last_success_at": row["last_success_at"].isoformat()
+                if row["last_success_at"]
+                else None,
+                "consecutive_failures": row["consecutive_failures"],
             }
             for row in rows
         ]
@@ -113,7 +141,28 @@ class PostgresResearchStore:
                 "WHERE id = %s AND owner_id = %s",
                 (enabled, enabled, monitor_id, owner),
             )
-            return cursor.rowcount == 1
+            return bool(cursor.rowcount == 1)
+
+    def set_monitor_cadence(self, monitor_id: str, owner: str, cadence_hours: int) -> bool:
+        """Update an owned monitor's interval without triggering a refresh."""
+        cadence = validate_cadence(cadence_hours)
+        with self._connect() as db, db.cursor() as cursor:
+            cursor.execute(
+                "UPDATE research_intelligence.s5_monitors SET cadence_hours = %s, "
+                "next_run_at = CASE WHEN enabled THEN now() + %s * interval '1 hour' ELSE NULL END, "
+                "updated_at = now() WHERE id = %s AND owner_id = %s",
+                (cadence, cadence, monitor_id, owner),
+            )
+            return bool(cursor.rowcount == 1)
+
+    def delete_monitor(self, monitor_id: str, owner: str) -> bool:
+        """Remove an owned monitor and its cascading execution history and updates."""
+        with self._connect() as db, db.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM research_intelligence.s5_monitors WHERE id = %s AND owner_id = %s",
+                (monitor_id, owner),
+            )
+            return bool(cursor.rowcount == 1)
 
     def make_monitor_due(self, monitor_id: str, owner: str) -> bool:
         """Queue an explicit owner-triggered refresh for immediate claiming."""
@@ -123,13 +172,14 @@ class PostgresResearchStore:
                 "WHERE id = %s AND owner_id = %s AND enabled",
                 (monitor_id, owner),
             )
-            return cursor.rowcount == 1
+            return bool(cursor.rowcount == 1)
 
     def claim_monitor(self, monitor_id: str, now: str, lease_until: str) -> dict[str, Any] | None:
         """Atomically lease one due monitor across scheduler instances."""
         with self._connect() as db, db.cursor() as cursor:
             cursor.execute(
-                "UPDATE research_intelligence.s5_monitors SET lease_until = %s "
+                "UPDATE research_intelligence.s5_monitors SET lease_until = %s, "
+                "lease_started_at = now() "
                 "WHERE id = %s AND enabled AND next_run_at <= %s "
                 "AND (lease_until IS NULL OR lease_until < %s) "
                 "RETURNING id, owner_id, options, last_run_id",
@@ -169,10 +219,24 @@ class PostgresResearchStore:
             cursor.execute(
                 "UPDATE research_intelligence.s5_monitors SET "
                 "last_run_id = COALESCE(%s, last_run_id), last_error = %s, "
-                "lease_until = NULL, next_run_at = now() + cadence_hours * interval '1 hour', "
-                "updated_at = now() WHERE id = %s "
-                "RETURNING owner_id, cadence_hours",
-                (run_id, error, monitor_id),
+                "consecutive_failures = CASE WHEN %s::text IS NULL THEN 0 ELSE consecutive_failures + 1 END, "
+                "last_success_at = CASE WHEN %s::text IS NULL THEN now() ELSE last_success_at END, "
+                "lease_until = NULL, next_run_at = CASE WHEN NOT enabled THEN NULL "
+                "WHEN %s::text IS NULL THEN now() + cadence_hours * interval '1 hour' "
+                "ELSE now() + LEAST(%s, %s * power(2, LEAST(consecutive_failures, %s))) "
+                "* interval '1 minute' END, updated_at = now() WHERE id = %s "
+                "RETURNING owner_id, lease_started_at",
+                (
+                    run_id,
+                    error,
+                    error,
+                    error,
+                    error,
+                    RETRY_MAX_MINUTES,
+                    RETRY_BASE_MINUTES,
+                    RETRY_MAX_EXPONENT,
+                    monitor_id,
+                ),
             )
             row = cursor.fetchone()
             if row:
@@ -180,7 +244,15 @@ class PostgresResearchStore:
                     "INSERT INTO research_intelligence.s5_monitor_history "
                     "(id, monitor_id, owner_id, run_id, status, error_code, started_at) "
                     "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    (history_id, monitor_id, row["owner_id"], run_id, status, error, now),
+                    (
+                        history_id,
+                        monitor_id,
+                        row["owner_id"],
+                        run_id,
+                        status,
+                        error,
+                        row["lease_started_at"] or now,
+                    ),
                 )
 
     def list_history(self, monitor_id: str, owner: str) -> list[dict[str, Any]]:

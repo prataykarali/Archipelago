@@ -27,7 +27,8 @@
   <section id="monitor-section" hidden aria-labelledby="monitor-heading">
     <h2 id="monitor-heading">Topic monitoring</h2>
     <p>Save a topic, activate it explicitly, and inspect each metadata refresh.</p>
-    <button id="monitor-save" type="button">Save current topic</button>
+    <label>Check every <select id="monitor-cadence"><option value="6">6 hours</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select></label>
+    <button id="monitor-save" type="button">Save current topic and filters</button>
     <p id="monitor-status" role="status"></p>
     <div id="monitor-list"></div>
     <h3>Research updates</h3><div id="research-updates" aria-live="polite"></div>
