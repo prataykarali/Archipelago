@@ -71,10 +71,18 @@ def test_filters_and_workbook_are_real_typed_cells(tmp_path):
     assert not any(edge["type"] == "CITES" for edge in graph["edges"])
     book = load_workbook(BytesIO(build_workbook(saved).getvalue()))
     assert book.sheetnames == list(HEADERS)
-    assert book["Papers"]["C2"].value == 2025
-    assert book["Papers"]["I2"].value == 7
-    assert book["Papers"]["E2"].hyperlink is not None
+    papers = {c.value: i for i, c in enumerate(book["Papers"][1], 1)}
+    assert book["Papers"].cell(2, papers["Year"]).value == 2025
+    assert book["Papers"].cell(2, papers["Citations"]).value == 7
+    assert book["Papers"].cell(2, papers["DOI"]).hyperlink is not None
+    assert book["Papers"].cell(2, papers["Publication date"]).number_format == "yyyy-mm-dd"
     assert book["References"]["B2"].value == "https://openalex.org/W2"
+    assert "Topic_Rankings" not in book.sheetnames
+    assert book["Topic_Results"]["C2"].value == 1
+    every_header = [c.value for ws in book for c in ws[1]]
+    assert not any(("score" in str(h).lower() and h != "CiteScore") or "rank" in str(h).lower() for h in every_header)
+    assert book["Authors"]["L2"].value == "N/A"  # i10 unavailable, not zero
+    assert run["papers"][0]["author_ids"] == []
 
 
 @pytest.mark.unit
@@ -212,3 +220,80 @@ def test_monitor_detects_source_backed_author_and_venue_changes(tmp_path, monkey
     assert outcome["venue_changes"] == ["paper-one"]
     kinds = {event["kind"] for event in store.list_events("alice")}
     assert {"newly_indexed_paper", "author_metadata_changed", "venue_metadata_changed"} <= kinds
+
+
+@pytest.mark.unit
+def test_methods_datasets_only_when_abstract_supports_them():
+    from archipelago.scholarly.intelligence.extraction import extract_evidence
+
+    found = extract_evidence(
+        "Graph attention for citation graphs",
+        "We train a graph attention network on Cora. Accuracy improves over baselines.",
+    )
+    assert [m["name"] for m in found["methods"]] == ["graph attention network"]
+    assert [d["name"] for d in found["datasets"]] == ["cora"]
+    assert [m["name"] for m in found["evaluation_metrics"]] == ["accuracy"]
+    empty = extract_evidence("A title", None)
+    assert empty == {"methods": [], "datasets": [], "evaluation_metrics": []}
+
+
+@pytest.mark.unit
+def test_loosely_related_papers_are_not_used_to_fill_the_count():
+    class Loose(FakeOrchestrator):
+        def discover_with_status(self, query, limit):
+            records, sources = super().discover_with_status(query, limit)
+            other = {**records[0], "paper": records[0]["paper"].model_copy(deep=True)}
+            other["paper"].paper_id = "paper-cnn"
+            other["paper"].title = "Convolutional neural networks for images"
+            other["paper"].abstract = "A neural network for image recognition."
+            return [records[0], other], sources
+
+    run = discover({"topic": "graph neural networks", "top_k": 100}, Loose())
+    assert [p["paper_id"] for p in run["papers"]] == ["paper-one"]
+    assert all("rank" not in p and "relevance_score" not in p for p in run["papers"])
+
+
+@pytest.mark.unit
+def test_graph_has_method_edges_and_stable_provider_author_ids():
+    class Rich(FakeOrchestrator):
+        def discover_with_status(self, query, limit):
+            records, sources = super().discover_with_status(query, limit)
+            records[0]["paper"].authors.append(PaperAuthor(name="B Researcher"))
+            records[0]["source_metadata"].update(
+                {"author_openalex_ids": ["https://openalex.org/A1", "https://openalex.org/A2"]}
+            )
+            return records, sources
+
+    run = discover({"topic": "graph neural networks", "top_k": 1}, Rich())
+    graph = build_graph(run)
+    ids = {n["id"] for n in graph["nodes"]}
+    assert {"author:A1", "author:A2"} <= ids
+    assert any(e["type"] == "COAUTHORED_WITH" for e in graph["edges"])
+    assert any(e["type"] == "USES_METHOD" for e in graph["edges"])
+    assert all(e["provider"] != "ranking" for e in graph["edges"])
+
+
+@pytest.mark.unit
+def test_research_chat_answers_from_snapshot_and_never_invents_metrics(tmp_path):
+    import sys
+
+    sys.path.insert(0, "host_inference")
+    from hostapp.research_run_chat import research_chat_reply
+
+    store = ResearchStore(tmp_path / "chat.sqlite3")
+    run = discover({"topic": "graph neural networks", "top_k": 5}, FakeOrchestrator())
+    run_id = store.save_run("alice", run)
+    ask = lambda q, h=None, o="alice": research_chat_reply(q, h, o, store, run_id)  # noqa: E731
+    listing = ask("Show all the collected papers with their authors and publication years.")
+    assert "A Researcher" in listing["text"] and "2025" in listing["text"]
+    authored = ask("Who authored the first paper?")
+    assert "A Researcher" in authored["text"]
+    hist = [{"role": "assistant", "content": authored["text"]}]
+    hindex = ask("What is that author's h-index, if available?", hist)
+    assert "not available" in hindex["text"] and "0" not in hindex["text"].split("(")[0]
+    assert "Journal of Graphs" in ask("Which journals or conferences published these works?")["text"]
+    assert "No provider-verified citation" in ask("Show the citation relationships between these papers.")["text"]
+    assert f"/runs/{run_id}/xlsx" in ask("Export this research collection to Excel.")["text"]
+    assert "No monitoring run" in ask("Are there new papers since the last monitoring run?")["text"]
+    assert ask("What is a graph neural network?") is None
+    assert research_chat_reply("Who authored the first paper?", None, "bob", store, run_id) is None

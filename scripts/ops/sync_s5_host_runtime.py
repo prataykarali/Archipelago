@@ -23,6 +23,7 @@ MODULES = (
     "archipelago/scholarly/pipeline/relevance.py",
     "archipelago/scholarly/intelligence/__init__.py",
     "archipelago/scholarly/intelligence/enrichment.py",
+    "archipelago/scholarly/intelligence/extraction.py",
     "archipelago/scholarly/intelligence/graph.py",
     "archipelago/scholarly/intelligence/monitor.py",
     "archipelago/scholarly/intelligence/postgres_storage.py",

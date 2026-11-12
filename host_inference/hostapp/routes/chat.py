@@ -19,6 +19,7 @@ from host_roadmap import build_quiz, build_roadmap
 from ..context import AppContext
 from ..conversation import contextual_query
 from ..research_chat import enrich_with_research
+from ..research_run_chat import research_chat_reply
 
 # Query hygiene: strip null bytes and ASCII control characters, keep whitespace.
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -51,6 +52,44 @@ def _withdrawn_notice(sources: list) -> str:
             if notice:
                 return notice
     return ""
+
+
+def _research_run_reply(body: dict, query: str, history: object) -> str | None:
+    """Answer paper-collection questions from the caller's stored S5 run, or defer."""
+    principal = getattr(request, "archipelago_principal", None)
+    if not principal or not principal.get("id"):
+        return None
+    try:
+        from archipelago.scholarly.intelligence.storage import hosted_store
+
+        reply = research_chat_reply(
+            query,
+            history if isinstance(history, list) else None,
+            str(principal["id"]),
+            hosted_store(),
+            str(body.get("research_run_id") or "") or None,
+        )
+    except (ImportError, OSError, RuntimeError):
+        current_app.logger.exception("Research run chat unavailable")
+        return None
+    if reply is None:
+        return None
+    run_id = reply.get("run_id")
+    links = [
+        {"evidence_id": f"R{i}", "title": p["title"], "url": url}
+        for i, p in enumerate((reply.get("run") or {}).get("papers", []), 1)
+        if (url := (f"https://doi.org/{p['doi']}" if p.get("doi") else p.get("url")))
+    ]
+    payload = {
+        "route": "RESEARCH_EVIDENCE",
+        "contract": "RESEARCH_EVIDENCE",
+        "routing": {"route": "RESEARCH_EVIDENCE", "reason": "research_run_snapshot"},
+        "render_rule": "source_evidence",
+        "hide_graph": True,
+        "research_run_id": run_id,
+        "citations": links,
+    }
+    return json.dumps(payload) + STREAM_MARKER + reply["text"]
 
 
 def register(app: Flask, ctx: AppContext) -> None:
@@ -96,6 +135,11 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "invalid_reply_detail"}), 400
 
         history = body.get("history")
+        research = _research_run_reply(body, query, history)
+        if research is not None:
+            response = current_app.response_class(research, mimetype=STREAM_MIME)
+            response.headers["Cache-Control"] = "no-store"
+            return response
         resolved_query = contextual_query(query, history)
         try:
             prepared = ctx.engine.answer(resolved_query)

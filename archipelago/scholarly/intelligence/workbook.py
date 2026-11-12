@@ -1,7 +1,12 @@
-"""Nine-sheet Excel export from a persisted research snapshot."""
+"""Nine-sheet consolidated Excel export from a persisted research snapshot.
+
+Metadata only: no ranking, scoring or composite metrics. Unknown values stay
+empty (or "N/A" for provider metrics) and are never replaced by zero.
+"""
 
 from __future__ import annotations
 
+from datetime import date
 from io import BytesIO
 import json
 from typing import Any
@@ -9,32 +14,56 @@ from typing import Any
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 
-from .graph import build_graph
+from .graph import author_key, build_graph, venue_key
 
+NA = "N/A"
 HEADERS = {
     "Papers": [
         "Paper ID",
         "Title",
         "Year",
+        "Publication date",
         "DOI",
         "URL",
+        "arXiv ID",
+        "OpenAlex ID",
+        "Semantic Scholar ID",
+        "Publication type",
         "Authors",
-        "Venue",
+        "Author IDs",
+        "Keywords and topics",
+        "Research field",
+        "Methods",
+        "Datasets",
+        "Evaluation metrics",
         "Abstract",
+        "Venue ID",
+        "Venue",
+        "Publisher",
         "Citations",
         "Citation provider",
-        "Relevance score",
+        "Open access",
+        "License",
+        "Retrieved at",
         "Evidence status",
     ],
     "Authors": [
         "Author ID",
-        "ORCID",
         "Name",
-        "Affiliations",
+        "ORCID",
+        "OpenAlex ID",
+        "Semantic Scholar ID",
+        "Affiliations (paper metadata)",
+        "Provider affiliations",
+        "Identity status",
         "Publication count",
-        "Citation metrics",
+        "Citation count",
         "h-index",
         "i10-index",
+        "Primary research fields",
+        "Representative papers",
+        "Coauthor IDs",
+        "Profile URL",
         "Source",
         "Metric definition",
         "Coverage",
@@ -46,26 +75,37 @@ HEADERS = {
         "Type",
         "Publisher",
         "ISSN",
-        "Recognized metrics",
+        "Subject areas",
+        "Open access",
+        "Venue URL",
+        "Journal Impact Factor",
+        "CiteScore",
+        "SJR",
+        "CORE classification",
+        "Other metrics",
+        "Metric source",
         "Provider",
-        "Timestamp",
+        "Retrieved at",
+        "Paper IDs",
     ],
     "References": [
         "Source paper ID",
         "Referenced work ID",
+        "Referenced paper ID (in collection)",
         "Title",
         "DOI",
-        "Bibliographic metadata",
         "Source",
     ],
-    "Citation_Edges": ["Citing paper", "Cited paper", "Verification provider", "Relationship"],
-    "Topic_Rankings": [
-        "Rank",
+    "Citation_Edges": ["Citing paper ID", "Cited paper ID", "Provider", "Relationship"],
+    "Topic_Results": [
+        "Topic",
         "Paper ID",
-        "Topic relevance",
-        "Recency",
-        "Citation signal",
-        "Explanation",
+        "Collection order",
+        "Ordering",
+        "Membership basis",
+        "Providers",
+        "Retrieval status",
+        "Retrieved at",
     ],
     "Sources_Provenance": [
         "Paper ID",
@@ -79,14 +119,30 @@ HEADERS = {
     "Run_Manifest": ["Field", "Value"],
 }
 MAX_CELL_CHARS = 32000
+LINK_COLUMNS = {"Papers": (5, 6), "Venues": (8,), "Authors": (16,), "Sources_Provenance": (3,)}
 
 
 def safe_cell(value: Any) -> Any:
     """Prevent spreadsheet formula execution from untrusted metadata."""
-    if value is None or isinstance(value, (int, float, bool)):
+    if value is None or isinstance(value, (int, float, bool, date)):
         return value
     value = str(value)[:MAX_CELL_CHARS]
     return "'" + value if value.startswith(("=", "+", "-", "@")) else value
+
+
+def _names(items: list[Any]) -> str:
+    return "; ".join(i["name"] if isinstance(i, dict) else str(i) for i in items)
+
+
+def _date(value: str | None) -> date | str | None:
+    try:
+        return date.fromisoformat(value[:10]) if value else None
+    except ValueError:
+        return value
+
+
+def _metric(value: Any) -> Any:
+    return NA if value is None else value
 
 
 def build_workbook(run: dict[str, Any]) -> BytesIO:
@@ -112,47 +168,91 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
     def add(name: str, values: list[Any]) -> None:
         sheets[name].append([safe_cell(value) for value in values])
 
+    topic = run["options"]["topic"]
+    graph = build_graph(run)
+    coauthors: dict[str, set[str]] = {}
+    for edge in graph["edges"]:
+        if edge["type"] == "COAUTHORED_WITH":
+            coauthors.setdefault(edge["source"], set()).add(edge["target"])
+            coauthors.setdefault(edge["target"], set()).add(edge["source"])
+    by_openalex = {
+        p["identifiers"].get("openalex_id"): p for p in run["papers"] if p["identifiers"].get("openalex_id")
+    }
+    observations = {row["id"]: row for row in run.get("author_observations", [])}
+    statuses = {s.get("source"): s.get("status") for s in run.get("sources", [])}
     authors: dict[str, dict[str, Any]] = {}
     venues: dict[str, dict[str, Any]] = {}
-    author_observations = {row["id"]: row for row in run.get("author_observations", [])}
     for paper in run["papers"]:
         pid = paper["paper_id"]
         ids = paper["identifiers"]
+        author_ids = [author_key(paper, i) for i in range(len(paper["authors"]))]
+        vid = venue_key(paper)
+        evidence = paper.get("source_metadata", {})
         add(
             "Papers",
             [
                 pid,
                 paper["title"],
                 paper["year"],
+                _date(paper["publication_date"]),
                 paper["doi"],
                 paper["url"],
+                ids.get("arxiv_id"),
+                ids.get("openalex_id"),
+                ids.get("semantic_scholar_id"),
+                paper.get("publication_type"),
                 "; ".join(a["name"] for a in paper["authors"]),
-                paper["venue"],
+                "; ".join(author_ids),
+                _names(paper.get("topics") or []),
+                _names(paper["research_field"]) if isinstance(paper.get("research_field"), list) else paper.get("research_field"),
+                _names(paper.get("methods") or []),
+                _names(paper.get("datasets") or []),
+                _names(paper.get("evaluation_metrics") or []),
                 paper["abstract"],
+                vid,
+                paper["venue"],
+                paper.get("publisher") or evidence.get("publisher"),
                 paper["citation_count"],
                 paper["citation_provider"],
-                paper["relevance_score"],
+                paper.get("is_open_access"),
+                paper.get("license"),
+                paper.get("retrieved_at") or run["retrieved_at"],
                 paper["evidence_status"],
             ],
         )
-        provider_ids = paper.get("source_metadata", {}).get("author_openalex_ids") or []
+        sheets["Papers"].cell(sheets["Papers"].max_row, 4).number_format = "yyyy-mm-dd"
         for index, author in enumerate(paper["authors"]):
-            provider_id = provider_ids[index] if index < len(provider_ids) else None
-            key = provider_id or author.get("orcid") or f"unverified:{pid}:{index}"
-            authors.setdefault(key, author)
-        if paper["venue"]:
-            venues.setdefault(paper["venue"], paper)
+            entry = authors.setdefault(author_ids[index], {"author": author, "papers": [], "ids": ids})
+            entry["papers"].append(paper)
+            entry["index"] = index
+            entry["source_paper"] = paper
+        if vid:
+            venues.setdefault(vid, {"paper": paper, "papers": []})["papers"].append(paper)
         for reference in paper["references"]:
-            add("References", [pid, reference, None, None, None, paper["citation_provider"]])
+            cited = by_openalex.get(reference) if isinstance(reference, str) else None
+            add(
+                "References",
+                [
+                    pid,
+                    reference,
+                    cited["paper_id"] if cited and cited["paper_id"] != pid else None,
+                    cited["title"] if cited else None,
+                    cited["doi"] if cited else None,
+                    paper["citation_provider"],
+                ],
+            )
+        providers = sorted({s.get("source_type") for s in paper["provenance"] if s.get("source_type")})
         add(
-            "Topic_Rankings",
+            "Topic_Results",
             [
-                paper["rank"],
+                topic,
                 pid,
-                paper["topic_relevance"],
-                paper["recency_signal"],
-                paper["citation_signal"],
-                "; ".join(paper["ranking_reasons"]),
+                paper.get("collection_order") or paper.get("rank"),
+                run.get("ordering"),
+                "Topic terms present in provider title, abstract or fields",
+                "; ".join(providers),
+                "; ".join(f"{p}={statuses.get(p, 'unknown')}" for p in providers),
+                paper.get("retrieved_at") or run["retrieved_at"],
             ],
         )
         for source in paper["provenance"]:
@@ -163,7 +263,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                     source.get("source_type"),
                     source.get("source_url"),
                     source.get("fetched_at"),
-                    None,
+                    paper.get("license") or ("open access" if paper.get("is_open_access") else None),
                     paper["evidence_status"],
                 ],
             )
@@ -175,68 +275,113 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
             add("Errors_Review", [pid, "ambiguous_identity", match])
         if not ids.get("doi"):
             add("Errors_Review", [pid, "doi_unavailable", "Other provider identifier retained"])
-    for key, author in authors.items():
-        observation = author_observations.get(key.rsplit("/", 1)[-1], {})
+    for key, entry in authors.items():
+        author = entry["author"]
+        source_paper = entry["source_paper"]
+        provider_ids = (source_paper.get("source_metadata") or {}).get("author_openalex_ids") or []
+        provider_id = provider_ids[entry["index"]] if entry["index"] < len(provider_ids) else None
+        short = provider_id.rsplit("/", 1)[-1] if provider_id else None
+        observation = observations.get(short or "", {})
         metrics = observation.get("metrics") or {}
+        fields = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:3]})
         add(
             "Authors",
             [
                 key,
-                observation.get("orcid") or author.get("orcid"),
                 observation.get("name") or author["name"],
+                observation.get("orcid") or author.get("orcid"),
+                provider_id,
+                None,
                 "; ".join(author.get("institutions") or []),
-                metrics.get("publication_count"),
-                metrics.get("citation_count"),
-                metrics.get("h_index"),
-                metrics.get("i10_index"),
+                "; ".join(
+                    str(a["institution"]) for a in observation.get("affiliations") or [] if a.get("institution")
+                ),
+                observation.get("identity_status") or ("provider_linked" if provider_id else "unverified_name_only"),
+                _metric(metrics.get("publication_count")),
+                _metric(metrics.get("citation_count")),
+                _metric(metrics.get("h_index")),
+                _metric(metrics.get("i10_index")),
+                "; ".join(observation.get("topics") or fields),
+                "; ".join(p["paper_id"] for p in entry["papers"][:3]),
+                "; ".join(sorted(coauthors.get(key, ()))),
+                f"https://openalex.org/{short}" if short else None,
                 observation.get("provider") or "paper metadata",
                 metrics.get("definition"),
                 metrics.get("coverage"),
                 observation.get("retrieved_at"),
             ],
         )
-    for venue, paper in venues.items():
+    for vid, entry in venues.items():
+        paper = entry["paper"]
         details = paper.get("venue_details") or {}
         issn = details.get("issn") or []
         if isinstance(issn, str):
             issn = [issn]
+        subjects = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:2]})
         add(
             "Venues",
             [
-                details.get("id") or venue,
-                venue,
+                vid,
+                paper["venue"],
                 details.get("type"),
                 details.get("publisher"),
                 "; ".join(issn),
-                None,
+                "; ".join(subjects),
+                details.get("open_access"),
+                details.get("url"),
+                _metric(details.get("impact_factor")),
+                _metric(details.get("citescore")),
+                _metric(details.get("sjr")),
+                _metric(details.get("core_rank")),
+                NA,
+                "None retrieved (licensed or restricted metrics are not scraped)",
                 details.get("provider"),
                 details.get("retrieved_at") or run["retrieved_at"],
+                "; ".join(p["paper_id"] for p in entry["papers"]),
             ],
         )
-    for edge in build_graph(run)["edges"]:
+    for edge in graph["edges"]:
         if edge["type"] == "CITES":
-            add("Citation_Edges", [edge["source"], edge["target"], edge["provider"], "CITES"])
+            add(
+                "Citation_Edges",
+                [
+                    edge["source"].removeprefix("paper:"),
+                    edge["target"].removeprefix("paper:"),
+                    edge["provider"],
+                    "CITES",
+                ],
+            )
+    kinds: dict[str, int] = {}
+    for node in graph["nodes"]:
+        kinds[node["kind"]] = kinds.get(node["kind"], 0) + 1
     manifest = {
-        "topic": run["options"]["topic"],
+        "topic": topic,
+        "requested_count": run["options"].get("top_k"),
         "query_parameters": json.dumps(run["options"], sort_keys=True),
         "executed_at": run["retrieved_at"],
-        "software_version": run["schema"],
-        "candidate_count": run["candidate_count"],
-        "filtered_count": run["filtered_count"],
+        "software_version": run.get("schema"),
+        "candidate_count": run.get("candidate_count"),
+        "filtered_count": run.get("filtered_count"),
         "selected_count": len(run["papers"]),
-        "provider_status": json.dumps(run["sources"], sort_keys=True),
+        "ordering": run.get("ordering"),
+        "ranking_policy": "No ranking or quality scores are computed; order is collection order only",
+        "provider_status": json.dumps(run.get("sources", []), sort_keys=True),
         "provider_versions": "unavailable from responses",
+        "graph_nodes": json.dumps(kinds, sort_keys=True),
+        "graph_edges": len(graph["edges"]),
+        "compatibility": "Topic_Rankings was replaced by Topic_Results (no scores)",
     }
     for key, value in manifest.items():
         add("Run_Manifest", [key, value])
-    for name in ("Papers", "Sources_Provenance"):
-        sheet = sheets[name]
-        link_columns = (5,) if name == "Papers" else (3,)
-        for row in sheet.iter_rows(min_row=2):
-            for index in link_columns:
+    for name, columns in LINK_COLUMNS.items():
+        for row in sheets[name].iter_rows(min_row=2):
+            for index in columns:
                 cell = row[index - 1]
-                if isinstance(cell.value, str) and cell.value.startswith("https://"):
+                if isinstance(cell.value, str) and cell.value.startswith(("https://", "http://")):
                     cell.hyperlink = cell.value
+                    cell.style = "Hyperlink"
+                elif name == "Papers" and index == 5 and cell.value:
+                    cell.hyperlink = f"https://doi.org/{cell.value}"
                     cell.style = "Hyperlink"
     output = BytesIO()
     book.save(output)

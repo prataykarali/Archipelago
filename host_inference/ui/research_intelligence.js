@@ -30,11 +30,11 @@ function showRun(run) {
     const article = document.createElement('article');
     article.className = 'research-card';
     const title = document.createElement('h3');
-    title.textContent = `${paper.rank}. ${paper.title}`;
+    title.textContent = `${paper.collection_order}. ${paper.title}`;
     const facts = document.createElement('p');
     facts.textContent = [paper.year, paper.authors.map(author => author.name).join(', '), paper.venue, paper.citation_count == null ? null : `${paper.citation_count} citations (${paper.citation_provider})`, paper.evidence_status].filter(Boolean).join(' · ');
     const reason = document.createElement('p');
-    reason.textContent = `Relevance ${paper.relevance_score}: ${paper.ranking_reasons.join('; ')}`;
+    reason.textContent = `Collection order ${paper.collection_order} (${run.ordering}); topic terms found in provider metadata. Not a quality ranking.`;
     article.append(title, facts, reason);
     if (paper.url && paper.url.startsWith('https://')) {
       const link = document.createElement('a');

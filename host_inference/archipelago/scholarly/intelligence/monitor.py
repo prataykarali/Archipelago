@@ -55,7 +55,15 @@ def run_monitor(monitor_id: str, store: ResearchStore | PostgresResearchStore) -
             and _evidence(row.get("venue_details"))
             != _evidence(before[row["paper_id"]].get("venue_details"))
         ]
-        if previous and not any((added, citation_changes, author_changes, venue_changes)):
+        retraction_changes = [
+            row["paper_id"]
+            for row in current["papers"]
+            if row["paper_id"] in before
+            and row.get("retraction_status") != before[row["paper_id"]].get("retraction_status")
+        ]
+        if previous and not any(
+            (added, citation_changes, author_changes, venue_changes, retraction_changes)
+        ):
             store.finish_monitor(monitor_id, None, None)
             return {"status": "unchanged", "run_id": monitor["last_run"], "new_papers": []}
         run_id = store.save_run(owner, current)
@@ -90,6 +98,19 @@ def run_monitor(monitor_id: str, store: ResearchStore | PostgresResearchStore) -
                         "discovered_at": current["retrieved_at"],
                     },
                 )
+            if row["paper_id"] in retraction_changes:
+                store.add_event(
+                    owner,
+                    monitor_id,
+                    run_id,
+                    "retraction_status_changed",
+                    row["paper_id"],
+                    {
+                        "title": row["title"],
+                        "old": before[row["paper_id"]].get("retraction_status"),
+                        "new": row.get("retraction_status"),
+                    },
+                )
             if row["paper_id"] in venue_changes:
                 store.add_event(
                     owner,
@@ -119,6 +140,7 @@ def run_monitor(monitor_id: str, store: ResearchStore | PostgresResearchStore) -
             "citation_changes": citation_changes,
             "author_changes": author_changes,
             "venue_changes": venue_changes,
+            "retraction_changes": retraction_changes,
             "discovered_at": current["retrieved_at"],
         }
     except (OSError, RuntimeError, ValueError) as exc:

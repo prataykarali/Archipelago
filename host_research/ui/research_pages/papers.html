@@ -14,14 +14,14 @@
     <label for="topic-input">Research topic</label>
     <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="200" required placeholder="e.g. efficient retrieval augmented generation"><button type="submit">Find papers</button></div>
     <div class="s5-filters">
-      <label>Top K <input name="top_k" type="number" min="1" max="50" value="20"></label>
+      <label>Papers to collect (maximum) <select name="top_k"><option>10</option><option selected>20</option><option>50</option><option>100</option></select></label>
       <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
       <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
       <label>Paper type <input name="paper_type" placeholder="article"></label>
       <label>Field <input name="field" placeholder="Computer science"></label>
       <label>Venue <input name="venue" placeholder="Conference or journal"></label>
       <label>Open access <select name="open_access"><option value="">Any</option><option value="true">Yes</option><option value="false">No</option></select></label>
-      <label>Sort <select name="sort"><option value="relevance">Relevance</option><option value="newest">Newest</option></select></label>
+      <label>Sort <select name="sort"><option value="newest">Newest first</option><option value="provider">Provider order</option></select></label>
     </div>
   </form>
   <p id="intelligence-status" role="status">Ready to search.</p>

@@ -1,4 +1,8 @@
-"""Source-backed graph projection from a persisted scholarly run."""
+"""Source-backed research graph projection from a persisted scholarly run.
+
+Kept separate from the S4 academic OKF graph. No edge is inferred from
+semantic similarity: citations come only from provider reference lists.
+"""
 
 from __future__ import annotations
 
@@ -6,12 +10,44 @@ from hashlib import sha256
 from typing import Any
 
 
+def _hash(prefix: str, value: str) -> str:
+    return f"{prefix}:" + sha256(value.casefold().encode()).hexdigest()[:16]
+
+
+def author_key(paper: dict[str, Any], index: int) -> str:
+    """Stable author identity: provider ID, then ORCID, else paper-scoped unverified."""
+    ids = (paper.get("source_metadata") or {}).get("author_openalex_ids") or []
+    provider_id = ids[index] if index < len(ids) else None
+    author = paper["authors"][index]
+    if provider_id:
+        return "author:" + provider_id.rsplit("/", 1)[-1]
+    if author.get("orcid"):
+        return _hash("author", author["orcid"])
+    return _hash("author-unverified", f"{paper['paper_id']}:{index}:{author['name']}")
+
+
+def venue_key(paper: dict[str, Any]) -> str | None:
+    if not paper.get("venue"):
+        return None
+    venue_id = (paper.get("source_metadata") or {}).get("venue_id")
+    return "venue:" + venue_id.rsplit("/", 1)[-1] if venue_id else _hash("venue", paper["venue"])
+
+
 def build_graph(run: dict[str, Any]) -> dict[str, Any]:
-    """Only create citation edges named by provider reference metadata."""
+    """Create nodes and typed edges, each carrying its provider."""
     nodes: dict[str, dict[str, Any]] = {}
     edges: list[dict[str, str]] = []
+    seen: set[tuple[str, str, str]] = set()
+
+    def edge(source: str, target: str, kind: str, provider: str | None) -> None:
+        if (source, target, kind) not in seen:
+            seen.add((source, target, kind))
+            edges.append(
+                {"source": source, "target": target, "type": kind, "provider": provider or "n/a"}
+            )
+
     topic = run["options"]["topic"]
-    topic_id = "topic:" + sha256(topic.casefold().encode()).hexdigest()[:16]
+    topic_id = _hash("topic", topic)
     nodes[topic_id] = {"id": topic_id, "kind": "Topic", "name": topic}
     known = {
         paper["identifiers"].get("openalex_id"): paper["paper_id"]
@@ -20,71 +56,61 @@ def build_graph(run: dict[str, Any]) -> dict[str, Any]:
     }
     for paper in run["papers"]:
         paper_id = "paper:" + paper["paper_id"]
+        provider = paper.get("citation_provider") or paper.get("source")
         nodes[paper_id] = {
             "id": paper_id,
             "kind": "Paper",
             "name": paper["title"],
             "url": paper["url"],
         }
-        edges.append(
-            {"source": paper_id, "target": topic_id, "type": "STUDIES_TOPIC", "provider": "ranking"}
-        )
-        for author in paper["authors"]:
-            identity = author.get("orcid") or f"unverified:{paper['paper_id']}:{author['name']}"
-            author_id = "author:" + sha256(identity.encode()).hexdigest()[:16]
-            nodes[author_id] = {
-                "id": author_id,
-                "kind": "Author",
-                "name": author["name"],
-                "orcid": author.get("orcid"),
-            }
-            edges.append(
+        edge(paper_id, topic_id, "STUDIES_TOPIC", "topic_eligibility_filter")
+        for label in paper.get("topics") or []:
+            sub_id = _hash("topic", str(label))
+            nodes.setdefault(sub_id, {"id": sub_id, "kind": "Topic", "name": str(label)})
+            edge(paper_id, sub_id, "STUDIES_TOPIC", provider)
+        for kind, items, node_kind, relation in (
+            ("method", paper.get("methods") or [], "Method", "USES_METHOD"),
+            ("dataset", paper.get("datasets") or [], "Dataset", "EVALUATED_ON"),
+        ):
+            for item in items:
+                name = item["name"] if isinstance(item, dict) else str(item)
+                item_id = _hash(kind, name)
+                nodes.setdefault(item_id, {"id": item_id, "kind": node_kind, "name": name})
+                edge(paper_id, item_id, relation, "abstract_evidence")
+        paper_authors: list[str] = []
+        for index, author in enumerate(paper["authors"]):
+            author_id = author_key(paper, index)
+            nodes.setdefault(
+                author_id,
                 {
-                    "source": paper_id,
-                    "target": author_id,
-                    "type": "AUTHORED_BY",
-                    "provider": paper["citation_provider"],
-                }
+                    "id": author_id,
+                    "kind": "Author",
+                    "name": author["name"],
+                    "orcid": author.get("orcid"),
+                },
             )
+            paper_authors.append(author_id)
+            edge(paper_id, author_id, "AUTHORED_BY", provider)
             for affiliation in author.get("institutions") or []:
-                institution_id = (
-                    "institution:" + sha256(affiliation.casefold().encode()).hexdigest()[:16]
+                institution_id = _hash("institution", affiliation)
+                nodes.setdefault(
+                    institution_id, {"id": institution_id, "kind": "Institution", "name": affiliation}
                 )
-                nodes[institution_id] = {
-                    "id": institution_id,
-                    "kind": "Institution",
-                    "name": affiliation,
-                }
-                edges.append(
-                    {
-                        "source": author_id,
-                        "target": institution_id,
-                        "type": "AFFILIATED_WITH",
-                        "provider": paper["citation_provider"],
-                    }
-                )
-        if paper["venue"]:
-            venue_id = "venue:" + sha256(paper["venue"].casefold().encode()).hexdigest()[:16]
-            nodes[venue_id] = {"id": venue_id, "kind": "Venue", "name": paper["venue"]}
-            edges.append(
-                {
-                    "source": paper_id,
-                    "target": venue_id,
-                    "type": "PUBLISHED_IN",
-                    "provider": paper["citation_provider"],
-                }
-            )
+                edge(author_id, institution_id, "AFFILIATED_WITH", provider)
+        # Coauthorship is only asserted between provider-identified authors.
+        identified = [a for a in paper_authors if not a.startswith("author-unverified")]
+        for i, left in enumerate(identified):
+            for right in identified[i + 1 :]:
+                if left != right:
+                    edge(*sorted((left, right)), "COAUTHORED_WITH", provider)  # type: ignore[arg-type]
+        venue_id = venue_key(paper)
+        if venue_id:
+            nodes.setdefault(venue_id, {"id": venue_id, "kind": "Venue", "name": paper["venue"]})
+            edge(paper_id, venue_id, "PUBLISHED_IN", provider)
         for reference in paper["references"]:
             cited = known.get(reference) if isinstance(reference, str) else None
             if cited and cited != paper["paper_id"]:
-                edges.append(
-                    {
-                        "source": paper_id,
-                        "target": "paper:" + cited,
-                        "type": "CITES",
-                        "provider": paper["citation_provider"],
-                    }
-                )
+                edge(paper_id, "paper:" + cited, "CITES", provider)
     return {
         "schema": "archipelago.scholarly_graph.v1",
         "run_at": run["retrieved_at"],

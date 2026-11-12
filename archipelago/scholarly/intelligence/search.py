@@ -1,30 +1,49 @@
-"""Bounded scholarly discovery and transparent ranking."""
+"""Bounded scholarly discovery with conservative topic eligibility."""
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
-import math
 import re
 from typing import Any
 
 from archipelago.scholarly.discovery.canonicalizer import normalize_title
 from archipelago.scholarly.discovery.orchestrator import DiscoveryOrchestrator
-from archipelago.scholarly.pipeline.relevance import relevance_score
 
 from .enrichment import enrich_authors, venue_observation
+from .extraction import extract_evidence
 
 DEFAULT_TOP_K = 20
-MAX_TOP_K = 50
+MAX_TOP_K = 100
 SOURCE_MULTIPLIER = 2
 MAX_QUERY_CHARS = 200
-RECENCY_YEARS = 5
-RECENCY_WEIGHT = 0.25
-CITATION_WEIGHT = 0.05
-CITATION_NORMALIZER = 1000
 VERSION_SUFFIX = re.compile(r"/v\d+$", re.IGNORECASE)
 VALID_DOI = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
 QUERY_MODIFIERS = re.compile(r"\b(latest|recent|newest|papers|studies|research)\b", re.IGNORECASE)
-MIN_RELEVANCE = 0.2
+TOPIC_STOPWORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "with", "to"})
+TOPIC_ALIASES = {
+    "graph neural networks": "gnn",
+    "retrieval augmented generation": "rag",
+    "bengali": "bangla",
+    "speech recognition": "asr",
+    "continual learning": "lifelong learning",
+}
+
+
+def topic_matches(topic: str, title: str, abstract: str | None, fields: str = "") -> bool:
+    """Require the named research concepts in provider title, abstract or fields."""
+    evidence = re.sub(r"[^\w]+", " ", " ".join((title, abstract or "", fields)).casefold())
+    query = re.sub(r"[^\w]+", " ", QUERY_MODIFIERS.sub(" ", topic).casefold()).strip()
+    if not query:
+        return False
+    alias_matched = False
+    for phrase, alias in TOPIC_ALIASES.items():
+        if phrase in query and re.search(rf"\b{re.escape(alias)}\b", evidence):
+            query = query.replace(phrase, " ")
+            alias_matched = True
+    terms = [word for word in query.split() if word not in TOPIC_STOPWORDS]
+    return (bool(terms) or alias_matched) and all(
+        re.search(rf"\b{re.escape(word)}s?\b", evidence) for word in terms
+    )
 
 
 def _version_key(row: dict[str, Any]) -> tuple[str, str, str, int | None] | None:
@@ -62,8 +81,8 @@ def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("invalid_year")
     if start and end and start > end:
         raise ValueError("invalid_year_range")
-    sort = payload.get("sort", "relevance")
-    if sort not in {"relevance", "newest"}:
+    sort = payload.get("sort", "newest")
+    if sort not in {"relevance", "newest", "provider"}:
         raise ValueError("invalid_sort")
     oa = payload.get("open_access")
     if oa is not None and not isinstance(oa, bool):
@@ -73,7 +92,7 @@ def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
         "top_k": top_k,
         "year_from": start,
         "year_to": end,
-        "sort": sort,
+        "sort": "newest" if sort == "relevance" else sort,
         "open_access": oa,
         "paper_type": str(payload.get("paper_type") or "").strip()[:80],
         "field": str(payload.get("field") or "").strip()[:80],
@@ -92,10 +111,6 @@ def discover(
         search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER)
     )
     rows: list[dict[str, Any]] = []
-    current_year = datetime.now(UTC).year
-    latest = options["sort"] == "newest" or any(
-        word in options["topic"].casefold() for word in ("latest", "recent", "newest")
-    )
     for candidate in candidates:
         paper = candidate["paper"]
         year = (
@@ -125,25 +140,8 @@ def discover(
         )
         if options["field"] and options["field"].casefold() not in fields.casefold():
             continue
-        relevance, reasons = relevance_score(candidate, search_query)
-        if relevance < MIN_RELEVANCE:
+        if not topic_matches(options["topic"], paper.title, paper.abstract, fields):
             continue
-        recency = max(0.0, 1 - (current_year - year) / RECENCY_YEARS) if year else 0.0
-        citation_value = candidate.get("citation_count")
-        citation_signal = (
-            min(1.0, math.log1p(citation_value) / math.log1p(CITATION_NORMALIZER))
-            if isinstance(citation_value, int) and citation_value >= 0
-            else 0.0
-        )
-        score = relevance + (
-            recency * RECENCY_WEIGHT if latest else citation_signal * CITATION_WEIGHT
-        )
-        if latest and year:
-            reasons.append(f"publication year {year}")
-        if not latest and citation_value is not None:
-            reasons.append("small citation visibility signal; not a quality rating")
-        if not paper.abstract:
-            reasons.append("abstract unavailable; ranking uses title")
         provenance = [candidate.get("provenance")]
         provenance.extend(entry.get("provenance") for entry in candidate.get("merge_history", []))
         source_links = [p.model_dump(mode="json") for p in provenance if hasattr(p, "model_dump")]
@@ -164,6 +162,8 @@ def discover(
         review = list(candidate.get("identity_review") or [])
         if doi and not valid_doi:
             review.append("invalid_doi_from_provider")
+        found = extract_evidence(paper.title, paper.abstract)
+        fetched = [p.get("fetched_at") for p in source_links if p.get("fetched_at")]
         rows.append(
             {
                 "paper_id": paper.paper_id,
@@ -187,13 +187,19 @@ def discover(
                 "citation_observations": citation_observations,
                 "references": metadata.get("referenced_works") or [],
                 "source_metadata": metadata,
+                "topics": metadata.get("topics") or metadata.get("keywords") or [],
+                "research_field": metadata.get("research_domain"),
+                "methods": metadata.get("methods") or found["methods"],
+                "datasets": metadata.get("datasets") or found["datasets"],
+                "evaluation_metrics": metadata.get("evaluation_metrics") or found["evaluation_metrics"],
+                "author_ids": metadata.get("author_openalex_ids") or [],
+                "publisher": metadata.get("publisher"),
+                "license": paper.license,
+                "oa_url": paper.oa_url,
+                "retrieved_at": max(fetched) if fetched else None,
                 "retraction_status": metadata.get("retraction_status"),
                 "provenance": source_links,
-                "relevance_score": round(score, 4),
-                "topic_relevance": round(relevance, 4),
-                "recency_signal": round(recency, 4),
-                "citation_signal": round(citation_signal, 4),
-                "ranking_reasons": reasons,
+                "source": candidate.get("source"),
                 "evidence_status": "REFERENCE_METADATA_AVAILABLE"
                 if metadata.get("referenced_works")
                 else "ABSTRACT_AVAILABLE"
@@ -213,13 +219,15 @@ def discover(
         if prior is None or (row["doi"] or "") > (prior["doi"] or ""):
             versioned[key] = row
     rows = unique + list(versioned.values())
-    rows.sort(key=lambda row: (row["relevance_score"], row["publication_date"] or ""), reverse=True)
+    if options["sort"] == "newest":
+        rows.sort(key=lambda row: (row["publication_date"] or "", row["paper_id"]), reverse=True)
     selected = rows[: options["top_k"]]
-    for rank, row in enumerate(selected, 1):
-        row["rank"] = rank
+    for position, row in enumerate(selected, 1):
+        row["collection_order"] = position
     retrieved_at = datetime.now(UTC).isoformat()
     for row in selected:
         row["venue_details"] = venue_observation(row, retrieved_at)
+        row["retrieved_at"] = row["retrieved_at"] or retrieved_at
     return {
         "schema": "archipelago.research_intelligence.v1",
         "options": options,
@@ -227,6 +235,7 @@ def discover(
         "sources": sources,
         "candidate_count": len(candidates),
         "filtered_count": len(rows),
+        "ordering": "publication_date_desc" if options["sort"] == "newest" else "provider_returned",
         "papers": selected,
         "author_observations": enrich_authors(selected) if orchestrator is None else [],
     }
