@@ -1,7 +1,17 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Archipelago session handoff</title><script type="module" src="/auth_bridge.js"></script></head><body style="font:16px system-ui;padding:24px"><p id="status" role="status">Connecting your Archipelago session…</p><script type="module">
-  const target = 'https://archipelago-librarian.vercel.app';
+  const requestedTarget = new URLSearchParams(location.search).get('target');
+  let target = null;
+  try {
+    const candidate = new URL(requestedTarget);
+    const referrer = new URL(document.referrer);
+    const librarianHost = candidate.hostname === 'archipelago-librarian.vercel.app'
+      || /^archipelago-librarian-[a-z0-9-]+-shinaura\.vercel\.app$/.test(candidate.hostname);
+    if (candidate.protocol === 'https:' && librarianHost && candidate.origin === referrer.origin) {
+      target = candidate.origin;
+    }
+  } catch (_) {}
   const status = document.getElementById('status');
-  if (!window.opener) { status.textContent = 'Open this from the Librarian Space sign-in page.'; }
+  if (!window.opener || !target) { status.textContent = 'Open this from a verified Librarian Space sign-in page.'; }
   else {
     try {
       const { supabase } = await window.archipelagoAuthReady;

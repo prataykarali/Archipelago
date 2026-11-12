@@ -55,7 +55,9 @@ document.querySelector("#login-form").addEventListener("submit", async (event) =
 
 document.querySelector('#continue-session').addEventListener('click', () => {
   status.textContent = 'Checking your main Archipelago session…';
-  const popup = window.open('https://archipelago-blond.vercel.app/session-bridge.html', 'archipelago-session', 'width=560,height=360');
+  const bridge = new URL('https://archipelago-blond.vercel.app/session-bridge.html');
+  bridge.searchParams.set('target', location.origin);
+  const popup = window.open(bridge.href, 'archipelago-session', 'width=560,height=360');
   if (!popup) status.textContent = 'Allow the Archipelago session window, then try again.';
 });
 
@@ -63,9 +65,16 @@ window.addEventListener('message', async event => {
   if (event.origin !== 'https://archipelago-blond.vercel.app' || event.data?.type !== 'archipelago-session-v1' || !supabase) return;
   const { access_token, refresh_token } = event.data;
   if (typeof access_token !== 'string' || typeof refresh_token !== 'string') return;
-  const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-  if (error) { status.textContent = 'Session handoff failed. Please sign in here.'; return; }
-  const response = await fetch('/api/auth/me', { cache: 'no-store' });
-  if (!response.ok) { status.textContent = 'This account cannot access the staff space.'; return; }
+  const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+  if (error || !data.session?.access_token) { status.textContent = 'Session handoff failed. Please sign in here.'; return; }
+  const response = await fetch('/api/auth/me', {
+    headers: { Authorization: `Bearer ${data.session.access_token}` },
+    cache: 'no-store',
+  });
+  if (!response.ok) {
+    await supabase.auth.signOut();
+    status.textContent = 'This account cannot access the staff space.';
+    return;
+  }
   location.replace(next);
 });
