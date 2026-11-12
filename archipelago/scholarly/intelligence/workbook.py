@@ -176,7 +176,9 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
             coauthors.setdefault(edge["source"], set()).add(edge["target"])
             coauthors.setdefault(edge["target"], set()).add(edge["source"])
     by_openalex = {
-        p["identifiers"].get("openalex_id"): p for p in run["papers"] if p["identifiers"].get("openalex_id")
+        p["identifiers"].get("openalex_id"): p
+        for p in run["papers"]
+        if p["identifiers"].get("openalex_id")
     }
     observations = {row["id"]: row for row in run.get("author_observations", [])}
     statuses = {s.get("source"): s.get("status") for s in run.get("sources", [])}
@@ -204,7 +206,9 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 "; ".join(a["name"] for a in paper["authors"]),
                 "; ".join(author_ids),
                 _names(paper.get("topics") or []),
-                _names(paper["research_field"]) if isinstance(paper.get("research_field"), list) else paper.get("research_field"),
+                _names(paper["research_field"])
+                if isinstance(paper.get("research_field"), list)
+                else paper.get("research_field"),
                 _names(paper.get("methods") or []),
                 _names(paper.get("datasets") or []),
                 _names(paper.get("evaluation_metrics") or []),
@@ -222,7 +226,9 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         )
         sheets["Papers"].cell(sheets["Papers"].max_row, 4).number_format = "yyyy-mm-dd"
         for index, author in enumerate(paper["authors"]):
-            entry = authors.setdefault(author_ids[index], {"author": author, "papers": [], "ids": ids})
+            entry = authors.setdefault(
+                author_ids[index], {"author": author, "papers": [], "ids": ids}
+            )
             entry["papers"].append(paper)
             entry["index"] = index
             entry["source_paper"] = paper
@@ -241,7 +247,9 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                     paper["citation_provider"],
                 ],
             )
-        providers = sorted({s.get("source_type") for s in paper["provenance"] if s.get("source_type")})
+        providers = sorted(
+            {s.get("source_type") for s in paper["provenance"] if s.get("source_type")}
+        )
         add(
             "Topic_Results",
             [
@@ -263,7 +271,8 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                     source.get("source_type"),
                     source.get("source_url"),
                     source.get("fetched_at"),
-                    paper.get("license") or ("open access" if paper.get("is_open_access") else None),
+                    paper.get("license")
+                    or ("open access" if paper.get("is_open_access") else None),
                     paper["evidence_status"],
                 ],
             )
@@ -294,9 +303,12 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 None,
                 "; ".join(author.get("institutions") or []),
                 "; ".join(
-                    str(a["institution"]) for a in observation.get("affiliations") or [] if a.get("institution")
+                    str(a["institution"])
+                    for a in observation.get("affiliations") or []
+                    if a.get("institution")
                 ),
-                observation.get("identity_status") or ("provider_linked" if provider_id else "unverified_name_only"),
+                observation.get("identity_status")
+                or ("provider_linked" if provider_id else "unverified_name_only"),
                 _metric(metrics.get("publication_count")),
                 _metric(metrics.get("citation_count")),
                 _metric(metrics.get("h_index")),

@@ -94,7 +94,8 @@ def build_graph(run: dict[str, Any]) -> dict[str, Any]:
             for affiliation in author.get("institutions") or []:
                 institution_id = _hash("institution", affiliation)
                 nodes.setdefault(
-                    institution_id, {"id": institution_id, "kind": "Institution", "name": affiliation}
+                    institution_id,
+                    {"id": institution_id, "kind": "Institution", "name": affiliation},
                 )
                 edge(author_id, institution_id, "AFFILIATED_WITH", provider)
         # Coauthorship is only asserted between provider-identified authors.

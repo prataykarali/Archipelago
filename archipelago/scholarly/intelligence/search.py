@@ -191,7 +191,8 @@ def discover(
                 "research_field": metadata.get("research_domain"),
                 "methods": metadata.get("methods") or found["methods"],
                 "datasets": metadata.get("datasets") or found["datasets"],
-                "evaluation_metrics": metadata.get("evaluation_metrics") or found["evaluation_metrics"],
+                "evaluation_metrics": metadata.get("evaluation_metrics")
+                or found["evaluation_metrics"],
                 "author_ids": metadata.get("author_openalex_ids") or [],
                 "publisher": metadata.get("publisher"),
                 "license": paper.license,

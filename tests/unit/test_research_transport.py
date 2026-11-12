@@ -100,3 +100,26 @@ def test_preview_backend_origin_is_server_configured_and_https_only(
     monkeypatch.setenv("ARCHIPELAGO_RESEARCH_ORIGIN", "http://127.0.0.1:8000")
     with pytest.raises(ValueError, match="invalid_research_origin"):
         module.research_backend_origin()
+
+
+def test_preview_proxy_adds_server_only_protection_bypass(
+    transport: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A protected preview receives its bypass secret only from server configuration."""
+    module = transport
+    monkeypatch.setenv("ARCHIPELAGO_RESEARCH_ORIGIN", "https://archipelago-preview.vercel.app")
+    monkeypatch.setenv("ARCHIPELAGO_RESEARCH_BYPASS_SECRET", "test-preview-secret")
+    monkeypatch.setattr(module, "verify_user", lambda token: token == "valid")
+    upstream = Mock(status_code=200, content=b"{}", headers={"Content-Type": "application/json"})
+    sent = Mock(return_value=upstream)
+    monkeypatch.setattr(module.requests, "request", sent)
+    response = module.app.test_client().get(
+        "/api/research/intelligence/runs",
+        headers={"Authorization": "Bearer valid", "x-vercel-protection-bypass": "attacker"},
+    )
+    assert response.status_code == 200
+    assert (
+        sent.call_args.args[1]
+        == "https://archipelago-preview.vercel.app/api/research/intelligence/runs"
+    )
+    assert sent.call_args.kwargs["headers"]["x-vercel-protection-bypass"] == "test-preview-secret"

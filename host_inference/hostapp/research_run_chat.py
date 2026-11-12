@@ -52,7 +52,9 @@ def _ref(index: int, paper: dict[str, Any]) -> str:
 def _paper_by_reference(query: str, papers: list[dict[str, Any]], history_text: str) -> int | None:
     for word, number in ORDINALS.items():
         if re.search(rf"\b{word}\s+(paper|work|one)\b", query, re.I):
-            return len(papers) - 1 if number == -1 else number - 1 if number <= len(papers) else None
+            return (
+                len(papers) - 1 if number == -1 else number - 1 if number <= len(papers) else None
+            )
     match = re.search(r"\b(?:paper|work)\s+(?:#|number\s+)?(\d{1,3})\b", query, re.I)
     if match and 1 <= int(match.group(1)) <= len(papers):
         return int(match.group(1)) - 1
@@ -76,7 +78,11 @@ def _author_in_history(run: dict[str, Any], history_text: str) -> tuple[dict[str
 
 def _observation(run: dict[str, Any], paper: dict[str, Any], author_index: int) -> dict | None:
     ids = (paper.get("source_metadata") or {}).get("author_openalex_ids") or []
-    short = ids[author_index].rsplit("/", 1)[-1] if author_index < len(ids) and ids[author_index] else None
+    short = (
+        ids[author_index].rsplit("/", 1)[-1]
+        if author_index < len(ids) and ids[author_index]
+        else None
+    )
     return next((o for o in run.get("author_observations", []) if o["id"] == short), None)
 
 
@@ -89,11 +95,15 @@ def _list(run: dict[str, Any]) -> str:
         authors = ", ".join(a["name"] for a in p["authors"][:6]) or "authors unavailable"
         if len(p["authors"]) > 6:
             authors += f" and {len(p['authors']) - 6} more"
-        lines.append(f"[{i}] {p['title']} — {authors} — {p.get('year') or 'year unavailable'} — {_link(p)}")
+        lines.append(
+            f"[{i}] {p['title']} — {authors} — {p.get('year') or 'year unavailable'} — {_link(p)}"
+        )
     return "\n".join(lines)
 
 
-def _answer(query: str, run: dict[str, Any], history_text: str, run_id: str, new_papers: str) -> str:
+def _answer(
+    query: str, run: dict[str, Any], history_text: str, run_id: str, new_papers: str
+) -> str:
     papers = run["papers"]
     if not papers:
         return "The stored collection contains no papers that matched the topic, so there is nothing to report."
@@ -104,12 +114,18 @@ def _answer(query: str, run: dict[str, Any], history_text: str, run_id: str, new
         )
     if NEW_PAPERS.search(query):
         return new_papers
-    if re.search(r"\bh-?index|i10|citation count of (that|the) author|author metrics?", query, re.I):
+    if re.search(
+        r"\bh-?index|i10|citation count of (that|the) author|author metrics?", query, re.I
+    ):
         hit = _author_in_history(run, history_text)
         if hit is None:
             idx = _paper_by_reference(query, papers, history_text)
             paper = papers[idx or 0]
-            hit = ({"author": paper["authors"][0], "paper": paper}, idx or 0) if paper["authors"] else None
+            hit = (
+                ({"author": paper["authors"][0], "paper": paper}, idx or 0)
+                if paper["authors"]
+                else None
+            )
         if hit is None:
             return "No author is identified for that paper in the stored metadata."
         info, _ = hit
@@ -118,7 +134,11 @@ def _answer(query: str, run: dict[str, Any], history_text: str, run_id: str, new
         obs = _observation(run, paper, index)
         metrics = (obs or {}).get("metrics")
         if not metrics or metrics.get("h_index") is None:
-            reason = "no provider-linked author ID" if obs is None else "the provider returned no h-index"
+            reason = (
+                "no provider-linked author ID"
+                if obs is None
+                else "the provider returned no h-index"
+            )
             return (
                 f"The h-index for {author['name']} is not available in this snapshot ({reason}). "
                 "I will not estimate it, and authors are not matched by name alone."
@@ -145,7 +165,9 @@ def _answer(query: str, run: dict[str, Any], history_text: str, run_id: str, new
         for i, p in enumerate(papers, 1):
             d = p.get("venue_details") or {}
             extra = ", ".join(x for x in (d.get("type"), d.get("publisher")) if x)
-            lines.append(f"[{i}] {p.get('venue') or 'venue unavailable'}{f' ({extra})' if extra else ''}")
+            lines.append(
+                f"[{i}] {p.get('venue') or 'venue unavailable'}{f' ({extra})' if extra else ''}"
+            )
         return "\n".join(lines)
     if re.search(r"\b(citation relationships?|cite|cites|cited|citations between)\b", query, re.I):
         from archipelago.scholarly.intelligence.graph import build_graph
@@ -159,20 +181,30 @@ def _answer(query: str, run: dict[str, Any], history_text: str, run_id: str, new
                 f"The papers list {counts} reference IDs in total, but none point at another paper here."
             )
         return "Provider-verified citations within the collection:\n" + "\n".join(
-            f"[{order[e['source']]}] cites [{order[e['target']]}] (source: {e['provider']})" for e in edges
+            f"[{order[e['source']]}] cites [{order[e['target']]}] (source: {e['provider']})"
+            for e in edges
         )
     if re.search(r"\b(methods?|datasets?|metrics?|techniques?)\b", query, re.I):
         lines = ["Methods, datasets and metrics found literally in abstracts:"]
         for i, p in enumerate(papers, 1):
+
             def names(key: str, p: dict[str, Any] = p) -> str:
-                return ", ".join(x["name"] if isinstance(x, dict) else str(x) for x in p.get(key) or [])
+                return ", ".join(
+                    x["name"] if isinstance(x, dict) else str(x) for x in p.get(key) or []
+                )
 
             found = [
                 f"{label}: {names(key)}"
-                for label, key in (("methods", "methods"), ("datasets", "datasets"), ("metrics", "evaluation_metrics"))
+                for label, key in (
+                    ("methods", "methods"),
+                    ("datasets", "datasets"),
+                    ("metrics", "evaluation_metrics"),
+                )
                 if names(key)
             ]
-            lines.append(f"[{i}] {'; '.join(found) if found else 'none stated in the available abstract'}")
+            lines.append(
+                f"[{i}] {'; '.join(found) if found else 'none stated in the available abstract'}"
+            )
         return "\n".join(lines)
     return _list(run)
 
@@ -189,7 +221,9 @@ def research_chat_reply(
     find = FIND.search(query)
     if not is_research_request(query, run is not None):
         return None
-    history_text = "\n".join(str(m.get("content", "")) for m in history or [] if isinstance(m, dict))
+    history_text = "\n".join(
+        str(m.get("content", "")) for m in history or [] if isinstance(m, dict)
+    )
     if find and (find.group("topic") or "").strip():
         from archipelago.scholarly.intelligence.search import discover
 
@@ -216,7 +250,8 @@ def research_chat_reply(
         monitors = store.list_monitors(owner)
         if events:
             new_papers = "New papers since monitoring began:\n" + "\n".join(
-                f"• {e['payload'].get('title') or e['subject_id']} ({e['created_at']})" for e in events[:10]
+                f"• {e['payload'].get('title') or e['subject_id']} ({e['created_at']})"
+                for e in events[:10]
             )
         elif any(m.get("last_success_at") for m in monitors):
             new_papers = "The last monitoring run completed and found no new papers."

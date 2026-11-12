@@ -354,6 +354,9 @@ def _forward(path: str) -> Response | tuple[object, int]:
         "Authorization": request.headers.get("Authorization", ""),
         "Accept": "application/json",
     }
+    bypass_secret = os.getenv("ARCHIPELAGO_RESEARCH_BYPASS_SECRET", "").strip()
+    if bypass_secret:
+        headers["x-vercel-protection-bypass"] = bypass_secret
     if request.content_type:
         headers["Content-Type"] = request.content_type
     try:
