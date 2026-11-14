@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-full bg-[#050b0a]">
+<html lang="en" class="h-full bg-[#08071b]">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,91 +8,605 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
-    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-    #graph { min-height: 440px; height: min(68vh, 760px); }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; max-width: 100%; }
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1d164e, #0a0924 68%, #070618); outline: none; }
+    #graph:focus-visible { box-shadow: inset 0 0 0 2px #bca5ff; }
+    #graph canvas { filter: drop-shadow(0 0 7px #6b5cdb99); }
+    #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .45; background-image: radial-gradient(#7561c3 1px, transparent 1px); background-size: 28px 28px; }
+    .graph-frame { box-shadow: 0 25px 90px #02010fbd, inset 0 0 0 1px #5c47b566; border-radius: 0; border: 0; }
+    .graph-panel { background: linear-gradient(155deg, #19143cee, #0e0c28f2); backdrop-filter: blur(18px); position: absolute; right: 20px; top: 92px; width: min(360px, 32vw); max-height: calc(100% - 110px); overflow-y: auto; overflow-x: hidden; z-index: 2; box-shadow: 0 22px 64px #040112ba; }
+    .graph-stage { position: relative; }
+    .graph-toolbar { position: absolute; z-index: 3; left: 24px; top: 24px; width: min(620px, calc(100% - 410px)); }
+    .graph-toolbar input { background: #100a2ccf; backdrop-filter: blur(12px); }
+    main { max-width: none !important; padding: 0 !important; }
+    .academic-hero { min-height: 220px; display: flex; align-items: center; margin: 20px 24px 0; padding: clamp(20px, 4vw, 48px); background-image: linear-gradient(90deg, #110521f2 0%, #18072bc9 45%, #18072b35 100%), url('/assets/research_archipelago_v2.png') !important; background-position: center; background-size: cover; position: relative; overflow: hidden; border: 1px solid #7b47b5; border-radius: 24px; box-shadow: 0 26px 70px #05010e91; }
+    .academic-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .3; background-image: radial-gradient(#dda8ff 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, #000, transparent); }
+    .academic-hero-copy { position: relative; z-index: 1; }
+    @media(max-width: 760px) {
+      .academic-hero { margin: 12px 12px 0; padding: 20px; min-height: 160px; }
+      .graph-panel { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 40vh; }
+      .graph-toolbar { left: 12px; top: 12px; width: calc(100% - 24px); }
+      #graph { height: calc(100vh - 70px); min-height: 580px; }
+    }
+    .graph-panel [hidden] { display: none !important; }
+    .graph-panel button:focus-visible, .graph-panel a:focus-visible, .graph-panel select:focus-visible, #query:focus-visible, .graph-toolbar button:focus-visible { outline: 2px solid #bca5ff; outline-offset: 2px; }
+    .touch-target { min-height: 40px; min-width: 40px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    }
   </style>
 </head>
-<body class="min-h-full bg-[#050b0a] text-slate-100">
-  <header class="border-b border-emerald-300/10 bg-black/40">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-      <a href="/chat" class="font-semibold tracking-wide text-emerald-200">Archipelago <span class="text-white/50">/ Knowledge Graph</span></a>
-      <nav class="flex gap-4 text-sm text-white/70"><a href="/chat" class="hover:text-white">Chat</a><a href="/library" class="hover:text-white">Library</a></nav>
+<body class="min-h-full bg-[#08071b] text-slate-100">
+  <header class="border-b border-violet-300/20 bg-[#0b0923]">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4">
+      <a href="/chat" class="font-semibold tracking-wide text-violet-200">Archipelago <span class="text-white/50">/ Knowledge Graph</span></a>
+      <nav class="flex flex-wrap gap-3 text-sm text-white/70 sm:gap-4"><a href="/chat" class="py-1 hover:text-white">Chat</a><a href="/library" class="py-1 hover:text-white">Library</a><a href="/research" class="py-1 hover:text-white">Research</a><a href="#library-details" class="py-1 hover:text-white">Library details</a></nav>
     </div>
   </header>
   <main class="mx-auto max-w-7xl px-5 py-8">
-    <div class="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div><h1 class="text-3xl font-semibold">Explore connected concepts</h1><p class="mt-2 max-w-2xl text-sm text-white/60">Search the indexed library graph. Select any node to expand its neighborhood; edges show the stored relationship direction.</p></div>
-      <form id="search-form" class="flex w-full gap-2 md:max-w-xl">
+    <section class="academic-hero" aria-labelledby="academic-hero-title">
+      <div class="academic-hero-copy"><p class="text-xs font-bold uppercase tracking-[.22em] text-fuchsia-200">Archipelago / Academic atlas</p><h1 id="academic-hero-title" class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">A universe of connected ideas</h1><p class="mt-3 max-w-xl text-sm text-violet-100 sm:text-base">Explore the library knowledge graph, then follow a topic into scholarly research.</p></div>
+    </section>
+    <div class="graph-stage">
+      <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-violet-200">Academic atlas · select a concept or edge to inspect</p><form id="search-form" class="flex w-full gap-2">
         <label for="query" class="sr-only">Search a concept</label>
-        <input id="query" required minlength="2" maxlength="160" placeholder="Try: graph retrieval, attention, or databases" class="min-w-0 flex-1 rounded-xl border border-white/15 bg-white/5 px-4 py-3 outline-none focus:border-emerald-300/60">
-        <button class="rounded-xl bg-emerald-300 px-5 py-3 font-semibold text-black hover:bg-emerald-200">Explore</button>
-      </form>
-    </div>
-    <div class="grid gap-4 lg:grid-cols-[1fr_18rem]">
-      <section class="overflow-hidden rounded-2xl border border-emerald-300/15 bg-[#06110e] shadow-2xl"><div id="graph" aria-label="Interactive library knowledge graph"></div></section>
-      <aside class="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-        <p id="graph-status" role="status" class="text-sm text-white/60">Loading graph…</p>
-        <h2 id="node-title" class="mt-4 text-lg font-semibold text-emerald-200">Select a node</h2>
-        <p id="node-summary" class="mt-2 text-sm leading-6 text-white/70">Node descriptions appear here. Double click or select a node to recenter the graph.</p>
-        <p class="mt-6 text-xs leading-5 text-white/45">Graph data comes from the deployed library inventory. This explorer is read-only; catalog and graph updates are handled by the librarian ingestion workflow.</p>
+        <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="touch-target min-w-0 flex-1 rounded-xl border border-violet-300/25 px-4 py-2 text-sm outline-none focus:border-violet-300/70">
+        <button type="submit" class="touch-target cursor-pointer rounded-xl bg-violet-400 px-4 py-2 text-sm font-semibold text-[#100827] hover:bg-violet-300">Explore</button>
+      </form></div>
+      <section class="graph-frame overflow-hidden bg-[#0b0923]"><div id="graph" tabindex="0" aria-label="Interactive full-screen academic knowledge graph"></div></section>
+      <aside class="graph-panel rounded-2xl border border-violet-300/20 p-4 sm:p-5" aria-live="polite">
+        <div class="mb-3 flex flex-wrap gap-2">
+          <button id="nav-back" type="button" hidden class="touch-target cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/25">← Back</button>
+          <button id="show-core" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-left text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Main concepts</button>
+          <button id="show-global" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-left text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Global graph</button>
+        </div>
+        <div class="mb-3 flex gap-2"><button id="page-prev" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs" hidden>Previous</button><button id="page-next" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs" hidden>Next</button></div>
+        <label for="relation-filter" class="text-xs text-white/70">Relationship filter</label>
+        <select id="relation-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-white/20 bg-[#100a2c] p-2 text-xs"><option value="">All stored types</option><option value="REQUIRES">Requires</option><option value="UNLOCKS">Unlocks</option><option value="RELATED">Related</option></select>
+        <div class="mb-3 flex flex-wrap gap-2" aria-label="Relationship colors">
+          <span class="text-xs text-white/70"><span class="text-blue-300">◆</span> Requires</span>
+          <span class="text-xs text-white/70"><span class="text-pink-300">◆</span> Unlocks</span>
+          <span class="text-xs text-white/70"><span class="text-violet-300">◆</span> Related</span>
+          <span class="text-xs text-white/70"><span class="text-teal-300">◆</span> Sourced from</span>
+        </div>
+        <div class="mb-3 flex flex-wrap gap-2" aria-label="Graph controls">
+          <button id="zoom-in" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10" aria-label="Zoom in">+</button>
+          <button id="zoom-out" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10" aria-label="Zoom out">−</button>
+          <button id="zoom-fit" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10">Fit</button>
+          <button id="graph-reset" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10">Reset</button>
+          <button id="expand-neighborhood" type="button" hidden class="touch-target cursor-pointer rounded-lg border border-violet-300/35 bg-violet-500/15 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Expand +15</button>
+        </div>
+        <p id="graph-status" role="status" class="text-xs text-white/70">Loading graph…</p>
+        <p id="graph-version" class="mt-1 text-xs text-white/45"></p>
+        <div id="node-inspector" class="mt-4 border-t border-white/10 pt-4">
+          <h2 id="node-title" class="text-lg font-semibold text-violet-200">Select a node</h2>
+          <p id="node-summary" class="mt-2 text-sm leading-6 text-white/75">Select a concept to inspect its verified description, prerequisites, unlocks, and source documents.</p>
+          <dl id="node-facts" class="mt-4 grid grid-cols-2 gap-2 text-xs" hidden></dl>
+          <div id="node-actions" class="mt-4 flex flex-wrap gap-2" hidden>
+            <button id="explore-node" type="button" class="touch-target cursor-pointer rounded-xl border border-fuchsia-300/50 bg-fuchsia-500/20 px-3 py-2 text-xs font-semibold text-white hover:bg-fuchsia-500/30">Explore Concept ↗</button>
+            <a id="ask-archipelago" href="/chat" class="touch-target inline-flex items-center rounded-xl border border-violet-300/40 bg-violet-500/20 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/30">Ask Archipelago</a>
+            <a id="view-sources" href="/library" class="touch-target inline-flex items-center rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/10">View Sources</a>
+            <a id="take-quiz" href="/chat" hidden class="touch-target inline-flex items-center rounded-xl border border-emerald-300/40 bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/30">Take Quiz</a>
+          </div>
+          <div id="node-relationships" class="mt-4 space-y-3 text-xs"></div>
+          <div id="node-sources" class="mt-4 space-y-1 text-xs leading-5 text-violet-100"></div>
+        </div>
+        <div id="edge-details" class="mt-4 rounded-xl border border-violet-300/25 bg-violet-500/10 p-3 text-xs leading-5 text-violet-100" hidden></div>
+        <p class="mt-5 text-xs leading-5 text-white/45">Graph data comes from the deployed library inventory. This explorer is read-only; catalog and graph updates are handled by the librarian ingestion workflow.</p>
       </aside>
     </div>
+    <section id="library-details" class="mx-auto max-w-7xl px-5 py-10" aria-labelledby="koha-title">
+      <p class="text-xs font-bold uppercase tracking-[.22em] text-violet-300">Academic atlas / library details</p>
+      <h2 id="koha-title" class="mt-2 text-3xl font-bold text-white">Koha catalogue exports</h2>
+      <p id="koha-status" role="status" class="mt-2 text-sm text-amber-200">Checking the latest authorized export…</p>
+      <div id="koha-counts" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"></div>
+      <div class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5">
+        <label for="koha-kind" class="text-sm font-semibold">Dataset</label>
+        <select id="koha-kind" class="touch-target ml-2 rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-white"><option value="holdings">Holdings</option><option value="journal_issues">Journal issues</option><option value="subject_counts">Subject counts</option><option value="subject_titles">Subject titles</option></select>
+        <label for="koha-search" class="sr-only">Search Koha metadata</label>
+        <input id="koha-search" placeholder="Search catalogue metadata" class="touch-target mt-4 w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-3 text-white">
+        <p id="koha-results" class="my-3 text-xs text-white/60"></p>
+        <div class="max-h-[460px] overflow-auto"><table class="w-full min-w-[650px] text-left text-xs"><thead id="koha-head" class="sticky top-0 bg-[#171337] text-violet-200"></thead><tbody id="koha-body" class="divide-y divide-white/10"></tbody></table></div>
+      </div>
+    </section>
   </main>
+  <script src="/academic_koha.js" defer></script>
   <script>
     let cy;
+    let currentTarget = '';
+    let currentMaxNodes = 20;
+    let globalOffset = 0;
+    let globalMode = false;
+    let activeSelection = null;
+    const historyStack = [];
+    let currentView = null;
+
     const status = document.getElementById('graph-status');
     const title = document.getElementById('node-title');
     const summary = document.getElementById('node-summary');
+    const facts = document.getElementById('node-facts');
+    const actionsBox = document.getElementById('node-actions');
+    const relsBox = document.getElementById('node-relationships');
+    const sourceList = document.getElementById('node-sources');
+    const edgeDetails = document.getElementById('edge-details');
     const queryInput = document.getElementById('query');
+    const relationFilter = document.getElementById('relation-filter');
+    const backBtn = document.getElementById('nav-back');
+    const expandBtn = document.getElementById('expand-neighborhood');
 
-    function showNode(node) {
-      title.textContent = node.name || node.id;
-      summary.textContent = node.summary || 'No summary is available for this graph node.';
+    function pushHistory(nextView) {
+      if (currentView && JSON.stringify(currentView) !== JSON.stringify(nextView)) {
+        historyStack.push(currentView);
+        if (historyStack.length > 25) historyStack.shift();
+      }
+      currentView = nextView;
+      backBtn.hidden = historyStack.length === 0;
     }
 
-    async function loadGraph(params) {
-      status.textContent = 'Loading graph…';
-      const response = await fetch('/api/graph/subgraph?' + new URLSearchParams(params), { cache: 'no-store' });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || 'Could not load this graph neighborhood.');
+    function applyRelationFilter() {
+      if (!cy) return;
+      const selected = relationFilter.value.toUpperCase();
+      cy.edges().forEach(edge => {
+        const rel = String(edge.data('rel_label') || '').toUpperCase();
+        const match = !selected || rel === selected || (selected === 'RELATED' && rel === 'CONNECTS');
+        edge.style('display', match ? 'element' : 'none');
+      });
+    }
+
+    function restoreSelectionHighlight() {
+      if (!cy) return;
+      cy.elements().removeClass('muted focused hovered');
+      if (!activeSelection) return;
+      if (activeSelection.type === 'node') {
+        const node = cy.getElementById(activeSelection.id);
+        if (node && node.length) {
+          cy.elements().addClass('muted');
+          node.closedNeighborhood().removeClass('muted').addClass('focused');
+        }
+      } else if (activeSelection.type === 'edge') {
+        const edge = cy.getElementById(activeSelection.id);
+        if (edge && edge.length) {
+          cy.elements().addClass('muted');
+          edge.removeClass('muted').addClass('focused');
+          edge.connectedNodes().removeClass('muted').addClass('focused');
+        }
+      }
+    }
+
+    function relationMeaning(edgeData, srcName, tgtName) {
+      const rel = String(edgeData.rel_label || '').toUpperCase();
+      if (rel === 'REQUIRES') return `${srcName} requires ${tgtName} as a prerequisite.`;
+      if (rel === 'UNLOCKS') return `${srcName} unlocks ${tgtName}.`;
+      if (rel === 'SOURCED_FROM') return `${srcName} is grounded in source ${tgtName}.`;
+      return `${srcName} is conceptually related to ${tgtName}.`;
+    }
+
+    function showEdge(edgeData) {
+      const srcNode = cy?.getElementById(edgeData.source);
+      const tgtNode = cy?.getElementById(edgeData.target);
+      const srcName = srcNode?.length ? (srcNode.data('name') || edgeData.source) : edgeData.source;
+      const tgtName = tgtNode?.length ? (tgtNode.data('name') || edgeData.target) : edgeData.target;
+      edgeDetails.replaceChildren();
+      edgeDetails.hidden = false;
+
+      const heading = document.createElement('h3');
+      heading.className = 'font-semibold text-violet-200 mb-2';
+      heading.textContent = 'Selected Relationship';
+      edgeDetails.append(heading);
+
+      const rows = [
+        ['Relation', edgeData.rel_label || 'RELATED'],
+        ['Direction', `${srcName} → ${tgtName}`],
+        ['Source node', `${srcName} (${edgeData.source})`],
+        ['Target node', `${tgtName} (${edgeData.target})`],
+        ['Meaning', relationMeaning(edgeData, srcName, tgtName)],
+      ];
+      rows.forEach(([k, v]) => {
+        const p = document.createElement('p');
+        p.className = 'mb-1';
+        const strong = document.createElement('strong');
+        strong.className = 'text-white/70';
+        strong.textContent = `${k}: `;
+        p.append(strong, document.createTextNode(String(v)));
+        edgeDetails.append(p);
+      });
+
+      const hasProvenance = Boolean(edgeData.source_ref || edgeData.doc_id || edgeData.page_number || edgeData.evidence);
+      if (!hasProvenance) {
+        const none = document.createElement('p');
+        none.className = 'mt-2 text-amber-200/90';
+        none.textContent = 'No edge-level provenance stored';
+        edgeDetails.append(none);
+      } else {
+        if (edgeData.source_ref) {
+          const p = document.createElement('p');
+          p.className = 'mt-1';
+          p.innerHTML = '';
+          const s = document.createElement('strong');
+          s.className = 'text-white/70';
+          s.textContent = 'Provenance: ';
+          p.append(s, document.createTextNode(edgeData.source_ref));
+          edgeDetails.append(p);
+        }
+        if (edgeData.doc_id) {
+          const p = document.createElement('p');
+          p.className = 'mt-1';
+          const s = document.createElement('strong');
+          s.className = 'text-white/70';
+          s.textContent = 'Source document: ';
+          const page = Number.isInteger(edgeData.page_number) && edgeData.page_number > 0 ? edgeData.page_number : null;
+          const a = document.createElement('a');
+          a.href = '/read?doc=' + encodeURIComponent(edgeData.doc_id) + (page ? '&page=' + page : '');
+          a.className = 'underline text-violet-200 hover:text-white';
+          a.textContent = `${edgeData.doc_id}${page ? ` (page ${page})` : ''}`;
+          p.append(s, a);
+          edgeDetails.append(p);
+        }
+        if (edgeData.evidence) {
+          const p = document.createElement('p');
+          p.className = 'mt-2 rounded-lg border border-white/10 bg-black/20 p-2 text-white/80';
+          const s = document.createElement('strong');
+          s.className = 'block text-white/60 mb-1';
+          s.textContent = 'Supporting evidence:';
+          p.append(s, document.createTextNode(edgeData.evidence));
+          edgeDetails.append(p);
+        }
+      }
+    }
+
+    function renderRelationPills(container, headingText, items) {
+      if (!items.length) return;
+      const wrap = document.createElement('div');
+      const h = document.createElement('p');
+      h.className = 'mb-1.5 font-semibold text-white/75';
+      h.textContent = headingText;
+      wrap.append(h);
+      const list = document.createElement('div');
+      list.className = 'flex flex-wrap gap-1.5';
+      items.forEach(({ id, label }) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'touch-target cursor-pointer rounded-lg border border-violet-300/30 bg-violet-500/15 px-2.5 py-1.5 text-xs text-violet-100 hover:bg-violet-500/30';
+        btn.textContent = label;
+        btn.addEventListener('click', () => {
+          const targetEl = cy?.getElementById(id);
+          if (targetEl && targetEl.length) {
+            targetEl.emit('tap');
+          } else {
+            loadGraph({ target_id: id, max_nodes: String(currentMaxNodes) }).catch(showError);
+          }
+        });
+        list.append(btn);
+      });
+      wrap.append(list);
+      container.append(wrap);
+    }
+
+    function showNode(node) {
+      edgeDetails.hidden = true;
+      title.textContent = node.name || node.id;
+      summary.textContent = node.summary || 'No summary is available for this graph node.';
+      facts.replaceChildren();
+      const entries = [
+        ['Type', node.kind],
+        ['Domain', node.domain],
+        ['Subdomain', node.subdomain],
+        ['Difficulty', node.difficulty],
+        ['Source documents', node.source_count],
+        ['Relationships', node.degree],
+        ['Page', node.page_number]
+      ].filter(([, value]) => value !== '' && value !== undefined && value !== null);
+      entries.forEach(([label, value]) => {
+        const item = document.createElement('div');
+        item.className = 'rounded-lg border border-violet-300/20 bg-violet-500/10 p-2';
+        const term = document.createElement('dt');
+        term.className = 'text-white/50';
+        term.textContent = label;
+        const detail = document.createElement('dd');
+        detail.className = 'mt-1 font-semibold text-violet-100';
+        detail.textContent = String(value);
+        item.append(term, detail);
+        facts.append(item);
+      });
+      facts.hidden = !entries.length;
+
+      actionsBox.hidden = false;
+      const exploreBtn = document.getElementById('explore-node');
+      exploreBtn.hidden = node.id === currentTarget;
+      exploreBtn.onclick = () => loadGraph({ target_id: node.id, max_nodes: String(currentMaxNodes) }).catch(showError);
+
+      const askLink = document.getElementById('ask-archipelago');
+      askLink.href = '/chat?q=' + encodeURIComponent(`Explain ${node.name || node.id}`);
+
+      const documents = Array.isArray(node.source_documents) ? node.source_documents : [];
+      const viewSources = document.getElementById('view-sources');
+      if (documents.length && documents[0].id) {
+        const firstPage = Number.isInteger(documents[0].page_number) && documents[0].page_number > 0 ? documents[0].page_number : null;
+        viewSources.href = '/read?doc=' + encodeURIComponent(documents[0].id) + (firstPage ? '&page=' + firstPage : '');
+      } else {
+        viewSources.href = '/library';
+      }
+
+      const quizLink = document.getElementById('take-quiz');
+      if (node.has_diagnostic) {
+        quizLink.hidden = false;
+        quizLink.href = '/chat?q=' + encodeURIComponent(`Quiz me on ${node.name || node.id}`);
+      } else {
+        quizLink.hidden = true;
+      }
+
+      relsBox.replaceChildren();
+      if (cy) {
+        const cyNode = cy.getElementById(node.id);
+        if (cyNode && cyNode.length) {
+          const prereqs = new Map();
+          const unlocks = new Map();
+          const related = new Map();
+          cyNode.connectedEdges().forEach(edge => {
+            const rel = String(edge.data('rel_label') || '').toUpperCase();
+            const src = edge.source();
+            const tgt = edge.target();
+            const isOut = src.id() === node.id;
+            const other = isOut ? tgt : src;
+            const item = { id: other.id(), label: other.data('name') || other.id() };
+            if ((rel === 'REQUIRES' && isOut) || (rel === 'UNLOCKS' && !isOut)) {
+              prereqs.set(item.id, item);
+            } else if ((rel === 'UNLOCKS' && isOut) || (rel === 'REQUIRES' && !isOut)) {
+              unlocks.set(item.id, item);
+            } else if (rel === 'RELATED' || rel === 'CONNECTS') {
+              related.set(item.id, item);
+            }
+          });
+          renderRelationPills(relsBox, 'Direct prerequisites', [...prereqs.values()]);
+          renderRelationPills(relsBox, 'Downstream unlocks', [...unlocks.values()]);
+          renderRelationPills(relsBox, 'Related concepts', [...related.values()]);
+        }
+      }
+
+      sourceList.replaceChildren();
+      if (documents.length) {
+        const heading = document.createElement('strong');
+        heading.className = 'block text-white/80 mb-1';
+        heading.textContent = 'Source trail';
+        sourceList.append(heading);
+        documents.forEach(source => {
+          const item = document.createElement('p');
+          const page = Number.isInteger(source.page_number) && source.page_number > 0 ? source.page_number : null;
+          const link = document.createElement('a');
+          link.href = '/read?doc=' + encodeURIComponent(source.id) + (page ? '&page=' + page : '');
+          link.className = 'inline-block py-1 underline text-violet-200 hover:text-white';
+          link.textContent = `${source.title}${page ? ` · page ${page}` : ''}`;
+          item.append(link);
+          sourceList.append(item);
+        });
+      }
+    }
+
+    function renderGraph(data, overview = false) {
       if (cy) cy.destroy();
+      activeSelection = null;
+      edgeDetails.hidden = true;
+      const anchorId = data.target_id || data.nodes[0]?.data.id;
+      const neighbors = data.nodes.filter(item => item.data.id !== anchorId);
+      const centerX = 520;
+      const centerY = 430;
+      const visibleEdges = data.edges;
+      const positions = new Map([[anchorId, { x: centerX, y: centerY }]]);
+      const orbit = overview ? data.nodes : neighbors;
+      orbit.forEach((item, index) => {
+        const ringSize = overview ? 8 : 10;
+        const ring = Math.floor(index / ringSize);
+        const ringCount = Math.min(ringSize, orbit.length - ring * ringSize);
+        const angle = ((index % ringSize) / Math.max(1, ringCount)) * Math.PI * 2 - Math.PI / 2 + ring * .24;
+        const radius = (overview ? 260 : 320) + ring * 210;
+        positions.set(item.data.id, { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius });
+      });
+      const anchor = data.nodes.find(item => item.data.id === anchorId)?.data;
+      const sourceDocuments = overview ? [] : (anchor?.source_documents || []);
+      currentTarget = overview ? '' : anchorId;
+      expandBtn.hidden = overview || !currentTarget || currentMaxNodes >= 100;
+
       cy = cytoscape({
         container: document.getElementById('graph'),
         elements: [
-          ...data.nodes.map(item => item.data.id === data.target_id ? { ...item, classes: 'target-node' } : item),
-          ...data.edges
+          ...data.nodes.map(item => ({ ...item, position: positions.get(item.data.id), classes: !overview && item.data.id === anchorId ? 'target-node' : '' })),
+          ...visibleEdges
         ],
-        layout: { name: 'cose', animate: false, fit: true, padding: 36, nodeRepulsion: 5000 },
-        minZoom: 0.2,
+        layout: { name: 'preset', fit: true, padding: 48 },
+        minZoom: 0.25,
         maxZoom: 2.5,
         style: [
-          { selector: 'node', style: { 'background-color': '#0dd99a', 'border-width': 2, 'border-color': '#9fffe0', 'label': 'data(name)', 'color': '#ecfff8', 'font-size': 10, 'text-wrap': 'wrap', 'text-max-width': 120, 'width': 30, 'height': 30 } },
-          { selector: 'node.target-node', style: { 'background-color': '#f4c95d', 'border-color': '#fff0b2', 'width': 46, 'height': 46, 'font-weight': 700 } },
-          { selector: 'edge', style: { 'width': 1.5, 'line-color': '#328d70', 'target-arrow-color': '#75dcb9', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'label': 'data(rel_label)', 'font-size': 8, 'color': '#a3b8b0', 'text-rotation': 'autorotate', 'text-background-color': '#06110e', 'text-background-opacity': 0.8 } },
-          { selector: ':selected', style: { 'border-color': '#ffffff', 'border-width': 4 } }
+          { selector: 'node', style: { 'shape': 'round-rectangle', 'background-color': '#18255a', 'border-width': 1.5, 'border-color': '#628afa', 'label': 'data(name)', 'color': '#f5f5ff', 'font-size': 11, 'font-weight': 600, 'text-wrap': 'wrap', 'text-max-width': 132, 'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': '12px', 'underlay-color': '#3c63ff', 'underlay-opacity': .22, 'underlay-padding': 8, 'underlay-shape': 'roundrectangle' } },
+          { selector: 'node.target-node', style: { 'background-color': '#54208a', 'border-color': '#d89bff', 'padding': '16px', 'font-size': 13, 'font-weight': 700, 'underlay-color': '#bb4cff', 'underlay-padding': 12, 'underlay-opacity': .5 } },
+          { selector: 'edge', style: { 'width': 2, 'line-color': '#7f6fd6', 'target-arrow-color': '#a99cff', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.25, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': '', 'font-size': 9, 'color': '#e9dfff', 'text-rotation': 'autorotate', 'text-background-color': '#0b0923', 'text-background-opacity': .92, 'text-background-padding': 3 } },
+          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#4a9eff', 'target-arrow-color': '#80bdff' } },
+          { selector: 'edge[rel_label = "UNLOCKS"]', style: { 'line-color': '#f067d8', 'target-arrow-color': '#f6a7e8' } },
+          { selector: 'edge[rel_label = "RELATED"], edge[rel_label = "CONNECTS"]', style: { 'line-color': '#8c7ae6', 'target-arrow-color': '#b8abff' } },
+          { selector: 'edge[rel_label = "SOURCED_FROM"]', style: { 'line-color': '#13ae89', 'target-arrow-color': '#5de4bf' } },
+          { selector: '.muted', style: { 'opacity': .15, 'text-opacity': .12 } },
+          { selector: '.focused', style: { 'opacity': 1, 'border-width': 3, 'border-color': '#ffffff', 'underlay-padding': 12, 'underlay-opacity': .6 } },
+          { selector: 'edge.focused, edge.hovered, edge:selected', style: { 'label': 'data(rel_label)', 'width': 3.2, 'opacity': 1 } },
+          { selector: ':selected', style: { 'border-color': '#ffffff', 'border-width': 3 } }
         ]
       });
-      cy.on('tap', 'node', event => showNode(event.target.data()));
-      cy.on('dbltap', 'node', event => loadGraph({ target_id: event.target.id(), max_nodes: '36' }).catch(showError));
-      const anchor = data.nodes.find(item => item.data.id === data.target_id)?.data;
-      if (anchor) showNode(anchor);
-      status.textContent = `${data.nodes.length} concepts · ${data.edges.length} relationships · select a node to inspect, double click to expand`;
+
+      cy.nodes().lock();
+      applyRelationFilter();
+
+      cy.on('mouseover', 'node, edge', event => {
+        cy.container().style.cursor = 'pointer';
+        if (event.target.isEdge()) {
+          event.target.addClass('hovered');
+        } else if (!activeSelection) {
+          cy.elements().addClass('muted');
+          event.target.closedNeighborhood().removeClass('muted').addClass('focused');
+        }
+      });
+
+      cy.on('mouseout', 'node, edge', event => {
+        cy.container().style.cursor = '';
+        if (event.target.isEdge()) {
+          event.target.removeClass('hovered');
+        } else if (!activeSelection) {
+          cy.elements().removeClass('muted focused');
+        }
+      });
+
+      cy.on('tap', event => {
+        if (event.target === cy) {
+          activeSelection = null;
+          restoreSelectionHighlight();
+          edgeDetails.hidden = true;
+        }
+      });
+
+      cy.on('tap', 'node', event => {
+        const node = event.target.data();
+        activeSelection = { type: 'node', id: node.id };
+        restoreSelectionHighlight();
+        showNode(node);
+        const connected = event.target.closedNeighborhood();
+        status.textContent = `${connected.nodes().length - 1} related nodes · ${connected.edges().length} direct connections`;
+      });
+
+      cy.on('tap', 'edge', event => {
+        const edge = event.target.data();
+        activeSelection = { type: 'edge', id: edge.id };
+        restoreSelectionHighlight();
+        showEdge(edge);
+        status.textContent = `Edge: ${edge.rel_label} (${edge.source} → ${edge.target})`;
+      });
+
+      if (overview) {
+        title.textContent = 'Main concepts';
+        summary.textContent = 'Select any concept or edge to inspect its stored relationships and source-grounded provenance.';
+        facts.replaceChildren();
+        facts.hidden = true;
+        actionsBox.hidden = true;
+        relsBox.replaceChildren();
+        sourceList.replaceChildren();
+        status.textContent = `${data.counts?.concepts || data.nodes.length} indexed concepts · ${data.counts?.relationships || 0} stored links · showing ${data.nodes.length} ${globalMode ? 'global page concepts' : 'main concepts'}`;
+      } else {
+        if (anchor) {
+          activeSelection = { type: 'node', id: anchor.id };
+          showNode(anchor);
+        }
+        status.textContent = `${data.nodes.length} connected concepts · ${visibleEdges.length} direct links · ${sourceDocuments.length} source documents shown`;
+      }
+    }
+
+    async function loadGraph(params, recordHistory = true) {
+      globalMode = false;
+      currentMaxNodes = Number(params.max_nodes || currentMaxNodes || 20);
+      if (recordHistory) pushHistory({ mode: 'subgraph', params: { ...params, max_nodes: String(currentMaxNodes) } });
+      document.getElementById('page-prev').hidden = true;
+      document.getElementById('page-next').hidden = true;
+      status.textContent = 'Loading connected concepts…';
+      const response = await fetch('/api/graph/subgraph?' + new URLSearchParams({ ...params, max_nodes: String(currentMaxNodes) }), { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || 'Could not load this graph neighborhood.');
+      renderGraph(data);
+    }
+
+    async function loadOverview(recordHistory = true) {
+      globalMode = false;
+      if (recordHistory) pushHistory({ mode: 'overview' });
+      document.getElementById('page-prev').hidden = true;
+      document.getElementById('page-next').hidden = true;
+      status.textContent = 'Loading main concepts…';
+      const response = await fetch('/api/graph/hubs', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || 'Could not load the main concepts.');
+      if (!data.nodes?.length) throw new Error('No indexed concepts are available.');
+      renderGraph(data, true);
+    }
+
+    async function loadGlobal(offset = 0, recordHistory = true) {
+      globalMode = true;
+      if (recordHistory) pushHistory({ mode: 'global', offset });
+      status.textContent = 'Loading global graph page…';
+      const params = new URLSearchParams({ offset, limit: '60', q: queryInput.value.trim(), relation: relationFilter.value });
+      const response = await fetch('/api/graph/page?' + params, { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Global graph unavailable.');
+      globalOffset = data.offset;
+      document.getElementById('page-prev').hidden = globalOffset === 0;
+      document.getElementById('page-next').hidden = data.next_offset === null;
+      document.getElementById('graph-version').textContent = `Export ${data.graph_version} · ${data.last_sync ? 'artifact modified ' + new Date(data.last_sync * 1000).toLocaleString() : 'artifact date unavailable'} · ${data.corpus_source === 'fixture' ? 'fixture' : 'full export'}`;
+      renderGraph(data, true);
+      status.textContent = `${data.counts.concepts} total concepts · ${data.matched_total} search matches · ${data.nodes.length} rendered on this page · ${data.edges.length} visible edges`;
     }
 
     function showError(error) { status.textContent = error.message || 'Graph request failed.'; }
+
     document.getElementById('search-form').addEventListener('submit', event => {
       event.preventDefault();
-      loadGraph({ q: queryInput.value.trim(), max_nodes: '36' }).catch(showError);
+      currentMaxNodes = 20;
+      if (globalMode) loadGlobal(0).catch(showError);
+      else loadGraph({ q: queryInput.value.trim(), max_nodes: '20' }).catch(showError);
     });
+    backBtn.addEventListener('click', () => {
+      const prev = historyStack.pop();
+      backBtn.hidden = historyStack.length === 0;
+      if (!prev) return;
+      currentView = prev;
+      if (prev.mode === 'overview') loadOverview(false).catch(showError);
+      else if (prev.mode === 'global') loadGlobal(prev.offset || 0, false).catch(showError);
+      else if (prev.mode === 'subgraph') loadGraph(prev.params, false).catch(showError);
+    });
+    document.getElementById('show-core').addEventListener('click', () => loadOverview().catch(showError));
+    document.getElementById('show-global').addEventListener('click', () => loadGlobal(0).catch(showError));
+    document.getElementById('page-prev').addEventListener('click', () => loadGlobal(Math.max(0, globalOffset - 60)).catch(showError));
+    document.getElementById('page-next').addEventListener('click', () => loadGlobal(globalOffset + 60).catch(showError));
+    relationFilter.addEventListener('change', () => {
+      if (globalMode) loadGlobal(globalOffset, false).catch(showError);
+      else applyRelationFilter();
+    });
+    expandBtn.addEventListener('click', () => {
+      if (!currentTarget) return;
+      currentMaxNodes = Math.min(100, currentMaxNodes + 15);
+      loadGraph({ target_id: currentTarget, max_nodes: String(currentMaxNodes) }, false).catch(showError);
+    });
+    document.getElementById('zoom-in').addEventListener('click', () => cy?.zoom({ level: Math.min(cy.maxZoom(), cy.zoom() * 1.25), renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    document.getElementById('zoom-out').addEventListener('click', () => cy?.zoom({ level: Math.max(cy.minZoom(), cy.zoom() / 1.25), renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    document.getElementById('zoom-fit').addEventListener('click', () => cy?.fit(undefined, 42));
+    document.getElementById('graph-reset').addEventListener('click', () => {
+      relationFilter.value = '';
+      activeSelection = null;
+      edgeDetails.hidden = true;
+      if (cy) {
+        applyRelationFilter();
+        restoreSelectionHighlight();
+        cy.fit(undefined, 42);
+      }
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && cy) {
+        activeSelection = null;
+        restoreSelectionHighlight();
+        edgeDetails.hidden = true;
+      }
+    });
+
     window.addEventListener('load', async () => {
       const { config } = await window.archipelagoAuthReady;
       if (config?.required) {
         const principal = await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']);
         if (!principal) return;
       }
-      const initial = new URLSearchParams(location.search).get('q') || 'graph retrieval';
-      queryInput.value = initial;
-      loadGraph({ q: initial, max_nodes: '36' }).catch(showError);
+      const params = new URLSearchParams(location.search);
+      const targetId = params.get('target_id');
+      const initial = params.get('q');
+      if (targetId) {
+        loadGraph({ target_id: targetId, max_nodes: '20' }).catch(showError);
+      } else if (initial) {
+        queryInput.value = initial;
+        loadGraph({ q: initial, max_nodes: '20' }).catch(showError);
+      } else {
+        loadOverview().catch(() => loadGraph({ q: 'graph retrieval', max_nodes: '20' }).catch(showError));
+      }
     });
   </script>
 </body>

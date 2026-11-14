@@ -128,6 +128,7 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                                         <i class="fa-solid fa-book-open text-xs"></i> <span>View Textbook${gapNodes[0].printed_page || gapNodes[0].page_number ? ` (p. ${gapNodes[0].printed_page || gapNodes[0].page_number})` : ''}</span>
                                     </button>
                                 ` : ''}
+                                <a href="/graph?target_id=${encodeURIComponent((gapNodes[0] || targetNode).id || anchorLabel)}&amp;q=${encodeURIComponent((gapNodes[0] || targetNode).label || anchorLabel)}" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-all cursor-pointer">Open Academic Graph ↗</a>
                             </div>
                         </div>
 

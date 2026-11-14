@@ -134,6 +134,26 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                                     <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(unlockNames)}</span>
                                 </div>
                             </div>
+                        ` : (isResearchGraph ? `
+                            <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-sans">
+                                <div class="flex items-center gap-1.5 text-accentPurple font-bold min-w-0">
+                                    <i class="fa-solid fa-book-open text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-purple-300 shrink-0">Topic:</span>
+                                    <span class="text-white font-extrabold truncate max-w-[140px] sm:max-w-[180px]">${escapeHTML(anchorLabel)}</span>
+                                </div>
+                                <i class="fa-solid fa-angles-right text-amber-400/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-accentCyan font-bold min-w-0">
+                                    <i class="fa-solid fa-file-lines text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-cyan-300 shrink-0">Papers:</span>
+                                    <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(formatConceptList(related, 2))}</span>
+                                </div>
+                                <i class="fa-solid fa-angles-right text-emerald-400/60 text-xs hidden sm:inline-block"></i>
+                                <div class="flex items-center gap-1.5 text-emerald-400 font-bold min-w-0">
+                                    <i class="fa-solid fa-users text-xs shrink-0"></i>
+                                    <span class="text-[10px] uppercase tracking-wider text-emerald-300 shrink-0">Authors &amp; Venues:</span>
+                                    <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(formatConceptList((metadata && metadata.research_graph && metadata.research_graph.entities) || [], 2))}</span>
+                                </div>
+                            </div>
                         ` : `
                             <div class="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-sans">
                                 <div class="flex items-center gap-1.5 text-accentPurple font-bold min-w-0">
@@ -154,7 +174,7 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                                     <span class="text-gray-200 font-semibold truncate max-w-[140px] sm:max-w-[220px]">${escapeHTML(unlockNames)}</span>
                                 </div>
                             </div>
-                        `)}
+                        `))}
 
                         <!-- Wide Horizontal SVG Canvas Map (Proper Interactive Scrollable Multi-Hop Topology Graph) -->
                         <div class="relative w-full group/hgraph">
@@ -175,15 +195,21 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                         <div id="node-info-${cardId}" class="p-3.5 rounded-xl glass-glow border border-accentPurple/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-accentPurple/10 via-black/40 to-accentPink/10">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2">
-                                    <span id="node-info-badge-${cardId}" class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-accentPurple/25 text-accentPurple border border-accentPurple/40 shadow-sm">Target Concept</span>
+                                    <span id="node-info-badge-${cardId}" class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-accentPurple/25 text-accentPurple border border-accentPurple/40 shadow-sm">${isResearchGraph ? 'Research Topic' : 'Target Concept'}</span>
                                     <span id="node-info-diff-${cardId}" class="text-[9px] text-amber-300 font-mono font-bold">${escapeHTML((anchor && anchor.difficulty) || 'Foundational')}</span>
                                 </div>
                                 <h5 id="node-info-title-${cardId}" class="text-sm font-extrabold text-white mt-1 truncate">${escapeHTML(anchorLabel)}</h5>
                                 <p id="node-info-summary-${cardId}" class="text-xs text-gray-300 leading-snug mt-0.5 line-clamp-2">${escapeHTML(anchorSummary)}</p>
+                                <div id="node-info-rels-${cardId}" class="text-[11px] text-gray-300 mt-1.5 flex flex-wrap gap-1.5"></div>
                             </div>
-                            <button id="node-info-btn-${cardId}" onclick="autoPrompt('Tell me about ${escapeHTML(anchorLabel)}')" type="button" class="px-3.5 py-2 rounded-lg bg-accentPurple text-white text-xs font-bold hover:bg-accentPurple/80 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-accentPurple/30">
-                                <i class="fa-solid fa-magnifying-glass text-xs"></i> <span>Explore Node</span>
-                            </button>
+                            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                <a id="node-info-graph-link-${cardId}" href="${isResearchGraph ? '/research/topics' : `/graph?target_id=${encodeURIComponent(_nodeId(anchor))}&q=${encodeURIComponent(anchorLabel)}`}" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-diagram-project text-xs"></i> <span>${isResearchGraph ? 'Open Research Graph' : 'Open Academic Graph'}</span>
+                                </a>
+                                <button id="node-info-btn-${cardId}" onclick="autoPrompt('Tell me about ${escapeHTML(anchorLabel)}')" type="button" class="px-3.5 py-2 rounded-lg bg-accentPurple text-white text-xs font-bold hover:bg-accentPurple/80 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-accentPurple/30 cursor-pointer">
+                                    <i class="fa-solid fa-magnifying-glass text-xs"></i> <span>Explore Node</span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- OKF Key Relationships / Research Graph Badge Grid -->
@@ -266,6 +292,99 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
             }
 
 
+            // Keep inspector verified relationships and graph/paper link synced on any node selection
+            const allCandidateNodes = [
+                anchor,
+                ...(prereqs || []),
+                ...(unlocks || []),
+                ...(related || []),
+                ...researchEntities,
+                ...((metadata && metadata.subgraph && metadata.subgraph.nodes) || [])
+            ].filter(Boolean);
+            const allSubEdges = (metadata && metadata.subgraph && Array.isArray(metadata.subgraph.edges) ? metadata.subgraph.edges : [])
+                .concat((metadata && metadata.research_graph && Array.isArray(metadata.research_graph.edges) ? metadata.research_graph.edges : []));
+
+            const updateInspectorLinkAndRels = (selectedLabelOrId) => {
+                const norm = s => String(s || '').toLowerCase().trim();
+                const needle = norm(selectedLabelOrId);
+                const selectedItem = allCandidateNodes.find(item =>
+                    norm(_nodeLabel(item)) === needle || norm(_nodeId(item)) === needle
+                ) || anchor;
+                const selId = _nodeId(selectedItem);
+                const selLabel = _nodeLabel(selectedItem);
+
+                const relsEl = document.getElementById(`node-info-rels-${cardId}`);
+                if (relsEl) {
+                    relsEl.replaceChildren();
+                    const relChips = [];
+                    if (allSubEdges.length) {
+                        allSubEdges.forEach(e => {
+                            const from = e.from_id || e.from || e.source;
+                            const to = e.to_id || e.to || e.target;
+                            const rel = String(e.relation || e.rel_label || 'RELATED').toUpperCase();
+                            if (from === selId && to) {
+                                const targetNode = allCandidateNodes.find(n => _nodeId(n) === to);
+                                relChips.push(`${rel} → ${targetNode ? _nodeLabel(targetNode) : to}`);
+                            } else if (to === selId && from) {
+                                const sourceNode = allCandidateNodes.find(n => _nodeId(n) === from);
+                                relChips.push(`${sourceNode ? _nodeLabel(sourceNode) : from} → ${rel}`);
+                            }
+                        });
+                    } else if (!isResearchGraph) {
+                        if (selId === _nodeId(anchor)) {
+                            prereqs.slice(0, 3).forEach(p => relChips.push(`REQUIRES: ${_nodeLabel(p)}`));
+                            unlocks.slice(0, 3).forEach(u => relChips.push(`UNLOCKS: ${_nodeLabel(u)}`));
+                        } else if (prereqs.some(p => _nodeId(p) === selId)) {
+                            relChips.push(`UNLOCKS → ${anchorLabel}`);
+                        } else if (unlocks.some(u => _nodeId(u) === selId)) {
+                            relChips.push(`REQUIRES ← ${anchorLabel}`);
+                        } else {
+                            relChips.push(`RELATED ↔ ${anchorLabel}`);
+                        }
+                    }
+                    relChips.slice(0, 4).forEach(txt => {
+                        const chip = document.createElement('span');
+                        chip.className = 'px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-gray-200';
+                        chip.textContent = txt;
+                        relsEl.appendChild(chip);
+                    });
+                }
+
+                const graphLink = document.getElementById(`node-info-graph-link-${cardId}`);
+                if (graphLink) {
+                    const isPaper = selectedItem && (selectedItem.concept_type === 'research_paper' || selectedItem.kind === 'paper' || selectedItem.record_key);
+                    if (isPaper || isResearchGraph) {
+                        if (selectedItem && selectedItem.url && /^https?:\/\//i.test(selectedItem.url)) {
+                            graphLink.href = selectedItem.url;
+                            graphLink.target = '_blank';
+                            graphLink.rel = 'noopener noreferrer';
+                            graphLink.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> <span>Open Paper</span>';
+                        } else if (selectedItem && selectedItem.record_key) {
+                            graphLink.href = `/research/paper?record_key=${encodeURIComponent(selectedItem.record_key)}`;
+                            graphLink.removeAttribute('target');
+                            graphLink.removeAttribute('rel');
+                            graphLink.innerHTML = '<i class="fa-solid fa-file-lines text-xs"></i> <span>Open Paper Details</span>';
+                        } else {
+                            graphLink.href = '/research/topics';
+                            graphLink.removeAttribute('target');
+                            graphLink.removeAttribute('rel');
+                            graphLink.innerHTML = '<i class="fa-solid fa-diagram-project text-xs"></i> <span>Open Research Graph</span>';
+                        }
+                    } else {
+                        graphLink.href = `/graph?target_id=${encodeURIComponent(selId)}&q=${encodeURIComponent(selLabel)}`;
+                        graphLink.removeAttribute('target');
+                        graphLink.removeAttribute('rel');
+                        graphLink.innerHTML = '<i class="fa-solid fa-diagram-project text-xs"></i> <span>Open Academic Graph</span>';
+                    }
+                }
+            };
+            updateInspectorLinkAndRels(anchorLabel);
+            const titleElObserverTarget = document.getElementById(`node-info-title-${cardId}`);
+            if (titleElObserverTarget && typeof MutationObserver === 'function') {
+                const obs = new MutationObserver(() => updateInspectorLinkAndRels(titleElObserverTarget.textContent));
+                obs.observe(titleElObserverTarget, { childList: true, characterData: true, subtree: true });
+            }
+
             // Draw horizontal SVG map
             requestAnimationFrame(() => {
                 setTimeout(() => {
@@ -276,11 +395,13 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                 }, 40);
             });
 
+            const reducedMotion = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
             // ── Premium effects on graph card ──
 
             // D. SwitchboardCard lightgrid animation
             const lgGrid = document.getElementById(`lightgrid-${cardId}`);
-            if (lgGrid) {
+            if (lgGrid && !reducedMotion) {
                 const COLS = 28, ROWS = 3, total = COLS * ROWS;
                 const bulbs = [], states = new Array(total).fill(0);
                 for (let i = 0; i < total; i++) {
@@ -306,7 +427,7 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
 
             // F. Hover-3D tilt on concept-visualize-card
             const vizCard = cardWrapper.querySelector('.concept-visualize-card');
-            if (vizCard) {
+            if (vizCard && !reducedMotion) {
                 vizCard.addEventListener('mousemove', (e) => {
                     const rect = vizCard.getBoundingClientRect();
                     const cx = rect.left + rect.width / 2;

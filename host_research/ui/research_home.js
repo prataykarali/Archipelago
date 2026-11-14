@@ -1,6 +1,7 @@
 const homeEl = id => document.getElementById(id);
 const HOME_REFRESH_MS = 60000;
 const MAX_VISIBLE_RESEARCH_PAPERS = 10;
+const prefersReducedMotion = () => Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 let currentTopic = '';
 let graphPayload = null;
 let graphView = null;
@@ -54,7 +55,7 @@ function makePaperItem(paper, showAbstract = false) {
     inspect.textContent = 'View OKF';
     inspect.addEventListener('click', () => {
       showPaperOkf(paper.record_key, paper.title);
-      homeEl('graph-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      homeEl('graph-title').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
     });
     article.append(inspect);
   }
@@ -132,7 +133,52 @@ function graphElements(topicId) {
   const papers = graphPayload.edges.filter(edge => edge.data.source === topicId && edge.data.rel_label === 'IN_TOPIC');
   const visible = papers.slice(0, MAX_VISIBLE_RESEARCH_PAPERS);
   const paperIds = new Set(visible.map(edge => edge.data.target));
-  return [graphPayload.nodes.find(node => node.data.id === topicId), ...graphPayload.nodes.filter(node => paperIds.has(node.data.id)), ...visible].filter(Boolean);
+  const nodeIds = new Set([topicId, ...paperIds]);
+  const scholarlyEdges = graphPayload.edges.filter(edge =>
+    nodeIds.has(edge.data.source) &&
+    nodeIds.has(edge.data.target) &&
+    edge.data.rel_label !== 'REQUIRES' &&
+    edge.data.rel_label !== 'UNLOCKS'
+  );
+  return [
+    graphPayload.nodes.find(node => node.data.id === topicId),
+    ...graphPayload.nodes.filter(node => paperIds.has(node.data.id)),
+    ...scholarlyEdges
+  ].filter(Boolean);
+}
+
+function showResearchEdge(edgeEl) {
+  const detail = homeEl('research-graph-detail');
+  if (!detail) return;
+  const edge = edgeEl.data();
+  const srcName = edgeEl.source().data()?.name || edge.source;
+  const tgtName = edgeEl.target().data()?.name || edge.target;
+  const rel = String(edge.rel_label || edge.relation || 'RELATED').toUpperCase();
+  const isCitation = rel === 'CITES';
+  const provenance = edge.source_ref || edge.provenance || edge.provider || 'No edge-level provenance stored';
+  const heading = document.createElement('h3');
+  heading.textContent = isCitation ? 'Citation edge' : 'Relationship details';
+  const back = document.createElement('button');
+  back.type = 'button';
+  back.textContent = '← Back to papers';
+  back.onclick = () => drawResearchGraph(activeTopicId);
+  const dl = document.createElement('dl');
+  [
+    [isCitation ? 'Citing work (source)' : 'Source', srcName],
+    [isCitation ? 'Cited work (target)' : 'Target', tgtName],
+    ['Relation type', rel],
+    ['Direction', `${srcName} → ${tgtName}`],
+    ['Provenance', provenance]
+  ].forEach(([label, val]) => {
+    const dt = document.createElement('dt');
+    dt.textContent = label;
+    const dd = document.createElement('dd');
+    dd.textContent = val;
+    dl.append(dt, dd);
+  });
+  detail.replaceChildren(back, heading, dl);
+  const statusEl = homeEl('graph-status');
+  if (statusEl) statusEl.textContent = `${rel}: ${srcName} → ${tgtName}`;
 }
 
 function drawResearchGraph(topicId = null) {
@@ -149,7 +195,15 @@ function drawResearchGraph(topicId = null) {
   }
   graphView?.destroy();
   const graphItems = graphElements(topicId).map(item => item.group === 'edges' || item.data.source
-    ? item
+    ? {
+        ...item,
+        data: {
+          ...item.data,
+          rel_label: (item.data.rel_label === 'REQUIRES' || item.data.rel_label === 'UNLOCKS')
+            ? 'RELATED_TO'
+            : (item.data.rel_label || 'IN_TOPIC')
+        }
+      }
     : { ...item, data: { ...item.data, display_name: String(item.data.name || '').slice(0, 54) } });
   const paperNodes = graphItems.filter(item => item.data.kind === 'paper');
   const topicNodes = graphItems.filter(item => item.data.kind === 'topic');
@@ -171,20 +225,53 @@ function drawResearchGraph(topicId = null) {
     style: [
       { selector: 'node', style: { shape: 'round-rectangle', 'background-color': '#241050', label: 'data(display_name)', color: '#fff7ff', 'font-size': 11, 'font-weight': 600, 'text-wrap': 'wrap', 'text-max-width': 126, 'text-valign': 'center', 'text-halign': 'center', width: 164, height: 61, 'border-width': 1.7, 'border-color': '#8673fa', 'shadow-blur': 19, 'shadow-color': '#7143e4', 'shadow-opacity': .4 } },
       { selector: 'node[kind="topic"]', style: { 'background-color': '#67108b', 'border-color': '#e382ff', width: 184, height: 70, 'font-size': 12, 'font-weight': 700, 'shadow-color': '#c734f2', 'shadow-opacity': .65 } },
-      { selector: 'edge', style: { width: 2, 'line-color': '#a263e2', 'target-arrow-color': '#d2a1ff', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'label': 'PAPER', 'font-size': 8, 'color': '#d8c6ee', 'text-rotation': 'autorotate', 'text-background-color': '#130723', 'text-background-opacity': .95, 'text-background-padding': 3 } },
+      { selector: 'edge', style: { width: 2, 'line-color': '#a263e2', 'target-arrow-color': '#d2a1ff', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.1, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': 'data(rel_label)', 'font-size': 8, 'color': '#d8c6ee', 'text-rotation': 'autorotate', 'text-background-color': '#130723', 'text-background-opacity': .95, 'text-background-padding': 3 } },
+      { selector: 'edge[rel_label="CITES"]', style: { 'line-color': '#28d9d0', 'target-arrow-color': '#75fff5', width: 2.4 } },
+      { selector: '.dimmed', style: { 'opacity': .12 } },
+      { selector: 'edge.highlighted', style: { 'opacity': 1, width: 3 } },
       { selector: ':selected', style: { 'border-color': '#fff', 'border-width': 3 } }
     ],
     layout: { name: 'preset', fit: true, padding: 42 },
     minZoom: .3,
     maxZoom: 2.5
   });
+  const container = graphView.container();
+  if (container) container.style.cursor = 'grab';
+  graphView.on('mouseover', 'node, edge', event => {
+    if (container) container.style.cursor = 'pointer';
+    if (graphView.$(':selected').length === 0) {
+      graphView.elements().removeClass('dimmed highlighted');
+      const keep = event.target.isEdge() ? event.target.union(event.target.connectedNodes()) : event.target.closedNeighborhood();
+      graphView.elements().not(keep).addClass('dimmed');
+      if (event.target.isEdge()) event.target.addClass('highlighted');
+      else event.target.connectedEdges().addClass('highlighted');
+    }
+  });
+  graphView.on('mouseout', 'node, edge', () => {
+    if (container) container.style.cursor = 'grab';
+    if (graphView.$(':selected').length === 0) graphView.elements().removeClass('dimmed highlighted');
+  });
   graphView.on('tap', 'node', event => {
     const data = event.target.data();
+    graphView.elements().removeClass('dimmed highlighted');
+    const keep = event.target.closedNeighborhood();
+    graphView.elements().not(keep).addClass('dimmed');
+    event.target.connectedEdges().addClass('highlighted');
     if (data.kind === 'topic') {
       drawResearchGraph(data.id);
     } else if (data.kind === 'paper' && data.record_key) {
       showPaperOkf(data.record_key, data.name);
     }
+  });
+  graphView.on('tap', 'edge', event => {
+    graphView.elements().removeClass('dimmed highlighted');
+    const keep = event.target.union(event.target.connectedNodes());
+    graphView.elements().not(keep).addClass('dimmed');
+    event.target.addClass('highlighted');
+    showResearchEdge(event.target);
+  });
+  graphView.on('tap', event => {
+    if (event.target === graphView) graphView.elements().removeClass('dimmed highlighted');
   });
 }
 

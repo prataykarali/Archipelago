@@ -18,9 +18,10 @@ function buildConceptGraph(nodes, edges, nm, bookId){
   svg.call(state.svgZoom).on('dblclick.zoom', null);
   svg.classed('locked', false);
 
-  const resetV = () => svg.transition().duration(600).call(state.svgZoom.transform, d3.zoomIdentity.translate(W / 2, H / 2).scale(bookId ? .55 : .26));
-  document.getElementById('z-in').onclick = () => { if (!state.flashcardOpen) svg.transition().duration(300).call(state.svgZoom.scaleBy, 1.4); };
-  document.getElementById('z-out').onclick = () => { if (!state.flashcardOpen) svg.transition().duration(300).call(state.svgZoom.scaleBy, 1 / 1.4); };
+  const animDuration = (ms) => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ms;
+  const resetV = () => svg.transition().duration(animDuration(600)).call(state.svgZoom.transform, d3.zoomIdentity.translate(W / 2, H / 2).scale(bookId ? .55 : .26));
+  document.getElementById('z-in').onclick = () => { if (!state.flashcardOpen) svg.transition().duration(animDuration(300)).call(state.svgZoom.scaleBy, 1.4); };
+  document.getElementById('z-out').onclick = () => { if (!state.flashcardOpen) svg.transition().duration(animDuration(300)).call(state.svgZoom.scaleBy, 1 / 1.4); };
   document.getElementById('z-reset').onclick = resetV;
 
   // ── UNTANGLED SIMULATION PHYSICS (NO CENTRAL HAIRBALL) ──
@@ -103,6 +104,7 @@ function buildConceptGraph(nodes, edges, nm, bookId){
   const nG = root.append('g');
   const nS = nG.selectAll('.node-g').data(nodes).join('g')
     .attr('class', d => d._ghost ? 'node-g ghost' : 'node-g')
+    .style('cursor', 'pointer')
     .classed('highlighted-gold', d => window._highlightIds && window._highlightIds.includes(d.id))
     .call(d3.drag()
       .on('start', (e, d) => { wake(); d.fx = d.x; d.fy = d.y; })
@@ -203,7 +205,7 @@ function buildConceptGraph(nodes, edges, nm, bookId){
 
         const tx = curW / 2 - scale * cx, ty = curH / 2 - scale * cy;
         const transform = d3.zoomIdentity.translate(tx, ty).scale(scale);
-        svg.transition().duration(1200).call(state.svgZoom.transform, transform);
+        svg.transition().duration(animDuration(1200)).call(state.svgZoom.transform, transform);
       }
     }, 800);
   }

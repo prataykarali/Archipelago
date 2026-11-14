@@ -1,8 +1,33 @@
 <section aria-label="Concept graph workspace" class="graph-workspace" id="graph-studio">
-<div class="studio-heading"><p class="eyebrow">06 / GRAPH STUDIO</p><h2>Explore the complete concept graph</h2><p>Switch between the institutional concept graph and the saved research source graph. Search or choose a node to inspect its connections.</p></div>
+<style>
+.graph-workspace,.graph-grid,.graph-panel,.detail-panel,#sources-view,.sources-head{max-width:100%;box-sizing:border-box}
+.graph-workspace{overflow-x:hidden}
+.sources-head{flex-wrap:wrap}
+.sources-head label{min-width:0;width:min(100%,280px)}
+#graph{cursor:grab}
+#graph:active{cursor:grabbing}
+.graph-toolbar button,.zoom-controls button,.filter,.view-button,#concept-list button,#expand-node,.node-paper-link{cursor:pointer}
+.node-meta-list,.edge-inspector dl{display:grid;gap:8px;margin:12px 0 14px}
+.node-meta-list div,.edge-inspector dl div{border:1px solid #eadfe8;background:#fff;border-radius:9px;padding:9px 11px}
+.node-meta-list dt,.edge-inspector dt{font-size:10px;text-transform:uppercase;color:#8e7e93;letter-spacing:.08em}
+.node-meta-list dd,.edge-inspector dd{margin:4px 0 0;font-size:12px;color:#2c1d33;line-height:1.45;overflow-wrap:anywhere}
+.node-meta-list dd a{color:#7b24b3;font-weight:700;text-decoration:underline}
+.node-linked-papers{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.node-paper-link{border:1px solid #e3d3ea;background:#faf4fc;color:#5a217a;border-radius:7px;padding:6px 8px;text-align:left;font-size:11px;font-weight:600}
+.node-paper-link:hover{background:#f1e1f7}
+.edge-inspector{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+.edge-inspector h3{font-size:13px;margin:0 0 8px}
+#detail-secondary-link{display:inline-block;font-size:12px;color:#7b24b3;font-weight:700;margin:0 0 14px 12px}
+@media (prefers-reduced-motion: reduce){
+  .graph-workspace *,.graph-workspace *::before,.graph-workspace *::after{
+    transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important
+  }
+}
+</style>
+<div class="studio-heading"><p class="eyebrow">06 / GRAPH STUDIO</p><h2>Explore the complete concept graph</h2><p>Switch between the institutional concept graph and the saved research source graph. Search or choose a node or edge to inspect its connections.</p></div>
 <div class="graph-toolbar">
 <form id="search-form" role="search">
-<label for="query">Find a concept</label>
+<label for="query">Find a concept or paper</label>
 <div class="search-row"><input id="query" maxlength="160" minlength="2" placeholder="Try attention, databases, neural networks…" required="" type="search"/><button type="submit">Explore <span aria-hidden="true">↗</span></button></div>
 </form>
 <div aria-label="Research views" class="view-group">
@@ -14,25 +39,35 @@
 <button aria-pressed="true" class="filter active" data-filter="all" type="button">All links</button>
 <button aria-pressed="false" class="filter" data-filter="requires" type="button">Requires</button>
 <button aria-pressed="false" class="filter" data-filter="enables" type="button">Enables</button>
+<button aria-pressed="false" class="filter scholarly-filter" data-filter="cites" hidden="" type="button">Cites</button>
+<button aria-pressed="false" class="filter scholarly-filter" data-filter="authored_by" hidden="" type="button">Author</button>
+<button aria-pressed="false" class="filter scholarly-filter" data-filter="published_in" hidden="" type="button">Venue</button>
+<button aria-pressed="false" class="filter scholarly-filter" data-filter="in_topic" hidden="" type="button">Topic</button>
 </div>
 </div>
 <div class="graph-grid" id="graph-grid">
 <div class="graph-panel">
-<div class="graph-caption"><span aria-hidden="true" class="live-dot"></span><span id="graph-counts">Loading concepts…</span><span class="caption-help">Select a node to inspect · drag to explore</span></div>
-<div aria-label="Interactive concept relationship graph" id="graph" role="img"></div>
+<div class="graph-caption"><span aria-hidden="true" class="live-dot"></span><span id="graph-counts">Loading concepts…</span><span class="caption-help">Select a node or edge to inspect · drag to explore</span></div>
+<div aria-label="Interactive concept and scholarly relationship graph" id="graph" role="img"></div>
 <div class="graph-bottom">
 <p id="graph-status" role="status">Loading graph…</p>
-<div aria-label="Graph zoom controls" class="zoom-controls"><button aria-label="Zoom out" id="zoom-out" type="button">−</button><button id="zoom-fit" type="button">Fit</button><button aria-label="Zoom in" id="zoom-in" type="button">+</button></div>
+<div aria-label="Graph zoom controls" class="zoom-controls"><button aria-label="Zoom out" id="zoom-out" type="button">−</button><button id="zoom-fit" type="button">Fit</button><button id="zoom-reset" type="button">Reset</button><button aria-label="Zoom in" id="zoom-in" type="button">+</button></div>
 </div>
 </div>
 <aside aria-labelledby="detail-heading" class="detail-panel">
-<div class="detail-kicker"><span aria-hidden="true" class="detail-icon">◇</span><span>CONCEPT DETAILS</span></div>
-<h2 id="detail-heading">Select a concept</h2>
-<p id="detail-summary">Choose a node from the graph or the list below to see its details.</p>
+<div class="detail-kicker"><span aria-hidden="true" class="detail-icon">◇</span><span>INSPECTOR</span></div>
+<h2 id="detail-heading">Select a node</h2>
+<p id="detail-summary">Choose a node or edge from the graph, or pick an item from the list below to inspect its verified details.</p>
 <a hidden="" href="#" id="detail-source" rel="noopener noreferrer" target="_blank">Open source ↗</a>
+<a hidden="" href="#" id="detail-secondary-link" rel="noopener noreferrer" target="_blank">View saved record ↗</a>
 <dl class="detail-stats"><div><dt>Type</dt><dd id="detail-kind">—</dd></div><div><dt>Connections</dt><dd id="detail-degree">—</dd></div><div><dt>Source documents</dt><dd id="detail-source-count">—</dd></div></dl>
+<dl class="node-meta-list" hidden="" id="node-meta-list"></dl>
+<section aria-labelledby="edge-inspector-heading" class="edge-inspector" hidden="" id="edge-inspector">
+<h3 id="edge-inspector-heading">Relationship details</h3>
+<dl id="edge-inspector-list"></dl>
+</section>
 <button disabled="" id="expand-node" type="button">Explore this neighborhood <span aria-hidden="true">→</span></button>
-<section aria-labelledby="concept-list-title" class="concept-list-section"><h3 id="concept-list-title">Concepts in view</h3><ul id="concept-list"></ul></section>
+<section aria-labelledby="concept-list-title" class="concept-list-section"><h3 id="concept-list-title">Nodes in view</h3><ul id="concept-list"></ul></section>
 <form hidden="" id="annotation-form">
 <h3 id="editor-heading">Add curated details</h3>
 <p>Only librarians and administrators can save changes.</p>

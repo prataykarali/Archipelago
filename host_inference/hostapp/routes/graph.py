@@ -28,69 +28,103 @@ GLOBAL_PAGE_SIZE = 60
 GLOBAL_PAGE_CEILING = 100
 
 
-def _full_graph_payload(graph: Any) -> dict[str, Any]:
-    """Project the complete institutional graph without source passage text."""
-    nodes = []
-    documents: dict[str, dict[str, Any]] = {}
-    for node_id, node in graph.nodes.items():
-        sources = node.get("sources") or []
-        linked_docs: set[str] = set()
-        for source in sources:
-            if not isinstance(source, dict):
-                continue
-            doc_id = str(source.get("doc_id") or "").strip()
-            if not doc_id or doc_id in linked_docs:
-                continue
-            linked_docs.add(doc_id)
+def _node_payload(
+    graph: Any,
+    node_id: str,
+    summary_limit: int,
+    *,
+    documents: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Build a bounded Cytoscape node payload from verified graph metadata."""
+    node = graph.nodes[node_id]
+    sources = node.get("sources") or []
+    linked_docs: set[str] = set()
+    source_documents = []
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        doc_id = str(source.get("doc_id") or "").strip()
+        if not doc_id or doc_id in linked_docs:
+            continue
+        linked_docs.add(doc_id)
+        title = PurePosixPath(doc_id).name.removesuffix(".pdf").replace("_", " ")
+        if documents is not None:
             row = documents.setdefault(
                 doc_id,
                 {
                     "id": doc_id,
-                    "title": PurePosixPath(doc_id).name.removesuffix(".pdf").replace("_", " "),
+                    "title": title,
                     "concepts": 0,
                     "concept_ids": [],
                 },
             )
             row["concepts"] = int(row["concepts"]) + 1
             row["concept_ids"].append(node_id)
-        source_documents = []
-        seen_sources: set[str] = set()
-        for source in sources:
-            if not isinstance(source, dict):
-                continue
-            doc_id = str(source.get("doc_id") or "").strip()
-            if not doc_id or doc_id in seen_sources:
-                continue
-            seen_sources.add(doc_id)
+        if len(source_documents) < MAX_SOURCE_DOCUMENT_NODES:
             source_documents.append(
                 {
                     "id": doc_id,
-                    "title": PurePosixPath(doc_id).name.removesuffix(".pdf").replace("_", " "),
+                    "title": title,
                     "page_number": source.get("page_number"),
                 }
             )
-            if len(source_documents) == MAX_SOURCE_DOCUMENT_NODES:
-                break
-        degree = len(graph.out.get(node_id, [])) + len(graph.inn.get(node_id, []))
-        nodes.append(
-            {
-                "data": {
-                    "id": node_id,
-                    "name": graph.label(node_id),
-                    "summary": str(node.get("summary") or "")[:MAX_PUBLIC_SUMMARY_CHARS],
-                    "kind": str(
-                        node.get("concept_type")
-                        or node.get("type")
-                        or node.get("kind")
-                        or DEFAULT_KIND
-                    ),
-                    "difficulty": str(node.get("difficulty") or ""),
-                    "degree": degree,
-                    "source_count": len(linked_docs),
-                    "source_documents": source_documents,
-                }
-            }
-        )
+    degree = len(graph.out.get(node_id, [])) + len(graph.inn.get(node_id, []))
+    data: dict[str, Any] = {
+        "id": node_id,
+        "name": graph.label(node_id),
+        "summary": str(node.get("summary") or "")[:summary_limit],
+        "kind": str(
+            node.get("concept_type")
+            or node.get("type")
+            or node.get("kind")
+            or DEFAULT_KIND
+        ),
+        "difficulty": str(node.get("difficulty") or ""),
+        "degree": degree,
+        "source_count": len(linked_docs),
+        "source_documents": source_documents,
+    }
+    domain = str(node.get("domain") or "").strip()
+    if domain:
+        data["domain"] = domain
+    subdomain = str(node.get("subdomain") or "").strip()
+    if subdomain:
+        data["subdomain"] = subdomain
+    if node.get("diagnostic") or node.get("has_diagnostic"):
+        data["has_diagnostic"] = True
+    return {"data": data}
+
+
+def _edge_payload(graph: Any, source: str, target: str, relation: str) -> dict[str, Any]:
+    """Build a Cytoscape edge payload with any stored edge_records provenance."""
+    record = getattr(graph, "edge_records", {}).get((source, target, relation)) or {}
+    source_ref = str(record.get("source_ref") or record.get("source") or "").strip()
+    evidence = str(record.get("evidence") or "").strip()
+    doc_id = str(record.get("doc_id") or "").strip()
+    page_number = record.get("page_number")
+    data: dict[str, Any] = {
+        "id": f"{source}:{relation}:{target}",
+        "source": source,
+        "target": target,
+        "rel_label": relation,
+        "source_ref": source_ref,
+    }
+    if evidence:
+        data["evidence"] = evidence
+    if doc_id:
+        data["doc_id"] = doc_id
+    if page_number is not None and page_number != "":
+        data["page_number"] = page_number
+    return {"data": data}
+
+
+def _full_graph_payload(graph: Any) -> dict[str, Any]:
+    """Project the complete institutional graph without source passage text."""
+    documents: dict[str, dict[str, Any]] = {}
+    nodes = [
+        _node_payload(graph, node_id, MAX_PUBLIC_SUMMARY_CHARS, documents=documents)
+        for node_id in graph.nodes
+    ]
     edges = []
     seen: set[tuple[str, str, str]] = set()
     for source, neighbors in graph.out.items():
@@ -99,19 +133,7 @@ def _full_graph_payload(graph: Any) -> dict[str, Any]:
             if target not in graph.nodes or key in seen:
                 continue
             seen.add(key)
-            edges.append(
-                {
-                    "data": {
-                        "id": f"{source}:{relation}:{target}",
-                        "source": source,
-                        "target": target,
-                        "rel_label": relation,
-                        "source_ref": str(
-                            (getattr(graph, "edge_records", {}).get(key) or {}).get("source") or ""
-                        ),
-                    }
-                }
-            )
+            edges.append(_edge_payload(graph, source, target, relation))
     return {
         "nodes": nodes,
         "edges": edges,
@@ -247,51 +269,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                     selected.append(neighbor)
                     queue.append((neighbor, depth + 1))
 
-        nodes = []
-        for node_id in selected:
-            node = graph.nodes[node_id]
-            source_documents = {
-                str(source.get("doc_id"))
-                for source in node.get("sources") or []
-                if isinstance(source, dict) and source.get("doc_id")
-            }
-            visible_documents = []
-            seen_documents: set[str] = set()
-            for source in node.get("sources") or []:
-                if not isinstance(source, dict):
-                    continue
-                doc_id = str(source.get("doc_id") or "")
-                if not doc_id or doc_id in seen_documents:
-                    continue
-                seen_documents.add(doc_id)
-                visible_documents.append(
-                    {
-                        "id": doc_id,
-                        "title": PurePosixPath(doc_id).name.removesuffix(".pdf").replace("_", " "),
-                        "page_number": source.get("page_number"),
-                    }
-                )
-                if len(visible_documents) == MAX_SOURCE_DOCUMENT_NODES:
-                    break
-            nodes.append(
-                {
-                    "data": {
-                        "id": node_id,
-                        "name": graph.label(node_id),
-                        "summary": str(node.get("summary") or "")[:SUMMARY_CHAR_LIMIT],
-                        "kind": str(
-                            node.get("concept_type")
-                            or node.get("type")
-                            or node.get("kind")
-                            or DEFAULT_KIND
-                        ),
-                        "difficulty": str(node.get("difficulty") or ""),
-                        "degree": len(graph.out.get(node_id, [])) + len(graph.inn.get(node_id, [])),
-                        "source_count": len(source_documents),
-                        "source_documents": visible_documents,
-                    }
-                }
-            )
+        nodes = [_node_payload(graph, node_id, SUMMARY_CHAR_LIMIT) for node_id in selected]
         edges = []
         seen_edges = set()
         for source, target, relation in edge_rows:
@@ -299,17 +277,5 @@ def register(app: Flask, ctx: AppContext) -> None:
             if source not in selected_set or target not in selected_set or key in seen_edges:
                 continue
             seen_edges.add(key)
-            edges.append(
-                {
-                    "data": {
-                        "id": f"{source}:{relation}:{target}",
-                        "source": source,
-                        "target": target,
-                        "rel_label": relation,
-                        "source_ref": str(
-                            (getattr(graph, "edge_records", {}).get(key) or {}).get("source") or ""
-                        ),
-                    }
-                }
-            )
+            edges.append(_edge_payload(graph, source, target, relation))
         return jsonify({"target_id": target_id, "nodes": nodes, "edges": edges})

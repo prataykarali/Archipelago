@@ -34,8 +34,13 @@ function drawPersonalizedSVG(svg, nodes, _edges, cardId, anchorLabel) {
     }));
     points.slice(0, -1).forEach((point, index) => {
         const next = points[index + 1];
+        const x1 = point.x + 30;
+        const y1 = point.y;
+        const x2 = next.x - 33;
+        const y2 = next.y;
+        const cx = (x1 + x2) / 2;
         svg.appendChild(svgElement('path', {
-            d: `M ${point.x + 32} ${point.y} L ${next.x - 36} ${next.y}`,
+            d: `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`,
             stroke: '#67e8f9', 'stroke-width': 3, fill: 'none',
             'marker-end': `url(#roadmap-arrow-${cardId})`,
         }));
@@ -100,7 +105,7 @@ function selectPersonalizedNode(cardId, node, anchorLabel) {
     if (node.doc_id) {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs';
+        button.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs cursor-pointer';
         const page = node.printed_page || node.page_number;
         button.textContent = page ? `Open source · p. ${page}` : 'Open source';
         button.addEventListener('click', () => window.openPrerequisiteRemediationReader(
@@ -111,17 +116,22 @@ function selectPersonalizedNode(cardId, node, anchorLabel) {
         link.href = node.url;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        link.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs';
+        link.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs cursor-pointer';
         link.textContent = 'Open source';
         actions.appendChild(link);
     } else {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs';
+        button.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs cursor-pointer';
         button.textContent = 'Explore concept';
         button.addEventListener('click', () => window.autoPrompt(`Tell me about ${node.label || node.id}`));
         actions.appendChild(button);
     }
+    const graphLink = document.createElement('a');
+    graphLink.href = `/graph?target_id=${encodeURIComponent(node.id)}&q=${encodeURIComponent(node.label || node.id)}`;
+    graphLink.className = 'px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs cursor-pointer';
+    graphLink.textContent = 'Open Academic Graph ↗';
+    actions.appendChild(graphLink);
 }
 
 window.drawPersonalizedSVG = drawPersonalizedSVG;
