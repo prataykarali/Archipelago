@@ -293,7 +293,41 @@ class AcademicStore:
 
         save_match(self, record_key, provider, source_id, source_url, status)
 
-    def next_job(self) -> dict[str, Any] | None:
+    def recover_resource_blocked_jobs(
+        self, *, job_id: str | None = None, actor: str = "worker"
+    ) -> list[str]:
+        """Idempotently move resource-blocked queued jobs back to awaiting_approval."""
+        query = (
+            "SELECT job_id,error FROM jobs WHERE status='queued' "
+            "AND error LIKE 'BLOCKED:%' AND rights='open_permitted' "
+            "AND content_path IS NOT NULL AND content_sha256 IS NOT NULL"
+        )
+        params: tuple[Any, ...] = ()
+        if job_id is not None:
+            query += " AND job_id=?"
+            params = (job_id,)
+        recovered: list[tuple[str, str]] = []
+        ts = now()
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute(query, params).fetchall()
+            for row in rows:
+                db.execute(
+                    "UPDATE jobs SET status='awaiting_approval',next_attempt_at=NULL,"
+                    "updated_at=?,error=NULL WHERE job_id=? AND status='queued'",
+                    (ts, row["job_id"]),
+                )
+                recovered.append((str(row["job_id"]), str(row["error"] or "")))
+        for rec_id, prev_err in recovered:
+            self.audit(
+                actor,
+                "job_recovered_from_resource_block",
+                rec_id,
+                {"previous_error": prev_err},
+            )
+        return [rec_id for rec_id, _ in recovered]
+
+    def next_job(self, *, job_id: str | None = None, ignore_backoff: bool = False) -> dict[str, Any] | None:
         """Claim the oldest highest-priority pending job, one worker at a time."""
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -302,12 +336,25 @@ class AcademicStore:
             ).fetchone()[0]
             if running:
                 return None
-            row = db.execute(
-                "SELECT * FROM jobs WHERE status IN ('awaiting_approval','approved','cpu_requested') "
-                "AND (next_attempt_at IS NULL OR next_attempt_at<=?) "
-                "ORDER BY (priority + CAST((julianday(?) - julianday(created_at)) * ? AS INTEGER)) DESC,created_at ASC LIMIT 1",
-                (now(), now(), AGING_POINTS_PER_DAY),
-            ).fetchone()
+            if job_id is not None:
+                if ignore_backoff:
+                    row = db.execute(
+                        "SELECT * FROM jobs WHERE job_id=? AND status IN ('awaiting_approval','approved','cpu_requested') LIMIT 1",
+                        (job_id,),
+                    ).fetchone()
+                else:
+                    row = db.execute(
+                        "SELECT * FROM jobs WHERE job_id=? AND status IN ('awaiting_approval','approved','cpu_requested') "
+                        "AND (next_attempt_at IS NULL OR next_attempt_at<=?) LIMIT 1",
+                        (job_id, now()),
+                    ).fetchone()
+            else:
+                row = db.execute(
+                    "SELECT * FROM jobs WHERE status IN ('awaiting_approval','approved','cpu_requested') "
+                    "AND (next_attempt_at IS NULL OR next_attempt_at<=?) "
+                    "ORDER BY (priority + CAST((julianday(?) - julianday(created_at)) * ? AS INTEGER)) DESC,created_at ASC LIMIT 1",
+                    (now(), now(), AGING_POINTS_PER_DAY),
+                ).fetchone()
             if row is None:
                 return None
             db.execute(

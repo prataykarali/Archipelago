@@ -16,6 +16,7 @@ from okf.pipeline import PipelineAborted
 
 from .gpu import (
     GPUUnavailable,
+    admit_gpu_for_job,
     assert_exclusive_occupancy,
     desktop_consent,
     exclusive_gpu,
@@ -203,9 +204,12 @@ def stage_job(store: AcademicStore, job: dict[str, Any], root: Path) -> dict[str
     return validation
 
 
-def run_once(store: AcademicStore, root: Path) -> dict[str, Any] | None:
+def run_once(
+    store: AcademicStore, root: Path, *, target_job_id: str | None = None
+) -> dict[str, Any] | None:
     """Process at most one approved job, leaving offline or denied work queued."""
-    job = store.next_job()
+    store.recover_resource_blocked_jobs(job_id=target_job_id)
+    job = store.next_job(job_id=target_job_id, ignore_backoff=target_job_id is not None)
     if job is None:
         return None
     job_id = str(job["job_id"])
@@ -216,7 +220,18 @@ def run_once(store: AcademicStore, root: Path) -> dict[str, Any] | None:
             store.defer(job_id, reason="Local GPU worker or occupancy probe unavailable")
             return {"job_id": job_id, "status": "awaiting_approval"}
         if job["mode"] == "gpu":
-            assert_exclusive_occupancy(_model())
+            admit_action, admit_detail = admit_gpu_for_job(
+                job_id, str(job.get("record_key") or job_id), _model()
+            )
+            if admit_action == "cancel":
+                store.cancel(job_id, "local_operator")
+                return {"job_id": job_id, "status": "cancelled", "reason": admit_detail}
+            if admit_action == "cancelled":
+                store.cancel(job_id, "local_operator")
+                return {"job_id": job_id, "status": "cancelled", "reason": admit_detail}
+            if admit_action != "admitted":
+                store.defer(job_id, reason=admit_detail)
+                return {"job_id": job_id, "status": "awaiting_approval", "reason": admit_detail}
         if job["mode"] == "gpu" and not store.has_grant(job_id):
             with store._connect() as db:
                 pending = db.execute(

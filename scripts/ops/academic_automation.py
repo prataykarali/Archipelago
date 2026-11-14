@@ -222,7 +222,8 @@ def main() -> int:
     harvest_cmd.add_argument("--max-pages", type=int, default=50)
     open_cmd = sub.add_parser("queue-open-book")
     open_cmd.add_argument("--record-key", required=True)
-    sub.add_parser("worker-once")
+    worker_once_cmd = sub.add_parser("worker-once")
+    worker_once_cmd.add_argument("--job-id", default=None)
     sub.add_parser("worker-loop")
     sub.add_parser("status")
     queue = sub.add_parser("queue")
@@ -256,7 +257,7 @@ def main() -> int:
         output = scan_configured_queries(store, ROOT, args.queries_file)
     elif args.command == "worker-once":
         store.recover_stale()
-        output = run_once(store, ROOT)
+        output = run_once(store, ROOT, target_job_id=args.job_id)
     elif args.command == "worker-loop":
         while True:
             store.recover_stale()

@@ -89,3 +89,24 @@
 | **GPU cleanup** | Confirmed `ollama ps` empty and no Archipelago-owned GPU process active; post-ingestion/failure unload to `14 MiB` previously verified. |
 | **S4 review** | `bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe` has `human_reviews` row (`decision='approve'`, `reviewer_id='pratay-karali-operator'`, `reviewer_role='administrator'`, `at='2026-11-14T17:20:10.677852+00:00'`), `published_version=None`, and `okf_graph.db` unchanged. Because `pratay-karali-operator` is the same workstation/repo operator rather than an independent second reviewer, independent scientific review should still be confirmed by a separate institutional reviewer before any local publication. |
 | **Overall release** | **`RELEASE BLOCKED`** |
+
+---
+
+## 8. Gate 2 Closed — Safe GPU Admission Controller & End-to-End Ingestion (`PASS`)
+
+- **Implemented Safe GPU Admission Controller & Idempotent Queue Recovery:**
+  - [archipelago/academic_automation/gpu.py](file:///home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/academic_automation/gpu.py): Added `inspect_blocking_cuda_processes`, `unload_idle_archipelago_models`, `desktop_gpu_conflict_consent` (`defer` / `stop_and_ingest` / `cancel` — never auto-selects stop), `gracefully_stop_process` (verifies UID + `/proc/<pid>/cmdline`, sends `SIGINT` then `SIGTERM`, refuses Xorg/compositors/NVIDIA/systemd, never uses `SIGKILL`/`pkill`), and `admit_gpu_for_job`.
+  - [archipelago/academic_automation/store.py](file:///home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/academic_automation/store.py): Added idempotent `recover_resource_blocked_jobs` and `--job-id` targeting in `next_job`.
+  - [archipelago/academic_automation/worker.py](file:///home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/academic_automation/worker.py) & [scripts/ops/academic_automation.py](file:///home/pratay-karali/Desktop/archipelago/Archipelago/scripts/ops/academic_automation.py): Wired `admit_gpu_for_job`, `recover_resource_blocked_jobs`, and `worker-once --job-id`.
+  - [tests/unit/test_gpu_admission_controller.py](file:///home/pratay-karali/Desktop/archipelago/Archipelago/tests/unit/test_gpu_admission_controller.py) + `test_s4_academic_automation.py`: **`39 passed, 1 warning`** (`ruff check` clean).
+- **End-to-End Real GPU Ingestion (`337d88fe-70df-49f2-af98-4f3413895951`):**
+  - Source: `pdfs/papers/Willard2023_Outlines.pdf` (`368 KB`, `arXiv:2307.09702`, `arXiv-perpetual-nonexclusive`, operator grant by `pratay-karali-operator`).
+  - Before: RTX 2050 `14 MiB / 4096 MiB`, `MemAvailable: 6,405,840 kB`, `ollama ps` empty.
+  - Result: `status='review_ready'`, `published_version=None` (no auto-publish).
+  - Validation (`validation.json`): `added_concepts: 5`, `added_edges: 12`, `broken_edges_count: 0`, `self_refs_count: 0`, `staging_concepts: 615`, `staging_edges: 2000`, `valid: true`.
+  - Staging artifacts: `data/academic_jobs/337d88fe-70df-49f2-af98-4f3413895951/{extraction.db (18M), results.json (49K, 8 rows), staging.db (98M), validation.json (245B)}`.
+  - Idempotency check: second `worker-once --job-id 337d88fe-70df-49f2-af98-4f3413895951` returned `null`.
+  - Post-ingestion cleanup: `ollama ps` empty (`0` Archipelago GPU processes); `nvidia-smi` shows only desktop (`14 MiB`) + separate FlowState process `PID 356190` (`70 MiB`).
+- **Remaining Release Blockers:**
+  1. **Task 1 (`archipelago-librarian` in `Aura` / `shinaura`):** Requires interactive Vercel CLI login (`npx vercel login`) to the account that owns `https://vercel.com/shinaura`, linking `host_research/` to `archipelago-librarian`, and deploying/promoting.
+  2. **Gate 3 (Independent S4 Review):** Requires a separate institutional reviewer (distinct from `pratay-karali-operator`) before local graph publication.
