@@ -42,7 +42,27 @@ from .routing_constants import (
 
 RESEARCH_INTENT_RE = re.compile(r"\b(research|papers?|studies|literature|evidence|gaps?)\b", re.I)
 ACADEMIC_DOMAIN_RE = re.compile(
-    r"\b(ai|ml|models?|language|memory|retrieval|graph|learning|algorithm)\b", re.I
+    r"\b("
+    r"ai|ml|models?|language|memory|retrieval|graph|learning|algorithm|algorithms|"
+    r"complexity|asymptotic|big-o|amortized|recursion|recursive|dynamic programming|"
+    r"heap|heaps|tree|trees|trie|binary|array|arrays|stack|queue|linked list|hash(?:ing)?|sort(?:ing)?|"
+    r"dijkstra|bellman|bfs|dfs|shortest path|spanning tree|np-complete|np-hard|decidable|undecidable|"
+    r"automata|automaton|turing|dfa|nfa|grammar|grammars|cfg|chomsky|pumping lemma|"
+    r"compiler|compilers|lexer|lexical|parser|parsing|syntax|semantic|ast|code generation|register allocation|"
+    r"operating system|process|processes|thread|threads|scheduling|deadlock|mutex|semaphore|concurrency|synchronization|"
+    r"virtual memory|paging|page replacement|thrashing|filesystem|file system|inode|syscall|"
+    r"database|dbms|sql|acid|transaction|transactions|serializability|normalization|b-tree|b\+ tree|relational algebra|"
+    r"network|networks|tcp|udp|ip|http|dns|routing|congestion|flow control|osi|mac|packet|packets|socket|"
+    r"distributed|consensus|paxos|raft|cap theorem|replication|sharding|vector clock|"
+    r"architecture|cpu|cache|caches|pipeline|pipelining|risc|isa|alu|instruction|hazard|"
+    r"cryptography|encryption|decryption|rsa|aes|tls|ssl|authentication|cybersecurity|vulnerability|xss|sql injection|"
+    r"matrix|matrices|vector|vectors|eigenvalue|eigenvector|svd|determinant|rank|linear algebra|orthogonality|"
+    r"probability|bayes|bayesian|distribution|variance|covariance|expectation|markov|hypothesis|regression|"
+    r"calculus|derivative|gradient|jacobian|hessian|integral|optimization|convex|"
+    r"neural|backpropagation|transformer|attention|embedding|embeddings|tokenization|nlp|computer vision|convolution|cnn|rnn|lstm|"
+    r"rag|bm25|tf-idf|quantization|lora|qlora|fine-tuning|software engineering|testing|design pattern|solid"
+    r")\b",
+    re.I,
 )
 
 

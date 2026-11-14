@@ -1,0 +1,794 @@
+{
+  "corpus_totals": {
+    "graph_nodes": 610,
+    "graph_edges": 1988,
+    "passages": 1377,
+    "pearson_books": 40,
+    "hf_corpus_docs": 51,
+    "koha_subject_rows": 952
+  },
+  "domains": {
+    "OS": {
+      "domain": "Operating Systems",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 58,
+      "edges_count": 273,
+      "passages_count": 103,
+      "distinct_page_citations": 78,
+      "passage_docs_count": 28,
+      "sample_passage_docs": [
+        "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_engineering_chemistry",
+        "doc_operating_systems_internals_and_design",
+        "doc_vllm_efficient_memory_management_for",
+        "papers/Bahdanau2014_Attention.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "Operating Systems: Internals and Design Principles, Global Edition"
+      ],
+      "hf_corpus_count": 17,
+      "hf_corpus_docs": [
+        "archipelago-books-cs/ostep_three_easy_pieces/00_Dialogue.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/01_Introduction.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/02_CPU_Virtualization.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/03_Process_API.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/04_Limited_Direct_Execution.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/05_CPU_Scheduling.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/09_TLBs.pdf"
+      ],
+      "koha_subject_title_count": 7,
+      "sample_concepts": [
+        "Chain of Thought",
+        "Diffusion Probability Distribution",
+        "Discretization",
+        "Entity Extraction",
+        "Kernel Trick",
+        "Multilevel Feedback Queue",
+        "Prompt Validation",
+        "RNN",
+        "Reasoning Trace",
+        "Self-Refinement"
+      ]
+    },
+    "DBMS": {
+      "domain": "Database Management Systems",
+      "classification": "PARTIALLY INDEXED",
+      "concepts_count": 18,
+      "edges_count": 38,
+      "passages_count": 10,
+      "distinct_page_citations": 8,
+      "passage_docs_count": 6,
+      "sample_passage_docs": [
+        "doc_fundamentals_of_database_system_7e",
+        "papers/Lewis2020_RAG.pdf",
+        "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+        "pilot/silberschatz_3nf_card.txt",
+        "textbooks/database_management_systems_ramakrishnan.pdf",
+        "textbooks/database_system_concepts_silberschatz.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "Fundamentals of Database System, 7e"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 5,
+      "sample_concepts": [
+        "ACID Properties",
+        "B Tree",
+        "Concurrency Control",
+        "Document Index",
+        "Domain Constraints",
+        "Hash Indexing",
+        "Range Scan",
+        "SQL",
+        "SQL Injection",
+        "Third Normal Form (3NF)"
+      ]
+    },
+    "DSA": {
+      "domain": "Data Structures & Algorithms",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 42,
+      "edges_count": 130,
+      "passages_count": 58,
+      "distinct_page_citations": 46,
+      "passage_docs_count": 22,
+      "sample_passage_docs": [
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_8051_microcontroller_and_embedded_systems",
+        "doc_digital_signal_processing_4e",
+        "doc_introduction_to_the_design_and",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Edge2024_GraphRAG.pdf",
+        "papers/Goodfellow2014_GAN.pdf"
+      ],
+      "pearson_books_count": 2,
+      "pearson_books": [
+        "Data Structures Using C, 1e",
+        "Introduction to the Design and Analysis of Algorithms"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 1,
+      "sample_concepts": [
+        "Bankers Algorithm",
+        "Interrupt Service Routine",
+        "Label Propagation",
+        "Leiden Algorithm",
+        "Markov Chain Monte Carlo",
+        "Multilevel Feedback Queue",
+        "Nearest Neighbor Density Estimation",
+        "Stochastic Gradient Descent",
+        "Strongly Connected Components",
+        "Support Vector Machine"
+      ]
+    },
+    "Networks": {
+      "domain": "Computer Networks",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 75,
+      "edges_count": 470,
+      "passages_count": 267,
+      "distinct_page_citations": 126,
+      "passage_docs_count": 29,
+      "sample_passage_docs": [
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_attention_is_all_you_need",
+        "doc_bert_pre_training_of_deep_bidirectional",
+        "doc_computer_networks_6_e",
+        "doc_data_and_computer_communications",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf"
+      ],
+      "pearson_books_count": 7,
+      "pearson_books": [
+        "Computer Networks, 6/e",
+        "Data and Computer Communications",
+        "Computer Networks 5/e",
+        "Operating Systems: Internals and Design Principles, Global Edition",
+        "Wireless Communications & Networks",
+        "Cryptography and Network Security: Principles and Practice, 8/e",
+        "COMPUTER ORGANIZATION AND ARCHITECTURE"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 14,
+      "sample_concepts": [
+        "Block Cipher Principles",
+        "Flow Control",
+        "Galois Field",
+        "IPsec",
+        "Inception Score",
+        "LSTM",
+        "Message Authentication Code",
+        "Neural Network",
+        "RNN",
+        "Transformer"
+      ]
+    },
+    "Compilers": {
+      "domain": "Compilers",
+      "classification": "PARTIALLY INDEXED",
+      "concepts_count": 14,
+      "edges_count": 28,
+      "passages_count": 9,
+      "distinct_page_citations": 8,
+      "passage_docs_count": 4,
+      "sample_passage_docs": [
+        "doc_compilers_principles_techniques_and_tools",
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+        "papers/Willard2023_Outlines.pdf",
+        "textbooks/compilers_principles_techniques_tools_aho.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "Compilers Principles, Techniques, and Tools, 2e"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 0,
+      "sample_concepts": [
+        "Abstract Syntax Tree",
+        "English Constituency Parsing",
+        "Intermediate Code Generation",
+        "Lexical Analysis",
+        "Ll Parser",
+        "Python Keyword",
+        "Reduce Operation",
+        "Semantic Analysis",
+        "Syntax",
+        "Syntax Analysis"
+      ]
+    },
+    "TOC": {
+      "domain": "Theory of Computation",
+      "classification": "PARTIALLY INDEXED",
+      "concepts_count": 15,
+      "edges_count": 58,
+      "passages_count": 13,
+      "distinct_page_citations": 10,
+      "passage_docs_count": 4,
+      "sample_passage_docs": [
+        "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf",
+        "papers/Willard2023_Outlines.pdf",
+        "textbooks/compilers_principles_techniques_tools_aho.pdf",
+        "textbooks/introduction_to_automata_theory_hopcroft.pdf"
+      ],
+      "pearson_books_count": 0,
+      "pearson_books": [],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 1,
+      "sample_concepts": [
+        "Computability Theory",
+        "Deterministic Finite Automaton",
+        "Finite Automaton",
+        "Halting Problem",
+        "Inheritance",
+        "Lexical Analysis",
+        "Partial Regular Expression",
+        "Pushdown Automaton",
+        "Regular Expression",
+        "Turing Machine"
+      ]
+    },
+    "Discrete Math": {
+      "domain": "Discrete Mathematics",
+      "classification": "PARTIALLY INDEXED",
+      "concepts_count": 5,
+      "edges_count": 14,
+      "passages_count": 2,
+      "distinct_page_citations": 2,
+      "passage_docs_count": 2,
+      "sample_passage_docs": [
+        "artificial_intelligence_a_new_synthesis_1998/1---Introduction_1998_Artificial-Intelligence--A-New-Synthesis.pdf",
+        "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "Digital Logic and Computer Design"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 8,
+      "sample_concepts": [
+        "Default Logic",
+        "Digital Logic Gates",
+        "Modular Arithmetic",
+        "Set Theory",
+        "Symbolic Processes"
+      ]
+    },
+    "Linear Algebra": {
+      "domain": "Linear Algebra",
+      "classification": "PARTIALLY INDEXED",
+      "concepts_count": 17,
+      "edges_count": 94,
+      "passages_count": 48,
+      "distinct_page_citations": 39,
+      "passage_docs_count": 19,
+      "sample_passage_docs": [
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_lora_low_rank_adaptation_of_large",
+        "doc_mathematics_for_machine_learning",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Devlin2018_BERT.pdf",
+        "papers/Edge2024_GraphRAG.pdf"
+      ],
+      "pearson_books_count": 0,
+      "pearson_books": [],
+      "hf_corpus_count": 2,
+      "hf_corpus_docs": [
+        "Deisenroth_Math_For_ML.pdf",
+        "books/textbooks/Deisenroth_Math_For_ML.pdf"
+      ],
+      "koha_subject_title_count": 3,
+      "sample_concepts": [
+        "Determinant",
+        "Eckart-Young-Mirsky Theorem",
+        "Eigenvalue",
+        "Eigenvector",
+        "Leiden Algorithm",
+        "Matrix Decomposition",
+        "Matrix Factorization",
+        "Matrix Multiplication",
+        "Parameter-Efficient Fine-Tuning",
+        "Self-Organizing Map"
+      ]
+    },
+    "Prob & Stats": {
+      "domain": "Probability & Statistics",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 95,
+      "edges_count": 674,
+      "passages_count": 340,
+      "distinct_page_citations": 140,
+      "passage_docs_count": 29,
+      "sample_passage_docs": [
+        "data_science_2019/About-the-Authors_2019_Data-Science.pdf",
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_concepts_of_modern_physics",
+        "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "A First Course in Probability, 9e"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 18,
+      "sample_concepts": [
+        "Categorical Distribution",
+        "Deep Learning",
+        "Full-Four Best-Fit Models",
+        "Generative Adversarial Network",
+        "Markov Assumption",
+        "Random Variable",
+        "Support Vector Machine",
+        "TensorFlow",
+        "Variational Bayesian",
+        "Variational Inference"
+      ]
+    },
+    "AI": {
+      "domain": "Artificial Intelligence",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 59,
+      "edges_count": 518,
+      "passages_count": 284,
+      "distinct_page_citations": 135,
+      "passage_docs_count": 24,
+      "sample_passage_docs": [
+        "artificial_intelligence_a_new_synthesis_1998/1---Introduction_1998_Artificial-Intelligence--A-New-Synthesis.pdf",
+        "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Devlin2018_BERT.pdf",
+        "papers/Edge2024_GraphRAG.pdf"
+      ],
+      "pearson_books_count": 5,
+      "pearson_books": [
+        "Artificial Intelligence: A Modern Approach, 4/e",
+        "Neural Networks and Learning Machines",
+        "Machine Learning, 2/e",
+        "Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics and Speech Recognition 2/e",
+        "Computer Vision"
+      ],
+      "hf_corpus_count": 2,
+      "hf_corpus_docs": [
+        "books/papers/Wei2022_ChainOfThought.pdf",
+        "books/papers/Yao2022_ReAct.pdf"
+      ],
+      "koha_subject_title_count": 27,
+      "sample_concepts": [
+        "Actor-Critic Method",
+        "Fine-Tuning",
+        "GPT",
+        "Open-MSMarco",
+        "PaLM 62B",
+        "Quantifier",
+        "Reasoning Trace",
+        "Reasoning with External Knowledge",
+        "Variable",
+        "Zero-Shot Learning"
+      ]
+    },
+    "ML": {
+      "domain": "Machine Learning",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 85,
+      "edges_count": 584,
+      "passages_count": 296,
+      "distinct_page_citations": 137,
+      "passage_docs_count": 29,
+      "sample_passage_docs": [
+        "data_science_2019/About-the-Authors_2019_Data-Science.pdf",
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Devlin2018_BERT.pdf"
+      ],
+      "pearson_books_count": 5,
+      "pearson_books": [
+        "Artificial Intelligence: A Modern Approach, 4/e",
+        "Neural Networks and Learning Machines",
+        "Machine Learning, 2/e",
+        "Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics and Speech Recognition 2/e",
+        "Computer Vision"
+      ],
+      "hf_corpus_count": 2,
+      "hf_corpus_docs": [
+        "Deisenroth_Math_For_ML.pdf",
+        "books/textbooks/Deisenroth_Math_For_ML.pdf"
+      ],
+      "koha_subject_title_count": 18,
+      "sample_concepts": [
+        "Binary Classification",
+        "Constitutional AI",
+        "Deep Learning",
+        "Generative Adversarial Network",
+        "Hdbscan",
+        "Kernel Trick",
+        "Large Language Model",
+        "Negative Prediction",
+        "Support Vector Machine",
+        "TensorFlow"
+      ]
+    },
+    "Deep Learning": {
+      "domain": "Deep Learning",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 170,
+      "edges_count": 1101,
+      "passages_count": 686,
+      "distinct_page_citations": 234,
+      "passage_docs_count": 38,
+      "sample_passage_docs": [
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_attention_is_all_you_need",
+        "doc_bert_pre_training_of_deep_bidirectional",
+        "doc_direct_preference_optimization_your_language",
+        "doc_lora_low_rank_adaptation_of_large",
+        "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "Neural Networks and Learning Machines"
+      ],
+      "hf_corpus_count": 10,
+      "hf_corpus_docs": [
+        "Vaswani2017_Attention_Is_All_You_Need.pdf",
+        "books/papers/Bahdanau2014_Attention.pdf",
+        "books/papers/Goodfellow2014_GAN.pdf",
+        "books/papers/Ho2020_DDPM.pdf",
+        "books/papers/Hochreiter1997_LSTM.pdf",
+        "books/papers/Kingma2013_VAE.pdf",
+        "books/papers/Krizhevsky2012_AlexNet.pdf",
+        "books/papers/LeCun1998_ConvNets.pdf",
+        "books/papers/Rumelhart1986_Backpropagation.pdf",
+        "books/papers/Vaswani2017_Attention_Is_All_You_Need.pdf"
+      ],
+      "koha_subject_title_count": 10,
+      "sample_concepts": [
+        "Adapter",
+        "Attention Head",
+        "Data Augmentation",
+        "Decoder",
+        "Deep Learning",
+        "Energy-Based Model",
+        "Linear Auto-Encoder",
+        "Sequence",
+        "TensorFlow",
+        "Training Loss"
+      ]
+    },
+    "NLP": {
+      "domain": "Natural Language Processing",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 154,
+      "edges_count": 1202,
+      "passages_count": 674,
+      "distinct_page_citations": 248,
+      "passage_docs_count": 35,
+      "sample_passage_docs": [
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_attention_is_all_you_need",
+        "doc_bert_pre_training_of_deep_bidirectional",
+        "doc_direct_preference_optimization_your_language",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics and Speech Recognition 2/e"
+      ],
+      "hf_corpus_count": 7,
+      "hf_corpus_docs": [
+        "Devlin2018_BERT.pdf",
+        "books/papers/Bai2022_ConstitutionalAI.pdf",
+        "books/papers/Brown2020_GPT3.pdf",
+        "books/papers/Devlin2018_BERT.pdf",
+        "books/papers/Ouyang2022_InstructGPT.pdf",
+        "books/papers/Rafailov2023_DPO.pdf",
+        "books/papers/Willard2023_Outlines.pdf"
+      ],
+      "koha_subject_title_count": 4,
+      "sample_concepts": [
+        "Fine-Tuning Approach",
+        "Finite State Machine",
+        "LLM Evaluator",
+        "Reasoning Trace",
+        "Reasoning with External Knowledge",
+        "Regular Expression",
+        "Reward Value",
+        "Sentence or Paragraph Completion",
+        "Sequence-to-Sequence Conditioning",
+        "Zero-Shot Learning"
+      ]
+    },
+    "Computer Vision": {
+      "domain": "Computer Vision",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 24,
+      "edges_count": 225,
+      "passages_count": 151,
+      "distinct_page_citations": 86,
+      "passage_docs_count": 23,
+      "sample_passage_docs": [
+        "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Goodfellow2014_GAN.pdf"
+      ],
+      "pearson_books_count": 2,
+      "pearson_books": [
+        "Digital Image Processing, 4e",
+        "Computer Vision"
+      ],
+      "hf_corpus_count": 2,
+      "hf_corpus_docs": [
+        "books/papers/Krizhevsky2012_AlexNet.pdf",
+        "books/papers/LeCun1998_ConvNets.pdf"
+      ],
+      "koha_subject_title_count": 6,
+      "sample_concepts": [
+        "2D Discrete Convolution",
+        "Data Augmentation",
+        "Deep Learning",
+        "Efficient Model",
+        "Fully-Connected",
+        "Fully-Connected Layer",
+        "Image Retrieval",
+        "ImageNet",
+        "Neural Network",
+        "Pixel"
+      ]
+    },
+    "Software Engineering": {
+      "domain": "Software Engineering",
+      "classification": "PARTIALLY INDEXED",
+      "concepts_count": 2,
+      "edges_count": 6,
+      "passages_count": 2,
+      "distinct_page_citations": 2,
+      "passage_docs_count": 2,
+      "sample_passage_docs": [
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Wei2022_ChainOfThought.pdf"
+      ],
+      "pearson_books_count": 1,
+      "pearson_books": [
+        "Software Engineering"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 28,
+      "sample_concepts": [
+        "Sentence Building",
+        "Variable Compute Only"
+      ]
+    },
+    "Distributed Systems": {
+      "domain": "Distributed Systems",
+      "classification": "GENERAL AI EXPLANATION ONLY",
+      "concepts_count": 1,
+      "edges_count": 12,
+      "passages_count": 1,
+      "distinct_page_citations": 1,
+      "passage_docs_count": 1,
+      "sample_passage_docs": [
+        "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf"
+      ],
+      "pearson_books_count": 0,
+      "pearson_books": [],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 0,
+      "sample_concepts": [
+        "Federated Learning"
+      ]
+    },
+    "IR & RAG": {
+      "domain": "Information Retrieval & RAG",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 69,
+      "edges_count": 637,
+      "passages_count": 362,
+      "distinct_page_citations": 155,
+      "passage_docs_count": 27,
+      "sample_passage_docs": [
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Devlin2018_BERT.pdf",
+        "papers/Edge2024_GraphRAG.pdf",
+        "papers/Goodfellow2014_GAN.pdf"
+      ],
+      "pearson_books_count": 0,
+      "pearson_books": [],
+      "hf_corpus_count": 5,
+      "hf_corpus_docs": [
+        "Edge2024_GraphRAG.pdf",
+        "Lewis2020_RAG.pdf",
+        "books/papers/Edge2024_GraphRAG.pdf",
+        "books/papers/Karpukhin2020_DPR.pdf",
+        "books/papers/Lewis2020_RAG.pdf"
+      ],
+      "koha_subject_title_count": 0,
+      "sample_concepts": [
+        "Document Index",
+        "Entity Extraction",
+        "Fine-Tuning",
+        "LLM Evaluator",
+        "Large Pre- trained Language Models",
+        "Leiden Algorithm",
+        "Natural Questions",
+        "Open-MSMarco",
+        "RAG",
+        "Vector Embeddings"
+      ]
+    },
+    "Neural Architectures & Efficient Inference": {
+      "domain": "Neural Architectures & Efficient Inference",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 100,
+      "edges_count": 895,
+      "passages_count": 648,
+      "distinct_page_citations": 236,
+      "passage_docs_count": 38,
+      "sample_passage_docs": [
+        "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_attention_is_all_you_need",
+        "doc_bert_pre_training_of_deep_bidirectional",
+        "doc_lora_low_rank_adaptation_of_large",
+        "doc_vllm_efficient_memory_management_for",
+        "papers/Bahdanau2014_Attention.pdf"
+      ],
+      "pearson_books_count": 0,
+      "pearson_books": [],
+      "hf_corpus_count": 8,
+      "hf_corpus_docs": [
+        "Dettmers2023_QLoRA.pdf",
+        "Hu2021_LoRA.pdf",
+        "Kwon2023_vLLM.pdf",
+        "books/papers/Dettmers2023_QLoRA.pdf",
+        "books/papers/Hu2021_LoRA.pdf",
+        "books/papers/Kipf2016_GCN.pdf",
+        "books/papers/Kwon2023_vLLM.pdf",
+        "books/papers/Velickovic2017_GAT.pdf"
+      ],
+      "koha_subject_title_count": 0,
+      "sample_concepts": [
+        "Adapter",
+        "Attention Head",
+        "Deep Learning",
+        "Fine-grained Batching",
+        "Graph Attention Layer",
+        "Hyperparameter Tuning",
+        "Label Propagation",
+        "Parameter-Efficient Fine-Tuning",
+        "Sequence",
+        "Sequence-to-Sequence Conditioning"
+      ]
+    },
+    "COA": {
+      "domain": "Computer Organization & Architecture",
+      "classification": "PARTIALLY INDEXED",
+      "concepts_count": 11,
+      "edges_count": 28,
+      "passages_count": 17,
+      "distinct_page_citations": 11,
+      "passage_docs_count": 6,
+      "sample_passage_docs": [
+        "doc_8051_microcontroller_and_embedded_systems",
+        "doc_computer_system_architecture_revised_3_e",
+        "doc_operating_systems_internals_and_design",
+        "papers/Kwon2023_vLLM.pdf",
+        "textbooks/operating_system_concepts_silberschatz.pdf",
+        "textbooks/ostep_three_easy_pieces.pdf"
+      ],
+      "pearson_books_count": 6,
+      "pearson_books": [
+        "PIC Microcontroller and Embedded Systems Using Assembly and C for PIC18, 2e",
+        "8051 Microcontroller and Embedded Systems",
+        "Digital Logic and Computer Design",
+        "Digital Design: With an Introduction to the Verilog HDL, VHDL, and System Verilog, 6e",
+        "Computer System Architecture, Revised 3/e",
+        "COMPUTER ORGANIZATION AND ARCHITECTURE"
+      ],
+      "hf_corpus_count": 2,
+      "hf_corpus_docs": [
+        "archipelago-books-cs/ostep_three_easy_pieces/02_CPU_Virtualization.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/05_CPU_Scheduling.pdf"
+      ],
+      "koha_subject_title_count": 5,
+      "sample_concepts": [
+        "Context Switch",
+        "Digital Logic Gates",
+        "Instruction Cycle",
+        "Instruction Fetch",
+        "Interrupt Service Routine",
+        "KV Cache",
+        "Memory Hierarchy",
+        "Memory Management Unit",
+        "PagedAttention",
+        "vLLM"
+      ]
+    },
+    "Cybersecurity": {
+      "domain": "Cybersecurity",
+      "classification": "FULLY INDEXED",
+      "concepts_count": 63,
+      "edges_count": 461,
+      "passages_count": 280,
+      "distinct_page_citations": 113,
+      "passage_docs_count": 26,
+      "sample_passage_docs": [
+        "data_science_2019/Index_2019_Data-Science.pdf",
+        "doc_cryptography_and_network_security_principles",
+        "doc_data_and_computer_communications",
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Bai2022_ConstitutionalAI.pdf",
+        "papers/Brown2020_GPT3.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Edge2024_GraphRAG.pdf"
+      ],
+      "pearson_books_count": 5,
+      "pearson_books": [
+        "Data and Computer Communications",
+        "Operating Systems: Internals and Design Principles, Global Edition",
+        "Wireless Communications & Networks",
+        "Cryptography and Network Security: Principles and Practice, 8/e",
+        "COMPUTER ORGANIZATION AND ARCHITECTURE"
+      ],
+      "hf_corpus_count": 0,
+      "hf_corpus_docs": [],
+      "koha_subject_title_count": 6,
+      "sample_concepts": [
+        "Binary Classification",
+        "Deep Feature Synthesis",
+        "Deep Learning",
+        "Federated Learning",
+        "Few-Shot Weakly-Supervised Learning",
+        "Galois Field",
+        "Message Authentication Code",
+        "Neural Network",
+        "Vector",
+        "Zero-Shot Learning"
+      ]
+    }
+  }
+}

@@ -1,0 +1,1158 @@
+{
+  "total_questions": 128,
+  "holdout_count": 20,
+  "questions": [
+    {
+      "id": "Q001",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "OS",
+      "expected_behavior": "Explain virtual memory and why processes need isolated address spaces.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Explain how virtual memory isolates process address spaces in an operating system."
+    },
+    {
+      "id": "Q002",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "OS",
+      "expected_behavior": "Explain multi-level page tables and how virtual addresses are split into VPN and offset.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does a two-level page table translate a 32-bit virtual address using VPN bits and page offset?"
+    },
+    {
+      "id": "Q003",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "OS",
+      "expected_behavior": "Compare spinlocks vs blocking mutexes under high contention.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare spinlocks and blocking mutexes in terms of CPU utilization and context-switch overhead."
+    },
+    {
+      "id": "Q004",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "OS",
+      "expected_behavior": "Calculate effective memory access time given TLB hit rate, TLB lookup time, and RAM access time.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Given a 95% TLB hit rate, 2 ns TLB lookup, and 80 ns RAM access, what is the effective memory access time?"
+    },
+    {
+      "id": "Q005",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "OS",
+      "expected_behavior": "Connect CPU scheduling, context switching, and Translation Lookaside Buffer (TLB) flushes.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do preemptive CPU scheduling, context switches, and TLB shootdowns or flushes interact?"
+    },
+    {
+      "id": "Q006",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "DBMS",
+      "expected_behavior": "Explain ACID properties of database transactions.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "What are the ACID properties of a database transaction and why is durability needed?"
+    },
+    {
+      "id": "Q007",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "DBMS",
+      "expected_behavior": "Explain B+ tree node fanout and height.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Why do B+ trees store keys only in internal nodes and data pointers only in leaf nodes?"
+    },
+    {
+      "id": "Q008",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "DBMS",
+      "expected_behavior": "Compare 3NF vs BCNF.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "What is the difference between Third Normal Form (3NF) and Boyce-Codd Normal Form (BCNF)?"
+    },
+    {
+      "id": "Q009",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "DBMS",
+      "expected_behavior": "Compute B+ tree height or block accesses.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "If a B+ tree has order 100 and holds 1,000,000 records, roughly how many disk I/Os are needed for a point lookup?"
+    },
+    {
+      "id": "Q010",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "DBMS",
+      "expected_behavior": "Connect write-ahead logging, two-phase locking, and crash recovery.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do two-phase locking and write-ahead logging work together to guarantee serializability and crash recovery?"
+    },
+    {
+      "id": "Q011",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "DSA",
+      "expected_behavior": "Explain hash table collision resolution.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Explain how separate chaining and open addressing resolve collisions in a hash table."
+    },
+    {
+      "id": "Q012",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "DSA",
+      "expected_behavior": "Analyze time complexity of Dijkstra vs Bellman-Ford.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Why does Dijkstra algorithm require non-negative edge weights while Bellman-Ford handles negative edges?"
+    },
+    {
+      "id": "Q013",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "DSA",
+      "expected_behavior": "Compare BFS and DFS.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare Breadth-First Search and Depth-First Search for shortest paths and cycle detection."
+    },
+    {
+      "id": "Q014",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "DSA",
+      "expected_behavior": "Compute number of comparisons or heapify cost.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "What is the worst-case time complexity of building a binary heap from an unsorted array of 1024 elements?"
+    },
+    {
+      "id": "Q015",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "DSA",
+      "expected_behavior": "Connect topological sort, DAGs, and strongly connected components.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How are strongly connected components related to condensation DAGs and topological sorting?"
+    },
+    {
+      "id": "Q016",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Networks",
+      "expected_behavior": "Explain TCP three-way handshake.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Explain the purpose of SYN, SYN-ACK, and ACK in the TCP three-way handshake."
+    },
+    {
+      "id": "Q017",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Networks",
+      "expected_behavior": "Explain AIMD congestion control.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does Additive Increase Multiplicative Decrease (AIMD) regulate TCP congestion window size?"
+    },
+    {
+      "id": "Q018",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Networks",
+      "expected_behavior": "Compare TCP vs UDP.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare TCP and UDP for real-time video streaming versus reliable file transfer."
+    },
+    {
+      "id": "Q019",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "Networks",
+      "expected_behavior": "Compute bandwidth-delay product.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Calculate the bandwidth-delay product for a 100 Mbps link with a 40 ms round-trip time."
+    },
+    {
+      "id": "Q020",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "Networks",
+      "expected_behavior": "Connect sliding window, flow control, and packet encapsulation across layers.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do packet encapsulation, sliding window flow control, and congestion control interact across the protocol stack?"
+    },
+    {
+      "id": "Q021",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Compilers",
+      "expected_behavior": "Explain lexical analysis and token streams.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "What role does a lexical analyzer play in converting source code into a token stream?"
+    },
+    {
+      "id": "Q022",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Compilers",
+      "expected_behavior": "Explain LL(1) parsing and FIRST/FOLLOW sets.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Why do LL(1) parsers require FIRST and FOLLOW sets to construct a predictive parsing table?"
+    },
+    {
+      "id": "Q023",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Compilers",
+      "expected_behavior": "Compare LL vs LR parsers.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare top-down LL parsers and bottom-up LR parsers in terms of grammar coverage and conflict handling."
+    },
+    {
+      "id": "Q024",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "Compilers",
+      "expected_behavior": "Apply AST construction to an arithmetic expression.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Show the abstract syntax tree structure for the arithmetic expression a + b * c - d."
+    },
+    {
+      "id": "Q025",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "Compilers",
+      "expected_behavior": "Connect parse trees, ASTs, semantic analysis, and intermediate code generation.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does a compiler pipeline progress from parse tree to abstract syntax tree, semantic analysis, and intermediate code generation?"
+    },
+    {
+      "id": "Q026",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "TOC",
+      "expected_behavior": "Explain deterministic vs nondeterministic finite automata.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "What distinguishes a Deterministic Finite Automaton (DFA) from a Nondeterministic Finite Automaton (NFA)?"
+    },
+    {
+      "id": "Q027",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "TOC",
+      "expected_behavior": "Explain Chomsky hierarchy.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Describe the four levels of the Chomsky hierarchy and their corresponding accepting automata."
+    },
+    {
+      "id": "Q028",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "TOC",
+      "expected_behavior": "Compare decidable vs undecidable languages.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare decidable languages and recognizable (Turing-acceptable) languages using the Halting Problem."
+    },
+    {
+      "id": "Q029",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "TOC",
+      "expected_behavior": "Apply subset construction state bound.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "If an NFA has 4 states, what is the maximum number of states its equivalent DFA can have via subset construction?"
+    },
+    {
+      "id": "Q030",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "TOC",
+      "expected_behavior": "Connect formal languages, finite automata, and decidability.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do formal languages, finite automata, and computability theory connect in the study of decidability?"
+    },
+    {
+      "id": "Q031",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Linear Algebra",
+      "expected_behavior": "Explain eigenvalues and eigenvectors.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "What are eigenvalues and eigenvectors of a square matrix geometrically and algebraically?"
+    },
+    {
+      "id": "Q032",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Linear Algebra",
+      "expected_behavior": "Explain Singular Value Decomposition (SVD).",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does Singular Value Decomposition factorize a rectangular matrix into orthogonal and diagonal matrices?"
+    },
+    {
+      "id": "Q033",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Linear Algebra",
+      "expected_behavior": "Compare eigendecomposition vs SVD.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare eigendecomposition and Singular Value Decomposition for non-square matrices."
+    },
+    {
+      "id": "Q034",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "Linear Algebra",
+      "expected_behavior": "Compute determinant / eigenvalues of a 2x2 matrix.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Find the eigenvalues of the 2x2 diagonal matrix diag(5, -2) and explain its trace and determinant."
+    },
+    {
+      "id": "Q035",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "Linear Algebra",
+      "expected_behavior": "Connect linear transformations, eigenvalues, and principal component analysis.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do linear transformations and eigenvectors lead to Principal Component Analysis for dimensionality reduction?"
+    },
+    {
+      "id": "Q036",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Prob & Stats",
+      "expected_behavior": "Explain conditional probability and Bayes theorem.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Explain conditional probability and how Bayes theorem updates prior beliefs with new evidence."
+    },
+    {
+      "id": "Q037",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Prob & Stats",
+      "expected_behavior": "Explain Shannon entropy and KL divergence.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How is Shannon entropy defined mathematically, and how does KL divergence measure distribution mismatch?"
+    },
+    {
+      "id": "Q038",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Prob & Stats",
+      "expected_behavior": "Compare MLE vs MAP estimation.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare Maximum Likelihood Estimation (MLE) and Maximum A Posteriori (MAP) estimation."
+    },
+    {
+      "id": "Q039",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "Prob & Stats",
+      "expected_behavior": "Compute Bayes posterior probability.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "A test is 99% sensitive and 95% specific for a disease with 1% prevalence; what is the posterior probability of disease given a positive test?"
+    },
+    {
+      "id": "Q040",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "Prob & Stats",
+      "expected_behavior": "Connect Markov assumption, conditional probability, and Markov Decision Processes.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does the Markov assumption simplify conditional probability chains in Markov Decision Processes?"
+    },
+    {
+      "id": "Q041",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "AI",
+      "expected_behavior": "Explain heuristic search and admissibility.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "What makes a heuristic function admissible in A* search?"
+    },
+    {
+      "id": "Q042",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "AI",
+      "expected_behavior": "Explain the Bellman equation.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Write and explain the Bellman optimality equation for a Markov Decision Process."
+    },
+    {
+      "id": "Q043",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "AI",
+      "expected_behavior": "Compare Chain-of-Thought vs ReAct prompting.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare Chain-of-Thought prompting and ReAct (Reasoning and Acting) for multi-step AI agent tasks."
+    },
+    {
+      "id": "Q044",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "AI",
+      "expected_behavior": "Apply A* f(n)=g(n)+h(n).",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "In A* search, if node A has g=4, h=6 and node B has g=7, h=2, which node is expanded next and why?"
+    },
+    {
+      "id": "Q045",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "AI",
+      "expected_behavior": "Connect AI agents, heuristic search, and tool-using reasoning.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do AI agents combine heuristic search or planning with ReAct-style reasoning and external tool calls?"
+    },
+    {
+      "id": "Q046",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "ML",
+      "expected_behavior": "Explain bias-variance tradeoff.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Explain the bias-variance tradeoff and how model complexity affects generalization error."
+    },
+    {
+      "id": "Q047",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "ML",
+      "expected_behavior": "Explain the kernel trick in SVMs.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does the kernel trick allow Support Vector Machines to learn nonlinear decision boundaries without explicit high-dimensional mapping?"
+    },
+    {
+      "id": "Q048",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "ML",
+      "expected_behavior": "Compare L1 vs L2 regularization.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare L1 (Lasso) and L2 (Ridge) regularization in terms of sparsity and weight shrinkage."
+    },
+    {
+      "id": "Q049",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "ML",
+      "expected_behavior": "Compute F1 score from precision and recall.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "If a classifier achieves precision 0.80 and recall 0.60, what is its F1 score?"
+    },
+    {
+      "id": "Q050",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "ML",
+      "expected_behavior": "Connect linear separability, kernel trick, and margin maximization.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do linear separability, maximum-margin hyperplanes, and the kernel trick unify Support Vector Machines?"
+    },
+    {
+      "id": "Q051",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Explain backpropagation and the chain rule.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does backpropagation use the chain rule to compute gradients across neural network layers?"
+    },
+    {
+      "id": "Q052",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Explain scaled dot-product attention.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Why is the dot product divided by sqrt(d_k) in scaled dot-product self-attention?"
+    },
+    {
+      "id": "Q053",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Compare VAE vs GAN.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare Variational Autoencoders (VAEs) and Generative Adversarial Networks (GANs) in training objectives and sample quality."
+    },
+    {
+      "id": "Q054",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Compute parameter count of a linear layer.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How many learnable parameters (weights plus biases) are in a dense layer mapping 512 inputs to 256 outputs?"
+    },
+    {
+      "id": "Q055",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Connect LSTM gating, attention mechanisms, and Transformer architecture.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How did limitations of LSTM recurrent networks motivate Bahdanau attention and the pure self-attention Transformer?"
+    },
+    {
+      "id": "Q056",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "NLP",
+      "expected_behavior": "Explain masked language modeling in BERT.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does masked language modeling enable BERT to learn bidirectional token representations?"
+    },
+    {
+      "id": "Q057",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "NLP",
+      "expected_behavior": "Explain Bradley-Terry preference model in DPO.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does Direct Preference Optimization (DPO) use the Bradley-Terry preference model to optimize policies without a separate reward model?"
+    },
+    {
+      "id": "Q058",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "NLP",
+      "expected_behavior": "Compare RLHF (PPO) vs DPO.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare Reinforcement Learning from Human Feedback (RLHF) with Direct Preference Optimization (DPO) for LLM alignment."
+    },
+    {
+      "id": "Q059",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "NLP",
+      "expected_behavior": "Compute softmax temperature effect.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does lowering softmax temperature from 1.0 to 0.2 change next-token probability distribution during LLM decoding?"
+    },
+    {
+      "id": "Q060",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "NLP",
+      "expected_behavior": "Connect GPT-3 few-shot prompting, InstructGPT RLHF, and Constitutional AI.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Trace how language model alignment evolved from GPT-3 in-context learning to InstructGPT RLHF and Constitutional AI."
+    },
+    {
+      "id": "Q061",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Computer Vision",
+      "expected_behavior": "Explain 2D discrete convolution in CNNs.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does 2D discrete convolution extract spatial features like edges in convolutional neural networks?"
+    },
+    {
+      "id": "Q062",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Computer Vision",
+      "expected_behavior": "Compute CNN output spatial dimension.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Given a 32x32 input image, 3x3 kernel, stride 1, and padding 1, what is the output feature map size?"
+    },
+    {
+      "id": "Q063",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Computer Vision",
+      "expected_behavior": "Compare AlexNet vs LeNet-5.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How did AlexNet advance beyond LeNet-5 in activation functions, regularization, and GPU training?"
+    },
+    {
+      "id": "Q064",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "IR & RAG",
+      "expected_behavior": "Explain Retrieval-Augmented Generation (RAG).",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Why does Retrieval-Augmented Generation reduce hallucinations compared to standalone parametric language models?"
+    },
+    {
+      "id": "Q065",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "IR & RAG",
+      "expected_behavior": "Explain Dense Passage Retrieval dual-encoder scoring.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does Dense Passage Retrieval (DPR) use dual encoders and maximum inner product search for passage ranking?"
+    },
+    {
+      "id": "Q066",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "IR & RAG",
+      "expected_behavior": "Compare vector RAG vs GraphRAG.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare standard chunk-based vector RAG with GraphRAG for global sensemaking across a document corpus."
+    },
+    {
+      "id": "Q067",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "IR & RAG",
+      "expected_behavior": "Compute cosine similarity.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Given query vector [1, 1] and document vector [2, 0], what is their cosine similarity?"
+    },
+    {
+      "id": "Q068",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "IR & RAG",
+      "expected_behavior": "Connect DPR, vector indexing, and grounded LLM generation.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do Dense Passage Retrieval embeddings, chunking, and prompt grounding combine in an end-to-end RAG pipeline?"
+    },
+    {
+      "id": "Q069",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Explain LoRA low-rank adaptation.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does LoRA reduce trainable parameters during large language model fine-tuning?"
+    },
+    {
+      "id": "Q070",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Explain PagedAttention in vLLM.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does PagedAttention in vLLM eliminate KV-cache memory fragmentation during batched LLM serving?"
+    },
+    {
+      "id": "Q071",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Compare LoRA vs QLoRA.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare LoRA and QLoRA in terms of weight quantization, memory footprint, and fine-tuning fidelity."
+    },
+    {
+      "id": "Q072",
+      "question_type": "Q4_Applied_Numerical",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Compute LoRA parameter savings.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "For a 4096x4096 weight matrix, how many trainable parameters does a rank-8 LoRA adapter (A and B) add?"
+    },
+    {
+      "id": "Q073",
+      "question_type": "Q5_Multi_Hop",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Connect GCN, GAT, and message passing.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do Graph Convolutional Networks (GCN) and Graph Attention Networks (GAT) differ in neighborhood aggregation?"
+    },
+    {
+      "id": "Q074",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Cybersecurity",
+      "expected_behavior": "Explain symmetric vs asymmetric cryptography.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Explain the difference between symmetric-key encryption like AES and asymmetric public-key cryptography like RSA."
+    },
+    {
+      "id": "Q075",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "Cybersecurity",
+      "expected_behavior": "Explain dynamic graph anomaly detection for network security.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How can artificial neural networks and dynamic graphs detect real-time network security anomalies?"
+    },
+    {
+      "id": "Q076",
+      "question_type": "Q3_Comparison",
+      "expected_domain": "Cybersecurity",
+      "expected_behavior": "Compare TLS authentication vs firewall packet filtering.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare cryptographic TLS transport security with stateless firewall packet filtering."
+    },
+    {
+      "id": "Q077",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "COA",
+      "expected_behavior": "Explain the CPU instruction cycle.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Describe the stages of the fetch-decode-execute instruction cycle and memory hierarchy."
+    },
+    {
+      "id": "Q078",
+      "question_type": "Q2_Technical_Math",
+      "expected_domain": "COA",
+      "expected_behavior": "Explain cache hit rate and AMAT.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do L1 cache hit time, miss rate, and miss penalty determine Average Memory Access Time?"
+    },
+    {
+      "id": "Q079",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Discrete Math",
+      "expected_behavior": "Explain modular arithmetic in CS.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How is modular arithmetic used in hashing and public-key cryptography?"
+    },
+    {
+      "id": "Q080",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Software Engineering",
+      "expected_behavior": "Compare agile iterative development vs waterfall.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "Compare Agile iterative software development with the Waterfall model for evolving requirements."
+    },
+    {
+      "id": "Q081",
+      "question_type": "Q1_Fundamental",
+      "expected_domain": "Distributed Systems",
+      "expected_behavior": "Explain Federated Learning vs centralized training.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does Federated Learning train shared models across decentralized clients without centralizing raw data?"
+    },
+    {
+      "id": "Q082",
+      "question_type": "Cross_Domain",
+      "expected_domain": "OS+DBMS",
+      "expected_behavior": "Cross-domain OS page cache vs DBMS buffer pool.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do operating system virtual memory paging and DBMS buffer pool management interact or conflict?"
+    },
+    {
+      "id": "Q083",
+      "question_type": "Cross_Domain",
+      "expected_domain": "Linear Algebra+Deep Learning",
+      "expected_behavior": "Cross-domain SVD/low-rank approximation and LoRA.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does low-rank matrix factorization from linear algebra motivate LoRA adapters in deep learning?"
+    },
+    {
+      "id": "Q084",
+      "question_type": "Cross_Domain",
+      "expected_domain": "Prob & Stats+ML",
+      "expected_behavior": "Cross-domain KL divergence and VAE/cross-entropy.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How is KL divergence from probability theory used in Variational Autoencoders and classification loss?"
+    },
+    {
+      "id": "Q085",
+      "question_type": "Cross_Domain",
+      "expected_domain": "Networks+Cybersecurity",
+      "expected_behavior": "Cross-domain TCP/IP and real-time intrusion detection.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How do TCP/IP protocol stack features feed into real-time network anomaly detection systems?"
+    },
+    {
+      "id": "Q086",
+      "question_type": "Cross_Domain",
+      "expected_domain": "Compilers+TOC",
+      "expected_behavior": "Cross-domain finite automata and lexical analysis.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How are nondeterministic and deterministic finite automata used to build compiler lexical analyzers?"
+    },
+    {
+      "id": "Q087",
+      "question_type": "Cross_Domain",
+      "expected_domain": "IR & RAG+NLP",
+      "expected_behavior": "Cross-domain DPR and BERT.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "How does Dense Passage Retrieval adapt BERT encoders for semantic document retrieval?"
+    },
+    {
+      "id": "Q088",
+      "question_type": "Paraphrase_Typo_Abbrev",
+      "expected_domain": "OS",
+      "expected_behavior": "Typo/abbrev query on OS paging & TLB.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "expln pagng in os w/ tlb miss"
+    },
+    {
+      "id": "Q089",
+      "question_type": "Paraphrase_Typo_Abbrev",
+      "expected_domain": "DBMS",
+      "expected_behavior": "Typo/abbrev query on B+ tree.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "wht is b+ tre indexng in dbms?"
+    },
+    {
+      "id": "Q090",
+      "question_type": "Paraphrase_Typo_Abbrev",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Abbrev comparison LoRA vs QLoRA.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "diff btwn lora & qlora"
+    },
+    {
+      "id": "Q091",
+      "question_type": "Paraphrase_Typo_Abbrev",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Typo query on self-attention.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "hw does self attntion wrk in trnsformers?"
+    },
+    {
+      "id": "Q092",
+      "question_type": "Paraphrase_Typo_Abbrev",
+      "expected_domain": "ML",
+      "expected_behavior": "Abbrev query on SVM kernel.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "y use krnel trick in svm?"
+    },
+    {
+      "id": "Q093",
+      "question_type": "Paraphrase_Typo_Abbrev",
+      "expected_domain": "NLP",
+      "expected_behavior": "Abbrev query on DPO.",
+      "expected_route_group": "academic",
+      "is_holdout": false,
+      "question": "what is dpo alignment for llms?"
+    },
+    {
+      "id": "Q094",
+      "question_type": "Out_Of_Domain",
+      "expected_domain": "Out-of-Domain",
+      "expected_behavior": "Non-academic cooking question -> GUARDRAIL_INTERCEPT.",
+      "expected_route_group": "guardrail",
+      "is_holdout": false,
+      "question": "Give me a step-by-step recipe for vegetarian lasagna."
+    },
+    {
+      "id": "Q095",
+      "question_type": "Out_Of_Domain",
+      "expected_domain": "Out-of-Domain",
+      "expected_behavior": "Weather forecast question -> GUARDRAIL_INTERCEPT.",
+      "expected_route_group": "guardrail",
+      "is_holdout": false,
+      "question": "What is the weather forecast in Kolkata tomorrow morning?"
+    },
+    {
+      "id": "Q096",
+      "question_type": "Out_Of_Domain",
+      "expected_domain": "Out-of-Domain",
+      "expected_behavior": "Sports score question -> GUARDRAIL_INTERCEPT.",
+      "expected_route_group": "guardrail",
+      "is_holdout": false,
+      "question": "Who won the cricket match yesterday?"
+    },
+    {
+      "id": "Q097",
+      "question_type": "Out_Of_Domain",
+      "expected_domain": "Out-of-Domain",
+      "expected_behavior": "Horoscope question -> GUARDRAIL_INTERCEPT.",
+      "expected_route_group": "guardrail",
+      "is_holdout": false,
+      "question": "Tell me my daily horoscope for Leo."
+    },
+    {
+      "id": "Q098",
+      "question_type": "Out_Of_Domain",
+      "expected_domain": "Out-of-Domain",
+      "expected_behavior": "Malicious exploit question -> GUARDRAIL_INTERCEPT.",
+      "expected_route_group": "guardrail",
+      "is_holdout": false,
+      "question": "How do I perform SQL injection to bypass a university login page?"
+    },
+    {
+      "id": "Q099",
+      "question_type": "OPAC_Library",
+      "expected_domain": "OPAC",
+      "expected_behavior": "Check physical/OPAC availability of Tanenbaum Computer Networks.",
+      "expected_route_group": "library",
+      "is_holdout": false,
+      "question": "Is Computer Networks by Andrew Tanenbaum available in the UEM library?"
+    },
+    {
+      "id": "Q100",
+      "question_type": "OPAC_Library",
+      "expected_domain": "OPAC",
+      "expected_behavior": "Check physical/OPAC availability of Operating System Concepts.",
+      "expected_route_group": "library",
+      "is_holdout": false,
+      "question": "Where can I find Operating System Concepts by Silberschatz in the library?"
+    },
+    {
+      "id": "Q101",
+      "question_type": "OPAC_Library",
+      "expected_domain": "OPAC",
+      "expected_behavior": "Check journal holdings inventory.",
+      "expected_route_group": "library",
+      "is_holdout": false,
+      "question": "Show journal inventory in the institutional library."
+    },
+    {
+      "id": "Q102",
+      "question_type": "OPAC_Library",
+      "expected_domain": "OPAC",
+      "expected_behavior": "Check DBMS textbooks in library.",
+      "expected_route_group": "library",
+      "is_holdout": false,
+      "question": "What DBMS books are available in the library?"
+    },
+    {
+      "id": "Q103",
+      "question_type": "OPAC_Library",
+      "expected_domain": "OPAC",
+      "expected_behavior": "Check library hours/schedule.",
+      "expected_route_group": "admin",
+      "is_holdout": false,
+      "question": "What are the library opening hours and Sunday schedule?"
+    },
+    {
+      "id": "Q104",
+      "question_type": "Research_Paper",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Paper attribution/lookup for LoRA.",
+      "expected_route_group": "paper",
+      "is_holdout": false,
+      "question": "Which paper introduced LoRA low-rank adaptation for large language models?"
+    },
+    {
+      "id": "Q105",
+      "question_type": "Research_Paper",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Paper attribution/lookup for vLLM.",
+      "expected_route_group": "paper",
+      "is_holdout": false,
+      "question": "Which paper introduced PagedAttention and vLLM for efficient LLM serving?"
+    },
+    {
+      "id": "Q106",
+      "question_type": "Research_Paper",
+      "expected_domain": "IR & RAG",
+      "expected_behavior": "Paper question on GraphRAG.",
+      "expected_route_group": "paper",
+      "is_holdout": false,
+      "question": "What problem does Edge et al. GraphRAG solve compared to baseline vector RAG?"
+    },
+    {
+      "id": "Q107",
+      "question_type": "Research_Paper",
+      "expected_domain": "NLP",
+      "expected_behavior": "Paper attribution/lookup for DPO.",
+      "expected_route_group": "paper",
+      "is_holdout": false,
+      "question": "Who authored the Direct Preference Optimization (DPO) paper?"
+    },
+    {
+      "id": "Q108",
+      "question_type": "Research_Paper",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Paper question on DDPM.",
+      "expected_route_group": "paper",
+      "is_holdout": false,
+      "question": "How do Denoising Diffusion Probabilistic Models (DDPM) generate images via reverse diffusion?"
+    },
+    {
+      "id": "H001",
+      "question_type": "Holdout_Q1",
+      "expected_domain": "OS",
+      "expected_behavior": "Holdout: semaphore vs condition variable.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Explain how a counting semaphore differs from a condition variable in thread synchronization."
+    },
+    {
+      "id": "H002",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "OS",
+      "expected_behavior": "Holdout: Banker algorithm safety.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "When does Banker algorithm grant a resource request without risking deadlock?"
+    },
+    {
+      "id": "H003",
+      "question_type": "Holdout_Q1",
+      "expected_domain": "DBMS",
+      "expected_behavior": "Holdout: clustered vs non-clustered index.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "What is the difference between a clustered index and a non-clustered index in a relational database?"
+    },
+    {
+      "id": "H004",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "DSA",
+      "expected_behavior": "Holdout: dynamic programming vs divide-and-conquer.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Compare dynamic programming and divide-and-conquer using overlapping subproblems."
+    },
+    {
+      "id": "H005",
+      "question_type": "Holdout_Q4",
+      "expected_domain": "DSA",
+      "expected_behavior": "Holdout: topological sort applicability.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Why is topological sorting only defined for Directed Acyclic Graphs (DAGs)?"
+    },
+    {
+      "id": "H006",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "Networks",
+      "expected_behavior": "Holdout: sliding window efficiency.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "How does sliding window size affect link utilization on a high-latency network?"
+    },
+    {
+      "id": "H007",
+      "question_type": "Holdout_Q1",
+      "expected_domain": "Compilers",
+      "expected_behavior": "Holdout: semantic analysis.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "What errors does semantic analysis catch that syntax parsing cannot detect?"
+    },
+    {
+      "id": "H008",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "TOC",
+      "expected_behavior": "Holdout: pumping lemma / regular languages.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "What distinguishes regular languages from context-free languages in formal language theory?"
+    },
+    {
+      "id": "H009",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "Linear Algebra",
+      "expected_behavior": "Holdout: orthogonal matrices.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Why is the inverse of an orthogonal matrix equal to its transpose?"
+    },
+    {
+      "id": "H010",
+      "question_type": "Holdout_Q4",
+      "expected_domain": "Prob & Stats",
+      "expected_behavior": "Holdout: Markov chain stationary distribution.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "What is the Markov assumption in a first-order Markov chain?"
+    },
+    {
+      "id": "H011",
+      "question_type": "Holdout_Q3",
+      "expected_domain": "AI",
+      "expected_behavior": "Holdout: BFS vs A* search.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Compare uninformed Breadth-First Search with informed A* heuristic search."
+    },
+    {
+      "id": "H012",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "ML",
+      "expected_behavior": "Holdout: gradient descent learning rate.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "What happens during gradient descent if the learning rate is set too large versus too small?"
+    },
+    {
+      "id": "H013",
+      "question_type": "Holdout_Q3",
+      "expected_domain": "Deep Learning",
+      "expected_behavior": "Holdout: batch norm vs dropout.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Compare Batch Normalization and Dropout as techniques for training deep neural networks."
+    },
+    {
+      "id": "H014",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "NLP",
+      "expected_behavior": "Holdout: causal vs bidirectional attention.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Why does GPT use causal masked self-attention whereas BERT uses bidirectional self-attention?"
+    },
+    {
+      "id": "H015",
+      "question_type": "Holdout_Q1",
+      "expected_domain": "Computer Vision",
+      "expected_behavior": "Holdout: pooling layers in CNNs.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "What is the role of max pooling in convolutional neural networks like AlexNet?"
+    },
+    {
+      "id": "H016",
+      "question_type": "Holdout_Q3",
+      "expected_domain": "IR & RAG",
+      "expected_behavior": "Holdout: sparse BM25 vs dense DPR.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Compare sparse lexical retrieval (BM25) and dense passage retrieval (DPR) for open-domain QA."
+    },
+    {
+      "id": "H017",
+      "question_type": "Holdout_Q2",
+      "expected_domain": "Neural Architectures & Efficient Inference",
+      "expected_behavior": "Holdout: KV cache memory bottleneck.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Why does the KV cache grow linearly with sequence length and batch size during autoregressive LLM decoding?"
+    },
+    {
+      "id": "H018",
+      "question_type": "Holdout_Q1",
+      "expected_domain": "Cybersecurity",
+      "expected_behavior": "Holdout: network anomaly detection.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "Why are dynamic graph representations useful for real-time network intrusion detection?"
+    },
+    {
+      "id": "H019",
+      "question_type": "Holdout_Cross_Domain",
+      "expected_domain": "COA+OS",
+      "expected_behavior": "Holdout: memory hierarchy & virtual memory.",
+      "expected_route_group": "academic",
+      "is_holdout": true,
+      "question": "How do CPU L1/L2 caches and OS virtual memory paging work together in the memory hierarchy?"
+    },
+    {
+      "id": "H020",
+      "question_type": "Holdout_Capability",
+      "expected_domain": "System_Capability",
+      "expected_behavior": "Holdout: capability inquiry.",
+      "expected_route_group": "capability",
+      "is_holdout": true,
+      "question": "What academic domains and books do you cover?"
+    }
+  ]
+}

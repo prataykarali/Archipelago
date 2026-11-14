@@ -1,0 +1,151 @@
+{
+  "scan_scope": [
+    "host_inference/engine/intent.py",
+    "host_inference/engine/route_logic.py",
+    "host_inference/engine/answer.py",
+    "host_inference/engine/routing_constants.py",
+    "host_inference/engine/route_special_books.py",
+    "host_inference/hostapp/research_chat.py"
+  ],
+  "summary": {
+    "hardcoded_or_narrow_findings": 9,
+    "legitimate_deterministic_controls": 7,
+    "overall_assessment": "Core routing, graph traversal, and research enrichment are predominantly data-driven, but several narrow regexes, concept-specific special cases, and two hardcoded static book/chapter replies exist in route_special_books.py and route_logic.py."
+  },
+  "hardcoded_or_narrow_findings": [
+    {
+      "id": "AH-01",
+      "severity": "high",
+      "category": "hardcoded_answer_string",
+      "file": "host_inference/engine/route_special_books.py",
+      "lines": "13-38",
+      "symbol": "special_book_reply / CONCURRENCY_BOOK_RE",
+      "pattern": "\\b(?:which\\s+(?:is\\s+)?best|recommend|which\\s+one|which\\s+book)\\b.*\\bconcurrency\\b",
+      "description": "Returns a hardcoded 5-paragraph comparative book recommendation (OSTEP vs Silberschatz with specific chapter numbers 26-34, 32, 5-7) without querying the live catalogue or graph."
+    },
+    {
+      "id": "AH-02",
+      "severity": "high",
+      "category": "hardcoded_answer_string",
+      "file": "host_inference/engine/route_special_books.py",
+      "lines": "40-71",
+      "symbol": "special_book_reply / LOCKS_CHAPTER_RE",
+      "pattern": "\\b(?:show\\s+(?:its\\s+)?chapter\\s+on\\s+locks|chapter\\s+on\\s+locks|ostep\\s+locks)\\b",
+      "description": "Returns a hardcoded summary of OSTEP Chapter 28 (Pages 301-320) while explicitly noting 'A local PDF page has not been verified', bypassing passage retrieval."
+    },
+    {
+      "id": "AH-03",
+      "severity": "medium",
+      "category": "exact_query_conditional",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "139-152",
+      "symbol": "route",
+      "pattern": "(?:what is|define|explain)\\s+(?:a|an)?\\s*(?:artificial\\s+)?neural networks?[?.!]*",
+      "description": "Fullmatch conditional for a specific phrasing of 'neural network' that returns a hardcoded 3-sentence GENERAL_EXPLANATION string instead of routing through graph/LLM synthesis."
+    },
+    {
+      "id": "AH-04",
+      "severity": "medium",
+      "category": "concept_specific_override",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "306-308",
+      "symbol": "route / is_single_unified_node",
+      "pattern": "anchors[0] == \"eigenvalues_and_eigenvectors\"",
+      "description": "Concept-ID-specific conditional preventing 'eigenvalues and eigenvectors' from routing to MULTI_CONCEPT when two concepts are extracted."
+    },
+    {
+      "id": "AH-05",
+      "severity": "low",
+      "category": "concept_specific_fallback",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "362-364",
+      "symbol": "route / shelf_id",
+      "pattern": "\"third_normal_form\" if \"3nf\" in query.lower() else None",
+      "description": "Hardcoded abbreviation fallback for '3nf' -> 'third_normal_form' inside SHELF_RE handling rather than using the graph label index."
+    },
+    {
+      "id": "AH-06",
+      "severity": "medium",
+      "category": "narrow_domain_token_list",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "44-46, 518-526",
+      "symbol": "ACADEMIC_DOMAIN_RE",
+      "pattern": "\\b(ai|ml|models?|language|memory|retrieval|graph|learning|algorithm)\\b",
+      "description": "Gates GENERAL_EXPLANATION fallback when best_score < KILL_SWITCH. Unindexed academic topics in Compilers, TOC, Cybersecurity, Software Engineering, Linear Algebra, or Probability that lack these 9 tokens fall into GUARDRAIL_INTERCEPT (OOD_MESSAGE)."
+    },
+    {
+      "id": "AH-07",
+      "severity": "medium",
+      "category": "narrow_token_list",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "421-431",
+      "symbol": "route / _academic_compare",
+      "pattern": "\\b(fcfs|sjf|scheduling|supervised|reinforcement|page|normalization|acid|lr|parsing|eigen|gradient|backprop|bfs|dfs|mutex|semaphore|tcp|udp)\\b",
+      "description": "Hardcoded 18-term academic comparison allowlist; comparisons of unindexed concepts outside this list fall through to DISCONNECTED instead of GENERAL_EXPLANATION."
+    },
+    {
+      "id": "AH-08",
+      "severity": "low",
+      "category": "domain_specific_cue",
+      "file": "host_inference/engine/routing_constants.py",
+      "lines": "31",
+      "symbol": "COMPARE_CUES_DBMS",
+      "pattern": "(\"compare\", \"versus\", \"vs\", \"difference\", \"dbms\", \"b+\")",
+      "description": "Includes domain-specific tokens 'dbms' and 'b+' in a generic comparison cue tuple."
+    },
+    {
+      "id": "AH-09",
+      "severity": "low",
+      "category": "narrow_regex",
+      "file": "host_inference/engine/intent.py",
+      "lines": "132-134",
+      "symbol": "_CAPABILITY_INQUIRY_PATTERNS",
+      "pattern": "\\bdo\\s+you\\s+support\\s+research[- ]paper\\s+discovery\\b",
+      "description": "Narrow exact-phrase regex for a single capability question variant."
+    }
+  ],
+  "legitimate_deterministic_controls": [
+    {
+      "id": "LD-01",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "51-61",
+      "description": "Input validation and security guardrails (EMPTY, INJECTION -> PERSONA_LOCK, CODE_TRAP)."
+    },
+    {
+      "id": "LD-02",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "77-124",
+      "description": "Conversational greeting and CAPABILITY_INQUIRY responses dynamically reading graph node count."
+    },
+    {
+      "id": "LD-03",
+      "file": "host_inference/engine/route_logic.py",
+      "lines": "155-167",
+      "description": "Institutional administrative routing (SCHEDULE, AUTH_GATEWAY) via compose.admin_card."
+    },
+    {
+      "id": "LD-04",
+      "file": "host_inference/engine/answer.py",
+      "lines": "97-119, 252, 378-388",
+      "description": "Deterministic source provenance and citation linking (best_book, pearson_line, link_answer_sources, citation_link)."
+    },
+    {
+      "id": "LD-05",
+      "file": "host_inference/engine/answer.py",
+      "lines": "243-250",
+      "description": "Withdrawn-document notice enforcement (withdrawn_notice / text_override)."
+    },
+    {
+      "id": "LD-06",
+      "file": "host_inference/engine/answer.py",
+      "lines": "390-491",
+      "description": "Live Koha OPAC lookup and institutional catalogue shelf routing (_route_shelf_query)."
+    },
+    {
+      "id": "LD-07",
+      "file": "host_inference/hostapp/research_chat.py",
+      "lines": "95-284",
+      "description": "Live SQLite/research topic inventory (_inventory_answer) and keyword-scored saved paper evidence attachment (enrich_with_research)."
+    }
+  ]
+}

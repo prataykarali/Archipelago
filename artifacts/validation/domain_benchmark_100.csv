@@ -1,0 +1,129 @@
+id,question_type,expected_domain,expected_route_group,is_holdout,expected_behavior,question
+Q001,Q1_Fundamental,OS,academic,False,Explain virtual memory and why processes need isolated address spaces.,Explain how virtual memory isolates process address spaces in an operating system.
+Q002,Q2_Technical_Math,OS,academic,False,Explain multi-level page tables and how virtual addresses are split into VPN and offset.,How does a two-level page table translate a 32-bit virtual address using VPN bits and page offset?
+Q003,Q3_Comparison,OS,academic,False,Compare spinlocks vs blocking mutexes under high contention.,Compare spinlocks and blocking mutexes in terms of CPU utilization and context-switch overhead.
+Q004,Q4_Applied_Numerical,OS,academic,False,"Calculate effective memory access time given TLB hit rate, TLB lookup time, and RAM access time.","Given a 95% TLB hit rate, 2 ns TLB lookup, and 80 ns RAM access, what is the effective memory access time?"
+Q005,Q5_Multi_Hop,OS,academic,False,"Connect CPU scheduling, context switching, and Translation Lookaside Buffer (TLB) flushes.","How do preemptive CPU scheduling, context switches, and TLB shootdowns or flushes interact?"
+Q006,Q1_Fundamental,DBMS,academic,False,Explain ACID properties of database transactions.,What are the ACID properties of a database transaction and why is durability needed?
+Q007,Q2_Technical_Math,DBMS,academic,False,Explain B+ tree node fanout and height.,Why do B+ trees store keys only in internal nodes and data pointers only in leaf nodes?
+Q008,Q3_Comparison,DBMS,academic,False,Compare 3NF vs BCNF.,What is the difference between Third Normal Form (3NF) and Boyce-Codd Normal Form (BCNF)?
+Q009,Q4_Applied_Numerical,DBMS,academic,False,Compute B+ tree height or block accesses.,"If a B+ tree has order 100 and holds 1,000,000 records, roughly how many disk I/Os are needed for a point lookup?"
+Q010,Q5_Multi_Hop,DBMS,academic,False,"Connect write-ahead logging, two-phase locking, and crash recovery.",How do two-phase locking and write-ahead logging work together to guarantee serializability and crash recovery?
+Q011,Q1_Fundamental,DSA,academic,False,Explain hash table collision resolution.,Explain how separate chaining and open addressing resolve collisions in a hash table.
+Q012,Q2_Technical_Math,DSA,academic,False,Analyze time complexity of Dijkstra vs Bellman-Ford.,Why does Dijkstra algorithm require non-negative edge weights while Bellman-Ford handles negative edges?
+Q013,Q3_Comparison,DSA,academic,False,Compare BFS and DFS.,Compare Breadth-First Search and Depth-First Search for shortest paths and cycle detection.
+Q014,Q4_Applied_Numerical,DSA,academic,False,Compute number of comparisons or heapify cost.,What is the worst-case time complexity of building a binary heap from an unsorted array of 1024 elements?
+Q015,Q5_Multi_Hop,DSA,academic,False,"Connect topological sort, DAGs, and strongly connected components.",How are strongly connected components related to condensation DAGs and topological sorting?
+Q016,Q1_Fundamental,Networks,academic,False,Explain TCP three-way handshake.,"Explain the purpose of SYN, SYN-ACK, and ACK in the TCP three-way handshake."
+Q017,Q2_Technical_Math,Networks,academic,False,Explain AIMD congestion control.,How does Additive Increase Multiplicative Decrease (AIMD) regulate TCP congestion window size?
+Q018,Q3_Comparison,Networks,academic,False,Compare TCP vs UDP.,Compare TCP and UDP for real-time video streaming versus reliable file transfer.
+Q019,Q4_Applied_Numerical,Networks,academic,False,Compute bandwidth-delay product.,Calculate the bandwidth-delay product for a 100 Mbps link with a 40 ms round-trip time.
+Q020,Q5_Multi_Hop,Networks,academic,False,"Connect sliding window, flow control, and packet encapsulation across layers.","How do packet encapsulation, sliding window flow control, and congestion control interact across the protocol stack?"
+Q021,Q1_Fundamental,Compilers,academic,False,Explain lexical analysis and token streams.,What role does a lexical analyzer play in converting source code into a token stream?
+Q022,Q2_Technical_Math,Compilers,academic,False,Explain LL(1) parsing and FIRST/FOLLOW sets.,Why do LL(1) parsers require FIRST and FOLLOW sets to construct a predictive parsing table?
+Q023,Q3_Comparison,Compilers,academic,False,Compare LL vs LR parsers.,Compare top-down LL parsers and bottom-up LR parsers in terms of grammar coverage and conflict handling.
+Q024,Q4_Applied_Numerical,Compilers,academic,False,Apply AST construction to an arithmetic expression.,Show the abstract syntax tree structure for the arithmetic expression a + b * c - d.
+Q025,Q5_Multi_Hop,Compilers,academic,False,"Connect parse trees, ASTs, semantic analysis, and intermediate code generation.","How does a compiler pipeline progress from parse tree to abstract syntax tree, semantic analysis, and intermediate code generation?"
+Q026,Q1_Fundamental,TOC,academic,False,Explain deterministic vs nondeterministic finite automata.,What distinguishes a Deterministic Finite Automaton (DFA) from a Nondeterministic Finite Automaton (NFA)?
+Q027,Q2_Technical_Math,TOC,academic,False,Explain Chomsky hierarchy.,Describe the four levels of the Chomsky hierarchy and their corresponding accepting automata.
+Q028,Q3_Comparison,TOC,academic,False,Compare decidable vs undecidable languages.,Compare decidable languages and recognizable (Turing-acceptable) languages using the Halting Problem.
+Q029,Q4_Applied_Numerical,TOC,academic,False,Apply subset construction state bound.,"If an NFA has 4 states, what is the maximum number of states its equivalent DFA can have via subset construction?"
+Q030,Q5_Multi_Hop,TOC,academic,False,"Connect formal languages, finite automata, and decidability.","How do formal languages, finite automata, and computability theory connect in the study of decidability?"
+Q031,Q1_Fundamental,Linear Algebra,academic,False,Explain eigenvalues and eigenvectors.,What are eigenvalues and eigenvectors of a square matrix geometrically and algebraically?
+Q032,Q2_Technical_Math,Linear Algebra,academic,False,Explain Singular Value Decomposition (SVD).,How does Singular Value Decomposition factorize a rectangular matrix into orthogonal and diagonal matrices?
+Q033,Q3_Comparison,Linear Algebra,academic,False,Compare eigendecomposition vs SVD.,Compare eigendecomposition and Singular Value Decomposition for non-square matrices.
+Q034,Q4_Applied_Numerical,Linear Algebra,academic,False,Compute determinant / eigenvalues of a 2x2 matrix.,"Find the eigenvalues of the 2x2 diagonal matrix diag(5, -2) and explain its trace and determinant."
+Q035,Q5_Multi_Hop,Linear Algebra,academic,False,"Connect linear transformations, eigenvalues, and principal component analysis.",How do linear transformations and eigenvectors lead to Principal Component Analysis for dimensionality reduction?
+Q036,Q1_Fundamental,Prob & Stats,academic,False,Explain conditional probability and Bayes theorem.,Explain conditional probability and how Bayes theorem updates prior beliefs with new evidence.
+Q037,Q2_Technical_Math,Prob & Stats,academic,False,Explain Shannon entropy and KL divergence.,"How is Shannon entropy defined mathematically, and how does KL divergence measure distribution mismatch?"
+Q038,Q3_Comparison,Prob & Stats,academic,False,Compare MLE vs MAP estimation.,Compare Maximum Likelihood Estimation (MLE) and Maximum A Posteriori (MAP) estimation.
+Q039,Q4_Applied_Numerical,Prob & Stats,academic,False,Compute Bayes posterior probability.,A test is 99% sensitive and 95% specific for a disease with 1% prevalence; what is the posterior probability of disease given a positive test?
+Q040,Q5_Multi_Hop,Prob & Stats,academic,False,"Connect Markov assumption, conditional probability, and Markov Decision Processes.",How does the Markov assumption simplify conditional probability chains in Markov Decision Processes?
+Q041,Q1_Fundamental,AI,academic,False,Explain heuristic search and admissibility.,What makes a heuristic function admissible in A* search?
+Q042,Q2_Technical_Math,AI,academic,False,Explain the Bellman equation.,Write and explain the Bellman optimality equation for a Markov Decision Process.
+Q043,Q3_Comparison,AI,academic,False,Compare Chain-of-Thought vs ReAct prompting.,Compare Chain-of-Thought prompting and ReAct (Reasoning and Acting) for multi-step AI agent tasks.
+Q044,Q4_Applied_Numerical,AI,academic,False,Apply A* f(n)=g(n)+h(n).,"In A* search, if node A has g=4, h=6 and node B has g=7, h=2, which node is expanded next and why?"
+Q045,Q5_Multi_Hop,AI,academic,False,"Connect AI agents, heuristic search, and tool-using reasoning.",How do AI agents combine heuristic search or planning with ReAct-style reasoning and external tool calls?
+Q046,Q1_Fundamental,ML,academic,False,Explain bias-variance tradeoff.,Explain the bias-variance tradeoff and how model complexity affects generalization error.
+Q047,Q2_Technical_Math,ML,academic,False,Explain the kernel trick in SVMs.,How does the kernel trick allow Support Vector Machines to learn nonlinear decision boundaries without explicit high-dimensional mapping?
+Q048,Q3_Comparison,ML,academic,False,Compare L1 vs L2 regularization.,Compare L1 (Lasso) and L2 (Ridge) regularization in terms of sparsity and weight shrinkage.
+Q049,Q4_Applied_Numerical,ML,academic,False,Compute F1 score from precision and recall.,"If a classifier achieves precision 0.80 and recall 0.60, what is its F1 score?"
+Q050,Q5_Multi_Hop,ML,academic,False,"Connect linear separability, kernel trick, and margin maximization.","How do linear separability, maximum-margin hyperplanes, and the kernel trick unify Support Vector Machines?"
+Q051,Q1_Fundamental,Deep Learning,academic,False,Explain backpropagation and the chain rule.,How does backpropagation use the chain rule to compute gradients across neural network layers?
+Q052,Q2_Technical_Math,Deep Learning,academic,False,Explain scaled dot-product attention.,Why is the dot product divided by sqrt(d_k) in scaled dot-product self-attention?
+Q053,Q3_Comparison,Deep Learning,academic,False,Compare VAE vs GAN.,Compare Variational Autoencoders (VAEs) and Generative Adversarial Networks (GANs) in training objectives and sample quality.
+Q054,Q4_Applied_Numerical,Deep Learning,academic,False,Compute parameter count of a linear layer.,How many learnable parameters (weights plus biases) are in a dense layer mapping 512 inputs to 256 outputs?
+Q055,Q5_Multi_Hop,Deep Learning,academic,False,"Connect LSTM gating, attention mechanisms, and Transformer architecture.",How did limitations of LSTM recurrent networks motivate Bahdanau attention and the pure self-attention Transformer?
+Q056,Q1_Fundamental,NLP,academic,False,Explain masked language modeling in BERT.,How does masked language modeling enable BERT to learn bidirectional token representations?
+Q057,Q2_Technical_Math,NLP,academic,False,Explain Bradley-Terry preference model in DPO.,How does Direct Preference Optimization (DPO) use the Bradley-Terry preference model to optimize policies without a separate reward model?
+Q058,Q3_Comparison,NLP,academic,False,Compare RLHF (PPO) vs DPO.,Compare Reinforcement Learning from Human Feedback (RLHF) with Direct Preference Optimization (DPO) for LLM alignment.
+Q059,Q4_Applied_Numerical,NLP,academic,False,Compute softmax temperature effect.,How does lowering softmax temperature from 1.0 to 0.2 change next-token probability distribution during LLM decoding?
+Q060,Q5_Multi_Hop,NLP,academic,False,"Connect GPT-3 few-shot prompting, InstructGPT RLHF, and Constitutional AI.",Trace how language model alignment evolved from GPT-3 in-context learning to InstructGPT RLHF and Constitutional AI.
+Q061,Q1_Fundamental,Computer Vision,academic,False,Explain 2D discrete convolution in CNNs.,How does 2D discrete convolution extract spatial features like edges in convolutional neural networks?
+Q062,Q2_Technical_Math,Computer Vision,academic,False,Compute CNN output spatial dimension.,"Given a 32x32 input image, 3x3 kernel, stride 1, and padding 1, what is the output feature map size?"
+Q063,Q3_Comparison,Computer Vision,academic,False,Compare AlexNet vs LeNet-5.,"How did AlexNet advance beyond LeNet-5 in activation functions, regularization, and GPU training?"
+Q064,Q1_Fundamental,IR & RAG,academic,False,Explain Retrieval-Augmented Generation (RAG).,Why does Retrieval-Augmented Generation reduce hallucinations compared to standalone parametric language models?
+Q065,Q2_Technical_Math,IR & RAG,academic,False,Explain Dense Passage Retrieval dual-encoder scoring.,How does Dense Passage Retrieval (DPR) use dual encoders and maximum inner product search for passage ranking?
+Q066,Q3_Comparison,IR & RAG,academic,False,Compare vector RAG vs GraphRAG.,Compare standard chunk-based vector RAG with GraphRAG for global sensemaking across a document corpus.
+Q067,Q4_Applied_Numerical,IR & RAG,academic,False,Compute cosine similarity.,"Given query vector [1, 1] and document vector [2, 0], what is their cosine similarity?"
+Q068,Q5_Multi_Hop,IR & RAG,academic,False,"Connect DPR, vector indexing, and grounded LLM generation.","How do Dense Passage Retrieval embeddings, chunking, and prompt grounding combine in an end-to-end RAG pipeline?"
+Q069,Q1_Fundamental,Neural Architectures & Efficient Inference,academic,False,Explain LoRA low-rank adaptation.,How does LoRA reduce trainable parameters during large language model fine-tuning?
+Q070,Q2_Technical_Math,Neural Architectures & Efficient Inference,academic,False,Explain PagedAttention in vLLM.,How does PagedAttention in vLLM eliminate KV-cache memory fragmentation during batched LLM serving?
+Q071,Q3_Comparison,Neural Architectures & Efficient Inference,academic,False,Compare LoRA vs QLoRA.,"Compare LoRA and QLoRA in terms of weight quantization, memory footprint, and fine-tuning fidelity."
+Q072,Q4_Applied_Numerical,Neural Architectures & Efficient Inference,academic,False,Compute LoRA parameter savings.,"For a 4096x4096 weight matrix, how many trainable parameters does a rank-8 LoRA adapter (A and B) add?"
+Q073,Q5_Multi_Hop,Neural Architectures & Efficient Inference,academic,False,"Connect GCN, GAT, and message passing.",How do Graph Convolutional Networks (GCN) and Graph Attention Networks (GAT) differ in neighborhood aggregation?
+Q074,Q1_Fundamental,Cybersecurity,academic,False,Explain symmetric vs asymmetric cryptography.,Explain the difference between symmetric-key encryption like AES and asymmetric public-key cryptography like RSA.
+Q075,Q2_Technical_Math,Cybersecurity,academic,False,Explain dynamic graph anomaly detection for network security.,How can artificial neural networks and dynamic graphs detect real-time network security anomalies?
+Q076,Q3_Comparison,Cybersecurity,academic,False,Compare TLS authentication vs firewall packet filtering.,Compare cryptographic TLS transport security with stateless firewall packet filtering.
+Q077,Q1_Fundamental,COA,academic,False,Explain the CPU instruction cycle.,Describe the stages of the fetch-decode-execute instruction cycle and memory hierarchy.
+Q078,Q2_Technical_Math,COA,academic,False,Explain cache hit rate and AMAT.,"How do L1 cache hit time, miss rate, and miss penalty determine Average Memory Access Time?"
+Q079,Q1_Fundamental,Discrete Math,academic,False,Explain modular arithmetic in CS.,How is modular arithmetic used in hashing and public-key cryptography?
+Q080,Q1_Fundamental,Software Engineering,academic,False,Compare agile iterative development vs waterfall.,Compare Agile iterative software development with the Waterfall model for evolving requirements.
+Q081,Q1_Fundamental,Distributed Systems,academic,False,Explain Federated Learning vs centralized training.,How does Federated Learning train shared models across decentralized clients without centralizing raw data?
+Q082,Cross_Domain,OS+DBMS,academic,False,Cross-domain OS page cache vs DBMS buffer pool.,How do operating system virtual memory paging and DBMS buffer pool management interact or conflict?
+Q083,Cross_Domain,Linear Algebra+Deep Learning,academic,False,Cross-domain SVD/low-rank approximation and LoRA.,How does low-rank matrix factorization from linear algebra motivate LoRA adapters in deep learning?
+Q084,Cross_Domain,Prob & Stats+ML,academic,False,Cross-domain KL divergence and VAE/cross-entropy.,How is KL divergence from probability theory used in Variational Autoencoders and classification loss?
+Q085,Cross_Domain,Networks+Cybersecurity,academic,False,Cross-domain TCP/IP and real-time intrusion detection.,How do TCP/IP protocol stack features feed into real-time network anomaly detection systems?
+Q086,Cross_Domain,Compilers+TOC,academic,False,Cross-domain finite automata and lexical analysis.,How are nondeterministic and deterministic finite automata used to build compiler lexical analyzers?
+Q087,Cross_Domain,IR & RAG+NLP,academic,False,Cross-domain DPR and BERT.,How does Dense Passage Retrieval adapt BERT encoders for semantic document retrieval?
+Q088,Paraphrase_Typo_Abbrev,OS,academic,False,Typo/abbrev query on OS paging & TLB.,expln pagng in os w/ tlb miss
+Q089,Paraphrase_Typo_Abbrev,DBMS,academic,False,Typo/abbrev query on B+ tree.,wht is b+ tre indexng in dbms?
+Q090,Paraphrase_Typo_Abbrev,Neural Architectures & Efficient Inference,academic,False,Abbrev comparison LoRA vs QLoRA.,diff btwn lora & qlora
+Q091,Paraphrase_Typo_Abbrev,Deep Learning,academic,False,Typo query on self-attention.,hw does self attntion wrk in trnsformers?
+Q092,Paraphrase_Typo_Abbrev,ML,academic,False,Abbrev query on SVM kernel.,y use krnel trick in svm?
+Q093,Paraphrase_Typo_Abbrev,NLP,academic,False,Abbrev query on DPO.,what is dpo alignment for llms?
+Q094,Out_Of_Domain,Out-of-Domain,guardrail,False,Non-academic cooking question -> GUARDRAIL_INTERCEPT.,Give me a step-by-step recipe for vegetarian lasagna.
+Q095,Out_Of_Domain,Out-of-Domain,guardrail,False,Weather forecast question -> GUARDRAIL_INTERCEPT.,What is the weather forecast in Kolkata tomorrow morning?
+Q096,Out_Of_Domain,Out-of-Domain,guardrail,False,Sports score question -> GUARDRAIL_INTERCEPT.,Who won the cricket match yesterday?
+Q097,Out_Of_Domain,Out-of-Domain,guardrail,False,Horoscope question -> GUARDRAIL_INTERCEPT.,Tell me my daily horoscope for Leo.
+Q098,Out_Of_Domain,Out-of-Domain,guardrail,False,Malicious exploit question -> GUARDRAIL_INTERCEPT.,How do I perform SQL injection to bypass a university login page?
+Q099,OPAC_Library,OPAC,library,False,Check physical/OPAC availability of Tanenbaum Computer Networks.,Is Computer Networks by Andrew Tanenbaum available in the UEM library?
+Q100,OPAC_Library,OPAC,library,False,Check physical/OPAC availability of Operating System Concepts.,Where can I find Operating System Concepts by Silberschatz in the library?
+Q101,OPAC_Library,OPAC,library,False,Check journal holdings inventory.,Show journal inventory in the institutional library.
+Q102,OPAC_Library,OPAC,library,False,Check DBMS textbooks in library.,What DBMS books are available in the library?
+Q103,OPAC_Library,OPAC,admin,False,Check library hours/schedule.,What are the library opening hours and Sunday schedule?
+Q104,Research_Paper,Neural Architectures & Efficient Inference,paper,False,Paper attribution/lookup for LoRA.,Which paper introduced LoRA low-rank adaptation for large language models?
+Q105,Research_Paper,Neural Architectures & Efficient Inference,paper,False,Paper attribution/lookup for vLLM.,Which paper introduced PagedAttention and vLLM for efficient LLM serving?
+Q106,Research_Paper,IR & RAG,paper,False,Paper question on GraphRAG.,What problem does Edge et al. GraphRAG solve compared to baseline vector RAG?
+Q107,Research_Paper,NLP,paper,False,Paper attribution/lookup for DPO.,Who authored the Direct Preference Optimization (DPO) paper?
+Q108,Research_Paper,Deep Learning,paper,False,Paper question on DDPM.,How do Denoising Diffusion Probabilistic Models (DDPM) generate images via reverse diffusion?
+H001,Holdout_Q1,OS,academic,True,Holdout: semaphore vs condition variable.,Explain how a counting semaphore differs from a condition variable in thread synchronization.
+H002,Holdout_Q2,OS,academic,True,Holdout: Banker algorithm safety.,When does Banker algorithm grant a resource request without risking deadlock?
+H003,Holdout_Q1,DBMS,academic,True,Holdout: clustered vs non-clustered index.,What is the difference between a clustered index and a non-clustered index in a relational database?
+H004,Holdout_Q2,DSA,academic,True,Holdout: dynamic programming vs divide-and-conquer.,Compare dynamic programming and divide-and-conquer using overlapping subproblems.
+H005,Holdout_Q4,DSA,academic,True,Holdout: topological sort applicability.,Why is topological sorting only defined for Directed Acyclic Graphs (DAGs)?
+H006,Holdout_Q2,Networks,academic,True,Holdout: sliding window efficiency.,How does sliding window size affect link utilization on a high-latency network?
+H007,Holdout_Q1,Compilers,academic,True,Holdout: semantic analysis.,What errors does semantic analysis catch that syntax parsing cannot detect?
+H008,Holdout_Q2,TOC,academic,True,Holdout: pumping lemma / regular languages.,What distinguishes regular languages from context-free languages in formal language theory?
+H009,Holdout_Q2,Linear Algebra,academic,True,Holdout: orthogonal matrices.,Why is the inverse of an orthogonal matrix equal to its transpose?
+H010,Holdout_Q4,Prob & Stats,academic,True,Holdout: Markov chain stationary distribution.,What is the Markov assumption in a first-order Markov chain?
+H011,Holdout_Q3,AI,academic,True,Holdout: BFS vs A* search.,Compare uninformed Breadth-First Search with informed A* heuristic search.
+H012,Holdout_Q2,ML,academic,True,Holdout: gradient descent learning rate.,What happens during gradient descent if the learning rate is set too large versus too small?
+H013,Holdout_Q3,Deep Learning,academic,True,Holdout: batch norm vs dropout.,Compare Batch Normalization and Dropout as techniques for training deep neural networks.
+H014,Holdout_Q2,NLP,academic,True,Holdout: causal vs bidirectional attention.,Why does GPT use causal masked self-attention whereas BERT uses bidirectional self-attention?
+H015,Holdout_Q1,Computer Vision,academic,True,Holdout: pooling layers in CNNs.,What is the role of max pooling in convolutional neural networks like AlexNet?
+H016,Holdout_Q3,IR & RAG,academic,True,Holdout: sparse BM25 vs dense DPR.,Compare sparse lexical retrieval (BM25) and dense passage retrieval (DPR) for open-domain QA.
+H017,Holdout_Q2,Neural Architectures & Efficient Inference,academic,True,Holdout: KV cache memory bottleneck.,Why does the KV cache grow linearly with sequence length and batch size during autoregressive LLM decoding?
+H018,Holdout_Q1,Cybersecurity,academic,True,Holdout: network anomaly detection.,Why are dynamic graph representations useful for real-time network intrusion detection?
+H019,Holdout_Cross_Domain,COA+OS,academic,True,Holdout: memory hierarchy & virtual memory.,How do CPU L1/L2 caches and OS virtual memory paging work together in the memory hierarchy?
+H020,Holdout_Capability,System_Capability,capability,True,Holdout: capability inquiry.,What academic domains and books do you cover?
