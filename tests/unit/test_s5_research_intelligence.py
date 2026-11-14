@@ -81,7 +81,9 @@ def test_filters_and_workbook_are_real_typed_cells(tmp_path):
     assert book["Topic_Results"]["C2"].value == 1
     every_header = [c.value for ws in book for c in ws[1]]
     assert not any(("score" in str(h).lower() and h != "CiteScore") or "rank" in str(h).lower() for h in every_header)
-    assert book["Authors"]["L2"].value == "N/A"  # i10 unavailable, not zero
+    assert book["Authors"]["L2"].value == "IDENTITY_UNRESOLVED"  # i10 unavailable, not zero
+    assert "Coverage_Audit" in book.sheetnames
+    assert len(book.sheetnames) == 14
     assert run["papers"][0]["author_ids"] == []
 
 
@@ -234,7 +236,10 @@ def test_methods_datasets_only_when_abstract_supports_them():
     assert [d["name"] for d in found["datasets"]] == ["cora"]
     assert [m["name"] for m in found["evaluation_metrics"]] == ["accuracy"]
     empty = extract_evidence("A title", None)
-    assert empty == {"methods": [], "datasets": [], "evaluation_metrics": []}
+    assert empty["methods"] == []
+    assert empty["datasets"] == []
+    assert empty["evaluation_metrics"] == []
+    assert empty["claim_status"] == "EVIDENCE_INSUFFICIENT"
 
 
 @pytest.mark.unit
@@ -251,6 +256,80 @@ def test_loosely_related_papers_are_not_used_to_fill_the_count():
     run = discover({"topic": "graph neural networks", "top_k": 100}, Loose())
     assert [p["paper_id"] for p in run["papers"]] == ["paper-one"]
     assert all("rank" not in p and "relevance_score" not in p for p in run["papers"])
+
+
+@pytest.mark.unit
+def test_batched_author_and_venue_enrichment_exceeds_eight_cap():
+    from archipelago.scholarly.intelligence.enrichment import enrich_authors, enrich_venues
+
+    papers = [
+        {
+            "paper_id": "p1",
+            "authors": [{"name": f"Author {i}"} for i in range(12)],
+            "source_metadata": {
+                "author_openalex_ids": [f"https://openalex.org/A{100 + i}" for i in range(12)],
+                "venue_id": "https://openalex.org/S555",
+            },
+        }
+    ]
+
+    class FakeResp:
+        def __init__(self, payload):
+            self.status_code = 200
+            self._payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    class FakeSession:
+        def get(self, url, params=None, timeout=8):
+            if "/authors" in url:
+                return FakeResp(
+                    {
+                        "results": [
+                            {
+                                "id": f"https://openalex.org/A{100 + i}",
+                                "display_name": f"Author {i}",
+                                "works_count": 10 + i,
+                                "cited_by_count": 100 + i,
+                                "summary_stats": {"h_index": i, "i10_index": i},
+                                "affiliations": [],
+                                "topics": [],
+                            }
+                            for i in range(12)
+                        ]
+                    }
+                )
+            return FakeResp(
+                {
+                    "results": [
+                        {
+                            "id": "https://openalex.org/S555",
+                            "display_name": "Journal of AI",
+                            "type": "journal",
+                            "homepage_url": "https://journal.example.org",
+                            "issn": ["1234-5678"],
+                            "is_in_doaj": True,
+                            "works_count": 500,
+                            "cited_by_count": 9000,
+                            "summary_stats": {"h_index": 40, "i10_index": 80, "2yr_mean_citedness": 3.5},
+                        }
+                    ]
+                }
+            )
+
+    obs = enrich_authors(papers, session=FakeSession())
+    assert len(obs) == 12
+    assert all(o["enrichment_status"] == "AVAILABLE" for o in obs)
+    assert obs[11]["metrics"]["h_index"] == 11
+    venues = enrich_venues(papers, session=FakeSession())
+    assert venues["S555"]["url"] == "https://journal.example.org"
+    assert venues["S555"]["openalex_2yr_mean_citedness"] == 3.5
+    assert venues["S555"]["impact_factor"] is None
+    assert venues["S555"]["licensed_metrics_status"] == "LICENSE_RESTRICTED"
 
 
 @pytest.mark.unit

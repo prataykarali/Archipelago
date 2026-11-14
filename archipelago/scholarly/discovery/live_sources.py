@@ -41,8 +41,8 @@ PAPER_TYPES = frozenset(
     }
 )
 S2_FIELDS = (
-    "title,authors,year,venue,externalIds,abstract,citationCount,referenceCount,"
-    "influentialCitationCount,publicationDate,publicationTypes,fieldsOfStudy,"
+    "title,authors.name,authors.authorId,year,venue,externalIds,abstract,citationCount,"
+    "referenceCount,influentialCitationCount,publicationDate,publicationTypes,fieldsOfStudy,"
     "openAccessPdf,isOpenAccess,url"
 )
 SOURCE_URLS = {
@@ -185,6 +185,7 @@ class LiveResearchSources:
             identifiers=PaperIdentifiers(
                 doi=identifiers.get("DOI"),
                 arxiv_id=identifiers.get("ArXiv"),
+                pubmed_id=identifiers.get("PubMed"),
                 semantic_scholar_id=paper_id,
             ),
             is_open_access=item.get("isOpenAccess"),
@@ -207,5 +208,6 @@ class LiveResearchSources:
                 "influential_citations": item.get("influentialCitationCount"),
                 "research_domain": item.get("fieldsOfStudy"),
                 "publication_types": item.get("publicationTypes"),
+                "author_s2_ids": [a.get("authorId") for a in item.get("authors") or []],
             },
         }

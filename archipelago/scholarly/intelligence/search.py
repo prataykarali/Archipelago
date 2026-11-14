@@ -9,7 +9,7 @@ from typing import Any
 from archipelago.scholarly.discovery.canonicalizer import normalize_title
 from archipelago.scholarly.discovery.orchestrator import DiscoveryOrchestrator
 
-from .enrichment import enrich_authors, venue_observation
+from .enrichment import enrich_authors, enrich_venues, venue_observation
 from .extraction import extract_evidence
 
 DEFAULT_TOP_K = 20
@@ -164,12 +164,14 @@ def discover(
         review = list(candidate.get("identity_review") or [])
         if doi and not valid_doi:
             review.append("invalid_doi_from_provider")
-        found = extract_evidence(paper.title, paper.abstract)
+        source_url = next((p.get("source_url") for p in source_links if p.get("source_url")), None)
+        found = extract_evidence(paper.title, paper.abstract, source_url=source_url)
         fetched = [p.get("fetched_at") for p in source_links if p.get("fetched_at")]
         rows.append(
             {
                 "paper_id": paper.paper_id,
                 "title": paper.title,
+                "subtitle": metadata.get("subtitle"),
                 "year": year,
                 "publication_date": paper.publication_date,
                 "doi": valid_doi,
@@ -177,24 +179,40 @@ def discover(
                 "authors": [a.model_dump(mode="json") for a in paper.authors],
                 "venue": paper.venue,
                 "publication_type": paper.publication_type,
+                "language": paper.language,
                 "abstract": paper.abstract,
                 "is_open_access": paper.is_open_access,
-                "url": next(
-                    (p.get("source_url") for p in source_links if p.get("source_url")), None
-                ),
+                "oa_status": metadata.get("oa_status"),
+                "version_status": metadata.get("version_status"),
+                "url": source_url,
+                "landing_page_url": metadata.get("landing_page_url"),
                 "citation_count": citation_observation["count"] if citation_observation else None,
                 "citation_provider": citation_observation["provider"]
                 if citation_observation
                 else None,
                 "citation_observations": citation_observations,
+                "fwci": metadata.get("fwci"),
+                "citation_normalized_percentile": metadata.get("citation_normalized_percentile"),
                 "references": metadata.get("referenced_works") or [],
                 "source_metadata": metadata,
                 "topics": metadata.get("topics") or metadata.get("keywords") or [],
-                "research_field": metadata.get("research_domain"),
+                "primary_topic": metadata.get("primary_topic"),
+                "research_domain": metadata.get("research_domain"),
+                "research_field": metadata.get("research_field") or metadata.get("research_domain"),
+                "research_subfield": metadata.get("research_subfield"),
                 "methods": metadata.get("methods") or found["methods"],
+                "models": found["models"],
                 "datasets": metadata.get("datasets") or found["datasets"],
+                "tasks": found["tasks"],
                 "evaluation_metrics": metadata.get("evaluation_metrics")
                 or found["evaluation_metrics"],
+                "claims": found["claims"],
+                "claim_status": found["claim_status"],
+                "grants": metadata.get("grants") or [],
+                "corresponding_authors": metadata.get("corresponding_authors") or [],
+                "author_institutions": metadata.get("author_institutions") or [],
+                "countries_distinct_count": metadata.get("countries_distinct_count"),
+                "institutions_distinct_count": metadata.get("institutions_distinct_count"),
                 "author_ids": metadata.get("author_openalex_ids") or [],
                 "publisher": metadata.get("publisher"),
                 "license": paper.license,
@@ -228,11 +246,12 @@ def discover(
     for position, row in enumerate(selected, 1):
         row["collection_order"] = position
     retrieved_at = datetime.now(UTC).isoformat()
+    enriched_venues = enrich_venues(selected) if orchestrator is None else {}
     for row in selected:
-        row["venue_details"] = venue_observation(row, retrieved_at)
+        row["venue_details"] = venue_observation(row, retrieved_at, enriched_venues)
         row["retrieved_at"] = row["retrieved_at"] or retrieved_at
     return {
-        "schema": "archipelago.research_intelligence.v1",
+        "schema": "archipelago.research_intelligence.v2",
         "options": options,
         "retrieved_at": retrieved_at,
         "sources": sources,

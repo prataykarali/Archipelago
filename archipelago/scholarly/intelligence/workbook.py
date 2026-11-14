@@ -15,78 +15,29 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 
 from .graph import author_key, build_graph, venue_key
+from .workbook_extra import EXTRA_HEADERS, populate_extra_sheets
 
-NA = "N/A"
+NA = "PROVIDER_FIELD_ABSENT"
+LICENSE_RESTRICTED = "LICENSE_RESTRICTED"
 HEADERS = {
     "Papers": [
-        "Paper ID",
-        "Title",
-        "Year",
-        "Publication date",
-        "DOI",
-        "URL",
-        "arXiv ID",
-        "OpenAlex ID",
-        "Semantic Scholar ID",
-        "Publication type",
-        "Authors",
-        "Author IDs",
-        "Keywords and topics",
-        "Research field",
-        "Methods",
-        "Datasets",
-        "Evaluation metrics",
-        "Abstract",
-        "Venue ID",
-        "Venue",
-        "Publisher",
-        "Citations",
-        "Citation provider",
-        "Open access",
-        "License",
-        "Retrieved at",
-        "Evidence status",
+        "Paper ID", "Title", "Year", "Publication date", "DOI", "URL", "arXiv ID",
+        "OpenAlex ID", "Semantic Scholar ID", "Publication type", "Authors", "Author IDs",
+        "Keywords and topics", "Research field", "Methods", "Datasets", "Evaluation metrics",
+        "Abstract", "Venue ID", "Venue", "Publisher", "Citations", "Citation provider",
+        "Open access", "License", "Retrieved at", "Evidence status",
     ],
     "Authors": [
-        "Author ID",
-        "Name",
-        "ORCID",
-        "OpenAlex ID",
-        "Semantic Scholar ID",
-        "Affiliations (paper metadata)",
-        "Provider affiliations",
-        "Identity status",
-        "Publication count",
-        "Citation count",
-        "h-index",
-        "i10-index",
-        "Primary research fields",
-        "Representative papers",
-        "Coauthor IDs",
-        "Profile URL",
-        "Source",
-        "Metric definition",
-        "Coverage",
-        "Observed at",
+        "Author ID", "Name", "ORCID", "OpenAlex ID", "Semantic Scholar ID",
+        "Affiliations (paper metadata)", "Provider affiliations", "Identity status",
+        "Publication count", "Citation count", "h-index", "i10-index",
+        "Primary research fields", "Representative papers", "Coauthor IDs",
+        "Profile URL", "Source", "Metric definition", "Coverage", "Observed at",
     ],
     "Venues": [
-        "Venue ID",
-        "Name",
-        "Type",
-        "Publisher",
-        "ISSN",
-        "Subject areas",
-        "Open access",
-        "Venue URL",
-        "Journal Impact Factor",
-        "CiteScore",
-        "SJR",
-        "CORE classification",
-        "Other metrics",
-        "Metric source",
-        "Provider",
-        "Retrieved at",
-        "Paper IDs",
+        "Venue ID", "Name", "Type", "Publisher", "ISSN", "Subject areas", "Open access",
+        "Venue URL", "Journal Impact Factor", "CiteScore", "SJR", "CORE classification",
+        "Other metrics", "Metric source", "Provider", "Retrieved at", "Paper IDs",
     ],
     "References": [
         "Source paper ID",
@@ -117,6 +68,7 @@ HEADERS = {
     ],
     "Errors_Review": ["Paper ID", "Issue", "Details"],
     "Run_Manifest": ["Field", "Value"],
+    **EXTRA_HEADERS,
 }
 MAX_CELL_CHARS = 32000
 LINK_COLUMNS = {"Papers": (5, 6), "Venues": (8,), "Authors": (16,), "Sources_Provenance": (3,)}
@@ -141,8 +93,8 @@ def _date(value: str | None) -> date | str | None:
         return value
 
 
-def _metric(value: Any) -> Any:
-    return NA if value is None else value
+def _metric(value: Any, missing_reason: str = NA) -> Any:
+    return missing_reason if value is None else value
 
 
 def build_workbook(run: dict[str, Any]) -> BytesIO:
@@ -284,6 +236,8 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
             add("Errors_Review", [pid, "ambiguous_identity", match])
         if not ids.get("doi"):
             add("Errors_Review", [pid, "doi_unavailable", "Other provider identifier retained"])
+    author_rows_meta: list[dict[str, Any]] = []
+    venue_rows_meta: list[dict[str, Any]] = []
     for key, entry in authors.items():
         author = entry["author"]
         source_paper = entry["source_paper"]
@@ -292,7 +246,15 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         short = provider_id.rsplit("/", 1)[-1] if provider_id else None
         observation = observations.get(short or "", {})
         metrics = observation.get("metrics") or {}
+        missing_status = (
+            observation.get("enrichment_status")
+            if observation
+            else ("ENRICHMENT_PENDING" if short else "IDENTITY_UNRESOLVED")
+        )
+        if missing_status == "AVAILABLE":
+            missing_status = "PROVIDER_FIELD_ABSENT"
         fields = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:3]})
+        author_rows_meta.append({"key": key, "short": short})
         add(
             "Authors",
             [
@@ -309,10 +271,10 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 ),
                 observation.get("identity_status")
                 or ("provider_linked" if provider_id else "unverified_name_only"),
-                _metric(metrics.get("publication_count")),
-                _metric(metrics.get("citation_count")),
-                _metric(metrics.get("h_index")),
-                _metric(metrics.get("i10_index")),
+                _metric(metrics.get("publication_count"), missing_status),
+                _metric(metrics.get("citation_count"), missing_status),
+                _metric(metrics.get("h_index"), missing_status),
+                _metric(metrics.get("i10_index"), missing_status),
                 "; ".join(observation.get("topics") or fields),
                 "; ".join(p["paper_id"] for p in entry["papers"][:3]),
                 "; ".join(sorted(coauthors.get(key, ()))),
@@ -330,6 +292,12 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         if isinstance(issn, str):
             issn = [issn]
         subjects = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:2]})
+        other_parts = [
+            f"{k}={details[k]}"
+            for k in ("openalex_2yr_mean_citedness", "h_index", "i10_index", "works_count", "is_in_doaj")
+            if details.get(k) is not None
+        ]
+        venue_rows_meta.append({"vid": vid, "details": details})
         add(
             "Venues",
             [
@@ -341,17 +309,20 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 "; ".join(subjects),
                 details.get("open_access"),
                 details.get("url"),
-                _metric(details.get("impact_factor")),
-                _metric(details.get("citescore")),
-                _metric(details.get("sjr")),
-                _metric(details.get("core_rank")),
-                NA,
-                "None retrieved (licensed or restricted metrics are not scraped)",
+                _metric(details.get("impact_factor"), LICENSE_RESTRICTED),
+                _metric(details.get("citescore"), LICENSE_RESTRICTED),
+                _metric(details.get("sjr"), LICENSE_RESTRICTED),
+                _metric(details.get("core_rank"), LICENSE_RESTRICTED),
+                "; ".join(other_parts) if other_parts else NA,
+                "OpenAlex source profile (Clarivate JIF/CiteScore/SJR are LICENSE_RESTRICTED)"
+                if other_parts
+                else "None retrieved (licensed or restricted metrics are not scraped)",
                 details.get("provider"),
                 details.get("retrieved_at") or run["retrieved_at"],
                 "; ".join(p["paper_id"] for p in entry["papers"]),
             ],
         )
+    populate_extra_sheets(add, run, author_rows_meta, venue_rows_meta)
     for edge in graph["edges"]:
         if edge["type"] == "CITES":
             add("Citation_Edges", [edge["source"].removeprefix("paper:"), edge["target"].removeprefix("paper:"), edge["provider"], "CITES"])

@@ -110,12 +110,18 @@ class OpenAlexAdapter:
         )
 
         source_obj = prim_loc.get("source") or {}
+        ids_obj = item.get("ids") or {}
+        pmid_raw = str(ids_obj.get("pmid") or "").strip()
+        pmid = pmid_raw.rsplit("/", 1)[-1] if pmid_raw else None
+        primary_topic = item.get("primary_topic") or {}
+        authorships = item.get("authorships") or []
         paper = PaperRecord(
             title=item.get("title") or "Untitled Paper",
             abstract=self._reconstruct_abstract(item.get("abstract_inverted_index")),
             identifiers=PaperIdentifiers(
                 doi=doi,
                 openalex_id=openalex_id,
+                pubmed_id=pmid,
             ),
             authors=authors,
             venue=source_obj.get("display_name"),
@@ -140,8 +146,26 @@ class OpenAlexAdapter:
                 "venue_id": source_obj.get("id"),
                 "venue_type": source_obj.get("type"),
                 "venue_issn": source_obj.get("issn"),
+                "venue_issn_l": source_obj.get("issn_l"),
                 "venue_url": source_obj.get("homepage_url"),
                 "venue_is_oa": source_obj.get("is_oa"),
+                "landing_page_url": prim_loc.get("landing_page_url"),
+                "version_status": prim_loc.get("version"),
+                "oa_status": oa_info.get("oa_status"),
+                "fwci": item.get("fwci"),
+                "citation_normalized_percentile": item.get("citation_normalized_percentile"),
+                "countries_distinct_count": item.get("countries_distinct_count"),
+                "institutions_distinct_count": item.get("institutions_distinct_count"),
+                "grants": [
+                    {
+                        "funder_id": g.get("funder"),
+                        "funder_name": g.get("funder_display_name"),
+                        "award_id": g.get("award_id"),
+                        "provider": "openalex",
+                    }
+                    for g in item.get("grants") or []
+                    if g.get("funder_display_name") or g.get("funder") or g.get("award_id")
+                ],
                 "reference_count": len(item["referenced_works"])
                 if isinstance(item.get("referenced_works"), list)
                 else None,
@@ -152,17 +176,35 @@ class OpenAlexAdapter:
                     for entry in item.get("keywords") or []
                     if entry.get("display_name")
                 ],
-                "research_domain": ((item.get("primary_topic") or {}).get("domain") or {}).get(
-                    "display_name"
-                ),
+                "research_domain": (primary_topic.get("domain") or {}).get("display_name"),
+                "research_field": (primary_topic.get("field") or {}).get("display_name"),
+                "research_subfield": (primary_topic.get("subfield") or {}).get("display_name"),
+                "primary_topic": primary_topic.get("display_name"),
                 "topics": [
                     entry.get("display_name")
                     for entry in item.get("topics") or []
                     if entry.get("display_name")
                 ],
                 "retraction_status": item.get("is_retracted"),
-                "author_openalex_ids": [
-                    (entry.get("author") or {}).get("id") for entry in item.get("authorships") or []
+                "author_openalex_ids": [(entry.get("author") or {}).get("id") for entry in authorships],
+                "corresponding_authors": [
+                    (entry.get("author") or {}).get("display_name")
+                    for entry in authorships
+                    if entry.get("is_corresponding") and (entry.get("author") or {}).get("display_name")
+                ],
+                "author_institutions": [
+                    [
+                        {
+                            "id": inst.get("id"),
+                            "ror": inst.get("ror"),
+                            "name": inst.get("display_name"),
+                            "country_code": inst.get("country_code"),
+                            "type": inst.get("type"),
+                        }
+                        for inst in entry.get("institutions") or []
+                        if inst.get("display_name")
+                    ]
+                    for entry in authorships
                 ],
             },
         }

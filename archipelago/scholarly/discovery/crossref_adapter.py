@@ -147,6 +147,20 @@ class CrossrefAdapter:
             "pdf_url": pdf_url,
             "source_metadata": {
                 "publisher": item.get("publisher"),
+                "subtitle": (item.get("subtitle") or [None])[0],
+                "venue_issn": item.get("ISSN"),
+                "landing_page_url": item.get("URL"),
+                "keywords": item.get("subject") or [],
+                "grants": [
+                    {
+                        "funder_id": f.get("DOI"),
+                        "funder_name": f.get("name"),
+                        "award_id": ", ".join(f.get("award") or []) or None,
+                        "provider": "crossref",
+                    }
+                    for f in item.get("funder") or []
+                    if f.get("name") or f.get("DOI")
+                ],
                 "reference_count": item.get("reference-count"),
                 "referenced_works": [
                     ref.get("DOI") for ref in item.get("reference") or [] if ref.get("DOI")
