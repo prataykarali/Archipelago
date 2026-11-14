@@ -99,6 +99,12 @@ _ABBREV_EXPANSIONS = {
     "hw": "how",
     "wrk": "work",
     "y": "why",
+    "dense": "fully connected",
+    "mlp": "multi layer perceptron",
+    "rnn": "recurrent neural network",
+    "cnn": "convolutional neural network",
+    "svm": "support vector machine",
+    "tlb": "translation lookaside buffer",
 }
 _GENERIC_GRAPH_TOKENS = frozenset(
     {
