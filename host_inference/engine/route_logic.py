@@ -19,6 +19,7 @@ from .patterns import (
     AUTH_RE,
     CODE_TRAP,
     DIAG_RE,
+    EXPLOIT_ACTION_RE,
     INGEST_RE,
     INJECTION,
     PARAM_RE,
@@ -42,26 +43,29 @@ from .routing_constants import (
 
 RESEARCH_INTENT_RE = re.compile(r"\b(research|papers?|studies|literature|evidence|gaps?)\b", re.I)
 ACADEMIC_DOMAIN_RE = re.compile(
-    r"\b("
-    r"ai|ml|models?|language|memory|retrieval|graph|learning|algorithm|algorithms|"
-    r"complexity|asymptotic|big-o|amortized|recursion|recursive|dynamic programming|"
+    r"(?:\ba\*|\b(?:"
+    r"ai|ml|dl|os|dbms|nlp|ir|rag|llm|llms|svm|cnn|rnn|lstm|gan|vae|bert|gpt|dpo|rlhf|tlb|dag|np|"
+    r"models?|language|memory|retrieval|graph|graphs|learning|algorithm|algorithms|heuristic|admissible|"
+    r"complexity|asymptotic|big-o|amortized|recursion|recursive|dynamic programming|topological|"
     r"heap|heaps|tree|trees|trie|binary|array|arrays|stack|queue|linked list|hash(?:ing)?|sort(?:ing)?|"
     r"dijkstra|bellman|bfs|dfs|shortest path|spanning tree|np-complete|np-hard|decidable|undecidable|"
-    r"automata|automaton|turing|dfa|nfa|grammar|grammars|cfg|chomsky|pumping lemma|"
+    r"automata|automaton|turing|dfa|nfa|grammar|grammars|cfg|chomsky|pumping lemma|kleene|"
     r"compiler|compilers|lexer|lexical|parser|parsing|syntax|semantic|ast|code generation|register allocation|"
-    r"operating system|process|processes|thread|threads|scheduling|deadlock|mutex|semaphore|concurrency|synchronization|"
-    r"virtual memory|paging|page replacement|thrashing|filesystem|file system|inode|syscall|"
-    r"database|dbms|sql|acid|transaction|transactions|serializability|normalization|b-tree|b\+ tree|relational algebra|"
+    r"operating system|process|processes|thread|threads|scheduling|deadlock|banker|mutex|semaphore|concurrency|synchronization|"
+    r"virtual memory|pag(?:ing|ng)|page replacement|thrashing|filesystem|file system|inode|syscall|"
+    r"database|sql|acid|transaction|transactions|serializability|normalization|b-tree|b\+ tree|relational algebra|"
     r"network|networks|tcp|udp|ip|http|dns|routing|congestion|flow control|osi|mac|packet|packets|socket|"
-    r"distributed|consensus|paxos|raft|cap theorem|replication|sharding|vector clock|"
+    r"distributed|consensus|paxos|raft|cap theorem|replication|sharding|vector clock|federated|"
     r"architecture|cpu|cache|caches|pipeline|pipelining|risc|isa|alu|instruction|hazard|"
     r"cryptography|encryption|decryption|rsa|aes|tls|ssl|authentication|cybersecurity|vulnerability|xss|sql injection|"
     r"matrix|matrices|vector|vectors|eigenvalue|eigenvector|svd|determinant|rank|linear algebra|orthogonality|"
     r"probability|bayes|bayesian|distribution|variance|covariance|expectation|markov|hypothesis|regression|"
     r"calculus|derivative|gradient|jacobian|hessian|integral|optimization|convex|"
-    r"neural|backpropagation|transformer|attention|embedding|embeddings|tokenization|nlp|computer vision|convolution|cnn|rnn|lstm|"
-    r"rag|bm25|tf-idf|quantization|lora|qlora|fine-tuning|software engineering|testing|design pattern|solid"
-    r")\b",
+    r"neural|backpropagation|tr[a]?nsformer|tr[a]?nsformers|att[e]?ntion|embedding|embeddings|tokenization|"
+    r"computer vision|convolution|pooling|dense|layer|layers|parameter|parameters|weight|weights|bias|biases|"
+    r"activation|loss|regularization|dropout|kernel|krnel|perceptron|epoch|epochs|batch|"
+    r"bm25|tf-idf|quantization|lora|qlora|fine-tuning|software engineering|testing|design pattern|solid"
+    r")\b)",
     re.I,
 )
 
@@ -79,6 +83,14 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return "PERSONA_LOCK", HIJACK_MESSAGE, None, {"hide_graph": True, "reason": "injection"}
     if CODE_TRAP.search(query):
         return "CODE_TRAP", CODE_MESSAGE, None, {"hide_graph": True, "reason": "procedural"}
+    if EXPLOIT_ACTION_RE.search(query):
+        return (
+            "GUARDRAIL_INTERCEPT",
+            "I cannot provide instructions for bypassing authentication or performing cyberattacks. "
+            "I can, however, explain defensive concepts such as SQL injection prevention, parameterized queries, and secure authentication.",
+            None,
+            {"hide_graph": True, "reason": "security_abuse_guardrail"},
+        )
     if classify_query_intent(query) == IntentCategory.RESEARCH_INTELLIGENCE:
         return (
             "RESEARCH_INTELLIGENCE",

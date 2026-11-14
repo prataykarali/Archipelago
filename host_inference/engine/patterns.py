@@ -21,6 +21,12 @@ CODE_TRAP = re.compile(
     r"\bimplement\s+.{0,40}\bin\s+python\b)",
     re.I,
 )
+EXPLOIT_ACTION_RE = re.compile(
+    r"(\b(?:how\s+(?:do|can|to)\s+(?:i\s+)?(?:perform|execute|carry\s+out|launch|exploit|bypass|hack|crack))\b.{0,80}"
+    r"\b(?:sql\s+injection|xss|csrf|exploit|bypass|login|auth(?:entication)?|password|firewall|credentials?)\b|"
+    r"\bbypass\s+(?:a\s+|an\s+|the\s+)?(?:university\s+|admin\s+)?(?:login|auth(?:entication)?|password|firewall)\b)",
+    re.I,
+)
 SCHEDULE_RE = re.compile(
     r"\b(opening hours|library hours|what time|timetable|circulation desk|"
     r"reading room|lending desk|when does the library|"
