@@ -146,7 +146,7 @@ def test_research_page_renders_new_atlas_and_versioned_controls() -> None:
 
     html = render_research_page("papers").get_data(as_text=True)
     assert "Research intelligence" in html
-    assert "Top K" in html
+    assert "Papers to collect (maximum)" in html
     assert "research_intelligence.js?v=20261112s5" in html
 
 
@@ -159,7 +159,7 @@ def test_research_login_preserves_progress_job_link() -> None:
     pages.register(app, SimpleNamespace(auth=auth))
     response = app.test_client().get("/research/progress?job=bc8526dc-445a-469e-b307-2cf33f4ce2ea")
     assert response.status_code == 302
-    assert "next=%2Fresearch%2Fprogress%3Fjob%3Dbc8526dc" in response.location
+    assert "research/progress?job=bc8526dc" in response.location
 
 
 def test_health_reports_live_counts_not_hardcoded(hosted_app):

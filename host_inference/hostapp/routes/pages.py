@@ -126,6 +126,13 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "runtime_packaged": importlib.util.find_spec("archipelago") is not None,
                     "durable_storage_configured": bool(
                         os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL")
+                        or (
+                            os.getenv("SUPABASE_URL")
+                            and (
+                                os.getenv("SUPABASE_SECRET_KEY")
+                                or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+                            )
+                        )
                     ),
                 },
                 "cache_metrics": ctx.cache_metrics.stats(),

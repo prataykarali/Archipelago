@@ -20,7 +20,7 @@ def author_key(paper: dict[str, Any], index: int) -> str:
     provider_id = ids[index] if index < len(ids) else None
     author = paper["authors"][index]
     if provider_id:
-        return "author:" + provider_id.rsplit("/", 1)[-1]
+        return "author:" + str(provider_id).rsplit("/", 1)[-1]
     if author.get("orcid"):
         return _hash("author", author["orcid"])
     return _hash("author-unverified", f"{paper['paper_id']}:{index}:{author['name']}")
@@ -103,7 +103,8 @@ def build_graph(run: dict[str, Any]) -> dict[str, Any]:
         for i, left in enumerate(identified):
             for right in identified[i + 1 :]:
                 if left != right:
-                    edge(*sorted((left, right)), "COAUTHORED_WITH", provider)  # type: ignore[arg-type]
+                    pair = sorted((left, right))
+                    edge(pair[0], pair[1], "COAUTHORED_WITH", provider)
         venue_id = venue_key(paper)
         if venue_id:
             nodes.setdefault(venue_id, {"id": venue_id, "kind": "Venue", "name": paper["venue"]})

@@ -354,15 +354,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         )
     for edge in graph["edges"]:
         if edge["type"] == "CITES":
-            add(
-                "Citation_Edges",
-                [
-                    edge["source"].removeprefix("paper:"),
-                    edge["target"].removeprefix("paper:"),
-                    edge["provider"],
-                    "CITES",
-                ],
-            )
+            add("Citation_Edges", [edge["source"].removeprefix("paper:"), edge["target"].removeprefix("paper:"), edge["provider"], "CITES"])
     kinds: dict[str, int] = {}
     for node in graph["nodes"]:
         kinds[node["kind"]] = kinds.get(node["kind"], 0) + 1

@@ -294,9 +294,21 @@ class ResearchStore:
         return [{**dict(row), "payload": json.loads(row["payload"])} for row in rows]
 
 
+def durable_storage_configured() -> bool:
+    """Return whether direct Postgres or hosted service-role Supabase RPC is configured."""
+    if os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL", "").strip():
+        return True
+    url = os.getenv("SUPABASE_URL", "").strip()
+    key = (
+        os.getenv("SUPABASE_SECRET_KEY", "").strip()
+        or os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
+    return bool(os.getenv("VERCEL") and url and key)
+
+
 def hosted_store() -> ResearchStore | PostgresResearchStore:
-    """Select durable Postgres on Vercel; never write hosted data to /tmp."""
-    if os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL"):
+    """Select durable Postgres when configured; never write hosted data to /tmp."""
+    if durable_storage_configured():
         from .postgres_storage import PostgresResearchStore
 
         return PostgresResearchStore()

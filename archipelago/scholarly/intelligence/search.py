@@ -26,6 +26,8 @@ TOPIC_ALIASES = {
     "bengali": "bangla",
     "speech recognition": "asr",
     "continual learning": "lifelong learning",
+    "ocr": "optical character recognition",
+    "document understanding": "document",
 }
 
 
@@ -144,7 +146,7 @@ def discover(
             continue
         provenance = [candidate.get("provenance")]
         provenance.extend(entry.get("provenance") for entry in candidate.get("merge_history", []))
-        source_links = [p.model_dump(mode="json") for p in provenance if hasattr(p, "model_dump")]
+        source_links = [p.model_dump(mode="json") for p in provenance if p is not None and hasattr(p, "model_dump")]
         citation_observations = [
             {"provider": candidate.get("source"), "count": candidate.get("citation_count")}
         ] + [

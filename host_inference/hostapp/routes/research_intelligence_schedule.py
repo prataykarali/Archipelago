@@ -27,10 +27,12 @@ def register(app: Flask, _ctx: AppContext) -> None:
             return jsonify({"error": "unauthorized"}), 401
         if os.getenv("ARCHIPELAGO_S5_SCHEDULER_ENABLED") != "1":
             return jsonify({"error": "scheduler_disabled"}), 503
-        if not os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL"):
-            return jsonify({"error": "research_storage_not_configured"}), 503
         from archipelago.scholarly.intelligence.monitor import run_monitor
         from archipelago.scholarly.intelligence.postgres_storage import PostgresResearchStore
+        from archipelago.scholarly.intelligence.storage import durable_storage_configured
+
+        if not durable_storage_configured():
+            return jsonify({"error": "research_storage_not_configured"}), 503
 
         try:
             store = PostgresResearchStore()

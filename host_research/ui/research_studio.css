@@ -52,7 +52,7 @@ body[data-research-page="papers"] .research-page-heading { display: none; }
 .research-hero-action:hover { background: #fff; transform: translateY(-2px); }
 .research-hero-foot { position: absolute; z-index: 1; left: clamp(28px, 5vw, 72px); bottom: 27px; display: flex; align-items: center; gap: 15px; color: #dab3f0; letter-spacing: .22em; font-size: 10px; font-weight: 700; }
 .research-hero-foot i { display: block; width: 32px; height: 1px; background: #b664e0; }
-.research-journey { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 26px; }
+.research-journey { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 26px; }
 .research-journey div { display: grid; gap: 7px; background: #1b0b30; border: 1px solid #61357b; border-radius: 13px; padding: 18px; }
 .research-journey span { color: #d77cff; font: 700 12px 'Space Grotesk', sans-serif; }
 .research-journey strong { color: #fff; font-size: 14px; }

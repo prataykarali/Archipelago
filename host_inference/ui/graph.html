@@ -8,12 +8,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
-    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1b1549, #0a0a25 68%, #08071b); }
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1d164e, #0a0924 68%, #070618); }
     #graph canvas { filter: drop-shadow(0 0 7px #6b5cdb99); }
     #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .45; background-image: radial-gradient(#7561c3 1px, transparent 1px); background-size: 28px 28px; }
-    .graph-frame { box-shadow: 0 25px 90px #02010fbd, inset 0 0 0 1px #4e3c9966; }
-    .graph-panel { background: linear-gradient(150deg, #171337ee, #0e0d28ee); backdrop-filter: blur(16px); position: absolute; right: 20px; top: 92px; width: min(330px, 30vw); max-height: calc(100% - 110px); overflow: auto; z-index: 2; box-shadow: 0 20px 60px #050115aa; }
+    .graph-frame { box-shadow: 0 25px 90px #02010fbd, inset 0 0 0 1px #5c47b566; }
+    .graph-panel { background: linear-gradient(155deg, #19143cee, #0e0c28f2); backdrop-filter: blur(18px); position: absolute; right: 20px; top: 92px; width: min(338px, 30vw); max-height: calc(100% - 110px); overflow: auto; z-index: 2; box-shadow: 0 22px 64px #040112ba; }
     .graph-stage { position: relative; }
     .graph-toolbar { position: absolute; z-index: 3; left: 24px; top: 24px; width: min(620px, calc(100% - 390px)); }
     .graph-toolbar input { background: #100a2ccf; backdrop-filter: blur(12px); }

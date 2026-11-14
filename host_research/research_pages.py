@@ -22,7 +22,7 @@ PAGE_SCRIPTS = {
     "paper": ("research_paper.js",),
     "topic": ("research_topic.js",),
 }
-ASSET_VERSION = "20261112s5b"
+ASSET_VERSION = "20261114s5"
 
 
 def render_research_page(page: str) -> Response:

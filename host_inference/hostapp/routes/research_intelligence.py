@@ -38,10 +38,12 @@ def register(app: Flask, _ctx: AppContext) -> None:
             and importlib.util.find_spec("archipelago") is None
         ):
             return jsonify({"error": "research_runtime_unavailable"}), 503
+        from archipelago.scholarly.intelligence.storage import durable_storage_configured
+
         if (
             request.path.startswith("/api/research/intelligence/")
             and os.getenv("VERCEL")
-            and not os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL")
+            and not durable_storage_configured()
         ):
             return jsonify({"error": "research_storage_not_configured"}), 503
         return None
@@ -49,8 +51,9 @@ def register(app: Flask, _ctx: AppContext) -> None:
     @app.get("/api/research/intelligence/readiness")  # type: ignore[misc]
     def intelligence_readiness() -> ResponseReturnValue:
         from archipelago.scholarly.intelligence.postgres_storage import PostgresResearchStore
+        from archipelago.scholarly.intelligence.storage import durable_storage_configured
 
-        if not os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL"):
+        if not durable_storage_configured():
             return jsonify({"ready": False, "error": "research_storage_not_configured"}), 503
         try:
             ready = PostgresResearchStore().check_ready()
