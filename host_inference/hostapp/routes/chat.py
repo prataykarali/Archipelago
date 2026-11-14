@@ -67,7 +67,7 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
             history if isinstance(history, list) else None,
             str(principal["id"]),
             hosted_store(),
-            str(body.get("research_run_id") or "") or None,
+            str(body.get("research_run_id") or body.get("run_id") or "") or None,
         )
     except (ImportError, OSError, RuntimeError):
         current_app.logger.exception("Research run chat unavailable")

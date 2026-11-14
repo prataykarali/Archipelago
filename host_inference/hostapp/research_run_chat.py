@@ -12,7 +12,8 @@ import re
 from typing import Any
 
 FIND = re.compile(
-    r"\b(find|search|collect|get|look up)\b.*\b(research\s+)?(papers?|publications?|studies)\b"
+    r"\b(?:find|search|collect|get|look up)\b(?:\s+(?P<count>\d{1,3}))?"
+    r"(?:\s+(?P<pre_topic>[a-z0-9][a-z0-9\s\-]{2,80}?))?\s+(?:research\s+)?(?:papers?|publications?|studies)\b"
     r"(?:\s+(?:on|about|for|regarding)\s+(?P<topic>.+))?",
     re.I,
 )
@@ -21,16 +22,16 @@ COLLECTION = re.compile(
     r"\b(collected|these (works|papers)|this (research )?collection|that paper|the (first|second|third|"
     r"fourth|fifth|last) paper|that author|the author|authors?|h-index|i10|journals?|conferences?|"
     r"venues?|citation relationships?|cit(?:es|ations?)|methods?|datasets?|export|excel|workbook|"
-    r"new papers|monitor)\b",
+    r"new papers|monitor|monitoring)\b",
     re.I,
 )
 RESEARCH_WORDS = re.compile(
     r"\b(papers?|authors?|h-index|i10|journals?|conferences?|venues?|abstracts?|"
-    r"collection|collected|monitoring|research methods?)\b",
+    r"collection|collected|monitoring|research methods?|citation relationships?|datasets?)\b",
     re.I,
 )
 EXPORT = re.compile(r"\b(export|excel|xlsx|workbook|spreadsheet|download)\b", re.I)
-NEW_PAPERS = re.compile(r"\b(new|newly|since)\b.*\b(papers?|monitor|run|update)", re.I)
+NEW_PAPERS = re.compile(r"\b(new|newly|since)\b.*\b(papers?|monitor|monitoring|run|update|check)", re.I)
 
 
 def is_research_request(query: str, has_run: bool) -> bool:
@@ -214,22 +215,40 @@ def research_chat_reply(
 ) -> dict[str, Any] | None:
     """Return a chat reply dict, or None to leave the message to normal chat."""
     runs = store.list_runs(owner)
-    run = store.get_run(run_id, owner) if run_id else None
-    if run is None and runs:
-        run_id = runs[0]["run_id"]
-        run = store.get_run(run_id, owner)
-    find = FIND.search(query)
-    if not is_research_request(query, run is not None):
-        return None
     history_text = "\n".join(
         str(m.get("content", "")) for m in history or [] if isinstance(m, dict)
     )
-    if find and (find.group("topic") or "").strip():
+    run = store.get_run(run_id, owner) if run_id else None
+    if run is None and runs:
+        hist_matches = re.findall(r"This collection for “([^”]+)” has (\d+) papers", history_text)
+        if hist_matches:
+            target_topic, target_count = hist_matches[-1][0].casefold(), int(hist_matches[-1][1])
+            for candidate in runs:
+                if candidate["topic"].casefold() == target_topic:
+                    loaded = store.get_run(candidate["run_id"], owner)
+                    if loaded and len(loaded.get("papers", [])) == target_count:
+                        run_id, run = candidate["run_id"], loaded
+                        break
+        if run is None:
+            run_id = runs[0]["run_id"]
+            run = store.get_run(run_id, owner)
+    find = FIND.search(query)
+    if not is_research_request(query, run is not None):
+        return None
+    raw_topic = (find.group("topic") or find.group("pre_topic") or "").strip() if find else ""
+    if raw_topic and raw_topic.casefold() not in {"the", "some", "these", "all", "collected", "my"}:
+        topic = re.sub(r"[?.!]+$", "", raw_topic)
+        req_k = int(find.group("count")) if find and find.group("count") and int(find.group("count")) in {10, 20, 50, 100} else 20
+        norm = topic.casefold().rstrip("s")
+        for candidate in runs:
+            if norm in candidate["topic"].casefold().rstrip("s"):
+                loaded = store.get_run(candidate["run_id"], owner)
+                if loaded and loaded.get("options", {}).get("top_k") == req_k and loaded.get("papers"):
+                    return {"text": _list(loaded), "run_id": candidate["run_id"], "run": loaded}
         from archipelago.scholarly.intelligence.search import discover
 
-        topic = re.sub(r"[?.!]+$", "", find.group("topic").strip())
         try:
-            fresh = discover({"topic": topic, "top_k": 20})
+            fresh = discover({"topic": topic, "top_k": req_k})
         except ValueError:
             return {"text": "That topic is not a valid research search.", "run_id": run_id}
         if not any(s["status"] in {"live", "live_empty"} for s in fresh["sources"]):

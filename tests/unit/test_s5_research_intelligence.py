@@ -293,7 +293,10 @@ def test_research_chat_answers_from_snapshot_and_never_invents_metrics(tmp_path)
     assert "not available" in hindex["text"] and "0" not in hindex["text"].split("(")[0]
     assert "Journal of Graphs" in ask("Which journals or conferences published these works?")["text"]
     assert "No provider-verified citation" in ask("Show the citation relationships between these papers.")["text"]
+    assert "No provider-verified citation" in ask("Show their verified citation relationships.")["text"]
+    assert "methods: graph neural network" in ask("Which research methods and datasets are explicitly supported by the evidence?")["text"]
     assert f"/runs/{run_id}/xlsx" in ask("Export this research collection to Excel.")["text"]
     assert "No monitoring run" in ask("Are there new papers since the last monitoring run?")["text"]
+    assert "No monitoring run" in ask("Which new papers appeared since the previous monitoring check?")["text"]
     assert ask("What is a graph neural network?") is None
     assert research_chat_reply("Who authored the first paper?", None, "bob", store, run_id) is None
