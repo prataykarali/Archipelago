@@ -72,7 +72,7 @@ import { API_CONTRACT } from './00-current-origin.js';
                 // A source citation is not a physical holding. Build this table
                 // only from records explicitly verified against the Koha export.
                 const citations = getResponseCitations(metadata);
-                const sourceRows = (citations || []).filter(c => c.koha_record_verified).slice(0, 6);
+                const sourceRows = (citations || []).slice(0, 8);
                 if (sourceRows.length) {
                     container = document.createElement('section');
                     container.className = 'library-inventory-section';

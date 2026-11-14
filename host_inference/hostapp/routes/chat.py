@@ -75,18 +75,45 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
     if reply is None:
         return None
     run_id = reply.get("run_id")
+    run_data = reply.get("run") or {}
+    papers = run_data.get("papers", [])
     links = [
         {"evidence_id": f"R{i}", "title": p["title"], "url": url}
-        for i, p in enumerate((reply.get("run") or {}).get("papers", []), 1)
+        for i, p in enumerate(papers, 1)
         if (url := (f"https://doi.org/{p['doi']}" if p.get("doi") else p.get("url")))
+    ]
+    topic_label = str(run_data.get("topic") or "Research Collection")
+    anchor_concept = {
+        "id": f"research_topic:{run_id or 'collection'}",
+        "label": topic_label,
+        "name": topic_label,
+        "summary": f"{len(papers)} collected scholarly papers (newest-first, no quality ranking).",
+        "concept_type": "research_collection",
+        "difficulty": "collection",
+    }
+    related_concepts = [
+        {
+            "id": p.get("paper_id") or f"paper_{i}",
+            "label": (p.get("title") or "Untitled")[:64],
+            "name": p.get("title") or "Untitled",
+            "summary": f"{p.get('year') or ''} · {p.get('venue') or p.get('source') or 'Scholarly source'}",
+            "concept_type": "research_paper",
+            "difficulty": str(p.get("year") or "paper"),
+            "url": f"https://doi.org/{p['doi']}" if p.get("doi") else p.get("url"),
+        }
+        for i, p in enumerate(papers[:8], 1)
     ]
     payload = {
         "route": "RESEARCH_EVIDENCE",
         "contract": "RESEARCH_EVIDENCE",
         "routing": {"route": "RESEARCH_EVIDENCE", "reason": "research_run_snapshot"},
         "render_rule": "source_evidence",
-        "hide_graph": True,
+        "hide_graph": False,
         "research_run_id": run_id,
+        "anchor_concept": anchor_concept,
+        "related_concepts": related_concepts,
+        "prerequisites": [],
+        "unlocks": related_concepts[:4],
         "citations": links,
     }
     return json.dumps(payload) + STREAM_MARKER + reply["text"]

@@ -401,4 +401,5 @@ def research_chat_reply(
     return {
         "text": _answer(query, run, history_text, run_id or "", new_papers),
         "run_id": run_id,
+        "run": run,
     }

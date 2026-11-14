@@ -37,6 +37,8 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
             const prereqNames = formatConceptList(prereqs, 3);
             const unlockNames = formatConceptList(unlocks, 3);
 
+            const route = (metadata && ((metadata.routing && metadata.routing.route) || metadata.contract)) || '';
+            const quizRelevant = route !== 'RESEARCH_EVIDENCE' && !(metadata && (metadata.research_run_id || metadata.research_overlay));
             const existingAdaptive = (window._adaptiveState && window._adaptiveState[msgId]);
             let quizCompleted = Boolean(existingAdaptive && existingAdaptive.finished);
             try { quizCompleted ||= Boolean(localStorage.getItem(storageKey('archipelago_eval_' + _nodeId(anchor)))); } catch (_) {}
@@ -78,9 +80,9 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            ${quizCompleted ? '' : `<button id="quiz-start-${msgId}" onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
+                            ${quizRelevant && !quizCompleted ? `<button id="quiz-start-${msgId}" onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-graduation-cap text-xs"></i> <span>${quizBtnLabel}</span>
-                            </button>`}
+                            </button>` : ''}
                             <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">Normal Graph</span>
                             <i id="toggle-icon-${cardId}" class="fa-solid fa-chevron-up text-xs text-amber-300 transition-transform"></i>
                         </div>
