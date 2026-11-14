@@ -65,6 +65,7 @@
         <div class="mb-3 flex flex-wrap gap-2">
           <button id="nav-back" type="button" hidden class="touch-target cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">← Back</button>
           <button id="show-core" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-left text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Main concepts</button>
+          <button id="browse-live" type="button" class="touch-target cursor-pointer rounded-xl border border-violet-400/50 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Live page</button>
         </div>
         <label for="relation-filter" class="text-xs font-medium text-[#CBD5E1]">Relationship filter</label>
         <select id="relation-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-xs text-[#F1F5F9]"><option value="">All stored types</option><option value="REQUIRES">Requires</option><option value="UNLOCKS">Unlocks</option><option value="RELATED">Related</option><option value="SOURCED_FROM">Sourced from</option></select>
@@ -674,7 +675,19 @@
       if (prev.mode === 'overview') loadOverview(false).catch(showError);
       else if (prev.mode === 'subgraph') loadGraph(prev.params, false).catch(showError);
     });
-    document.getElementById('show-core').addEventListener('click', () => loadOverview().catch(showError));
+    let pageOffset = 0;
+    async function loadLivePage() {
+      status.textContent = 'Loading live indexed concepts…';
+      const response = await fetch(`/api/graph/page?offset=${pageOffset}&limit=36`, { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || 'Could not load live concept page.');
+      if (!data.nodes?.length) { pageOffset = 0; return loadOverview(); }
+      pageOffset = data.next_offset || 0;
+      renderGraph({ ...data, nodes: data.nodes, edges: data.edges || [] }, true);
+      status.textContent = `${data.counts?.concepts || data.matched_total || data.nodes.length} live concepts · showing ${data.nodes.length} (offset ${data.offset || 0})`;
+    }
+    document.getElementById('show-core').addEventListener('click', () => { pageOffset = 0; loadOverview().catch(showError); });
+    document.getElementById('browse-live').addEventListener('click', () => loadLivePage().catch(showError));
     relationFilter.addEventListener('change', applyRelationFilter);
     expandBtn.addEventListener('click', () => {
       if (!currentTarget) return;

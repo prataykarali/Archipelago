@@ -318,7 +318,12 @@ window.ArchipelagoGraphify = (function() {
           const node = evt.target;
           const data = node.data();
           if (!data.name) return;
-          tooltip.innerHTML = `<strong style="color: #00ffa3;">${data.name}</strong><br/>${data.summary || 'Active node'}`;
+          tooltip.replaceChildren();
+          const titleEl = document.createElement('strong');
+          titleEl.style.color = '#00ffa3';
+          titleEl.textContent = String(data.name || '');
+          const summaryEl = document.createTextNode(String(data.summary || 'Active node'));
+          tooltip.append(titleEl, document.createElement('br'), summaryEl);
           tooltip.style.display = 'block';
         });
 

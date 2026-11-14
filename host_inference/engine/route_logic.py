@@ -52,11 +52,11 @@ ACADEMIC_DOMAIN_RE = re.compile(
     r"automata|automaton|turing|dfa|nfa|grammar|grammars|cfg|chomsky|pumping lemma|kleene|"
     r"compiler|compilers|lexer|lexical|parser|parsing|syntax|semantic|ast|code generation|register allocation|"
     r"operating system|process|processes|thread|threads|scheduling|deadlock|banker|mutex|semaphore|concurrency|synchronization|"
-    r"virtual memory|pag(?:ing|ng)|page replacement|thrashing|filesystem|file system|inode|syscall|"
+    r"virtual memory|pag(?:ing|ng)|page table|page replacement|thrashing|filesystem|file system|inode|syscall|address translation|\bmmu\b|"
     r"database|sql|acid|transaction|transactions|serializability|normalization|b-tree|b\+ tree|relational algebra|"
-    r"network|networks|tcp|udp|ip|http|dns|routing|congestion|flow control|osi|mac|packet|packets|socket|"
+    r"network|networks|tcp|udp|ip|http|dns|routing|congestion|slow start|aimd|cwnd|flow control|osi|mac|packet|packets|socket|"
     r"distributed|consensus|paxos|raft|cap theorem|replication|sharding|vector clock|federated|"
-    r"architecture|cpu|cache|caches|pipeline|pipelining|risc|isa|alu|instruction|hazard|"
+    r"architecture|cpu|cache|caches|kv cach(?:e|ing)|flashattention|pipeline|pipelining|risc|isa|alu|instruction|hazard|"
     r"cryptography|encryption|decryption|rsa|aes|tls|ssl|authentication|cybersecurity|vulnerability|xss|sql injection|"
     r"matrix|matrices|vector|vectors|eigenvalue|eigenvector|svd|determinant|rank|linear algebra|orthogonality|"
     r"probability|bayes|bayesian|distribution|variance|covariance|expectation|markov|hypothesis|regression|"
@@ -133,6 +133,25 @@ _GENERIC_GRAPH_TOKENS = frozenset(
         "using",
     }
 )
+
+
+_OS_MEMORY_CONTEXT_RE = re.compile(
+    r"\b(tlb|translation\s+lookaside\s+buffer|address\s+translation|page\s+table|paging|"
+    r"virtual\s+memory|physical\s+address|virtual\s+address|page\s+fault|mmu)\b",
+    re.I,
+)
+
+
+def _is_domain_incompatible(graph, query: str, cid: str) -> bool:
+    """Reject cross-domain homonym matches (e.g. OS address translation -> NLP Translation)."""
+    if cid == "translation" and _OS_MEMORY_CONTEXT_RE.search(query or ""):
+        return True
+    node = graph.nodes.get(cid) or {}
+    label = str(node.get("label") or "").lower()
+    summary = str(node.get("summary") or "").lower()
+    if label == "translation" and "natural language" in summary and _OS_MEMORY_CONTEXT_RE.search(query or ""):
+        return True
+    return False
 
 
 def _normalize_query_for_graph(query: str) -> str:
@@ -367,11 +386,23 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             },
         )
 
-    ranked = graph.rank(query, top_k=RANK_TOP_K)
-    best_score, best_id = ranked[0]
-    hits = graph.phrase_hits(query)
+    ranked = [
+        (score, cid)
+        for score, cid in graph.rank(clean_query, top_k=RANK_TOP_K)
+        if not _is_domain_incompatible(graph, clean_query, cid)
+    ]
+    best_score, best_id = ranked[0] if ranked else (0.0, None)
+    hits = [
+        cid
+        for cid in graph.phrase_hits(clean_query)
+        if not _is_domain_incompatible(graph, clean_query, cid)
+    ]
     if not hits and best_score < KILL_SWITCH:
-        hits = _fallback_graph_hits(graph, clean_query)
+        hits = [
+            cid
+            for cid in _fallback_graph_hits(graph, clean_query)
+            if not _is_domain_incompatible(graph, clean_query, cid)
+        ]
     anchors = []
     for cid in hits:
         if cid not in anchors:
@@ -455,7 +486,16 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         and not is_single_unified_node
         and not learning_request
     ):
-        reasoning = multi_hop_reasoning(self, query, concept_mentions=extracted_concepts)
+        reasoning = multi_hop_reasoning(self, clean_query, concept_mentions=extracted_concepts)
+        if not reasoning["indexed_concepts"] and ACADEMIC_DOMAIN_RE.search(clean_query):
+            return (
+                "GENERAL_EXPLANATION",
+                f"**{clean_query.strip(' ?.')}** covers foundational academic concepts that are not "
+                "currently indexed as standalone nodes in the local catalog. This explanation uses "
+                "general foundational knowledge rather than local catalog citations.",
+                None,
+                {"hide_graph": True, "score": max(best_score, 0.8), "reason": "academic_general_not_indexed"},
+            )
         primary = reasoning["indexed_concepts"][0].cid if reasoning["indexed_concepts"] else None
         return (
             "MULTI_CONCEPT",
@@ -578,8 +618,9 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             parts = [compose.synthesis(self, cid) for cid in known_ids[:2]]
             draft = "\n\n".join(parts) if parts else ""
             note = (
-                f"Compare **{left_text.strip(' ?.')}** and **{right_text.strip(' ?.')}** clearly, "
-                "include a concrete worked example, and label general foundational knowledge separately from indexed catalog citations."
+                f"**{left_text.strip(' ?.')}** and **{right_text.strip(' ?.')}** are foundational academic "
+                "topics not fully indexed as standalone graph nodes in the local catalog. "
+                "This comparison uses general foundational knowledge rather than local catalog citations."
             )
             return (
                 "GENERAL_EXPLANATION",

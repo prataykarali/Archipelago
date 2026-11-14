@@ -217,9 +217,12 @@ def extract_concept_mentions(query: str, known_graph=None) -> list[str]:
 
     raw_candidates = []
     for part in parts:
-        cleaned = re.sub(r"^(?:the|an|a)\s+", "", part.strip(), flags=re.I).strip(" ?.,!")
-        if cleaned and cleaned.lower() not in NOISE_TERMS:
-            raw_candidates.append(cleaned)
+        cleaned = re.sub(r"^(?:the|an|a|how\s+do|how\s+does|how\s+are|how\s+is)\s+", "", part.strip(), flags=re.I).strip(" ?.,!")
+        if not cleaned or cleaned.lower() in NOISE_TERMS:
+            continue
+        if re.match(r"^(?:what\s+happens|which\s+\w+\s+handles|why\s+does)\b", cleaned, re.I):
+            continue
+        raw_candidates.append(cleaned)
 
     # If parsing found 0 or 1 candidates from frame, or missed phrases, verify with phrase hits
     if known_graph is not None:
@@ -264,9 +267,13 @@ def resolve_concept(engine_or_graph, concept_text: str) -> ResolvedConcept:
     raw = concept_text.strip()
     norm = raw.lower()
 
-    # 1. Direct node ID match (with hyphen/space and singular/plural normalization)
+    # 1. Direct node ID match (with hyphen/space and singular/plural/gerund normalization)
     slug = re.sub(r"[\s-]+", "_", norm)
     id_candidates = [slug]
+    if norm.endswith("caching"):
+        id_candidates.append(re.sub(r"[\s-]+", "_", norm[:-3] + "e"))
+    if norm.endswith("ing") and len(norm) > 5:
+        id_candidates.append(re.sub(r"[\s-]+", "_", norm[:-3]))
     if norm.endswith("s"):
         id_candidates.append(re.sub(r"[\s-]+", "_", norm[:-1]))
     if norm.endswith("es"):
@@ -288,9 +295,14 @@ def resolve_concept(engine_or_graph, concept_text: str) -> ResolvedConcept:
             )
 
     # 2. Phrase hit in aliases / label index (prefer exact label/id match over generic hubs)
-    hits = graph.phrase_hits(raw)
-    if not hits and raw.endswith("s"):
-        hits = graph.phrase_hits(raw[:-1])
+    if "address translation" in norm or "tlb" in norm or "lookaside" in norm:
+        hits = []
+    else:
+        hits = graph.phrase_hits(raw)
+        if not hits and norm.endswith("caching"):
+            hits = graph.phrase_hits(raw[:-3] + "e")
+        if not hits and raw.endswith("s"):
+            hits = graph.phrase_hits(raw[:-1])
     if hits:
         norm_space = re.sub(r"[\s_-]+", " ", norm).strip()
         best_cid = min(

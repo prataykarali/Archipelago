@@ -149,10 +149,18 @@ def _core_phrases(terms: list[str]) -> list[str]:
     return [f"{terms[i]} {terms[i + 1]}" for i in range(len(terms) - 1)]
 
 
-def _score(row: dict, core_terms: set[str], phrases: list[str]) -> int:
+_MEDICAL_PAPER_RE = re.compile(
+    r"\b(mri|brain\s+tumor|osteogenic|bone\s+scaffold|clinical|patient|biomedical|radiology|cancer|histology)\b",
+    re.I,
+)
+
+
+def _score(row: dict, core_terms: set[str], phrases: list[str], query: str = "") -> int:
     title = str(row.get("title") or "").casefold()
     topic = str(row.get("topic") or "").casefold()
     content = str(row.get("content") or "")[:1200].casefold()
+    if _MEDICAL_PAPER_RE.search(f"{title} {topic}") and not _MEDICAL_PAPER_RE.search(query):
+        return 0
     combined = f"{title} {topic} {content}"
     phrase_hit = any(phrase in combined for phrase in phrases)
     matched_terms = [term for term in core_terms if term in combined]
@@ -201,7 +209,7 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
         (
             (score, row)
             for row in rows
-            if (score := _score(row, core_terms, phrases)) >= MIN_RELEVANCE_SCORE
+            if (score := _score(row, core_terms, phrases, query)) >= MIN_RELEVANCE_SCORE
             and str(row.get("content") or "").strip()
         ),
         key=lambda item: item[0],

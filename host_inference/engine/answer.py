@@ -298,6 +298,12 @@ class Engine:
                 "relationship, and a concise worked example. Clearly separate general explanation "
                 "from stored graph edges and do not fabricate graph links."
             )
+        if route == "GENERAL_EXPLANATION":
+            safe_text += (
+                "\n\nGuidance: Provide a direct, technically accurate foundational explanation "
+                "with a concise worked example where helpful. Label general foundational knowledge "
+                "clearly and never fabricate local textbook citations."
+            )
         if reply_detail != "expanded" and SHORT_DEFINITION_RE.match(query) and result["anchor"]:
             anchor_node = self.graph.nodes[result["anchor"]]
             safe_text = redact_for_model(str(anchor_node.get("summary") or grounded_text))
@@ -364,7 +370,9 @@ class Engine:
             return
 
         payload["synthesis_mode"] = (
-            "xkiro_synthesis" if selected["provider"] == "xkiro" else "nvidia_fallback"
+            "xkiro_synthesis"
+            if selected["provider"] == "xkiro"
+            else f"{selected['provider']}_fallback"
         )
         payload["provider"] = selected["provider"]
         payload["model"] = {"provider": selected["provider"], "model": selected["model"]}

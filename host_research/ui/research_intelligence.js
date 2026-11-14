@@ -22,7 +22,28 @@ function showRun(run) {
   s5('intelligence-results').hidden = false;
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
-  s5('excel-link').href = `/api/research/intelligence/runs/${activeRunId}/xlsx`;
+  const excelLink = s5('excel-link');
+  excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx`;
+  excelLink.onclick = async event => {
+    event.preventDefault();
+    const runId = activeRunId;
+    if (!runId) return;
+    try {
+      const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx`, { cache: 'no-store', credentials: 'include' });
+      if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `archipelago-research-${runId.slice(0, 8)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      s5('provider-status').textContent = err.message || 'Could not download workbook.';
+    }
+  };
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));

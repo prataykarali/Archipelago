@@ -262,10 +262,10 @@ def library_opac_live() -> tuple[object, int]:
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except requests.RequestException:
-        if biblionumber:
-            try:
-                snapshot = load_snapshot()
-                holdings = snapshot.get("holdings", []) if snapshot else []
+        try:
+            snapshot = load_snapshot()
+            holdings = snapshot.get("holdings", []) if snapshot else []
+            if biblionumber:
                 match = next(
                     (row for row in holdings if row.get("biblionumber") == biblionumber),
                     None,
@@ -277,13 +277,36 @@ def library_opac_live() -> tuple[object, int]:
                             "title": match.get("Title", ""),
                             "source_url": match.get("opac_url", ""),
                             "snapshot_record": match,
+                            "is_live": False,
                             "source_kind": "dated_koha_export",
                             "source_updated_at": snapshot.get("source_updated_at"),
                             "stale": snapshot.get("stale", True),
+                            "notice": "Live OPAC unavailable; showing dated Koha export snapshot (not verified live availability).",
                         }
                     ), 200
-            except (requests.RequestException, RuntimeError, ValueError, TypeError):
-                app.logger.exception("OPAC fallback unavailable")
+            if query:
+                q_lower = query.casefold()
+                matches = [
+                    row
+                    for row in holdings
+                    if q_lower in str(row.get("Title", "")).casefold()
+                    or q_lower in str(row.get("Author", "")).casefold()
+                    or q_lower in str(row.get("Subject", "")).casefold()
+                    or q_lower in str(row.get("ISBN", "")).casefold()
+                ][:20]
+                return jsonify(
+                    {
+                        "query": query,
+                        "results": matches,
+                        "is_live": False,
+                        "source_kind": "dated_koha_export",
+                        "source_updated_at": snapshot.get("source_updated_at") if snapshot else None,
+                        "stale": snapshot.get("stale", True) if snapshot else True,
+                        "notice": "Live OPAC unavailable; showing dated Koha export snapshot (not verified live availability).",
+                    }
+                ), 200
+        except (requests.RequestException, RuntimeError, ValueError, TypeError):
+            app.logger.exception("OPAC fallback unavailable")
         return jsonify({"error": "opac_unavailable"}), 503
     return jsonify(result), 200
 
@@ -351,6 +374,7 @@ def research_proxy(subpath: str) -> Response | tuple[object, int]:
 
 @app.get("/api/graph/hubs")
 @app.get("/api/graph/subgraph")
+@app.get("/api/graph/page")
 def graph_proxy() -> Response | tuple[object, int]:
     """Read the existing Academic graph without copying its corpus."""
     return _forward(request.path)

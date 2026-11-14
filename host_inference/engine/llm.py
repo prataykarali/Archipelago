@@ -80,6 +80,7 @@ XKIRO_DEFAULT_BASE_URL = "https://api.xkiro.com/v1"
 XKIRO_DEFAULT_MODEL = "cohere/command-a"
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
 NVIDIA_DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+NVIDIA_ACTIVE_FALLBACK_MODEL = "google/gemma-4-31b-it"
 
 # Fallback chain: xkiro (primary, user constraint) -> nvidia
 PROVIDER_ORDER = ("xkiro", "nvidia")
@@ -176,6 +177,23 @@ def stream_completion(
     resp = None
     try:
         _pace_provider_call()
+        system_prompt = "\n\n".join(
+            part
+            for part in (
+                REPLY_SYSTEM_PROMPT,
+                reply_template_guidance(query, template_id=reply_template_id),
+                plan_guidance(reply_plan) if reply_plan else "",
+                EXPANDED_REPLY_GUIDANCE if reply_detail == "expanded" else "",
+            )
+            if part
+        )
+        user_payload = json.dumps(
+            {
+                "question": query,
+                "academic_evidence": text,
+                "previous_answer": previous_answer,
+            }
+        )
         resp = requests.post(
             f"{config['base_url'].rstrip('/')}/chat/completions",
             headers={
@@ -191,34 +209,36 @@ def stream_completion(
                 "stream": True,
                 **({"reasoning_effort": "none"} if config["provider"] == "nvidia" else {}),
                 "messages": [
-                    {
-                        "role": "system",
-                        "content": "\n\n".join(
-                            part
-                            for part in (
-                                REPLY_SYSTEM_PROMPT,
-                                reply_template_guidance(query, template_id=reply_template_id),
-                                plan_guidance(reply_plan) if reply_plan else "",
-                                EXPANDED_REPLY_GUIDANCE if reply_detail == "expanded" else "",
-                            )
-                            if part
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": json.dumps(
-                            {
-                                "question": query,
-                                "academic_evidence": text,
-                                "previous_answer": previous_answer,
-                            }
-                        ),
-                    },
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_payload},
                 ],
             },
             stream=True,
             timeout=STREAM_TIMEOUT_SECONDS,
         )
+        if resp.status_code in {404, 410} and config["provider"] == "nvidia" and config["model"] != NVIDIA_ACTIVE_FALLBACK_MODEL:
+            resp.close()
+            resp = requests.post(
+                f"{config['base_url'].rstrip('/')}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {config['key']}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": NVIDIA_ACTIVE_FALLBACK_MODEL,
+                    "temperature": REPLY_TEMPERATURE,
+                    "max_tokens": (
+                        EXPANDED_REPLY_MAX_TOKENS if reply_detail == "expanded" else REPLY_MAX_TOKENS
+                    ),
+                    "stream": True,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_payload},
+                    ],
+                },
+                stream=True,
+                timeout=STREAM_TIMEOUT_SECONDS,
+            )
         if resp.status_code != 200:
             resp.close()
             return

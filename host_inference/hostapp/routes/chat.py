@@ -306,7 +306,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             t_eng_end = time.perf_counter()
             should_enrich = (
                 prepared.get("route") in {"RESEARCH_TOPIC", "RESEARCH_UNVERIFIED"}
-                or bool(_RESEARCH_ENRICH_CUE_RE.search(resolved_query))
+                or bool(_RESEARCH_ENRICH_CUE_RE.search(query))
             )
             if should_enrich:
                 prepared = enrich_with_research(prepared, resolved_query)
