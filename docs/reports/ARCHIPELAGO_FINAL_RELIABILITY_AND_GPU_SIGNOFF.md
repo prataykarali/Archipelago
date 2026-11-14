@@ -66,6 +66,25 @@
 
 ## 5. Remaining Limitations
 
-1. **Librarian `shinaura` Vercel Deployment:** Requires `shinaura` team authorization to deploy `host_research/` (`8b4c1bc`) to `https://archipelago-librarian.vercel.app/`.
-2. **Workstation GPU0 Hardware State & User Systemd Units:** Host `nvidia-smi` returned exit `6` (GPU0 off bus), and `~/.config/systemd/user/{ollama,archipealgo}.service` retain `OLLAMA_KEEP_ALIVE=-1`.
-3. **Standalone Graph Nodes:** `5` subtopics (`Q012`, `Q014`, `Q054`, `Q074`, `Q076`) lack standalone nodes in `okf_graph.json`, so they route cleanly to XKIRO `GENERAL_EXPLANATION` without local catalog citations.
+1. **Librarian `shinaura` Vercel Deployment:** Requires `shinaura` team authorization to deploy `host_research/` (`c74946c`) to `https://archipelago-librarian.vercel.app/` (local CLI `aura2026socials-8112` has access only to `archipelago-6383`). Exact operator command:
+   ```bash
+   cd host_research && npx --yes vercel --prod --scope shinaura
+   ```
+2. **Standalone Graph Nodes:** `4` subtopics (`P_Q012`, `P_Q014`, `P_Q074`, `P_Q076`) lack standalone nodes in `okf_graph.json`, so they route cleanly to XKIRO `GENERAL_EXPLANATION` without local catalog citations (never fabricated).
+
+---
+
+## 6. Post-Reboot RTX 2050 GPU Verification, Hosted Holdout & Final Release (`c74946c`)
+
+- **Deployment:** Commit `c74946c` (`feature/s6-final-platform-integration`) deployed to `https://archipelago-blond.vercel.app/` (deployment `GEefuqwzNGpgwNUMkXdTAdYKwRdY`).
+- **RTX 2050 Diagnostics & Real GPU Ingestion Verified:**
+  - Pre-reboot root cause: `NV_ERR_NO_MEMORY (0x00000051)` (`Nov 14 16:12:43`) followed by `NVRM: Xid (PCI:0000:01:00): 79, GPU has fallen off the bus` (`18:24:10`). Post-reboot: NVIDIA RTX 2050 (`NVIDIA-SMI 580.126.20`, `CUDA 13.0`, `4096 MiB`) online.
+  - Systemd pinning removed with backups: `~/.config/systemd/user/ollama.service` (`.bak`) and `~/.config/systemd/user/archipealgo.service` (`.bak`) updated from `OLLAMA_KEEP_ALIVE=-1` to `OLLAMA_KEEP_ALIVE=0`; `systemctl --user daemon-reload` executed.
+  - Idle baseline: `nvidia-smi` **`14 MiB / 4096 MiB`** (`Xorg` `4 MiB`), `ollama ps` empty, `serve.sh status` all 4 services `UP`.
+  - Authorized `academic_pdf_ingestion` (`qwen3.5:0.8b`): `nvidia-smi` **`984 MiB / 4096 MiB`** (`llama-server` `962 MiB`), `ollama ps`: `912 MB`, **`100% GPU`**, `CONTEXT 2048`. S4 staging/human-approval tests: `2 passed, 29 deselected in 1.31s`.
+  - Post-completion unload (`unload_ollama_model -> True`), simulated `RuntimeError` failure unload, and `systemctl --user restart ollama.service`: `nvidia-smi` returned to **`14 MiB / 4096 MiB`** and `ollama ps` empty in all 3 checks.
+- **Hosted Production Holdout & 5-Partial Recheck (`artifacts/validation/hosted_prod_holdout_results.json`):**
+  - Executed directly against `https://archipelago-blond.vercel.app/api/chat` (authorized librarian account, no `X-Forwarded-For` spoofing):
+  - **Fresh 20-question holdouts (`S001`–`S020`):** **`20 PASS, 0 FAIL` (`100.0%`)** after fixing `S020` reflected XSS / session-cookie theft routing in `host_inference/engine/route_logic.py` (`_EXPLOIT_INTENT_RE`, verified live on `GEefuqwzNGpgwNUMkXdTAdYKwRdY`: `HTTP 200`, `GUARDRAIL_INTERCEPT`, `2.903s`).
+  - **Combined 25 hosted cases (20 holdouts + 5 rechecked partials):** **`21 PASS, 4 PARTIAL, 0 FAIL`**. Hosted latency: **`mean = 6.96s`, `p50 = 7.182s`, `p95 = 10.324s`, `max = 12.832s`**.
+  - **Routing & UI tests:** `ruff check host_inference/engine/route_logic.py` passed; `tests/unit/test_host_intent_routing.py` + `tests/unit/test_router.py` (`12 passed`); `tests/unit/test_host_inference_pages.py` + `tests/unit/test_bounded_subgraph.py` (`17 passed`).

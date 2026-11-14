@@ -54,4 +54,22 @@ Verified via Playwright + `/usr/bin/google-chrome` (`headless=True`) against liv
 
 ## 5. Remaining Access / Governance Blockers
 
-- **Librarian `shinaura` Vercel Deployment (`https://archipelago-librarian.vercel.app/`):** The updated `host_research/ui/academic_graph.html` and `host_research/ui/academic_light.css` are committed and pushed to `feature/s6-final-platform-integration` (`8b4c1bc`), but the local Vercel CLI session (`aura2026socials-8112`) only has membership in `archipelago-6383`. Promoting/deploying `host_research/` to `https://archipelago-librarian.vercel.app/` requires an authorized `shinaura` team member or Vercel team token.
+- **Librarian `shinaura` Vercel Deployment (`https://archipelago-librarian.vercel.app/`):** The updated `host_research/ui/` dark theme and Graphify nodes/edges are committed and pushed to `feature/s6-final-platform-integration` (`c74946c`), but the local Vercel CLI session (`aura2026socials-8112`) only has membership in `archipelago-6383`. Promoting/deploying `host_research/` to `https://archipelago-librarian.vercel.app/` requires an authorized `shinaura` team member:
+  ```bash
+  cd host_research && npx --yes vercel --prod --scope shinaura
+  ```
+
+---
+
+## 6. Graphify Jewel-Tone Nodes/Edges & Dark Librarian Console Release (`c74946c`)
+
+- **Deployed Main Production (`archipelago-6383`):** `https://archipelago-blond.vercel.app/` (deployment `GEefuqwzNGpgwNUMkXdTAdYKwRdY`).
+- **Graphify Palette & Dark Librarian Theme:**
+  - Updated `host_inference/ui/graph.html`, `ui/chat/graph.html`, `host_inference/ui/academic_graph.html`, and `host_research/ui/academic_graph.html` with `JEWEL_PALETTE`, `jewelColors(nodeData)`, and vibrant directional edges (`REQUIRES` `#38BDF8`, `UNLOCKS` `#F472B6`, `RELATED` `#A78BFA`, `SOURCED_FROM` `#2DD4BF`).
+  - Converted `host_research/ui/librarian.css`, `host_inference/ui/librarian.css`, `host_research/ui/librarian.html`, `host_inference/ui/librarian.html`, `host_research/ui/analytics.html`, and `host_inference/ui/analytics.html` to the unified dark navy/violet WCAG AA theme (`#0F172A` / `#111827` / `#1E293B` / `#F1F5F9` / `#CBD5E1`).
+  - UI & subgraph unit tests: `17 passed` (`tests/unit/test_host_inference_pages.py`, `tests/unit/test_bounded_subgraph.py`).
+- **Live Production Playwright Verification (`1440×960` & `390×844`):**
+  - `/librarian` & `/analytics`: `#0F172A` (`rgb(15, 23, 42)`) background, `#F1F5F9` (`rgb(241, 245, 249)`) text -> **`16.3:1`** contrast, zero horizontal overflow.
+  - `/research`: `rgb(11, 4, 23)` background, `rgb(245, 238, 254)` text -> **`17.76:1`** contrast, zero horizontal overflow.
+  - `/chat`: `rgb(9, 5, 20)` background, `rgb(248, 250, 252)` / `#FFFFFF` text -> **`19.24:1`** body / **`20.13:1`** heading contrast, XKIRO synthesis + inline OKF Concept Graph card verified, zero horizontal overflow.
+  - Screenshots archive: `Archipelago_Final_Graphify_Screenshots.zip` (`final_graphify_screenshots/`).
