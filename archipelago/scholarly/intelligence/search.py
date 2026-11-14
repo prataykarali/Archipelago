@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import html
 import re
 from typing import Any
 
@@ -37,8 +38,8 @@ SLM_CONCEPT_RE = re.compile(
     re.I,
 )
 EDGE_CONCEPT_RE = re.compile(
-    r"\b(on[- ]device|edge device|edge inference|edge ai|edge intelligence|edge deployment|"
-    r"mobile device|embedded device|microcontroller|mcu|npu|iot|smartphone|local inference)\b",
+    r"\b(on[- ]device|edge devices?|edge inference|edge ai|edge intelligence|edge deployment|"
+    r"mobile devices?|embedded devices?|microcontrollers?|mcu|npu|iot|smartphones?|local inference)\b",
     re.I,
 )
 EFF_CONCEPT_RE = re.compile(
@@ -48,6 +49,23 @@ EFF_CONCEPT_RE = re.compile(
 )
 QUERY_SLM_RE = re.compile(r"\b(small language models?|slms?)\b", re.I)
 QUERY_EDGE_RE = re.compile(r"\b(on[- ]device|edge)\b", re.I)
+QUERY_GNN_RE = re.compile(r"\b(graph neural networks?|gnns?)\b", re.I)
+GNN_CONCEPT_RE = re.compile(
+    r"\b(graph neural networks?|gnns?|graph convolutional|graph attention|message passing neural)\b",
+    re.I,
+)
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def clean_scholarly_text(raw: str | None) -> str:
+    """Decode single/double-escaped HTML entities, strip markup tags, normalize spaces."""
+    text = raw or ""
+    for _ in range(3):
+        unescaped = html.unescape(text)
+        if unescaped == text:
+            break
+        text = unescaped
+    return " ".join(_HTML_TAG_RE.sub(" ", text).split())
 
 
 def assess_topic_eligibility(
@@ -71,6 +89,8 @@ def assess_topic_eligibility(
             if not ok
         ]
         return False, f"missing_central_concepts:{','.join(missing)}"
+    if QUERY_GNN_RE.search(query) and not GNN_CONCEPT_RE.search(text_ta):
+        return False, "missing_central_concepts:gnn"
     alias_matched = False
     for phrase, alias in TOPIC_ALIASES.items():
         if phrase in query and re.search(rf"\b{re.escape(alias)}\b", evidence):
@@ -166,6 +186,8 @@ def discover(
     rows: list[dict[str, Any]] = []
     for candidate in candidates:
         paper = candidate["paper"]
+        clean_title = clean_scholarly_text(paper.title)
+        clean_abstract = clean_scholarly_text(paper.abstract) if paper.abstract else None
         year = (
             int(paper.publication_date[:4])
             if paper.publication_date and paper.publication_date[:4].isdigit()
@@ -194,7 +216,7 @@ def discover(
         if options["field"] and options["field"].casefold() not in fields.casefold():
             continue
         eligible, eligibility_reason = assess_topic_eligibility(
-            options["topic"], paper.title, paper.abstract, fields
+            options["topic"], clean_title, clean_abstract, fields
         )
         if not eligible:
             continue
@@ -219,12 +241,12 @@ def discover(
         if doi and not valid_doi:
             review.append("invalid_doi_from_provider")
         source_url = next((p.get("source_url") for p in source_links if p.get("source_url")), None)
-        found = extract_evidence(paper.title, paper.abstract, source_url=source_url)
+        found = extract_evidence(clean_title, clean_abstract, source_url=source_url)
         fetched = [p.get("fetched_at") for p in source_links if p.get("fetched_at")]
         rows.append(
             {
                 "paper_id": paper.paper_id,
-                "title": paper.title,
+                "title": clean_title,
                 "subtitle": metadata.get("subtitle"),
                 "year": year,
                 "publication_date": paper.publication_date,
@@ -234,7 +256,7 @@ def discover(
                 "venue": paper.venue,
                 "publication_type": paper.publication_type,
                 "language": paper.language,
-                "abstract": paper.abstract,
+                "abstract": clean_abstract,
                 "is_open_access": paper.is_open_access,
                 "oa_status": metadata.get("oa_status"),
                 "version_status": metadata.get("version_status"),
@@ -294,7 +316,32 @@ def discover(
         prior = versioned.get(key)
         if prior is None or (row["doi"] or "") > (prior["doi"] or ""):
             versioned[key] = row
-    rows = unique + list(versioned.values())
+    dedup_rows = unique + list(versioned.values())
+    by_work: dict[tuple[str, str, int], dict[str, Any]] = {}
+    rows = []
+    for row in dedup_rows:
+        authors = row.get("authors") or []
+        ntitle = normalize_title(row.get("title") or "")
+        yr = row.get("year")
+        if not ntitle or not authors or not yr:
+            rows.append(row)
+            continue
+        wkey = (ntitle, authors[0]["name"].casefold().strip(), int(yr))
+        existing = by_work.get(wkey)
+        if existing is None:
+            by_work[wkey] = row
+            rows.append(row)
+            continue
+        alt_dois = list(existing.get("alternate_dois") or [])
+        for d in (existing.get("doi"), row.get("doi")):
+            if d and d not in alt_dois:
+                alt_dois.append(d)
+        existing["alternate_dois"] = alt_dois
+        existing["provenance"] = list(existing.get("provenance") or []) + list(
+            row.get("provenance") or []
+        )
+        if not existing.get("abstract") and row.get("abstract"):
+            existing["abstract"] = row["abstract"]
     if options["sort"] == "newest":
         rows.sort(key=lambda row: (row["publication_date"] or "", row["paper_id"]), reverse=True)
     selected = rows[: options["top_k"]]

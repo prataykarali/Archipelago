@@ -331,3 +331,20 @@ def test_p1_slm_eligibility_domain_openaire_cleanup_and_chat_filters() -> None:
     assert "No papers in this collection contain explicit evidence" in none_ans
     exp_ans = _answer("Export this research collection to Excel.", run, "", "r1", "")
     assert "14-sheet workbook" in exp_ans
+
+
+def test_double_escaped_html_gnn_gate_and_version_collapse() -> None:
+    from archipelago.scholarly.intelligence.search import (
+        assess_topic_eligibility,
+        clean_scholarly_text,
+    )
+
+    dirty = "Small Language Models&amp;nbsp;\n&lt;div&gt;\n Edge AI\n&lt;/div&gt;"
+    assert clean_scholarly_text(dirty) == "Small Language Models Edge AI"
+
+    ok_nde, reason = assess_topic_eligibility(
+        "Graph Neural Networks for Scientific Machine Learning",
+        "A Scientometric Review of Neural Differential Equations",
+        "Neural differential equations use collaboration graphs for scientific machine learning.",
+    )
+    assert ok_nde is False and reason == "missing_central_concepts:gnn"
