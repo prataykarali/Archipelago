@@ -1,0 +1,200 @@
+[
+  {
+    "filename": "01_landing_desktop.png",
+    "url": "http://127.0.0.1:5055/",
+    "viewport": "1440x960",
+    "interaction": "Landing page load",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 1,
+    "notes": ""
+  },
+  {
+    "filename": "02_login_desktop.png",
+    "url": "http://127.0.0.1:5055/login",
+    "viewport": "1440x960",
+    "interaction": "Login page render",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 1,
+    "notes": ""
+  },
+  {
+    "filename": "03_academic_chat_citations_desktop.png",
+    "url": "http://127.0.0.1:5055/chat",
+    "viewport": "1440x960",
+    "interaction": "Academic Chat streamed answer + PDF citations",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 10,
+    "notes": "Virtual Memory. A memory management architecture that provides an idealized, private address space for each process, decoupling logical prog"
+  },
+  {
+    "filename": "04_academic_chat_multiturn_desktop.png",
+    "url": "http://127.0.0.1:5055/chat",
+    "viewport": "1440x960",
+    "interaction": "4-turn connected conversation (virtual memory -> thrashing -> working-set -> example)",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 11,
+    "notes": "M2=The live research collection has 28 ingested topics and 1806 topic-to-paper reco | M3=The live research collection has 28 ingested topics and 1806 topic-to-paper reco | M4=The live research collection has 28 ingested topics and 1806 topic-to-paper reco"
+  },
+  {
+    "filename": "05_library_details_opac_desktop.png",
+    "url": "http://127.0.0.1:5055/library",
+    "viewport": "1440x960",
+    "interaction": "Library holdings & OPAC details",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 11,
+    "notes": ""
+  },
+  {
+    "filename": "06_academic_graph_desktop.png",
+    "url": "http://127.0.0.1:5056/academic/graph",
+    "viewport": "1440x960",
+    "interaction": "Academic 610-concept knowledge graph",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 12,
+    "notes": ""
+  },
+  {
+    "filename": "07_research_intelligence_desktop.png",
+    "url": "http://127.0.0.1:5056/research/papers",
+    "viewport": "1440x960",
+    "interaction": "Research Intelligence papers view",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 12,
+    "notes": ""
+  },
+  {
+    "filename": "08_research_chat_desktop.png",
+    "url": "http://127.0.0.1:5055/chat",
+    "viewport": "1440x960",
+    "interaction": "Research Chat collection query",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 22,
+    "notes": "This topic is supported by the saved research sources below. The cited excerpts are evidence leads; open the original sources for full conte"
+  },
+  {
+    "filename": "09_research_graph_desktop.png",
+    "url": "http://127.0.0.1:5056/research/topics",
+    "viewport": "1440x960",
+    "interaction": "Research Atlas / Graph",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 22,
+    "notes": ""
+  },
+  {
+    "filename": "10_research_progress_excel_desktop.png",
+    "url": "http://127.0.0.1:5056/research/progress",
+    "viewport": "1440x960",
+    "interaction": "Research progress & export view",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 22,
+    "notes": ""
+  },
+  {
+    "filename": "11_library_analytics_desktop.png",
+    "url": "http://127.0.0.1:5056/analytics",
+    "viewport": "1440x960",
+    "interaction": "Library Analytics (Koha + unavailable turnstiles)",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 23,
+    "notes": ""
+  },
+  {
+    "filename": "12_academic_automation_desktop.png",
+    "url": "http://127.0.0.1:5056/academic-automation",
+    "viewport": "1440x960",
+    "interaction": "Academic Automation & S4 review queue",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 25,
+    "notes": ""
+  },
+  {
+    "filename": "13_librarian_monitoring_desktop.png",
+    "url": "http://127.0.0.1:5056/librarian",
+    "viewport": "1440x960",
+    "interaction": "Librarian Dashboard & Monitoring",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 25,
+    "notes": ""
+  },
+  {
+    "filename": "14a_mobile_landing.png",
+    "url": "http://127.0.0.1:5055/",
+    "viewport": "390x844",
+    "interaction": "Mobile Landing",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 0,
+    "notes": ""
+  },
+  {
+    "filename": "14b_mobile_chat.png",
+    "url": "http://127.0.0.1:5055/chat",
+    "viewport": "390x844",
+    "interaction": "Mobile Academic Chat",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 0,
+    "notes": ""
+  },
+  {
+    "filename": "14c_mobile_library.png",
+    "url": "http://127.0.0.1:5055/library",
+    "viewport": "390x844",
+    "interaction": "Mobile Library Details",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 0,
+    "notes": ""
+  },
+  {
+    "filename": "14d_mobile_graph.png",
+    "url": "http://127.0.0.1:5056/academic/graph",
+    "viewport": "390x844",
+    "interaction": "Mobile Academic Graph",
+    "verdict": "PASS",
+    "http_status": 200,
+    "horizontal_overflow": false,
+    "console_errors": 0,
+    "notes": ""
+  },
+  {
+    "filename": "14e_mobile_analytics.png",
+    "url": "http://127.0.0.1:5056/analytics",
+    "viewport": "390x844",
+    "interaction": "Mobile Library Analytics",
+    "verdict": "FAIL",
+    "http_status": 200,
+    "horizontal_overflow": true,
+    "console_errors": 0,
+    "notes": ""
+  }
+]

@@ -53,7 +53,8 @@ DISCOVERY_REQUEST = re.compile(
 
 def _inventory_answer(prepared: dict, query: str) -> dict | None:
     """Answer collection inventory questions from the live topic index."""
-    if not INVENTORY_TERMS.search(query) or not INVENTORY_REQUEST.search(query):
+    clean_query = re.sub(r"\s*\(Earlier user topics:.*$", "", query)
+    if not INVENTORY_TERMS.search(clean_query) or not INVENTORY_REQUEST.search(clean_query):
         return None
     topics = list_topic_inventory()
     recent = recent_papers(RECENT_TOPIC_SCAN)
