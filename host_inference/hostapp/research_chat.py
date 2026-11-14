@@ -34,9 +34,50 @@ MAX_EVIDENCE_SOURCES = 3
 MAX_DISCOVERY_SOURCES = 8
 RECENT_TOPIC_SCAN = 40
 MAX_ABSTRACT_EXCERPT = 260
-MIN_RELEVANCE_SCORE = 3
+MIN_RELEVANCE_SCORE = 4
 LOGGER = logging.getLogger(__name__)
 MAX_TOPIC_ANSWER_ROWS = 200
+GENERIC_ACADEMIC_TERMS = frozenset(
+    {
+        "algorithm",
+        "algorithms",
+        "analysis",
+        "based",
+        "compare",
+        "concept",
+        "concepts",
+        "data",
+        "deep",
+        "explain",
+        "function",
+        "functions",
+        "gradient",
+        "layer",
+        "layers",
+        "learning",
+        "machine",
+        "method",
+        "methods",
+        "model",
+        "models",
+        "network",
+        "networks",
+        "neural",
+        "optimization",
+        "overview",
+        "paper",
+        "papers",
+        "research",
+        "studies",
+        "study",
+        "system",
+        "systems",
+        "training",
+    }
+)
+EXPLICIT_SAVED_QUERY = re.compile(
+    r"\b(saved|ingested|collected)\s+(papers?|sources?|studies|publications?)\b", re.I
+)
 INVENTORY_TERMS = re.compile(
     r"\b(topics?|subjects?|research areas?|ingested papers?|saved papers?)\b", re.I
 )
@@ -104,14 +145,28 @@ def _inventory_answer(prepared: dict, query: str) -> dict | None:
     }
 
 
-def _score(row: dict, terms: set[str]) -> int:
+def _core_phrases(terms: list[str]) -> list[str]:
+    return [f"{terms[i]} {terms[i + 1]}" for i in range(len(terms) - 1)]
+
+
+def _score(row: dict, core_terms: set[str], phrases: list[str]) -> int:
     title = str(row.get("title") or "").casefold()
     topic = str(row.get("topic") or "").casefold()
     content = str(row.get("content") or "")[:1200].casefold()
-    return sum(
+    combined = f"{title} {topic} {content}"
+    phrase_hit = any(phrase in combined for phrase in phrases)
+    matched_terms = [term for term in core_terms if term in combined]
+    if len(core_terms) >= 2 and len(matched_terms) < 2 and not phrase_hit:
+        return 0
+    if len(core_terms) == 1 and not any(t in title or t in topic for t in matched_terms):
+        return 0
+    score = sum(
         (3 if term in title else 0) + (2 if term in topic else 0) + (1 if term in content else 0)
-        for term in terms
+        for term in core_terms
     )
+    if phrase_hit:
+        score += 3
+    return score
 
 
 def enrich_with_research(prepared: dict, query: str) -> dict:
@@ -131,9 +186,11 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
     source_request = prepared.get("route") == "BOOK_PAGE" and RESEARCH_SOURCE_REQUEST.search(query)
     if prepared.get("route") not in ELIGIBLE_ROUTES and not out_of_corpus and not source_request:
         return prepared
-    terms = set(SEARCH_WORD.findall(query.casefold())) - SEARCH_STOPWORDS
-    if not terms:
+    raw_terms = [t for t in SEARCH_WORD.findall(query.casefold()) if t not in SEARCH_STOPWORDS]
+    core_terms = {t for t in raw_terms if t not in GENERIC_ACADEMIC_TERMS}
+    if not core_terms:
         return prepared
+    phrases = _core_phrases(raw_terms)
     try:
         rows = search_records(query, kind=None)
     except (requests.RequestException, RuntimeError, ValueError):
@@ -144,7 +201,7 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
         (
             (score, row)
             for row in rows
-            if (score := _score(row, terms)) >= MIN_RELEVANCE_SCORE
+            if (score := _score(row, core_terms, phrases)) >= MIN_RELEVANCE_SCORE
             and str(row.get("content") or "").strip()
         ),
         key=lambda item: item[0],
@@ -221,5 +278,7 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
     else:
         updated["text"] = str(prepared.get("text") or "") + "\n\n" + "\n".join(lines)
     updated["payload"] = payload
-    updated["research_overlay"] = True
+    explicit_saved = bool(EXPLICIT_SAVED_QUERY.search(query)) or updated.get("route") == "RESEARCH_EVIDENCE"
+    if out_of_corpus or explicit_saved:
+        updated["research_overlay"] = True
     return updated

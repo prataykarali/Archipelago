@@ -15,6 +15,9 @@ from ..page_fragments import assembled_page
 API_PREFIX = "api/"
 
 
+STATIC_CACHE_MAX_AGE = 300
+
+
 def register(app: Flask, ctx: AppContext) -> None:
     """Register static routes on ``app``."""
 
@@ -22,9 +25,13 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/assets/<path:filename>")
     def ui_assets(filename):
         if (ASSET / filename).is_file():
-            return send_from_directory(ASSET, filename)
+            resp = send_from_directory(ASSET, filename)
+            resp.headers["Cache-Control"] = f"public, max-age={STATIC_CACHE_MAX_AGE}"
+            return resp
         if (UI / "assets" / filename).is_file():
-            return send_from_directory(UI / "assets", filename)
+            resp = send_from_directory(UI / "assets", filename)
+            resp.headers["Cache-Control"] = f"public, max-age={STATIC_CACHE_MAX_AGE}"
+            return resp
         return jsonify({"error": "not_found"}), 404
 
     @app.get("/<path:filename>")
@@ -39,5 +46,7 @@ def register(app: Flask, ctx: AppContext) -> None:
         if filename in {"index.html", "library.html"}:
             return assembled_page(UI, filename)
         if (UI / filename).is_file():
-            return send_from_directory(UI, filename)
+            resp = send_from_directory(UI, filename)
+            resp.headers["Cache-Control"] = f"public, max-age={STATIC_CACHE_MAX_AGE}"
+            return resp
         return jsonify({"error": "not_found"}), 404

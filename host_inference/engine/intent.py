@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import enum
 import re
-from typing import Any
 
 
 class IntentCategory(enum.StrEnum):
@@ -21,6 +20,7 @@ class IntentCategory(enum.StrEnum):
     ACADEMIC_INFO = "ACADEMIC_INFO"
     PERSONALIZED_LEARNING = "PERSONALIZED_LEARNING"
     RESEARCH_INTELLIGENCE = "RESEARCH_INTELLIGENCE"
+    CAPABILITY_INQUIRY = "CAPABILITY_INQUIRY"
     UNSUPPORTED = "UNSUPPORTED"
 
 
@@ -115,6 +115,25 @@ _RESEARCH_INTELLIGENCE_PATTERNS = [
     ),
 ]
 
+_CAPABILITY_INQUIRY_PATTERNS = [
+    re.compile(
+        r"\bwhat\s+(?:domains?|subjects?|topics?|books?)\s+(?:do\s+you\s+(?:cover|have|support|index)|can\s+i\s+ask\s+about)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\bwhat\s+can\s+(?:you\s+teach|archipelago\s+do|you\s+do)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\bcan\s+you\s+(?:help\s+with|teach)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\bdo\s+you\s+support\s+research[- ]paper\s+discovery\b",
+        re.I,
+    ),
+]
+
 # 6. MULTI_CONCEPT (relationship, connection, or comparison between 2+ entities)
 _MULTI_CONCEPT_CUES = [
     re.compile(
@@ -203,6 +222,11 @@ def classify_query_intent(
     for pat in _RESEARCH_INTELLIGENCE_PATTERNS:
         if pat.search(ql):
             return IntentCategory.RESEARCH_INTELLIGENCE
+
+    # Priority 5b: System capability & domain coverage inquiries
+    for pat in _CAPABILITY_INQUIRY_PATTERNS:
+        if pat.search(ql):
+            return IntentCategory.CAPABILITY_INQUIRY
 
     # Priority 6: Multi-concept questions (3+ concepts or 2 concepts with relation/comparison cues)
     if len(concepts) >= 3:

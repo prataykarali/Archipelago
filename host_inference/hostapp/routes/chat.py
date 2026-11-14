@@ -12,6 +12,11 @@ import re
 import time
 from uuid import UUID
 
+from engine.citations import (
+    assign_canonical_citations,
+    infer_synthesis_mode,
+    validate_response_citations,
+)
 from engine.reply_templates import list_reply_templates, valid_reply_template_id
 from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
@@ -298,20 +303,49 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         def generate():
             ttft_ms = None
+            payload = dict(prepared.get("payload") or {})
+            canonical_citations = assign_canonical_citations(payload.get("citations"))
+            if canonical_citations:
+                payload["citations"] = canonical_citations
             try:
                 if prepared.get("research_overlay") and not custom_reply:
-                    yield json.dumps(prepared["payload"]) + STREAM_MARKER
+                    payload["synthesis_mode"] = infer_synthesis_mode(prepared, payload)
+                    yield json.dumps(payload) + STREAM_MARKER
                     ttft_ms = (time.perf_counter() - t_req_start) * 1000
-                    yield prepared["text"]
+                    clean_text, _removed = validate_response_citations(
+                        str(prepared.get("text") or ""),
+                        canonical_citations,
+                    )
+                    yield clean_text
                 else:
-                    options = {"previous_answer": previous_answer, "prepared": prepared}
+                    prepared_for_stream = dict(prepared)
+                    prepared_for_stream["payload"] = payload
+                    options = {"previous_answer": previous_answer, "prepared": prepared_for_stream}
                     if template_id:
                         options["reply_template_id"] = template_id
                     if reply_detail == "expanded":
                         options["reply_detail"] = "expanded"
+                    active_citations = canonical_citations
                     for chunk in ctx.engine.stream_chat(resolved_query, **options):
-                        if ttft_ms is None and STREAM_MARKER not in chunk:
+                        if STREAM_MARKER in chunk:
+                            head, rest = chunk.split(STREAM_MARKER, 1)
+                            try:
+                                meta = json.loads(head)
+                            except ValueError:
+                                yield chunk
+                                continue
+                            meta_citations = assign_canonical_citations(meta.get("citations"))
+                            if meta_citations:
+                                meta["citations"] = meta_citations
+                                active_citations = meta_citations
+                            if meta or prepared.get("synthesis_mode") or meta_citations:
+                                meta["synthesis_mode"] = infer_synthesis_mode(prepared, meta)
+                            yield json.dumps(meta) + STREAM_MARKER + rest
+                            continue
+                        if ttft_ms is None:
                             ttft_ms = (time.perf_counter() - t_req_start) * 1000
+                        if "[" in chunk and active_citations is not None:
+                            chunk, _removed = validate_response_citations(chunk, active_citations)
                         yield chunk
             except Exception as exc:
                 logger.error("Chat stream error: %s", exc)

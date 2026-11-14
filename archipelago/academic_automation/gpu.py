@@ -10,7 +10,13 @@ import subprocess
 
 import requests  # type: ignore[import-untyped]
 
-from archipelago.ingestion.gpu_lease import GPU_LOCK_PATH, GPUWorkerBusy, shared_gpu_lease
+from archipelago.ingestion.gpu_lease import (
+    GPU_LOCK_PATH,
+    GPUJobTypeRejected,
+    GPUWorkerBusy,
+    shared_gpu_lease,
+    unload_ollama_model,
+)
 
 GPU_PROBE_TIMEOUT = 5
 CONSENT_TIMEOUT = 300
@@ -75,13 +81,21 @@ def assert_exclusive_occupancy(model: str) -> None:
 
 
 @contextmanager
-def exclusive_gpu(model: str, *, lock_path: Path = GPU_LOCK_PATH) -> Iterator[None]:
-    """Hold one cross-process lease and reject other loaded GPU models."""
+def exclusive_gpu(
+    model: str,
+    *,
+    lock_path: Path = GPU_LOCK_PATH,
+    job_type: str = "academic_pdf_ingestion",
+) -> Iterator[None]:
+    """Hold one cross-process lease, reject other GPU models, and unload on exit."""
     try:
-        with shared_gpu_lease(lock_path):
+        with shared_gpu_lease(lock_path, job_type=job_type):
             assert_exclusive_occupancy(model)
-            yield
-    except GPUWorkerBusy as exc:
+            try:
+                yield
+            finally:
+                unload_ollama_model(model)
+    except (GPUWorkerBusy, GPUJobTypeRejected) as exc:
         raise GPUUnavailable(str(exc)) from exc
 
 

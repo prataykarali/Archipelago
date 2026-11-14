@@ -93,6 +93,8 @@ window.addEventListener('load', async () => {
   document.getElementById('section-description').textContent = sections[section][1];
   if (section !== 'overview') {
     document.getElementById('overview').hidden = true;
+    const trafficPanel = document.getElementById('people-traffic-panel');
+    if (trafficPanel) trafficPanel.hidden = true;
     document.getElementById('records-panel').hidden = false;
     document.getElementById('records-title').textContent = sections[section][0];
     if (!['librarian','administrator'].includes(principal.role)) {
@@ -101,6 +103,7 @@ window.addEventListener('load', async () => {
     }
     loadRecords().catch(error => { status.textContent = error.message; });
   } else {
+    loadPeopleTraffic();
     try {
       const response = await fetch('/api/library/koha', { cache: 'no-store' });
       if (!response.ok) throw new Error('No authorized export available.');
@@ -110,4 +113,75 @@ window.addEventListener('load', async () => {
       box.textContent = `Koha export: ${exportData.source_updated_at || 'date unknown'} · ${exportData.stale ? 'stale; verify in OPAC' : 'current'} · ${exportData.holdings?.length || 0} keyword-filtered holdings (not the full inventory).`;
     } catch (error) { status.textContent = error.message; }
   }
+});
+
+let trafficTimer = null;
+function renderTrafficChart(series) {
+  const svg = document.getElementById('traffic-chart');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  svg.replaceChildren();
+  if (!Array.isArray(series) || series.length === 0) {
+    const txt = document.createElementNS(NS, 'text');
+    txt.setAttribute('x', '320'); txt.setAttribute('y', '84'); txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('fill', '#575249'); txt.setAttribute('font-size', '13');
+    txt.textContent = 'No live gate, QR check-in, or occupancy events recorded yet.';
+    svg.append(txt);
+    return;
+  }
+  const maxVal = Math.max(1, ...series.map(d => Number(d.count ?? d.entries ?? 0)));
+  const w = 640, h = 130, pad = 20;
+  const step = (w - pad * 2) / series.length;
+  series.forEach((d, idx) => {
+    const val = Number(d.count ?? d.entries ?? 0);
+    const barH = Math.round((val / maxVal) * (h - 24));
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(pad + idx * step + 2));
+    rect.setAttribute('y', String(h - barH));
+    rect.setAttribute('width', String(Math.max(4, step - 4)));
+    rect.setAttribute('height', String(Math.max(2, barH)));
+    rect.setAttribute('rx', '2');
+    rect.setAttribute('fill', val > 0 ? '#1d4ed8' : '#e5dfd2');
+    const tip = document.createElementNS(NS, 'title');
+    tip.textContent = `${d.hour || d.date}: ${val} events`;
+    rect.append(tip);
+    svg.append(rect);
+    if (idx % Math.max(1, Math.floor(series.length / 6)) === 0) {
+      const lbl = document.createElementNS(NS, 'text');
+      lbl.setAttribute('x', String(pad + idx * step + step / 2));
+      lbl.setAttribute('y', '150'); lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('fill', '#575249'); lbl.setAttribute('font-size', '10');
+      lbl.textContent = String(d.hour || d.date || '').slice(0, 5);
+      svg.append(lbl);
+    }
+  });
+}
+
+async function loadPeopleTraffic() {
+  const tStatus = document.getElementById('traffic-status');
+  try {
+    const resp = await fetch('/api/analytics/summary', { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`Analytics summary unavailable (${resp.status}).`);
+    const data = await resp.json();
+    const foot = data.physical_footfall || {};
+    const occ = data.occupancy || {};
+    document.getElementById('kpi-entries').textContent = foot.total_entries ?? '—';
+    document.getElementById('kpi-exits').textContent = foot.total_exits ?? '—';
+    document.getElementById('kpi-checkins').textContent = foot.total_qr_checkins ?? '—';
+    document.getElementById('kpi-occupancy').textContent = occ.current_occupancy ?? '—';
+    const series = (foot.hourly_activity && foot.hourly_activity.length) ? foot.hourly_activity : (foot.daily_entries || []);
+    renderTrafficChart(series);
+    tStatus.textContent = foot.status === 'connected'
+      ? `Peak: ${foot.peak_period || 'recorded'} · Updated ${new Date().toLocaleTimeString()}`
+      : 'Not connected — no live gate or QR check-in events recorded yet.';
+  } catch (err) {
+    renderTrafficChart([]);
+    if (tStatus) tStatus.textContent = err.message;
+  }
+}
+
+document.getElementById('traffic-refresh')?.addEventListener('click', () => loadPeopleTraffic());
+document.getElementById('traffic-autorefresh')?.addEventListener('change', e => {
+  clearInterval(trafficTimer);
+  trafficTimer = e.target.checked ? setInterval(loadPeopleTraffic, 15000) : null;
 });

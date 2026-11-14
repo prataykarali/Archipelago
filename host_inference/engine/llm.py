@@ -64,11 +64,20 @@ EXPANDED_REPLY_GUIDANCE = (
 
 # Routes whose grounded draft benefits from academic phrasing.
 POLISH_ROUTES = frozenset(
-    {"GRAPH_SYNTHESIS", "GENERAL_EXPLANATION", "RELATION", "CROSS_DOMAIN", "BOOK_PAGE", "DEMO"}
+    {
+        "GRAPH_SYNTHESIS",
+        "GENERAL_EXPLANATION",
+        "RELATION",
+        "CROSS_DOMAIN",
+        "BOOK_PAGE",
+        "DEMO",
+        "MULTI_CONCEPT",
+        "DISCONNECTED",
+    }
 )
 
 XKIRO_DEFAULT_BASE_URL = "https://api.xkiro.com/v1"
-XKIRO_DEFAULT_MODEL = "qwen/qwen3.8-max:free"
+XKIRO_DEFAULT_MODEL = "cohere/command-a"
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
 NVIDIA_DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
@@ -122,10 +131,13 @@ def _build_config(provider: str) -> ProviderConfig | None:
     key = os.environ.get(PROVIDER_KEY_ENV[provider], "").strip()
     if not key:
         return None
+    model = os.environ.get(PROVIDER_MODEL_ENV[provider], PROVIDER_MODEL[provider]).strip()
+    if provider == "xkiro" and (not model or model == "qwen/qwen3.8-max:free"):
+        model = XKIRO_DEFAULT_MODEL
     return {
         "base_url": os.environ.get(PROVIDER_BASE_URL_ENV[provider], PROVIDER_BASE_URL[provider]),
         "key": key,
-        "model": os.environ.get(PROVIDER_MODEL_ENV[provider], PROVIDER_MODEL[provider]),
+        "model": model,
         "provider": provider,
     }
 

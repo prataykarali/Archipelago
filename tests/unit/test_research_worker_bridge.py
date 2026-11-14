@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 import uuid
 
@@ -44,9 +45,12 @@ def test_queue_request_retries_a_transient_disconnect(monkeypatch: pytest.Monkey
     assert attempts == 2
 
 
-def test_worker_claims_and_finishes_one_job(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_worker_claims_and_finishes_one_job(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """A successful local run claims exactly one queued request."""
     monkeypatch.setenv("DISPLAY", ":1")
+    monkeypatch.setenv("ARCHIPELAGO_NOTIFICATION_LEDGER", str(tmp_path / "ledger.json"))
     events: list[str] = []
 
     class Store:
@@ -69,16 +73,21 @@ def test_worker_claims_and_finishes_one_job(monkeypatch: pytest.MonkeyPatch) -> 
         "process_job",
         lambda _store, _job, _worker: {"job_id": "job-one", "status": "completed"},
     )
-    monkeypatch.setattr(cli, "_approve_gpu_request", lambda _topic: True)
+    monkeypatch.setattr(cli, "_preflight_check", lambda _job=None: (True, "READY", "ok"))
+    monkeypatch.setattr(cli, "_approve_gpu_request", lambda _topic, **_kw: True)
     monkeypatch.setattr(cli, "_model_ready", lambda: True)
+    monkeypatch.setattr(cli, "unload_ollama_model", lambda _model: True)
     result = cli.run_once(Store(), "worker-one")  # type: ignore[arg-type]
     assert result == {"job_id": "job-one", "status": "completed"}
     assert events == ["recover", "heartbeat", "claim", "update", "heartbeat", "heartbeat"]
 
 
-def test_worker_decline_never_starts_gpu_job(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_worker_decline_never_starts_gpu_job(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """A local cross click stops processing and records an honest failed status."""
     monkeypatch.setenv("DISPLAY", ":1")
+    monkeypatch.setenv("ARCHIPELAGO_NOTIFICATION_LEDGER", str(tmp_path / "ledger.json"))
     updates: list[dict[str, object]] = []
 
     class Store:
@@ -94,7 +103,8 @@ def test_worker_decline_never_starts_gpu_job(monkeypatch: pytest.MonkeyPatch) ->
         def update_job(self, _job_id: str, **fields: object) -> None:
             updates.append(fields)
 
-    monkeypatch.setattr(cli, "_approve_gpu_request", lambda _topic: False)
+    monkeypatch.setattr(cli, "_preflight_check", lambda _job=None: (True, "READY", "ok"))
+    monkeypatch.setattr(cli, "_approve_gpu_request", lambda _topic, **_kw: False)
     monkeypatch.setattr(cli, "_model_ready", lambda: True)
     monkeypatch.setattr(
         cli, "process_job", lambda *_args: pytest.fail("Declined job must not use GPU")
@@ -354,3 +364,158 @@ def test_complete_session_export_respects_job_access(monkeypatch: pytest.MonkeyP
     assert response.status_code == 200
     assert response.json["paper_count"] == 1
     assert response.json["papers"][0]["okf"]["okf_version"] == "2.0.0"
+
+
+@pytest.mark.parametrize(
+    "ram_gib,disk_gib,gpu_snap,job_extra,expected_reason",
+    [
+        (2.0, 20.0, {"available": True}, {}, "insufficient_ram"),
+        (8.0, 2.0, {"available": True}, {}, "insufficient_disk"),
+        (8.0, 20.0, {"available": False, "reason": "gpu_busy"}, {}, "gpu_busy"),
+        (
+            8.0,
+            20.0,
+            {"available": True, "active_models": ["other-model:latest"]},
+            {},
+            "other_ollama_model_loaded",
+        ),
+        (8.0, 20.0, {"available": True}, {"rights_verified": False}, "unverified_rights"),
+        (
+            8.0,
+            20.0,
+            {"available": True},
+            {"rights": "all-rights-reserved"},
+            "unverified_rights",
+        ),
+    ],
+)
+def test_preflight_blocks_popup_and_records_blocked_resource(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    ram_gib: float,
+    disk_gib: float,
+    gpu_snap: dict[str, object],
+    job_extra: dict[str, object],
+    expected_reason: str,
+) -> None:
+    """Failed RAM/disk/GPU/rights preflight checks must never invoke zenity."""
+    monkeypatch.setenv("DISPLAY", ":1")
+    monkeypatch.setenv("ARCHIPELAGO_NOTIFICATION_LEDGER", str(tmp_path / "ledger.json"))
+    updates: list[dict[str, object]] = []
+
+    class Store:
+        def recover_stale_jobs(self) -> int:
+            return 0
+
+        def heartbeat(self, *_args: object) -> None:
+            return None
+
+        def claim_next(self, _worker_id: str) -> dict[str, object]:
+            return {"job_id": "job-pre", "topic": "distributed systems", **job_extra}
+
+        def update_job(self, _job_id: str, **fields: object) -> None:
+            updates.append(fields)
+
+    monkeypatch.setattr(cli, "_available_ram_gib", lambda: ram_gib)
+    monkeypatch.setattr(cli, "_free_disk_gib", lambda: disk_gib)
+    monkeypatch.setattr(cli, "gpu_snapshot", lambda: gpu_snap)
+    monkeypatch.setattr(cli, "_model_ready", lambda: True)
+    monkeypatch.setattr(
+        cli, "_approve_gpu_request", lambda *_args, **_kw: pytest.fail("zenity must not run")
+    )
+
+    result = cli.run_once(Store(), "worker-one")  # type: ignore[arg-type]
+    assert result is not None
+    assert result["status"] == "deferred"
+    assert result["stage"] == "BLOCKED_RESOURCE"
+    assert expected_reason in str(result["reason"])
+    assert updates[-1]["stage"] == "BLOCKED_RESOURCE"
+
+
+def test_notification_ledger_enforces_daily_cap_8h_cooldown_suppression_and_manual_override(
+    tmp_path: Path,
+) -> None:
+    """Automatic prompts obey 2/day IST cap, 8h spacing, per-job suppression, and no poll repeats."""
+    ledger = cli.NotificationLedger(tmp_path / "ledger.json")
+    t0 = 1_794_630_000.0  # 2026-11-14 IST
+
+    # First prompt allowed; if declined, job is suppressed on subsequent polls.
+    assert ledger.can_prompt("job-1", now=t0) == (True, "ok")
+    ledger.record_prompt("job-1", approved=False, now=t0)
+    assert ledger.can_prompt("job-1", now=t0 + 60) == (False, "job_suppressed")
+
+    # Another job within 8h (28800s) is blocked by cooldown.
+    assert ledger.can_prompt("job-2", now=t0 + 28799) == (False, "prompt_cooldown_active")
+
+    # After 8h, second prompt of the day is allowed.
+    t1 = t0 + 28800
+    assert ledger.can_prompt("job-2", now=t1) == (True, "ok")
+    ledger.record_prompt("job-2", approved=True, now=t1)
+
+    # Polling loop must not re-prompt job-2.
+    assert ledger.can_prompt("job-2", now=t1 + 28800) == (False, "already_prompted_in_polling")
+
+    # Third automatic prompt on the same IST calendar day is blocked by daily cap (2/day).
+    t2 = t1 + 28800
+    if (
+        cli.datetime.fromtimestamp(t2, tz=cli.IST_TZ).date()
+        == cli.datetime.fromtimestamp(t0, tz=cli.IST_TZ).date()
+    ):
+        assert ledger.can_prompt("job-3", now=t2) == (False, "daily_prompt_cap_reached")
+
+    # Manual operator queue review remains unrestricted.
+    assert ledger.can_prompt("job-3", now=t1 + 10, manual_review=True) == (True, "manual_review")
+
+
+def test_consolidated_prompt_and_vram_unload_on_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Queued jobs consolidate into one dialog, and Ollama VRAM is unloaded after failure."""
+    monkeypatch.setenv("DISPLAY", ":1")
+    monkeypatch.setenv("ARCHIPELAGO_NOTIFICATION_LEDGER", str(tmp_path / "ledger.json"))
+    zenity_cmds: list[list[str]] = []
+    unloaded: list[str] = []
+
+    class Store:
+        def recover_stale_jobs(self) -> int:
+            return 0
+
+        def heartbeat(self, *_args: object) -> None:
+            return None
+
+        def claim_next(self, _worker_id: str) -> dict[str, object]:
+            return {
+                "job_id": "job-consolidate",
+                "topic": "graph attention",
+                "pending_count": 4,
+                "job_type": "academic_pdf_ingestion",
+            }
+
+        def update_job(self, _job_id: str, **_fields: object) -> None:
+            return None
+
+    monkeypatch.setattr(cli, "_preflight_check", lambda _job=None: (True, "READY", "ok"))
+    monkeypatch.setattr(cli, "_model_ready", lambda: True)
+    monkeypatch.setattr(cli, "_available_ram_gib", lambda: 8.0)
+    monkeypatch.setattr(cli, "_free_disk_gib", lambda: 20.0)
+    monkeypatch.setattr(cli, "indra_available", lambda: True)
+    monkeypatch.setattr(
+        cli.subprocess,
+        "run",
+        lambda args, **_kw: zenity_cmds.append(args) or SimpleNamespace(returncode=0),
+    )
+    orig_lease = cli.shared_gpu_lease
+    monkeypatch.setattr(
+        cli,
+        "shared_gpu_lease",
+        lambda **kw: orig_lease(tmp_path / "l.lock", **kw),
+    )
+    monkeypatch.setattr(
+        cli, "process_job", lambda *_args: (_ for _ in ()).throw(RuntimeError("boom"))
+    )
+    monkeypatch.setattr(cli, "unload_ollama_model", lambda model: unloaded.append(model) or True)
+
+    result = cli.run_once(Store(), "worker-one")  # type: ignore[arg-type]
+    assert result == {"job_id": "job-consolidate", "status": "failed"}
+    assert any("4 queued ingestion job(s) pending." in arg for arg in zenity_cmds[0])
+    assert unloaded == [cli.ingestion_model_name()]

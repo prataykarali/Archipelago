@@ -15,7 +15,16 @@ BOOK_TITLE_MIN_OVERLAP = 2
 BOOK_TITLE_TOKEN_MIN_LEN = 5
 # Grounded routes whose draft is worth sending to the LLM for phrasing.
 POLISHABLE_ROUTES = frozenset(
-    {"GRAPH_SYNTHESIS", "GENERAL_EXPLANATION", "RELATION", "CROSS_DOMAIN", "BOOK_PAGE", "DEMO", "MULTI_CONCEPT"}
+    {
+        "GRAPH_SYNTHESIS",
+        "GENERAL_EXPLANATION",
+        "RELATION",
+        "CROSS_DOMAIN",
+        "BOOK_PAGE",
+        "DEMO",
+        "MULTI_CONCEPT",
+        "DISCONNECTED",
+    }
 )
 # Comparison cue words that flip a relation reply into a comparative matrix.
 COMPARE_CUES = ("compare", "versus", "vs", "difference", "differ", "different", "distinguish", "contrast")

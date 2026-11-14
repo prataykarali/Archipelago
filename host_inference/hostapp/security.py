@@ -42,6 +42,7 @@ CLIENT_IP_HEADERS = ("CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
 # per-minute ceiling still applies to every method.
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 IDLE_TIMEOUT_SECONDS = 300
+PRINCIPAL_CACHE_TTL_SECONDS = 45.0
 HOURLY_QUERY_LIMIT = 10
 QUERY_WINDOW_SECONDS = 3600
 
@@ -62,6 +63,7 @@ class AuthGuard:
 
     def __init__(self) -> None:
         self._last_activity: dict[str, float] = {}
+        self._principal_cache: dict[str, tuple[dict, float]] = {}
         self._expired: set[str] = set()
         self._lock = threading.Lock()
 
@@ -71,6 +73,7 @@ class AuthGuard:
             token_id = hashlib.sha256(token.encode()).hexdigest()
             with self._lock:
                 self._last_activity.pop(token_id, None)
+                self._principal_cache.pop(token_id, None)
                 self._expired.add(token_id)
 
     def required(self) -> bool:
@@ -117,10 +120,15 @@ class AuthGuard:
             ):
                 self._expired.add(token_id)
                 self._last_activity.pop(token_id, None)
+                self._principal_cache.pop(token_id, None)
                 return (
                     None,
                     "Your session timed out after five minutes of inactivity. Sign in again.",
                 )
+            cached = self._principal_cache.get(token_id)
+            if cached is not None and (now - cached[1]) < PRINCIPAL_CACHE_TTL_SECONDS:
+                self._last_activity[token_id] = now
+                return dict(cached[0]), None
         headers = {"apikey": key, "Authorization": f"Bearer {token}"}
         try:
             user_response = requests.get(
@@ -163,6 +171,7 @@ class AuthGuard:
             return None, "Your account identity is incomplete."
         with self._lock:
             self._last_activity[token_id] = now
+            self._principal_cache[token_id] = (dict(principal), now)
         return principal, None
 
 

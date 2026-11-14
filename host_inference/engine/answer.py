@@ -153,8 +153,9 @@ class Engine:
 
         # The graph-render protocol is decided from the contract, not from which
         # branch of the router ran, so it cannot vary with query phrasing.
-        contract = contract_for(route)
-        decision = graph_decision(route)
+        contract_route = "GENERAL_EXPLANATION" if route == "CAPABILITY_INQUIRY" else route
+        contract = contract_for(contract_route)
+        decision = graph_decision(contract_route)
         payload["contract"] = contract
         payload["render_graph"] = decision.render
         payload["render_rule"] = decision.rule
@@ -167,6 +168,7 @@ class Engine:
                 re.I,
             )
         )
+        has_verified_relationships = anchor_ok and bool(pres or unl or rel)
         if (
             extra.get("hide_graph")
             or not decision.render
@@ -181,12 +183,13 @@ class Engine:
                     "RESEARCH_TOPIC",
                 }
                 and not learning_graph_requested
+                and not has_verified_relationships
             )
         ):
             payload["anchor_concept"] = None
             payload["prerequisites"] = []
             payload["unlocks"] = []
-            if extra.get("hide_graph") or not learning_graph_requested:
+            if extra.get("hide_graph") or (not learning_graph_requested and not has_verified_relationships):
                 payload["render_graph"] = False
                 payload["render_rule"] = "no_verified_graph_for_answer"
 
@@ -281,11 +284,20 @@ class Engine:
         config = provider_config() if can_polish else None
 
         if not can_polish:
+            payload["synthesis_mode"] = "verified_deterministic"
+            payload["provider"] = ""
+            payload["model"] = {"provider": "deterministic", "model": ""}
             yield json.dumps(payload) + "\n[STREAM_START]\n"
             yield grounded_text
             return
 
         safe_text = redact_for_model(grounded_text)
+        if route in {"DISCONNECTED", "MULTI_CONCEPT"}:
+            safe_text += (
+                "\n\nGuidance: Explain all requested concepts, their mathematical or conceptual "
+                "relationship, and a concise worked example. Clearly separate general explanation "
+                "from stored graph edges and do not fabricate graph links."
+            )
         if reply_detail != "expanded" and SHORT_DEFINITION_RE.match(query) and result["anchor"]:
             anchor_node = self.graph.nodes[result["anchor"]]
             safe_text = redact_for_model(str(anchor_node.get("summary") or grounded_text))
@@ -341,6 +353,8 @@ class Engine:
                 break
 
         if selected is None:
+            payload["synthesis_mode"] = "provider_unavailable_fallback"
+            payload["provider"] = "unavailable"
             payload["model"] = {"provider": "unavailable", "model": ""}
             payload["logs"].append(
                 {"step": "AI provider", "status": "error", "details": "No live reply received"}
@@ -349,6 +363,10 @@ class Engine:
             yield grounded_text
             return
 
+        payload["synthesis_mode"] = (
+            "xkiro_synthesis" if selected["provider"] == "xkiro" else "nvidia_fallback"
+        )
+        payload["provider"] = selected["provider"]
         payload["model"] = {"provider": selected["provider"], "model": selected["model"]}
         payload["logs"].append(
             {"step": selected["provider"], "status": "ok", "details": selected["model"]}
@@ -379,6 +397,55 @@ class Engine:
         "not indexed" reply — never a fabricated location.
         """
         requested = inventory.extract_title(query)
+        opac_holding = None
+        try:
+            from hostapp import koha_bridge  # type: ignore[import-not-found]
+        except ImportError:
+            try:
+                from ..hostapp import koha_bridge  # type: ignore[import-not-found]
+            except ImportError:
+                koha_bridge = None
+        if koha_bridge is not None and hasattr(koha_bridge, "lookup_chat_library_holding"):
+            try:
+                opac_holding = koha_bridge.lookup_chat_library_holding(requested or query)
+            except Exception:
+                opac_holding = None
+        if isinstance(opac_holding, dict) and opac_holding.get("title"):
+            title = str(opac_holding.get("title") or requested)
+            author = str(opac_holding.get("author") or "").strip()
+            call_num = str(opac_holding.get("call_number") or "Check OPAC record").strip()
+            library_name = str(opac_holding.get("library") or "UEM Kolkata Library").strip()
+            status = str(opac_holding.get("status") or "See OPAC record").strip()
+            source_mode = str(opac_holding.get("source_mode") or "LIVE_OPAC")
+            checked = str(
+                opac_holding.get("checked_at") or opac_holding.get("snapshot_updated_at") or ""
+            ).strip()
+            opac_url = str(opac_holding.get("url") or "https://uemk-opac.l2c2.co.in/").strip()
+            lines = [f"**{title}**" + (f" by {author}" if author else "")]
+            lines.append(f"- **Library:** {library_name}")
+            lines.append(f"- **Call number:** `{call_num}`")
+            lines.append(f"- **Availability:** {status}")
+            lines.append(
+                f"- **Source:** {source_mode}" + (f" (checked {checked})" if checked else "")
+            )
+            lines.append(f"- **OPAC record:** [{opac_url}]({opac_url})")
+            return (
+                "CATALOG_SHELF_ROUTING",
+                "\n".join(lines),
+                None,
+                {
+                    "hide_graph": True,
+                    "reason": "opac_holding_match",
+                    "score": best_score,
+                    "inventory": {
+                        "title": title,
+                        "held": True,
+                        "source_mode": source_mode,
+                        "opac_holding": opac_holding,
+                    },
+                },
+            )
+
         records = catalogue.load_catalogue()
         record, score = inventory.best_record(records, requested)
         confidence = inventory.match_confidence(score)

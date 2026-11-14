@@ -153,6 +153,7 @@ def test_explicit_deny_never_starts_gpu(
 ) -> None:
     job_id = _candidate(store, tmp_path)
     monkeypatch.setattr(worker, "gpu_snapshot", lambda: {"available": True})
+    monkeypatch.setattr(worker, "assert_exclusive_occupancy", lambda *_args: None)
     monkeypatch.setattr(worker, "desktop_consent", lambda *_args, **_kwargs: "cancel")
     monkeypatch.setattr(worker, "exclusive_gpu", lambda *_args: pytest.fail("GPU started"))
     assert worker.run_once(store, tmp_path)["status"] == "cancelled"
@@ -390,3 +391,72 @@ def test_failed_result_write_rolls_back_graph_and_results(
     assert canonical.read_bytes() == b"old graph"
     assert json.loads((tmp_path / "okf_results.json").read_text())[0]["doc_id"] == "old_doc"
     assert store.job(job_id)["status"] == "publication_failed"
+
+
+@pytest.mark.parametrize(
+    "allowed_type",
+    [
+        "academic_pdf_ingestion",
+        "opac_linked_document_ingestion",
+        "academic_concept_extraction",
+        "academic_ocr_processing",
+    ],
+)
+def test_shared_gpu_lease_allows_only_allowlisted_job_types(
+    tmp_path: Path, allowed_type: str
+) -> None:
+    from archipelago.ingestion.gpu_lease import shared_gpu_lease
+
+    with shared_gpu_lease(tmp_path / "gpu.lock", job_type=allowed_type):
+        pass
+
+
+@pytest.mark.parametrize(
+    "rejected_type",
+    [
+        "chat",
+        "research_chat",
+        "scholarly_search",
+        "research_monitoring",
+        "excel_generation",
+        "ui_rendering",
+        "experimental_research",
+        "unknown_job",
+        "",
+    ],
+)
+def test_shared_gpu_lease_rejects_disallowed_job_types(
+    tmp_path: Path, rejected_type: str
+) -> None:
+    from archipelago.ingestion.gpu_lease import GPUJobTypeRejected, shared_gpu_lease
+
+    with pytest.raises(GPUJobTypeRejected):
+        with shared_gpu_lease(tmp_path / "gpu.lock", job_type=rejected_type):
+            pass
+
+
+def test_exclusive_gpu_unloads_ollama_model_on_completion_and_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    posted: list[tuple[str, dict]] = []
+
+    class Resp:
+        def raise_for_status(self) -> None:
+            return None
+
+    monkeypatch.setattr(gpu, "assert_exclusive_occupancy", lambda _model: None)
+    monkeypatch.setattr(
+        "archipelago.ingestion.gpu_lease.requests.post",
+        lambda url, json, timeout: posted.append((url, json)) or Resp(),
+    )
+
+    with gpu.exclusive_gpu("qwen2.5:3b", lock_path=tmp_path / "gpu.lock"):
+        pass
+
+    with pytest.raises(RuntimeError, match="timeout"):
+        with gpu.exclusive_gpu("qwen2.5:3b", lock_path=tmp_path / "gpu.lock"):
+            raise RuntimeError("timeout")
+
+    assert len(posted) == 2
+    assert all(url == "http://127.0.0.1:11434/api/generate" for url, _ in posted)
+    assert all(payload["keep_alive"] == 0 and payload["model"] == "qwen2.5:3b" for _, payload in posted)

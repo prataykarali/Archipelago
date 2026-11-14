@@ -95,6 +95,33 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return "GREETING", text, None, {"hide_graph": True, "reason": "greeting"}
 
     clean_query = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
+    if classify_query_intent(clean_query) == IntentCategory.CAPABILITY_INQUIRY:
+        concept_count = len(getattr(graph, "nodes", {}) or {})
+        text = (
+            "Here is what **Archipelago** currently covers:\n\n"
+            "- **Academic domains:** Computer Science (Operating Systems, Database Systems, "
+            "Data Structures & Algorithms, Computer Networks, Compilers, Theory of Computation), "
+            "Mathematics for Machine Learning, and AI & Deep Learning.\n"
+            "- **Indexed books & PDFs:** Selected CS/AI textbooks and lecture PDFs with exact page-level citations.\n"
+            f"- **Knowledge graph:** `{concept_count}` indexed concepts (concept nodes, not textbooks) "
+            "linked by prerequisite, unlocks, and related-concept edges.\n"
+            "- **Research Intelligence:** Saved scholarly paper collections, citation networks, and "
+            "bibliometric runs (kept separate from the academic concept graph).\n"
+            "- **Institutional library catalogue:** Live UEM Kolkata OPAC lookup with authorized "
+            "Koha export snapshot fallback for physical holdings.\n"
+            "- **Interactive learning:** Concept topology graphs, prerequisite roadmaps, and adaptive diagnostic quizzes."
+        )
+        return (
+            "CAPABILITY_INQUIRY",
+            text,
+            None,
+            {
+                "hide_graph": True,
+                "reason": "capability_inquiry",
+                "score": 1.0,
+                "intent_category": IntentCategory.CAPABILITY_INQUIRY.value,
+            },
+        )
     prior_match = re.search(r"\([Ee]arlier user topics?:\s*(.+?)\)", query or "")
     prior_topics = [t.strip() for t in prior_match.group(1).split(";") if t.strip()] if prior_match else []
     shelf_query = clean_query
@@ -311,7 +338,15 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                     ],
                 },
                 "hide_graph": not bool(
-                    re.search(r"\b(prerequisites?|roadmap|learning path|study plan)\b", query, re.I)
+                    (
+                        primary
+                        and (
+                            graph.prereqs(primary, 1)
+                            or graph.unlocks(primary, 1)
+                            or graph.related(primary)
+                        )
+                    )
+                    or re.search(r"\b(prerequisites?|roadmap|learning path|study plan)\b", query, re.I)
                 ),
                 "intent_category": IntentCategory.MULTI_CONCEPT.value,
             },
