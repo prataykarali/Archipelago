@@ -344,20 +344,95 @@ def _parse_opac_detail(html: str, source_url: str) -> dict[str, object]:
     }
 
 
+_LIBRARY_QUERY_STOPWORDS = frozenset(
+    {
+        "is",
+        "are",
+        "am",
+        "was",
+        "were",
+        "do",
+        "does",
+        "did",
+        "have",
+        "has",
+        "had",
+        "can",
+        "could",
+        "would",
+        "should",
+        "we",
+        "you",
+        "there",
+        "this",
+        "that",
+        "the",
+        "a",
+        "an",
+        "in",
+        "at",
+        "on",
+        "for",
+        "of",
+        "to",
+        "from",
+        "with",
+        "by",
+        "available",
+        "availability",
+        "library",
+        "uem",
+        "uemk",
+        "kolkata",
+        "opac",
+        "catalog",
+        "catalogue",
+        "book",
+        "books",
+        "textbook",
+        "textbooks",
+        "copy",
+        "copies",
+        "check",
+        "find",
+        "search",
+        "lookup",
+        "status",
+        "shelf",
+        "call",
+        "number",
+        "edition",
+    }
+)
+
+
+def _extract_library_search_terms(query: str) -> str:
+    """Strip conversational filler so Koha OPAC and snapshot lookup match the book title/ISBN."""
+    tokens = re.findall(r"[A-Za-z0-9]+", query or "")
+    kept = [tok for tok in tokens if tok.lower() not in _LIBRARY_QUERY_STOPWORDS and len(tok) >= 2]
+    if kept:
+        return " ".join(kept)[:100]
+    return " ".join((query or "").split())[:100]
+
+
 def _snapshot_fallback(query: str) -> dict[str, object] | None:
     """Fall back cleanly to the dated Koha snapshot when live OPAC is unavailable."""
     snapshot = load_koha_snapshot()
     if not snapshot:
         return None
-    tokens = [tok for tok in re.findall(r"[a-z0-9]+", query.lower()) if len(tok) >= 2]
+    search_terms = _extract_library_search_terms(query)
+    tokens = [tok for tok in re.findall(r"[a-z0-9]+", search_terms.lower()) if len(tok) >= 2]
+    if not tokens:
+        return None
     scored: list[tuple[int, dict[str, object]]] = []
+    min_hits = 2 if len(tokens) >= 2 else 1
     for row in public_holdings(snapshot):
         haystack = " ".join(
             str(row.get(k) or "")
             for k in ("title", "authors", "isbn", "call_number", "biblionumber")
         ).lower()
-        score = sum(1 for tok in tokens if tok in haystack)
-        if score > 0:
+        score = sum(1 for tok in tokens if re.search(rf"\b{re.escape(tok)}\b", haystack))
+        if score >= min_hits:
             scored.append((score, row))
     scored.sort(key=lambda item: item[0], reverse=True)
     records = []
@@ -379,7 +454,9 @@ def _snapshot_fallback(query: str) -> dict[str, object] | None:
                 "opac_url": row["opac_url"],
             }
         )
-    primary = records[0] if records else {}
+    if not records:
+        return None
+    primary = records[0]
     return {
         "query": query,
         "source_mode": "KOHA_EXPORT_SNAPSHOT",
@@ -399,7 +476,7 @@ def _snapshot_fallback(query: str) -> dict[str, object] | None:
 
 def lookup_chat_library_holding(query: str) -> dict[str, object] | None:
     """Query the live UEM Kolkata OPAC for chat, falling back to Koha snapshot on error."""
-    cleaned = " ".join((query or "").split())[:100]
+    cleaned = _extract_library_search_terms(query)
     if len(cleaned) < 2:
         return None
     checked_at = datetime.now(UTC).isoformat()
