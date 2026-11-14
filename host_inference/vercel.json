@@ -7,6 +7,7 @@
     }
   },
   "crons": [
-    {"path": "/api/research/intake/scheduled", "schedule": "0 3 * * *"}
+    {"path": "/api/research/intake/scheduled", "schedule": "0 3 * * *"},
+    {"path": "/api/internal/s5-monitor-tick", "schedule": "0 4 * * *"}
   ]
 }

@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en" class="h-full bg-[#08071b]">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Graph — Librarian Space</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+  <script type="module" src="/auth_bridge.js"></script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1b1549, #0a0a25 68%, #08071b); }
+    #graph canvas { filter: drop-shadow(0 0 7px #6b5cdb99); }
+    #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .45; background-image: radial-gradient(#7561c3 1px, transparent 1px); background-size: 28px 28px; }
+    .graph-frame { box-shadow: 0 25px 90px #02010fbd, inset 0 0 0 1px #4e3c9966; }
+    .graph-panel { background: linear-gradient(150deg, #171337ee, #0e0d28ee); backdrop-filter: blur(16px); position: absolute; right: 20px; top: 92px; width: min(330px, 30vw); max-height: calc(100% - 110px); overflow: auto; z-index: 2; box-shadow: 0 20px 60px #050115aa; }
+    .graph-stage { position: relative; }
+    .graph-toolbar { position: absolute; z-index: 3; left: 24px; top: 24px; width: min(620px, calc(100% - 390px)); }
+    .graph-toolbar input { background: #100a2ccf; backdrop-filter: blur(12px); }
+    main { max-width: none !important; padding: 0 !important; }
+    .academic-hero { min-height: 250px; display: flex; align-items: center; margin: 24px 24px 0; padding: clamp(24px, 5vw, 56px); background-image: linear-gradient(90deg, #110521f2 0%, #18072bc9 45%, #18072b35 100%), url('/assets/research_archipelago_v2.webp') !important; background-position: center; background-size: cover; }
+    .graph-frame { border-radius: 0; border: 0; }
+    @media(max-width: 760px) { .graph-panel { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 31vh; } .graph-toolbar { left: 12px; top: 12px; width: calc(100% - 24px); } #graph { height: calc(100vh - 70px); min-height: 580px; } }
+    .graph-panel [hidden] { display: none !important; }
+    .graph-panel button:focus-visible, #query:focus-visible { outline: 2px solid #bca5ff; outline-offset: 2px; }
+    .academic-hero { position: relative; overflow: hidden; border: 1px solid #7b47b5; border-radius: 24px; background: radial-gradient(circle at 78% 48%, #6f13aa, #290753 35%, #100826 75%); box-shadow: 0 26px 70px #05010e91; }
+    .academic-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .3; background-image: radial-gradient(#dda8ff 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, #000, transparent); }
+    .academic-hero-copy { position: relative; z-index: 1; }
+    .academic-emblem { position: relative; display: grid; place-items: center; width: 180px; height: 180px; border: 1px solid #d78cff; border-radius: 50%; box-shadow: 0 0 55px #bf46ff88, inset 0 0 55px #bc52ff55; color: #f6d5ff; font-size: 88px; transform: rotate(-18deg); }
+    .academic-emblem::before { content: ''; position: absolute; inset: 23px; border: 2px solid #df95ff; border-radius: 30%; transform: rotate(32deg); }
+    @media(max-width: 640px) { .academic-emblem { display: none; } }
+  </style>
+  <link rel="stylesheet" href="/academic_light.css">
+</head>
+<body class="min-h-full bg-[#08071b] text-slate-100">
+  <header class="border-b border-violet-300/20 bg-[#0b0923]">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <a href="/librarian" class="font-semibold tracking-wide text-violet-200">Archipelago <span class="text-white/50">/ Librarian Space / Graph</span></a>
+      <nav class="flex gap-4 text-sm text-white/70"><a href="/librarian" class="hover:text-white">Overview</a><a href="/librarian/catalog" class="hover:text-white">Catalogue</a><a href="/librarian/circulation" class="hover:text-white">Circulation</a><a href="/librarian/orders" class="hover:text-white">Orders</a><a href="/librarian/fines" class="hover:text-white">Fines</a><a href="/research" class="hover:text-white">Research</a></nav>
+    </div>
+  </header>
+  <main class="mx-auto max-w-7xl px-5 py-8">
+    <section class="academic-hero" aria-labelledby="academic-hero-title">
+      <div class="academic-hero-copy"><p class="text-xs font-bold uppercase tracking-[.22em] text-fuchsia-200">Archipelago / Academic atlas</p><h1 id="academic-hero-title" class="mt-3 text-4xl font-bold tracking-tight text-white">A universe of connected ideas</h1><p class="mt-3 max-w-xl text-violet-100">Explore the library knowledge graph, then follow a topic into scholarly research.</p></div>
+    </section>
+    <aside class="border-b border-violet-300/20 bg-[#120d2e] px-5 py-3 text-sm text-violet-100" aria-label="Scholarly research">
+      Looking for papers? <a href="/research#topic-form" class="font-semibold underline underline-offset-4">Open Research Intelligence</a> for source-linked metadata search, saved runs and Excel export. Browsing this academic graph needs no SLM or OCR.
+    </aside>
+    <div class="graph-stage">
+      <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-violet-200">Librarian Space / Knowledge graph · select a concept to focus its connections</p><form id="search-form" class="flex w-full gap-2">
+        <label for="query" class="sr-only">Search a concept</label>
+        <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="min-w-0 flex-1 rounded-xl border border-violet-300/25 px-4 py-3 outline-none focus:border-violet-300/70">
+        <button class="rounded-xl bg-violet-400 px-5 py-3 font-semibold text-[#100827] hover:bg-violet-300">Explore</button>
+      </form></div>
+      <section class="graph-frame overflow-hidden bg-[#0b0923]"><div id="graph" aria-label="Interactive full-screen academic knowledge graph"></div></section>
+      <aside class="graph-panel rounded-2xl border border-violet-300/20 p-5">
+        <button id="show-core" type="button" class="mb-4 w-full rounded-xl border border-violet-300/30 bg-violet-500/15 px-4 py-3 text-left text-sm font-semibold text-violet-100 hover:bg-violet-500/25">← Main concepts</button>
+        <button id="explore-node" type="button" hidden class="mb-4 w-full rounded-xl border border-fuchsia-300/50 bg-fuchsia-500/20 px-4 py-3 text-left text-sm font-semibold text-white">Explore selected concept ↗</button>
+        <div class="mb-4 flex flex-wrap gap-3 text-xs text-white/60" aria-label="Relationship colors"><span><span class="text-blue-300">◆</span> Requires</span><span><span class="text-pink-300">◆</span> Unlocks</span><span><span class="text-violet-300">◆</span> Related</span><span><span class="text-teal-300">◆</span> Source document</span><span><span class="text-amber-300">◆</span> Other saved OKF links</span></div>
+        <div class="flex flex-wrap gap-2" aria-label="Graph controls">
+          <button id="zoom-in" type="button" class="rounded-lg border border-white/20 px-3 py-2" aria-label="Zoom in">+</button>
+          <button id="zoom-out" type="button" class="rounded-lg border border-white/20 px-3 py-2" aria-label="Zoom out">−</button>
+          <button id="zoom-fit" type="button" class="rounded-lg border border-white/20 px-3 py-2">Fit graph</button>
+        </div>
+        <p id="graph-status" role="status" class="text-sm text-white/60">Loading graph…</p>
+        <h2 id="node-title" class="mt-4 text-lg font-semibold text-violet-200">Select a node</h2>
+        <p id="node-summary" class="mt-2 text-sm leading-6 text-white/70">Select a concept to reveal its neighborhood.</p>
+        <dl id="node-facts" class="mt-5 grid grid-cols-2 gap-2 text-xs" hidden></dl>
+        <div id="node-sources" class="mt-5 text-xs leading-5 text-violet-100"></div>
+        <form id="graph-annotation-form" class="mt-5 space-y-2 border-t border-white/10 pt-4" hidden>
+          <h3 class="font-semibold text-violet-100">Curate this concept</h3>
+          <label for="graph-annotation-summary" class="block text-xs text-white/70">Source-backed summary</label>
+          <textarea id="graph-annotation-summary" required maxlength="2000" rows="4" class="w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-sm text-white"></textarea>
+          <label for="graph-annotation-source" class="block text-xs text-white/70">HTTPS source URL</label>
+          <input id="graph-annotation-source" type="url" maxlength="500" placeholder="https://…" class="w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-sm text-white">
+          <button type="submit" class="rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-500">Save annotation</button>
+          <p id="graph-annotation-status" role="status" class="text-xs text-amber-200"></p>
+        </form>
+        <p class="mt-6 text-xs leading-5 text-white/45">The graph reads the indexed Archipelago corpus. Librarians can save source-backed annotations for concepts.</p>
+      </aside>
+    </div>
+    <section id="library-details" class="mx-auto max-w-7xl px-5 py-10" aria-labelledby="koha-title">
+      <p class="text-xs font-bold uppercase tracking-[.22em] text-violet-300">Academic atlas / library details</p>
+      <h2 id="koha-title" class="mt-2 text-3xl font-bold text-white">Koha catalogue exports</h2>
+      <p id="koha-status" role="status" class="mt-2 text-sm text-amber-200">Checking the latest authorized export…</p>
+      <section class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5" aria-labelledby="daily-opac-title">
+        <h3 id="daily-opac-title" class="text-lg font-semibold text-violet-100">Daily OPAC updates</h3>
+        <p id="daily-opac-status" class="mt-1 text-xs text-white/60"></p>
+        <div id="daily-opac-sections" class="mt-4 grid gap-3 md:grid-cols-2"></div>
+        <h4 class="mt-5 font-semibold text-white">New arrivals shown by OPAC</h4>
+        <ul id="daily-opac-arrivals" class="mt-2 grid gap-2 text-sm md:grid-cols-2"></ul>
+      </section>
+      <section class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5" aria-labelledby="live-opac-title">
+        <h3 id="live-opac-title" class="text-lg font-semibold text-violet-100">Search the live UEM catalogue</h3>
+        <p class="mt-1 text-xs text-white/60">Checks public OPAC records when you search. Results show the source and retrieval time; no books are ingested.</p>
+        <form id="live-opac-form" class="mt-4 flex flex-wrap gap-2">
+          <label for="live-opac-query" class="sr-only">Book title, author, or ISBN</label>
+          <input id="live-opac-query" required minlength="2" maxlength="100" placeholder="Book title, author, or ISBN" class="min-w-64 flex-1 rounded-lg border border-violet-300/30 bg-[#100a2c] p-3 text-white">
+          <button type="submit" class="rounded-lg bg-violet-600 px-5 py-3 font-semibold text-white hover:bg-violet-500">Search OPAC</button>
+        </form>
+        <p id="live-opac-status" role="status" class="mt-3 text-sm text-amber-200"></p>
+        <div id="live-opac-results" class="mt-3 space-y-3"></div>
+      </section>
+      <div id="koha-counts" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"></div>
+      <section class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5" aria-labelledby="repository-title">
+        <h3 id="repository-title" class="text-lg font-semibold text-violet-100">UEM repository updates</h3>
+        <p class="mt-1 text-xs text-white/60">Public item links from the institutional repository feed. Files are not ingested automatically.</p>
+        <ul id="repository-candidates" class="mt-3 space-y-2 text-sm"></ul>
+      </section>
+      <div class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5">
+        <label for="koha-kind" class="text-sm font-semibold">Dataset</label>
+        <select id="koha-kind" class="ml-2 rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-white"><option value="holdings">Holdings</option><option value="journal_issues">Journal issues</option><option value="subject_counts">Subject counts</option><option value="subject_titles">Subject titles</option></select>
+        <label for="koha-search" class="sr-only">Search Koha metadata</label>
+        <input id="koha-search" placeholder="Search catalogue metadata" class="mt-4 w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-3 text-white">
+        <p id="koha-results" class="my-3 text-xs text-white/60"></p>
+        <div class="max-h-[460px] overflow-auto"><table class="w-full min-w-[650px] text-left text-xs"><thead id="koha-head" class="sticky top-0 bg-[#171337] text-violet-200"></thead><tbody id="koha-body" class="divide-y divide-white/10"></tbody></table></div>
+      </div>
+    </section>
+  </main>
+  <script src="/academic_koha.js" defer></script>
+  <script src="/academic_opac_live.js" defer></script>
+  <script>
+    let cy;
+    let currentTarget = '';
+    let selectedConceptId = '';
+    let canEditGraph = false;
+    const status = document.getElementById('graph-status');
+    const title = document.getElementById('node-title');
+    const summary = document.getElementById('node-summary');
+    const facts = document.getElementById('node-facts');
+    const sourceList = document.getElementById('node-sources');
+    const queryInput = document.getElementById('query');
+    const annotationForm = document.getElementById('graph-annotation-form');
+    const annotationSummary = document.getElementById('graph-annotation-summary');
+    const annotationSource = document.getElementById('graph-annotation-source');
+    const annotationStatus = document.getElementById('graph-annotation-status');
+
+    async function loadAnnotation(conceptId) {
+      annotationForm.hidden = !canEditGraph || !conceptId;
+      annotationSummary.value = '';
+      annotationSource.value = '';
+      annotationStatus.textContent = '';
+      if (!conceptId) return;
+      try {
+        const response = await fetch('/api/research/graph/annotation?' + new URLSearchParams({ concept_id: conceptId }), { cache: 'no-store' });
+        if (!response.ok || selectedConceptId !== conceptId) return;
+        const { annotation } = await response.json();
+        if (!annotation) return;
+        summary.textContent = annotation.summary;
+        annotationSummary.value = annotation.summary;
+        annotationSource.value = annotation.source_url || '';
+        if (annotation.source_url) {
+          const link = document.createElement('a');
+          link.href = annotation.source_url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.className = 'mt-2 block text-violet-200 underline';
+          link.textContent = 'Curated source ↗';
+          sourceList.append(link);
+        }
+      } catch (_) { annotationStatus.textContent = 'Curated details are temporarily unavailable.'; }
+    }
+
+    annotationForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!canEditGraph || !selectedConceptId) return;
+      annotationStatus.textContent = 'Saving…';
+      try {
+        const response = await fetch('/api/research/graph/annotation', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ concept_id: selectedConceptId, summary: annotationSummary.value.trim(), source_url: annotationSource.value.trim() })
+        });
+        if (!response.ok) throw new Error(`Save returned ${response.status}`);
+        annotationStatus.textContent = 'Annotation saved.';
+        summary.textContent = annotationSummary.value.trim();
+      } catch (error) { annotationStatus.textContent = `Could not save: ${error.message}`; }
+    });
+
+    function showNode(node) {
+      selectedConceptId = node.kind === 'source_document' ? '' : node.id;
+      title.textContent = node.name || node.id;
+      summary.textContent = node.summary || 'No summary is available for this graph node.';
+      facts.replaceChildren();
+      const entries = [
+        ['Type', node.kind],
+        ['Level', node.difficulty],
+        ['Source documents', node.source_count],
+        ['Connections', node.degree],
+        ['Page', node.page_number]
+      ].filter(([, value]) => value !== '' && value !== undefined && value !== null);
+      entries.forEach(([label, value]) => {
+        const item = document.createElement('div');
+        item.className = 'rounded-lg border border-violet-300/20 bg-violet-500/10 p-2';
+        const term = document.createElement('dt');
+        term.className = 'text-white/50';
+        term.textContent = label;
+        const detail = document.createElement('dd');
+        detail.className = 'mt-1 font-semibold text-violet-100';
+        detail.textContent = String(value);
+        item.append(term, detail);
+        facts.append(item);
+      });
+      facts.hidden = !entries.length;
+      sourceList.replaceChildren();
+      const documents = Array.isArray(node.source_documents) ? node.source_documents : [];
+      if (documents.length) {
+        const heading = document.createElement('strong');
+        heading.textContent = 'Source trail';
+        sourceList.append(heading);
+        documents.forEach(source => {
+          const item = document.createElement('p');
+          item.textContent = `${source.title}${source.page_number ? ` · page ${source.page_number}` : ''}`;
+          sourceList.append(item);
+        });
+      }
+      loadAnnotation(selectedConceptId);
+    }
+
+    function renderGraph(data, overview = false) {
+      if (cy) cy.destroy();
+      const anchorId = data.target_id || data.nodes[0]?.data.id;
+      const neighbors = data.nodes.filter(item => item.data.id !== anchorId);
+      const centerX = 520;
+      const centerY = 430;
+      const visibleEdges = data.edges;
+      const positions = new Map([[anchorId, { x: centerX, y: centerY }]]);
+      const orbit = overview ? data.nodes : neighbors;
+      orbit.forEach((item, index) => {
+        const ringSize = overview ? 6 : 12;
+        const ring = Math.floor(index / ringSize);
+        const ringCount = Math.min(ringSize, orbit.length - ring * ringSize);
+        const angle = ((index % ringSize) / Math.max(1, ringCount)) * Math.PI * 2 - Math.PI / 2 + ring * .2;
+        const radius = (overview ? 220 : 315) + ring * 160;
+        positions.set(item.data.id, { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius });
+      });
+      const anchor = data.nodes.find(item => item.data.id === anchorId)?.data;
+      const sourceDocuments = overview ? [] : (anchor?.source_documents || []);
+      const sourceNodes = sourceDocuments.map((source, index) => ({
+        data: {
+          id: `source:${anchorId}:${index}`, name: source.title, kind: 'source_document',
+          summary: `Recorded source document for ${anchor.name}.`, page_number: source.page_number
+        },
+        position: { x: centerX + Math.cos(index * 1.25) * 460, y: centerY + Math.sin(index * 1.25) * 380 }
+      }));
+      const sourceEdges = sourceNodes.map((item, index) => ({ data: {
+        id: `source-edge:${anchorId}:${index}`, source: anchorId, target: item.data.id,
+        rel_label: 'SOURCED_FROM'
+      } }));
+      currentTarget = overview ? '' : anchorId;
+      document.getElementById('explore-node').hidden = true;
+      cy = cytoscape({
+        container: document.getElementById('graph'),
+        elements: [
+          ...data.nodes.map(item => ({ ...item, position: positions.get(item.data.id), classes: !overview && item.data.id === anchorId ? 'target-node' : '' })),
+          ...sourceNodes, ...visibleEdges, ...sourceEdges
+        ],
+        layout: { name: 'preset', fit: true, padding: 42 },
+        minZoom: 0.35,
+        maxZoom: 2.2,
+        style: [
+          { selector: 'node', style: { 'shape': 'ellipse', 'background-color': '#ecfaf4', 'border-width': 2, 'border-color': '#16a085', 'label': 'data(name)', 'color': '#153a33', 'font-size': 11, 'font-weight': 700, 'text-wrap': 'wrap', 'text-max-width': 88, 'text-valign': 'center', 'text-halign': 'center', 'width': 112, 'height': 112, 'underlay-color': '#5de4bf', 'underlay-opacity': .16, 'underlay-padding': 12, 'underlay-shape': 'ellipse' } },
+          { selector: 'node.target-node', style: { 'background-color': '#0d9374', 'border-color': '#006b57', 'color': '#ffffff', 'width': 142, 'height': 142, 'font-size': 14, 'font-weight': 700, 'underlay-color': '#39cf9f', 'underlay-padding': 18, 'underlay-opacity': .33 } },
+          { selector: 'node[kind = "source_document"]', style: { 'background-color': '#e8f1ff', 'border-color': '#6799d9', 'width': 76, 'height': 76, 'font-size': 10 } },
+          { selector: 'edge', style: { 'width': 2, 'line-color': '#a7c5ba', 'target-arrow-color': '#6da898', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'label': overview ? '' : 'data(rel_label)', 'font-size': 8, 'color': '#396a5d', 'text-rotation': 'autorotate', 'text-background-color': '#ffffff', 'text-background-opacity': .95, 'text-background-padding': 3 } },
+          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#3995d3', 'target-arrow-color': '#3995d3' } },
+          { selector: 'edge[rel_label = "UNLOCKS"]', style: { 'line-color': '#d965a5', 'target-arrow-color': '#d965a5' } },
+          { selector: 'edge[rel_label = "SOURCED_FROM"]', style: { 'line-color': '#13ae89', 'target-arrow-color': '#13ae89' } },
+          { selector: '.muted', style: { 'opacity': .13, 'text-opacity': .12 } },
+          { selector: '.focused', style: { 'opacity': 1, 'border-width': 3, 'border-color': '#008d72', 'underlay-padding': 18, 'underlay-opacity': .45 } },
+          { selector: 'edge.focused', style: { 'label': 'data(rel_label)', 'width': 3 } },
+          { selector: ':selected', style: { 'border-color': '#008d72', 'border-width': 3 } }
+        ]
+      });
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        cy.elements().style('opacity', 0);
+        cy.elements().animate({ style: { opacity: 1 } }, { duration: 500 });
+      }
+      cy.on('tap', 'node', event => {
+        const node = event.target.data();
+        showNode(node);
+        cy.elements().removeClass('muted focused');
+        cy.elements().addClass('muted');
+        const connected = event.target.closedNeighborhood();
+        connected.removeClass('muted').addClass('focused');
+        status.textContent = `${connected.nodes().length - 1} related nodes · ${connected.edges().length} direct connections`;
+        const explore = document.getElementById('explore-node');
+        explore.hidden = node.kind === 'source_document' || node.id === currentTarget;
+        explore.onclick = () => loadGraph({ target_id: node.id, max_nodes: '20' }).catch(showError);
+      });
+      if (overview) {
+        selectedConceptId = '';
+        annotationForm.hidden = true;
+        title.textContent = 'Main concepts';
+        summary.textContent = 'Select any concept card to reveal its stored relationships and source-grounded description.';
+        facts.replaceChildren();
+        facts.hidden = true;
+        sourceList.replaceChildren();
+        status.textContent = `${data.counts?.concepts || data.nodes.length} indexed concepts · showing ${data.nodes.length} main concepts`;
+      } else {
+        if (anchor) showNode(anchor);
+        status.textContent = `${data.nodes.length} connected concepts · ${visibleEdges.length} direct links · ${sourceDocuments.length} source documents shown`;
+      }
+    }
+
+    async function loadGraph(params) {
+      status.textContent = 'Loading connected concepts…';
+      const response = await fetch('/api/graph/subgraph?' + new URLSearchParams(params), { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || 'Could not load this graph neighborhood.');
+      renderGraph(data);
+    }
+
+    async function loadOverview() {
+      status.textContent = 'Loading main concepts…';
+      const response = await fetch('/api/graph/hubs', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || 'Could not load the main concepts.');
+      if (!data.nodes?.length) throw new Error('No indexed concepts are available.');
+      if (window.matchMedia('(max-width: 760px)').matches) {
+        const nodes = data.nodes.slice(0, 6);
+        const ids = new Set(nodes.map(node => node.data.id));
+        renderGraph({ ...data, nodes, edges: data.edges.filter(edge => ids.has(edge.data.source) && ids.has(edge.data.target)) }, true);
+      } else {
+        renderGraph(data, true);
+      }
+    }
+
+    function showError(error) { status.textContent = error.message || 'Graph request failed.'; }
+    document.getElementById('search-form').addEventListener('submit', event => {
+      event.preventDefault();
+      loadGraph({ q: queryInput.value.trim(), max_nodes: '20' }).catch(showError);
+    });
+    document.getElementById('show-core').addEventListener('click', () => loadOverview().catch(showError));
+    document.getElementById('zoom-in').addEventListener('click', () => cy?.zoom({ level: Math.min(cy.maxZoom(), cy.zoom() * 1.25), renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    document.getElementById('zoom-out').addEventListener('click', () => cy?.zoom({ level: Math.max(cy.minZoom(), cy.zoom() / 1.25), renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }));
+    document.getElementById('zoom-fit').addEventListener('click', () => cy?.fit(undefined, 36));
+    window.addEventListener('load', async () => {
+      const { config } = await window.archipelagoAuthReady;
+      if (config?.required) {
+        const principal = await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']);
+        if (!principal) return;
+        canEditGraph = ['librarian', 'administrator'].includes(principal.role);
+      }
+      const initial = new URLSearchParams(location.search).get('q');
+      if (initial) {
+        queryInput.value = initial;
+        loadGraph({ q: initial, max_nodes: '20' }).catch(showError);
+      } else {
+        loadOverview().catch(() => loadGraph({ q: 'graph retrieval', max_nodes: '20' }).catch(showError));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -6,8 +6,10 @@ Authoritative DOI metadata, funding, license, and update status resolver.
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import logging
+import re
 from typing import Any
 import urllib.parse
 import urllib.request
@@ -20,6 +22,13 @@ from archipelago.scholarly.contracts.okf_models import (
 )
 
 logger = logging.getLogger("archipelago.scholarly.crossref")
+
+
+def _clean_author_name(raw: str) -> str:
+    """Normalize whitespace, HTML entities, and stray comma-glued tokens in author names."""
+    unescaped = html.unescape(raw or "")
+    spaced = re.sub(r",(?=[A-Za-z])", ", ", unescaped)
+    return " ".join(spaced.split()).strip(" ,;") or "Unknown"
 
 
 class CrossrefAdapter:
@@ -78,9 +87,10 @@ class CrossrefAdapter:
 
         authors = []
         for a in item.get("author", []):
-            given = a.get("given", "")
-            family = a.get("family", "")
-            full_name = f"{given} {family}".strip() or "Unknown"
+            given = str(a.get("given") or "").strip()
+            family = str(a.get("family") or "").strip()
+            raw_name = f"{given} {family}".strip() or str(a.get("name") or "").strip()
+            full_name = _clean_author_name(raw_name)
             authors.append(
                 PaperAuthor(
                     name=full_name,

@@ -10,6 +10,7 @@ from flask import Flask
 
 from ..context import AppContext
 from . import (
+    analytics,
     auth,
     chat,
     graph,
@@ -30,6 +31,7 @@ from . import (
 
 MODULES = (
     pages,
+    analytics,
     graph,
     auth,
     library,

@@ -22,6 +22,7 @@ MODULES = (
     "archipelago/scholarly/features/feature_engine.py",
     "archipelago/scholarly/pipeline/relevance.py",
     "archipelago/scholarly/intelligence/__init__.py",
+    "archipelago/scholarly/intelligence/analytics.py",
     "archipelago/scholarly/intelligence/enrichment.py",
     "archipelago/scholarly/intelligence/extraction.py",
     "archipelago/scholarly/intelligence/graph.py",

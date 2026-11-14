@@ -6,8 +6,10 @@ Primary discovery backbone connecting to OpenAlex works, topics, institutions, a
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import logging
+import re
 from typing import Any
 import urllib.parse
 import urllib.request
@@ -20,6 +22,13 @@ from archipelago.scholarly.contracts.okf_models import (
 )
 
 logger = logging.getLogger("archipelago.scholarly.openalex")
+
+
+def _clean_author_name(raw: str) -> str:
+    """Normalize whitespace, HTML entities, and stray comma-glued tokens in author names."""
+    unescaped = html.unescape(raw or "")
+    spaced = re.sub(r",(?=[A-Za-z])", ", ", unescaped)
+    return " ".join(spaced.split()).strip(" ,;") or "Unknown"
 
 
 class OpenAlexAdapter:
@@ -68,7 +77,7 @@ class OpenAlexAdapter:
         authors = []
         for auth_entry in item.get("authorships", []):
             author_obj = auth_entry.get("author", {})
-            name = author_obj.get("display_name", "Unknown")
+            name = _clean_author_name(str(author_obj.get("display_name") or ""))
             institutions = [
                 inst.get("display_name")
                 for inst in auth_entry.get("institutions", [])

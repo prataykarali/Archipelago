@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Library Analytics — Archipelago</title>
+  <link rel="stylesheet" href="/librarian.css">
+  <script type="module" src="/auth_bridge.js"></script>
+  <style>
+    :root { --an-bg:#f7f4ed; --an-surface:#fffdf8; --an-border:#d8d0c1; --an-ink:#171512; --an-muted:#575249; --an-accent:#1d4ed8; --an-ok:#166534; --an-ok-bg:#dcfce7; --an-warn:#92400e; --an-warn-bg:#fef3c7; }
+    body { background:var(--an-bg); color:var(--an-ink); font-variant-numeric:tabular-nums; margin:0; }
+    .analytics-shell { max-width:1280px; margin:0 auto; padding:24px 20px 64px; }
+    .filter-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:16px; margin:18px 0 24px; align-items:end; }
+    .filter-bar label, .event-grid label { display:block; font-size:0.78rem; font-weight:600; color:var(--an-muted); margin-bottom:4px; }
+    .filter-bar input, .filter-bar select, .event-grid input, .event-grid select { width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid var(--an-border); border-radius:6px; background:#fff; color:var(--an-ink); font-size:0.9rem; }
+    .btn-primary { background:var(--an-ink); color:#fff; border:1px solid var(--an-ink); border-radius:6px; padding:9px 14px; font-weight:600; cursor:pointer; }
+    .btn-primary:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--an-accent); outline-offset:2px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-bottom:24px; }
+    .kpi-card { background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:16px; }
+    .kpi-card h2 { font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--an-muted); margin:0 0 8px; }
+    .kpi-value { font-size:1.35rem; font-weight:700; margin:0 0 6px; word-break:break-word; }
+    .kpi-sub { font-size:0.82rem; color:var(--an-muted); margin:0; }
+    .badge { display:inline-block; padding:3px 8px; border-radius:999px; font-size:0.76rem; font-weight:600; }
+    .badge-ok { background:var(--an-ok-bg); color:var(--an-ok); }
+    .badge-disconnected { background:var(--an-warn-bg); color:var(--an-warn); }
+    .panel { background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:18px; margin-bottom:22px; overflow-x:auto; }
+    .panel h2 { margin:0 0 6px; font-size:1.1rem; }
+    .panel p.sub { margin:0 0 14px; font-size:0.88rem; color:var(--an-muted); }
+    .two-col { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; }
+    table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+    th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--an-border); vertical-align:top; }
+    th { font-weight:600; color:var(--an-muted); }
+    .event-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; align-items:end; }
+    .notes-list { margin:0; padding-left:18px; font-size:0.88rem; color:var(--an-muted); line-height:1.5; }
+    @media (max-width:640px) { .analytics-shell { padding:14px 12px 48px; } .two-col { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/librarian">✳ Archipelago <span>/ Library Analytics</span></a>
+    <nav aria-label="Site">
+      <a href="/">Home</a>
+      <a href="/library">Library Details</a>
+      <a href="/librarian">Librarian Space</a>
+      <a href="/research">Research Intelligence</a>
+      <a href="/academic/graph">Academic Graph</a>
+      <a href="/academic-automation">Academic Automation</a>
+    </nav>
+  </header>
+  <main class="analytics-shell" id="analytics-main">
+    <div class="intro">
+      <p class="eyebrow">S6 INSTITUTIONAL LIBRARY ANALYTICS</p>
+      <h1>Source-Verified Library &amp; Circulation Analytics</h1>
+      <p id="analytics-status" role="status" aria-live="polite">Verifying staff session and institutional data sources…</p>
+    </div>
+    <form id="analytics-filter-form" class="filter-bar" aria-label="Analytics filters">
+      <div><label for="filter-from">From (UTC / ISO date)</label><input id="filter-from" type="date"></div>
+      <div><label for="filter-to">To (UTC / ISO date)</label><input id="filter-to" type="date"></div>
+      <div><label for="filter-source">Source adapter</label>
+        <select id="filter-source">
+          <option value="">All verified sources</option>
+          <option value="staff_manual_counter">Staff manual counter</option>
+          <option value="koha_circulation_sync">Koha circulation sync</option>
+          <option value="qr_gate_adapter">QR gate adapter</option>
+          <option value="inventory_audit">Inventory audit</option>
+          <option value="academic_event_log">Academic event log</option>
+        </select>
+      </div>
+      <div><label for="filter-tz">Reporting timezone</label>
+        <select id="filter-tz">
+          <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </div>
+      <div><button id="refresh-analytics" type="submit" class="btn-primary">Apply filters</button></div>
+    </form>
+    <section class="kpi-grid" id="kpi-cards" aria-label="Key metrics">
+      <article class="kpi-card"><h2>Physical Library Footfall</h2><p class="kpi-value" id="kpi-footfall">Data source not connected</p><p class="kpi-sub" id="kpi-footfall-sub">Website visits and book loans are never counted as footfall.</p></article>
+      <article class="kpi-card"><h2>Current Occupancy</h2><p class="kpi-value" id="kpi-occupancy">Data source not connected</p><p class="kpi-sub" id="kpi-occupancy-sub">Automated room occupancy sensors not linked.</p></article>
+      <article class="kpi-card"><h2>Peak Activity Window</h2><p class="kpi-value" id="kpi-peak">Data source not connected</p><p class="kpi-sub" id="kpi-peak-sub">Computed in selected campus timezone.</p></article>
+      <article class="kpi-card"><h2>Koha Circulation &amp; Copies</h2><p class="kpi-value" id="kpi-circulation">—</p><p class="kpi-sub" id="kpi-circulation-sub">Authorized Koha ODS holdings snapshot.</p></article>
+    </section>
+    <section class="panel" aria-labelledby="heading-source-audit">
+      <h2 id="heading-source-audit">1. Institutional Source Connection Audit</h2>
+      <p class="sub">Explicit verification of every physical, attendance, occupancy, circulation, and inventory feed. Unconnected sensors are never simulated.</p>
+      <table><thead><tr><th>Category</th><th>Status</th><th>Adapter</th><th>Verified Records</th><th>Integrity &amp; Scope Note</th></tr></thead><tbody id="source-audit-rows"></tbody></table>
+    </section>
+    <div class="two-col">
+      <section class="panel" aria-labelledby="heading-subjects">
+        <h2 id="heading-subjects">2. Subject Categories (Koha + Circulation)</h2>
+        <p class="sub">Top catalogued and circulated subject classifications from verified institutional records.</p>
+        <table><thead><tr><th>Subject Category</th><th>Titles / Events</th></tr></thead><tbody id="subject-rows"></tbody></table>
+      </section>
+      <section class="panel" aria-labelledby="heading-trends">
+        <h2 id="heading-trends">3. Daily, Hourly &amp; Monthly Activity Trends</h2>
+        <p class="sub" id="trends-sub">Aggregated from verified non-demo events in the selected window.</p>
+        <table><thead><tr><th>Period / Window</th><th>Verified Count</th></tr></thead><tbody id="trend-rows"></tbody></table>
+      </section>
+    </div>
+    <section class="panel" id="event-ingestion-panel" aria-labelledby="heading-record-event">
+      <h2 id="heading-record-event">4. Record Verified Staff / Gate Event (Librarian &amp; Admin Only)</h2>
+      <p class="sub">Privacy-preserving ingestion: aggregate counts only. Student IDs, names, emails, and phone numbers are strictly rejected.</p>
+      <form id="event-form" class="event-grid">
+        <div><label for="event-source">Source Adapter</label>
+          <select id="event-source" required>
+            <option value="staff_manual_counter">staff_manual_counter</option>
+            <option value="koha_circulation_sync">koha_circulation_sync</option>
+            <option value="qr_gate_adapter">qr_gate_adapter</option>
+            <option value="inventory_audit">inventory_audit</option>
+            <option value="academic_event_log">academic_event_log</option>
+          </select>
+        </div>
+        <div><label for="event-type">Event Type</label>
+          <select id="event-type" required>
+            <option value="entry_count">entry_count</option>
+            <option value="exit_count">exit_count</option>
+            <option value="checkin_count">checkin_count</option>
+            <option value="occupancy_snapshot">occupancy_snapshot</option>
+            <option value="circulation_issue">circulation_issue</option>
+            <option value="circulation_return">circulation_return</option>
+            <option value="inventory_check">inventory_check</option>
+            <option value="academic_event">academic_event</option>
+          </select>
+        </div>
+        <div><label for="event-quantity">Quantity</label><input id="event-quantity" type="number" min="0" max="100000" value="1" required></div>
+        <div><label for="event-category">Subject Category (optional)</label><input id="event-category" type="text" maxlength="120" placeholder="e.g. Computer Science"></div>
+        <div><button id="submit-event" type="submit" class="btn-primary">Record Verified Event</button></div>
+      </form>
+      <p id="event-form-status" role="status" aria-live="polite"></p>
+    </section>
+    <div class="two-col">
+      <section class="panel" aria-labelledby="heading-quality"><h2 id="heading-quality">5. Data-Quality &amp; Privacy Guardrails</h2><ul class="notes-list" id="quality-notes"></ul></section>
+      <section class="panel" aria-labelledby="heading-audit"><h2 id="heading-audit">6. Analytics Ingestion Audit Log</h2><table><thead><tr><th>Action</th><th>Adapter</th><th>Timestamp (UTC)</th></tr></thead><tbody id="audit-rows"></tbody></table></section>
+    </div>
+  </main>
+  <script>
+    const byId = (id) => document.getElementById(id);
+    async function authHeader() {
+      if (window.archipelagoAuth) {
+        const token = await window.archipelagoAuth.WaitForToken(1200);
+        if (token) return { Authorization: `Bearer ${token}` };
+      }
+      return {};
+    }
+    function renderSummary(data) {
+      const footfall = data.physical_footfall || {};
+      const occ = data.occupancy || {};
+      const circ = data.circulation || {};
+      const fresh = data.freshness || {};
+      byId("kpi-footfall").textContent = footfall.status === "connected" ? `${footfall.total_entries ?? 0} entries (${footfall.total_qr_checkins ?? 0} QR)` : "Data source not connected";
+      byId("kpi-footfall-sub").textContent = footfall.status === "connected" ? `Verified gate/staff counter (${data.timezone})` : "Automated turnstile/QR feed not connected; web visits excluded.";
+      byId("kpi-occupancy").textContent = occ.status === "connected" ? `${occ.current_occupancy} readers` : "Data source not connected";
+      byId("kpi-occupancy-sub").textContent = occ.last_measured_at ? `Measured ${occ.last_measured_at}` : "Real-time occupancy sensor not connected.";
+      byId("kpi-peak").textContent = footfall.peak_period || "Data source not connected";
+      byId("kpi-peak-sub").textContent = `Timezone: ${data.timezone} · Demo isolated: ${data.demo_isolated ? "Yes" : "No"}`;
+      byId("kpi-circulation").textContent = `${circ.koha_available_copies ?? 0} / ${circ.koha_total_copies ?? 0} copies available`;
+      byId("kpi-circulation-sub").textContent = `${circ.koha_checked_out_copies ?? 0} checked out in Koha snapshot · ${circ.recorded_issue_events ?? 0} issue events · Snapshot ${fresh.koha_source_updated_at || "N/A"}`;
+
+      const sourceBody = byId("source-audit-rows");
+      sourceBody.replaceChildren();
+      for (const src of data.sources || []) {
+        const tr = document.createElement("tr");
+        const cells = [src.label, src.status, src.adapter, String(src.records_count ?? 0), src.note];
+        cells.forEach((val, idx) => {
+          const td = document.createElement("td");
+          if (idx === 1) {
+            const b = document.createElement("span");
+            b.className = `badge ${src.connected ? "badge-ok" : "badge-disconnected"}`;
+            b.textContent = val;
+            td.append(b);
+          } else td.textContent = val;
+          tr.append(td);
+        });
+        sourceBody.append(tr);
+      }
+
+      const subjBody = byId("subject-rows");
+      subjBody.replaceChildren();
+      for (const item of data.subject_categories || []) {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td"), td2 = document.createElement("td");
+        td1.textContent = item.subject; td2.textContent = String(item.count);
+        tr.append(td1, td2); subjBody.append(tr);
+      }
+      if (!subjBody.children.length) {
+        const tr = document.createElement("tr"), td = document.createElement("td");
+        td.colSpan = 2; td.textContent = "No subject category records in current filter.";
+        tr.append(td); subjBody.append(tr);
+      }
+
+      const trendBody = byId("trend-rows");
+      trendBody.replaceChildren();
+      for (const d of footfall.daily_entries || []) {
+        const tr = document.createElement("tr"), td1 = document.createElement("td"), td2 = document.createElement("td");
+        td1.textContent = `Daily entries (${d.date})`; td2.textContent = String(d.entries);
+        tr.append(td1, td2); trendBody.append(tr);
+      }
+      for (const m of data.monthly_trends || []) {
+        const tr = document.createElement("tr"), td1 = document.createElement("td"), td2 = document.createElement("td");
+        td1.textContent = `Month ${m.month}`; td2.textContent = `Entries: ${m.entries} · Circulation: ${m.circulation} · Events: ${m.events}`;
+        tr.append(td1, td2); trendBody.append(tr);
+      }
+      if (!trendBody.children.length) {
+        const tr = document.createElement("tr"), td = document.createElement("td");
+        td.colSpan = 2; td.textContent = "Data source not connected — no physical entry or time-series events recorded in this window.";
+        tr.append(td); trendBody.append(tr);
+      }
+
+      const notes = byId("quality-notes");
+      notes.replaceChildren();
+      for (const note of data.data_quality_notes || []) {
+        const li = document.createElement("li"); li.textContent = note; notes.append(li);
+      }
+
+      const auditBody = byId("audit-rows");
+      auditBody.replaceChildren();
+      for (const row of data.audit_log || []) {
+        const tr = document.createElement("tr");
+        [row.action, row.source_id, row.created_at].forEach((v) => {
+          const td = document.createElement("td"); td.textContent = v; tr.append(td);
+        });
+        auditBody.append(tr);
+      }
+      if (!auditBody.children.length) {
+        const tr = document.createElement("tr"), td = document.createElement("td");
+        td.colSpan = 3; td.textContent = "No manual or adapter ingestion events recorded yet.";
+        tr.append(td); auditBody.append(tr);
+      }
+    }
+
+    async function loadAnalytics() {
+      const headers = await authHeader();
+      const params = new URLSearchParams();
+      if (byId("filter-from").value) params.set("from", `${byId("filter-from").value}T00:00:00Z`);
+      if (byId("filter-to").value) params.set("to", `${byId("filter-to").value}T23:59:59Z`);
+      if (byId("filter-source").value) params.set("source_id", byId("filter-source").value);
+      if (byId("filter-tz").value) params.set("tz", byId("filter-tz").value);
+      try {
+        const resp = await fetch(`/api/analytics/summary?${params.toString()}`, { headers, credentials: "same-origin" });
+        if (resp.status === 401) { byId("analytics-status").textContent = "Sign in with a faculty, librarian, or administrator account to view analytics."; return; }
+        if (resp.status === 403) { byId("analytics-status").textContent = "Access restricted: staff role (faculty, librarian, or administrator) required."; return; }
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Failed to load analytics");
+        renderSummary(data);
+        byId("analytics-status").textContent = `Verified institutional analytics loaded (${data.timezone}) · Koha snapshot: ${data.freshness?.koha_source_updated_at || "unavailable"}`;
+      } catch (err) {
+        byId("analytics-status").textContent = `Analytics unavailable: ${err.message}`;
+      }
+    }
+
+    byId("analytics-filter-form").addEventListener("submit", (ev) => { ev.preventDefault(); loadAnalytics(); });
+    byId("event-form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const headers = { "Content-Type": "application/json", ...(await authHeader()) };
+      const payload = { source_id: byId("event-source").value, event_type: byId("event-type").value, quantity: Number(byId("event-quantity").value), subject_category: byId("event-category").value.trim(), occurred_at: new Date().toISOString() };
+      const resp = await fetch("/api/analytics/events", { method: "POST", headers, credentials: "same-origin", body: JSON.stringify(payload) });
+      const out = await resp.json().catch(() => ({}));
+      if (!resp.ok) { byId("event-form-status").textContent = `Event rejected: ${out.error || resp.status}`; return; }
+      byId("event-form-status").textContent = out.deduplicated ? `Duplicate event ignored (${out.event_id}).` : `Verified event recorded (${out.event_id}).`;
+      loadAnalytics();
+    });
+    loadAnalytics();
+  </script>
+</body>
+</html>

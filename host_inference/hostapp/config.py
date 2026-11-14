@@ -38,6 +38,7 @@ PUBLIC_API = frozenset(
         "/api/readiness",
         "/api/reply-templates",
         "/api/library/data",
+        "/api/library/koha",
         "/api/research/intake/metrics",
         "/api/research/intake/activity",
         "/api/research/intake/scheduled",

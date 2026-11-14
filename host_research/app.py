@@ -130,12 +130,13 @@ def require_auth() -> tuple[object, int] | None:
         return None
     if (
         request.path.startswith("/research")
-        or request.path == "/academic/graph"
+        or request.path
+        in {"/academic/graph", "/analytics", "/academic-automation", "/academic-automation.html"}
         or request.path.startswith("/librarian")
     ):
         return None
     if not (
-        request.path.startswith("/api/research/")
+        request.path.startswith(("/api/research/", "/api/analytics/", "/api/academic-automation/"))
         or request.path
         in {"/api/auth/me", "/api/graph/hubs", "/api/graph/subgraph", "/api/library/opac/live"}
         or request.path.startswith("/api/librarian/")
@@ -156,42 +157,38 @@ def require_auth() -> tuple[object, int] | None:
 
 
 @app.get("/")
-def home() -> Response:
-    """Open a choice page before either staff workspace."""
-    return send_from_directory(UI, "home.html")
-
-
 @app.get("/login")
-def login_page() -> Response:
-    """Sign staff into the same Supabase project on this new origin."""
-    return send_from_directory(UI, "signin.html")
+@app.get("/academic/graph")
+@app.get("/analytics")
+@app.get("/academic-automation")
+@app.get("/academic-automation.html")
+def static_page() -> Response:
+    """Serve the home, login, academic graph, analytics, or automation page."""
+    mapping = {
+        "/": "home.html",
+        "/login": "signin.html",
+        "/academic/graph": "academic_graph.html",
+        "/analytics": "analytics.html",
+    }
+    return send_from_directory(UI, mapping.get(request.path, "academic_automation.html"))
 
 
 @app.get("/research")
 @app.get("/research/")
-def research_home() -> Response:
-    """Render metadata-first S5 research without academic extraction controls."""
-    return render_research_page("papers")
-
-
 @app.get("/research/<page>")
-def research_subpage(page: str) -> Response | tuple[object, int]:
-    """Render original progress, graph, paper, and topic views."""
+def research_subpage(page: str = "papers") -> Response | tuple[object, int]:
+    """Render metadata-first S5 research views."""
     if page not in PAGE_DETAILS:
         return jsonify({"error": "not_found"}), 404
     return render_research_page(page)
-
-
-@app.get("/academic/graph")
-def academic_graph() -> Response:
-    """Show the academic graph and its dated Koha library details."""
-    return send_from_directory(UI, "academic_graph.html")
 
 
 @app.get("/librarian")
 @app.get("/librarian/<section>")
 def librarian_page(section: str = "overview") -> Response | tuple[object, int]:
     """Serve distinct librarian workspaces using one shared shell."""
+    if section == "analytics":
+        return send_from_directory(UI, "analytics.html")
     if section not in {"overview", *RECORD_TYPES}:
         return jsonify({"error": "not_found"}), 404
     return send_from_directory(UI, "librarian.html")
@@ -331,11 +328,13 @@ def topics() -> tuple[object, int]:
 
 
 @app.route("/api/research/<path:subpath>", methods=["GET", "POST", "PATCH", "DELETE"])
+@app.route("/api/analytics/<path:subpath>", methods=["GET", "POST"])
+@app.route("/api/academic-automation/<path:subpath>", methods=["GET", "POST"])
 def research_proxy(subpath: str) -> Response | tuple[object, int]:
-    """Forward research actions to the existing queue and OKF backend."""
+    """Forward research, analytics, and academic-automation actions to the backend."""
     if any(segment in {".", ".."} for segment in subpath.split("/")):
         return jsonify({"error": "invalid_path"}), 400
-    return _forward(f"/api/research/{subpath}")
+    return _forward(request.path)
 
 
 @app.get("/api/graph/hubs")
