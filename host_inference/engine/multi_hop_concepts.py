@@ -182,7 +182,10 @@ def extract_concept_mentions(query: str, known_graph=None) -> list[str]:
     # Strip conversational lead-ins and parenthetical meta-notes
     clean_q = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", q).strip()
     clean_q = re.sub(
-        r"^(?:please\s+)?(?:can\s+you\s+)?(?:tell\s+me\s+)?(?:about\s+)?", "", clean_q, flags=re.I
+        r"^(?:please\s+)?(?:can\s+you\s+)?(?:tell\s+me\s+)?(?:about\s+)?(?:explain|define|describe|summarize|what\s+(?:is|are))\s+",
+        "",
+        clean_q,
+        flags=re.I,
     ).strip()
 
     # Check for relational/comparison query frames
@@ -261,12 +264,13 @@ def resolve_concept(engine_or_graph, concept_text: str) -> ResolvedConcept:
     raw = concept_text.strip()
     norm = raw.lower()
 
-    # 1. Direct node ID match (with singular / plural normalization)
-    id_candidates = [norm.replace(" ", "_")]
+    # 1. Direct node ID match (with hyphen/space and singular/plural normalization)
+    slug = re.sub(r"[\s-]+", "_", norm)
+    id_candidates = [slug]
     if norm.endswith("s"):
-        id_candidates.append(norm[:-1].replace(" ", "_"))
+        id_candidates.append(re.sub(r"[\s-]+", "_", norm[:-1]))
     if norm.endswith("es"):
-        id_candidates.append(norm[:-2].replace(" ", "_"))
+        id_candidates.append(re.sub(r"[\s-]+", "_", norm[:-2]))
 
     for cid_cand in id_candidates:
         if cid_cand in graph.nodes:
@@ -283,12 +287,23 @@ def resolve_concept(engine_or_graph, concept_text: str) -> ResolvedConcept:
                 status="indexed",
             )
 
-    # 2. Phrase hit in aliases / label index (check singular too)
+    # 2. Phrase hit in aliases / label index (prefer exact label/id match over generic hubs)
     hits = graph.phrase_hits(raw)
     if not hits and raw.endswith("s"):
         hits = graph.phrase_hits(raw[:-1])
     if hits:
-        best_cid = hits[0]
+        norm_space = re.sub(r"[\s_-]+", " ", norm).strip()
+        best_cid = min(
+            hits,
+            key=lambda cid: (
+                0
+                if re.sub(r"[\s_-]+", " ", graph.label(cid).lower()).strip()
+                in {norm_space, norm_space.rstrip("s")}
+                else 1,
+                len(graph.label(cid)),
+                cid,
+            ),
+        )
         node = graph.nodes[best_cid]
         summary, citations = _grounded_summary_and_citation(graph, best_cid)
         return ResolvedConcept(
@@ -301,6 +316,29 @@ def resolve_concept(engine_or_graph, concept_text: str) -> ResolvedConcept:
             citations=citations,
             status="indexed",
         )
+
+    # 2.5 Whole-word lexical match in node labels/IDs before embedding fallback
+    tokens = [t for t in re.findall(r"[a-z0-9]+", norm) if len(t) >= 3]
+    if tokens:
+        lexical_matches = []
+        for cid_cand in graph.nodes:
+            label_text = f"{graph.label(cid_cand)} {cid_cand.replace('_', ' ')}".lower()
+            if all(re.search(rf"\b{re.escape(tok)}\b", label_text) for tok in tokens):
+                lexical_matches.append(cid_cand)
+        if lexical_matches:
+            best_cid = min(lexical_matches, key=lambda cid: (len(graph.label(cid)), cid))
+            node = graph.nodes[best_cid]
+            summary, citations = _grounded_summary_and_citation(graph, best_cid)
+            return ResolvedConcept(
+                raw_text=raw,
+                cid=best_cid,
+                label=graph.label(best_cid),
+                is_indexed=True,
+                node=node,
+                summary=summary,
+                citations=citations,
+                status="indexed",
+            )
 
     # 3. Embedding cosine ranking
     ranked = graph.rank(raw, top_k=1)

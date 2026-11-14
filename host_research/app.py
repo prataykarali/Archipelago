@@ -199,7 +199,12 @@ def librarian_records(record_type: str) -> tuple[object, int]:
     """Read staff notes; restrict changes to librarians and administrators."""
     if record_type not in RECORD_TYPES:
         return jsonify({"error": "not_found"}), 404
-    if request.method == "POST" and g.principal["role"] not in {"librarian", "administrator"}:
+    allowed_roles = (
+        {"librarian", "administrator"}
+        if request.method == "POST"
+        else {"faculty", "librarian", "administrator"}
+    )
+    if g.principal["role"] not in allowed_roles:
         return jsonify({"error": "forbidden"}), 403
     try:
         if request.method == "GET":
@@ -243,6 +248,8 @@ def library_koha() -> tuple[object, int]:
 @app.get("/api/library/opac/live")
 def library_opac_live() -> tuple[object, int]:
     """Fetch one public OPAC query on demand for an authenticated staff user."""
+    if g.principal["role"] not in {"faculty", "librarian", "administrator"}:
+        return jsonify({"error": "forbidden"}), 403
     biblionumber = request.args.get("biblionumber", "").strip()
     query = request.args.get("q", "").strip()
     if bool(biblionumber) == bool(query):
@@ -320,6 +327,8 @@ def auth_me() -> tuple[object, int]:
 @app.get("/api/research/topics")
 def topics() -> tuple[object, int]:
     """Serve the current topic inventory from shared research storage."""
+    if g.principal["role"] not in {"faculty", "librarian", "administrator"}:
+        return jsonify({"error": "forbidden"}), 403
     try:
         rows = topic_inventory()
     except (requests.RequestException, RuntimeError, ValueError):

@@ -454,6 +454,14 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                 None,
                 {"hide_graph": True, "score": best_score, "reason": "research_not_indexed"},
             )
+        if ACADEMIC_DOMAIN_RE.search(query):
+            return (
+                "GENERAL_EXPLANATION",
+                f"Provide a clear, accurate foundational academic explanation for: {query}. "
+                "Explicitly note that this topic is not currently indexed as a concept node in the local catalog.",
+                None,
+                {"hide_graph": True, "score": best_score, "reason": "academic_general_not_indexed"},
+            )
         return (
             "GUARDRAIL_INTERCEPT",
             OOD_MESSAGE,
