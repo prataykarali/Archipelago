@@ -34,8 +34,8 @@ from .runtime_state import hosted_runtime, runtime_rpc
 
 SUPABASE_USER_TIMEOUT_SEC = 10
 SUPABASE_PROFILE_TIMEOUT_SEC = 8
-# Client IP headers set by the CDN / proxy in front of the app, most specific first.
-CLIENT_IP_HEADERS = ("CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
+# Client IP headers set by trusted edge proxies (Vercel/Cloudflare/Fly), never client-supplied X-Forwarded-For.
+CLIENT_IP_HEADERS = ("X-Vercel-Forwarded-For", "CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
 # The burst min-gap guards state-changing calls.  Idempotent reads must never be
 # rejected on timing alone: a reader opening two exact book links, or a page
 # firing several API calls in parallel, is normal browsing, not abuse.  The
@@ -368,14 +368,16 @@ class RateLimiter:
 
     @staticmethod
     def client_ip() -> str:
-        """Extract the client IP behind reverse proxies and CDNs."""
-        for header in CLIENT_IP_HEADERS:
-            value = request.headers.get(header)
-            if value and value.strip():
-                return value.strip().split(",")[0].strip()
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded and forwarded.strip():
-            return forwarded.strip().split(",")[0].strip()
+        """Extract the client IP without trusting client-spoofable forwarding headers."""
+        trust_proxy = bool(os.environ.get("VERCEL")) or os.environ.get("ARCHIPELAGO_TRUST_PROXY") == "1"
+        if trust_proxy:
+            for header in CLIENT_IP_HEADERS:
+                value = request.headers.get(header)
+                if value and value.strip():
+                    return value.strip().split(",")[-1].strip()
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded and forwarded.strip():
+                return forwarded.strip().split(",")[-1].strip()
         return request.remote_addr or "127.0.0.1"
 
     @staticmethod

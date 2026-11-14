@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-full bg-[#08071b]">
+<html lang="en" class="h-full bg-[#0F172A]">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,21 +8,23 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
   <style>
+    :root { --ax-bg: #0F172A; --ax-canvas: #111827; --ax-panel: #1E293B; --ax-text: #F1F5F9; --ax-muted: #CBD5E1; --ax-border: rgba(148, 163, 184, 0.24); }
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { overflow-x: hidden; max-width: 100%; }
+    html, body { overflow-x: hidden; max-width: 100%; background: var(--ax-bg); color: var(--ax-text); }
     body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
-    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1b1549, #0a0a25 68%, #08071b); outline: none; }
-    #graph:focus-visible { box-shadow: inset 0 0 0 2px #bca5ff; }
-    #graph canvas { filter: drop-shadow(0 0 7px #6b5cdb99); }
-    #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .45; background-image: radial-gradient(#7561c3 1px, transparent 1px); background-size: 28px 28px; }
-    .graph-frame { box-shadow: 0 25px 90px #02010fbd, inset 0 0 0 1px #4e3c9966; border-radius: 0; border: 0; }
-    .graph-panel { background: linear-gradient(150deg, #171337ee, #0e0d28ee); backdrop-filter: blur(16px); position: absolute; right: 20px; top: 92px; width: min(360px, 32vw); max-height: calc(100% - 110px); overflow-y: auto; overflow-x: hidden; z-index: 2; box-shadow: 0 20px 60px #050115aa; }
+    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1e1b4b, var(--ax-canvas) 68%, var(--ax-bg)); outline: none; }
+    #graph:focus-visible { box-shadow: inset 0 0 0 2px #a78bfa; }
+    #graph canvas { filter: drop-shadow(0 0 7px #6366f188); }
+    #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35; background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 28px 28px; }
+    .graph-frame { background: var(--ax-canvas); box-shadow: 0 25px 90px #020617bd, inset 0 0 0 1px var(--ax-border); border-radius: 0; border: 0; }
+    .graph-panel { background: rgba(30, 41, 59, 0.94); backdrop-filter: blur(16px); border-color: var(--ax-border); color: var(--ax-text); position: absolute; right: 20px; top: 92px; width: min(360px, 32vw); max-height: calc(100% - 110px); overflow-y: auto; overflow-x: hidden; z-index: 2; box-shadow: 0 20px 60px #020617aa; }
     .graph-stage { position: relative; }
     .graph-toolbar { position: absolute; z-index: 3; left: 24px; top: 24px; width: min(620px, calc(100% - 410px)); }
-    .graph-toolbar input { background: #100a2ccf; backdrop-filter: blur(12px); }
+    .graph-toolbar input { background: #1E293B; color: #F1F5F9; border-color: rgba(148, 163, 184, 0.35); backdrop-filter: blur(12px); }
+    .graph-toolbar input::placeholder { color: #CBD5E1; opacity: 0.85; }
     main { max-width: none !important; padding: 0 !important; }
-    .academic-hero { min-height: 220px; display: flex; align-items: center; margin: 20px 24px 0; padding: clamp(20px, 4vw, 48px); background-image: linear-gradient(90deg, #110521f2 0%, #18072bc9 45%, #18072b35 100%), url('/assets/research_archipelago_v2.webp') !important; background-position: center; background-size: cover; position: relative; overflow: hidden; border: 1px solid #7b47b5; border-radius: 24px; box-shadow: 0 26px 70px #05010e91; }
-    .academic-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .3; background-image: radial-gradient(#dda8ff 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, #000, transparent); }
+    .academic-hero { min-height: 220px; display: flex; align-items: center; margin: 20px 24px 0; padding: clamp(20px, 4vw, 48px); background-image: linear-gradient(90deg, #0F172Af2 0%, #1e1b4bc9 45%, #11182766 100%), url('/assets/research_archipelago_v2.webp') !important; background-position: center; background-size: cover; position: relative; overflow: hidden; border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 24px; box-shadow: 0 26px 70px #02061791; }
+    .academic-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .25; background-image: radial-gradient(#a78bfa 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, #000, transparent); }
     .academic-hero-copy { position: relative; z-index: 1; }
     @media(max-width: 760px) {
       .academic-hero { margin: 12px 12px 0; padding: 20px; min-height: 160px; }
@@ -31,117 +33,116 @@
       #graph { height: calc(100vh - 70px); min-height: 580px; }
     }
     .graph-panel [hidden] { display: none !important; }
-    .graph-panel button:focus-visible, .graph-panel a:focus-visible, .graph-panel select:focus-visible, #query:focus-visible, .graph-toolbar button:focus-visible { outline: 2px solid #bca5ff; outline-offset: 2px; }
+    .graph-panel button:focus-visible, .graph-panel a:focus-visible, .graph-panel select:focus-visible, #query:focus-visible, .graph-toolbar button:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
     .touch-target { min-height: 40px; min-width: 40px; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
     }
   </style>
-  <link rel="stylesheet" href="/academic_light.css">
 </head>
-<body class="min-h-full bg-[#08071b] text-slate-100">
-  <header class="border-b border-violet-300/20 bg-[#0b0923]">
+<body class="min-h-full bg-[#0F172A] text-[#F1F5F9]">
+  <header class="border-b border-slate-700/70 bg-[#0F172A]">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4">
-      <a href="/librarian" class="font-semibold tracking-wide text-violet-200">Archipelago <span class="text-white/50">/ Librarian Space / Graph</span></a>
-      <nav class="flex flex-wrap gap-3 text-sm text-white/70 sm:gap-4"><a href="/librarian" class="py-1 hover:text-white">Overview</a><a href="/librarian/catalog" class="py-1 hover:text-white">Catalogue</a><a href="/librarian/circulation" class="py-1 hover:text-white">Circulation</a><a href="/librarian/orders" class="py-1 hover:text-white">Orders</a><a href="/librarian/fines" class="py-1 hover:text-white">Fines</a><a href="/research" class="py-1 hover:text-white">Research</a></nav>
+      <a href="/librarian" class="font-semibold tracking-wide text-[#F1F5F9]">Archipelago <span class="text-[#CBD5E1]">/ Librarian Space / Graph</span></a>
+      <nav class="flex flex-wrap gap-3 text-sm text-[#CBD5E1] sm:gap-4"><a href="/librarian" class="py-1 hover:text-[#F1F5F9]">Overview</a><a href="/librarian/catalog" class="py-1 hover:text-[#F1F5F9]">Catalogue</a><a href="/librarian/circulation" class="py-1 hover:text-[#F1F5F9]">Circulation</a><a href="/librarian/orders" class="py-1 hover:text-[#F1F5F9]">Orders</a><a href="/librarian/fines" class="py-1 hover:text-[#F1F5F9]">Fines</a><a href="/research" class="py-1 hover:text-[#F1F5F9]">Research</a></nav>
     </div>
   </header>
   <main class="mx-auto max-w-7xl px-5 py-8">
     <section class="academic-hero" aria-labelledby="academic-hero-title">
-      <div class="academic-hero-copy"><p class="text-xs font-bold uppercase tracking-[.22em] text-fuchsia-200">Archipelago / Academic atlas</p><h1 id="academic-hero-title" class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">A universe of connected ideas</h1><p class="mt-3 max-w-xl text-sm text-violet-100 sm:text-base">Explore the library knowledge graph, then follow a topic into scholarly research.</p></div>
+      <div class="academic-hero-copy"><p class="text-xs font-bold uppercase tracking-[.22em] text-[#CBD5E1]">Archipelago / Academic atlas</p><h1 id="academic-hero-title" class="mt-3 text-3xl font-bold tracking-tight text-[#F1F5F9] sm:text-4xl">A universe of connected ideas</h1><p class="mt-3 max-w-xl text-sm text-[#CBD5E1] sm:text-base">Explore the library knowledge graph, then follow a topic into scholarly research.</p></div>
     </section>
-    <aside class="border-b border-violet-300/20 bg-[#120d2e] px-5 py-3 text-sm text-violet-100" aria-label="Scholarly research">
-      Looking for papers? <a href="/research#topic-form" class="font-semibold underline underline-offset-4">Open Research Intelligence</a> for source-linked metadata search, saved runs and Excel export. Browsing this academic graph needs no SLM or OCR.
+    <aside class="border-b border-slate-700/70 bg-[#1E293B] px-5 py-3 text-sm text-[#F1F5F9]" aria-label="Scholarly research">
+      Looking for papers? <a href="/research#topic-form" class="font-semibold text-[#A78BFA] underline underline-offset-4 hover:text-[#F1F5F9]">Open Research Intelligence</a> for source-linked metadata search, saved runs and Excel export. Browsing this academic graph needs no SLM or OCR.
     </aside>
     <div class="graph-stage">
-      <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-violet-200">Librarian Space / Knowledge graph · select a concept or edge to inspect</p><form id="search-form" class="flex w-full gap-2">
+      <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-[#CBD5E1]">Librarian Space / Knowledge graph · select a concept or edge to inspect</p><form id="search-form" class="flex w-full gap-2">
         <label for="query" class="sr-only">Search a concept</label>
-        <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="touch-target min-w-0 flex-1 rounded-xl border border-violet-300/25 px-4 py-2 text-sm outline-none focus:border-violet-300/70">
-        <button type="submit" class="touch-target cursor-pointer rounded-xl bg-violet-400 px-4 py-2 text-sm font-semibold text-[#100827] hover:bg-violet-300">Explore</button>
+        <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="touch-target min-w-0 flex-1 rounded-xl border border-slate-600 bg-[#1E293B] px-4 py-2 text-sm text-[#F1F5F9] outline-none focus:border-[#A78BFA]">
+        <button type="submit" class="touch-target cursor-pointer rounded-xl bg-[#A78BFA] px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-[#C4B5FD]">Explore</button>
       </form></div>
-      <section class="graph-frame overflow-hidden bg-[#0b0923]"><div id="graph" tabindex="0" aria-label="Interactive full-screen academic knowledge graph"></div></section>
-      <aside class="graph-panel rounded-2xl border border-violet-300/20 p-4 sm:p-5" aria-live="polite">
+      <section class="graph-frame overflow-hidden bg-[#111827]"><div id="graph" tabindex="0" aria-label="Interactive full-screen academic knowledge graph"></div></section>
+      <aside class="graph-panel rounded-2xl border border-slate-700 p-4 sm:p-5" aria-live="polite">
         <div class="mb-3 flex flex-wrap gap-2">
-          <button id="nav-back" type="button" hidden class="touch-target cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/25">← Back</button>
-          <button id="show-core" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-left text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Main concepts</button>
+          <button id="nav-back" type="button" hidden class="touch-target cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">← Back</button>
+          <button id="show-core" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-left text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Main concepts</button>
         </div>
-        <label for="relation-filter" class="text-xs text-white/70">Relationship filter</label>
-        <select id="relation-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-white/20 bg-[#100a2c] p-2 text-xs"><option value="">All stored types</option><option value="REQUIRES">Requires</option><option value="UNLOCKS">Unlocks</option><option value="RELATED">Related</option><option value="SOURCED_FROM">Sourced from</option></select>
-        <div class="mb-3 flex flex-wrap gap-2 text-xs text-white/60" aria-label="Relationship colors">
-          <span><span class="text-blue-300">◆</span> Requires</span>
-          <span><span class="text-pink-300">◆</span> Unlocks</span>
-          <span><span class="text-violet-300">◆</span> Related</span>
-          <span><span class="text-teal-300">◆</span> Source</span>
+        <label for="relation-filter" class="text-xs font-medium text-[#CBD5E1]">Relationship filter</label>
+        <select id="relation-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-xs text-[#F1F5F9]"><option value="">All stored types</option><option value="REQUIRES">Requires</option><option value="UNLOCKS">Unlocks</option><option value="RELATED">Related</option><option value="SOURCED_FROM">Sourced from</option></select>
+        <div class="mb-3 flex flex-wrap gap-3 text-xs text-[#CBD5E1]" aria-label="Relationship colors">
+          <span><span class="text-[#60A5FA]">◆</span> Requires</span>
+          <span><span class="text-[#F472B6]">◆</span> Unlocks</span>
+          <span><span class="text-[#A78BFA]">◆</span> Related</span>
+          <span><span class="text-[#2DD4BF]">◆</span> Source</span>
         </div>
         <div class="mb-3 flex flex-wrap gap-2" aria-label="Graph controls">
-          <button id="zoom-in" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10" aria-label="Zoom in">+</button>
-          <button id="zoom-out" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10" aria-label="Zoom out">−</button>
-          <button id="zoom-fit" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10">Fit</button>
-          <button id="graph-reset" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10">Reset</button>
-          <button id="expand-neighborhood" type="button" hidden class="touch-target cursor-pointer rounded-lg border border-violet-300/35 bg-violet-500/15 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Expand +15</button>
+          <button id="zoom-in" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800" aria-label="Zoom in">+</button>
+          <button id="zoom-out" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800" aria-label="Zoom out">−</button>
+          <button id="zoom-fit" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Fit</button>
+          <button id="graph-reset" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Reset</button>
+          <button id="expand-neighborhood" type="button" hidden class="touch-target cursor-pointer rounded-lg border border-violet-400/50 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Expand +15</button>
         </div>
-        <p id="graph-status" role="status" class="text-xs text-white/70">Loading graph…</p>
-        <div id="node-inspector" class="mt-4 border-t border-white/10 pt-4">
-          <h2 id="node-title" class="text-lg font-semibold text-violet-200">Select a node</h2>
-          <p id="node-summary" class="mt-2 text-sm leading-6 text-white/75">Select a concept to inspect its verified description, prerequisites, unlocks, and source documents.</p>
-          <dl id="node-facts" class="mt-4 grid grid-cols-2 gap-2 text-xs" hidden></dl>
+        <p id="graph-status" role="status" class="text-xs text-[#CBD5E1]">Loading graph…</p>
+        <div id="node-inspector" class="mt-4 border-t border-slate-700 pt-4">
+          <h2 id="node-title" class="text-lg font-semibold text-[#F1F5F9]">Select a node</h2>
+          <p id="node-summary" class="mt-2 text-sm leading-6 text-[#CBD5E1]">Select a concept to inspect its verified description, prerequisites, unlocks, and source documents.</p>
+          <dl id="node-facts" class="mt-4 grid grid-cols-2 gap-2 text-xs text-[#CBD5E1]" hidden></dl>
           <div id="node-actions" class="mt-4 flex flex-wrap gap-2" hidden>
-            <button id="explore-node" type="button" class="touch-target cursor-pointer rounded-xl border border-fuchsia-300/50 bg-fuchsia-500/20 px-3 py-2 text-xs font-semibold text-white hover:bg-fuchsia-500/30">Explore Concept ↗</button>
-            <a id="ask-archipelago" href="/chat" class="touch-target inline-flex items-center rounded-xl border border-violet-300/40 bg-violet-500/20 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/30">Ask Archipelago</a>
-            <a id="view-sources" href="/library" class="touch-target inline-flex items-center rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-white/90 hover:bg-white/10">View Sources</a>
-            <a id="take-quiz" href="/chat" hidden class="touch-target inline-flex items-center rounded-xl border border-emerald-300/40 bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/30">Take Quiz</a>
+            <button id="explore-node" type="button" class="touch-target cursor-pointer rounded-xl border border-[#F472B6]/60 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Explore Concept ↗</button>
+            <a id="ask-archipelago" href="/chat" class="touch-target inline-flex items-center rounded-xl border border-[#A78BFA]/60 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Ask Archipelago</a>
+            <a id="view-sources" href="/library" class="touch-target inline-flex items-center rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">View Sources</a>
+            <a id="take-quiz" href="/chat" hidden class="touch-target inline-flex items-center rounded-xl border border-[#2DD4BF]/60 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Take Quiz</a>
           </div>
-          <div id="node-relationships" class="mt-4 space-y-3 text-xs"></div>
-          <div id="node-sources" class="mt-4 space-y-1 text-xs leading-5 text-violet-100"></div>
+          <div id="node-relationships" class="mt-4 space-y-3 text-xs text-[#CBD5E1]"></div>
+          <div id="node-sources" class="mt-4 space-y-1 text-xs leading-5 text-[#CBD5E1]"></div>
         </div>
-        <div id="edge-details" class="mt-4 rounded-xl border border-violet-300/25 bg-violet-500/10 p-3 text-xs leading-5 text-violet-100" hidden></div>
-        <form id="graph-annotation-form" class="mt-5 space-y-2 border-t border-white/10 pt-4" hidden>
-          <h3 class="font-semibold text-violet-100">Curate this concept</h3>
-          <label for="graph-annotation-summary" class="block text-xs text-white/70">Source-backed summary</label>
-          <textarea id="graph-annotation-summary" required maxlength="2000" rows="4" class="w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-sm text-white"></textarea>
-          <label for="graph-annotation-source" class="block text-xs text-white/70">HTTPS source URL</label>
-          <input id="graph-annotation-source" type="url" maxlength="500" placeholder="https://…" class="touch-target w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-sm text-white">
-          <button type="submit" class="touch-target cursor-pointer rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-500">Save annotation</button>
-          <p id="graph-annotation-status" role="status" class="text-xs text-amber-200"></p>
+        <div id="edge-details" class="mt-4 rounded-xl border border-slate-600 bg-[#0F172A] p-3 text-xs leading-5 text-[#F1F5F9]" hidden></div>
+        <form id="graph-annotation-form" class="mt-5 space-y-2 border-t border-slate-700 pt-4" hidden>
+          <h3 class="font-semibold text-[#F1F5F9]">Curate this concept</h3>
+          <label for="graph-annotation-summary" class="block text-xs text-[#CBD5E1]">Source-backed summary</label>
+          <textarea id="graph-annotation-summary" required maxlength="2000" rows="4" class="w-full rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-sm text-[#F1F5F9]"></textarea>
+          <label for="graph-annotation-source" class="block text-xs text-[#CBD5E1]">HTTPS source URL</label>
+          <input id="graph-annotation-source" type="url" maxlength="500" placeholder="https://…" class="touch-target w-full rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-sm text-[#F1F5F9]">
+          <button type="submit" class="touch-target cursor-pointer rounded-lg bg-[#6366F1] px-3 py-2 text-sm font-semibold text-[#F1F5F9] hover:bg-[#4F46E5]">Save annotation</button>
+          <p id="graph-annotation-status" role="status" class="text-xs text-[#CBD5E1]"></p>
         </form>
-        <p class="mt-5 text-xs leading-5 text-white/45">The graph reads the indexed Archipelago corpus. Librarians can save source-backed annotations for concepts.</p>
+        <p class="mt-5 text-xs leading-5 text-[#CBD5E1]">The graph reads the indexed Archipelago corpus. Librarians can save source-backed annotations for concepts.</p>
       </aside>
     </div>
     <section id="library-details" class="mx-auto max-w-7xl px-4 py-10 sm:px-5" aria-labelledby="koha-title">
-      <p class="text-xs font-bold uppercase tracking-[.22em] text-violet-300">Academic atlas / library details</p>
-      <h2 id="koha-title" class="mt-2 text-3xl font-bold text-white">Koha catalogue exports</h2>
-      <p id="koha-status" role="status" class="mt-2 text-sm text-amber-200">Checking the latest authorized export…</p>
-      <section class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5" aria-labelledby="daily-opac-title">
-        <h3 id="daily-opac-title" class="text-lg font-semibold text-violet-100">Daily OPAC updates</h3>
-        <p id="daily-opac-status" class="mt-1 text-xs text-white/60"></p>
+      <p class="text-xs font-bold uppercase tracking-[.22em] text-[#A78BFA]">Academic atlas / library details</p>
+      <h2 id="koha-title" class="mt-2 text-3xl font-bold text-[#F1F5F9]">Koha catalogue exports</h2>
+      <p id="koha-status" role="status" class="mt-2 text-sm text-[#CBD5E1]">Checking the latest authorized export…</p>
+      <section class="mt-6 rounded-2xl border border-slate-700 bg-[#1E293B] p-5" aria-labelledby="daily-opac-title">
+        <h3 id="daily-opac-title" class="text-lg font-semibold text-[#F1F5F9]">Daily OPAC updates</h3>
+        <p id="daily-opac-status" class="mt-1 text-xs text-[#CBD5E1]"></p>
         <div id="daily-opac-sections" class="mt-4 grid gap-3 md:grid-cols-2"></div>
-        <h4 class="mt-5 font-semibold text-white">New arrivals shown by OPAC</h4>
-        <ul id="daily-opac-arrivals" class="mt-2 grid gap-2 text-sm md:grid-cols-2"></ul>
+        <h4 class="mt-5 font-semibold text-[#F1F5F9]">New arrivals shown by OPAC</h4>
+        <ul id="daily-opac-arrivals" class="mt-2 grid gap-2 text-sm text-[#CBD5E1] md:grid-cols-2"></ul>
       </section>
-      <section class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5" aria-labelledby="live-opac-title">
-        <h3 id="live-opac-title" class="text-lg font-semibold text-violet-100">Search the live UEM catalogue</h3>
-        <p class="mt-1 text-xs text-white/60">Checks public OPAC records when you search. Results show the source and retrieval time; no books are ingested.</p>
+      <section class="mt-6 rounded-2xl border border-slate-700 bg-[#1E293B] p-5" aria-labelledby="live-opac-title">
+        <h3 id="live-opac-title" class="text-lg font-semibold text-[#F1F5F9]">Search the live UEM catalogue</h3>
+        <p class="mt-1 text-xs text-[#CBD5E1]">Checks public OPAC records when you search. Results show the source and retrieval time; no books are ingested.</p>
         <form id="live-opac-form" class="mt-4 flex flex-wrap gap-2">
           <label for="live-opac-query" class="sr-only">Book title, author, or ISBN</label>
-          <input id="live-opac-query" required minlength="2" maxlength="100" placeholder="Book title, author, or ISBN" class="touch-target min-w-0 w-full flex-1 rounded-lg border border-violet-300/30 bg-[#100a2c] p-3 text-white sm:min-w-64">
-          <button type="submit" class="touch-target cursor-pointer rounded-lg bg-violet-600 px-5 py-3 font-semibold text-white hover:bg-violet-500">Search OPAC</button>
+          <input id="live-opac-query" required minlength="2" maxlength="100" placeholder="Book title, author, or ISBN" class="touch-target min-w-0 w-full flex-1 rounded-lg border border-slate-600 bg-[#0F172A] p-3 text-[#F1F5F9] sm:min-w-64">
+          <button type="submit" class="touch-target cursor-pointer rounded-lg bg-[#6366F1] px-5 py-3 font-semibold text-[#F1F5F9] hover:bg-[#4F46E5]">Search OPAC</button>
         </form>
-        <p id="live-opac-status" role="status" class="mt-3 text-sm text-amber-200"></p>
+        <p id="live-opac-status" role="status" class="mt-3 text-sm text-[#CBD5E1]"></p>
         <div id="live-opac-results" class="mt-3 space-y-3"></div>
       </section>
       <div id="koha-counts" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"></div>
-      <section class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5" aria-labelledby="repository-title">
-        <h3 id="repository-title" class="text-lg font-semibold text-violet-100">UEM repository updates</h3>
-        <p class="mt-1 text-xs text-white/60">Public item links from the institutional repository feed. Files are not ingested automatically.</p>
-        <ul id="repository-candidates" class="mt-3 space-y-2 text-sm"></ul>
+      <section class="mt-6 rounded-2xl border border-slate-700 bg-[#1E293B] p-5" aria-labelledby="repository-title">
+        <h3 id="repository-title" class="text-lg font-semibold text-[#F1F5F9]">UEM repository updates</h3>
+        <p class="mt-1 text-xs text-[#CBD5E1]">Public item links from the institutional repository feed. Files are not ingested automatically.</p>
+        <ul id="repository-candidates" class="mt-3 space-y-2 text-sm text-[#CBD5E1]"></ul>
       </section>
-      <div class="mt-6 rounded-2xl border border-violet-300/20 bg-[#171337] p-5">
-        <label for="koha-kind" class="text-sm font-semibold">Dataset</label>
-        <select id="koha-kind" class="touch-target ml-2 rounded-lg border border-violet-300/30 bg-[#100a2c] p-2 text-white"><option value="holdings">Holdings</option><option value="journal_issues">Journal issues</option><option value="subject_counts">Subject counts</option><option value="subject_titles">Subject titles</option></select>
+      <div class="mt-6 rounded-2xl border border-slate-700 bg-[#1E293B] p-5">
+        <label for="koha-kind" class="text-sm font-semibold text-[#F1F5F9]">Dataset</label>
+        <select id="koha-kind" class="touch-target ml-2 rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-[#F1F5F9]"><option value="holdings">Holdings</option><option value="journal_issues">Journal issues</option><option value="subject_counts">Subject counts</option><option value="subject_titles">Subject titles</option></select>
         <label for="koha-search" class="sr-only">Search Koha metadata</label>
-        <input id="koha-search" placeholder="Search catalogue metadata" class="touch-target mt-4 w-full rounded-lg border border-violet-300/30 bg-[#100a2c] p-3 text-white">
-        <p id="koha-results" class="my-3 text-xs text-white/60"></p>
-        <div class="max-h-[460px] overflow-auto"><table class="w-full min-w-[650px] text-left text-xs"><thead id="koha-head" class="sticky top-0 bg-[#171337] text-violet-200"></thead><tbody id="koha-body" class="divide-y divide-white/10"></tbody></table></div>
+        <input id="koha-search" placeholder="Search catalogue metadata" class="touch-target mt-4 w-full rounded-lg border border-slate-600 bg-[#0F172A] p-3 text-[#F1F5F9]">
+        <p id="koha-results" class="my-3 text-xs text-[#CBD5E1]"></p>
+        <div class="max-h-[460px] overflow-auto"><table class="w-full min-w-[650px] text-left text-xs text-[#F1F5F9]"><thead id="koha-head" class="sticky top-0 bg-[#0F172A] text-[#CBD5E1]"></thead><tbody id="koha-body" class="divide-y divide-slate-700"></tbody></table></div>
       </div>
     </section>
   </main>
@@ -521,18 +522,18 @@
         minZoom: 0.25,
         maxZoom: 2.5,
         style: [
-          { selector: 'node', style: { 'shape': 'round-rectangle', 'background-color': '#ecfaf4', 'border-width': 2, 'border-color': '#16a085', 'label': 'data(name)', 'color': '#153a33', 'font-size': 11, 'font-weight': 700, 'text-wrap': 'wrap', 'text-max-width': 132, 'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': '12px', 'underlay-color': '#5de4bf', 'underlay-opacity': .14, 'underlay-padding': 8, 'underlay-shape': 'roundrectangle' } },
-          { selector: 'node.target-node', style: { 'background-color': '#0d9374', 'border-color': '#006b57', 'color': '#ffffff', 'padding': '16px', 'font-size': 13, 'font-weight': 700, 'underlay-color': '#39cf9f', 'underlay-padding': 12, 'underlay-opacity': .3 } },
-          { selector: 'node[kind = "source_document"]', style: { 'background-color': '#e8f1ff', 'border-color': '#6799d9', 'color': '#163055', 'padding': '10px', 'font-size': 10 } },
-          { selector: 'edge', style: { 'width': 2, 'line-color': '#8c7ae6', 'target-arrow-color': '#8c7ae6', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.25, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': '', 'font-size': 9, 'color': '#1e293b', 'text-rotation': 'autorotate', 'text-background-color': '#ffffff', 'text-background-opacity': .95, 'text-background-padding': 3 } },
-          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#3995d3', 'target-arrow-color': '#3995d3' } },
-          { selector: 'edge[rel_label = "UNLOCKS"]', style: { 'line-color': '#d965a5', 'target-arrow-color': '#d965a5' } },
-          { selector: 'edge[rel_label = "RELATED"], edge[rel_label = "CONNECTS"]', style: { 'line-color': '#8c7ae6', 'target-arrow-color': '#8c7ae6' } },
-          { selector: 'edge[rel_label = "SOURCED_FROM"]', style: { 'line-color': '#13ae89', 'target-arrow-color': '#13ae89' } },
-          { selector: '.muted', style: { 'opacity': .15, 'text-opacity': .12 } },
-          { selector: '.focused', style: { 'opacity': 1, 'border-width': 3, 'border-color': '#008d72', 'underlay-padding': 12, 'underlay-opacity': .45 } },
-          { selector: 'edge.focused, edge.hovered, edge:selected', style: { 'label': 'data(rel_label)', 'width': 3.2, 'opacity': 1 } },
-          { selector: ':selected', style: { 'border-color': '#008d72', 'border-width': 3 } }
+          { selector: 'node', style: { 'shape': 'round-rectangle', 'background-color': '#1E293B', 'border-width': 2, 'border-color': '#818CF8', 'label': 'data(name)', 'color': '#F1F5F9', 'font-size': 11, 'font-weight': 700, 'text-wrap': 'wrap', 'text-max-width': 132, 'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': '12px', 'underlay-color': '#6366F1', 'underlay-opacity': .16, 'underlay-padding': 8, 'underlay-shape': 'roundrectangle' } },
+          { selector: 'node.target-node', style: { 'background-color': '#4F46E5', 'border-color': '#C4B5FD', 'color': '#F1F5F9', 'padding': '16px', 'font-size': 13, 'font-weight': 700, 'underlay-color': '#8B5CF6', 'underlay-padding': 12, 'underlay-opacity': .32 } },
+          { selector: 'node[kind = "source_document"]', style: { 'background-color': '#0F2937', 'border-color': '#2DD4BF', 'color': '#F1F5F9', 'padding': '10px', 'font-size': 10 } },
+          { selector: 'edge', style: { 'width': 2.2, 'line-color': '#A78BFA', 'target-arrow-color': '#A78BFA', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.3, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': '', 'font-size': 9, 'font-weight': 600, 'color': '#F1F5F9', 'text-rotation': 'autorotate', 'text-background-color': '#0F172A', 'text-background-opacity': .94, 'text-background-padding': 4 } },
+          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#60A5FA', 'target-arrow-color': '#60A5FA' } },
+          { selector: 'edge[rel_label = "UNLOCKS"]', style: { 'line-color': '#F472B6', 'target-arrow-color': '#F472B6' } },
+          { selector: 'edge[rel_label = "RELATED"], edge[rel_label = "CONNECTS"]', style: { 'line-color': '#A78BFA', 'target-arrow-color': '#A78BFA' } },
+          { selector: 'edge[rel_label = "SOURCED_FROM"]', style: { 'line-color': '#2DD4BF', 'target-arrow-color': '#2DD4BF' } },
+          { selector: '.muted', style: { 'opacity': .22, 'text-opacity': .22 } },
+          { selector: '.focused', style: { 'opacity': 1, 'border-width': 3, 'border-color': '#C4B5FD', 'underlay-padding': 12, 'underlay-opacity': .45 } },
+          { selector: 'edge.focused, edge.hovered, edge:selected', style: { 'label': 'data(rel_label)', 'width': 3.4, 'opacity': 1 } },
+          { selector: ':selected', style: { 'border-color': '#C4B5FD', 'border-width': 3 } }
         ]
       });
 

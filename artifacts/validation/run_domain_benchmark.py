@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import json
 import math
+from pathlib import Path
 import statistics
 import time
-from pathlib import Path
 
 import requests
 
@@ -206,7 +206,7 @@ def main() -> None:
     questions = bench["questions"]
     inventory = json.loads(INVENTORY_PATH.read_text())["domains"]
 
-    token = authenticate()
+    token = "" if "--local-flask" in __import__("sys").argv else authenticate()
     results: list[dict] = []
     if RESULTS_PATH.exists():
         try:
@@ -228,33 +228,55 @@ def main() -> None:
         status = 0
         raw_text = ""
         latency_s = 0.0
-        for attempt in range(4):
+        if "--local-flask" in __import__("sys").argv:
             t0 = time.time()
-            try:
-                resp = requests.post(
-                    f"{BASE_URL}/api/chat",
-                    headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-                    json={"query": item["question"]},
-                    timeout=TIMEOUT_SECONDS,
-                )
-                latency_s = round(time.time() - t0, 3)
-                status = resp.status_code
-                raw_text = resp.text
-                if status == 401:
-                    token = authenticate()
-                    continue
-                if status == 429 or status >= 500:
-                    wait_s = 5.0 * (attempt + 1)
-                    print(f"  [{item['id']}] HTTP {status}, retrying in {wait_s}s...")
+            if not hasattr(main, "_flask_client"):
+                import sys as _sys
+
+                from dotenv import load_dotenv
+                _hi = str(ROOT / "host_inference")
+                if _hi not in _sys.path:
+                    _sys.path.insert(0, _hi)
+                load_dotenv(ROOT / "host_inference" / ".env")
+                from hostapp.factory import create_app
+                _app = create_app()
+                _app.config["TESTING"] = True
+                main._flask_client = _app.test_client()
+            _resp = main._flask_client.post(
+                "/api/chat",
+                json={"query": item["question"]},
+            )
+            latency_s = round(time.time() - t0, 3)
+            status = _resp.status_code
+            raw_text = _resp.data.decode("utf-8", "replace")
+        else:
+            for attempt in range(4):
+                t0 = time.time()
+                try:
+                    resp = requests.post(
+                        f"{BASE_URL}/api/chat",
+                        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                        json={"query": item["question"]},
+                        timeout=TIMEOUT_SECONDS,
+                    )
+                    latency_s = round(time.time() - t0, 3)
+                    status = resp.status_code
+                    raw_text = resp.text
+                    if status == 401:
+                        token = "" if "--local-flask" in __import__("sys").argv else authenticate()
+                        continue
+                    if status == 429 or status >= 500:
+                        wait_s = 5.0 * (attempt + 1)
+                        print(f"  [{item['id']}] HTTP {status}, retrying in {wait_s}s...")
+                        time.sleep(wait_s)
+                        continue
+                    break
+                except requests.RequestException as exc:
+                    latency_s = round(time.time() - t0, 3)
+                    raw_text = str(exc)
+                    wait_s = 4.0 * (attempt + 1)
+                    print(f"  [{item['id']}] Request error ({exc}), retrying in {wait_s}s...")
                     time.sleep(wait_s)
-                    continue
-                break
-            except requests.RequestException as exc:
-                latency_s = round(time.time() - t0, 3)
-                raw_text = str(exc)
-                wait_s = 4.0 * (attempt + 1)
-                print(f"  [{item['id']}] Request error ({exc}), retrying in {wait_s}s...")
-                time.sleep(wait_s)
 
         payload, answer = parse_stream_response(raw_text)
         routing = payload.get("routing") or {}
@@ -299,7 +321,7 @@ def main() -> None:
             save_summary(results)
 
         if idx < len(questions):
-            time.sleep(PACE_SECONDS)
+            time.sleep(0.3 if "--local-flask" in __import__("sys").argv else PACE_SECONDS)
 
     save_summary(results)
     print("Benchmark complete. Saved to", RESULTS_PATH)
