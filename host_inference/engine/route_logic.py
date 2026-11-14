@@ -70,6 +70,108 @@ ACADEMIC_DOMAIN_RE = re.compile(
 )
 
 
+_CAPABILITY_BROAD_RE = re.compile(
+    r"\bwhat\s+(?:\w+\s+){0,3}(?:domains?|subjects?|topics?|textbooks?|books?|fields?|areas?)"
+    r"(?:\s+(?:and|or)\s+(?:\w+\s+){0,2}(?:domains?|subjects?|topics?|textbooks?|books?|fields?|areas?))?\s+"
+    r"(?:do\s+you\s+(?:cover|have|support|index)|can\s+i\s+ask\s+about)\b",
+    re.I,
+)
+_EXPLOIT_INTENT_RE = re.compile(
+    r"\b(?:use|perform|execute|run|exploit)\s+(?:sql\s+injection|xss|csrf|buffer\s+overflow|ransomware|malware)\b"
+    r"|\b(?:dump|steal|exfiltrate|hack|crack|brute[- ]?force)\b.*\b(?:table|database|password|credentials|login|admin|server)\b",
+    re.I,
+)
+PAPER_LOOKUP_RE = re.compile(
+    r"\b(which paper (?:introduced|proposed|presented|described|originated)|"
+    r"who (?:wrote|authored|introduced|proposed)|author(?:s)? of|"
+    r"doi for|give me (?:the )?citations of|citation count of|"
+    r"references of this paper|citations of this paper|identify (?:the )?paper)\b",
+    re.I,
+)
+_ABBREV_EXPANSIONS = {
+    "w/": "with",
+    "expln": "explain",
+    "pagng": "paging",
+    "trnsformer": "transformer",
+    "trnsformers": "transformers",
+    "attntion": "attention",
+    "krnel": "kernel",
+    "hw": "how",
+    "wrk": "work",
+    "y": "why",
+}
+_GENERIC_GRAPH_TOKENS = frozenset(
+    {
+        "algorithm",
+        "algorithms",
+        "concept",
+        "concepts",
+        "explain",
+        "function",
+        "functions",
+        "graph",
+        "graphs",
+        "learning",
+        "machine",
+        "method",
+        "methods",
+        "model",
+        "models",
+        "network",
+        "networks",
+        "neural",
+        "system",
+        "systems",
+        "theory",
+        "using",
+    }
+)
+
+
+def _normalize_query_for_graph(query: str) -> str:
+    """Expand common abbreviations and strip simple English inflections inline."""
+    tokens = re.findall(r"[a-z0-9/]+", (query or "").lower())
+    out: list[str] = []
+    for tok in tokens:
+        if tok in _ABBREV_EXPANSIONS:
+            out.append(_ABBREV_EXPANSIONS[tok])
+            continue
+        if len(tok) >= 6 and tok.endswith("ing"):
+            tok = tok[:-3]
+        elif len(tok) >= 5 and tok.endswith("ed"):
+            tok = tok[:-2]
+        elif len(tok) >= 5 and tok.endswith("s") and not tok.endswith("ss"):
+            tok = tok[:-1]
+        out.append(tok)
+    return " ".join(out)
+
+
+def _fallback_graph_hits(graph, query: str) -> list[str]:
+    """Resolve indexed graph nodes via morphological normalization and multi-token overlap."""
+    norm = _normalize_query_for_graph(query)
+    hits = graph.phrase_hits(norm)
+    if hits:
+        return hits
+    q_tokens = {t for t in norm.split() if len(t) >= 4 and t not in _GENERIC_GRAPH_TOKENS}
+    if not q_tokens:
+        return []
+    scored: list[tuple[int, str]] = []
+    for cid, node in graph.nodes.items():
+        label = (node.get("label") or node.get("name") or cid).lower()
+        label_tokens = {
+            t
+            for t in _normalize_query_for_graph(label).split()
+            if len(t) >= 4 and t not in _GENERIC_GRAPH_TOKENS
+        }
+        if len(label_tokens) < 2:
+            continue
+        overlap = len(q_tokens & label_tokens)
+        if overlap >= 2 and overlap >= len(label_tokens) - 1:
+            scored.append((overlap, cid))
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [cid for _, cid in scored[:ANCHOR_LIMIT]]
+
+
 def route(self, query: str) -> tuple[str, str, str | None, dict]:
     graph = self.graph
     if not query or len(query) < MIN_QUERY_LEN:
@@ -83,7 +185,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return "PERSONA_LOCK", HIJACK_MESSAGE, None, {"hide_graph": True, "reason": "injection"}
     if CODE_TRAP.search(query):
         return "CODE_TRAP", CODE_MESSAGE, None, {"hide_graph": True, "reason": "procedural"}
-    if EXPLOIT_ACTION_RE.search(query):
+    if EXPLOIT_ACTION_RE.search(query) or _EXPLOIT_INTENT_RE.search(query):
         return (
             "GUARDRAIL_INTERCEPT",
             "I cannot provide instructions for bypassing authentication or performing cyberattacks. "
@@ -127,7 +229,10 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return "GREETING", text, None, {"hide_graph": True, "reason": "greeting"}
 
     clean_query = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
-    if classify_query_intent(clean_query) == IntentCategory.CAPABILITY_INQUIRY:
+    if (
+        classify_query_intent(clean_query) == IntentCategory.CAPABILITY_INQUIRY
+        or _CAPABILITY_BROAD_RE.search(clean_query)
+    ):
         concept_count = len(getattr(graph, "nodes", {}) or {})
         text = (
             "Here is what **Archipelago** currently covers:\n\n"
@@ -238,6 +343,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         catalog_hit
         and SOURCE_LOOKUP_RE.search(clean_query)
         and not SHELF_RE.search(clean_query)
+        and not PAPER_LOOKUP_RE.search(clean_query)
         and not learning_request
         and not relational_request
         and not explain_request
@@ -257,6 +363,8 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     ranked = graph.rank(query, top_k=RANK_TOP_K)
     best_score, best_id = ranked[0]
     hits = graph.phrase_hits(query)
+    if not hits and best_score < KILL_SWITCH:
+        hits = _fallback_graph_hits(graph, clean_query)
     anchors = []
     for cid in hits:
         if cid not in anchors:
@@ -267,10 +375,6 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         if len(anchors) >= ANCHOR_LIMIT:
             break
 
-    PAPER_LOOKUP_RE = re.compile(
-        r"\b(which paper introduced|who (?:wrote|authored)|author of|doi for|give me (?:the )?citations of|citation count of|references of this paper|citations of this paper|identify (?:the )?paper)\b",
-        re.I,
-    )
     if PAPER_LOOKUP_RE.search(query):
         target_cid = anchors[0] if anchors else None
         text, cite = compose.paper_lookup_reply(self, query, target_cid)

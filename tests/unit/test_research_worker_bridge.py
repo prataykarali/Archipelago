@@ -63,7 +63,11 @@ def test_worker_claims_and_finishes_one_job(
 
         def claim_next(self, _worker_id: str) -> dict[str, str]:
             events.append("claim")
-            return {"job_id": "job-one", "topic": "graph retrieval"}
+            return {
+                "job_id": "job-one",
+                "topic": "graph retrieval",
+                "job_type": "academic_pdf_ingestion",
+            }
 
         def update_job(self, _job_id: str, **_fields: object) -> None:
             events.append("update")
@@ -98,7 +102,11 @@ def test_worker_decline_never_starts_gpu_job(
             return None
 
         def claim_next(self, _worker_id: str) -> dict[str, str]:
-            return {"job_id": "job-one", "topic": "graph retrieval"}
+            return {
+                "job_id": "job-one",
+                "topic": "graph retrieval",
+                "job_type": "academic_pdf_ingestion",
+            }
 
         def update_job(self, _job_id: str, **fields: object) -> None:
             updates.append(fields)
@@ -411,7 +419,12 @@ def test_preflight_blocks_popup_and_records_blocked_resource(
             return None
 
         def claim_next(self, _worker_id: str) -> dict[str, object]:
-            return {"job_id": "job-pre", "topic": "distributed systems", **job_extra}
+            return {
+                "job_id": "job-pre",
+                "topic": "distributed systems",
+                "job_type": "academic_pdf_ingestion",
+                **job_extra,
+            }
 
         def update_job(self, _job_id: str, **fields: object) -> None:
             updates.append(fields)
@@ -519,3 +532,56 @@ def test_consolidated_prompt_and_vram_unload_on_failure(
     assert result == {"job_id": "job-consolidate", "status": "failed"}
     assert any("4 queued ingestion job(s) pending." in arg for arg in zenity_cmds[0])
     assert unloaded == [cli.ingestion_model_name()]
+
+
+@pytest.mark.parametrize(
+    "bad_job_type",
+    [
+        None,
+        "",
+        "   ",
+        "chat",
+        "research_chat",
+        "scholarly_search",
+        "research_monitoring",
+        "excel_generation",
+        "ui_rendering",
+        "experimental_research",
+        "unapproved_gpu_job",
+    ],
+)
+def test_worker_fails_closed_on_missing_or_unauthorized_job_type(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, bad_job_type: str | None
+) -> None:
+    """Missing or disallowed job_type must fail closed without zenity or GPU lease."""
+    monkeypatch.setenv("DISPLAY", ":1")
+    monkeypatch.setenv("ARCHIPELAGO_NOTIFICATION_LEDGER", str(tmp_path / "ledger.json"))
+    updates: list[dict[str, object]] = []
+
+    class Store:
+        def recover_stale_jobs(self) -> int:
+            return 0
+
+        def heartbeat(self, *_args: object) -> None:
+            return None
+
+        def claim_next(self, _worker_id: str) -> dict[str, object]:
+            job: dict[str, object] = {"job_id": "job-bad-type", "topic": "operating systems"}
+            if bad_job_type is not None:
+                job["job_type"] = bad_job_type
+            return job
+
+        def update_job(self, _job_id: str, **fields: object) -> None:
+            updates.append(fields)
+
+    monkeypatch.setattr(cli, "_model_ready", lambda: True)
+    monkeypatch.setattr(
+        cli, "_approve_gpu_request", lambda *_args, **_kw: pytest.fail("zenity must not run")
+    )
+    monkeypatch.setattr(
+        cli, "process_job", lambda *_args: pytest.fail("unauthorized job must not run")
+    )
+
+    result = cli.run_once(Store(), "worker-one")  # type: ignore[arg-type]
+    assert result == {"job_id": "job-bad-type", "status": "failed"}
+    assert updates[-1]["stage"] == "GPU_POLICY_REJECTED"

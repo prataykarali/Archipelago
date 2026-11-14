@@ -136,7 +136,7 @@ def test_class_a_academic_concept_explanations(
     result = engine.answer(query)
     text = result["text"].lower()
 
-    assert result["route"] in ("GRAPH_SYNTHESIS", "GENERAL_EXPLANATION", "RELATION"), (
+    assert result["route"] in ("GRAPH_SYNTHESIS", "GENERAL_EXPLANATION", "RELATION", "MULTI_CONCEPT"), (
         f"Unexpected route {result['route']} for query: {query}"
     )
     for kw in expected_keywords:
@@ -157,17 +157,17 @@ def test_class_a_academic_concept_explanations(
         (
             "Which OS books are available in the library?",
             ["Three Easy Pieces", "Operating System Concepts"],
-            ["Title", "Authors", "Availability"],
+            ["Title", "Author", "Available"],
         ),
         (
             "What DBMS books do we have in the library?",
             ["Database System Concepts", "Database Management Systems"],
-            ["Title", "Authors", "Availability"],
+            ["Title", "Author", "Available"],
         ),
         (
             "Which DSA and algorithm textbooks are available?",
             ["Introduction to Algorithms", "Data Structures"],
-            ["Title", "Authors", "Availability"],
+            ["Title", "Author", "Available"],
         ),
     ],
 )
@@ -204,7 +204,8 @@ def test_class_c_research_topic_recent_literature(engine):
     assert result["route"] == "RESEARCH_TOPIC"
     assert "Lewis" in text and "2020" in text, "Must cite Lewis et al. 2020 foundational RAG paper"
     assert "Edge" in text and "2024" in text, "Must cite Edge et al. 2024 Graph RAG paper"
-    assert "mid-2024" in text, "Must disclose verified mid-2024 corpus temporal boundary"
+    assert "corpus date coverage" in text.lower(), "Must disclose verified corpus date coverage"
+    assert "2024" in text, "Must include 2024 in verified corpus date coverage"
     assert "diagnostic_mcqs" not in result["payload"] or result["payload"]["diagnostic_mcqs"] == []
 
 

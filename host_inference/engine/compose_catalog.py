@@ -175,6 +175,8 @@ def library_inventory_reply(engine, query: str) -> str:
         ),
         (),
     )
+    if not selected and re.search(r"\bos\b", topic):
+        selected = keywords["operating systems"]
     if "journal" in topic:
         return (
             "Journal inventory is not verified in the hosted catalog. "

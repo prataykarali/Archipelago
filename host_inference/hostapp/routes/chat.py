@@ -17,7 +17,11 @@ from engine.citations import (
     infer_synthesis_mode,
     validate_response_citations,
 )
-from engine.reply_templates import list_reply_templates, valid_reply_template_id
+from engine.reply_templates import (
+    list_reply_templates,
+    select_reply_template,
+    valid_reply_template_id,
+)
 from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
@@ -33,6 +37,26 @@ MAX_PREVIOUS_ANSWER_CHARS = 800
 STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
 TELEMETRY_NO_CONTENT = 204
+_STUDY_PLAN_ASK_RE = re.compile(
+    r"\b(reading\s+order|study\s+plan|roadmap|learning\s+path|prerequisite)\b",
+    re.I,
+)
+_RESEARCH_ENRICH_CUE_RE = re.compile(
+    r"\b(research|papers?|publications?|studies|arxiv|doi|saved|ingested|collected|topics?|subjects?|research\s+areas?|literature)\b",
+    re.I,
+)
+_CONCEPTUAL_ROUTES = frozenset(
+    {
+        "GRAPH_SYNTHESIS",
+        "MULTI_CONCEPT",
+        "GENERAL_EXPLANATION",
+        "CROSS_DOMAIN",
+        "RELATION",
+        "DISCONNECTED",
+        "RESEARCH_TOPIC",
+    }
+)
+_COMPARE_CUE_RE = re.compile(r"\b(compare|versus|vs\.?|difference\s+between)\b", re.I)
 
 
 def _format_reset_time(reset_at: object, retry_after: int) -> str:
@@ -280,7 +304,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             t_eng_start = time.perf_counter()
             prepared = ctx.engine.answer(resolved_query)
             t_eng_end = time.perf_counter()
-            prepared = enrich_with_research(prepared, resolved_query)
+            should_enrich = (
+                prepared.get("route") in {"RESEARCH_TOPIC", "RESEARCH_UNVERIFIED"}
+                or bool(_RESEARCH_ENRICH_CUE_RE.search(resolved_query))
+            )
+            if should_enrich:
+                prepared = enrich_with_research(prepared, resolved_query)
             t_enrich_end = time.perf_counter()
         except Exception:
             current_app.logger.exception("Unable to prepare chat response")
@@ -303,6 +332,10 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         def generate():
             ttft_ms = None
+            t_stream_start = None
+            research_ms = round((t_after_research - t_req_start) * 1000, 1)
+            engine_ms = round((t_eng_end - t_eng_start) * 1000, 1)
+            enrich_ms = round((t_enrich_end - t_eng_end) * 1000, 1)
             payload = dict(prepared.get("payload") or {})
             canonical_citations = assign_canonical_citations(payload.get("citations"))
             if canonical_citations:
@@ -310,8 +343,16 @@ def register(app: Flask, ctx: AppContext) -> None:
             try:
                 if prepared.get("research_overlay") and not custom_reply:
                     payload["synthesis_mode"] = infer_synthesis_mode(prepared, payload)
+                    ttft_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
+                    payload["stage_timings_ms"] = {
+                        "research_run_ms": research_ms,
+                        "intent_and_graph_ms": engine_ms,
+                        "evidence_retrieval_ms": enrich_ms,
+                        "provider_ttft_ms": 0.0,
+                        "ttft_ms": ttft_ms,
+                        "total_ms": ttft_ms,
+                    }
                     yield json.dumps(payload) + STREAM_MARKER
-                    ttft_ms = (time.perf_counter() - t_req_start) * 1000
                     clean_text, _removed = validate_response_citations(
                         str(prepared.get("text") or ""),
                         canonical_citations,
@@ -323,9 +364,21 @@ def register(app: Flask, ctx: AppContext) -> None:
                     options = {"previous_answer": previous_answer, "prepared": prepared_for_stream}
                     if template_id:
                         options["reply_template_id"] = template_id
+                    elif (
+                        prepared.get("route") in _CONCEPTUAL_ROUTES
+                        and not _STUDY_PLAN_ASK_RE.search(resolved_query)
+                    ):
+                        auto_tpl = select_reply_template(
+                            resolved_query, str(prepared.get("route") or "")
+                        )
+                        if auto_tpl.get("id") in {"RES-102", "RES-121"}:
+                            options["reply_template_id"] = (
+                                "RES-091" if _COMPARE_CUE_RE.search(resolved_query) else "RES-114"
+                            )
                     if reply_detail == "expanded":
                         options["reply_detail"] = "expanded"
                     active_citations = canonical_citations
+                    t_stream_start = time.perf_counter()
                     for chunk in ctx.engine.stream_chat(resolved_query, **options):
                         if STREAM_MARKER in chunk:
                             head, rest = chunk.split(STREAM_MARKER, 1)
@@ -340,10 +393,24 @@ def register(app: Flask, ctx: AppContext) -> None:
                                 active_citations = meta_citations
                             if meta or prepared.get("synthesis_mode") or meta_citations:
                                 meta["synthesis_mode"] = infer_synthesis_mode(prepared, meta)
+                            now_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
+                            prov_ttft = (
+                                round((time.perf_counter() - t_stream_start) * 1000, 1)
+                                if t_stream_start is not None
+                                else 0.0
+                            )
+                            if meta:
+                                meta["stage_timings_ms"] = {
+                                    "research_run_ms": research_ms,
+                                    "intent_and_graph_ms": engine_ms,
+                                    "evidence_retrieval_ms": enrich_ms,
+                                    "provider_ttft_ms": prov_ttft,
+                                    "ttft_ms": now_ms,
+                                }
                             yield json.dumps(meta) + STREAM_MARKER + rest
                             continue
                         if ttft_ms is None:
-                            ttft_ms = (time.perf_counter() - t_req_start) * 1000
+                            ttft_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
                         if "[" in chunk and active_citations is not None:
                             chunk, _removed = validate_response_citations(chunk, active_citations)
                         yield chunk
@@ -352,12 +419,18 @@ def register(app: Flask, ctx: AppContext) -> None:
                 yield "\n\nAn unexpected error occurred during synthesis. Please retry your question."
             finally:
                 t_end = time.perf_counter()
+                provider_stream_ms = (
+                    round((t_end - t_stream_start) * 1000, 1)
+                    if t_stream_start is not None
+                    else 0.0
+                )
                 logger.info(
-                    "[CHAT_TIMING] route=%s research_ms=%.1f engine_ms=%.1f enrich_ms=%.1f ttft_ms=%.1f total_ms=%.1f",
+                    "[CHAT_TIMING] route=%s research_ms=%.1f engine_ms=%.1f enrich_ms=%.1f provider_ms=%.1f ttft_ms=%.1f total_ms=%.1f",
                     prepared.get("route"),
-                    (t_after_research - t_req_start) * 1000,
-                    (t_eng_end - t_eng_start) * 1000,
-                    (t_enrich_end - t_eng_end) * 1000,
+                    research_ms,
+                    engine_ms,
+                    enrich_ms,
+                    provider_stream_ms,
                     ttft_ms if ttft_ms is not None else (t_end - t_req_start) * 1000,
                     (t_end - t_req_start) * 1000,
                 )

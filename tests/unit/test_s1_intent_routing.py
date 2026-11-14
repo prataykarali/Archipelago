@@ -215,8 +215,8 @@ def test_research_topic_has_citations_and_date_coverage_disclosure(engine):
     assert "edge" in text.lower()
     assert "graphrag" in text.lower() or "graph rag" in text.lower()
 
-    # Research explanations retrieve the graph internally without a learning card.
-    assert payload["render_graph"] is False
+    # Research explanations with verified graph relationships render the inline graph card without MCQs.
+    assert payload["render_graph"] is True
     assert "diagnostic_mcqs" not in payload or payload["diagnostic_mcqs"] == []
 
 
@@ -241,8 +241,8 @@ def test_library_inventory_omits_unsupported_claims(engine):
 
     assert "verified curriculum textbooks" not in text.lower()
     assert "verified holdings" not in text.lower()
-    assert "central library" in text.lower()
-    assert "ieee xplore" in text.lower()
+    assert "not verified" in text.lower()
+    assert "uemk-opac.l2c2.co.in" in text.lower()
 
 
 # ── 6. Main Pipeline Router Parity ───────────────────────────────────────────

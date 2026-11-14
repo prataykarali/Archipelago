@@ -92,7 +92,10 @@ def stream_synthesis_with_ollama(
         "11. NO LATEX/MATH NOTATION: Never use LaTeX symbols like $, \\(, \\), or any "
         "math formatting. Write all math concepts in plain descriptive text.\n"
         "12. For a supported concept question, explain what it is and how it works at the requested depth. "
-        "Mention prerequisites only when requested. Do not pad or invent facts to reach a length."
+        "Mention prerequisites only when requested. Do not pad or invent facts to reach a length.\n"
+        "13. NO UNSOLICITED STUDY PLANS: Do NOT emit 'Reading order:', 'Prerequisite concepts:', or "
+        "'Time/priority:' study-plan headers unless the user explicitly asks for a reading order, "
+        "study plan, or prerequisite roadmap."
     )
     # For persona-hijack queries, rewrite the user message so the model never
     # sees the slang/emoji instruction (harder to comply-by-imitating).
@@ -106,7 +109,12 @@ def stream_synthesis_with_ollama(
         )
         uq = re.sub(r"\s+", " ", uq).strip(" ,.?!") or "Explain the technical concept."
         uq = f"{uq}\n\n(Respond in dry academic textbook prose only. Zero emojis. Zero slang.)"
-    system_prompt += "\n\n" + reply_template_guidance(uq)
+    if not re.search(r"\b(reading\s+order|study\s+plan|roadmap|learning\s+path|prerequisite)\b", uq, re.I):
+        guidance = reply_template_guidance(uq)
+        if "RES-102" not in guidance and "RES-121" not in guidance:
+            system_prompt += "\n\n" + guidance
+    else:
+        system_prompt += "\n\n" + reply_template_guidance(uq)
     user_content = f"[Context]:\n{indexed_response}\n\n[User Query]:\n{uq}"
 
     messages = [{"role": "system", "content": system_prompt}]

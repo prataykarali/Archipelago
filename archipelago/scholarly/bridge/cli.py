@@ -25,6 +25,7 @@ from archipelago.ingestion.gpu_lease import (
     GPUWorkerBusy,
     shared_gpu_lease,
     unload_ollama_model,
+    validate_gpu_job_type,
 )
 from archipelago.scholarly.acquisition.indra_parser import indra_available
 from archipelago.scholarly.bridge.processor import process_job
@@ -286,6 +287,21 @@ def run_once(
     pulse.start()
     gpu_acquired = False
     try:
+        raw_job_type = job.get("job_type")
+        try:
+            job_type = validate_gpu_job_type(
+                raw_job_type if isinstance(raw_job_type, str) else None
+            )
+        except GPUJobTypeRejected as exc:
+            store.update_job(
+                job_id,
+                status="failed",
+                stage="GPU_POLICY_REJECTED",
+                error=str(exc)[:MAX_ERROR_CHARS],
+                completed_at=datetime.now(UTC).isoformat(),
+            )
+            return {"job_id": job_id, "status": "failed"}
+
         preflight_ok, preflight_stage, preflight_reason = _preflight_check(job)
         if not preflight_ok:
             store.update_job(
@@ -333,7 +349,6 @@ def run_once(
             )
             return {"job_id": job_id, "status": "failed"}
 
-        job_type = str(job.get("job_type") or "academic_pdf_ingestion")
         try:
             with shared_gpu_lease(job_type=job_type):
                 gpu_acquired = True

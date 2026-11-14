@@ -49,7 +49,8 @@ def test_graph_reply_exposes_anchor_prerequisites_and_citations(engine):
     result = engine.answer("explain BERT")
     payload = result["payload"]
     assert result["route"] in GRAPH_ROUTES
-    assert not payload["render_graph"], "ordinary explanations need no visible learning graph"
+    assert payload["render_graph"] is True, "concept explanations with verified graph links render the inline graph card"
+    assert payload["anchor_concept"] is not None
     assert payload["citations"], "a grounded reply must carry at least one exact-source citation"
 
 

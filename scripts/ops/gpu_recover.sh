@@ -22,16 +22,13 @@ for i in $(seq 1 30); do
 done
 
 MODEL="${ARCHIPELAGO_OLLAMA_MODEL:-qwen3.5:0.8b}"
-echo "[3] unload any CPU-stuck runner, warm on GPU"
+echo "[3] unload any loaded/CPU-stuck runner (no permanent GPU residency on boot)"
 curl -sf --max-time 30 http://127.0.0.1:11434/api/generate \
-  -d "{\"model\":\"${MODEL}\",\"keep_alive\":0}" >/dev/null 2>&1 || true
+  -d "{\"model\":\"${MODEL}\",\"prompt\":\"\",\"stream\":false,\"keep_alive\":0}" >/dev/null 2>&1 || true
 sleep 1
-curl -sf --max-time 120 http://127.0.0.1:11434/api/chat \
-  -d "{\"model\":\"${MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}],\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":2,\"num_ctx\":2048}}" \
-  >/dev/null
 ollama ps || true
 
-# Fail if still on CPU
+# Fail if any runner is stuck on CPU
 if ollama ps 2>/dev/null | grep -qi '100% CPU'; then
   echo "WARN: model still on CPU — GPU may not be usable for Ollama yet"
   exit 2
