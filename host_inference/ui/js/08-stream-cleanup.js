@@ -17,8 +17,10 @@ export function resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, 
                 state.currentAbortController = null;
                 const sendBtn = document.getElementById('send-btn');
                 if (sendBtn) {
-                    sendBtn.disabled = false;
-                    sendBtn.classList.remove('opacity-50', 'pointer-events-none');
+                    const quotaBlocked = Boolean(state.quotaLimitedUntil && Date.now() < state.quotaLimitedUntil);
+                    sendBtn.disabled = quotaBlocked;
+                    sendBtn.classList.toggle('opacity-50', quotaBlocked);
+                    sendBtn.classList.toggle('pointer-events-none', quotaBlocked);
                 }
                 const inputEl = document.getElementById('chat-input');
                 if (inputEl) {

@@ -122,11 +122,12 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     if (hint) hint.textContent = 'Assessment finished. Personalized topology rendered below.';
 
                     // Store evaluation in localStorage and render Personalized Graph
+                    const correctCount = state.history.filter(h => h.is_correct).length;
                     const evalData = data.evaluation || {
                         target_concept: state.target_concept,
-                        score: `${state.history.filter(h => h.is_correct).length}/${state.history.length}`,
-                        passed: state.consecutive_ticks >= 3,
-                        full_score: state.consecutive_ticks >= 3,
+                        score: `${correctCount}/${state.history.length}`,
+                        passed: correctCount >= 3,
+                        full_score: state.history.length > 0 && correctCount === state.history.length,
                         personalized_graph: data.personalized_graph || {},
                     };
                     try {

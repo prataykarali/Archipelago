@@ -6,13 +6,12 @@ the adaptive diagnostic QnA flow, and the roadmap/quiz builders.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 import json
 import re
 import time
 from uuid import UUID
 
-from engine.answer import POLISHABLE_ROUTES
-from engine.llm import provider_config
 from engine.reply_templates import list_reply_templates, valid_reply_template_id
 from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
@@ -29,6 +28,18 @@ MAX_PREVIOUS_ANSWER_CHARS = 800
 STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
 TELEMETRY_NO_CONTENT = 204
+
+
+def _format_reset_time(reset_at: object, retry_after: int) -> str:
+    """Format the rolling-window reset timestamp as ``HH:MM UTC``."""
+    if reset_at:
+        try:
+            dt = datetime.fromisoformat(str(reset_at).replace("Z", "+00:00"))
+            return dt.astimezone(UTC).strftime("%H:%M UTC")
+        except ValueError:
+            pass
+    fallback_dt = datetime.now(UTC) + timedelta(seconds=max(1, retry_after))
+    return fallback_dt.strftime("%H:%M UTC")
 
 
 def _metadata_frame(chunks: list[str]) -> dict:
@@ -203,6 +214,49 @@ def register(app: Flask, ctx: AppContext) -> None:
         if reply_detail not in (None, "standard", "expanded"):
             return jsonify({"error": "invalid_reply_detail"}), 400
 
+        principal = getattr(request, "archipelago_principal", None)
+        if principal and principal.get("id") and principal.get("role") == "student":
+            request_id = body.get("request_id") or ""
+            if request_id:
+                try:
+                    request_id = str(UUID(str(request_id)))
+                except ValueError:
+                    return jsonify({"error": "invalid_request_id"}), 400
+            try:
+                limited, quota = ctx.limiter.check_daily_chat(principal["id"], request_id)
+            except Exception:
+                current_app.logger.exception("Unable to update account quota")
+                return jsonify({"error": "quota_unavailable"}), 503
+            if limited:
+                if quota.get("limit_reason") == "duplicate":
+                    return jsonify(
+                        {
+                            "error": "duplicate_request",
+                            "detail": "This AI request was already submitted.",
+                        }
+                    ), 409
+                retry_after = int(quota.get("retry_after") or 1)
+                reset_at = quota.get("reset_at")
+                reset_label = _format_reset_time(reset_at, retry_after)
+                response = jsonify(
+                    {
+                        "error": "query_limit",
+                        "detail": (
+                            f"Hourly chat limit reached (10/10). "
+                            f"You can ask another question after {reset_label}."
+                        ),
+                        "used": quota.get("used", 10),
+                        "limit": quota.get("limit", 10),
+                        "remaining": quota.get("remaining", 0),
+                        "retry_after": retry_after,
+                        "reset_at": reset_at,
+                    }
+                )
+                response.status_code = 429
+                response.headers["Retry-After"] = str(retry_after)
+                return response
+            request.archipelago_quota = quota  # type: ignore[attr-defined]
+
         t_req_start = time.perf_counter()
         history = body.get("history")
         research = _research_run_reply(body, query, history)
@@ -226,44 +280,7 @@ def register(app: Flask, ctx: AppContext) -> None:
         except Exception:
             current_app.logger.exception("Unable to prepare chat response")
             return jsonify({"error": "chat_unavailable"}), 503
-        principal = getattr(request, "archipelago_principal", None)
         custom_reply = reply_detail == "expanded" or bool(template_id)
-        uses_ai = provider_config() is not None and (
-            (prepared["route"] in POLISHABLE_ROUTES and not prepared.get("research_overlay"))
-            or (prepared.get("research_overlay") and custom_reply)
-        )
-        if uses_ai and principal and principal.get("id") and principal["role"] == "student":
-            request_id = body.get("request_id") or ""
-            if request_id:
-                try:
-                    request_id = str(UUID(str(request_id)))
-                except ValueError:
-                    return jsonify({"error": "invalid_request_id"}), 400
-            try:
-                limited, quota = ctx.limiter.check_daily_chat(principal["id"], request_id)
-            except Exception:
-                current_app.logger.exception("Unable to update account quota")
-                return jsonify({"error": "quota_unavailable"}), 503
-            if limited:
-                if quota.get("limit_reason") == "duplicate":
-                    return jsonify(
-                        {
-                            "error": "duplicate_request",
-                            "detail": "This AI request was already submitted.",
-                        }
-                    ), 409
-                response = jsonify(
-                    {
-                        "error": "query_limit",
-                        "detail": "AI queries are paused. Your saved conversations remain available.",
-                        "remaining": quota["remaining"],
-                        "retry_after": quota["retry_after"],
-                    }
-                )
-                response.status_code = 429
-                response.headers["Retry-After"] = str(quota["retry_after"])
-                return response
-            request.archipelago_quota = quota  # type: ignore[attr-defined]
 
         previous_answer = ""
         if isinstance(history, list):

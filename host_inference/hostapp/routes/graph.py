@@ -306,6 +306,9 @@ def register(app: Flask, ctx: AppContext) -> None:
                         "source": source,
                         "target": target,
                         "rel_label": relation,
+                        "source_ref": str(
+                            (getattr(graph, "edge_records", {}).get(key) or {}).get("source") or ""
+                        ),
                     }
                 }
             )

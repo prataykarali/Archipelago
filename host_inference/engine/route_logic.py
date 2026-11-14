@@ -95,6 +95,17 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return "GREETING", text, None, {"hide_graph": True, "reason": "greeting"}
 
     clean_query = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
+    prior_match = re.search(r"\([Ee]arlier user topics?:\s*(.+?)\)", query or "")
+    prior_topics = [t.strip() for t in prior_match.group(1).split(";") if t.strip()] if prior_match else []
+    shelf_query = clean_query
+    if prior_topics and re.search(r"\b(?:this|that|the)\s+book\b", clean_query, re.I):
+        shelf_query = re.sub(
+            r"\b(?:this|that|the)\s+book\b",
+            prior_topics[-1],
+            clean_query,
+            count=1,
+            flags=re.I,
+        )
 
     # The indexed "Neural Network" node describes graph neural networks.
     # A basic neural-network definition must not cite that narrower passage.
@@ -238,6 +249,14 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             },
         )
 
+    _CATALOG_AVAILABILITY_RE = re.compile(
+        r"\b(?:is|are)\s+.+?\s+available\s+in\s+(?:the\s+)?(?:uem|uemk|campus|university)?\s*library\b"
+        r"|\bdo\s+you\s+have\s+(?:any\s+)?books?\s+(?:about|on|for)\b",
+        re.I,
+    )
+    if _CATALOG_AVAILABILITY_RE.search(clean_query):
+        return self._route_shelf_query(shelf_query, best_score)
+
     special_book = special_book_reply(clean_query)
     if special_book is not None:
         return special_book
@@ -246,7 +265,14 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     if research_topic is not None:
         return research_topic
 
-    extracted_concepts = extract_concept_mentions(query, known_graph=graph)
+    _RESOURCE_CLAUSE_RE = re.compile(
+        r"\s+(?:and|,)\s+(?:show|suggest|recommend|list|find|give(?:\s+me)?)\s+"
+        r"(?:a\s+|an\s+|the\s+|relevant\s+|actual\s+|indexed\s+|any\s+|some\s+)*"
+        r"(?:library\s+resources?|indexed\s+books?|books?|textbooks?|reading\s+resources?|references?)\b.*$",
+        re.I,
+    )
+    concept_query = _RESOURCE_CLAUSE_RE.sub("", clean_query).strip() or clean_query
+    extracted_concepts = extract_concept_mentions(concept_query, known_graph=graph)
     is_compare_or_relate = bool(RELATE_RE.search(clean_query)) or any(
         token in clean_query.lower() for token in COMPARE_CUES
     )
@@ -295,7 +321,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         requested_title = inventory.extract_title(query)
         _record, title_score = inventory.best_record(catalogue.load_catalogue(), requested_title)
         if inventory.match_confidence(title_score) != "none":
-            return self._route_shelf_query(query, best_score)
+            return self._route_shelf_query(shelf_query, best_score)
 
     if SHELF_RE.search(query):
         shelf_id = (
@@ -312,7 +338,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         # Consult the institutional catalogue before giving up, otherwise
         # every "where is a physical copy of X" hit the OOD kill switch even
         # with the title catalogued.
-        return self._route_shelf_query(query, best_score)
+        return self._route_shelf_query(shelf_query, best_score)
 
     domains = compose.domain_pair(self, query)
     if domains and any(

@@ -107,6 +107,9 @@ def browser_origin(response: Response) -> Response:
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Vary"] = "Origin"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
     response.headers["Cache-Control"] = "private, no-store"
     return response
 

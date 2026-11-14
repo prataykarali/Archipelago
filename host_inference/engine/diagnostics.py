@@ -6,6 +6,7 @@ scoring ticks and gaps, and emitting the personalized graph for the chat UI.
 
 from __future__ import annotations
 
+import hashlib
 from itertools import pairwise
 
 from .nodes import node_public
@@ -58,18 +59,6 @@ def mcq_for(engine, concept_id: str, slot: int = 0) -> dict:
     while len(distractor_ids) < MCQ_DISTRACTORS:
         extra = next(cid for cid in graph.nodes if cid not in distractor_ids and cid != focus)
         distractor_ids.append(extra)
-    options = {
-        "A": summary[:MCQ_OPTION_CHARS],
-        "B": (graph.nodes[distractor_ids[0]].get("summary") or "Unrelated catalog node.")[
-            :MCQ_OPTION_CHARS
-        ],
-        "C": (graph.nodes[distractor_ids[1]].get("summary") or "Unrelated catalog node.")[
-            :MCQ_OPTION_CHARS
-        ],
-        "D": (graph.nodes[distractor_ids[2]].get("summary") or "Unrelated catalog node.")[
-            :MCQ_OPTION_CHARS
-        ],
-    }
     question_stems = (
         "Which statement defines {}?",
         "Which explanation best captures the intuition behind {}?",
@@ -78,13 +67,29 @@ def mcq_for(engine, concept_id: str, slot: int = 0) -> dict:
         "Which account best explains the mechanism of {}?",
         "Which statement best connects {} to its prerequisites?",
     )
+    question_text = question_stems[min(slot, MCQ_MAX_QUESTIONS - 1)].format(graph.label(focus))
+    letters = ("A", "B", "C", "D")
+    digest = hashlib.sha256(f"{focus}:{question_text}".encode()).digest()
+    correct_letter = letters[digest[0] % 4]
+    distractor_texts = [
+        (graph.nodes[did].get("summary") or "Unrelated catalog node.")[:MCQ_OPTION_CHARS]
+        for did in distractor_ids
+    ]
+    options: dict[str, str] = {}
+    d_idx = 0
+    for letter in letters:
+        if letter == correct_letter:
+            options[letter] = summary[:MCQ_OPTION_CHARS]
+        else:
+            options[letter] = distractor_texts[d_idx]
+            d_idx += 1
     return {
         "concept_id": focus,
         "concept_name": graph.label(focus),
         "difficulty": node.get("difficulty") or "intermediate",
-        "question": question_stems[min(slot, MCQ_MAX_QUESTIONS - 1)].format(graph.label(focus)),
+        "question": question_text,
         "options": options,
-        "correct_option": "A",
+        "correct_option": correct_letter,
         "explanation": summary,
         "citation": graph.citation(focus),
         "chain": chain,

@@ -8,14 +8,18 @@
   <script type="module" src="/auth_bridge.js"></script>
   <style>
     :root { --an-bg:#f7f4ed; --an-surface:#fffdf8; --an-border:#d8d0c1; --an-ink:#171512; --an-muted:#575249; --an-accent:#1d4ed8; --an-ok:#166534; --an-ok-bg:#dcfce7; --an-warn:#92400e; --an-warn-bg:#fef3c7; }
+    html, body { max-width:100%; overflow-x:hidden; }
     body { background:var(--an-bg); color:var(--an-ink); font-variant-numeric:tabular-nums; margin:0; }
-    .analytics-shell { max-width:1280px; margin:0 auto; padding:24px 20px 64px; }
-    .filter-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:16px; margin:18px 0 24px; align-items:end; }
+    .site-header { max-width:100%; box-sizing:border-box; flex-wrap:wrap; }
+    .site-header nav { display:flex; flex-wrap:wrap; gap:8px; max-width:100%; }
+    .analytics-shell { max-width:1280px; width:100%; box-sizing:border-box; margin:0 auto; padding:24px 20px 64px; }
+    .filter-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr)); gap:12px; background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:16px; margin:18px 0 24px; align-items:end; max-width:100%; box-sizing:border-box; }
+    .filter-bar > *, .kpi-grid > *, .event-grid > *, .two-col > * { min-width:0; }
     .filter-bar label, .event-grid label { display:block; font-size:0.78rem; font-weight:600; color:var(--an-muted); margin-bottom:4px; }
     .filter-bar input, .filter-bar select, .event-grid input, .event-grid select { width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid var(--an-border); border-radius:6px; background:#fff; color:var(--an-ink); font-size:0.9rem; }
     .btn-primary { background:var(--an-ink); color:#fff; border:1px solid var(--an-ink); border-radius:6px; padding:9px 14px; font-weight:600; cursor:pointer; }
     .btn-primary:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--an-accent); outline-offset:2px; }
-    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-bottom:24px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr)); gap:14px; margin-bottom:24px; max-width:100%; }
     .kpi-card { background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:16px; }
     .kpi-card h2 { font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--an-muted); margin:0 0 8px; }
     .kpi-value { font-size:1.35rem; font-weight:700; margin:0 0 6px; word-break:break-word; }
@@ -23,14 +27,14 @@
     .badge { display:inline-block; padding:3px 8px; border-radius:999px; font-size:0.76rem; font-weight:600; }
     .badge-ok { background:var(--an-ok-bg); color:var(--an-ok); }
     .badge-disconnected { background:var(--an-warn-bg); color:var(--an-warn); }
-    .panel { background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:18px; margin-bottom:22px; overflow-x:auto; }
+    .panel { background:var(--an-surface); border:1px solid var(--an-border); border-radius:10px; padding:18px; margin-bottom:22px; max-width:100%; box-sizing:border-box; overflow-x:auto; }
     .panel h2 { margin:0 0 6px; font-size:1.1rem; }
     .panel p.sub { margin:0 0 14px; font-size:0.88rem; color:var(--an-muted); }
-    .two-col { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; }
+    .two-col { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr)); gap:18px; max-width:100%; }
     table { width:100%; border-collapse:collapse; font-size:0.88rem; }
     th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--an-border); vertical-align:top; }
     th { font-weight:600; color:var(--an-muted); }
-    .event-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; align-items:end; }
+    .event-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr)); gap:12px; align-items:end; max-width:100%; }
     .notes-list { margin:0; padding-left:18px; font-size:0.88rem; color:var(--an-muted); line-height:1.5; }
     @media (max-width:640px) { .analytics-shell { padding:14px 12px 48px; } .two-col { grid-template-columns:1fr; } }
   </style>

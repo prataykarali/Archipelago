@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sys
 
@@ -14,42 +15,78 @@ if str(HOST) not in sys.path:
 from hostapp.security import AuthGuard, RateLimiter  # noqa: E402
 
 
-def test_daily_quota_pauses_after_ten_and_keeps_accounts_separate(monkeypatch, tmp_path):
+def test_rolling_hour_quota_accepts_ten_rejects_eleventh_and_recovers(monkeypatch, tmp_path):
     now = [100_000.0]
     monkeypatch.setattr("hostapp.security.time.time", lambda: now[0])
     monkeypatch.setenv("ARCHIPELAGO_QUOTA_DB", str(tmp_path / "quota.sqlite3"))
     limiter = RateLimiter()
-    for _ in range(10):
+
+    # Queries 1-10 accepted with staggered timestamps (0s..90s).
+    for i in range(10):
         limited, quota = limiter.check_daily_chat("student-a")
         assert not limited
-    assert quota["remaining"] == 30
+        assert quota["used"] == i + 1
+        assert quota["remaining"] == 10 - (i + 1)
+        assert quota["retry_after"] == 0
+        assert quota["reset_at"]
+        now[0] += 10.0
+
+    # Query 11 rejected before the oldest query (at 100_000.0) expires at 103_600.0.
     limited, quota = limiter.check_daily_chat("student-a")
     assert limited
-    assert quota["remaining"] == 30
-    assert limiter.quota_status("student-a")["used"] == 10
-    assert limiter.check_daily_chat("student-b")[0] is False
-
-    duplicate_db = RateLimiter()
-    accepted, first = duplicate_db.check_daily_chat("student-b", "request-1")
-    assert not accepted
-    duplicate, repeated = duplicate_db.check_daily_chat("student-b", "request-1")
-    assert duplicate and repeated["limit_reason"] == "duplicate"
-    assert duplicate_db.quota_status("student-b")["used"] == first["used"]
-
-    now[0] += 3601
-    assert limiter.check_daily_chat("student-a")[0] is False
-    assert RateLimiter().quota_status("student-a")["used"] == 11
-    for _ in range(12, 41):
-        limited, quota = limiter.check_daily_chat("student-a")
-        if limited:
-            now[0] += 3601
-            limited, quota = limiter.check_daily_chat("student-a")
-        assert not limited
+    assert quota["used"] == 10
     assert quota["remaining"] == 0
+    assert quota["retry_after"] == 3500
+    assert quota["reset_at"] == "1970-01-02T04:46:40Z"
+    assert limiter.quota_status("student-a")["used"] == 10
+
+    # Independent account is unaffected.
+    assert limiter.check_daily_chat("student-b")[0] is False
+    assert limiter.quota_status("student-b")["used"] == 1
+
+    # Replayed request_id idempotency: no double-charging.
+    accepted, first = limiter.check_daily_chat("student-b", "request-1")
+    assert not accepted
+    duplicate, repeated = limiter.check_daily_chat("student-b", "request-1")
+    assert duplicate and repeated["limit_reason"] == "duplicate"
+    assert limiter.quota_status("student-b")["used"] == first["used"]
+
+    # Just before the oldest query expires (at 103_599.0), still limited.
+    now[0] = 103_599.0
     assert limiter.check_daily_chat("student-a")[0] is True
-    now[0] = 2 * 86400 + 1
+
+    # At 103_600.0, the oldest query (from 100_000.0) expires -> 1 slot opens.
+    now[0] = 103_600.0
+    assert limiter.quota_status("student-a")["used"] == 9
+    limited, quota = limiter.check_daily_chat("student-a")
+    assert not limited
+    assert quota["used"] == 10
+    assert quota["remaining"] == 0
+
+    # After 3600s past the newest query, all prior queries expire.
+    now[0] = 107_300.0
     assert limiter.quota_status("student-a")["used"] == 0
-    assert limiter.check_daily_chat("student-a")[1]["used"] == 1
+    limited, quota = limiter.check_daily_chat("student-a")
+    assert not limited
+    assert quota["used"] == 1
+    assert quota["remaining"] == 9
+
+
+def test_rolling_hour_quota_concurrent_requests(monkeypatch, tmp_path):
+    monkeypatch.setattr("hostapp.security.time.time", lambda: 200_000.0)
+    monkeypatch.setenv("ARCHIPELAGO_QUOTA_DB", str(tmp_path / "quota.sqlite3"))
+    limiter = RateLimiter()
+
+    def submit(_idx: int) -> bool:
+        limited, _ = limiter.check_daily_chat("student-concurrent")
+        return limited
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(submit, range(15)))
+
+    assert results.count(False) == 10
+    assert results.count(True) == 5
+    assert limiter.quota_status("student-concurrent")["used"] == 10
 
 
 def test_idle_session_expires_and_logout_revokes_token(monkeypatch):

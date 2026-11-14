@@ -9,8 +9,10 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from contextlib import closing
+from datetime import UTC, datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import sqlite3
@@ -40,10 +42,14 @@ CLIENT_IP_HEADERS = ("CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
 # per-minute ceiling still applies to every method.
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 IDLE_TIMEOUT_SECONDS = 300
-DAILY_QUERY_LIMIT = 40
-QUERY_COOLDOWN_AFTER = 10
-QUERY_COOLDOWN_SECONDS = 3600
-QUERY_DAY_SECONDS = 86400
+HOURLY_QUERY_LIMIT = 10
+QUERY_WINDOW_SECONDS = 3600
+
+
+def _format_iso_utc(timestamp: float) -> str:
+    return datetime.fromtimestamp(timestamp, tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 DEFAULT_QUOTA_DB = (
     Path("/tmp/archipelago/query_quota.sqlite3")
     if os.environ.get("VERCEL")
@@ -180,6 +186,14 @@ class RateLimiter:
             "used INTEGER NOT NULL, cooldown_until REAL NOT NULL)"
         )
         connection.execute(
+            "CREATE TABLE IF NOT EXISTS quota_events "
+            "(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, created_at REAL NOT NULL)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS quota_events_user_created_idx "
+            "ON quota_events (user_id, created_at)"
+        )
+        connection.execute(
             "CREATE TABLE IF NOT EXISTS completed_quiz "
             "(user_id TEXT NOT NULL, target TEXT NOT NULL, result TEXT NOT NULL, "
             "PRIMARY KEY (user_id, target))"
@@ -220,7 +234,7 @@ class RateLimiter:
             )
 
     def check_daily_chat(self, user_id: str, request_id: str = "") -> tuple[bool, dict]:
-        """Count accepted AI queries per account and enforce hourly pauses."""
+        """Count accepted chat queries per student in a rolling 3600-second window."""
         if hosted_runtime():
             quota = runtime_rpc(
                 "archipelago_runtime_consume" if request_id else "archipelago_runtime_query",
@@ -230,13 +244,17 @@ class RateLimiter:
             )
             return bool(quota["limited"]), quota
         now = time.time()
-        period = now - now % QUERY_DAY_SECONDS
+        window_start = now - QUERY_WINDOW_SECONDS
         with self._daily_lock, closing(self._quota_connection()) as connection, connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT day_start, used, cooldown_until FROM quota WHERE user_id = ?",
-                (user_id,),
+                "SELECT COUNT(*), MIN(created_at) FROM quota_events "
+                "WHERE user_id = ? AND created_at > ?",
+                (user_id, window_start),
             ).fetchone()
+            used = int(row[0] or 0)
+            oldest_at = float(row[1]) if row[1] is not None else None
+
             if (
                 request_id
                 and connection.execute(
@@ -244,70 +262,100 @@ class RateLimiter:
                     (user_id, request_id),
                 ).fetchone()
             ):
+                limited_now = used >= HOURLY_QUERY_LIMIT
+                reset_ts = (oldest_at + QUERY_WINDOW_SECONDS) if oldest_at is not None else None
+                retry_after = (
+                    max(1, math.ceil(reset_ts - now))
+                    if limited_now and reset_ts is not None
+                    else 0
+                )
                 return True, {
+                    "limited": True,
                     "limit_reason": "duplicate",
-                    "used": row[1] if row else 0,
-                    "remaining": DAILY_QUERY_LIMIT - (row[1] if row else 0),
-                    "retry_after": 0,
+                    "limit": HOURLY_QUERY_LIMIT,
+                    "window_seconds": QUERY_WINDOW_SECONDS,
+                    "used": used,
+                    "remaining": max(0, HOURLY_QUERY_LIMIT - used),
+                    "retry_after": retry_after,
+                    "reset_at": _format_iso_utc(reset_ts) if reset_ts is not None else None,
                 }
-            start, count, cooldown = row if row else (period, 0, 0.0)
-            if start < period:
-                start, count, cooldown = period, 0, 0.0
-            if count >= DAILY_QUERY_LIMIT:
+
+            if used >= HOURLY_QUERY_LIMIT and oldest_at is not None:
+                reset_ts = oldest_at + QUERY_WINDOW_SECONDS
+                retry_after = max(1, math.ceil(reset_ts - now))
                 return True, {
+                    "limited": True,
+                    "limit_reason": "hourly_limit",
+                    "limit": HOURLY_QUERY_LIMIT,
+                    "window_seconds": QUERY_WINDOW_SECONDS,
+                    "used": used,
                     "remaining": 0,
-                    "retry_after": int(start + QUERY_DAY_SECONDS - now) + 1,
+                    "retry_after": retry_after,
+                    "reset_at": _format_iso_utc(reset_ts),
                 }
-            if cooldown > now:
-                return True, {
-                    "remaining": DAILY_QUERY_LIMIT - count,
-                    "retry_after": int(cooldown - now) + 1,
-                }
-            count += 1
+
             if request_id:
                 connection.execute(
                     "INSERT INTO ai_request (user_id, request_id) VALUES (?, ?)",
                     (user_id, request_id),
                 )
-            cooldown = (
-                now + QUERY_COOLDOWN_SECONDS
-                if count % QUERY_COOLDOWN_AFTER == 0 and count < DAILY_QUERY_LIMIT
-                else 0.0
-            )
             connection.execute(
-                "INSERT INTO quota (user_id, day_start, used, cooldown_until) "
-                "VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET "
-                "day_start=excluded.day_start, used=excluded.used, "
-                "cooldown_until=excluded.cooldown_until",
-                (user_id, start, count, cooldown),
+                "INSERT INTO quota_events (user_id, created_at) VALUES (?, ?)",
+                (user_id, now),
             )
+            used += 1
+            if oldest_at is None:
+                oldest_at = now
+            reset_ts = oldest_at + QUERY_WINDOW_SECONDS
             return False, {
-                "remaining": DAILY_QUERY_LIMIT - count,
-                "used": count,
-                "cooldown_after_this_query": cooldown > now,
+                "limited": False,
+                "limit": HOURLY_QUERY_LIMIT,
+                "window_seconds": QUERY_WINDOW_SECONDS,
+                "used": used,
+                "remaining": max(0, HOURLY_QUERY_LIMIT - used),
+                "retry_after": 0,
+                "reset_at": _format_iso_utc(reset_ts),
             }
 
     def quota_status(self, user_id: str) -> dict:
-        """Read this account's query count without consuming a request."""
+        """Read this account's rolling-hour query count without consuming a request."""
         if hosted_runtime():
             return runtime_rpc(
                 "archipelago_runtime_query",
                 {"p_user_id": user_id, "p_consume": False},
             )
         now = time.time()
-        period = now - now % QUERY_DAY_SECONDS
+        window_start = now - QUERY_WINDOW_SECONDS
         with closing(self._quota_connection()) as connection:
             row = connection.execute(
-                "SELECT day_start, used, cooldown_until FROM quota WHERE user_id = ?",
-                (user_id,),
+                "SELECT COUNT(*), MIN(created_at) FROM quota_events "
+                "WHERE user_id = ? AND created_at > ?",
+                (user_id, window_start),
             ).fetchone()
-        if not row or row[0] < period:
-            return {"used": 0, "remaining": DAILY_QUERY_LIMIT, "retry_after": 0}
-        start, used, cooldown = row
-        retry = int(cooldown - now) + 1 if cooldown > now else 0
-        if used >= DAILY_QUERY_LIMIT:
-            retry = int(start + QUERY_DAY_SECONDS - now) + 1
-        return {"used": used, "remaining": DAILY_QUERY_LIMIT - used, "retry_after": retry}
+        used = int(row[0] or 0)
+        oldest_at = float(row[1]) if row[1] is not None else None
+        if used >= HOURLY_QUERY_LIMIT and oldest_at is not None:
+            reset_ts = oldest_at + QUERY_WINDOW_SECONDS
+            retry_after = max(1, math.ceil(reset_ts - now))
+            return {
+                "limited": True,
+                "limit": HOURLY_QUERY_LIMIT,
+                "window_seconds": QUERY_WINDOW_SECONDS,
+                "used": used,
+                "remaining": 0,
+                "retry_after": retry_after,
+                "reset_at": _format_iso_utc(reset_ts),
+            }
+        reset_at = _format_iso_utc(oldest_at + QUERY_WINDOW_SECONDS) if oldest_at is not None else None
+        return {
+            "limited": False,
+            "limit": HOURLY_QUERY_LIMIT,
+            "window_seconds": QUERY_WINDOW_SECONDS,
+            "used": used,
+            "remaining": max(0, HOURLY_QUERY_LIMIT - used),
+            "retry_after": 0,
+            "reset_at": reset_at,
+        }
 
     @staticmethod
     def client_ip() -> str:

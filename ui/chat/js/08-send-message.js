@@ -18,6 +18,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
         // Main Send Function
         async function sendMessage() {
             if (state.isGenerating) return;
+            if (state.quotaLimitedUntil && Date.now() < state.quotaLimitedUntil) return;
             if (typeof dismissGraphChoiceModal === 'function') {
                 dismissGraphChoiceModal();
             }
@@ -386,6 +387,14 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 }
 
             } catch (err) {
+                if (err && err.status === 429) {
+                    const draftEl = document.getElementById('chat-input');
+                    if (draftEl && !draftEl.value.trim()) {
+                        draftEl.value = inputVal;
+                        draftEl.style.height = 'auto';
+                        draftEl.style.height = Math.min(draftEl.scrollHeight, 200) + 'px';
+                    }
+                }
                 handleStreamError(err, {
                     msgEl, staticStreamBuffer, assistantText, rewriteBuffer,
                     typewriter, finalizeStreamedBubble, inputVal

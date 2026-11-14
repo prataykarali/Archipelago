@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .graph import author_key
+
 EXTRA_HEADERS: dict[str, list[str]] = {
     "Institutions_Affiliations": [
         "Institution Key", "Institution Name", "ROR ID", "OpenAlex Institution ID",
@@ -37,6 +39,19 @@ def populate_extra_sheets(
     papers = run.get("papers") or []
     observations = {row["id"]: row for row in run.get("author_observations") or []}
     institutions: dict[str, dict[str, Any]] = {}
+    seen_inst_names: dict[str, str] = {}
+
+    def _linked_author_id(paper: dict[str, Any], idx: int) -> str | None:
+        author_ids = paper.get("author_ids") or []
+        aid = author_ids[idx] if idx < len(author_ids) else None
+        if aid:
+            text = str(aid)
+            if text.startswith(("author:", "author-unverified:")):
+                return text
+            return f"author:{text.rsplit('/', 1)[-1]}"
+        if idx < len(paper.get("authors") or []):
+            return author_key(paper, idx)
+        return None
 
     for paper in papers:
         pid = paper["paper_id"]
@@ -74,12 +89,13 @@ def populate_extra_sheets(
                 ],
             )
         for idx, inst_list in enumerate(paper.get("author_institutions") or []):
-            aid = (paper.get("author_ids") or [None])[idx] if idx < len(paper.get("author_ids") or []) else None
+            linked_aid = _linked_author_id(paper, idx)
             for inst in inst_list or []:
                 name = inst.get("name")
                 if not name:
                     continue
                 ikey = inst.get("ror") or inst.get("id") or name.casefold()
+                seen_inst_names.setdefault(name.casefold(), ikey)
                 rec = institutions.setdefault(
                     ikey,
                     {
@@ -89,8 +105,26 @@ def populate_extra_sheets(
                     },
                 )
                 rec["papers"].add(pid)
-                if aid:
-                    rec["authors"].add(str(aid).rsplit("/", 1)[-1])
+                if linked_aid:
+                    rec["authors"].add(linked_aid)
+        for idx, author in enumerate(paper.get("authors") or []):
+            linked_aid = _linked_author_id(paper, idx)
+            for name in author.get("institutions") or []:
+                if not name:
+                    continue
+                ikey = seen_inst_names.get(name.casefold()) or name.casefold()
+                seen_inst_names.setdefault(name.casefold(), ikey)
+                rec = institutions.setdefault(
+                    ikey,
+                    {
+                        "key": ikey, "name": name, "ror": None, "id": None,
+                        "cc": None, "type": None,
+                        "papers": set(), "authors": set(), "provider": prov,
+                    },
+                )
+                rec["papers"].add(pid)
+                if linked_aid:
+                    rec["authors"].add(linked_aid)
 
     for rec in institutions.values():
         add(
