@@ -78,7 +78,8 @@ _CAPABILITY_BROAD_RE = re.compile(
 )
 _EXPLOIT_INTENT_RE = re.compile(
     r"\b(?:use|perform|execute|run|exploit)\s+(?:sql\s+injection|xss|csrf|buffer\s+overflow|ransomware|malware)\b"
-    r"|\b(?:dump|steal|exfiltrate|hack|crack|brute[- ]?force)\b.*\b(?:table|database|password|credentials|login|admin|server)\b",
+    r"|\b(?:dump|steal|exfiltrate|hack|crack|brute[- ]?force)\b.*\b(?:table|database|password|credentials|login|admin|server|cookie|cookies|session|token|tokens)\b"
+    r"|\b(?:write|craft|generate|create|build)\b.{0,40}\b(?:xss|csrf|sql\s+injection|exploit|malware|ransomware|payload)\b",
     re.I,
 )
 PAPER_LOOKUP_RE = re.compile(

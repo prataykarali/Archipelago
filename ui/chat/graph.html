@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-full bg-[#08071b]">
+<html lang="en" class="h-full bg-[#0F172A]">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,20 +9,21 @@
   <script type="module" src="/auth_bridge.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { overflow-x: hidden; max-width: 100%; }
+    html, body { overflow-x: hidden; max-width: 100%; background: #0F172A; color: #F1F5F9; }
     body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
-    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1d164e, #0a0924 68%, #070618); outline: none; }
-    #graph:focus-visible { box-shadow: inset 0 0 0 2px #bca5ff; }
-    #graph canvas { filter: drop-shadow(0 0 7px #6b5cdb99); }
-    #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .45; background-image: radial-gradient(#7561c3 1px, transparent 1px); background-size: 28px 28px; }
-    .graph-frame { box-shadow: 0 25px 90px #02010fbd, inset 0 0 0 1px #5c47b566; border-radius: 0; border: 0; }
-    .graph-panel { background: linear-gradient(155deg, #19143cee, #0e0c28f2); backdrop-filter: blur(18px); position: absolute; right: 20px; top: 92px; width: min(360px, 32vw); max-height: calc(100% - 110px); overflow-y: auto; overflow-x: hidden; z-index: 2; box-shadow: 0 22px 64px #040112ba; }
+    #graph { min-height: 600px; height: calc(100vh - 55px); background: radial-gradient(circle at 50% 48%, #1e1b4b, #111827 68%, #0F172A); outline: none; }
+    #graph:focus-visible { box-shadow: inset 0 0 0 2px #a78bfa; }
+    #graph canvas { filter: drop-shadow(0 0 7px #6366f188); }
+    #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35; background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 28px 28px; }
+    .graph-frame { background: #111827; box-shadow: 0 25px 90px #020617bd, inset 0 0 0 1px rgba(148, 163, 184, 0.24); border-radius: 0; border: 0; }
+    .graph-panel { background: rgba(30, 41, 59, 0.94); backdrop-filter: blur(18px); border-color: rgba(148, 163, 184, 0.24); color: #F1F5F9; position: absolute; right: 20px; top: 92px; width: min(360px, 32vw); max-height: calc(100% - 110px); overflow-y: auto; overflow-x: hidden; z-index: 2; box-shadow: 0 22px 64px #020617ba; }
     .graph-stage { position: relative; }
     .graph-toolbar { position: absolute; z-index: 3; left: 24px; top: 24px; width: min(620px, calc(100% - 410px)); }
-    .graph-toolbar input { background: #100a2ccf; backdrop-filter: blur(12px); }
+    .graph-toolbar input { background: #1E293B; color: #F1F5F9; border-color: rgba(148, 163, 184, 0.35); backdrop-filter: blur(12px); }
+    .graph-toolbar input::placeholder { color: #CBD5E1; opacity: 0.85; }
     main { max-width: none !important; padding: 0 !important; }
-    .academic-hero { min-height: 220px; display: flex; align-items: center; margin: 20px 24px 0; padding: clamp(20px, 4vw, 48px); background-image: linear-gradient(90deg, #110521f2 0%, #18072bc9 45%, #18072b35 100%), url('/assets/research_archipelago_v2.png') !important; background-position: center; background-size: cover; position: relative; overflow: hidden; border: 1px solid #7b47b5; border-radius: 24px; box-shadow: 0 26px 70px #05010e91; }
-    .academic-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .3; background-image: radial-gradient(#dda8ff 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, #000, transparent); }
+    .academic-hero { min-height: 220px; display: flex; align-items: center; margin: 20px 24px 0; padding: clamp(20px, 4vw, 48px); background-image: linear-gradient(90deg, #0F172Af2 0%, #1e1b4bc9 45%, #11182766 100%), url('/assets/research_archipelago_v2.png') !important; background-position: center; background-size: cover; position: relative; overflow: hidden; border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 24px; box-shadow: 0 26px 70px #02061791; }
+    .academic-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .25; background-image: radial-gradient(#a78bfa 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, #000, transparent); }
     .academic-hero-copy { position: relative; z-index: 1; }
     @media(max-width: 760px) {
       .academic-hero { margin: 12px 12px 0; padding: 20px; min-height: 160px; }
@@ -31,58 +32,58 @@
       #graph { height: calc(100vh - 70px); min-height: 580px; }
     }
     .graph-panel [hidden] { display: none !important; }
-    .graph-panel button:focus-visible, .graph-panel a:focus-visible, .graph-panel select:focus-visible, #query:focus-visible, .graph-toolbar button:focus-visible { outline: 2px solid #bca5ff; outline-offset: 2px; }
+    .graph-panel button:focus-visible, .graph-panel a:focus-visible, .graph-panel select:focus-visible, #query:focus-visible, .graph-toolbar button:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
     .touch-target { min-height: 40px; min-width: 40px; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
     }
   </style>
 </head>
-<body class="min-h-full bg-[#08071b] text-slate-100">
-  <header class="border-b border-violet-300/20 bg-[#0b0923]">
+<body class="min-h-full bg-[#0F172A] text-[#F1F5F9]">
+  <header class="border-b border-slate-700/70 bg-[#0F172A]">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4">
-      <a href="/chat" class="font-semibold tracking-wide text-violet-200">Archipelago <span class="text-white/50">/ Knowledge Graph</span></a>
-      <nav class="flex flex-wrap gap-3 text-sm text-white/70 sm:gap-4"><a href="/chat" class="py-1 hover:text-white">Chat</a><a href="/library" class="py-1 hover:text-white">Library</a><a href="/research" class="py-1 hover:text-white">Research</a><a href="#library-details" class="py-1 hover:text-white">Library details</a></nav>
+      <a href="/chat" class="font-semibold tracking-wide text-[#F1F5F9]">Archipelago <span class="text-[#CBD5E1]">/ Knowledge Graph</span></a>
+      <nav class="flex flex-wrap gap-3 text-sm text-[#CBD5E1] sm:gap-4"><a href="/chat" class="py-1 hover:text-[#F1F5F9]">Chat</a><a href="/library" class="py-1 hover:text-[#F1F5F9]">Library</a><a href="/research" class="py-1 hover:text-[#F1F5F9]">Research</a><a href="#library-details" class="py-1 hover:text-[#F1F5F9]">Library details</a></nav>
     </div>
   </header>
   <main class="mx-auto max-w-7xl px-5 py-8">
     <section class="academic-hero" aria-labelledby="academic-hero-title">
-      <div class="academic-hero-copy"><p class="text-xs font-bold uppercase tracking-[.22em] text-fuchsia-200">Archipelago / Academic atlas</p><h1 id="academic-hero-title" class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">A universe of connected ideas</h1><p class="mt-3 max-w-xl text-sm text-violet-100 sm:text-base">Explore the library knowledge graph, then follow a topic into scholarly research.</p></div>
+      <div class="academic-hero-copy"><p class="text-xs font-bold uppercase tracking-[.22em] text-[#CBD5E1]">Archipelago / Academic atlas</p><h1 id="academic-hero-title" class="mt-3 text-3xl font-bold tracking-tight text-[#F1F5F9] sm:text-4xl">A universe of connected ideas</h1><p class="mt-3 max-w-xl text-sm text-[#CBD5E1] sm:text-base">Explore the library knowledge graph, then follow a topic into scholarly research.</p></div>
     </section>
     <div class="graph-stage">
-      <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-violet-200">Academic atlas · select a concept or edge to inspect</p><form id="search-form" class="flex w-full gap-2">
+      <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-[#CBD5E1]">Academic atlas · select a concept or edge to inspect</p><form id="search-form" class="flex w-full gap-2">
         <label for="query" class="sr-only">Search a concept</label>
-        <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="touch-target min-w-0 flex-1 rounded-xl border border-violet-300/25 px-4 py-2 text-sm outline-none focus:border-violet-300/70">
-        <button type="submit" class="touch-target cursor-pointer rounded-xl bg-violet-400 px-4 py-2 text-sm font-semibold text-[#100827] hover:bg-violet-300">Explore</button>
+        <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="touch-target min-w-0 flex-1 rounded-xl border border-slate-600 bg-[#1E293B] px-4 py-2 text-sm text-[#F1F5F9] outline-none focus:border-[#A78BFA]">
+        <button type="submit" class="touch-target cursor-pointer rounded-xl bg-[#A78BFA] px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-[#C4B5FD]">Explore</button>
       </form></div>
-      <section class="graph-frame overflow-hidden bg-[#0b0923]"><div id="graph" tabindex="0" aria-label="Interactive full-screen academic knowledge graph"></div></section>
-      <aside class="graph-panel rounded-2xl border border-violet-300/20 p-4 sm:p-5" aria-live="polite">
+      <section class="graph-frame overflow-hidden bg-[#111827]"><div id="graph" tabindex="0" aria-label="Interactive full-screen academic knowledge graph"></div></section>
+      <aside class="graph-panel rounded-2xl border border-slate-700 p-4 sm:p-5" aria-live="polite">
         <div class="mb-3 flex flex-wrap gap-2">
-          <button id="nav-back" type="button" hidden class="touch-target cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/25">← Back</button>
-          <button id="show-core" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-left text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Main concepts</button>
-          <button id="show-global" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-violet-300/30 bg-violet-500/15 px-3 py-2 text-left text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Global graph</button>
+          <button id="nav-back" type="button" hidden class="touch-target cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">← Back</button>
+          <button id="show-core" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-left text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Main concepts</button>
+          <button id="show-global" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-left text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Global graph</button>
         </div>
-        <div class="mb-3 flex gap-2"><button id="page-prev" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs" hidden>Previous</button><button id="page-next" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs" hidden>Next</button></div>
-        <label for="relation-filter" class="text-xs text-white/70">Relationship filter</label>
-        <select id="relation-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-white/20 bg-[#100a2c] p-2 text-xs"><option value="">All stored types</option><option value="REQUIRES">Requires</option><option value="UNLOCKS">Unlocks</option><option value="RELATED">Related</option></select>
-        <div class="mb-3 flex flex-wrap gap-2" aria-label="Relationship colors">
-          <span class="text-xs text-white/70"><span class="text-blue-300">◆</span> Requires</span>
-          <span class="text-xs text-white/70"><span class="text-pink-300">◆</span> Unlocks</span>
-          <span class="text-xs text-white/70"><span class="text-violet-300">◆</span> Related</span>
-          <span class="text-xs text-white/70"><span class="text-teal-300">◆</span> Sourced from</span>
+        <div class="mb-3 flex gap-2"><button id="page-prev" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs text-[#F1F5F9]" hidden>Previous</button><button id="page-next" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs text-[#F1F5F9]" hidden>Next</button></div>
+        <label for="relation-filter" class="text-xs font-medium text-[#CBD5E1]">Relationship filter</label>
+        <select id="relation-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-xs text-[#F1F5F9]"><option value="">All stored types</option><option value="REQUIRES">Requires</option><option value="UNLOCKS">Unlocks</option><option value="RELATED">Related</option></select>
+        <div class="mb-3 flex flex-wrap gap-3" aria-label="Relationship colors">
+          <span class="text-xs text-[#CBD5E1]"><span class="text-[#60A5FA]">◆</span> Requires</span>
+          <span class="text-xs text-[#CBD5E1]"><span class="text-[#F472B6]">◆</span> Unlocks</span>
+          <span class="text-xs text-[#CBD5E1]"><span class="text-[#A78BFA]">◆</span> Related</span>
+          <span class="text-xs text-[#CBD5E1]"><span class="text-[#2DD4BF]">◆</span> Sourced from</span>
         </div>
         <div class="mb-3 flex flex-wrap gap-2" aria-label="Graph controls">
-          <button id="zoom-in" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10" aria-label="Zoom in">+</button>
-          <button id="zoom-out" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10" aria-label="Zoom out">−</button>
-          <button id="zoom-fit" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10">Fit</button>
-          <button id="graph-reset" type="button" class="touch-target cursor-pointer rounded-lg border border-white/20 px-3 py-2 text-xs hover:bg-white/10">Reset</button>
-          <button id="expand-neighborhood" type="button" hidden class="touch-target cursor-pointer rounded-lg border border-violet-300/35 bg-violet-500/15 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/25">Expand +15</button>
+          <button id="zoom-in" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800" aria-label="Zoom in">+</button>
+          <button id="zoom-out" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800" aria-label="Zoom out">−</button>
+          <button id="zoom-fit" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Fit</button>
+          <button id="graph-reset" type="button" class="touch-target cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Reset</button>
+          <button id="expand-neighborhood" type="button" hidden class="touch-target cursor-pointer rounded-lg border border-violet-400/50 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Expand +15</button>
         </div>
-        <p id="graph-status" role="status" class="text-xs text-white/70">Loading graph…</p>
-        <p id="graph-version" class="mt-1 text-xs text-white/45"></p>
-        <div id="node-inspector" class="mt-4 border-t border-white/10 pt-4">
-          <h2 id="node-title" class="text-lg font-semibold text-violet-200">Select a node</h2>
-          <p id="node-summary" class="mt-2 text-sm leading-6 text-white/75">Select a concept to inspect its verified description, prerequisites, unlocks, and source documents.</p>
+        <p id="graph-status" role="status" class="text-xs text-[#CBD5E1]">Loading graph…</p>
+        <p id="graph-version" class="mt-1 text-xs text-[#CBD5E1]"></p>
+        <div id="node-inspector" class="mt-4 border-t border-slate-700 pt-4">
+          <h2 id="node-title" class="text-lg font-semibold text-[#F1F5F9]">Select a node</h2>
+          <p id="node-summary" class="mt-2 text-sm leading-6 text-[#CBD5E1]">Select a concept to inspect its verified description, prerequisites, unlocks, and source documents.</p>
           <dl id="node-facts" class="mt-4 grid grid-cols-2 gap-2 text-xs" hidden></dl>
           <div id="node-actions" class="mt-4 flex flex-wrap gap-2" hidden>
             <button id="explore-node" type="button" class="touch-target cursor-pointer rounded-xl border border-fuchsia-300/50 bg-fuchsia-500/20 px-3 py-2 text-xs font-semibold text-white hover:bg-fuchsia-500/30">Explore Concept ↗</button>
@@ -384,6 +385,22 @@
       }
     }
 
+    const JEWEL_PALETTE = [
+      { bg: '#065F46', border: '#34D399' },
+      { bg: '#1E3A8A', border: '#60A5FA' },
+      { bg: '#4C1D95', border: '#A78BFA' },
+      { bg: '#831843', border: '#F472B6' },
+      { bg: '#78350F', border: '#FBBF24' },
+      { bg: '#134E4A', border: '#2DD4BF' }
+    ];
+
+    function jewelColors(nodeData) {
+      const key = String(nodeData.domain || nodeData.kind || nodeData.id || '');
+      let hash = 0;
+      for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
+      return JEWEL_PALETTE[Math.abs(hash) % JEWEL_PALETTE.length];
+    }
+
     function renderGraph(data, overview = false) {
       if (cy) cy.destroy();
       activeSelection = null;
@@ -411,24 +428,32 @@
       cy = cytoscape({
         container: document.getElementById('graph'),
         elements: [
-          ...data.nodes.map(item => ({ ...item, position: positions.get(item.data.id), classes: !overview && item.data.id === anchorId ? 'target-node' : '' })),
+          ...data.nodes.map(item => {
+            const palette = jewelColors(item.data);
+            return {
+              ...item,
+              data: { ...item.data, node_bg: palette.bg, node_border: palette.border },
+              position: positions.get(item.data.id),
+              classes: !overview && item.data.id === anchorId ? 'target-node' : ''
+            };
+          }),
           ...visibleEdges
         ],
         layout: { name: 'preset', fit: true, padding: 48 },
         minZoom: 0.25,
         maxZoom: 2.5,
         style: [
-          { selector: 'node', style: { 'shape': 'round-rectangle', 'background-color': '#18255a', 'border-width': 1.5, 'border-color': '#628afa', 'label': 'data(name)', 'color': '#f5f5ff', 'font-size': 11, 'font-weight': 600, 'text-wrap': 'wrap', 'text-max-width': 132, 'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': '12px', 'underlay-color': '#3c63ff', 'underlay-opacity': .22, 'underlay-padding': 8, 'underlay-shape': 'roundrectangle' } },
-          { selector: 'node.target-node', style: { 'background-color': '#54208a', 'border-color': '#d89bff', 'padding': '16px', 'font-size': 13, 'font-weight': 700, 'underlay-color': '#bb4cff', 'underlay-padding': 12, 'underlay-opacity': .5 } },
-          { selector: 'edge', style: { 'width': 2, 'line-color': '#7f6fd6', 'target-arrow-color': '#a99cff', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.25, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': '', 'font-size': 9, 'color': '#e9dfff', 'text-rotation': 'autorotate', 'text-background-color': '#0b0923', 'text-background-opacity': .92, 'text-background-padding': 3 } },
-          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#4a9eff', 'target-arrow-color': '#80bdff' } },
-          { selector: 'edge[rel_label = "UNLOCKS"]', style: { 'line-color': '#f067d8', 'target-arrow-color': '#f6a7e8' } },
-          { selector: 'edge[rel_label = "RELATED"], edge[rel_label = "CONNECTS"]', style: { 'line-color': '#8c7ae6', 'target-arrow-color': '#b8abff' } },
-          { selector: 'edge[rel_label = "SOURCED_FROM"]', style: { 'line-color': '#13ae89', 'target-arrow-color': '#5de4bf' } },
-          { selector: '.muted', style: { 'opacity': .15, 'text-opacity': .12 } },
-          { selector: '.focused', style: { 'opacity': 1, 'border-width': 3, 'border-color': '#ffffff', 'underlay-padding': 12, 'underlay-opacity': .6 } },
-          { selector: 'edge.focused, edge.hovered, edge:selected', style: { 'label': 'data(rel_label)', 'width': 3.2, 'opacity': 1 } },
-          { selector: ':selected', style: { 'border-color': '#ffffff', 'border-width': 3 } }
+          { selector: 'node', style: { 'shape': 'round-rectangle', 'background-color': 'data(node_bg)', 'border-width': 2, 'border-color': 'data(node_border)', 'label': 'data(name)', 'color': '#F8FAFC', 'font-size': 11, 'font-weight': 700, 'text-wrap': 'wrap', 'text-max-width': 132, 'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': '12px', 'underlay-color': 'data(node_border)', 'underlay-opacity': .2, 'underlay-padding': 7, 'underlay-shape': 'roundrectangle' } },
+          { selector: 'node.target-node', style: { 'background-color': '#4F46E5', 'border-color': '#C4B5FD', 'border-width': 2.5, 'color': '#F8FAFC', 'padding': '16px', 'font-size': 13, 'font-weight': 700, 'underlay-color': '#818CF8', 'underlay-padding': 12, 'underlay-opacity': .45 } },
+          { selector: 'edge', style: { 'width': 2.2, 'line-color': '#A78BFA', 'target-arrow-color': '#A78BFA', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.3, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': '', 'font-size': 9, 'font-weight': 600, 'color': '#F8FAFC', 'text-rotation': 'autorotate', 'text-background-color': '#0F172A', 'text-background-opacity': .95, 'text-background-padding': 4, 'text-border-width': 1, 'text-border-color': '#334155' } },
+          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#38BDF8', 'target-arrow-color': '#38BDF8' } },
+          { selector: 'edge[rel_label = "UNLOCKS"]', style: { 'line-color': '#F472B6', 'target-arrow-color': '#F472B6' } },
+          { selector: 'edge[rel_label = "RELATED"], edge[rel_label = "CONNECTS"]', style: { 'line-color': '#A78BFA', 'target-arrow-color': '#A78BFA' } },
+          { selector: 'edge[rel_label = "SOURCED_FROM"]', style: { 'line-color': '#2DD4BF', 'target-arrow-color': '#2DD4BF' } },
+          { selector: '.muted', style: { 'opacity': .22, 'text-opacity': .22 } },
+          { selector: '.focused', style: { 'opacity': 1, 'border-width': 3, 'border-color': '#C4B5FD', 'underlay-padding': 12, 'underlay-opacity': .5 } },
+          { selector: 'edge.focused, edge.hovered, edge:selected', style: { 'label': 'data(rel_label)', 'width': 3.4, 'opacity': 1 } },
+          { selector: ':selected', style: { 'border-color': '#C4B5FD', 'border-width': 3 } }
         ]
       });
 

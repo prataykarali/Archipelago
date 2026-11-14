@@ -1,16 +1,19 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Librarian Space — Archipelago</title><link rel="stylesheet" href="/librarian.css"><style>
-.traffic-panel { margin-top: 24px; background: #fffdf8; border: 1px solid #d8d0c1; border-radius: 12px; padding: 18px; max-width: 100%; box-sizing: border-box; }
+.traffic-panel { margin-top: 24px; background: #1E293B; border: 1px solid #334155; border-radius: 14px; padding: 18px; max-width: 100%; box-sizing: border-box; color: #F1F5F9; }
 .traffic-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
-.traffic-head h2 { margin: 0; font-size: 1.08rem; }
-.traffic-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.85rem; }
+.traffic-head h2 { margin: 0; font-size: 1.08rem; color: #F1F5F9; }
+.traffic-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.85rem; color: #CBD5E1; }
+.traffic-controls input[type="checkbox"] { width: auto; accent-color: #6366F1; }
+#traffic-refresh { background: #4F46E5; color: #FFFFFF; border: 1px solid #6366F1; border-radius: 8px; padding: 6px 12px; font-weight: 600; }
+#traffic-refresh:hover { background: #4338CA; }
 .traffic-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr)); gap: 10px; margin-bottom: 14px; }
-.traffic-kpi { background: #f7f4ed; border: 1px solid #e5dfd2; border-radius: 8px; padding: 10px 12px; min-width: 0; }
-.traffic-kpi span { display: block; font-size: 0.74rem; color: #575249; text-transform: uppercase; letter-spacing: 0.04em; }
-.traffic-kpi strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.traffic-kpi { background: #0F172A; border: 1px solid #334155; border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.traffic-kpi span { display: block; font-size: 0.74rem; color: #CBD5E1; text-transform: uppercase; letter-spacing: 0.04em; }
+.traffic-kpi strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; color: #F1F5F9; }
 .traffic-chart-wrap { width: 100%; max-width: 100%; overflow-x: auto; }
-.traffic-empty { margin: 8px 0 0; font-size: 0.88rem; color: #575249; }
+.traffic-empty { margin: 8px 0 0; font-size: 0.88rem; color: #CBD5E1; }
 </style><script type="module" src="/auth_bridge.js"></script><script src="/librarian.js" defer></script></head>
 <body><header class="site-header"><a class="brand" href="/">✳ Archipelago <span>/ Librarian Space</span></a><nav aria-label="Site"><a href="https://archipelago-blond.vercel.app/">Home</a><a href="https://archipelago-blond.vercel.app/library">Library details</a><a href="/librarian/analytics">Analytics</a><a href="/academic-automation">Academic review</a><a href="/research">Research</a></nav></header>
 <div class="workspace"><aside class="sidebar"><p class="eyebrow">LIBRARIAN SPACE</p><nav aria-label="Librarian sections"><a href="/librarian" data-section="overview">Overview</a><a href="/librarian/catalog" data-section="catalog">Catalogue notes</a><a href="/librarian/circulation" data-section="circulation">Circulation</a><a href="/librarian/orders" data-section="orders">Orders</a><a href="/librarian/fines" data-section="fines">Fine notes</a><a href="/librarian/analytics" data-section="analytics">Library analytics ↗</a><a href="/academic-automation" data-section="automation">Academic review ↗</a><a href="/academic/graph" data-section="graph">Knowledge graph ↗</a></nav><p class="sidebar-note">Staff records are saved in Archipelago. Official holdings, loans, and fines remain in Koha until an authorized write integration is configured.</p></aside>

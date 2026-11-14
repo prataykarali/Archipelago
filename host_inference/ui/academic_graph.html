@@ -473,6 +473,22 @@
       loadAnnotation(selectedConceptId);
     }
 
+    const JEWEL_PALETTE = [
+      { bg: '#065F46', border: '#34D399' },
+      { bg: '#1E3A8A', border: '#60A5FA' },
+      { bg: '#4C1D95', border: '#A78BFA' },
+      { bg: '#831843', border: '#F472B6' },
+      { bg: '#78350F', border: '#FBBF24' },
+      { bg: '#134E4A', border: '#2DD4BF' }
+    ];
+
+    function jewelColors(nodeData) {
+      const key = String(nodeData.domain || nodeData.kind || nodeData.id || '');
+      let hash = 0;
+      for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
+      return JEWEL_PALETTE[Math.abs(hash) % JEWEL_PALETTE.length];
+    }
+
     function renderGraph(data, overview = false) {
       if (cy) cy.destroy();
       activeSelection = null;
@@ -515,18 +531,26 @@
       cy = cytoscape({
         container: document.getElementById('graph'),
         elements: [
-          ...data.nodes.map(item => ({ ...item, position: positions.get(item.data.id), classes: !overview && item.data.id === anchorId ? 'target-node' : '' })),
+          ...data.nodes.map(item => {
+            const palette = jewelColors(item.data);
+            return {
+              ...item,
+              data: { ...item.data, node_bg: palette.bg, node_border: palette.border },
+              position: positions.get(item.data.id),
+              classes: !overview && item.data.id === anchorId ? 'target-node' : ''
+            };
+          }),
           ...sourceNodes, ...visibleEdges, ...sourceEdges
         ],
         layout: { name: 'preset', fit: true, padding: 48 },
         minZoom: 0.25,
         maxZoom: 2.5,
         style: [
-          { selector: 'node', style: { 'shape': 'round-rectangle', 'background-color': '#1E293B', 'border-width': 2, 'border-color': '#818CF8', 'label': 'data(name)', 'color': '#F1F5F9', 'font-size': 11, 'font-weight': 700, 'text-wrap': 'wrap', 'text-max-width': 132, 'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': '12px', 'underlay-color': '#6366F1', 'underlay-opacity': .16, 'underlay-padding': 8, 'underlay-shape': 'roundrectangle' } },
-          { selector: 'node.target-node', style: { 'background-color': '#4F46E5', 'border-color': '#C4B5FD', 'color': '#F1F5F9', 'padding': '16px', 'font-size': 13, 'font-weight': 700, 'underlay-color': '#8B5CF6', 'underlay-padding': 12, 'underlay-opacity': .32 } },
-          { selector: 'node[kind = "source_document"]', style: { 'background-color': '#0F2937', 'border-color': '#2DD4BF', 'color': '#F1F5F9', 'padding': '10px', 'font-size': 10 } },
-          { selector: 'edge', style: { 'width': 2.2, 'line-color': '#A78BFA', 'target-arrow-color': '#A78BFA', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.3, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': '', 'font-size': 9, 'font-weight': 600, 'color': '#F1F5F9', 'text-rotation': 'autorotate', 'text-background-color': '#0F172A', 'text-background-opacity': .94, 'text-background-padding': 4 } },
-          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#60A5FA', 'target-arrow-color': '#60A5FA' } },
+          { selector: 'node', style: { 'shape': 'round-rectangle', 'background-color': 'data(node_bg)', 'border-width': 2, 'border-color': 'data(node_border)', 'label': 'data(name)', 'color': '#F8FAFC', 'font-size': 11, 'font-weight': 700, 'text-wrap': 'wrap', 'text-max-width': 132, 'text-valign': 'center', 'text-halign': 'center', 'width': 'label', 'height': 'label', 'padding': '12px', 'underlay-color': 'data(node_border)', 'underlay-opacity': .2, 'underlay-padding': 7, 'underlay-shape': 'roundrectangle' } },
+          { selector: 'node.target-node', style: { 'background-color': '#4F46E5', 'border-color': '#C4B5FD', 'border-width': 2.5, 'color': '#F8FAFC', 'padding': '16px', 'font-size': 13, 'font-weight': 700, 'underlay-color': '#818CF8', 'underlay-padding': 12, 'underlay-opacity': .45 } },
+          { selector: 'node[kind = "source_document"]', style: { 'background-color': '#134E4A', 'border-color': '#2DD4BF', 'color': '#F8FAFC', 'padding': '10px', 'font-size': 10, 'underlay-color': '#2DD4BF', 'underlay-opacity': .18 } },
+          { selector: 'edge', style: { 'width': 2.2, 'line-color': '#A78BFA', 'target-arrow-color': '#A78BFA', 'target-arrow-shape': 'triangle', 'arrow-scale': 1.3, 'curve-style': 'bezier', 'control-point-step-size': 40, 'label': '', 'font-size': 9, 'font-weight': 600, 'color': '#F8FAFC', 'text-rotation': 'autorotate', 'text-background-color': '#0F172A', 'text-background-opacity': .95, 'text-background-padding': 4, 'text-border-width': 1, 'text-border-color': '#334155' } },
+          { selector: 'edge[rel_label = "REQUIRES"]', style: { 'line-color': '#38BDF8', 'target-arrow-color': '#38BDF8' } },
           { selector: 'edge[rel_label = "UNLOCKS"]', style: { 'line-color': '#F472B6', 'target-arrow-color': '#F472B6' } },
           { selector: 'edge[rel_label = "RELATED"], edge[rel_label = "CONNECTS"]', style: { 'line-color': '#A78BFA', 'target-arrow-color': '#A78BFA' } },
           { selector: 'edge[rel_label = "SOURCED_FROM"]', style: { 'line-color': '#2DD4BF', 'target-arrow-color': '#2DD4BF' } },
