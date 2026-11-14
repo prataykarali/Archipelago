@@ -28,7 +28,7 @@ CONTENT_SECURITY_POLICY = (
     "form-action 'self'; "
     "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
-    "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; "
+    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; "
     "connect-src 'self' https://spllaastejfwclllfndp.supabase.co https://esm.sh https://archipelago-librarian.vercel.app; "
     "frame-src 'self' https://ebooks.elibrary.in.pearson.com https://elibrary.in.pearson.com https://huggingface.co; "
     "worker-src 'self' blob: https://cdnjs.cloudflare.com"

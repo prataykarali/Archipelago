@@ -22,19 +22,22 @@ COLLECTION = re.compile(
     r"\b(collected|these (works|papers)|this (research )?collection|that paper|the (first|second|third|"
     r"fourth|fifth|last) paper|that author|the author|authors?|h-index|i10|journals?|conferences?|"
     r"venues?|citation relationships?|cit(?:es|ations?)|methods?|datasets?|export|excel|workbook|"
-    r"new papers|monitor|monitoring|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
+    r"new papers|monitor|monitoring|providers?|results?|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
     r"duplicat(?:ed|es)|external|discuss|mention|cover|quantiz\w*|low[- ]memory|inference)\b",
     re.I,
 )
 RESEARCH_WORDS = re.compile(
     r"\b(papers?|authors?|h-index|i10|journals?|conferences?|venues?|abstracts?|"
-    r"collection|collected|monitoring|research methods?|citation relationships?|datasets?|"
+    r"collection|collected|monitoring|providers?|results?|research methods?|citation relationships?|datasets?|"
     r"arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|duplicat(?:ed|es)|citations?|"
     r"discuss|mention|quantiz\w*|low[- ]memory|inference)\b",
     re.I,
 )
 EXPORT = re.compile(r"\b(export|excel|xlsx|workbook|spreadsheet|download)\b", re.I)
-NEW_PAPERS = re.compile(r"\b(new|newly|since)\b.*\b(papers?|monitor|monitoring|run|update|check)", re.I)
+NEW_PAPERS = re.compile(
+    r"\b(new|newly|since|changed?|updates?)\b.*\b(papers?|monitor|monitoring|run|update|check)",
+    re.I,
+)
 
 
 def is_research_request(query: str, has_run: bool) -> bool:
@@ -259,6 +262,18 @@ def _answer(
             reason = f" (provider status: {src_info['status']}{' - ' + src_info['error'] if src_info.get('error') else ''})" if src_info else ""
             return f"No papers in this collection are attributed to {target}{reason}."
         return f"Papers in this collection linked to {target}:\n" + "\n".join(matched)
+    if re.search(r"\bproviders?\b", query, re.I):
+        sources = run.get("sources") or []
+        if not sources:
+            return "No provider provenance metadata is recorded for this collection."
+        lines = ["Providers queried for this collection:"]
+        for src in sources:
+            name = src.get("source") or "unknown"
+            status = src.get("status") or "unknown"
+            count = src.get("record_count", 0)
+            err = f" ({src['error']})" if src.get("error") else ""
+            lines.append(f"• {name}: {status}, {count} raw records{err}")
+        return "\n".join(lines)
     if re.search(r"\bexternal\b.*\bcit(?:ations?|ed)\b|\bopencitations\b", query, re.I):
         ext = [
             f"[{i}] {p['title']} — "

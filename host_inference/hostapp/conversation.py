@@ -6,8 +6,9 @@ import re
 
 FOLLOW_UP = re.compile(
     r"^(?:now\b|and\b|what about\b|how about\b|which\b|which paper\b|"
+    r"what causes\b|why does\b|(?:give|show) me (?:a |an |one |some )?(?:simple )?example\b|"
     r"what are (?:its|their)\b|(?:its|their|this|that|these|those)\b|"
-    r"how (?:does|do|is|are|can)\s+(?:it|they|this|that|these|those)\b|"
+    r"how (?:does|do|is|are|can)\s+(?:it|they|this|that|these|those|the\s+\w+)\b|"
     r"(?:can|could) you (?:expand|compare|show|explain)\b|"
     r"show (?:its|the|this|that)\b)",
     re.I,

@@ -125,6 +125,7 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
     out_of_corpus = (
         prepared.get("route") == "GUARDRAIL_INTERCEPT"
         and routing.get("reason") == OUT_OF_CORPUS_REASON
+        and bool(RESEARCH_SOURCE_REQUEST.search(query))
     ) or prepared.get("route") == "RESEARCH_UNVERIFIED"
     source_request = prepared.get("route") == "BOOK_PAGE" and RESEARCH_SOURCE_REQUEST.search(query)
     if prepared.get("route") not in ELIGIBLE_ROUTES and not out_of_corpus and not source_request:
