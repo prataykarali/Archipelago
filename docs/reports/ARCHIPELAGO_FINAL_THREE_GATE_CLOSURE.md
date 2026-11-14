@@ -108,5 +108,22 @@
   - Idempotency check: second `worker-once --job-id 337d88fe-70df-49f2-af98-4f3413895951` returned `null`.
   - Post-ingestion cleanup: `ollama ps` empty (`0` Archipelago GPU processes); `nvidia-smi` shows only desktop (`14 MiB`) + separate FlowState process `PID 356190` (`70 MiB`).
 - **Remaining Release Blockers:**
-  1. **Task 1 (`archipelago-librarian` in `Aura` / `shinaura`):** Requires interactive Vercel CLI login (`npx vercel login`) to the account that owns `https://vercel.com/shinaura`, linking `host_research/` to `archipelago-librarian`, and deploying/promoting.
-  2. **Gate 3 (Independent S4 Review):** Requires a separate institutional reviewer (distinct from `pratay-karali-operator`) before local graph publication.
+  1. **Gate 3 (Independent S4 Review):** Requires a separate institutional reviewer (distinct from `pratay-karali-operator`) before local graph publication.
+
+---
+
+## 9. Task 1 Closed — Librarian Production Deployment (`shinaura` / `Aura`, `PASS`)
+
+- **Vercel Workspace & Project:** Logged in as `prataykarali2005-1552` (`shinaura` / `Aura`), linked `host_research/` to existing project `archipelago-librarian` (`prj_SdRNUdTLO2HFe1u2qyqUiYTYjzws`, `Root Directory: host_research`). Added root-anchored [.vercelignore](file:///home/pratay-karali/Desktop/archipelago/Archipelago/.vercelignore) so only `host_research/` (`612K`) and required packages upload.
+- **Preview & Production Deployments:**
+  - Preview: `3GRiiHWozLz93vqpXQBzsezeVsMJ` (`https://archipelago-librarian-o5iwagy9y-shinaura.vercel.app`, `/api/readiness` -> `{"ready":true,"service":"research_transport"}`).
+  - **Production:** **`FSHZs5GHDzJ5TxzGzMPmSj8FqCyE`** (`https://archipelago-librarian-69tvw3r6e-shinaura.vercel.app`, aliased to **`https://archipelago-librarian.vercel.app`**).
+  - **Main Archipelago (`https://archipelago-blond.vercel.app/`):** Confirmed unchanged (`/api/health` -> `ok: true, concepts: 610`, deployment `GEefuqwzNGpgwNUMkXdTAdYKwRdY`).
+- **Live Browser & Auth Verification (`1440×960` & `390×844`, `Archipelago_Librarian_Prod_Screenshots.zip`):**
+  - `/academic/graph`: `#0F172A` / `#F1F5F9` (**`16.3:1`**), Graphify nodes + curved Bezier edges (`610 indexed concepts · showing 12 main concepts`), zero horizontal overflow on desktop & mobile.
+  - `/librarian`: `#0F172A` / `#F1F5F9` (**`16.3:1`**), zero horizontal overflow on desktop & mobile.
+  - `/research` & `/research/topics`: dark theme (**`17.76:1`** and **`17.68:1`**), zero horizontal overflow.
+  - `/analytics`: `#0F172A` / `#F1F5F9` (**`16.3:1`**), zero horizontal overflow.
+  - `/academic-automation`: dark theme (**`18.37:1`**), displays staged D2L review (`10 extracted rows · 8 proposed edges · publication BLOCKED · review digest 0fba3b14...`).
+  - **S4 API access control on `https://archipelago-librarian.vercel.app/api/academic-automation/review/bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe`:** `librarian` -> `HTTP 200`; `student` -> `HTTP 401`; `anon` -> `HTTP 401`.
+- **Overall Release Verdict:** **`CONDITIONALLY RELEASED`** *(both `archipelago-blond.vercel.app` and `archipelago-librarian.vercel.app` are deployed and verified, and Gate 2 RTX 2050 GPU ingestion completed to `review_ready`; local Kùzu graph publication remains intentionally gated behind a separate institutional S4 reviewer).*
