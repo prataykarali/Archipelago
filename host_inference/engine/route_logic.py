@@ -247,7 +247,18 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return research_topic
 
     extracted_concepts = extract_concept_mentions(query, known_graph=graph)
-    if len(extracted_concepts) >= 3:
+    is_compare_or_relate = bool(RELATE_RE.search(clean_query)) or any(
+        token in clean_query.lower() for token in COMPARE_CUES
+    )
+    is_single_unified_node = bool(
+        len(extracted_concepts) == 2 and anchors and anchors[0] == "eigenvalues_and_eigenvectors"
+    )
+    if len(extracted_concepts) >= 3 or (
+        len(extracted_concepts) == 2
+        and not is_compare_or_relate
+        and not is_single_unified_node
+        and not learning_request
+    ):
         reasoning = multi_hop_reasoning(self, query, concept_mentions=extracted_concepts)
         primary = reasoning["indexed_concepts"][0].cid if reasoning["indexed_concepts"] else None
         return (
@@ -342,6 +353,35 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                 compose.relation(self, left_id, right_id, path),
                 left_id,
                 {"score": best_score, "reason": "shortest_path"},
+            )
+        _is_compare = any(token in clean_query.lower() for token in COMPARE_CUES) and not re.search(
+            r"\b(connect(?:ed)?|relat(?:e|ed|es|ion|ionship))\b", clean_query, re.I
+        )
+        _academic_compare = bool(
+            left_ok
+            or right_ok
+            or anchors
+            or ACADEMIC_DOMAIN_RE.search(clean_query)
+            or re.search(
+                r"\b(fcfs|sjf|scheduling|supervised|reinforcement|page|normalization|acid|lr|parsing|eigen|gradient|backprop|bfs|dfs|mutex|semaphore|tcp|udp)\b",
+                clean_query,
+                re.I,
+            )
+        )
+        if _is_compare and _academic_compare:
+            known_ids = [cid for cid in (left_id, right_id, *anchors[:2]) if cid and cid in graph.nodes]
+            known_ids = list(dict.fromkeys(known_ids))
+            parts = [compose.synthesis(self, cid) for cid in known_ids[:2]]
+            draft = "\n\n".join(parts) if parts else ""
+            note = (
+                f"Compare **{left_text.strip(' ?.')}** and **{right_text.strip(' ?.')}** clearly, "
+                "include a concrete worked example, and label general foundational knowledge separately from indexed catalog citations."
+            )
+            return (
+                "GENERAL_EXPLANATION",
+                f"{draft}\n\n{note}".strip(),
+                known_ids[0] if known_ids else None,
+                {"score": max(best_score, 0.8), "reason": "academic_comparison_general"},
             )
         if left_ok ^ right_ok:
             known = left_id if left_ok else right_id

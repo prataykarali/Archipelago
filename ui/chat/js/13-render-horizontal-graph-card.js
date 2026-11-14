@@ -37,6 +37,11 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
             const prereqNames = formatConceptList(prereqs, 3);
             const unlockNames = formatConceptList(unlocks, 3);
 
+            const route = (metadata && ((metadata.routing && metadata.routing.route) || metadata.contract)) || '';
+            const isResearchGraph = route === 'RESEARCH_EVIDENCE' || Boolean(
+                metadata && (metadata.graph_mode === 'research' || metadata.research_run_id)
+            );
+            const quizRelevant = !isResearchGraph;
             const existingAdaptive = (window._adaptiveState && window._adaptiveState[msgId]);
             let quizCompleted = Boolean(existingAdaptive && existingAdaptive.finished);
             try { quizCompleted ||= Boolean(localStorage.getItem(storageKey('archipelago_eval_' + _nodeId(anchor)))); } catch (_) {}
@@ -71,17 +76,17 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                             </div>
                             <div class="flex flex-col text-left min-w-0">
                                 <span class="font-extrabold text-white text-xs tracking-tight flex items-center gap-2">
-                                    Visualize Concept Graph & OKF Keys
+                                    ${isResearchGraph ? 'Visualize Research Evidence Graph' : 'Visualize Concept Graph & OKF Keys'}
                                     <span class="px-2 py-0.5 rounded-full bg-accentPurple/25 border border-accentPurple/40 text-[10px] text-accentPurple font-mono font-bold truncate max-w-[180px] sm:max-w-[260px]">${escapeHTML(anchorLabel)}</span>
                                 </span>
-                                <span class="text-[10px] text-gray-400 font-medium">Click to expand/collapse horizontal node topology card</span>
+                                <span class="text-[10px] text-gray-400 font-medium">${isResearchGraph ? 'Click to expand/collapse scholarly paper & citation topology' : 'Click to expand/collapse horizontal node topology card'}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            ${quizCompleted ? '' : `<button id="quiz-start-${msgId}" onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
+                            ${quizRelevant && !quizCompleted ? `<button id="quiz-start-${msgId}" onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-graduation-cap text-xs"></i> <span>${quizBtnLabel}</span>
-                            </button>`}
-                            <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">Normal Graph</span>
+                            </button>` : ''}
+                            <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">${isResearchGraph ? 'Research Graph' : 'Normal Graph'}</span>
                             <i id="toggle-icon-${cardId}" class="fa-solid fa-chevron-up text-xs text-amber-300 transition-transform"></i>
                         </div>
                     </button>
@@ -181,25 +186,25 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                             </button>
                         </div>
 
-                        <!-- OKF Key Relationships Badge Grid -->
+                        <!-- OKF Key Relationships / Research Graph Badge Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
                             <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
                                 <span class="text-[10px] font-extrabold text-accentPurple uppercase tracking-wider flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-up text-accentPurple"></i> REQUIRES (PREREQUISITES)
+                                    <i class="fa-solid fa-arrow-up text-accentPurple"></i> ${isResearchGraph ? 'HAS_TOPIC (RESEARCH RUN)' : 'REQUIRES (PREREQUISITES)'}
                                 </span>
                                 <div id="okf-card-req-${cardId}" class="flex flex-wrap gap-1.5"></div>
                             </div>
 
                             <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
                                 <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-down text-emerald-400"></i> UNLOCKS (ENABLES)
+                                    <i class="fa-solid fa-arrow-down text-emerald-400"></i> ${isResearchGraph ? 'AUTHORED_BY / PUBLISHED_IN' : 'UNLOCKS (ENABLES)'}
                                 </span>
                                 <div id="okf-card-unl-${cardId}" class="flex flex-wrap gap-1.5"></div>
                             </div>
 
                             <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
                                 <span class="text-[10px] font-extrabold text-accentCyan uppercase tracking-wider flex items-center gap-1">
-                                    <i class="fa-solid fa-link text-accentCyan"></i> CONNECTS (USES / PART OF)
+                                    <i class="fa-solid fa-link text-accentCyan"></i> ${isResearchGraph ? 'HAS_PAPER (SCHOLARLY RECORDS)' : 'CONNECTS (USES / PART OF)'}
                                 </span>
                                 <div id="okf-card-con-${cardId}" class="flex flex-wrap gap-1.5"></div>
                             </div>
@@ -218,26 +223,8 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                     }).catch(() => {});
             }
 
-            // Compute effective prerequisites (do not leave empty if curriculum chain or defaults exist)
-            let effectivePrereqs = (prereqs && prereqs.length) ? prereqs.slice() : [];
-            if (!effectivePrereqs.length) {
-                const msgKey = cardId.replace('hgraph-', '');
-                const chain = (metadata && metadata.chain) || (window._adaptiveState && window._adaptiveState[msgKey] && window._adaptiveState[msgKey].chain) || [];
-                const anchorKey = _nodeId(anchor).toLowerCase();
-                const filteredChain = chain.filter(c => _nodeId(c).toLowerCase() !== anchorKey);
-                if (filteredChain.length) {
-                    effectivePrereqs = filteredChain.map(c => ({ id: _nodeId(c), name: _nodeLabel(c), difficulty: 'foundational' }));
-                } else {
-                    const canonMap = {
-                        'bert': ['transformer', 'attention_mechanism', 'neural_network'],
-                        'transformer': ['attention_mechanism', 'neural_network', 'matrix_multiplication'],
-                        'low_rank_adaptation': ['fine_tuning', 'transformer', 'linear_algebra'],
-                        'retrieval_augmented_generation': ['vector_database', 'transformer', 'dense_passage_retrieval'],
-                    };
-                    const defaults = canonMap[anchorKey] || ['neural_network', 'machine_learning'];
-                    effectivePrereqs = defaults.map(c => ({ id: c, name: c.replace(/_/g, ' ').toUpperCase(), difficulty: 'foundational' }));
-                }
-            }
+            // Use ONLY verified stored graph prerequisites (never fabricate defaults)
+            const effectivePrereqs = (prereqs && prereqs.length) ? prereqs.slice() : [];
             prereqs = effectivePrereqs;
 
             // Show ALL graph nodes (not restricted to slice(0, 3))
@@ -245,8 +232,11 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
             const unlDiv = document.getElementById(`okf-card-unl-${cardId}`);
             const conDiv = document.getElementById(`okf-card-con-${cardId}`);
 
-            const activePrereqs = (prereqs || []);
-            const activeUnlocks = (unlocks || []);
+            const researchEntities = isResearchGraph && metadata && metadata.research_graph && Array.isArray(metadata.research_graph.entities)
+                ? metadata.research_graph.entities
+                : [];
+            const activePrereqs = isResearchGraph ? [anchor] : (prereqs || []);
+            const activeUnlocks = isResearchGraph ? researchEntities : (unlocks || []);
             const activeRelated = (related || []);
 
             const makeCardBadge = (item, colorCls) => {

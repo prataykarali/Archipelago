@@ -15,26 +15,10 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
             const allUnlocks = (unlocks && unlocks.length) ? unlocks : [];
             const allRelated = (related && related.length) ? related : [];
 
-            // If prerequisites are empty (e.g. BERT with 0 immediate prereqs indexed), enrich with foundational predecessors from curriculum chain
-            let effectivePrereqs = allPrereqs.slice();
-            if (!effectivePrereqs.length) {
-                const msgKey = cardId.replace('hgraph-', '');
-                const chain = (metadata && metadata.chain) || (window._adaptiveState && window._adaptiveState[msgKey] && window._adaptiveState[msgKey].chain) || [];
-                const anchorKey = _nodeId(anchor).toLowerCase();
-                const filteredChain = chain.filter(c => _nodeId(c).toLowerCase() !== anchorKey);
-                if (filteredChain.length) {
-                    effectivePrereqs = filteredChain.map(c => ({ id: _nodeId(c), name: _nodeLabel(c), difficulty: 'foundational' }));
-                } else {
-                    const canonMap = {
-                        'bert': ['transformer', 'attention_mechanism', 'neural_network'],
-                        'transformer': ['attention_mechanism', 'neural_network', 'matrix_multiplication'],
-                        'low_rank_adaptation': ['fine_tuning', 'transformer', 'linear_algebra'],
-                        'retrieval_augmented_generation': ['vector_database', 'transformer', 'dense_passage_retrieval'],
-                    };
-                    const defaults = canonMap[anchorKey] || ['neural_network', 'machine_learning'];
-                    effectivePrereqs = defaults.map(c => ({ id: c, name: c.replace(/_/g, ' ').toUpperCase(), difficulty: 'foundational' }));
-                }
-            }
+            const effectivePrereqs = allPrereqs.slice();
+            const isResearchGraph = Boolean(
+                metadata && (metadata.graph_mode === 'research' || metadata.research_run_id || metadata.contract === 'RESEARCH_EVIDENCE')
+            );
 
             const totalCandidateCount = subNodes.length >= 4 
                 ? subNodes.length 
@@ -218,11 +202,11 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 nodes.forEach(n => {
                     if (n.type === 'anchor') return;
                     if (n.type === 'prereq') {
-                        edgesToDraw.push({ u: n, v: nodes[0], relation: 'REQUIRES', type: 'prereq' });
+                        edgesToDraw.push({ u: n, v: nodes[0], relation: isResearchGraph ? 'HAS_TOPIC' : 'REQUIRES', type: 'prereq' });
                     } else if (n.type === 'unlock') {
-                        edgesToDraw.push({ u: nodes[0], v: n, relation: 'UNLOCKS', type: 'unlock' });
+                        edgesToDraw.push({ u: nodes[0], v: n, relation: isResearchGraph ? 'HAS_PAPER' : 'UNLOCKS', type: 'unlock' });
                     } else {
-                        edgesToDraw.push({ u: nodes[0], v: n, relation: 'CONNECTS', type: 'related' });
+                        edgesToDraw.push({ u: nodes[0], v: n, relation: isResearchGraph ? 'HAS_PAPER' : 'CONNECTS', type: 'related' });
                     }
                 });
             }

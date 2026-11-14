@@ -69,68 +69,94 @@ import { API_CONTRACT } from './00-current-origin.js';
                 scrollWrap.appendChild(inventoryTable);
                 container.appendChild(scrollWrap);
             } else if (!inventoryTable && !container && metadata) {
-                // A source citation is not a physical holding. Build this table
-                // only from records explicitly verified against the Koha export.
-                const citations = getResponseCitations(metadata);
-                const sourceRows = (citations || []).slice(0, 8);
-                if (sourceRows.length) {
+                // A source citation is not a physical holding. Build the physical
+                // inventory table ONLY from records verified against the Koha export;
+                // render cited PDFs and research papers in a compact Sources & Resources block.
+                const citations = getResponseCitations(metadata) || [];
+                const verifiedHoldings = citations.filter(c => Boolean(c && c.koha_record_verified)).slice(0, 8);
+                const otherSources = citations.filter(c => !(c && c.koha_record_verified)).slice(0, 8);
+                if (verifiedHoldings.length || otherSources.length) {
                     container = document.createElement('section');
                     container.className = 'library-inventory-section';
-                    container.innerHTML = `
-                        <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
-                            <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
-                            <i class="fa-solid fa-book-bookmark text-sky-400"></i> Source inventory
-                            </span>
-                            <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Cited sources
-                        </span>
-                    </div>
-                        <h4 class="text-xs text-amber-300 mb-2 font-medium">Copy figures appear only for verified catalogue records.</h4>
-                    `;
-                    const scrollWrap = document.createElement('div');
-                    scrollWrap.className = 'inventory-table-wrap overflow-x-auto w-full';
-                    const tbl = document.createElement('table');
-                    tbl.className = 'w-full text-left text-xs';
-                    tbl.innerHTML = `
-                        <thead>
-                            <tr class="border-b border-sky-500/30 text-sky-400">
-                                <th class="py-2 px-3">Book / Resource</th>
-                                <th class="py-2 px-3">Accession</th>
-                                <th class="py-2 px-3 text-right">Copies</th>
-                                <th class="py-2 px-3 text-right">Avail</th>
-                                <th class="py-2 px-3 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${sourceRows.map((c, i) => {
-                                const title = citationTitle(c, 'Resource');
-                                const verified = Boolean(c.koha_record_verified);
-                                const accession = verified ? c.accession : 'Not reported';
-                                const total = verified ? c.total_copies : 'Not reported';
-                                const avail = verified ? c.available_copies : 'Not reported';
-                                const pageNum = c.page_number || c.page;
-                                const badgeStr = c.evidence_id || `S${i+1}`;
-                                const pageUrl = citationPageUrl(c);
-                                return `
-                                    <tr class="glass-card hover:border-sky-400/50 hover:scale-[1.01] transition-all duration-200 border border-white/10 rounded-xl my-1.5 p-3 flex flex-col md:table-row gap-2">
-                                        <td class="py-2.5 px-3 font-semibold text-gray-200">
-                                            <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 mr-1.5">${escapeHTML(badgeStr)}</span>
-                                            ${escapeHTML(title)}
-                                        </td>
-                                        <td class="py-2.5 px-3 font-mono text-[11px] text-sky-300">${escapeHTML(accession)}</td>
-                                        <td class="py-2.5 px-3 text-right text-gray-400">${total}</td>
-                                        <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${avail}</td>
-                                        <td class="py-2.5 px-3 text-center">
-                                            <a class="view-page-link text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-
-                    `;
-                    scrollWrap.appendChild(tbl);
-                    container.appendChild(scrollWrap);
+                    let html = '';
+                    if (verifiedHoldings.length) {
+                        html += `
+                            <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
+                                <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-book-bookmark text-sky-400"></i> Library holdings
+                                </span>
+                                <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Koha verified
+                                </span>
+                            </div>
+                            <div class="inventory-table-wrap overflow-x-auto w-full mb-3">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-sky-500/30 text-sky-400">
+                                            <th class="py-2 px-3">Book / Resource</th>
+                                            <th class="py-2 px-3 whitespace-nowrap">Accession</th>
+                                            <th class="py-2 px-3 text-right whitespace-nowrap">Copies</th>
+                                            <th class="py-2 px-3 text-right whitespace-nowrap">Avail</th>
+                                            <th class="py-2 px-3 text-center whitespace-nowrap">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${verifiedHoldings.map((c, i) => {
+                                            const title = citationTitle(c, 'Resource');
+                                            const pageNum = c.page_number || c.page;
+                                            const badgeStr = c.evidence_id || `S${i+1}`;
+                                            const pageUrl = citationPageUrl(c);
+                                            return `
+                                                <tr class="border-b border-white/10 hover:bg-white/5 transition-colors">
+                                                    <td class="py-2.5 px-3 font-semibold text-gray-200">
+                                                        <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 mr-1.5">${escapeHTML(badgeStr)}</span>
+                                                        ${escapeHTML(title)}
+                                                    </td>
+                                                    <td class="py-2.5 px-3 font-mono text-[11px] text-sky-300 whitespace-nowrap">${escapeHTML(c.accession || '—')}</td>
+                                                    <td class="py-2.5 px-3 text-right text-gray-400 whitespace-nowrap">${c.total_copies ?? '—'}</td>
+                                                    <td class="py-2.5 px-3 text-right font-bold text-emerald-400 whitespace-nowrap">${c.available_copies ?? '—'}</td>
+                                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                                                        <a class="view-page-link inline-block whitespace-nowrap text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+                    if (otherSources.length) {
+                        const openAttr = otherSources.length <= 3 ? 'open' : '';
+                        html += `
+                            <details class="sources-resources-details rounded-xl border border-sky-500/20 bg-sky-950/20 px-3 py-2" ${openAttr}>
+                                <summary class="cursor-pointer list-none flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-sky-400 select-none">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fa-solid fa-layer-group text-sky-400"></i> Sources &amp; Resources (${otherSources.length})
+                                    </span>
+                                    <span class="text-[11px] font-normal normal-case text-gray-400">${otherSources.length > 3 ? 'Click to expand' : 'Verified links'}</span>
+                                </summary>
+                                <div class="mt-2.5 space-y-1.5">
+                                    ${otherSources.map((c, i) => {
+                                        const title = citationTitle(c, 'Resource');
+                                        const pageNum = c.page_number || c.page;
+                                        const badgeStr = c.evidence_id || `S${i+1}`;
+                                        const pageUrl = citationPageUrl(c);
+                                        return `
+                                            <div class="flex items-center justify-between gap-3 py-1.5 px-2.5 rounded-lg border border-white/10 bg-white/5 text-xs">
+                                                <div class="min-w-0 font-semibold text-gray-200 truncate">
+                                                    <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 mr-1.5">${escapeHTML(badgeStr)}</span>
+                                                    ${escapeHTML(title)}
+                                                </div>
+                                                <a class="view-page-link shrink-0 whitespace-nowrap text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </details>
+                        `;
+                    }
+                    container.innerHTML = html;
                     const zone = messageBody.querySelector('[id^="interactive-zone-"]');
                     if (zone) {
                         messageBody.insertBefore(container, zone);

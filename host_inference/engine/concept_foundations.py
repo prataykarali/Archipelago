@@ -134,4 +134,35 @@ VERIFIED_CONCEPT_FOUNDATIONS: dict[str, str] = {
         "A foundational probability theorem stating P(A|B) = P(B|A)P(A) / P(B), providing the principled mathematical basis for Bayesian inference, "
         "Maximum A Posteriori (MAP) estimation, and generative probabilistic modeling in machine learning."
     ),
+    "eigenvalues_and_eigenvectors": (
+        "For a square matrix A, a non-zero vector v is an eigenvector and scalar lambda is its eigenvalue when A v = lambda v: "
+        "applying the linear transformation A only scales v by lambda without changing its direction. "
+        "Eigenvalues are found by solving the characteristic equation det(A - lambda I) = 0, and each eigenvector spans an invariant subspace used in PCA, spectral clustering, and stability analysis."
+    ),
+    "eigenvalue": (
+        "A scalar lambda satisfying A v = lambda v for some non-zero eigenvector v, obtained as a root of the characteristic polynomial det(A - lambda I) = 0."
+    ),
+    "eigenvector": (
+        "A non-zero vector v whose direction is preserved under a linear transformation A, satisfying A v = lambda v for eigenvalue lambda."
+    ),
+    "gradient_descent": (
+        "An iterative first-order optimization algorithm that updates model parameters theta in the opposite direction of the gradient of the loss function L(theta): "
+        "theta <- theta - eta * grad(L(theta)), where eta is the learning rate."
+    ),
+    "error_backpropagation_algorithm": (
+        "The reverse-mode automatic differentiation algorithm that applies the multivariate chain rule from the output loss backward through network layers "
+        "to compute exact parameter gradients dL/dW efficiently in a single backward pass."
+    ),
+    "reinforcement_learning": (
+        "A machine learning paradigm where an agent learns a sequential decision policy pi(a|s) by interacting with an environment, observing states, "
+        "taking actions, and maximizing expected cumulative discounted reward without requiring labeled input-output pairs."
+    ),
+    "page_fault_handling": (
+        "The OS kernel trap handler invoked when a process accesses a virtual page not currently mapped in physical RAM: it validates the access, "
+        "selects a victim frame using a page replacement policy (e.g., LRU, FIFO, Clock) if memory is full, loads the page from backing store, and updates the page table."
+    ),
+    "third_normal_form": (
+        "A relational database normal form requiring a table to be in Second Normal Form (2NF) with no transitive functional dependencies of non-key attributes on candidate keys, "
+        "eliminating update, insertion, and deletion anomalies."
+    ),
 }

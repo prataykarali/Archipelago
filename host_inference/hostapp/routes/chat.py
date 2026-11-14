@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from uuid import UUID
 
 from engine.answer import POLISHABLE_ROUTES
@@ -19,7 +20,7 @@ from host_roadmap import build_quiz, build_roadmap
 from ..context import AppContext
 from ..conversation import contextual_query
 from ..research_chat import enrich_with_research
-from ..research_run_chat import research_chat_reply
+from ..research_run_chat import is_research_request, research_chat_reply
 
 # Query hygiene: strip null bytes and ASCII control characters, keep whitespace.
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -56,6 +57,9 @@ def _withdrawn_notice(sources: list) -> str:
 
 def _research_run_reply(body: dict, query: str, history: object) -> str | None:
     """Answer paper-collection questions from the caller's stored S5 run, or defer."""
+    run_id_arg = str(body.get("research_run_id") or body.get("run_id") or "").strip() or None
+    if not run_id_arg and not is_research_request(query, False):
+        return None
     principal = getattr(request, "archipelago_principal", None)
     if not principal or not principal.get("id"):
         return None
@@ -67,7 +71,7 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
             history if isinstance(history, list) else None,
             str(principal["id"]),
             hosted_store(),
-            str(body.get("research_run_id") or body.get("run_id") or "") or None,
+            run_id_arg,
         )
     except (ImportError, OSError, RuntimeError):
         current_app.logger.exception("Research run chat unavailable")
@@ -103,17 +107,55 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
         }
         for i, p in enumerate(papers[:8], 1)
     ]
+    research_entities = []
+    seen_entities: set[str] = set()
+    research_edges = []
+    for p in papers[:8]:
+        pid = p.get("paper_id") or p.get("title") or ""
+        if pid:
+            research_edges.append({"from": anchor_concept["id"], "to": pid, "relation": "HAS_PAPER"})
+        for author in (p.get("authors") or [])[:2]:
+            name = str(author.get("name") if isinstance(author, dict) else author).strip()
+            if name and f"author:{name}" not in seen_entities and len(research_entities) < 8:
+                seen_entities.add(f"author:{name}")
+                research_entities.append({
+                    "id": f"author:{name}",
+                    "label": name,
+                    "name": name,
+                    "summary": f"Author in {topic_label}",
+                    "concept_type": "author",
+                    "difficulty": "AUTHORED_BY",
+                })
+                research_edges.append({"from": pid, "to": f"author:{name}", "relation": "AUTHORED_BY"})
+        venue = str(p.get("venue") or p.get("source") or "").strip()
+        if venue and f"venue:{venue}" not in seen_entities and len(research_entities) < 8:
+            seen_entities.add(f"venue:{venue}")
+            research_entities.append({
+                "id": f"venue:{venue}",
+                "label": venue,
+                "name": venue,
+                "summary": f"Publication venue/source in {topic_label}",
+                "concept_type": "venue",
+                "difficulty": "PUBLISHED_IN",
+            })
+            research_edges.append({"from": pid, "to": f"venue:{venue}", "relation": "PUBLISHED_IN"})
+
     payload = {
         "route": "RESEARCH_EVIDENCE",
         "contract": "RESEARCH_EVIDENCE",
         "routing": {"route": "RESEARCH_EVIDENCE", "reason": "research_run_snapshot"},
         "render_rule": "source_evidence",
         "hide_graph": False,
+        "graph_mode": "research",
         "research_run_id": run_id,
         "anchor_concept": anchor_concept,
         "related_concepts": related_concepts,
         "prerequisites": [],
-        "unlocks": related_concepts[:4],
+        "unlocks": [],
+        "research_graph": {
+            "entities": research_entities,
+            "edges": research_edges,
+        },
         "citations": links,
     }
     return json.dumps(payload) + STREAM_MARKER + reply["text"]
@@ -161,16 +203,26 @@ def register(app: Flask, ctx: AppContext) -> None:
         if reply_detail not in (None, "standard", "expanded"):
             return jsonify({"error": "invalid_reply_detail"}), 400
 
+        t_req_start = time.perf_counter()
         history = body.get("history")
         research = _research_run_reply(body, query, history)
+        t_after_research = time.perf_counter()
         if research is not None:
+            current_app.logger.info(
+                "[CHAT_TIMING] route=RESEARCH_EVIDENCE research_ms=%.1f total_ms=%.1f",
+                (t_after_research - t_req_start) * 1000,
+                (t_after_research - t_req_start) * 1000,
+            )
             response = current_app.response_class(research, mimetype=STREAM_MIME)
             response.headers["Cache-Control"] = "no-store"
             return response
         resolved_query = contextual_query(query, history)
         try:
+            t_eng_start = time.perf_counter()
             prepared = ctx.engine.answer(resolved_query)
+            t_eng_end = time.perf_counter()
             prepared = enrich_with_research(prepared, resolved_query)
+            t_enrich_end = time.perf_counter()
         except Exception:
             current_app.logger.exception("Unable to prepare chat response")
             return jsonify({"error": "chat_unavailable"}), 503
@@ -214,28 +266,25 @@ def register(app: Flask, ctx: AppContext) -> None:
             request.archipelago_quota = quota  # type: ignore[attr-defined]
 
         previous_answer = ""
-        if isinstance(history, list) and len(history) >= 2:
-            previous_user, previous_assistant = history[-2:]
-            if (
-                isinstance(previous_user, dict)
-                and isinstance(previous_assistant, dict)
-                and previous_user.get("role") == "user"
-                and previous_assistant.get("role") == "assistant"
-                and str(previous_user.get("content", "")).strip().casefold() == query.casefold()
-            ):
-                previous_answer = str(previous_assistant.get("content", ""))[
-                    :MAX_PREVIOUS_ANSWER_CHARS
-                ]
+        if isinstance(history, list):
+            for msg in reversed(history):
+                if isinstance(msg, dict) and msg.get("role") == "assistant" and msg.get("content"):
+                    previous_answer = str(msg.get("content", ""))[:MAX_PREVIOUS_ANSWER_CHARS]
+                    break
 
         ctx.cache_metrics.record_request()
         # Every chat request gets its own retrieval and provider stream, even
         # when an identical question is submitted at the same time.
         ctx.cache_metrics.record_miss()
 
+        logger = current_app.logger
+
         def generate():
+            ttft_ms = None
             try:
                 if prepared.get("research_overlay") and not custom_reply:
                     yield json.dumps(prepared["payload"]) + STREAM_MARKER
+                    ttft_ms = (time.perf_counter() - t_req_start) * 1000
                     yield prepared["text"]
                 else:
                     options = {"previous_answer": previous_answer, "prepared": prepared}
@@ -243,10 +292,24 @@ def register(app: Flask, ctx: AppContext) -> None:
                         options["reply_template_id"] = template_id
                     if reply_detail == "expanded":
                         options["reply_detail"] = "expanded"
-                    yield from ctx.engine.stream_chat(resolved_query, **options)
+                    for chunk in ctx.engine.stream_chat(resolved_query, **options):
+                        if ttft_ms is None and STREAM_MARKER not in chunk:
+                            ttft_ms = (time.perf_counter() - t_req_start) * 1000
+                        yield chunk
             except Exception as exc:
-                current_app.logger.error("Chat stream error: %s", exc)
+                logger.error("Chat stream error: %s", exc)
                 yield "\n\nAn unexpected error occurred during synthesis. Please retry your question."
+            finally:
+                t_end = time.perf_counter()
+                logger.info(
+                    "[CHAT_TIMING] route=%s research_ms=%.1f engine_ms=%.1f enrich_ms=%.1f ttft_ms=%.1f total_ms=%.1f",
+                    prepared.get("route"),
+                    (t_after_research - t_req_start) * 1000,
+                    (t_eng_end - t_eng_start) * 1000,
+                    (t_enrich_end - t_eng_end) * 1000,
+                    ttft_ms if ttft_ms is not None else (t_end - t_req_start) * 1000,
+                    (t_end - t_req_start) * 1000,
+                )
 
         response = current_app.response_class(generate(), mimetype=STREAM_MIME)
         response.headers["Cache-Control"] = "no-store"
