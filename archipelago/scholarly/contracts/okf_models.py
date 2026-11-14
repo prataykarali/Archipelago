@@ -88,6 +88,11 @@ class PaperIdentifiers(BaseModel):
     isbn: str | None = None
     openalex_id: str | None = None
     semantic_scholar_id: str | None = None
+    pmid: str | None = None
+    pmcid: str | None = None
+    dblp_key: str | None = None
+    openaire_id: str | None = None
+    datacite_doi: str | None = None
 
 
 class PaperRecord(BaseModel):

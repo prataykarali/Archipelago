@@ -109,9 +109,19 @@ def discover(
     options = validate_options(payload)
     engine = orchestrator or DiscoveryOrchestrator()
     search_query = " ".join(QUERY_MODIFIERS.sub(" ", options["topic"]).split()) or options["topic"]
-    candidates, sources = engine.discover_with_status(
-        search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER)
+    explicit_sources = (
+        [str(s).strip() for s in payload["sources"] if str(s).strip()]
+        if isinstance(payload.get("sources"), list)
+        else None
     )
+    if explicit_sources is not None:
+        candidates, sources = engine.discover_with_status(
+            search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER), explicit_sources=explicit_sources
+        )
+    else:
+        candidates, sources = engine.discover_with_status(
+            search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER)
+        )
     rows: list[dict[str, Any]] = []
     for candidate in candidates:
         paper = candidate["paper"]
@@ -247,14 +257,35 @@ def discover(
         row["collection_order"] = position
     retrieved_at = datetime.now(UTC).isoformat()
     enriched_venues = enrich_venues(selected) if orchestrator is None else {}
+    if orchestrator is None:
+        from archipelago.scholarly.discovery.extended_sources import fetch_opencitations_for_dois
+
+        oc_dois = [str(r["doi"]) for r in selected if r.get("doi")]
+        oc_map = fetch_opencitations_for_dois(engine.sources.session, oc_dois) if oc_dois else {}
+    else:
+        oc_map = {}
     for row in selected:
         row["venue_details"] = venue_observation(row, retrieved_at, enriched_venues)
         row["retrieved_at"] = row["retrieved_at"] or retrieved_at
+        doi_key = str(row.get("doi") or "").strip().lower()
+        if doi_key and doi_key in oc_map and oc_map[doi_key].get("count") is not None:
+            row["citation_observations"].append(
+                {"provider": "opencitations", "count": oc_map[doi_key]["count"]}
+            )
+    from archipelago.scholarly.discovery.scholar_deeplink import generate_scholar_url
+
+    selection = dict(getattr(engine, "last_selection", {}) or {})
+    selection["final_returned_count"] = len(selected)
+    selection["rate_limits_encountered"] = [
+        s["source"] for s in sources if s.get("rate_limited")
+    ]
     return {
         "schema": "archipelago.research_intelligence.v2",
         "options": options,
         "retrieved_at": retrieved_at,
         "sources": sources,
+        "provider_selection": selection,
+        "google_scholar_url": generate_scholar_url(options["topic"]),
         "candidate_count": len(candidates),
         "filtered_count": len(rows),
         "ordering": "publication_date_desc" if options["sort"] == "newest" else "provider_returned",

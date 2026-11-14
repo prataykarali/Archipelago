@@ -22,12 +22,14 @@ COLLECTION = re.compile(
     r"\b(collected|these (works|papers)|this (research )?collection|that paper|the (first|second|third|"
     r"fourth|fifth|last) paper|that author|the author|authors?|h-index|i10|journals?|conferences?|"
     r"venues?|citation relationships?|cit(?:es|ations?)|methods?|datasets?|export|excel|workbook|"
-    r"new papers|monitor|monitoring)\b",
+    r"new papers|monitor|monitoring|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
+    r"duplicat(?:ed|es)|external)\b",
     re.I,
 )
 RESEARCH_WORDS = re.compile(
     r"\b(papers?|authors?|h-index|i10|journals?|conferences?|venues?|abstracts?|"
-    r"collection|collected|monitoring|research methods?|citation relationships?|datasets?)\b",
+    r"collection|collected|monitoring|research methods?|citation relationships?|datasets?|"
+    r"arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|duplicat(?:ed|es)|citations?)\b",
     re.I,
 )
 EXPORT = re.compile(r"\b(export|excel|xlsx|workbook|spreadsheet|download)\b", re.I)
@@ -170,6 +172,51 @@ def _answer(
                 f"[{i}] {p.get('venue') or 'venue unavailable'}{f' ({extra})' if extra else ''}"
             )
         return "\n".join(lines)
+    if re.search(r"\b(duplicat(?:ed|es)|overlap)\b", query, re.I):
+        merged = [
+            f"[{i}] {p['title']} (sources: {', '.join(sorted({prov.get('source_type', '') for prov in (p.get('provenance') or []) if prov.get('source_type')}))})"
+            for i, p in enumerate(papers, 1)
+            if len({prov.get("source_type") for prov in (p.get("provenance") or []) if prov.get("source_type")}) > 1
+        ]
+        if not merged:
+            return "No multi-provider deduplicated overlaps were recorded in this collection."
+        return "Multi-provider deduplicated records in this collection:\n" + "\n".join(merged)
+    prov_match = re.search(
+        r"\b(arxiv|dblp|openaire|datacite|openalex|crossref|semantic_scholar|semantic scholar|europe_pmc|europe pmc|pubmed)\b",
+        query,
+        re.I,
+    )
+    if prov_match and re.search(r"\b(from|in|appear|came|source|which)\b", query, re.I):
+        target = prov_match.group(1).lower().replace(" ", "_")
+        matched = [
+            f"[{i}] {p['title']} ({_link(p)})"
+            for i, p in enumerate(papers, 1)
+            if p.get("source") == target
+            or any(prov.get("source_type") == target for prov in (p.get("provenance") or []))
+            or (target == "dblp" and (p.get("identifiers") or {}).get("dblp_key"))
+            or (target == "arxiv" and (p.get("identifiers") or {}).get("arxiv_id"))
+        ]
+        if not matched:
+            src_info = next((s for s in (run.get("sources") or []) if s.get("source") == target), None)
+            reason = f" (provider status: {src_info['status']}{' - ' + src_info['error'] if src_info.get('error') else ''})" if src_info else ""
+            return f"No papers in this collection are attributed to {target}{reason}."
+        return f"Papers in this collection linked to {target}:\n" + "\n".join(matched)
+    if re.search(r"\bexternal\b.*\bcit(?:ations?|ed)\b|\bopencitations\b", query, re.I):
+        ext = [
+            f"[{i}] {p['title']} — "
+            + ", ".join(
+                f"{obs['provider']}: {obs['count']}"
+                for obs in (p.get("citation_observations") or [])
+                if isinstance(obs, dict) and obs.get("count") is not None
+            )
+            for i, p in enumerate(papers, 1)
+            if any(isinstance(obs, dict) and obs.get("count") is not None for obs in (p.get("citation_observations") or []))
+        ]
+        return (
+            "External provider-reported citation counts:\n" + "\n".join(ext)
+            if ext
+            else "No external citation counts were reported by providers for this collection."
+        )
     if re.search(r"\b(citation relationships?|cite|cites|cited|citations between)\b", query, re.I):
         from archipelago.scholarly.intelligence.graph import build_graph
 

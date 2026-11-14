@@ -39,7 +39,16 @@ def canonical_paper_identity(identifiers: PaperIdentifiers) -> str | None:
     arxiv_id = canonical_arxiv_id(identifiers)
     if arxiv_id:
         return f"{ARXIV_DOI_PREFIX}{arxiv_id}"
-    return identifiers.doi or identifiers.openalex_id or identifiers.semantic_scholar_id
+    return (
+        identifiers.doi
+        or identifiers.datacite_doi
+        or identifiers.openalex_id
+        or identifiers.semantic_scholar_id
+        or (f"pmid:{identifiers.pmid}" if identifiers.pmid else None)
+        or (f"pmcid:{identifiers.pmcid}" if identifiers.pmcid else None)
+        or (f"dblp:{identifiers.dblp_key}" if identifiers.dblp_key else None)
+        or (f"openaire:{identifiers.openaire_id}" if identifiers.openaire_id else None)
+    )
 
 
 class Canonicalizer:
@@ -121,12 +130,32 @@ class Canonicalizer:
                     "arxiv_id": clean_cand_arx,
                 }
 
+            # Rule 3: Exact secondary persistent IDs (PMID, PMCID, DBLP key, OpenAIRE, DataCite)
+            for field_name in ("pmid", "pmcid", "dblp_key", "openaire_id", "datacite_doi"):
+                cval, eval_ = getattr(cand_ids, field_name), getattr(exist_ids, field_name)
+                if cval and eval_ and cval.lower().strip() == eval_.lower().strip():
+                    return idx, {
+                        "decision": "merge",
+                        "reason": f"exact_{field_name}_match",
+                        field_name: cval,
+                    }
+
         return None, {}
 
     @staticmethod
     def _conflicting_ids(left: PaperIdentifiers, right: PaperIdentifiers) -> bool:
         """Reject a merge when an identifier type has two different values."""
-        for name in ("doi", "arxiv_id", "openalex_id", "semantic_scholar_id"):
+        for name in (
+            "doi",
+            "arxiv_id",
+            "openalex_id",
+            "semantic_scholar_id",
+            "pmid",
+            "pmcid",
+            "dblp_key",
+            "openaire_id",
+            "datacite_doi",
+        ):
             a, b = getattr(left, name), getattr(right, name)
             if not a or not b or a.lower().strip() == b.lower().strip():
                 continue
@@ -170,18 +199,22 @@ class Canonicalizer:
         in_paper: PaperRecord = incoming["paper"]
 
         # Merge identifiers
-        doi = base_paper.identifiers.doi or in_paper.identifiers.doi
-        arxiv_id = base_paper.identifiers.arxiv_id or in_paper.identifiers.arxiv_id
-        openalex_id = base_paper.identifiers.openalex_id or in_paper.identifiers.openalex_id
-        s2_id = (
-            base_paper.identifiers.semantic_scholar_id or in_paper.identifiers.semantic_scholar_id
-        )
-
         base_paper.identifiers = PaperIdentifiers(
-            doi=doi,
-            arxiv_id=arxiv_id,
-            openalex_id=openalex_id,
-            semantic_scholar_id=s2_id,
+            doi=base_paper.identifiers.doi or in_paper.identifiers.doi,
+            arxiv_id=base_paper.identifiers.arxiv_id or in_paper.identifiers.arxiv_id,
+            isbn=base_paper.identifiers.isbn or in_paper.identifiers.isbn,
+            openalex_id=base_paper.identifiers.openalex_id or in_paper.identifiers.openalex_id,
+            semantic_scholar_id=(
+                base_paper.identifiers.semantic_scholar_id
+                or in_paper.identifiers.semantic_scholar_id
+            ),
+            pmid=base_paper.identifiers.pmid or in_paper.identifiers.pmid,
+            pmcid=base_paper.identifiers.pmcid or in_paper.identifiers.pmcid,
+            dblp_key=base_paper.identifiers.dblp_key or in_paper.identifiers.dblp_key,
+            openaire_id=base_paper.identifiers.openaire_id or in_paper.identifiers.openaire_id,
+            datacite_doi=(
+                base_paper.identifiers.datacite_doi or in_paper.identifiers.datacite_doi
+            ),
         )
 
         # Merge abstract if missing

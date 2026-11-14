@@ -98,10 +98,12 @@ class LiveResearchSources:
 
     def search(self, source: str, query: str, limit: int) -> SourceResponse:
         """Fetch and parse one source; never disguise an error as zero results."""
-        if source not in SOURCE_URLS:
-            raise ValueError(f"Unknown research source: {source}")
         requested_at = datetime.now(UTC).isoformat()
         count = min(max(limit, 1), MAX_SOURCE_RESULTS)
+        if source in {"dblp", "openaire", "datacite", "europe_pmc", "pubmed"}:
+            return self._search_extended(source, query, count, requested_at)
+        if source not in SOURCE_URLS:
+            raise ValueError(f"Unknown research source: {source}")
         params: dict[str, Any] = {
             "openalex": {"search": query, "per-page": count},
             "crossref": {"query": query, "rows": count},
@@ -139,6 +141,41 @@ class LiveResearchSources:
             result.status = "request_failed"
             result.error = type(exc).__name__
         except (ValueError, KeyError, ET.ParseError) as exc:
+            result.status = "parse_failed"
+            result.error = type(exc).__name__
+        return result
+
+    def _search_extended(
+        self, source: str, query: str, count: int, requested_at: str
+    ) -> SourceResponse:
+        from archipelago.scholarly.discovery.biomed_sources import search_europe_pmc, search_pubmed
+        from archipelago.scholarly.discovery.extended_sources import (
+            search_datacite,
+            search_dblp,
+            search_openaire,
+        )
+
+        fn = {
+            "dblp": search_dblp,
+            "openaire": search_openaire,
+            "datacite": search_datacite,
+            "europe_pmc": search_europe_pmc,
+            "pubmed": search_pubmed,
+        }[source]
+        result = SourceResponse(source=source, requested_at=requested_at, status="unavailable")
+        try:
+            payload = fn(self.session, query, count)
+            result.status = str(payload.get("status") or "unavailable")
+            result.http_status = payload.get("http_status")
+            result.error = payload.get("error")
+            result.rate_limited = bool(payload.get("rate_limited"))
+            result.raw_sha256 = payload.get("raw_sha256")
+            result.raw_body = payload.get("raw_body")
+            result.records = list(payload.get("records") or [])
+        except requests.RequestException as exc:
+            result.status = "request_failed"
+            result.error = type(exc).__name__
+        except (ValueError, KeyError) as exc:
             result.status = "parse_failed"
             result.error = type(exc).__name__
         return result

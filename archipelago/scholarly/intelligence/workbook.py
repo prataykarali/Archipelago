@@ -341,6 +341,8 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         "ordering": run.get("ordering"),
         "ranking_policy": "No ranking or quality scores are computed; order is collection order only",
         "provider_status": json.dumps(run.get("sources", []), sort_keys=True),
+        "provider_selection": json.dumps(run.get("provider_selection", {}), sort_keys=True),
+        "google_scholar_link": run.get("google_scholar_url") or NA,
         "provider_versions": "unavailable from responses",
         "graph_nodes": json.dumps(kinds, sort_keys=True),
         "graph_edges": len(graph["edges"]),

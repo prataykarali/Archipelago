@@ -220,3 +220,15 @@ def register(app: Flask, _ctx: AppContext) -> None:
             return jsonify({"error": "not_found_or_disabled"}), 404
         result = run_monitor(str(monitor_id), store)
         return jsonify(result), 200 if result["status"] != "failed" else 503
+
+    @app.post("/api/research/intelligence/import")  # type: ignore[misc]
+    def intelligence_import() -> ResponseReturnValue:
+        from archipelago.scholarly.discovery.scholar_import import import_scholar_citations
+
+        payload = request.get_json(silent=True) or {}
+        if not isinstance(payload, dict) or not str(payload.get("content") or "").strip():
+            return jsonify({"error": "empty_import_payload"}), 400
+        fmt = str(payload.get("format") or "auto")
+        res = import_scholar_citations(str(payload["content"]), fmt=fmt)
+        status = 200 if res.get("records") else 400
+        return jsonify(res), status
