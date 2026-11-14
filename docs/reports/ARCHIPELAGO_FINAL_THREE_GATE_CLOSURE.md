@@ -73,5 +73,19 @@
 ## 6. Rollback References
 
 - **Main Vercel (`archipelago-6383`):** Current `GEefuqwzNGpgwNUMkXdTAdYKwRdY` (`c74946c`); previous `LN3pVCEr2Fc5Y6vxwrWY1dSNJHPn` (`85ff33f`).
-- **Git commits:** `40436bd`, `c74946c`, `85ff33f`.
+- **Git commits:** `16302d8`, `40436bd`, `c74946c`, `85ff33f`.
 - **Systemd unit backups:** `~/.config/systemd/user/ollama.service.bak`, `~/.config/systemd/user/archipealgo.service.bak`.
+
+---
+
+## 7. Final Two-Blocker Verification Pass
+
+| Field | Verified Evidence |
+| --- | --- |
+| **Librarian deployment** | **BLOCKED.** CLI logged in as `aura2026socials-8112` with only team `archipelago-6383` (`archipelago`, `prismlab-playground`); `--scope shinaura` returns `Error: The specified scope does not exist`. `https://archipelago-librarian.vercel.app/` still serves the outdated pre-S4 light build (`404` on `/api/academic-automation/review/bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe`). Operator action: invite `aura2026socials-8112` to `shinaura` (or authenticate as a `shinaura` team owner) and run `cd host_research && npx --yes vercel --prod --scope shinaura`. |
+| **GPU availability** | RTX 2050 online (`NVIDIA GeForce RTX 2050, 92 MiB / 4096 MiB` total; idle baseline `14 MiB` when no compute app runs). |
+| **Training process** | **Still active (preserved).** `PID 223205` (`PPID 42329`, `pts/3`, started `22:40`, `cwd=/home/pratay-karali/Desktop/flowstate/chap-6`) running `python ltc_train.py` with `70 MiB` VRAM. Not killed or suspended. |
+| **Academic ingestion** | **BLOCKED on GPU exclusivity.** Existing job `337d88fe-70df-49f2-af98-4f3413895951` (`pdfs/papers/Willard2023_Outlines.pdf`, `arxiv:2307.09702`, `mode='gpu'`, `rights='open_permitted'`) remains `queued` (`BLOCKED: GPU occupied by unrelated PID 223205 (python ltc_train.py, 70 MiB)`). Safe operator release: wait for `PID 223205` to finish (or stop it intentionally in `pts/3`), verify `nvidia-smi --query-compute-apps=pid --format=csv,noheader` is empty, then run `python3 scripts/ops/academic_automation.py worker-once`. |
+| **GPU cleanup** | Confirmed `ollama ps` empty and no Archipelago-owned GPU process active; post-ingestion/failure unload to `14 MiB` previously verified. |
+| **S4 review** | `bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe` has `human_reviews` row (`decision='approve'`, `reviewer_id='pratay-karali-operator'`, `reviewer_role='administrator'`, `at='2026-11-14T17:20:10.677852+00:00'`), `published_version=None`, and `okf_graph.db` unchanged. Because `pratay-karali-operator` is the same workstation/repo operator rather than an independent second reviewer, independent scientific review should still be confirmed by a separate institutional reviewer before any local publication. |
+| **Overall release** | **`RELEASE BLOCKED`** |
