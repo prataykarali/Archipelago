@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 import hashlib
+import html
+import re
 from typing import Any
 
 import requests
@@ -131,6 +133,31 @@ def search_dblp(session: requests.Session, query: str, limit: int) -> dict[str, 
     }
 
 
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+_NULL_PREFIX_RE = re.compile(r"^(?:null|none|undefined|n/a)\b[\s:,-]*", re.I)
+
+
+def clean_openaire_title(raw: str) -> str:
+    """Decode HTML entities, strip markup tags, and normalize whitespace."""
+    unescaped = html.unescape(raw or "")
+    stripped = _HTML_TAG_RE.sub(" ", unescaped)
+    return " ".join(stripped.split())
+
+
+def clean_openaire_author(raw: str) -> str | None:
+    """Remove placeholder tokens like 'null ' without altering real names."""
+    cleaned = html.unescape(raw or "").strip()
+    while True:
+        updated = _NULL_PREFIX_RE.sub("", cleaned).strip()
+        if updated == cleaned:
+            break
+        cleaned = updated
+    cleaned = " ".join(cleaned.split())
+    if not cleaned or cleaned.casefold() in {"null", "none", "undefined", "n/a", "unknown"}:
+        return None
+    return cleaned
+
+
 def search_openaire(session: requests.Session, query: str, limit: int) -> dict[str, Any]:
     """Query OpenAIRE Graph API v1 researchProducts."""
     resp = session.get(
@@ -146,15 +173,17 @@ def search_openaire(session: requests.Session, query: str, limit: int) -> dict[s
     items = resp.json().get("results") or []
     records: list[dict[str, Any]] = []
     for item in items:
-        title = str(item.get("mainTitle") or "").strip()
+        raw_title = str(item.get("mainTitle") or "").strip()
+        title = clean_openaire_title(raw_title)
         if not title:
             continue
         pids = item.get("pids") or []
         doi = next((str(p.get("value")).strip() for p in pids if (p.get("scheme") or "").lower() == "doi" and p.get("value")), None)
         oa_id = str(item.get("id") or "").strip() or None
-        authors = [PaperAuthor(name=str(a.get("fullName")).strip()) for a in (item.get("authors") or []) if isinstance(a, dict) and a.get("fullName")]
+        raw_authors = [str(a.get("fullName")).strip() for a in (item.get("authors") or []) if isinstance(a, dict) and a.get("fullName")]
+        authors = [PaperAuthor(name=cleaned) for raw_a in raw_authors if (cleaned := clean_openaire_author(raw_a))]
         desc = item.get("descriptions") or []
-        abstract = str(desc[0]).strip() if desc and isinstance(desc[0], str) else None
+        abstract = clean_openaire_title(str(desc[0])) if desc and isinstance(desc[0], str) else None
         projects = [
             {"funder": (p.get("funding") or [{}])[0].get("shortName") if isinstance(p.get("funding"), list) and p.get("funding") else None, "award_id": p.get("code"), "title": p.get("title")}
             for p in (item.get("projects") or [])
@@ -181,6 +210,7 @@ def search_openaire(session: requests.Session, query: str, limit: int) -> dict[s
                 "citation_count": None,
                 "source_metadata": {
                     "openaire_id": oa_id,
+                    "raw_title": raw_title if raw_title != title else None,
                     "grants": projects,
                     "oa_status": access or None,
                     "landing_page_url": url,

@@ -35,9 +35,10 @@ DATASET_RE = re.compile(
     re.I,
 )
 AICS_RE = re.compile(
-    r"\b(ai|artificial intelligence|machine learning|deep learning|neural|llm|rag|"
-    r"retrieval|continual learning|ocr|speech recognition|nlp|transformer|graph|vision|"
-    r"robot|agent|jarvis|algorithm|compiler|distributed)\b",
+    r"\b(ai|artificial intelligence|machine learning|deep learning|neural|llm|slms?|"
+    r"small language models?|language models?|transformers?|quantization|model compression|"
+    r"on[- ]device|edge inference|edge ai|rag|retrieval|continual learning|ocr|"
+    r"speech recognition|nlp|graph|vision|robot|agent|jarvis|algorithm|compiler|distributed)\b",
     re.I,
 )
 

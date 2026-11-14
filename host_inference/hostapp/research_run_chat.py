@@ -23,13 +23,14 @@ COLLECTION = re.compile(
     r"fourth|fifth|last) paper|that author|the author|authors?|h-index|i10|journals?|conferences?|"
     r"venues?|citation relationships?|cit(?:es|ations?)|methods?|datasets?|export|excel|workbook|"
     r"new papers|monitor|monitoring|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
-    r"duplicat(?:ed|es)|external)\b",
+    r"duplicat(?:ed|es)|external|discuss|mention|cover|quantiz\w*|low[- ]memory|inference)\b",
     re.I,
 )
 RESEARCH_WORDS = re.compile(
     r"\b(papers?|authors?|h-index|i10|journals?|conferences?|venues?|abstracts?|"
     r"collection|collected|monitoring|research methods?|citation relationships?|datasets?|"
-    r"arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|duplicat(?:ed|es)|citations?)\b",
+    r"arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|duplicat(?:ed|es)|citations?|"
+    r"discuss|mention|quantiz\w*|low[- ]memory|inference)\b",
     re.I,
 )
 EXPORT = re.compile(r"\b(export|excel|xlsx|workbook|spreadsheet|download)\b", re.I)
@@ -104,6 +105,63 @@ def _list(run: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+CONCEPT_SYNONYMS: dict[str, tuple[str, ...]] = {
+    "quantization": ("quantized", "quantize", "int4", "int8", "4-bit", "8-bit", "low-bit"),
+    "low-memory inference": ("low memory", "memory-efficient", "memory footprint", "memory constraint", "kv cache", "ram"),
+    "low memory inference": ("low-memory", "memory-efficient", "memory footprint", "memory constraint", "kv cache", "ram"),
+    "pruning": ("pruned", "sparsity", "sparse"),
+    "distillation": ("knowledge distillation", "distilled"),
+}
+DISCUSS_RE = re.compile(
+    r"\b(?:which|what)\s+(?:papers?\s+)?(?:discuss|mention|cover|use|evaluate|focus on)\s+(.+?)\??$",
+    re.I,
+)
+
+
+def _filter_by_concept(concept: str, papers: list[dict[str, Any]]) -> str:
+    clean = re.sub(r"[?.!]+$", "", concept.strip().lower())
+    syns = CONCEPT_SYNONYMS.get(clean, ())
+    matches: list[str] = []
+    for i, p in enumerate(papers, 1):
+        fields: list[tuple[str, str]] = [
+            ("title", str(p.get("title") or "")),
+            ("abstract", str(p.get("abstract") or "")),
+            ("topics", ", ".join(str(t) for t in (p.get("topics") or []))),
+            ("claims", " ".join(str(c.get("evidence_text") or "") for c in (p.get("claims") or []) if isinstance(c, dict))),
+        ]
+        hit_desc = None
+        for loc, text in fields:
+            if not text:
+                continue
+            m = re.search(rf"\b{re.escape(clean)}\b", text, re.I)
+            if m:
+                start, end = max(0, m.start() - 30), min(len(text), m.end() + 45)
+                snippet = " ".join(text[start:end].split())
+                hit_desc = f"exact match in {loc}: “{snippet}”"
+                break
+        if not hit_desc and syns:
+            for syn in syns:
+                for loc, text in fields:
+                    if not text:
+                        continue
+                    m = re.search(rf"\b{re.escape(syn)}\b", text, re.I)
+                    if m:
+                        start, end = max(0, m.start() - 30), min(len(text), m.end() + 45)
+                        snippet = " ".join(text[start:end].split())
+                        hit_desc = f"documented synonym ({syn}) in {loc}: “{snippet}”"
+                        break
+                if hit_desc:
+                    break
+        if hit_desc:
+            matches.append(f"[{i}] {p['title']} — {_link(p)} — {hit_desc}")
+    if not matches:
+        return (
+            f"No papers in this collection contain explicit evidence for “{clean}” "
+            "in their title, abstract, provider topics, or extracted claims."
+        )
+    return f"Papers in this collection with evidence for “{clean}” ({len(matches)}/{len(papers)}):\n" + "\n".join(matches)
+
+
 def _answer(
     query: str, run: dict[str, Any], history_text: str, run_id: str, new_papers: str
 ) -> str:
@@ -112,7 +170,7 @@ def _answer(
         return "The stored collection contains no papers that matched the topic, so there is nothing to report."
     if EXPORT.search(query):
         return (
-            f"Download the single nine-sheet workbook for this collection: "
+            f"Download the single 14-sheet workbook for this collection: "
             f"/api/research/intelligence/runs/{run_id}/xlsx ({len(papers)} papers)."
         )
     if NEW_PAPERS.search(query):
@@ -254,6 +312,8 @@ def _answer(
                 f"[{i}] {'; '.join(found) if found else 'none stated in the available abstract'}"
             )
         return "\n".join(lines)
+    if (dmatch := DISCUSS_RE.search(query)):
+        return _filter_by_concept(dmatch.group(1), papers)
     return _list(run)
 
 

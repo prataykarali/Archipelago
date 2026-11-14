@@ -274,3 +274,60 @@ def test_research_chat_handles_provider_filters_duplicates_and_external_citation
     assert "blocked_bot_challenge" in _answer("Which publications appear in DBLP?", run, "", "r1", "")
     assert "openalex, crossref" in _answer("Are any records duplicated between OpenAlex and Crossref?", run, "", "r1", "").lower() or "crossref, openalex" in _answer("Are any records duplicated between OpenAlex and Crossref?", run, "", "r1", "").lower()
     assert "opencitations: 9" in _answer("Which papers have external verified citations?", run, "", "r1", "")
+
+
+def test_p1_slm_eligibility_domain_openaire_cleanup_and_chat_filters() -> None:
+    from archipelago.scholarly.discovery.extended_sources import (
+        clean_openaire_author,
+        clean_openaire_title,
+    )
+    from archipelago.scholarly.intelligence.search import assess_topic_eligibility
+
+    assert classify_domain("Efficient Small Language Models for On-Device and Edge Inference") == "ai_cs"
+    ok_edge, _ = assess_topic_eligibility(
+        "Efficient Small Language Models for On-Device and Edge Inference",
+        "QMC: Efficient SLM Edge Inference via Outlier-Aware Quantization",
+        "We deploy small language models on mobile edge devices with INT4 quantization.",
+    )
+    assert ok_edge is True
+    ok_biomed, reason = assess_topic_eligibility(
+        "Efficient Small Language Models for On-Device and Edge Inference",
+        "Efficient Large Language Models in Biomedicine: A Scoping Review",
+        "We review large language models in clinical settings with small sample sizes at the edge of care.",
+    )
+    assert ok_biomed is False and "missing_central_concepts" in reason
+
+    assert clean_openaire_title("<b>Floe</b>   : Federated &amp; Edge SLM") == "Floe : Federated & Edge SLM"
+    assert clean_openaire_author("null Sherva Sheshi Rekha") == "Sherva Sheshi Rekha"
+    assert clean_openaire_author("null") is None
+
+    host_dir = str(Path(__file__).resolve().parents[2] / "host_inference")
+    if host_dir not in sys.path:
+        sys.path.insert(0, host_dir)
+    from hostapp.research_run_chat import _answer
+
+    run = {
+        "options": {"topic": "Efficient Small Language Models for On-Device and Edge Inference"},
+        "sources": [],
+        "papers": [
+            {
+                "paper_id": "p1",
+                "title": "QMC: Efficient SLM Edge Inference via Outlier-Aware Quantization",
+                "doi": "10.1145/3816440.3818524",
+                "abstract": "We achieve low-memory inference on mobile NPUs using INT4 quantization.",
+                "topics": ["Quantization"],
+                "claims": [],
+                "authors": [{"name": "Nilesh Prasad Pandey"}],
+                "references": [],
+            }
+        ],
+        "author_observations": [],
+    }
+    q_ans = _answer("Which papers discuss quantization?", run, "", "r1", "")
+    assert "[1] QMC:" in q_ans and "exact match" in q_ans
+    m_ans = _answer("Which discuss low-memory inference?", run, "", "r1", "")
+    assert "[1] QMC:" in m_ans
+    none_ans = _answer("Which papers discuss neuromorphic spiking?", run, "", "r1", "")
+    assert "No papers in this collection contain explicit evidence" in none_ans
+    exp_ans = _answer("Export this research collection to Excel.", run, "", "r1", "")
+    assert "14-sheet workbook" in exp_ans

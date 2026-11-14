@@ -31,21 +31,62 @@ TOPIC_ALIASES = {
 }
 
 
-def topic_matches(topic: str, title: str, abstract: str | None, fields: str = "") -> bool:
-    """Require the named research concepts in provider title, abstract or fields."""
+SLM_CONCEPT_RE = re.compile(
+    r"\b(small language models?|slms?|compact language models?|lightweight language models?|"
+    r"tiny language models?|mini language models?|sub[- ]?billion|lfm2|mobilellm|tinyllama|phi-[23])\b",
+    re.I,
+)
+EDGE_CONCEPT_RE = re.compile(
+    r"\b(on[- ]device|edge device|edge inference|edge ai|edge intelligence|edge deployment|"
+    r"mobile device|embedded device|microcontroller|mcu|npu|iot|smartphone|local inference)\b",
+    re.I,
+)
+EFF_CONCEPT_RE = re.compile(
+    r"\b(efficien(?:t|cy)|quantiz(?:ation|ed|e)|pruning|distillation|compression|"
+    r"low[- ]memory|dvfs|latency|energy[- ]efficient|lightweight|inference)\b",
+    re.I,
+)
+QUERY_SLM_RE = re.compile(r"\b(small language models?|slms?)\b", re.I)
+QUERY_EDGE_RE = re.compile(r"\b(on[- ]device|edge)\b", re.I)
+
+
+def assess_topic_eligibility(
+    topic: str, title: str, abstract: str | None, fields: str = ""
+) -> tuple[bool, str]:
+    """Evaluate central-concept eligibility without ranking scores."""
+    text_ta = " ".join((title or "", abstract or ""))
     evidence = re.sub(r"[^\w]+", " ", " ".join((title, abstract or "", fields)).casefold())
     query = re.sub(r"[^\w]+", " ", QUERY_MODIFIERS.sub(" ", topic).casefold()).strip()
     if not query:
-        return False
+        return False, "empty_query"
+    if QUERY_SLM_RE.search(query) and QUERY_EDGE_RE.search(query):
+        has_slm = bool(SLM_CONCEPT_RE.search(text_ta))
+        has_edge = bool(EDGE_CONCEPT_RE.search(text_ta))
+        has_eff = bool(EFF_CONCEPT_RE.search(text_ta))
+        if has_slm and has_edge and has_eff:
+            return True, "matched_slm_edge_efficiency_concepts"
+        missing = [
+            name
+            for name, ok in (("slm", has_slm), ("edge_on_device", has_edge), ("efficiency", has_eff))
+            if not ok
+        ]
+        return False, f"missing_central_concepts:{','.join(missing)}"
     alias_matched = False
     for phrase, alias in TOPIC_ALIASES.items():
         if phrase in query and re.search(rf"\b{re.escape(alias)}\b", evidence):
             query = query.replace(phrase, " ")
             alias_matched = True
     terms = [word for word in query.split() if word not in TOPIC_STOPWORDS]
-    return (bool(terms) or alias_matched) and all(
+    matched = (bool(terms) or alias_matched) and all(
         re.search(rf"\b{re.escape(word)}s?\b", evidence) for word in terms
     )
+    return matched, ("matched_query_terms" if matched else "missing_query_terms")
+
+
+def topic_matches(topic: str, title: str, abstract: str | None, fields: str = "") -> bool:
+    """Require the named research concepts in provider title, abstract or fields."""
+    ok, _reason = assess_topic_eligibility(topic, title, abstract, fields)
+    return ok
 
 
 def _version_key(row: dict[str, Any]) -> tuple[str, str, str, int | None] | None:
@@ -152,7 +193,10 @@ def discover(
         )
         if options["field"] and options["field"].casefold() not in fields.casefold():
             continue
-        if not topic_matches(options["topic"], paper.title, paper.abstract, fields):
+        eligible, eligibility_reason = assess_topic_eligibility(
+            options["topic"], paper.title, paper.abstract, fields
+        )
+        if not eligible:
             continue
         provenance = [candidate.get("provenance")]
         provenance.extend(entry.get("provenance") for entry in candidate.get("merge_history", []))
@@ -236,6 +280,7 @@ def discover(
                 else "ABSTRACT_AVAILABLE"
                 if paper.abstract
                 else "METADATA_ONLY",
+                "eligibility_reason": eligibility_reason,
                 "identity_review": review,
             }
         )
