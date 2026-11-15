@@ -165,3 +165,37 @@ def test_s2_contaminated_historical_metrics_blocked_from_export():
         assert_clean_benchmark_record({"train_test_leakage_detected": True})
     with pytest.raises(ValueError, match="token accuracy"):
         assert_clean_benchmark_record({"overall_token_accuracy_pct": 97.22})
+
+
+@pytest.mark.unit
+def test_s2_exhaustive_near_duplicate_audit_beyond_400_rows():
+    """Near-duplicate leakage beyond row 400 is caught in exhaustive mode and flagged if sampled."""
+    from archipelago.eval.dataset_integrity import detect_cross_split_contamination
+
+    train_rows = [
+        {
+            "doc_id": f"train_{i}",
+            "messages": [{"role": "user", "content": f"Unique scholarly passage number {i} covering topic alpha_{i}."}],
+        }
+        for i in range(420)
+    ]
+    # Place a near-duplicate of train row 415 in test
+    test_rows = [
+        {
+            "doc_id": "test_0",
+            "messages": [{"role": "user", "content": "Unique scholarly passage number 415 covering topic alpha_415."}],
+        }
+    ]
+
+    exhaustive = detect_cross_split_contamination({"train": train_rows, "test": test_rows})
+    assert exhaustive["near_duplicate_audit_mode"] == "exhaustive"
+    assert exhaustive["near_duplicate_rows_audited"]["train"] == 420
+    assert exhaustive["near_duplicate_counts"]["train__vs__test"] == 1
+
+    sampled = detect_cross_split_contamination(
+        {"train": train_rows, "test": test_rows},
+        max_near_dup_rows_per_split=400,
+    )
+    assert sampled["near_duplicate_audit_mode"] == "sampled"
+    assert sampled["near_duplicate_rows_audited"]["train"] == 400
+    assert sampled["sampled_splits"] == ["train"]

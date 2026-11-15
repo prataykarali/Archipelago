@@ -111,13 +111,21 @@ def detect_cross_split_contamination(
     splits: dict[str, list[dict[str, Any]]],
     *,
     near_dup_threshold: float = 0.85,
+    max_near_dup_rows_per_split: int | None = None,
 ) -> dict[str, Any]:
-    """Audit train/validation/test splits for doc-ID, exact, near, and template overlap."""
+    """Audit train/validation/test splits for doc-ID, exact, near, and template overlap.
+
+    By default (``max_near_dup_rows_per_split=None``), performs an exhaustive
+    near-duplicate audit across all rows in each split. If an integer limit is
+    supplied, sampling is explicitly recorded in the returned audit metadata.
+    """
     split_names = list(splits.keys())
     doc_sets: dict[str, set[str]] = {}
     exact_sets: dict[str, set[str]] = {}
     template_sets: dict[str, set[str]] = {}
     row_shingles: dict[str, list[set[str]]] = {}
+    rows_audited: dict[str, int] = {}
+    sampled_splits: list[str] = []
 
     for sname, rows in splits.items():
         docs: set[str] = set()
@@ -131,12 +139,15 @@ def detect_cross_split_contamination(
             txt = extract_row_text(r)
             exacts.add(content_hash(txt))
             tmpls.add(template_skeleton_hash(txt))
-            if len(shingles) < 400:
+            if max_near_dup_rows_per_split is None or len(shingles) < max_near_dup_rows_per_split:
                 shingles.append(_token_shingles(txt, k=4))
+        if max_near_dup_rows_per_split is not None and len(rows) > max_near_dup_rows_per_split:
+            sampled_splits.append(sname)
         doc_sets[sname] = docs
         exact_sets[sname] = exacts
         template_sets[sname] = tmpls
         row_shingles[sname] = shingles
+        rows_audited[sname] = len(shingles)
 
     doc_overlaps: dict[str, list[str]] = {}
     exact_overlaps: dict[str, int] = {}
@@ -170,6 +181,9 @@ def detect_cross_split_contamination(
         "exact_hash_overlaps": exact_overlaps,
         "template_skeleton_overlaps": template_overlaps,
         "near_duplicate_counts": near_dups,
+        "near_duplicate_audit_mode": "sampled" if sampled_splits else "exhaustive",
+        "near_duplicate_rows_audited": rows_audited,
+        "sampled_splits": sampled_splits,
         "is_document_disjoint": not has_doc_leak,
         "is_exact_deduped": not has_exact_leak,
     }

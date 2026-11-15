@@ -36,8 +36,7 @@ from archipelago.eval.retrieval_baselines import (
     DenseRetriever,
     Passage,
     build_fixed_corpus_from_kuzu,
-    evaluate_rankings,
-    rrf_fuse,
+    evaluate_retrieval_systems,
 )
 
 
@@ -78,10 +77,6 @@ def main() -> int:
     manifest_out.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     queries = _load_queries(queries_path)
-    verified_qrels: dict[str, set[str]] = {}
-    for q in queries:
-        if q.get("review_status") == "VERIFIED_GOLD" and q.get("gold_supporting_passages"):
-            verified_qrels[q["query_id"]] = set(q["gold_supporting_passages"])
 
     # Baseline A: BM25
     t0 = time.perf_counter()
@@ -98,9 +93,20 @@ def main() -> int:
     )
     dense_index_s = round(time.perf_counter() - t0, 4)
 
-    bm25_lat_ms: list[float] = []
-    dense_lat_ms: list[float] = []
-    rrf_lat_ms: list[float] = []
+    eval_run = evaluate_retrieval_systems(
+        passages,
+        queries,
+        bm25,
+        dense,
+        rrf_k=DEFAULT_RRF_K,
+        top_k=top_k,
+    )
+    qrels_bundle = eval_run["qrels_bundle"]
+    per_system_eval = eval_run["per_system_evaluation"]
+    scored_results = eval_run["scored_results"]
+    bm25_lat_ms = eval_run["latencies_ms"]["bm25"]
+    dense_lat_ms = eval_run["latencies_ms"]["dense"]
+    rrf_lat_ms = eval_run["latencies_ms"]["hybrid_rrf"]
 
     query_exports: list[dict[str, Any]] = []
     csv_rows: list[dict[str, Any]] = []
@@ -108,24 +114,7 @@ def main() -> int:
     for q in queries:
         qid = q["query_id"]
         question = q["question"]
-
-        t0 = time.perf_counter()
-        bm25_full = bm25.score_all(question)
-        bm25_lat_ms.append((time.perf_counter() - t0) * 1000.0)
-
-        t0 = time.perf_counter()
-        dense_full = dense.score_all(question)
-        dense_lat_ms.append((time.perf_counter() - t0) * 1000.0)
-
-        t0 = time.perf_counter()
-        rrf_top = rrf_fuse([bm25_full, dense_full], k=DEFAULT_RRF_K, top_k=top_k)
-        rrf_lat_ms.append((time.perf_counter() - t0) * 1000.0)
-
-        system_top = {
-            "bm25": bm25_full[:top_k],
-            "dense": dense_full[:top_k],
-            "hybrid_rrf": rrf_top,
-        }
+        system_top = scored_results[qid]
 
         per_system_formatted: dict[str, list[dict[str, Any]]] = {}
         for sys_name, ranked in system_top.items():
@@ -174,8 +163,7 @@ def main() -> int:
         )
 
     max_rss_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    human_gold_available = len(verified_qrels) > 0
-    eval_summary = evaluate_rankings({}, verified_qrels)
+    human_gold_available = qrels_bundle["evaluable_answerable_queries"] > 0
 
     export_payload: dict[str, Any] = {
         "benchmark_phase": "S3_RETRIEVAL_BASELINES",
@@ -184,9 +172,17 @@ def main() -> int:
         "scientific_evaluation_status": (
             "CIKM retrieval performance is NOT YET MEASURABLE."
             if not human_gold_available
-            else "EVALUATED_ON_VERIFIED_GOLD"
+            else "EVALUATED_ON_ADJUDICATED_GOLD"
         ),
-        "evaluation_summary": eval_summary,
+        "evaluation_summary": per_system_eval,
+        "qrels_summary": {
+            "status": qrels_bundle["status"],
+            "adjudicated_gold_queries": qrels_bundle["adjudicated_gold_queries"],
+            "evaluable_answerable_queries": qrels_bundle["evaluable_answerable_queries"],
+            "unanswerable_queries": qrels_bundle["unanswerable_queries"],
+            "unanswerable_query_ids": qrels_bundle["unanswerable_query_ids"],
+            "validation_errors": qrels_bundle["validation_errors"],
+        },
         "corpus": {
             "corpus_version": manifest["corpus_version"],
             "corpus_sha256": manifest["corpus_sha256"],
@@ -194,12 +190,15 @@ def main() -> int:
             "unique_documents": manifest["unique_documents"],
             "missing_provenance_chunks": manifest["missing_provenance_chunks"],
             "duplicate_passages_removed": manifest["duplicate_passages_removed"],
+            "corpus_quality_audit": manifest["corpus_quality_audit"],
         },
         "query_set": {
             "path": str(queries_path.relative_to(ROOT)),
             "total_queries": len(queries),
-            "verified_gold_queries": len(verified_qrels),
-            "unverified_candidate_queries": len(queries) - len(verified_qrels),
+            "adjudicated_gold_queries": qrels_bundle["adjudicated_gold_queries"],
+            "evaluable_answerable_queries": qrels_bundle["evaluable_answerable_queries"],
+            "unanswerable_queries": qrels_bundle["unanswerable_queries"],
+            "unverified_candidate_queries": len(queries) - qrels_bundle["adjudicated_gold_queries"],
         },
         "systems": {
             "bm25": {
