@@ -461,7 +461,8 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return _institutional_eresources_reply()
 
     _BOOK_ABOUT_RE = re.compile(
-        r"\b(?:show|suggest|recommend|list|find|which|what)\b.{0,30}\b(?:books?|textbooks?)\b.{0,25}\b(?:about|on|for|explain(?:ing)?)\b",
+        r"\b(?:show|suggest|recommend|list|find|which|what)\b.{0,30}\b(?:books?|textbooks?)\b.{0,25}\b(?:about|on|for|explain(?:ing)?)\b"
+        r"|\b(?:show|suggest|recommend|list|find)\b.{0,25}\b(?:available\s+)?[a-z0-9][a-z0-9\- ]{1,35}\s+(?:books?|textbooks?)\b",
         re.I,
     )
     if _BOOK_ABOUT_RE.search(clean_query):
@@ -1016,6 +1017,7 @@ def _indexed_papers_reply(
     shelf = list(manifest.get("ebook_shelf") or [])
     matched: list[tuple[int, str, str]] = []
     seen_ids: set[str] = set()
+    seen_names: set[str] = set()
 
     for item in shelf:
         item_id = str(item.get("id") or "")
@@ -1023,10 +1025,12 @@ def _indexed_papers_reply(
         if not is_paper:
             continue
         title = str(item.get("title") or item_id).strip()
+        basename = item_id.rsplit("/", 1)[-1].lower()
         blob = f"{title} {item_id} {item.get('author', '')} {item.get('desc', '')}"
         sc = sum(1 for t in terms if t in blob.lower())
-        if sc > 0 and item_id not in seen_ids:
+        if sc > 0 and item_id not in seen_ids and basename not in seen_names:
             seen_ids.add(item_id)
+            seen_names.add(basename)
             link = str(item.get("reader_url") or f"/open/{item_id}?page=1")
             matched.append((sc, title, link))
 
@@ -1040,8 +1044,10 @@ def _indexed_papers_reply(
                 continue
             for ev in node.get("evidence") or []:
                 doc_id = str(ev.get("doc_id") or "")
-                if doc_id.startswith("papers/") and doc_id not in seen_ids:
+                basename = doc_id.rsplit("/", 1)[-1].lower()
+                if doc_id.startswith("papers/") and doc_id not in seen_ids and basename not in seen_names:
                     seen_ids.add(doc_id)
+                    seen_names.add(basename)
                     label = str(node.get("label") or cid)
                     summary = str(node.get("summary") or "").strip()
                     title = f"{doc_id.rsplit('/', 1)[-1]} ({label}: {summary[:140]})"
