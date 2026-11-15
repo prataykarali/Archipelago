@@ -1,0 +1,147 @@
+{
+  "pilot_phase": "S4-A_HUMAN_GOLD_PILOT",
+  "selected_queries": 6,
+  "human_annotations_filled": 0,
+  "adjudicated_gold_count": 0,
+  "pool_summary": {
+    "CIKM-PILOT-001": 17,
+    "CIKM-PILOT-005": 14,
+    "CIKM-PILOT-013": 16,
+    "CIKM-PILOT-002": 17,
+    "CIKM-PILOT-004": 22,
+    "CIKM-PILOT-023": 27
+  },
+  "verification_reports": [
+    {
+      "query_id": "CIKM-PILOT-001",
+      "question_category": "multi_hop_prerequisite",
+      "review_status": "UNVERIFIED_CANDIDATE",
+      "answerability_status": "PENDING_ANNOTATION",
+      "sources": [
+        {
+          "raw_doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "canonical_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "local_pdf_exists": true,
+          "local_pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+          "kuzu_doc_hash_present": false,
+          "kuzu_pdf_url_present": false
+        }
+      ],
+      "quote_checks": [],
+      "discrepancies": [
+        "missing_kuzu_pdf_provenance:papers/vaswani2017_attention_is_all_you_need.pdf",
+        "no_gold_supporting_passages_yet_requires_human_annotation"
+      ],
+      "requires_manual_verification": true
+    },
+    {
+      "query_id": "CIKM-PILOT-005",
+      "question_category": "multi_hop_prerequisite",
+      "review_status": "UNVERIFIED_CANDIDATE",
+      "answerability_status": "PENDING_ANNOTATION",
+      "sources": [
+        {
+          "raw_doc_id": "papers/Hu2021_LoRA.pdf",
+          "canonical_doc_id": "papers/hu2021_lora.pdf",
+          "local_pdf_exists": true,
+          "local_pdf_sha256": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+          "kuzu_doc_hash_present": false,
+          "kuzu_pdf_url_present": false
+        }
+      ],
+      "quote_checks": [],
+      "discrepancies": [
+        "missing_kuzu_pdf_provenance:papers/hu2021_lora.pdf",
+        "no_gold_supporting_passages_yet_requires_human_annotation"
+      ],
+      "requires_manual_verification": true
+    },
+    {
+      "query_id": "CIKM-PILOT-013",
+      "question_category": "multi_hop_prerequisite",
+      "review_status": "UNVERIFIED_CANDIDATE",
+      "answerability_status": "PENDING_ANNOTATION",
+      "sources": [
+        {
+          "raw_doc_id": "papers/Kwon2023_vLLM.pdf",
+          "canonical_doc_id": "papers/kwon2023_vllm.pdf",
+          "local_pdf_exists": true,
+          "local_pdf_sha256": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+          "kuzu_doc_hash_present": false,
+          "kuzu_pdf_url_present": false
+        }
+      ],
+      "quote_checks": [],
+      "discrepancies": [
+        "missing_kuzu_pdf_provenance:papers/kwon2023_vllm.pdf",
+        "no_gold_supporting_passages_yet_requires_human_annotation"
+      ],
+      "requires_manual_verification": true
+    },
+    {
+      "query_id": "CIKM-PILOT-002",
+      "question_category": "single_hop_definition",
+      "review_status": "UNVERIFIED_CANDIDATE",
+      "answerability_status": "PENDING_ANNOTATION",
+      "sources": [
+        {
+          "raw_doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "canonical_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "local_pdf_exists": true,
+          "local_pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+          "kuzu_doc_hash_present": false,
+          "kuzu_pdf_url_present": false
+        }
+      ],
+      "quote_checks": [],
+      "discrepancies": [
+        "missing_kuzu_pdf_provenance:papers/vaswani2017_attention_is_all_you_need.pdf",
+        "no_gold_supporting_passages_yet_requires_human_annotation"
+      ],
+      "requires_manual_verification": true
+    },
+    {
+      "query_id": "CIKM-PILOT-004",
+      "question_category": "cross_paper_comparison",
+      "review_status": "UNVERIFIED_CANDIDATE",
+      "answerability_status": "PENDING_ANNOTATION",
+      "sources": [
+        {
+          "raw_doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "canonical_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "local_pdf_exists": true,
+          "local_pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+          "kuzu_doc_hash_present": false,
+          "kuzu_pdf_url_present": false
+        },
+        {
+          "raw_doc_id": "papers/Bahdanau2014_Attention.pdf",
+          "canonical_doc_id": "papers/bahdanau2014_attention.pdf",
+          "local_pdf_exists": true,
+          "local_pdf_sha256": "84801c8410da51b449d379d2fa4939a416123f2c93991077a680f863026022a7",
+          "kuzu_doc_hash_present": false,
+          "kuzu_pdf_url_present": false
+        }
+      ],
+      "quote_checks": [],
+      "discrepancies": [
+        "missing_kuzu_pdf_provenance:papers/vaswani2017_attention_is_all_you_need.pdf",
+        "missing_kuzu_pdf_provenance:papers/bahdanau2014_attention.pdf",
+        "no_gold_supporting_passages_yet_requires_human_annotation"
+      ],
+      "requires_manual_verification": true
+    },
+    {
+      "query_id": "CIKM-PILOT-023",
+      "question_category": "unanswerable_out_of_corpus",
+      "review_status": "UNVERIFIED_CANDIDATE",
+      "answerability_status": "PENDING_ANNOTATION",
+      "sources": [],
+      "quote_checks": [],
+      "discrepancies": [
+        "no_gold_supporting_passages_yet_requires_human_annotation"
+      ],
+      "requires_manual_verification": true
+    }
+  ]
+}

@@ -70,3 +70,18 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
 - **Dataset & Benchmark Status:** Runner is ready to evaluate genuine `ADJUDICATED_GOLD` qrels (`0/1/2` graded + separate `UNANSWERABLE_OUT_OF_CORPUS` tracking), while `cikm_qa_pilot_candidates.jsonl` still has `0` adjudicated queries (`CIKM retrieval performance is NOT YET MEASURABLE.`). Corpus audit flagged `50` index-only passages, `1` invalid page number (`page_number 612 > page_count 500`), `24` one-chunk documents, and `726` passages missing `doc_hash`/`pdf_url` without silent deletion.
 - **Known Limitations:** Human annotation and adjudication of the 24 pilot queries has not been performed yet; `726/764` passages lack `doc_hash`/`pdf_url` provenance on `Document` nodes.
 - **Branch / Remote:** `research/s3-1-evaluation-integrity` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s3-1-evaluation-integrity)
+
+### S4-A — Human-Gold Annotation Pilot & Source Verification
+- **Scientific Objective:** Prepare and validate the first 6 human-judged retrieval questions (3 multi-hop prerequisite, 1 single-hop factual, 1 cross-document comparison, 1 unanswerable) with blinded candidate pools, dual-reviewer templates, and source/quote verification.
+- **Implemented Changes:**
+  - `archipelago/eval/annotation_pilot.py`
+  - `scripts/prepare_s4a_annotation_pilot.py`
+  - `tests/unit/test_annotation_pilot_s4a.py`
+  - `artifacts/validation/s4a_source_verification_report.json`
+  - `artifacts/validation/s4a_reviewer_a_template.json`
+  - `artifacts/validation/s4a_reviewer_b_template.json`
+  - `.gitignore` (excludes `artifacts/validation/local_only/` and `s3_retrieval_candidates_export.*`)
+- **Test Results:** **`57/57` combined S1–S4-A regression and pilot quality tests passing** (`5` new S4-A tests + `10` S3/S3.1 + `11` S2 + `31` S1/graph tests).
+- **Dataset & Benchmark Status:** Source PDFs for all 5 answerable pilot questions are verified on local disk (`pdfs/papers/`), while `okf_graph.db` `Document` nodes lack `doc_hash`/`pdf_url` metadata. Dual-reviewer templates (`reviewer_a`, `reviewer_b`) and the local blinded worksheet (`artifacts/validation/local_only/s4a_human_annotation_worksheet.md`, gitignored) are ready for independent human annotation (`human_annotations_filled: 0`, `adjudicated_gold_count: 0`).
+- **Known Limitations:** No human annotations have been filled yet (`CIKM retrieval performance is NOT YET MEASURABLE.`). Copyrighted/extracted passage text is kept local-only and excluded from Git.
+- **Branch / Remote:** `research/s4-a-human-gold-pilot` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s4-a-human-gold-pilot)

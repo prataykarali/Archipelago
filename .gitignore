@@ -131,3 +131,6 @@ data/catalogs/pearson_session_cache.json
 /host_inference/cache/
 .vercel
 .env*
+artifacts/validation/local_only/
+artifacts/validation/s3_retrieval_candidates_export.json
+artifacts/validation/s3_retrieval_candidates_export.csv
