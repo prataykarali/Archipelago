@@ -141,7 +141,7 @@ def require_auth() -> tuple[object, int] | None:
     if not (
         request.path.startswith(("/api/research/", "/api/analytics/", "/api/academic-automation/"))
         or request.path
-        in {"/api/auth/me", "/api/graph/hubs", "/api/graph/subgraph", "/api/library/opac/live"}
+        in {"/api/auth/me", "/api/graph/hubs", "/api/graph/page", "/api/graph/subgraph", "/api/library/opac/live"}
         or request.path.startswith("/api/librarian/")
     ):
         return jsonify({"error": "not_found"}), 404
