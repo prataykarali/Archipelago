@@ -110,6 +110,15 @@ def browser_origin(response: Response) -> Response:
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+        "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+        "img-src 'self' data: blob: https:; "
+        "connect-src 'self' https://spllaastefjwclllfndp.supabase.co wss://spllaastefjwclllfndp.supabase.co https://archipelago-blond.vercel.app https://archipelago-librarian.vercel.app https://huggingface.co https://*.hf.space; "
+        "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
+    )
     response.headers["Cache-Control"] = "private, no-store"
     return response
 

@@ -1,6 +1,6 @@
 {
   "version": "1.1.0",
-  "last_updated": "2026-11-11T06:30:14Z",
+  "last_updated": "2026-11-14T18:30:22Z",
   "query": "deep learning architectures, computer networks, data structures and algorithms, distributed systems, natural language processing",
   "total_cataloged": 40,
   "source_status": {
@@ -53,7 +53,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2105.04026v2",
-      "fetched_at": "2026-11-11T06:30:03.686700Z",
+      "fetched_at": "2026-11-14T18:30:03.684003Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22The%20Modern%20Mathematics%20of%20Deep%20Learning%22%20Julius%20Berner"
     },
     {
@@ -70,7 +70,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2306.11113v2",
-      "fetched_at": "2026-11-11T06:30:03.687056Z",
+      "fetched_at": "2026-11-14T18:30:03.684394Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Learn%20to%20Accumulate%20Evidence%20from%20All%20Training%20Samples%3A%20Theory%20and%20Practice%22%20Deep%20Pandey"
     },
     {
@@ -88,7 +88,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2301.00942v1",
-      "fetched_at": "2026-11-11T06:30:03.687281Z",
+      "fetched_at": "2026-11-14T18:30:03.684714Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Deep%20Learning%20and%20Computational%20Physics%20%28Lecture%20Notes%29%22%20Deep%20Ray"
     },
     {
@@ -109,7 +109,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2603.29261v1",
-      "fetched_at": "2026-11-11T06:30:03.687521Z",
+      "fetched_at": "2026-11-14T18:30:03.685091Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Monodense%20Deep%20Neural%20Model%20for%20Determining%20Item%20Price%20Elasticity%22%20Lakshya%20Garg"
     },
     {
@@ -129,7 +129,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2982535365",
-      "fetched_at": "2026-11-11T06:30:05.208855Z",
+      "fetched_at": "2026-11-14T18:30:05.604039Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Deep%20Learning%20Architectures%22%20Mohammad-Parsa%20Hosseini"
     },
     {
@@ -146,24 +146,8 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2993843842",
-      "fetched_at": "2026-11-11T06:30:05.209022Z",
+      "fetched_at": "2026-11-14T18:30:05.604315Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Sentiment%20analysis%20using%20deep%20learning%20architectures%3A%20a%20review%22%20Ashima%20Yadav"
-    },
-    {
-      "id": "https://openalex.org/W3006335338",
-      "title": "Deep Learning Architectures",
-      "authors": [
-        "Ovidiu L. Calin"
-      ],
-      "venue": "Springer series in the data sciences",
-      "year": "2020",
-      "abstract": "",
-      "oa_url": null,
-      "source": "openalex",
-      "retrieval_mode": "live",
-      "source_url": "https://openalex.org/W3006335338",
-      "fetched_at": "2026-11-11T06:30:05.209125Z",
-      "scholar_link": "https://scholar.google.com/scholar?q=%22Deep%20Learning%20Architectures%22%20Ovidiu%20L.%20Calin"
     },
     {
       "id": "https://openalex.org/W2602034649",
@@ -180,8 +164,28 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2602034649",
-      "fetched_at": "2026-11-11T06:30:05.209237Z",
+      "fetched_at": "2026-11-14T18:30:05.604500Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Evaluating%20deep%20learning%20architectures%20for%20Speech%20Emotion%20Recognition%22%20Haytham%20M.%20Fayek"
+    },
+    {
+      "id": "https://openalex.org/W2778051509",
+      "title": "SchNet \u2013 A deep learning architecture for molecules and materials",
+      "authors": [
+        "Kristof T. Sch\u00fctt",
+        "Huziel E. Sauceda",
+        "Pieter-Jan Kindermans",
+        "Alexandre Tkatchenko",
+        "K. Robert M\u00fcller"
+      ],
+      "venue": "The Journal of Chemical Physics",
+      "year": "2018",
+      "abstract": "Deep learning has led to a paradigm shift in artificial intelligence, including web, text, and image search, speech recognition, as well as bioinformatics, with growing impact in chemical physics. Machine learning, in general, and deep learning, in particular, are ideally suitable for representing q",
+      "oa_url": "https://aip.scitation.org/doi/pdf/10.1063/1.5019779",
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W2778051509",
+      "fetched_at": "2026-11-14T18:30:05.604718Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22SchNet%20%E2%80%93%20A%20deep%20learning%20architecture%20for%20molecules%20and%20materials%22%20Kristof%20T.%20Sch%C3%BCtt"
     },
     {
       "id": "2411.18199v3",
@@ -199,7 +203,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2411.18199v3",
-      "fetched_at": "2026-11-11T06:30:07.169507Z",
+      "fetched_at": "2026-11-14T18:30:16.405384Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Semantic%20Edge%20Computing%20and%20Semantic%20Communications%20in%206G%20Networks%3A%20A%20Unifying%20Survey%20and%20Research%20Challenges%22%20Milin%20Zhang"
     },
     {
@@ -221,7 +225,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2001.03409v1",
-      "fetched_at": "2026-11-11T06:30:07.169719Z",
+      "fetched_at": "2026-11-14T18:30:16.405646Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Superbubbles%20as%20an%20Empirical%20Characteristic%20of%20Directed%20Networks%22%20Fabian%20G%C3%A4rtner"
     },
     {
@@ -238,7 +242,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/1910.05300v1",
-      "fetched_at": "2026-11-11T06:30:07.169840Z",
+      "fetched_at": "2026-11-14T18:30:16.405820Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Patterns%20of%20Multiplex%20Layer%20Entanglement%20across%20Real%20and%20Synthetic%20Networks%22%20Bla%C5%BE%20%C5%A0krlj"
     },
     {
@@ -256,7 +260,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2103.04668v2",
-      "fetched_at": "2026-11-11T06:30:07.169949Z",
+      "fetched_at": "2026-11-14T18:30:16.406011Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22The%20distance%20backbone%20of%20complex%20networks%22%20Tiago%20Simas"
     },
     {
@@ -272,7 +276,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2090530117",
-      "fetched_at": "2026-11-11T06:30:07.810383Z",
+      "fetched_at": "2026-11-14T18:30:12.005074Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Computer%20Networks%20As%20Social%20Networks%22%20Barry%20Wellman"
     },
     {
@@ -289,7 +293,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2078500988",
-      "fetched_at": "2026-11-11T06:30:07.810592Z",
+      "fetched_at": "2026-11-14T18:30:12.005329Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Computer%20Networks%3A%20A%20Systems%20Approach%22%20Larry%20Peterson"
     },
     {
@@ -303,7 +307,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W1521251986",
-      "fetched_at": "2026-11-11T06:30:07.810738Z",
+      "fetched_at": "2026-11-14T18:30:12.006198Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Computer%20networks%20and%20Internets%22"
     },
     {
@@ -320,7 +324,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W1987221997",
-      "fetched_at": "2026-11-11T06:30:07.810892Z",
+      "fetched_at": "2026-11-14T18:30:12.006396Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Notable%20computer%20networks%22%20John%20S.%20Quarterman"
     },
     {
@@ -338,7 +342,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/1907.02664v2",
-      "fetched_at": "2026-11-11T06:30:08.882331Z",
+      "fetched_at": "2026-11-14T18:30:17.608618Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Encoding%20for%20Byzantine-Resilient%20Distributed%20Optimization%22%20Deepesh%20Data"
     },
     {
@@ -355,7 +359,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2005.07866v1",
-      "fetched_at": "2026-11-11T06:30:08.882498Z",
+      "fetched_at": "2026-11-14T18:30:17.608991Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Byzantine-Resilient%20SGD%20in%20High%20Dimensions%20on%20Heterogeneous%20Data%22%20Deepesh%20Data"
     },
     {
@@ -372,7 +376,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/1110.5626v1",
-      "fetched_at": "2026-11-11T06:30:08.882590Z",
+      "fetched_at": "2026-11-14T18:30:17.609237Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Constraints%20on%20dark%20energy%20from%20H%20II%20starburst%20galaxy%20apparent%20magnitude%20versus%20redshift%20data%22%20Data%20Mania"
     },
     {
@@ -395,7 +399,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2510.21391v1",
-      "fetched_at": "2026-11-11T06:30:08.882736Z",
+      "fetched_at": "2026-11-14T18:30:17.609566Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22TerraGen%3A%20A%20Unified%20Multi-Task%20Layout%20Generation%20Framework%20for%20Remote%20Sensing%20Data%20Augmentation%22%20Datao%20Tang"
     },
     {
@@ -409,7 +413,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2753176400",
-      "fetched_at": "2026-11-11T06:30:10.518288Z",
+      "fetched_at": "2026-11-14T18:30:18.996034Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Structures%20and%20Algorithms%22"
     },
     {
@@ -425,7 +429,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W4249958171",
-      "fetched_at": "2026-11-11T06:30:10.518443Z",
+      "fetched_at": "2026-11-14T18:30:18.996280Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Structures%20and%20Algorithms%22%20Niklaus%20Wirth"
     },
     {
@@ -442,7 +446,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W1997841190",
-      "fetched_at": "2026-11-11T06:30:10.518530Z",
+      "fetched_at": "2026-11-14T18:30:18.996442Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Information%20Retrieval%3A%20Data%20Structures%20and%20Algorithms%22%20William%20B.%20Frakes"
     },
     {
@@ -458,7 +462,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2475478067",
-      "fetched_at": "2026-11-11T06:30:10.518639Z",
+      "fetched_at": "2026-11-14T18:30:18.996626Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Data%20Structures%20and%20Algorithms%201%22%20Kurt%20Mehlhorn"
     },
     {
@@ -474,7 +478,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/1012.1288v5",
-      "fetched_at": "2026-11-11T06:30:11.627963Z",
+      "fetched_at": "2026-11-14T18:30:19.771691Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Representations%20of%20task%20assignments%20in%20distributed%20systems%20using%20Young%20tableaux%20and%20symmetric%20groups%22%20Dohan%20Kim"
     },
     {
@@ -491,7 +495,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/1006.3394v1",
-      "fetched_at": "2026-11-11T06:30:11.628151Z",
+      "fetched_at": "2026-11-14T18:30:19.771995Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Modular%20RADAR%3A%20An%20Immune%20System%20Inspired%20Search%20and%20Response%20Strategy%20for%20Distributed%20Systems%22%20Soumya%20Banerjee"
     },
     {
@@ -508,7 +512,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2603.28622v1",
-      "fetched_at": "2026-11-11T06:30:11.628268Z",
+      "fetched_at": "2026-11-14T18:30:19.772179Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Trust-Aware%20Routing%20for%20Distributed%20Generative%20AI%20Inference%20at%20the%20Edge%22%20Chanh%20Nguyen"
     },
     {
@@ -524,7 +528,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/1001.0196v1",
-      "fetched_at": "2026-11-11T06:30:11.628364Z",
+      "fetched_at": "2026-11-14T18:30:19.772319Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22A%20distributed%20file%20system%20for%20a%20wide-area%20high%20performance%20computing%20infrastructure%22%20Edward%20Walker"
     },
     {
@@ -541,7 +545,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W1518754760",
-      "fetched_at": "2026-11-11T06:30:12.449866Z",
+      "fetched_at": "2026-11-14T18:30:21.250623Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Distributed%20Systems%3A%20Concepts%20and%20Design%22%20George%20Coulouris"
     },
     {
@@ -557,7 +561,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2912536603",
-      "fetched_at": "2026-11-11T06:30:12.450030Z",
+      "fetched_at": "2026-11-14T18:30:21.250982Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Distributed%20Systems%22%20Sape%20J.%20Mullender"
     },
     {
@@ -574,7 +578,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W1508143344",
-      "fetched_at": "2026-11-11T06:30:12.450082Z",
+      "fetched_at": "2026-11-14T18:30:21.251133Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Distributed%20Systems%3A%20Principles%20and%20Paradigms%22%20Andrew%20S.%20Tanenbaum"
     },
     {
@@ -591,7 +595,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2052915895",
-      "fetched_at": "2026-11-11T06:30:12.450211Z",
+      "fetched_at": "2026-11-14T18:30:21.251425Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Optimistic%20recovery%20in%20distributed%20systems%22%20Rob%20Strom"
     },
     {
@@ -638,7 +642,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2110.10780v3",
-      "fetched_at": "2026-11-11T06:30:13.689912Z",
+      "fetched_at": "2026-11-14T18:30:21.920067Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22An%20Open%20Natural%20Language%20Processing%20Development%20Framework%20for%20EHR-based%20Clinical%20Research%3A%20A%20case%20demonstration%20using%20the%20National%20COVID%20Cohort%20Collaborative%20%28N3C%29%22%20Sijia%20Liu"
     },
     {
@@ -658,7 +662,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2306.06371v1",
-      "fetched_at": "2026-11-11T06:30:13.690192Z",
+      "fetched_at": "2026-11-14T18:30:21.920512Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22A%20Comprehensive%20Review%20of%20State-of-The-Art%20Methods%20for%20Java%20Code%20Generation%20from%20Natural%20Language%20Text%22%20Jessica%20L%C3%B3pez%20Espejel"
     },
     {
@@ -676,7 +680,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2006.16212v1",
-      "fetched_at": "2026-11-11T06:30:13.690299Z",
+      "fetched_at": "2026-11-14T18:30:21.920770Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Towards%20the%20Study%20of%20Morphological%20Processing%20of%20the%20Tangkhul%20Language%22%20Mirinso%20Shadang"
     },
     {
@@ -693,7 +697,7 @@
       "source": "arxiv",
       "retrieval_mode": "live",
       "source_url": "http://arxiv.org/abs/2103.14757v1",
-      "fetched_at": "2026-11-11T06:30:13.690394Z",
+      "fetched_at": "2026-11-14T18:30:21.921038Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22An%20Automated%20Multiple-Choice%20Question%20Generation%20Using%20Natural%20Language%20Processing%20Techniques%22%20Chidinma%20A.%20Nwafor"
     },
     {
@@ -711,7 +715,7 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W1521626219",
-      "fetched_at": "2026-11-11T06:30:14.706877Z",
+      "fetched_at": "2026-11-14T18:30:22.761087Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Natural%20language%20processing%20with%20Python%22%20Steven%20Bird"
     },
     {
@@ -728,25 +732,8 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W1410460",
-      "fetched_at": "2026-11-11T06:30:14.707167Z",
+      "fetched_at": "2026-11-14T18:30:22.761511Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Handbook%20of%20Natural%20Language%20Processing%22%20Nitin%20Indurkhya"
-    },
-    {
-      "id": "https://openalex.org/W1663984431",
-      "title": "Advances in natural language processing",
-      "authors": [
-        "Julia Hirschberg",
-        "Christopher D. Manning"
-      ],
-      "venue": "Science",
-      "year": "2015",
-      "abstract": "Natural language processing employs computational techniques for the purpose of learning, understanding, and producing human language content. Early computational approaches to language research focused on automating the analysis of the linguistic structure of language and developing basic technolog",
-      "oa_url": null,
-      "source": "openalex",
-      "retrieval_mode": "live",
-      "source_url": "https://openalex.org/W1663984431",
-      "fetched_at": "2026-11-11T06:30:14.707276Z",
-      "scholar_link": "https://scholar.google.com/scholar?q=%22Advances%20in%20natural%20language%20processing%22%20Julia%20Hirschberg"
     },
     {
       "id": "https://openalex.org/W2169818249",
@@ -763,8 +750,25 @@
       "source": "openalex",
       "retrieval_mode": "live",
       "source_url": "https://openalex.org/W2169818249",
-      "fetched_at": "2026-11-11T06:30:14.707408Z",
+      "fetched_at": "2026-11-14T18:30:22.761726Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22Natural%20language%20processing%3A%20an%20introduction%22%20Prakash%20M.%20Nadkarni"
+    },
+    {
+      "id": "https://openalex.org/W1663984431",
+      "title": "Advances in natural language processing",
+      "authors": [
+        "Julia Hirschberg",
+        "Christopher D. Manning"
+      ],
+      "venue": "Science",
+      "year": "2015",
+      "abstract": "Natural language processing employs computational techniques for the purpose of learning, understanding, and producing human language content. Early computational approaches to language research focused on automating the analysis of the linguistic structure of language and developing basic technolog",
+      "oa_url": null,
+      "source": "openalex",
+      "retrieval_mode": "live",
+      "source_url": "https://openalex.org/W1663984431",
+      "fetched_at": "2026-11-14T18:30:22.762006Z",
+      "scholar_link": "https://scholar.google.com/scholar?q=%22Advances%20in%20natural%20language%20processing%22%20Julia%20Hirschberg"
     }
   ],
   "resources": [
@@ -781,7 +785,7 @@
       "source": "iemcrp_manifest",
       "retrieval_mode": "link_manifest",
       "source_url": "http://uemk-opac.l2c2.co.in",
-      "fetched_at": "2026-11-11T06:30:12.572511Z",
+      "fetched_at": "2026-11-14T18:30:21.393275Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22UEM%20Kolkata%20-%20Library%20OPAC%20Portal%22%20UEM%20Kolkata%20Central%20Library"
     },
     {
@@ -797,7 +801,7 @@
       "source": "iemcrp_manifest",
       "retrieval_mode": "link_manifest",
       "source_url": "https://www.iemcrp.com/iemEn/login.jsp",
-      "fetched_at": "2026-11-11T06:30:12.572595Z",
+      "fetched_at": "2026-11-14T18:30:21.393379Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22IEM%20Saltlake%20-%20Library%20Catalogue%22%20IEM%20Saltlake%20Library"
     },
     {
@@ -813,7 +817,7 @@
       "source": "iemcrp_manifest",
       "retrieval_mode": "link_manifest",
       "source_url": "https://www.iemcrp.com/iemEn/login.jsp",
-      "fetched_at": "2026-11-11T06:30:12.572631Z",
+      "fetched_at": "2026-11-14T18:30:21.393421Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22IEM%20Gurukul%20Campus%20-%20Library%20OPAC%22%20IEM%20Gurukul%20Campus%20Library"
     },
     {
@@ -829,7 +833,7 @@
       "source": "iemcrp_manifest",
       "retrieval_mode": "link_manifest",
       "source_url": "https://www.iemcrp.com/iemEn/login.jsp",
-      "fetched_at": "2026-11-11T06:30:12.572661Z",
+      "fetched_at": "2026-11-14T18:30:21.393454Z",
       "scholar_link": "https://scholar.google.com/scholar?q=%22IEM-UEM%20Digital%20Library%20Database%20Access%22%20IEM-UEM%20Digital%20Resource%20Center"
     }
   ],

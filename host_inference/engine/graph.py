@@ -255,14 +255,21 @@ class LibraryGraph:
             _formula, filename, _formula_page = FORMULAS[cid]
             doc_id = f"papers/{filename}"
         name = (source or {}).get("title") or (doc_id.split("/")[-1] if doc_id else "")
-        hf_url = f"/read?doc={quote(doc_id, safe='')}" if source and doc_id else ""
+        is_broken_textbook = doc_id.startswith("textbooks/")
+        hf_url = f"/read?doc={quote(doc_id, safe='')}" if source and doc_id and not is_broken_textbook else ""
         if hf_url and page:
             hf_url += f"&page={page}"
-        label = f"[S{index}: {name}{f', #page={page}' if page else ''}]" if name and hf_url else ""
+        if is_broken_textbook:
+            page = None
+        label = (
+            f"[S{index}: {name}{f', #page={page}' if page else ''}]"
+            if name and hf_url
+            else (f"[S{index}: {name} (reference metadata only)]" if name and is_broken_textbook else "")
+        )
         return {
             "label": label,
             "evidence_id": f"S{index}",
-            "source_type": "ingested_pdf" if source and page else "metadata_only",
+            "source_type": "ingested_pdf" if source and page and hf_url else "metadata_only",
             "concept_id": cid,
             "doc_id": doc_id,
             "doc_title": (source or {}).get("title") or "",
@@ -282,7 +289,7 @@ class LibraryGraph:
             "retrieved_at": (source or {}).get("retrieved_at"),
             "verification_status": "Verified"
             if source and page and hf_url
-            else "Requires verification",
+            else ("Reference metadata only (PDF not in reader)" if is_broken_textbook else "Requires verification"),
             "access_status": "Available" if hf_url and not all_withdrawn else "Unavailable",
         }
 

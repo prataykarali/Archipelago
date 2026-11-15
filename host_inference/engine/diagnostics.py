@@ -100,8 +100,26 @@ def diagnostic_payload(engine, concept_id: str) -> dict:
     """Full diagnostic checkpoint payload for the personalized-QnA flow."""
     graph = engine.graph
     if concept_id not in graph.nodes:
+        if f"{concept_id}s" in graph.nodes:
+            concept_id = f"{concept_id}s"
+        elif concept_id.endswith("s") and concept_id[:-1] in graph.nodes:
+            concept_id = concept_id[:-1]
+    if concept_id not in graph.nodes:
         hits = graph.phrase_hits(concept_id.replace("_", " "))
-        concept_id = hits[0] if hits else next(iter(graph.nodes))
+        if not hits:
+            return {
+                "success": False,
+                "available": False,
+                "target_concept": concept_id,
+                "target_label": concept_id.replace("_", " ").title(),
+                "chain": [],
+                "prereq_chain": [],
+                "immediate_prerequisite": None,
+                "initial_question": None,
+                "mcqs": [],
+                "detail": "No indexed graph node or diagnostic quiz exists for this topic.",
+            }
+        concept_id = hits[0]
     first = mcq_for(engine, concept_id, 0)
     chain = first["chain"]
     return {

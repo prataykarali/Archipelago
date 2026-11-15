@@ -64,7 +64,8 @@ ACADEMIC_DOMAIN_RE = re.compile(
     r"neural|backpropagation|tr[a]?nsformer|tr[a]?nsformers|att[e]?ntion|embedding|embeddings|tokenization|"
     r"computer vision|convolution|pooling|dense|layer|layers|parameter|parameters|weight|weights|bias|biases|"
     r"activation|loss|regularization|dropout|kernel|krnel|perceptron|epoch|epochs|batch|"
-    r"bm25|tf-idf|quantization|lora|qlora|fine-tuning|software engineering|testing|design pattern|solid"
+    r"bm25|tf-idf|quantization|lora|qlora|fine-tuning|software engineering|testing|design pattern|solid|"
+    r"agi|artificial general intelligence|superintelligence|e-?resources?|e-?books?|opac|subscriptions?|journals?|pearson|books?|textbooks?|roadmap|curriculum|pagerank|page\s*rank"
     r")\b)",
     re.I,
 )
@@ -450,6 +451,31 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             },
         )
 
+    _INSTITUTIONAL_ERESOURCE_RE = re.compile(
+        r"\b(?:e-?resources?|electronic\s+(?:resources?|journals?)|institutional\s+subscriptions?|"
+        r"available\s+databases?|library\s+access|remote\s+access|opac\s+link|give\s+me\s+(?:the\s+)?opac|"
+        r"where\s+can\s+i\s+access\s+(?:the\s+)?e-?books?|pearson\s+(?:digital|e-?books?|elibrary))\b",
+        re.I,
+    )
+    if _INSTITUTIONAL_ERESOURCE_RE.search(clean_query):
+        return _institutional_eresources_reply()
+
+    _BOOK_ABOUT_RE = re.compile(
+        r"\b(?:show|suggest|recommend|list|find|which|what)\b.{0,30}\b(?:books?|textbooks?)\b.{0,25}\b(?:about|on|for|explain(?:ing)?)\b",
+        re.I,
+    )
+    if _BOOK_ABOUT_RE.search(clean_query):
+        return _catalog_books_reply(self, clean_query, anchors, best_score)
+
+    _PAPER_ABOUT_RE = re.compile(
+        r"\b(?:show|suggest|recommend|list|find|which|what)\b.{0,30}\b(?:papers?|preprints?|articles?)\b.{0,25}\b(?:about|on|for|explain(?:ing)?)\b",
+        re.I,
+    )
+    if _PAPER_ABOUT_RE.search(clean_query):
+        papers_hit = _indexed_papers_reply(self, clean_query, best_score)
+        if papers_hit is not None:
+            return papers_hit
+
     _CATALOG_AVAILABILITY_RE = re.compile(
         r"\b(?:is|are)\s+.+?\s+available\s+in\s+(?:the\s+)?(?:uem|uemk|campus|university)?\s*library\b"
         r"|\bdo\s+you\s+have\s+(?:any\s+)?books?\s+(?:about|on|for)\b",
@@ -691,6 +717,9 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                 {"hide_graph": True, "score": best_score, "reason": "curriculum_not_indexed"},
             )
         if RESEARCH_INTENT_RE.search(query) and ACADEMIC_DOMAIN_RE.search(query):
+            papers_hit = _indexed_papers_reply(self, clean_query, best_score)
+            if papers_hit is not None:
+                return papers_hit
             return (
                 "RESEARCH_UNVERIFIED",
                 "I cannot verify findings or research gaps for this topic from the currently "
@@ -788,4 +817,253 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         compose.synthesis(self, target),
         target,
         {"score": max(best_score, 0.93 if hits else best_score), "reason": "graph_synthesis"},
+    )
+
+
+_QUERY_STOPWORDS = frozenset({
+    "show", "me", "suggest", "recommend", "list", "find", "which", "what", "are", "is",
+    "the", "a", "an", "any", "some", "books", "book", "textbooks", "textbook", "papers",
+    "paper", "preprints", "preprint", "articles", "article", "about", "on", "for",
+    "explain", "explaining", "in", "of", "and", "or", "to", "library", "catalog",
+})
+
+
+def _load_library_manifest() -> dict:
+    """Load the hosted library manifest safely without failing on missing cache."""
+    try:
+        import remote_cache  # type: ignore[import-not-found]
+    except ImportError:
+        try:
+            from .. import remote_cache  # type: ignore[import-not-found]
+        except ImportError:
+            return {}
+    try:
+        manifest = remote_cache.load_library_manifest()
+        return manifest if isinstance(manifest, dict) else {}
+    except Exception:
+        return {}
+
+
+def _extract_topic_terms(query: str) -> list[str]:
+    tokens = re.findall(r"[a-z0-9]+", query.lower())
+    terms = [t for t in tokens if len(t) >= 2 and t not in _QUERY_STOPWORDS]
+    # Expand common academic abbreviations so catalog matching stays reliable.
+    expanded: list[str] = []
+    aliases = {
+        "os": ["operating", "system"],
+        "dbms": ["database"],
+        "ml": ["machine", "learning"],
+        "dl": ["deep", "learning"],
+        "ai": ["artificial", "intelligence"],
+        "kv": ["kv", "vllm", "pagedattention", "cache"],
+        "caching": ["cache", "caching", "pagedattention", "vllm"],
+        "cache": ["cache", "caching", "pagedattention", "vllm"],
+    }
+    for term in terms:
+        if term not in expanded:
+            expanded.append(term)
+        for alias in aliases.get(term, ()):
+            if alias not in expanded:
+                expanded.append(alias)
+    return expanded
+
+
+def _institutional_eresources_reply() -> tuple[str, str, None, dict]:
+    """Return verified institutional e-resources, Pearson digital library, and OPAC links."""
+    manifest = _load_library_manifest()
+    shelf = list(manifest.get("ebook_shelf") or [])
+    pearson_books = [b for b in shelf if b.get("isPearson")]
+    if not pearson_books:
+        pearson_books = catalogue.load_catalogue()
+    hf_paths = list(manifest.get("hf_paths") or [])
+    holdings = list(manifest.get("holdings") or [])
+    journals = list(manifest.get("journal_issues") or [])
+
+    lines = [
+        "**Institutional Library & E-Resource Access**",
+        "",
+        f"- **Pearson Digital eLibrary:** {len(pearson_books)} institutional eBooks indexed — "
+        "[https://ebooks.elibrary.in.pearson.com/](https://ebooks.elibrary.in.pearson.com/) (open individual titles via `/library`).",
+        f"- **Archipelago Cloud Reader:** {len(hf_paths)} open-access textbooks & preprints hosted on Hugging Face — browse in `/library`.",
+        f"- **UEM Kolkata Koha OPAC:** {len(holdings)} catalog holdings and {len(journals)} journal issues — "
+        "[https://uemk-opac.l2c2.co.in/](https://uemk-opac.l2c2.co.in/).",
+        "",
+        "*Note: External publisher subscriptions (such as IEEE Xplore, ACM Digital Library, SpringerLink, or Scopus) "
+        "are not verified in the hosted index; check the UEM Kolkata library portal for campus subscription access.*",
+    ]
+    return (
+        "LIBRARY_LOOKUP",
+        "\n".join(lines),
+        None,
+        {
+            "hide_graph": True,
+            "reason": "institutional_eresources",
+            "score": 1.0,
+            "intent_category": IntentCategory.LIBRARY_LOOKUP.value,
+        },
+    )
+
+
+def _catalog_books_reply(
+    engine: Any, clean_query: str, anchors: list[str], best_score: float
+) -> tuple[str, str, str | None, dict]:
+    """Match books/textbooks from the Pearson catalog, HF shelf, and Koha holdings."""
+    terms = _extract_topic_terms(clean_query)
+    for anchor in anchors:
+        for part in str(anchor).lower().split("_"):
+            if len(part) >= 2 and part not in terms:
+                terms.append(part)
+
+    manifest = _load_library_manifest()
+    shelf = list(manifest.get("ebook_shelf") or [])
+    pearson_fallback = catalogue.load_catalogue()
+    holdings = list(manifest.get("holdings") or [])
+
+    def _score_item(text_blob: str) -> int:
+        low = text_blob.lower()
+        return sum(1 for t in terms if t in low)
+
+    matched: list[tuple[int, str, str, str, str]] = []
+    seen_titles: set[str] = set()
+
+    for item in shelf:
+        if item.get("isPaper"):
+            continue
+        title = str(item.get("title") or "").strip()
+        if not title:
+            continue
+        blob = f"{title} {item.get('author', '')} {item.get('domain', '')} {item.get('desc', '')}"
+        sc = _score_item(blob)
+        if sc > 0:
+            key = title.lower()
+            if key in seen_titles:
+                continue
+            seen_titles.add(key)
+            item_id = str(item.get("id") or "")
+            source = "Pearson eBook" if item.get("isPearson") else "Cloud Reader PDF"
+            link = str(item.get("reader_url") or (f"/open/{item_id}?page=1" if item_id else "/library"))
+            matched.append((sc, title, str(item.get("author") or "—"), source, link))
+
+    for item in pearson_fallback:
+        title = str(item.get("title") or "").strip()
+        if not title or title.lower() in seen_titles:
+            continue
+        blob = f"{title} {item.get('author', '')} {item.get('domain', '')}"
+        sc = _score_item(blob)
+        if sc > 0:
+            seen_titles.add(title.lower())
+            link = str(item.get("reader_base_url") or "https://ebooks.elibrary.in.pearson.com/")
+            matched.append((sc, title, str(item.get("author") or "—"), "Pearson eBook", link))
+
+    for h in holdings:
+        title = str(h.get("title") or "").strip()
+        if not title or title.lower() in seen_titles:
+            continue
+        blob = f"{title} {h.get('author', '')} {h.get('subject', '')}"
+        sc = _score_item(blob)
+        if sc > 0:
+            seen_titles.add(title.lower())
+            biblio = h.get("biblionumber") or ""
+            link = (
+                f"https://uemk-opac.l2c2.co.in/cgi-bin/koha/opac-detail.pl?biblionumber={biblio}"
+                if biblio
+                else "https://uemk-opac.l2c2.co.in/"
+            )
+            matched.append((sc, title, str(h.get("author") or "—"), "UEMK Koha OPAC", link))
+
+    matched.sort(key=lambda row: (-row[0], row[1]))
+    anchor = anchors[0] if anchors else None
+
+    if not matched:
+        return (
+            "LIBRARY_LOOKUP",
+            "No matching textbooks were found in the currently indexed Pearson/Hugging Face/Koha catalog "
+            "for that topic. Search the [UEM Kolkata OPAC](https://uemk-opac.l2c2.co.in/) or browse `/library`.",
+            anchor,
+            {
+                "hide_graph": not bool(anchor),
+                "reason": "catalog_books_no_match",
+                "score": best_score,
+                "intent_category": IntentCategory.LIBRARY_LOOKUP.value,
+            },
+        )
+
+    lines = ["**Verified books in the Archipelago & UEMK catalog:**", ""]
+    for _, title, author, source, link in matched[:6]:
+        lines.append(f"- **{title}** ({author}) — {source}: [{link}]({link})")
+    return (
+        "LIBRARY_LOOKUP",
+        "\n".join(lines),
+        anchor,
+        {
+            "hide_graph": not bool(anchor),
+            "reason": "catalog_books_match",
+            "score": max(best_score, 0.9),
+            "intent_category": IntentCategory.LIBRARY_LOOKUP.value,
+        },
+    )
+
+
+def _indexed_papers_reply(
+    engine: Any, clean_query: str, best_score: float
+) -> tuple[str, str, None, dict] | None:
+    """Return matching indexed papers/preprints with verified reader or DOI links."""
+    terms = _extract_topic_terms(clean_query)
+    if not terms:
+        return None
+
+    manifest = _load_library_manifest()
+    shelf = list(manifest.get("ebook_shelf") or [])
+    matched: list[tuple[int, str, str]] = []
+    seen_ids: set[str] = set()
+
+    for item in shelf:
+        item_id = str(item.get("id") or "")
+        is_paper = bool(item.get("isPaper")) or item_id.startswith("papers/")
+        if not is_paper:
+            continue
+        title = str(item.get("title") or item_id).strip()
+        blob = f"{title} {item_id} {item.get('author', '')} {item.get('desc', '')}"
+        sc = sum(1 for t in terms if t in blob.lower())
+        if sc > 0 and item_id not in seen_ids:
+            seen_ids.add(item_id)
+            link = str(item.get("reader_url") or f"/open/{item_id}?page=1")
+            matched.append((sc, title, link))
+
+    # Also check graph nodes whose evidence references indexed papers (e.g. vllm -> Kwon2023_vLLM.pdf).
+    graph = getattr(engine, "graph", None)
+    if graph is not None:
+        for cid, node in getattr(graph, "nodes", {}).items():
+            blob = f"{cid} {node.get('label', '')} {node.get('summary', '')}"
+            sc = sum(1 for t in terms if t in blob.lower())
+            if sc <= 0:
+                continue
+            for ev in node.get("evidence") or []:
+                doc_id = str(ev.get("doc_id") or "")
+                if doc_id.startswith("papers/") and doc_id not in seen_ids:
+                    seen_ids.add(doc_id)
+                    label = str(node.get("label") or cid)
+                    summary = str(node.get("summary") or "").strip()
+                    title = f"{doc_id.rsplit('/', 1)[-1]} ({label}: {summary[:140]})"
+                    matched.append((sc + 1, title, f"/open/{doc_id}?page=1"))
+
+    if not matched:
+        return None
+
+    matched.sort(key=lambda row: (-row[0], row[1]))
+    lines = ["**Indexed research papers & preprints matching your query:**", ""]
+    for _, title, link in matched[:6]:
+        lines.append(f"- **{title}** — [Open in Reader]({link})")
+    lines.append("")
+    lines.append("*Source: Indexed Archipelago paper repository (Hugging Face / Graph evidence). Live external literature search is available on `/research`.*")
+    return (
+        "RESEARCH_TOPIC",
+        "\n".join(lines),
+        None,
+        {
+            "hide_graph": True,
+            "reason": "indexed_papers_match",
+            "score": max(best_score, 0.9),
+            "intent_category": IntentCategory.RESEARCH_TOPIC.value,
+        },
     )

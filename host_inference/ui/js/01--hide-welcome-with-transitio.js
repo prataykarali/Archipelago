@@ -349,6 +349,17 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 // Multiline via the m flag (Python-style inline flags crash JS parse).
                 .replace(/^\s*to\s+(?=\(p\.)/gim, '');
 
+            // Protect LaTeX math spans before Markdown parsing so underscores/brackets aren't mangled
+            const mathSpans = [];
+            const protectedText = processedText.replace(
+                /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$(?:\\.|[^$\n])+?\$)/g,
+                (m) => {
+                    const idx = mathSpans.length;
+                    mathSpans.push(m);
+                    return `@@ARCHIPELAGO_MATH_${idx}@@`;
+                }
+            );
+
             // Prefer GFM with soft line breaks for chat answers
             let html = '';
             try {
@@ -356,19 +367,39 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                     if (typeof marked.setOptions === 'function') {
                         marked.setOptions({ gfm: true, breaks: true });
                     }
-                    html = marked.parse(processedText);
+                    html = marked.parse(protectedText);
                 } else {
-                    html = processedText
+                    html = protectedText
                         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                         .replace(/\n/g, '<br>');
                 }
             } catch (err) {
                 console.warn('Markdown parse failed:', err);
-                html = processedText
+                html = protectedText
                     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                     .replace(/\n/g, '<br>');
             }
-            target.innerHTML = sanitizeMarkdown(html);
+            let safeHtml = sanitizeMarkdown(html);
+            safeHtml = safeHtml.replace(/@@ARCHIPELAGO_MATH_(\d+)@@/g, (_m, i) => {
+                const raw = mathSpans[Number(i)] || '';
+                return raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            });
+            target.innerHTML = safeHtml;
+            if (typeof window.renderMathInElement === 'function') {
+                try {
+                    window.renderMathInElement(target, {
+                        delimiters: [
+                            { left: '$$', right: '$$', display: true },
+                            { left: '\\[', right: '\\]', display: true },
+                            { left: '$', right: '$', display: false },
+                            { left: '\\(', right: '\\)', display: false },
+                        ],
+                        throwOnError: false,
+                    });
+                } catch (err) {
+                    console.warn('KaTeX render failed:', err);
+                }
+            }
         }
 
 export { _glowWrap, _hideWelcomeWithTransition, _isGenDesc, _updateGlowState, escapeHTML, renderMarkdownSafely, sanitizeMarkdown };

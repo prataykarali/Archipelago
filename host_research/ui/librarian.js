@@ -159,23 +159,37 @@ function renderTrafficChart(series) {
 
 async function loadPeopleTraffic() {
   const tStatus = document.getElementById('traffic-status');
+  const tBody = document.getElementById('traffic-body');
   try {
     const resp = await fetch('/api/analytics/summary', { cache: 'no-store' });
     if (!resp.ok) throw new Error(`Analytics summary unavailable (${resp.status}).`);
     const data = await resp.json();
+    const cat = data.catalog || data.inventory || {};
+    const rev = data.review || {};
+    const setMetric = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (val === null || val === undefined || val === '') ? '—' : String(val);
+    };
+    setMetric('metric-pearson', cat.pearson_ebooks ?? cat.pearson_count);
+    setMetric('metric-hf', cat.hf_pdfs ?? cat.hf_count);
+    setMetric('metric-koha', cat.koha_holdings ?? data.koha_holdings_count);
+    setMetric('metric-reviews', rev.pending_candidates ?? data.pending_reviews);
+
     const foot = data.physical_footfall || {};
     const occ = data.occupancy || {};
+    const connected = foot.status === 'connected';
+    if (tBody) tBody.hidden = !connected;
     document.getElementById('kpi-entries').textContent = foot.total_entries ?? '—';
     document.getElementById('kpi-exits').textContent = foot.total_exits ?? '—';
     document.getElementById('kpi-checkins').textContent = foot.total_qr_checkins ?? '—';
     document.getElementById('kpi-occupancy').textContent = occ.current_occupancy ?? '—';
     const series = (foot.hourly_activity && foot.hourly_activity.length) ? foot.hourly_activity : (foot.daily_entries || []);
-    renderTrafficChart(series);
-    tStatus.textContent = foot.status === 'connected'
-      ? `Peak: ${foot.peak_period || 'recorded'} · Updated ${new Date().toLocaleTimeString()}`
+    if (connected) renderTrafficChart(series);
+    tStatus.textContent = connected
+      ? `Connected · Peak: ${foot.peak_period || 'recorded'} · Updated ${new Date().toLocaleTimeString()}`
       : 'Not connected — no live gate or QR check-in events recorded yet.';
   } catch (err) {
-    renderTrafficChart([]);
+    if (tBody) tBody.hidden = true;
     if (tStatus) tStatus.textContent = err.message;
   }
 }
