@@ -116,7 +116,7 @@ def browser_origin(response: Response) -> Response:
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
         "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
         "img-src 'self' data: blob: https:; "
-        "connect-src 'self' https://spllaastefjwclllfndp.supabase.co wss://spllaastefjwclllfndp.supabase.co https://archipelago-blond.vercel.app https://archipelago-librarian.vercel.app https://huggingface.co https://*.hf.space; "
+        "connect-src 'self' https://spllaastejfwclllfndp.supabase.co wss://spllaastejfwclllfndp.supabase.co https://archipelago-blond.vercel.app https://archipelago-librarian.vercel.app https://huggingface.co https://*.hf.space; "
         "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
     )
     response.headers["Cache-Control"] = "private, no-store"
