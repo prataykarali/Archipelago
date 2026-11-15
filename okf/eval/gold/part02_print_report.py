@@ -11,6 +11,9 @@ def print_report(report: dict[str, Any]) -> None:
     """Print a formatted report of the pipeline evaluation metrics."""
     print("\n" + "=" * 70)
     print("OKF PIPELINE EVALUATION REPORT")
+    scope = report.get("scope")
+    if isinstance(scope, dict):
+        print(f"Scope: {scope.get('mode', 'whole_graph')} (doc_id={scope.get('doc_id')})")
     print("=" * 70)
 
     cc = report.get("concept_comparison", {})
@@ -21,6 +24,8 @@ def print_report(report: dict[str, Any]) -> None:
     print(f"  True Positives:  {cc.get('true_positives', 0)}")
     print(f"  False Positives: {cc.get('false_positives', 0)}")
     print(f"  False Negatives: {cc.get('false_negatives', 0)}")
+    if cc.get("unscopable_concepts"):
+        print(f"  Unscopable Concepts (missing provenance): {cc.get('unscopable_concepts')}")
 
     em = report.get("edge_comparison", {})
     dir_e = em.get("directed", {})
@@ -29,6 +34,8 @@ def print_report(report: dict[str, Any]) -> None:
     print(f"  Precision: {dir_e.get('precision', 0.0):.2%}")
     print(f"  Recall:    {dir_e.get('recall', 0.0):.2%}")
     print(f"  F1 Score:  {dir_e.get('f1', 0.0):.2%}")
+    if em.get("unscopable_edges"):
+        print(f"  Unscopable Edges (missing provenance):    {em.get('unscopable_edges')}")
 
     print("\nEdge Comparison Metrics (Undirected):")
     print(f"  Precision: {undir_e.get('precision', 0.0):.2%}")

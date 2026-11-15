@@ -11,6 +11,7 @@ self-loops are the hard structural gates used by pilot_readiness.sh).
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -21,6 +22,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from okf.evaluate import evaluate_pipeline, print_report, structural_audit  # noqa: E402
+
+# Known single-document gold fixtures -> canonical DB doc_id
+GOLD_DOC_IDS: dict[str, str | None] = {
+    "gold_lora.json": "papers/Hu2021_LoRA.pdf",
+    "gold_attention.json": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "gold_curriculum.json": None,  # Cross-document curriculum
+}
 
 
 def _concept_count(conn) -> int:
@@ -36,7 +44,33 @@ def _load_targets() -> dict:
     return data.get("targets") or {}
 
 
-def main() -> int:
+def _format_eval_block(report: dict) -> dict:
+    return {
+        "scope": report.get("scope"),
+        "concept_comparison": report.get("concept_comparison"),
+        "edge_comparison": {
+            "directed": (report.get("edge_comparison") or {}).get("directed"),
+            "undirected": (report.get("edge_comparison") or {}).get("undirected"),
+            "direction_accuracy": (report.get("edge_comparison") or {}).get("direction_accuracy"),
+            "predicted_edge_count": (report.get("edge_comparison") or {}).get("predicted_edge_count"),
+            "gold_edge_count": (report.get("edge_comparison") or {}).get("gold_edge_count"),
+            "unscopable_edges": (report.get("edge_comparison") or {}).get("unscopable_edges"),
+            "skipped_related_edges": (report.get("edge_comparison") or {}).get("skipped_related_edges"),
+            "matched_directed_edges": (report.get("edge_comparison") or {}).get("matched_directed_edges"),
+        },
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run structural audit + gold curriculum evaluation.")
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=ROOT / "pilot_corpus" / "gold_eval_results.json",
+        help="Output JSON report path.",
+    )
+    args = parser.parse_args(argv)
+
     db_path = ROOT / "okf_graph.db"
     if not db_path.exists():
         print(
@@ -71,7 +105,7 @@ def main() -> int:
         ROOT / "pilot_corpus" / "gold" / "gold_curriculum.json",
     ]
 
-    out = {
+    out: dict = {
         "structural_audit_summary": {
             "self_edges": self_loops,
             "cycles": len(audit.get("cycles") or []),
@@ -83,6 +117,7 @@ def main() -> int:
             "min_concepts_target": min_concepts,
         },
         "gold": {},
+        "gold_document_scoped": {},
         "gate_failures": [],
     }
 
@@ -92,19 +127,17 @@ def main() -> int:
             out["gold"][g.name] = {"error": "missing"}
             print(f"WARNING: gold file missing: {g}", file=sys.stderr)
             continue
-        report = evaluate_pipeline(conn, str(g))
-        print(f"\n### {g.name}")
+        report = evaluate_pipeline(conn, str(g), doc_id=None)
+        print(f"\n### {g.name} (whole_graph)")
         print_report(report)
-        out["gold"][g.name] = {
-            "concept_comparison": report.get("concept_comparison"),
-            "edge_comparison": {
-                "directed": (report.get("edge_comparison") or {}).get("directed"),
-                "undirected": (report.get("edge_comparison") or {}).get("undirected"),
-                "direction_accuracy": (report.get("edge_comparison") or {}).get(
-                    "direction_accuracy"
-                ),
-            },
-        }
+        out["gold"][g.name] = _format_eval_block(report)
+
+        doc_id = GOLD_DOC_IDS.get(g.name)
+        if doc_id:
+            scoped_report = evaluate_pipeline(conn, str(g), doc_id=doc_id)
+            print(f"\n### {g.name} (document_scoped: {doc_id})")
+            print_report(scoped_report)
+            out["gold_document_scoped"][g.name] = _format_eval_block(scoped_report)
 
     failures: list[str] = []
     if self_loops > max_self_loops:
@@ -124,7 +157,8 @@ def main() -> int:
         print(f"ERROR: {msg}", file=sys.stderr)
 
     out["gate_failures"] = failures
-    out_path = ROOT / "pilot_corpus" / "gold_eval_results.json"
+    out_path = args.out
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(out, indent=2), encoding="utf-8")
     print(f"\nWrote {out_path}")
 

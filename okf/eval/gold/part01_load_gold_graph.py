@@ -131,16 +131,27 @@ def compare_concepts(extracted: Any, gold: Any, doc_id: str | None = None) -> di
     "Low-Rank Adaptation" count as matches. Names still unmatched after key
     normalization fall back to rapidfuzz token_set_ratio >= FUZZY_MATCH_THRESHOLD.
 
-    If doc_id is given (gold sets are document-scoped), extracted concepts
-    whose provenance names other documents only are excluded before
-    precision/FP; concepts without provenance data are kept.
+    If doc_id is given (gold sets are document-scoped), only extracted concepts
+    whose provenance explicitly includes doc_id are evaluated; concepts lacking
+    provenance are excluded and counted in ``unscopable_concepts`` rather than
+    silently attributed to any document.
     """
     ext_set = _extract_names(extracted)
     gold_set = _extract_names(gold)
 
+    unscopable_concepts: set[str] = set()
     if doc_id:
         name_docs = _extract_name_docs(extracted)
-        ext_set = {n for n in ext_set if n not in name_docs or doc_id in name_docs[n]}
+        unscopable_concepts = {n for n in ext_set if n not in name_docs}
+        ext_set = {n for n in ext_set if n in name_docs and doc_id in name_docs[n]}
+
+    base_meta = {
+        "doc_id": doc_id,
+        "predicted_count": len(ext_set),
+        "gold_count": len(gold_set),
+        "unscopable_concepts": len(unscopable_concepts),
+        "normalization": "canonical_v2",
+    }
 
     if not ext_set and not gold_set:
         return {
@@ -151,7 +162,7 @@ def compare_concepts(extracted: Any, gold: Any, doc_id: str | None = None) -> di
             "false_positives": 0,
             "false_negatives": 0,
             "matched_pairs": [],
-            "normalization": "canonical_v2",
+            **base_meta,
         }
     if not ext_set:
         return {
@@ -162,7 +173,7 @@ def compare_concepts(extracted: Any, gold: Any, doc_id: str | None = None) -> di
             "false_positives": 0,
             "false_negatives": len(gold_set),
             "matched_pairs": [],
-            "normalization": "canonical_v2",
+            **base_meta,
         }
     if not gold_set:
         return {
@@ -173,7 +184,7 @@ def compare_concepts(extracted: Any, gold: Any, doc_id: str | None = None) -> di
             "false_positives": len(ext_set),
             "false_negatives": 0,
             "matched_pairs": [],
-            "normalization": "canonical_v2",
+            **base_meta,
         }
 
     # Group raw names by canonical key (near-duplicate raw names collapse).
@@ -227,21 +238,53 @@ def compare_concepts(extracted: Any, gold: Any, doc_id: str | None = None) -> di
         "false_positives": fp,
         "false_negatives": fn,
         "matched_pairs": matched_pairs,
-        "normalization": "canonical_v2",
+        **base_meta,
     }
 
 
-def compare_edges(extracted: Any, gold: Any) -> dict[str, Any]:
-    """Calculate precision, recall, and F1 of edges, and direction accuracy."""
-    ext_edges = _extract_edges(extracted)
-    gold_edges = _extract_edges(gold)
+def _canonicalize_edge_set(raw_edges: set[tuple[str, str]]) -> set[tuple[str, str]]:
+    """Canonicalize both endpoints deterministically via _canonical_key (no fuzzy matching)."""
+    out: set[tuple[str, str]] = set()
+    for u, v in raw_edges:
+        cu = _canonical_key(u)
+        cv = _canonical_key(v)
+        if cu and cv:
+            out.add((cu, cv))
+    return out
 
-    # Convert edges to directed sets and undirected maps
-    ext_undir = {}
+
+def compare_edges(
+    extracted: Any,
+    gold: Any,
+    doc_id: str | None = None,
+    include_related: bool = False,
+) -> dict[str, Any]:
+    """Calculate precision, recall, and F1 of directed prerequisite edges, and direction accuracy.
+
+    By default ``include_related=False`` so undirected ``RELATED`` edges do not
+    pollute directed prerequisite precision/recall. Both endpoints are normalized
+    deterministically with ``_canonical_key``. Empty gold & empty predictions
+    yield precision=1.0, recall=1.0, f1=1.0; one empty yields 0.0.
+    """
+    ext_stats: dict[str, int] = {}
+    ext_edges = _canonicalize_edge_set(
+        _extract_edges(
+            extracted,
+            include_related=include_related,
+            doc_id=doc_id,
+            stats=ext_stats,
+        )
+    )
+    gold_edges = _canonicalize_edge_set(
+        _extract_edges(gold, include_related=include_related)
+    )
+
+    # Convert edges to undirected maps
+    ext_undir: dict[frozenset[str], tuple[str, str]] = {}
     for u, v in ext_edges:
         ext_undir[frozenset([u, v])] = (u, v)
 
-    gold_undir = {}
+    gold_undir: dict[frozenset[str], tuple[str, str]] = {}
     for u, v in gold_edges:
         gold_undir[frozenset([u, v])] = (u, v)
 
@@ -310,10 +353,20 @@ def compare_edges(extracted: Any, gold: Any) -> dict[str, Any]:
         "directed": dir_metrics,
         "undirected": undir_metrics,
         "direction_accuracy": dir_accuracy,
+        "doc_id": doc_id,
+        "predicted_edge_count": len(ext_edges),
+        "gold_edge_count": len(gold_edges),
+        "unscopable_edges": ext_stats.get("unscopable_edges", 0),
+        "skipped_related_edges": ext_stats.get("skipped_related", 0),
+        "matched_directed_edges": sorted([list(e) for e in (ext_edges & gold_edges)]),
     }
 
 
-def evaluate_pipeline(db: kuzu.Database | kuzu.Connection, gold_path: str) -> dict[str, Any]:
+def evaluate_pipeline(
+    db: kuzu.Database | kuzu.Connection,
+    gold_path: str,
+    doc_id: str | None = None,
+) -> dict[str, Any]:
     """Run the complete evaluation pipeline comparing the DB graph against gold data."""
     gold_data = load_gold_graph(gold_path)
 
@@ -325,17 +378,25 @@ def evaluate_pipeline(db: kuzu.Database | kuzu.Connection, gold_path: str) -> di
 
     db_export = export_graph(conn)
 
+    effective_doc_id = doc_id
+    if effective_doc_id is None and isinstance(gold_data, dict):
+        effective_doc_id = gold_data.get("doc_id")
+
     # Gold files use {"concepts": [...], "edges": [...]}; pass concepts list for name match.
     if isinstance(gold_data, dict) and "concepts" in gold_data:
         gold_concepts = gold_data["concepts"]
     else:
         gold_concepts = gold_data
 
-    concept_metrics = compare_concepts(db_export["concepts"], gold_concepts)
-    edge_metrics = compare_edges(db_export, gold_data)
+    concept_metrics = compare_concepts(db_export["concepts"], gold_concepts, doc_id=effective_doc_id)
+    edge_metrics = compare_edges(db_export, gold_data, doc_id=effective_doc_id)
     audit_metrics = structural_audit(db)
 
     return {
+        "scope": {
+            "mode": "document" if effective_doc_id else "whole_graph",
+            "doc_id": effective_doc_id,
+        },
         "concept_comparison": concept_metrics,
         "edge_comparison": edge_metrics,
         "structural_audit": audit_metrics,

@@ -129,3 +129,5 @@ data/catalogs/pearson_session_cache.json
 /data/datasets/
 /host_inference/.env
 /host_inference/cache/
+.vercel
+.env*
