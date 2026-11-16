@@ -411,3 +411,15 @@ def test_rankable_preview_contains_requested_columns_without_fabricating_metrics
     assert paper[paper_headers.index("Benchmark performance")] is None
     venue = preview["sheets"]["Publications"]["rows"][0]["values"]
     assert venue[venue_headers.index("JIF (Clarivate)")] is None
+
+
+def test_evidence_objects_export_as_readable_names() -> None:
+    run = _sample_run()
+    run["papers"][0]["methods"] = [
+        {"name": "state space model", "evidence": "untrusted abstract snippet"},
+        {"name": "transformer", "evidence": "more text"},
+    ]
+    preview = preview_run(run)
+    headers = preview["sheets"]["Papers"]["headers"]
+    row = preview["sheets"]["Papers"]["rows"][0]["values"]
+    assert row[headers.index("Research method")] == "state space model, transformer"

@@ -2,9 +2,9 @@
 
 const RANKING_NAMES = ["Papers", "Authors", "Publications"];
 
-function rankingText(value) {
+function rankingText(value, header = "") {
   if (value === null || value === undefined || value === "") return "";
-  if (typeof value === "number") return Number.isInteger(value) ? value.toLocaleString() : value.toLocaleString(undefined, { maximumFractionDigits: 3 });
+  if (typeof value === "number") return header === "Year" ? String(value) : Number.isInteger(value) ? value.toLocaleString() : value.toLocaleString(undefined, { maximumFractionDigits: 3 });
   return String(value);
 }
 
@@ -93,7 +93,7 @@ function renderRankingPreview(root, preview) {
       const tr = document.createElement("tr");
       sheet.headers.forEach((_, index) => {
         const td = document.createElement("td");
-        const value = rankingText(row.values[index]);
+        const value = rankingText(row.values[index], sheet.headers[index]);
         const link = row.links?.[String(index)];
         if (link && link.startsWith("https://")) {
           const anchor = document.createElement("a");

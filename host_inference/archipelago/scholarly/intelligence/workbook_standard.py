@@ -121,9 +121,11 @@ def _safe_cell(value: Any) -> Any:
 def _clean_list_field(items: Any) -> str | None:
     if not isinstance(items, (list, tuple)):
         return None
-    cleaned = [
-        str(x).strip() for x in items if x and str(x).strip().casefold() not in _PLACEHOLDER_TOKENS
-    ]
+    cleaned = []
+    for item in items:
+        value = item.get("name") if isinstance(item, dict) else item
+        if value and str(value).strip().casefold() not in _PLACEHOLDER_TOKENS:
+            cleaned.append(str(value).strip())
     return ", ".join(dict.fromkeys(cleaned)) or None
 
 
