@@ -189,15 +189,15 @@ import { resetChatUi } from './08-stream-cleanup.js';
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
-                    if (firstFinalize && window._lastChatMetadata) {
-                        if (typeof renderOkfNodesCard === 'function') {
+                    if (window._lastChatMetadata) {
+                        if (typeof renderOkfNodesCard === 'function' && !document.getElementById(`okf-nodes-zone-${assistantMsgId}`)) {
                             renderOkfNodesCard(assistantMsgId, window._lastChatMetadata);
                         }
-                        if (typeof updateBookStackForQuery === 'function') {
+                        if (firstFinalize && typeof updateBookStackForQuery === 'function') {
                             updateBookStackForQuery(window._lastChatMetadata);
                         }
-                        if (typeof renderGraphExperiencePrompt === 'function') {
-                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                        if (typeof renderGraphExperiencePrompt === 'function' && !document.getElementById(`interactive-zone-${assistantMsgId}`)) {
+                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: firstFinalize });
                         }
                     }
                 };
@@ -320,7 +320,9 @@ import { resetChatUi } from './08-stream-cleanup.js';
                     armStreamIdleWatchdog();
                     if (done) {
                         if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
-                        typewriter.flush();
+                        if (!bubbleFinalized) {
+                            typewriter.flush();
+                        }
                         if (!cleanedIndicator && msgEl) {
                             msgEl.innerHTML = '';
                             cleanedIndicator = true;
@@ -331,9 +333,10 @@ import { resetChatUi } from './08-stream-cleanup.js';
                             consumeTextChunk(buffer);
                             buffer = '';
                         }
-                        // Always re-finalize after the terminal flush so paper
-                        // cards survive the innerHTML wipe from flush/render.
-                        finalizeStreamedBubble();
+                        // Always re-finalize only if not already finalized (or if buffer above flushed)
+                        if (!bubbleFinalized || !document.getElementById(`interactive-zone-${assistantMsgId}`)) {
+                            finalizeStreamedBubble();
+                        }
                         if (msgEl && window._lastChatMetadata) {
                             appendEvidenceRail(msgEl, window._lastChatMetadata);
                             wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
