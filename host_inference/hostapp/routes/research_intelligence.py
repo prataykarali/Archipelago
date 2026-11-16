@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from http import HTTPStatus
 import importlib.util
 import logging
 import os
@@ -17,6 +18,21 @@ from ..user_traffic import record_user_action
 
 LOGGER = logging.getLogger(__name__)
 MONITOR_ROLES = frozenset({"faculty", "librarian", "administrator"})
+CURRENT_EXPORT_FORMAT = "rich30.v1"
+
+
+def _retired_run(run: dict[str, Any] | None) -> bool:
+    """Keep saved runs from older export formats out of current research views."""
+    return bool(run) and run.get("export_format_version") != CURRENT_EXPORT_FORMAT
+
+
+def _retired_response() -> tuple[Any, int]:
+    return jsonify(
+        {
+            "error": "legacy_run_retired",
+            "message": "Run a fresh topic search to use the current Excel format.",
+        }
+    ), HTTPStatus.GONE
 
 
 def _principal() -> dict[str, str]:
@@ -124,6 +140,8 @@ def register(app: Flask, _ctx: AppContext) -> None:
     @app.get("/api/research/intelligence/runs/<uuid:run_id>")  # type: ignore[misc]
     def intelligence_run(run_id: uuid.UUID) -> ResponseReturnValue:
         run = _run(run_id)
+        if _retired_run(run):
+            return _retired_response()
         return jsonify(run) if run else (jsonify({"error": "not_found"}), 404)
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>/graph")  # type: ignore[misc]
@@ -131,6 +149,8 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.intelligence.graph import build_graph
 
         run = _run(run_id)
+        if _retired_run(run):
+            return _retired_response()
         return jsonify(build_graph(run)) if run else (jsonify({"error": "not_found"}), 404)
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>/xlsx")  # type: ignore[misc]
@@ -141,6 +161,8 @@ def register(app: Flask, _ctx: AppContext) -> None:
         if mode not in {"standard", "advanced"}:
             return jsonify({"error": "invalid_export_mode"}), 400
         run = _run(run_id)
+        if _retired_run(run):
+            return _retired_response()
         if not run:
             return jsonify({"error": "not_found"}), 404
         topic = str((run.get("options") or {}).get("topic") or "research")
@@ -159,6 +181,8 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.intelligence.ranking_preview import preview_run
 
         run = _run(run_id)
+        if _retired_run(run):
+            return _retired_response()
         return jsonify(preview_run(run)) if run else (jsonify({"error": "not_found"}), 404)
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>/dossier")  # type: ignore[misc]
@@ -167,6 +191,8 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.intelligence.run_dossier import build_run_dossier
 
         run = _run(run_id)
+        if _retired_run(run):
+            return _retired_response()
         return jsonify(build_run_dossier(run)) if run else (jsonify({"error": "not_found"}), 404)
 
     @app.post("/api/research/intelligence/monitors")  # type: ignore[misc]

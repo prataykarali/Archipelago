@@ -94,11 +94,11 @@ function renderRunPaper(dossier, paper, context) {
   actions.append(dossierLink("Topic extraction ↗", `/research/topic?${query}`));
   const value = header => paper.rankable_values[dossier.paper_headers.indexOf(header)];
   const stats = dossierEl("paper-stat-strip");
-  addDossierStat(stats, "Citations", value("Citation count"), "❞");
-  addDossierStat(stats, "Citations / year", value("Citations per year"), "◷");
-  addDossierStat(stats, "Relevance", value("Relevance score (0-1)"), "◎");
-  addDossierStat(stats, "FWCI · OpenAlex", value("FWCI (OpenAlex)"), "▥");
-  addDossierStat(stats, "References", value("Indexed references"), "▤");
+  addDossierStat(stats, "Citations", value("Citation Count"), "❞");
+  addDossierStat(stats, "Citations / year", value("Citations per Year"), "◷");
+  addDossierStat(stats, "Relevance", value("Topic Relevance Score"), "◎");
+  addDossierStat(stats, "FWCI · OpenAlex", value("Field-Weighted Citation Impact (FWCI)"), "▥");
+  addDossierStat(stats, "References", value("Reference Count"), "▤");
   const tabs = dossierEl("paper-tabs");
   const dashboard = dossierEl("paper-dashboard");
   const abstract = dossierCard("Abstract", "run-abstract", true);

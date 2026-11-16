@@ -16,33 +16,89 @@ from openpyxl.styles import Font, PatternFill
 
 from .graph import author_key, build_graph, venue_key
 from .workbook_extra import EXTRA_HEADERS, populate_extra_sheets
-from .workbook_standard import build_standard_workbook
 
 NA = "PROVIDER_FIELD_ABSENT"
 LICENSE_RESTRICTED = "LICENSE_RESTRICTED"
 HEADERS = {
     "Papers": [
-        "Paper ID", "Title", "Year", "Publication date", "DOI", "URL", "arXiv ID",
-        "OpenAlex ID", "Semantic Scholar ID", "Publication type", "Authors", "Author IDs",
-        "Keywords and topics", "Research field", "Methods", "Datasets", "Evaluation metrics",
-        "Abstract", "Venue ID", "Venue", "Publisher", "Citations", "Citation provider",
-        "Open access", "License", "Retrieved at", "Evidence status",
-        "Citations per year", "FWCI", "Published vs Preprint", "First online date",
-        "Google Research status", "Google Scholar URL",
+        "Paper ID",
+        "Title",
+        "Year",
+        "Publication date",
+        "DOI",
+        "URL",
+        "arXiv ID",
+        "OpenAlex ID",
+        "Semantic Scholar ID",
+        "Publication type",
+        "Authors",
+        "Author IDs",
+        "Keywords and topics",
+        "Research field",
+        "Methods",
+        "Datasets",
+        "Evaluation metrics",
+        "Abstract",
+        "Venue ID",
+        "Venue",
+        "Publisher",
+        "Citations",
+        "Citation provider",
+        "Open access",
+        "License",
+        "Retrieved at",
+        "Evidence status",
+        "Citations per year",
+        "FWCI",
+        "Published vs Preprint",
+        "First online date",
+        "Google Research status",
+        "Google Scholar URL",
     ],
     "Authors": [
-        "Author ID", "Name", "ORCID", "OpenAlex ID", "Semantic Scholar ID",
-        "Affiliations (paper metadata)", "Provider affiliations", "Identity status",
-        "Publication count", "Citation count", "h-index", "i10-index",
-        "Primary research fields", "Representative papers", "Coauthor IDs",
-        "Profile URL", "Source", "Metric definition", "Coverage", "Observed at",
-        "Current/last-known affiliation", "Google Scholar search", "Google Scholar profile",
+        "Author ID",
+        "Name",
+        "ORCID",
+        "OpenAlex ID",
+        "Semantic Scholar ID",
+        "Affiliations (paper metadata)",
+        "Provider affiliations",
+        "Identity status",
+        "Publication count",
+        "Citation count",
+        "h-index",
+        "i10-index",
+        "Primary research fields",
+        "Representative papers",
+        "Coauthor IDs",
+        "Profile URL",
+        "Source",
+        "Metric definition",
+        "Coverage",
+        "Observed at",
+        "Current/last-known affiliation",
+        "Google Scholar search",
+        "Google Scholar profile",
         "Identity confidence",
     ],
     "Venues": [
-        "Venue ID", "Name", "Type", "Publisher", "ISSN", "Subject areas", "Open access",
-        "Venue URL", "Journal Impact Factor", "CiteScore", "SJR", "CORE classification",
-        "Other metrics", "Metric source", "Provider", "Retrieved at", "Paper IDs",
+        "Venue ID",
+        "Name",
+        "Type",
+        "Publisher",
+        "ISSN",
+        "Subject areas",
+        "Open access",
+        "Venue URL",
+        "Journal Impact Factor",
+        "CiteScore",
+        "SJR",
+        "CORE classification",
+        "Other metrics",
+        "Metric source",
+        "Provider",
+        "Retrieved at",
+        "Paper IDs",
         "Venue category",
     ],
     "References": [
@@ -107,7 +163,9 @@ def build_workbook(run: dict[str, Any], mode: str = "standard") -> BytesIO:
     """Build either the 5-sheet Standard Export (default) or 14-sheet Advanced Technical Export."""
     normalized_mode = (mode or "standard").strip().casefold()
     if normalized_mode == "standard":
-        return build_standard_workbook(run)
+        from .workbook_rankable import build_rankable_workbook
+
+        return build_rankable_workbook(run)
     if normalized_mode != "advanced":
         raise ValueError("invalid_export_mode")
     return _build_advanced_workbook(run)
@@ -146,7 +204,11 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
     by_known: dict[str, dict[str, Any]] = {}
     for p in run["papers"]:
         pids = p.get("identifiers") or {}
-        for k in (pids.get("openalex_id"), str(pids.get("openalex_id") or "").rsplit("/", 1)[-1], pids.get("semantic_scholar_id")):
+        for k in (
+            pids.get("openalex_id"),
+            str(pids.get("openalex_id") or "").rsplit("/", 1)[-1],
+            pids.get("semantic_scholar_id"),
+        ):
             if k:
                 by_known[str(k)] = p
         d = pids.get("doi") or p.get("doi")
@@ -216,10 +278,14 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
             venues.setdefault(vid, {"paper": paper, "papers": []})["papers"].append(paper)
         for reference in paper["references"]:
             cited = (
-                by_known.get(reference)
-                or by_known.get(reference.rsplit("/", 1)[-1])
-                or by_known.get(reference.strip().casefold().removeprefix("https://doi.org/"))
-            ) if isinstance(reference, str) else None
+                (
+                    by_known.get(reference)
+                    or by_known.get(reference.rsplit("/", 1)[-1])
+                    or by_known.get(reference.strip().casefold().removeprefix("https://doi.org/"))
+                )
+                if isinstance(reference, str)
+                else None
+            )
             add(
                 "References",
                 [
@@ -283,7 +349,9 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
         provider_id = provider_ids[entry["index"]] if entry["index"] < len(provider_ids) else None
         s2_ids = smeta.get("author_s2_ids") or []
         s2_id = s2_ids[entry["index"]] if entry["index"] < len(s2_ids) else None
-        short = provider_id.rsplit("/", 1)[-1] if provider_id else (f"s2:{s2_id}" if s2_id else None)
+        short = (
+            provider_id.rsplit("/", 1)[-1] if provider_id else (f"s2:{s2_id}" if s2_id else None)
+        )
         orcid_raw = str(author.get("orcid") or "").rsplit("/", 1)[-1]
         matched_obs: list[dict[str, Any]] = []
         for candidate_key in (
@@ -308,7 +376,11 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
             author_rows_meta.append({"key": key, "short": obs_short, "obs": observation})
             profile_url = (
                 observation.get("source_url")
-                or (f"https://openalex.org/{short}" if short and not str(short).startswith(("s2:", "orcid:")) else None)
+                or (
+                    f"https://openalex.org/{short}"
+                    if short and not str(short).startswith(("s2:", "orcid:"))
+                    else None
+                )
                 or (f"https://www.semanticscholar.org/author/{s2_id}" if s2_id else None)
                 or (f"https://orcid.org/{orcid_raw}" if orcid_raw else None)
             )
@@ -328,7 +400,11 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
                     ),
                     observation.get("identity_review_status")
                     or observation.get("identity_status")
-                    or ("provider_linked" if (provider_id or s2_id or orcid_raw) else "unverified_name_only"),
+                    or (
+                        "provider_linked"
+                        if (provider_id or s2_id or orcid_raw)
+                        else "unverified_name_only"
+                    ),
                     _metric(metrics.get("publication_count"), missing_status),
                     _metric(metrics.get("citation_count"), missing_status),
                     _metric(metrics.get("h_index"), missing_status),
@@ -345,10 +421,16 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
                         str(a["institution"])
                         for a in observation.get("current_affiliations") or []
                         if a.get("institution")
-                    ) or None,
+                    )
+                    or None,
                     observation.get("google_scholar_search_url"),
                     observation.get("google_scholar_profile_url") or "NOT_AVAILABLE",
-                    observation.get("identity_confidence") or ("high_provider_id" if (provider_id or s2_id or orcid_raw) else "low_name_only"),
+                    observation.get("identity_confidence")
+                    or (
+                        "high_provider_id"
+                        if (provider_id or s2_id or orcid_raw)
+                        else "low_name_only"
+                    ),
                 ],
             )
     for vid, entry in venues.items():
@@ -360,7 +442,13 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
         subjects = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:2]})
         other_parts = [
             f"{k}={details[k]}"
-            for k in ("openalex_2yr_mean_citedness", "h_index", "i10_index", "works_count", "is_in_doaj")
+            for k in (
+                "openalex_2yr_mean_citedness",
+                "h_index",
+                "i10_index",
+                "works_count",
+                "is_in_doaj",
+            )
             if details.get(k) is not None
         ]
         venue_rows_meta.append({"vid": vid, "details": details})
@@ -392,7 +480,15 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
     populate_extra_sheets(add, run, author_rows_meta, venue_rows_meta)
     for edge in graph["edges"]:
         if edge["type"] == "CITES":
-            add("Citation_Edges", [edge["source"].removeprefix("paper:"), edge["target"].removeprefix("paper:"), edge["provider"], "CITES"])
+            add(
+                "Citation_Edges",
+                [
+                    edge["source"].removeprefix("paper:"),
+                    edge["target"].removeprefix("paper:"),
+                    edge["provider"],
+                    "CITES",
+                ],
+            )
     kinds: dict[str, int] = {}
     for node in graph["nodes"]:
         kinds[node["kind"]] = kinds.get(node["kind"], 0) + 1
@@ -419,7 +515,9 @@ def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
         "sort_definition": sort_meta.get("definition") or "Sorted by selected ordering",
         "relevance_rule_version": "archipelago.relevance.v2",
         "candidate_waterfall": json.dumps(prov_sel.get("waterfall", {}), sort_keys=True),
-        "source_contributions": json.dumps(prov_sel.get("source_contributions", {}), sort_keys=True),
+        "source_contributions": json.dumps(
+            prov_sel.get("source_contributions", {}), sort_keys=True
+        ),
         "failed_enrichment_requests": json.dumps(failed_enr, sort_keys=True),
         "query_disambiguation": json.dumps(run.get("query_disambiguation") or {}, sort_keys=True),
         "provider_status": json.dumps(run.get("sources", []), sort_keys=True),

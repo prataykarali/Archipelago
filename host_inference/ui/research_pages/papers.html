@@ -1,67 +1,26 @@
 <section class="research-hero" aria-labelledby="research-hero-title">
   <div class="research-hero-art" aria-hidden="true"></div>
-  <div class="research-hero-copy"><p class="eyebrow">ARCHIPELAGO / RESEARCH ATLAS</p><h1 id="research-hero-title">Ideas are islands.<br><span>Find the connections.</span></h1><p>Explore a topic, discover the papers behind it, and follow each result to its scholarly source.</p><a href="#topic-form" class="research-hero-action">Explore a topic <span aria-hidden="true">↗</span></a></div>
-  <div class="research-hero-foot" aria-hidden="true"><span>DISCOVER</span><i></i><span>FILTER</span><i></i><span>CONNECT</span></div>
-</section>
-<section class="research-journey" aria-label="Research journey">
-  <div><span>01</span><strong>Discover</strong><small>Scholarly metadata</small></div><div><span>02</span><strong>Refine</strong><small>Sources and filters</small></div><div><span>03</span><strong>Connect</strong><small>Graph and Excel report</small></div>
+  <div class="research-hero-copy"><p class="eyebrow">ARCHIPELAGO / RESEARCH PAPERS</p><h1 id="research-hero-title">Find research papers.</h1><p>Search a topic and inspect each paper’s reported citation and evidence fields.</p><a href="#topic-form" class="research-hero-action">Find papers <span aria-hidden="true">↗</span></a></div>
 </section>
 <section id="topic-form" class="research-simple" aria-labelledby="s5-heading">
   <p class="eyebrow">SCHOLARLY METADATA / S5</p>
-  <h2 id="s5-heading">Research intelligence</h2>
-  <p>Search scholarly metadata across OpenAlex, Crossref, Semantic Scholar, arXiv, Europe PMC, OpenAIRE, DataCite, DBLP, ORCID, and official Google Research / Google Scholar verification links. Results are source-linked with explicit provider provenance.</p>
+  <h2 id="s5-heading">Research papers</h2>
+  <p>Search a topic for up to 30 source-linked papers with the richest verified metadata available. Coverage depends on what the providers report; missing metrics remain blank.</p>
   <form id="intelligence-form" class="research-search">
     <label for="topic-input">Research topic</label>
     <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="200" required placeholder="e.g. efficient retrieval augmented generation"><button type="submit">Find papers</button></div>
     <div class="s5-filters">
-      <label>Papers to collect (maximum) <select name="top_k"><option>50</option><option selected>100</option><option>200</option><option>500</option></select></label>
+      <label>Papers to collect (maximum) <select name="top_k"><option>20</option><option selected>30</option></select></label>
       <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
       <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
-      <label>Sort <select name="sort">
-        <option value="newest">Newest relevant (default)</option>
-        <option value="relevance">Most relevant</option>
-        <option value="foundational">Foundational / High-impact relevant</option>
-        <option value="citations">Most cited (single-provider)</option>
-        <option value="citations_per_year">Citation velocity (citations/yr)</option>
-        <option value="fwci">FWCI (OpenAlex)</option>
-        <option value="open_access">Verified open access</option>
-        <option value="evidence_completeness">Evidence completeness</option>
-        <option value="provider">Provider order</option>
-      </select></label>
+      <input name="sort" type="hidden" value="evidence_completeness">
     </div>
   </form>
   <p id="intelligence-status" role="status">Ready to search.</p>
   <section id="intelligence-results" hidden aria-labelledby="results-heading">
-    <h2 id="results-heading">Paper results</h2>
-    <div id="provider-status" class="s5-badges"></div>
-    <p id="retrieved-at"></p>
-    <p id="sort-definition" class="s5-sort-note"></p>
-    <div id="external-verification-links" class="s5-badges"></div>
-    <a id="excel-link" href="#">Download Excel</a>
-    <a id="excel-advanced-link" href="#">Advanced Technical Export (14 sheets)</a>
-    <button id="graph-button" type="button">Inspect research graph</button>
-    <div id="s5-view-tabs" class="s5-actions" role="tablist" aria-label="Exploration modes">
-      <button type="button" data-view="papers" aria-selected="true">Papers</button>
-      <button type="button" data-view="authors" aria-selected="false">Authors</button>
-      <button type="button" data-view="venues" aria-selected="false">Publications &amp; Sources</button>
-    </div>
-    <pre id="graph-summary" hidden></pre><div id="paper-results"></div>
-    <div id="author-results" hidden></div>
-    <div id="venue-results" hidden></div>
+    <h2 id="results-heading">Paper results</h2><p>Each parameter is shown separately. A dash means no connected source verified that value; it is never treated as zero.</p><p id="provider-status"></p><p id="retrieved-at"></p>
+    <a id="excel-link" href="#">Download paper data (Excel)</a>
+    <a id="topic-dossier-link" href="#">Open topic extraction overview ↗</a>
+    <div id="paper-results"></div>
   </section>
-  <section aria-labelledby="history-heading"><h2 id="history-heading">Previous searches</h2><div id="run-history"></div></section>
-  <section id="monitor-section" hidden aria-labelledby="monitor-heading">
-    <h2 id="monitor-heading">Topic monitoring</h2>
-    <p>Save a topic, activate it explicitly, and inspect each metadata refresh.</p>
-    <label>Check every <select id="monitor-cadence"><option value="6">6 hours</option><option value="24" selected>24 hours</option><option value="168">7 days</option></select></label>
-    <button id="monitor-save" type="button">Save current topic and filters</button>
-    <p id="monitor-status" role="status"></p>
-    <div id="monitor-list"></div>
-    <h3>Research updates</h3><div id="research-updates" aria-live="polite"></div>
-  </section>
-</section>
-<section class="research-card research-atlas-entry" aria-labelledby="atlas-heading">
-  <p class="eyebrow">EXPLORE / CONNECT</p><h2 id="atlas-heading">Research atlas</h2>
-  <p>Follow the connections between papers and explore the wider academic graph.</p>
-  <a class="research-hero-action" href="/research/topics">Open the full-screen graph <span aria-hidden="true">↗</span></a>
 </section>

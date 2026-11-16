@@ -70,7 +70,10 @@ function restoreResearchForm() {
         if (el && v != null && String(v) !== '') el.value = String(v);
       }
     }
-    const urlRun = new URLSearchParams(location.search).get('run');
+    const query = new URLSearchParams(location.search);
+    const urlTopic = query.get('topic');
+    if (form && urlTopic && urlTopic.length >= 3) form.elements.namedItem('topic').value = urlTopic;
+    const urlRun = query.get('run');
     return urlRun || saved.run_id || null;
   } catch (_) {
     return null;
@@ -88,7 +91,7 @@ function currentSearchOptions() {
 async function s5Json(url, options = {}) {
   const response = await fetch(url, { cache: 'no-store', ...options });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Research service unavailable');
+  if (!response.ok) throw new Error(data.message || data.error || 'Research service unavailable');
   return data;
 }
 
@@ -384,9 +387,13 @@ window.addEventListener('load', async () => {
       const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(savedRunId)}`);
       showRun(run);
       s5('intelligence-status').textContent = `Restored ${run.papers?.length || 0} papers.`;
-    } catch (_) {
+    } catch (error) {
       activeRunId = null;
-      s5('intelligence-status').textContent = 'Ready to search.';
+      sessionStorage.removeItem(S5_STATE_KEY);
+      s5('intelligence-status').textContent = error.message || 'Ready to search.';
+      const query = new URLSearchParams(location.search);
+      query.delete('run');
+      history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
     }
   }
   if (pendingSearch()) void recoverPendingSearch();

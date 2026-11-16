@@ -2,14 +2,48 @@
 
 const s5 = id => document.getElementById(id);
 let activeRunId = null;
-let activeRunData = null;
-const S5_STATE_KEY = 'archipelago_research_state_v1';
+const S5_STATE_KEY = 'archipelago_research_state_v2';
+const S5_PENDING_KEY = 'archipelago_research_pending_v2';
+const SEARCH_RECOVERY_INTERVAL_MS = 8000;
+const SEARCH_RECOVERY_WINDOW_MS = 360000;
 
-function formatShortDate(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+function pendingSearch() {
+  try { return JSON.parse(sessionStorage.getItem(S5_PENDING_KEY) || 'null'); }
+  catch (_) { return null; }
+}
+
+function clearPendingSearch() {
+  sessionStorage.removeItem(S5_PENDING_KEY);
+}
+
+async function recoverPendingSearch() {
+  const pending = pendingSearch();
+  if (!pending?.request_id) return;
+  const status = s5('intelligence-status');
+  const submit = s5('intelligence-form')?.querySelector('button[type="submit"]');
+  if (Date.now() - pending.started_at > SEARCH_RECOVERY_WINDOW_MS) {
+    clearPendingSearch();
+    if (status) status.textContent = 'The search did not finish. Please retry.';
+    return;
+  }
+  if (submit) submit.disabled = true;
+  if (status) status.textContent = `Researching "${pending.topic}". You can visit other pages and return here.`;
+  try {
+    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
+    if (job.status === 'completed') {
+      const run = await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
+      activeRunId = job.run_id;
+      showRun(run);
+      saveResearchState();
+      clearPendingSearch();
+      if (submit) submit.disabled = false;
+      if (status) status.textContent = `Done — loaded ${run.papers?.length || 0} papers for "${pending.topic}".`;
+      return;
+    }
+  } catch (error) {
+    if (status) status.textContent = `Checking search progress: ${error.message}`;
+  }
+  setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
 }
 
 function saveResearchState() {
@@ -31,11 +65,15 @@ function restoreResearchForm() {
     const form = s5('intelligence-form');
     if (form && saved.form) {
       for (const [k, v] of Object.entries(saved.form)) {
+        if (!['topic', 'year_from', 'year_to'].includes(k)) continue;
         const el = form.elements.namedItem(k);
         if (el && v != null && String(v) !== '') el.value = String(v);
       }
     }
-    const urlRun = new URLSearchParams(location.search).get('run');
+    const query = new URLSearchParams(location.search);
+    const urlTopic = query.get('topic');
+    if (form && urlTopic && urlTopic.length >= 3) form.elements.namedItem('topic').value = urlTopic;
+    const urlRun = query.get('run');
     return urlRun || saved.run_id || null;
   } catch (_) {
     return null;
@@ -53,318 +91,182 @@ function currentSearchOptions() {
 async function s5Json(url, options = {}) {
   const response = await fetch(url, { cache: 'no-store', ...options });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Research service unavailable');
+  if (!response.ok) throw new Error(data.message || data.error || 'Research service unavailable');
   return data;
 }
 
-function makeBadge(text, cls = '') {
-  const span = document.createElement('span');
-  span.className = `s5-badge ${cls}`.trim();
-  span.textContent = text;
-  return span;
-}
+const metricNumber = (value, digits = 0) => Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
+const metricList = value => Array.isArray(value) && value.length ? value.map(item => typeof item === 'string' ? item : item?.name || item?.label || JSON.stringify(item)).join(', ') : '—';
 
-function makeExtLink(href, text) {
-  const a = document.createElement('a');
-  a.href = href;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  a.textContent = text;
-  return a;
-}
-
-function filterAndSortPapers(papers, opts) {
-  const yf = opts.year_from ? Number(opts.year_from) : null;
-  const yt = opts.year_to ? Number(opts.year_to) : null;
-  const auth = (opts.author || '').trim().toLowerCase();
-  const inst = (opts.institution || '').trim().toLowerCase();
-  const ven = (opts.venue || '').trim().toLowerCase();
-  const pub = (opts.publisher || '').trim().toLowerCase();
-  const ptype = (opts.paper_type || '').trim().toLowerCase();
-  const prov = (opts.provider || '').trim().toLowerCase();
-  const gr = (opts.google_research || '').trim().toLowerCase();
-  const ev = (opts.evidence_field || '').trim();
-  const oa = opts.open_access;
-
-  const filtered = papers.filter(p => {
-    if (yf && (p.year == null || p.year < yf)) return false;
-    if (yt && (p.year == null || p.year > yt)) return false;
-    if (oa !== null && oa !== undefined && p.is_open_access !== oa) return false;
-    if (ptype && !(p.publication_type || '').toLowerCase().includes(ptype)) return false;
-    if (ven && !(p.venue || '').toLowerCase().includes(ven)) return false;
-    if (pub && !(p.publisher || p.source_metadata?.publisher || '').toLowerCase().includes(pub)) return false;
-    if (auth && !(p.authors || []).some(a => (a.name || '').toLowerCase().includes(auth))) return false;
-    if (inst && !(p.authors || []).some(a => (a.institutions || []).some(i => i.toLowerCase().includes(inst)))) return false;
-    if (prov) {
-      const pProvs = new Set((p.provenance || []).map(x => (x.source_type || '').toLowerCase()));
-      if (p.source) pProvs.add(p.source.toLowerCase());
-      if (!pProvs.has(prov)) return false;
-    }
-    if (gr === 'official' && !p.google_research?.official_listing) return false;
-    if (gr === 'affiliated' && !p.google_research?.google_author_affiliation) return false;
-    if (ev && !(Array.isArray(p[ev]) ? p[ev].length > 0 : Boolean(p[ev]))) return false;
-    return true;
-  });
-
-  const sort = opts.sort || 'newest';
-  const copy = [...filtered];
-  if (sort === 'newest') {
-    copy.sort((a, b) => (b.publication_date || '').localeCompare(a.publication_date || ''));
-  } else if (sort === 'citations' || sort === 'foundational') {
-    copy.sort((a, b) => ((b.citation_count ?? -1) - (a.citation_count ?? -1)) || ((b.fwci ?? -1) - (a.fwci ?? -1)));
-  } else if (sort === 'relevance') {
-    copy.sort((a, b) => ((b.relevance_classification?.confidence ?? 0) - (a.relevance_classification?.confidence ?? 0)) || (b.publication_date || '').localeCompare(a.publication_date || ''));
-  } else if (sort === 'citations_per_year') {
-    copy.sort((a, b) => (b.citations_per_year ?? -1) - (a.citations_per_year ?? -1));
-  } else if (sort === 'fwci') {
-    copy.sort((a, b) => (b.fwci ?? -1) - (a.fwci ?? -1));
-  } else if (sort === 'open_access') {
-    copy.sort((a, b) => Number(b.is_open_access === true) - Number(a.is_open_access === true));
-  } else if (sort === 'evidence_completeness') {
-    const score = p => ['abstract', 'doi', 'methods', 'datasets', 'evaluation_metrics', 'grants', 'references'].filter(k => Array.isArray(p[k]) ? p[k].length > 0 : Boolean(p[k])).length;
-    copy.sort((a, b) => score(b) - score(a));
+function metricGrid(rows) {
+  const grid = document.createElement('dl');
+  grid.className = 'paper-metrics';
+  for (const [label, value] of rows) {
+    const item = document.createElement('div');
+    const term = document.createElement('dt');
+    const description = document.createElement('dd');
+    term.textContent = label;
+    description.textContent = value == null || value === '' ? '—' : String(value);
+    item.append(term, description);
+    grid.append(item);
   }
-  return copy;
+  return grid;
 }
 
 function showRun(run) {
-  activeRunData = run;
   s5('intelligence-results').hidden = false;
-  s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after server filters`;
-  const provEl = s5('provider-status');
-  provEl.replaceChildren();
-  for (const source of run.sources || []) {
-    const cls = source.status === 'live' ? 's5-badge--live' : (source.rate_limited || source.status === 'automated_access_restricted' || source.status === 'blocked_bot_challenge' ? 's5-badge--warn' : '');
-    const httpTxt = source.http_status ? ` · HTTP ${source.http_status}` : '';
-    provEl.append(makeBadge(`${source.source}: ${source.status} (${source.record_count || 0})${httpTxt}`, cls));
-  }
-  const sortEl = s5('sort-definition');
-  if (sortEl) {
-    const sm = run.sort_metadata;
-    sortEl.textContent = sm
-      ? `Ordering: ${sm.label} — ${sm.definition} (Source: ${sm.source}; collected ${formatShortDate(sm.collected_at)})`
-      : `Ordering: ${run.ordering || 'newest'} (missing values sorted last, never zero).`;
-  }
-  const extLinks = s5('external-verification-links');
-  if (extLinks) {
-    extLinks.replaceChildren();
-    if (run.google_research_url) extLinks.append(makeExtLink(run.google_research_url, 'Google Research publications ↗'));
-    if (run.google_scholar_url) extLinks.append(makeExtLink(run.google_scholar_url, 'Google Scholar verification ↗'));
-    for (const a of extLinks.querySelectorAll('a')) a.className = 's5-badge s5-badge--link';
-  }
-  const topicSlug = String(run.options?.topic || 'research').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'research';
-  const datePart = String(run.retrieved_at || '').slice(0, 10) || 'export';
-  const bindExcelDownload = (el, mode) => {
-    if (!el) return;
-    el.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=${mode}`;
-    el.onclick = async event => {
-      event.preventDefault();
-      const runId = activeRunId;
-      if (!runId) return;
-      try {
-        const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx?mode=${mode}`, { cache: 'no-store', credentials: 'include' });
-        if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
-        const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `archipelago-${topicSlug}-${datePart}-${mode}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        s5('intelligence-status').textContent = err.message || 'Could not download workbook.';
-      }
-    };
+  s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
+  s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
+  s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
+  const excelLink = s5('excel-link');
+  excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=standard`;
+  excelLink.onclick = async event => {
+    event.preventDefault();
+    const runId = activeRunId;
+    if (!runId) return;
+    const mode = 'standard';
+    try {
+      const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx?mode=${mode}`, { cache: 'no-store', credentials: 'include' });
+      if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `archipelago-research-${runId.slice(0, 8)}-${mode}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      s5('provider-status').textContent = err.message || 'Could not download workbook.';
+    }
   };
-  bindExcelDownload(s5('excel-link'), 'standard');
-  bindExcelDownload(s5('excel-advanced-link'), 'advanced');
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));
-  const visiblePapers = filterAndSortPapers(run.papers || [], currentSearchOptions());
-  for (const paper of visiblePapers) {
+  for (const [paperIndex, paper] of run.papers.entries()) {
     const article = document.createElement('article');
     article.className = 'research-card';
     const title = document.createElement('h3');
-    title.textContent = `${paper.collection_order}. ${paper.title}`;
-    const badges = document.createElement('div');
-    badges.className = 's5-badges';
-    const provNames = [...new Set((paper.provenance || []).map(p => p.source_type).filter(Boolean))];
-    for (const pn of provNames) badges.append(makeBadge(pn, 's5-badge--live'));
-    if (paper.relevance_classification?.label) {
-      badges.append(makeBadge(`${paper.relevance_classification.label} (${paper.relevance_classification.confidence ?? ''})`, 's5-badge--live'));
-    }
-    if (paper.published_vs_preprint) badges.append(makeBadge(paper.published_vs_preprint));
-    if (paper.is_open_access === true) badges.append(makeBadge('Open Access', 's5-badge--live'));
-    if (paper.google_research?.official_listing) badges.append(makeBadge('GOOGLE_RESEARCH_OFFICIAL_LISTING', 's5-badge--live'));
-    else if (paper.google_research?.google_author_affiliation) badges.append(makeBadge('GOOGLE_AUTHOR_AFFILIATION', 's5-badge--warn'));
-
+    title.textContent = paper.title;
     const facts = document.createElement('p');
-    facts.textContent = [
-      paper.year,
-      (paper.authors || []).map(author => author.name).join(', '),
-      paper.venue,
-      paper.citation_count == null ? null : `${paper.citation_count} citations (${paper.citation_provider})`,
-      paper.citations_per_year == null ? null : `${paper.citations_per_year}/yr`,
-      paper.fwci == null ? null : `FWCI ${paper.fwci}`,
-      paper.evidence_status,
-    ].filter(Boolean).join(' · ');
-
-    const actions = document.createElement('div');
-    actions.className = 's5-actions';
-    if (paper.url && paper.url.startsWith('https://')) actions.append(makeExtLink(paper.url, 'Open provider record ↗'));
-    if (paper.doi) actions.append(makeExtLink(`https://doi.org/${paper.doi}`, `DOI: ${paper.doi} ↗`));
-    if (paper.google_scholar_url) actions.append(makeExtLink(paper.google_scholar_url, 'Google Scholar ↗'));
-    if (paper.google_research?.official_search_url) actions.append(makeExtLink(paper.google_research.official_search_url, 'Google Research ↗'));
-
-    article.append(title, badges, facts, actions);
-
+    facts.textContent = [paper.authors?.map(author => author.name).join(', '), paper.venue].filter(Boolean).join(' · ');
+    const metricRows = [
+      [`Citation count${paper.citation_provider ? ` (${paper.citation_provider})` : ''}`, metricNumber(paper.citation_count)],
+      ['Citations per year', metricNumber(paper.citations_per_year, 2)],
+      ['FWCI (OpenAlex)', metricNumber(paper.fwci, 2)],
+      ['Citation percentile (OpenAlex)', Number.isFinite(paper.citation_normalized_percentile?.value) ? `${(paper.citation_normalized_percentile.value * 100).toFixed(1)}%` : '—'],
+      ['Topic relevance score (0–1)', metricNumber(paper.relevance_classification?.confidence, 2)],
+      ['Publication year', Number.isFinite(paper.year) ? String(paper.year) : '—'],
+      ['Benchmark performance', metricList(paper.benchmark_performance)],
+      ['Methodological evidence', metricList(paper.methods)],
+      ['Reproducibility indicators', [paper.code_repo_urls?.length ? 'Code' : null, paper.dataset_repo_urls?.length ? 'Data' : null, paper.checkpoint_urls?.length ? 'Checkpoints' : null, paper.experimental_details_url ? 'Experimental details' : null].filter(Boolean).join(', ') || '—'],
+      ['Reference count', metricNumber(paper.reference_count ?? (paper.references?.length || null))],
+      ['Influential citation count (Semantic Scholar)', metricNumber(paper.influential_citations)],
+      ['Open-access status', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : '—'],
+    ];
+    const coverage = document.createElement('p');
+    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper parameters verified`;
+    article.append(title, facts, coverage, metricGrid(metricRows));
+    const paperDetail = document.createElement('a');
+    paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${paperIndex}`;
+    paperDetail.textContent = 'Open paper extraction ↗';
+    article.append(paperDetail);
+    if (paper.url && paper.url.startsWith('https://')) {
+      const link = document.createElement('a');
+      link.href = paper.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'Open provider record ↗';
+      article.append(link);
+    }
     const details = document.createElement('details');
     const summary = document.createElement('summary');
-    summary.textContent = 'Abstract, scientific evidence, references & identifiers';
+    summary.textContent = 'Abstract, references and identifiers';
     const body = document.createElement('p');
     body.textContent = paper.abstract || 'Abstract unavailable from selected providers.';
-    const sci = document.createElement('p');
-    const mList = (paper.methods || []).map(m => m.name || m).join(', ') || 'NOT_FOUND';
-    const dList = (paper.datasets || []).map(d => d.name || d).join(', ') || 'NOT_FOUND';
-    const eList = (paper.evaluation_metrics || []).map(e => e.name || e).join(', ') || 'NOT_FOUND';
-    sci.textContent = `Methods: ${mList} · Datasets: ${dList} · Metrics: ${eList}`;
     const references = document.createElement('p');
-    references.textContent = `${(paper.references || []).length} provider reference IDs · DOI: ${paper.doi || 'unavailable'} · Retrieved: ${paper.retrieved_at || run.retrieved_at}`;
-    details.append(summary, body, sci, references);
+    references.textContent = `${paper.references?.length || 0} provider reference IDs · DOI: ${paper.doi || 'unavailable'}`;
+    details.append(summary, body, references);
     article.append(details);
-
-    const identities = document.createElement('details');
-    const identityHeading = document.createElement('summary');
-    identityHeading.textContent = 'Author → Institution → Venue intelligence';
-    identities.append(identityHeading);
+    const authorDetails = document.createElement('details');
+    const authorSummary = document.createElement('summary');
+    authorSummary.textContent = 'Author parameters';
+    authorDetails.append(authorSummary);
     const providerIds = paper.source_metadata?.author_openalex_ids || [];
-    const s2Ids = paper.source_metadata?.author_s2_ids || [];
-    (paper.authors || []).forEach((author, index) => {
+    paper.authors?.forEach((author, index) => {
       const id = (providerIds[index] || '').split('/').pop();
-      const s2id = s2Ids[index];
-      const observation = authorsById.get(id) || (s2id ? authorsById.get(`s2:${s2id}`) : null);
-      const line = document.createElement('p');
-      const metrics = observation?.metrics;
-      const insts = (author.institutions || []).join(', ') || 'affiliation unavailable';
-      line.textContent = `${author.name} (${insts}) · ${observation?.identity_review_status || observation?.identity_status || 'unresolved identity'} · ${id || author.orcid || (s2id ? `S2:${s2id}` : 'no provider ID')} · ${metrics ? `${metrics.publication_count ?? 'N/A'} works, ${metrics.citation_count ?? 'N/A'} citations, h-index ${metrics.h_index ?? 'N/A'}, i10-index ${metrics.i10_index ?? 'N/A'} (${observation.provider})` : 'metrics N/A'} · `;
-      const gsAuthor = makeExtLink(`https://scholar.google.com/scholar?q=${encodeURIComponent(`author:"${author.name}"`)}`, 'Scholar author ↗');
-      line.append(gsAuthor);
-      identities.append(line);
+      const observation = authorsById.get(id);
+      const values = observation?.metrics || {};
+      const matchedPapers = id ? run.papers.filter(record => (record.source_metadata?.author_openalex_ids || []).some(value => value.endsWith(id))) : [];
+      const firstPapers = matchedPapers.filter(record => (record.source_metadata?.author_openalex_ids || [])[0]?.endsWith(id)).length;
+      const lastPapers = matchedPapers.filter(record => (record.source_metadata?.author_openalex_ids || []).at(-1)?.endsWith(id)).length;
+      const coauthors = new Set(matchedPapers.flatMap(record => (record.source_metadata?.author_openalex_ids || []).filter(value => value && !value.endsWith(id))));
+      const recent = Array.isArray(values.counts_by_year) && values.counts_by_year.length ? values.counts_by_year.filter(row => Number.isInteger(row.year) && row.year >= new Date().getFullYear() - 4 && Number.isInteger(row.cited_by_count)).reduce((sum, row) => sum + row.cited_by_count, 0) : null;
+      const relevance = matchedPapers.map(record => record.relevance_classification?.confidence).filter(Number.isFinite);
+      const heading = document.createElement('h4');
+      heading.textContent = author.name;
+      authorDetails.append(heading, metricGrid([
+        ['h-index', metricNumber(values.h_index)],
+        ['i10-index', metricNumber(values.i10_index)],
+        ['g-index', '—'],
+        ['m-quotient', Number.isFinite(values.h_index) && Number.isInteger(values.earliest_year) && values.earliest_year <= new Date().getFullYear() ? metricNumber(values.h_index / (new Date().getFullYear() - values.earliest_year + 1), 2) : '—'],
+        ['Total citations', metricNumber(values.citation_count)],
+        ['Total publications', metricNumber(values.publication_count)],
+        ['Average citations per paper', values.publication_count > 0 && Number.isFinite(values.citation_count) ? metricNumber(values.citation_count / values.publication_count, 2) : '—'],
+        ['Median citations per paper', '—'],
+        ['Recent citations (5 years)', metricNumber(recent)],
+        ['Field-normalized impact', '—'],
+        ['First-author publications (this search)', id ? String(firstPapers) : '—'],
+        ['Last-author publications (this search)', id ? String(lastPapers) : '—'],
+        ['Research relevance (this search)', relevance.length ? metricNumber(Math.max(...relevance), 2) : '—'],
+        ['Verified collaborators (this search)', id ? String(coauthors.size) : '—'],
+      ]));
+      if (observation?.source_url?.startsWith('https://')) {
+        const authorSource = document.createElement('a');
+        authorSource.href = observation.source_url;
+        authorSource.target = '_blank';
+        authorSource.rel = 'noopener noreferrer';
+        authorSource.textContent = `Author source: ${observation.provider} ↗`;
+        authorDetails.append(authorSource);
+      }
     });
-    const venue = document.createElement('p');
-    const vd = paper.venue_details;
-    venue.textContent = vd
-      ? `Venue: ${vd.name} [${vd.venue_category || vd.type || 'unknown'}] · ${vd.publisher || 'publisher N/A'} · JIF/CiteScore/SJR: LICENSE_RESTRICTED · ${vd.provider || 'provider N/A'}`
-      : 'Venue metadata unavailable.';
-    identities.append(venue);
-    article.append(identities);
+    article.append(authorDetails);
+    const venueDetails = paper.venue_details;
+    const verifiedVenue = venueDetails?.provider === 'openalex' && venueDetails?.id &&
+      ['peer_reviewed_journal', 'peer_reviewed_conference'].includes(venueDetails.venue_category);
+    const venueSection = document.createElement('details');
+    const venueSummary = document.createElement('summary');
+    venueSummary.textContent = `Publication parameters${paper.venue ? ` · ${paper.venue}` : ''}`;
+    venueSection.append(venueSummary, metricGrid([
+      ['Journal Impact Factor (JIF)', metricNumber(venueDetails?.jif)],
+      ['CiteScore', metricNumber(venueDetails?.citescore)],
+      ['SCImago Journal Rank (SJR)', metricNumber(venueDetails?.sjr, 3)],
+      ['SNIP', metricNumber(venueDetails?.snip, 3)],
+      ['Q1–Q4 quartile', venueDetails?.quartile || '—'],
+      ['CORE/ICORE rank', venueDetails?.icore_rank || '—'],
+      ['h5-index', metricNumber(venueDetails?.h5_index)],
+      ['h5-median', metricNumber(venueDetails?.h5_median)],
+      ['Venue h-index (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.h_index : null)],
+      ['Venue i10-index (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.i10_index : null)],
+      ['Acceptance rate', metricNumber(venueDetails?.acceptance_rate, 1)],
+      ['Indexed publication count (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.works_count : null)],
+      ['Mean citedness, 2-year (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.openalex_2yr_mean_citedness : null, 2)],
+      ['Indexing status', verifiedVenue ? 'Indexed in OpenAlex' : '—'],
+    ]));
+    const venueSourceUrl = venueDetails?.source_metadata_url || venueDetails?.id;
+    if (verifiedVenue && venueSourceUrl?.startsWith('https://')) {
+      const venueSource = document.createElement('a');
+      venueSource.href = venueSourceUrl;
+      venueSource.target = '_blank';
+      venueSource.rel = 'noopener noreferrer';
+      venueSource.textContent = 'Publication source ↗';
+      venueSection.append(venueSource);
+    }
+    article.append(venueSection);
     list.append(article);
   }
-  if (!visiblePapers.length) list.textContent = 'No papers matched the current filters in the returned provider results.';
-
-  const authEl = s5('author-results');
-  if (authEl) {
-    authEl.replaceChildren();
-    const seenAuth = new Map();
-    for (const p of visiblePapers) {
-      const oaIds = p.source_metadata?.author_openalex_ids || [];
-      (p.authors || []).forEach((a, idx) => {
-        const oid = (oaIds[idx] || '').split('/').pop();
-        const obs = oid ? authorsById.get(oid) : null;
-        const key = oid || a.orcid || `${a.name}::${p.paper_id}`;
-        if (!seenAuth.has(key)) seenAuth.set(key, { name: a.name, orcid: a.orcid, oid, obs, insts: a.institutions || [], papers: [] });
-        seenAuth.get(key).papers.push(p.title);
-      });
-    }
-    for (const item of seenAuth.values()) {
-      const card = document.createElement('article');
-      card.className = 'research-card';
-      const h = document.createElement('h3');
-      h.textContent = item.obs?.name || item.name;
-      const m = item.obs?.metrics;
-      const info = document.createElement('p');
-      info.textContent = [
-        item.oid ? `OpenAlex: ${item.oid}` : 'OpenAlex: unresolved',
-        item.obs?.orcid || item.orcid ? `ORCID: ${item.obs?.orcid || item.orcid}` : null,
-        item.insts.length ? `Affiliation: ${item.insts.join(', ')}` : null,
-        m ? `${m.publication_count ?? 'N/A'} works · ${m.citation_count ?? 'N/A'} citations · h-index ${m.h_index ?? 'N/A'}` : 'Metrics unavailable',
-      ].filter(Boolean).join(' · ');
-      const pubs = document.createElement('p');
-      pubs.textContent = `In this run (${item.papers.length}): ${item.papers.slice(0, 3).join('; ')}`;
-      card.append(h, info, pubs, makeExtLink(`https://scholar.google.com/scholar?q=${encodeURIComponent(`author:"${item.name}"`)}`, 'Google Scholar author search ↗'));
-      authEl.append(card);
-    }
-  }
-
-  const venEl = s5('venue-results');
-  if (venEl) {
-    venEl.replaceChildren();
-    const seenVen = new Map();
-    for (const p of visiblePapers) {
-      if (!p.venue) continue;
-      const vd = p.venue_details || { name: p.venue };
-      const k = vd.id || p.venue;
-      if (!seenVen.has(k)) seenVen.set(k, { vd, count: 0 });
-      seenVen.get(k).count += 1;
-    }
-    for (const { vd, count } of seenVen.values()) {
-      const card = document.createElement('article');
-      card.className = 'research-card';
-      const h = document.createElement('h3');
-      h.textContent = `${vd.name} (${count} paper${count === 1 ? '' : 's'})`;
-      const info = document.createElement('p');
-      info.textContent = [
-        `Category: ${vd.venue_category || vd.type || 'unknown'}`,
-        vd.publisher ? `Publisher: ${vd.publisher}` : null,
-        vd.works_count != null ? `OpenAlex works: ${vd.works_count}` : null,
-        'JIF/CiteScore/SJR: LICENSE_RESTRICTED',
-      ].filter(Boolean).join(' · ');
-      card.append(h, info);
-      if (vd.url) card.append(makeExtLink(vd.url, 'Official venue website ↗'));
-      venEl.append(card);
-    }
-  }
-}
-
-async function loadHistory() {
-  const history = s5('run-history');
-  const statusEl = s5('intelligence-status');
-  if (statusEl) statusEl.textContent = 'Loading previous research searches…';
-  try {
-    const data = await s5Json('/api/research/intelligence/runs');
-    history.replaceChildren();
-    if (!data.runs.length) {
-      history.textContent = 'No previous searches yet.';
-    }
-    for (const run of data.runs) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = `${run.topic} · ${formatShortDate(run.created_at)}`;
-      button.addEventListener('click', async () => {
-        activeRunId = run.run_id;
-        if (statusEl) statusEl.textContent = `Loading saved search "${run.topic}"…`;
-        try {
-          const loaded = await s5Json(`/api/research/intelligence/runs/${activeRunId}`);
-          showRun(loaded);
-          saveResearchState();
-          if (statusEl) statusEl.textContent = `Loaded ${loaded.papers?.length || 0} papers for "${run.topic}".`;
-          s5('intelligence-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (err) {
-          if (statusEl) statusEl.textContent = err.message;
-        }
-      });
-      history.append(button);
-    }
-    if (statusEl && statusEl.textContent === 'Loading previous research searches…') {
-      statusEl.textContent = 'Ready to search.';
-    }
-  } catch (error) {
-    history.textContent = error.message;
-    if (statusEl) statusEl.textContent = error.message;
-  }
+  if (!run.papers.length) list.textContent = 'No papers matched the filters in the returned provider results.';
 }
 
 async function loadMonitors() {
@@ -479,83 +381,44 @@ async function loadUpdates() {
 window.addEventListener('load', async () => {
   if (!await window.archipelagoResearchReady) return;
   const savedRunId = restoreResearchForm();
-  await loadHistory();
-  if (savedRunId) {
+  if (savedRunId && !pendingSearch()) {
     try {
-      s5('intelligence-status').textContent = 'Restoring your previous research view…';
       activeRunId = savedRunId;
-      const run = await s5Json(`/api/research/intelligence/runs/${savedRunId}`);
+      const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(savedRunId)}`);
       showRun(run);
       s5('intelligence-status').textContent = `Restored ${run.papers?.length || 0} papers.`;
-    } catch (_) {
+    } catch (error) {
       activeRunId = null;
-      s5('intelligence-status').textContent = 'Ready to search.';
+      sessionStorage.removeItem(S5_STATE_KEY);
+      s5('intelligence-status').textContent = error.message || 'Ready to search.';
+      const query = new URLSearchParams(location.search);
+      query.delete('run');
+      history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
     }
   }
-  try {
-    const me = await s5Json('/api/auth/me');
-    if (['faculty', 'librarian', 'administrator'].includes(me.role)) {
-      s5('monitor-section').hidden = false;
-      await loadMonitors();
-      await loadUpdates();
-    }
-  } catch (_) { /* Monitoring remains unavailable without a verified role. */ }
-  s5('monitor-save').addEventListener('click', async () => {
-    const options = currentSearchOptions();
-    const topic = options.topic.trim();
-    if (topic.length < 3) { s5('monitor-status').textContent = 'Enter a topic first.'; return; }
-    try {
-      await s5Json('/api/research/intelligence/monitors', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...options, cadence_hours: Number(s5('monitor-cadence').value) })
-      });
-      s5('monitor-status').textContent = 'Topic saved disabled. Activate it when ready.';
-      await loadMonitors();
-    } catch (error) { s5('monitor-status').textContent = error.message; }
-  });
-  const tabs = s5('s5-view-tabs');
-  if (tabs) {
-    tabs.addEventListener('click', e => {
-      const btn = e.target.closest('button[data-view]');
-      if (!btn) return;
-      const view = btn.dataset.view;
-      for (const b of tabs.querySelectorAll('button[data-view]')) b.setAttribute('aria-selected', String(b === btn));
-      s5('paper-results').hidden = view !== 'papers';
-      s5('author-results').hidden = view !== 'authors';
-      s5('venue-results').hidden = view !== 'venues';
-    });
-  }
-  s5('intelligence-form').addEventListener('change', event => {
-    if (activeRunData && event.target?.name && event.target.name !== 'topic' && event.target.name !== 'top_k') {
-      showRun(activeRunData);
-    }
-  });
+  if (pendingSearch()) void recoverPendingSearch();
   s5('intelligence-form').addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget;
     const payload = currentSearchOptions();
-    s5('intelligence-status').textContent = `Fetching papers across OpenAlex, Crossref, Semantic Scholar, arXiv, Europe PMC, OpenAIRE & DBLP for "${payload.topic}"…`;
+    const requestId = crypto.randomUUID();
+    payload.client_request_id = requestId;
+    sessionStorage.setItem(S5_PENDING_KEY, JSON.stringify({ request_id: requestId, topic: payload.topic, started_at: Date.now() }));
+    saveResearchState();
+    s5('intelligence-status').textContent = `Fetching papers from OpenAlex, Crossref, Semantic Scholar & arXiv for "${payload.topic}"…`;
     form.querySelector('button[type="submit"]').disabled = true;
     try {
-      const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true });
+      clearPendingSearch();
       activeRunId = run.run_id;
       showRun(run);
       saveResearchState();
       const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
       s5('intelligence-status').textContent = `Done — loaded ${run.papers.length} papers from ${liveCount} live provider(s).`;
-      await loadHistory();
-    } catch (error) { s5('intelligence-status').textContent = error.message; }
-    finally { form.querySelector('button[type="submit"]').disabled = false; }
-  });
-  s5('graph-button').addEventListener('click', async () => {
-    if (!activeRunId) return;
-    s5('intelligence-status').textContent = 'Building paper & citation graph…';
-    try {
-      const graph = await s5Json(`/api/research/intelligence/runs/${activeRunId}/graph`);
-      const summary = s5('graph-summary');
-      summary.hidden = false;
-      summary.textContent = `${graph.nodes.length} nodes · ${graph.edges.length} sourced relationships\n` + graph.edges.filter(edge => edge.type === 'CITES').map(edge => `${edge.source} cites ${edge.target} via ${edge.provider}`).join('\n');
-      s5('intelligence-status').textContent = `Graph ready: ${graph.nodes.length} nodes · ${graph.edges.length} relationships.`;
-    } catch (error) { s5('intelligence-status').textContent = error.message; }
+    } catch (error) {
+      s5('intelligence-status').textContent = `Search request interrupted (${error.message}); checking for the completed search…`;
+      if (pendingSearch()) void recoverPendingSearch();
+    }
+    finally { if (!pendingSearch()) form.querySelector('button[type="submit"]').disabled = false; }
   });
 });

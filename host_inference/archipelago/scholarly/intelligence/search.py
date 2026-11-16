@@ -788,6 +788,7 @@ def discover(
     sort_info = SORT_DEFINITIONS[sort_mode]
     return {
         "schema": "archipelago.research_intelligence.v2",
+        "export_format_version": "rich30.v1",
         "options": options,
         "retrieved_at": retrieved_at,
         "sources": sources_out,

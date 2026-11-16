@@ -473,9 +473,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         f"Datasets: {n_datasets}/{n_papers}; Metrics: {n_metrics}/{n_papers}"
     )
     if omitted_cols:
-        coverage_summary += (
-            f" (Empty optional columns omitted from Papers: {', '.join(omitted_cols)})"
-        )
+        coverage_summary += f" (Not reported in source evidence: {', '.join(omitted_cols)})"
 
     # ------------------------------------------------------------------
     # Sheet 1: Start Here
@@ -572,6 +570,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         "Each parameter is independent; there is no composite quality score. Provider names identify the metric source.",
         "OpenAlex 2-year mean citedness is not Clarivate JIF. JIF, CiteScore, SJR, SNIP, journal quartile and ICORE are shown only with an exact verified source match.",
         "Recent author citations cover five calendar years including the retrieval year; topic-paper counts cover this export only.",
+        "Author average citations uses the provider's indexed-work count as its denominator; it may include non-paper works.",
     ]
     for note in notes:
         sh.append(["Note", note])
