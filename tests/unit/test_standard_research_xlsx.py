@@ -423,3 +423,18 @@ def test_evidence_objects_export_as_readable_names() -> None:
     headers = preview["sheets"]["Papers"]["headers"]
     row = preview["sheets"]["Papers"]["rows"][0]["values"]
     assert row[headers.index("Research method")] == "state space model, transformer"
+
+
+def test_venue_name_with_year_is_not_exported_as_an_author() -> None:
+    run = _sample_run()
+    run["papers"][0]["authors"].insert(
+        0, {"name": "Association for Computational Linguistics 2025"}
+    )
+    preview = preview_run(run)
+    authors = preview["sheets"]["Authors"]
+    assert all(
+        "Association for Computational Linguistics" not in row["values"][0]
+        for row in authors["rows"]
+    )
+    paper_authors = preview["sheets"]["Papers"]["rows"][0]["values"][1]
+    assert "Association for Computational Linguistics" not in paper_authors

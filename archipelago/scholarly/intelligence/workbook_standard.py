@@ -15,6 +15,7 @@ from __future__ import annotations
 from datetime import date
 from io import BytesIO
 import math
+import re
 from typing import Any
 
 from openpyxl import Workbook
@@ -127,6 +128,21 @@ def _clean_list_field(items: Any) -> str | None:
         if value and str(value).strip().casefold() not in _PLACEHOLDER_TOKENS:
             cleaned.append(str(value).strip())
     return ", ".join(dict.fromkeys(cleaned)) or None
+
+
+_ORGANIZATION_AUTHOR_TERMS = frozenset(
+    {"association", "conference", "journal", "proceedings", "publisher", "university"}
+)
+_YEAR_IN_NAME = re.compile(r"\b(?:19|20)\d{2}\b")
+
+
+def _valid_author_name(author: dict[str, Any]) -> bool:
+    """Exclude obvious provider venue strings mistaken for personal authors."""
+    name = str(author.get("name") or "").strip()
+    words = set(re.findall(r"[a-z]+", name.casefold()))
+    return bool(name) and not (
+        _YEAR_IN_NAME.search(name) and words.intersection(_ORGANIZATION_AUTHOR_TERMS)
+    )
 
 
 def _is_standard_valid_paper(paper: dict[str, Any]) -> bool:
@@ -273,7 +289,11 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     sheets = {name: book.create_sheet(name) for name in STANDARD_SHEETS}
 
     all_papers = run.get("papers") or []
-    papers = distinct_standard_papers(all_papers)
+    papers = [
+        paper
+        for paper in distinct_standard_papers(all_papers)
+        if any(_valid_author_name(author) for author in paper.get("authors") or [])
+    ]
     excluded_identity = len(all_papers) - len(papers)
     candidate_count = int(run.get("candidate_count") or len(all_papers))
     excluded_total = max(0, candidate_count - len(papers))
@@ -298,10 +318,17 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         smeta = paper.get("source_metadata") or {}
         oa_ids = smeta.get("author_openalex_ids") or []
         s2_ids = smeta.get("author_s2_ids") or []
+        valid_author_indices = [
+            index
+            for index, author in enumerate(paper.get("authors") or [])
+            if _valid_author_name(author)
+        ]
         paper_fields = [str(t) for t in (paper.get("topics") or [])[:2] if t]
         if paper.get("research_field"):
             paper_fields.insert(0, str(paper["research_field"]))
         for idx, author in enumerate(paper.get("authors") or []):
+            if not _valid_author_name(author):
+                continue
             key = author_key(paper, idx)
             norm_name = " ".join(str(author.get("name") or "").casefold().split())
             if norm_name:
@@ -319,10 +346,16 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                     "obs": [],
                     "seen_obs_keys": set(),
                     "topic_papers": set(),
+                    "first_author_papers": set(),
+                    "last_author_papers": set(),
                     "best_relevance": None,
                 },
             )
             entry["topic_papers"].add(str(paper.get("paper_id") or paper.get("title")))
+            if idx == valid_author_indices[0]:
+                entry["first_author_papers"].add(str(paper.get("paper_id") or paper.get("title")))
+            if idx == valid_author_indices[-1]:
+                entry["last_author_papers"].add(str(paper.get("paper_id") or paper.get("title")))
             paper_relevance = relevance_score(paper)
             if paper_relevance is not None:
                 entry["best_relevance"] = max(entry["best_relevance"] or 0, paper_relevance)
@@ -584,7 +617,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     _init_data_sheet(papers_sh, papers_headers, papers_widths)
     for paper in papers:
         authors_str = "; ".join(
-            a.get("name") or "" for a in (paper.get("authors") or []) if a.get("name")
+            a.get("name") or "" for a in (paper.get("authors") or []) if _valid_author_name(a)
         )
         doi = paper.get("doi")
         doi_url = f"https://doi.org/{doi}" if doi else None
@@ -785,12 +818,8 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 None,
                 None,
                 None,
-                sum(author_key(p, 0) == entry["key"] for p in papers if p.get("authors")),
-                sum(
-                    author_key(p, len(p["authors"]) - 1) == entry["key"]
-                    for p in papers
-                    if p.get("authors")
-                ),
+                len(entry["first_author_papers"]),
+                len(entry["last_author_papers"]),
                 None,
             ]
         )

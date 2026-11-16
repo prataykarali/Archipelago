@@ -2,7 +2,7 @@
 
 ## Built
 
-- Added a public, verified state-space-models example at `/research/rankings` with a matching five-sheet XLSX download. The preview shows 94 papers, 323 authors, and 57 publications.
+- Added a public, verified state-space-models example at `/research/rankings` with a matching five-sheet XLSX download. The preview shows 94 papers, 322 authors, and 57 publications after excluding a provider venue string mistaken for an author.
 - Added sortable, searchable Papers, Authors, and Publications tables on the signed-in live search page. The authenticated preview endpoint builds the same standard workbook used by XLSX export, so table cells follow the export's cleansing rules.
 - Added requested rankable columns for paper, author, and publication metrics. Values absent from verified providers remain blank; source-specific scores are labeled.
 - Cleaned method, dataset, and evaluation evidence objects into readable names in the workbook and page.
