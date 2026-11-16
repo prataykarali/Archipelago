@@ -152,28 +152,34 @@ function showRun(run) {
     if (run.google_scholar_url) extLinks.append(makeExtLink(run.google_scholar_url, 'Google Scholar verification ↗'));
     for (const a of extLinks.querySelectorAll('a')) a.className = 's5-badge s5-badge--link';
   }
-  const excelLink = s5('excel-link');
-  excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx`;
-  excelLink.onclick = async event => {
-    event.preventDefault();
-    const runId = activeRunId;
-    if (!runId) return;
-    try {
-      const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx`, { cache: 'no-store', credentials: 'include' });
-      if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `archipelago-research-${runId.slice(0, 8)}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      s5('intelligence-status').textContent = err.message || 'Could not download workbook.';
-    }
+  const topicSlug = String(run.options?.topic || 'research').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) || 'research';
+  const datePart = String(run.retrieved_at || '').slice(0, 10) || 'export';
+  const bindExcelDownload = (el, mode) => {
+    if (!el) return;
+    el.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=${mode}`;
+    el.onclick = async event => {
+      event.preventDefault();
+      const runId = activeRunId;
+      if (!runId) return;
+      try {
+        const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx?mode=${mode}`, { cache: 'no-store', credentials: 'include' });
+        if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `archipelago-${topicSlug}-${datePart}-${mode}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        s5('intelligence-status').textContent = err.message || 'Could not download workbook.';
+      }
+    };
   };
+  bindExcelDownload(s5('excel-link'), 'standard');
+  bindExcelDownload(s5('excel-advanced-link'), 'advanced');
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));

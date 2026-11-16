@@ -41,6 +41,7 @@ MODULES = (
     "archipelago/scholarly/intelligence/storage.py",
     "archipelago/scholarly/intelligence/workbook.py",
     "archipelago/scholarly/intelligence/workbook_extra.py",
+    "archipelago/scholarly/intelligence/workbook_standard.py",
 )
 
 

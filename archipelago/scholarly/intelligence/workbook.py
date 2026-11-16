@@ -16,6 +16,7 @@ from openpyxl.styles import Font, PatternFill
 
 from .graph import author_key, build_graph, venue_key
 from .workbook_extra import EXTRA_HEADERS, populate_extra_sheets
+from .workbook_standard import build_standard_workbook
 
 NA = "PROVIDER_FIELD_ABSENT"
 LICENSE_RESTRICTED = "LICENSE_RESTRICTED"
@@ -102,8 +103,18 @@ def _metric(value: Any, missing_reason: str = NA) -> Any:
     return missing_reason if value is None else value
 
 
-def build_workbook(run: dict[str, Any]) -> BytesIO:
-    """Build typed, source-linked sheets without filling unknown metrics."""
+def build_workbook(run: dict[str, Any], mode: str = "standard") -> BytesIO:
+    """Build either the 5-sheet Standard Export (default) or 14-sheet Advanced Technical Export."""
+    normalized_mode = (mode or "standard").strip().casefold()
+    if normalized_mode == "standard":
+        return build_standard_workbook(run)
+    if normalized_mode != "advanced":
+        raise ValueError("invalid_export_mode")
+    return _build_advanced_workbook(run)
+
+
+def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
+    """Build typed, source-linked 14-sheet technical sheets without filling unknown metrics."""
     book = Workbook()
     default_sheet = book.active
     if default_sheet is not None:

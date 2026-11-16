@@ -642,6 +642,15 @@ def _record_citation_obs(
         paper["citations_per_year"] = round(best["count"] / max(1, current_yr - year + 1), 2)
 
 
+def _safe_json(resp: Any) -> dict[str, Any]:
+    """Parse JSON safely, returning an empty dict on truncated or non-JSON responses."""
+    try:
+        data = resp.json()
+        return data if isinstance(data, dict) else {}
+    except (ValueError, TypeError):
+        return {}
+
+
 def enrich_papers_multi_provider(
     papers: list[dict[str, Any]],
     session: requests.Session | None = None,
@@ -687,7 +696,7 @@ def enrich_papers_multi_provider(
         now = datetime.now(UTC).isoformat()
         if resp is not None and resp.ok:
             by_doi = {}
-            for item in (resp.json().get("results") or []):
+            for item in (_safe_json(resp).get("results") or []):
                 d = str(item.get("doi") or "").lower().removeprefix("https://doi.org/")
                 if d:
                     by_doi[d] = item
@@ -741,7 +750,7 @@ def enrich_papers_multi_provider(
         )
         now = datetime.now(UTC).isoformat()
         if resp is not None and resp.ok:
-            msg = (resp.json().get("message") or {})
+            msg = (_safe_json(resp).get("message") or {})
             meta = p.setdefault("source_metadata", {})
             if not meta.get("publisher") and msg.get("publisher"):
                 meta["publisher"] = msg.get("publisher")
@@ -812,7 +821,7 @@ def enrich_papers_multi_provider(
         )
         now = datetime.now(UTC).isoformat()
         if resp is not None and resp.ok:
-            item = resp.json()
+            item = _safe_json(resp)
             s2_pid = item.get("paperId")
             if s2_pid:
                 ids["semantic_scholar_id"] = ids.get("semantic_scholar_id") or s2_pid
@@ -860,7 +869,7 @@ def enrich_papers_multi_provider(
         )
         now = datetime.now(UTC).isoformat()
         if resp is not None and resp.ok:
-            items = (resp.json().get("results") or [])
+            items = (_safe_json(resp).get("results") or [])
             if items:
                 item = items[0]
                 oaire_id = str(item.get("id") or "").strip() or None

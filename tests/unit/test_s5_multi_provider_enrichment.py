@@ -169,7 +169,7 @@ def test_conflicting_citations_and_unavailable_scholar_in_xlsx() -> None:
         ],
         "author_observations": [],
     }
-    book = load_workbook(BytesIO(build_workbook(run).getvalue()))
+    book = load_workbook(BytesIO(build_workbook(run, mode="advanced").getvalue()))
     assert len(book.sheetnames) == 14
     metric_rows = list(book["Metric_Observations"].iter_rows(min_row=2, values_only=True))
     cit_providers = {(r[2], r[4], r[3]) for r in metric_rows if r[0] == "Paper"}

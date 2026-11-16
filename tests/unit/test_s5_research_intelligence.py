@@ -69,7 +69,7 @@ def test_filters_and_workbook_are_real_typed_cells(tmp_path):
     graph = build_graph(saved)
     assert any(edge["type"] == "AUTHORED_BY" for edge in graph["edges"])
     assert not any(edge["type"] == "CITES" for edge in graph["edges"])
-    book = load_workbook(BytesIO(build_workbook(saved).getvalue()))
+    book = load_workbook(BytesIO(build_workbook(saved, mode="advanced").getvalue()))
     assert book.sheetnames == list(HEADERS)
     papers = {c.value: i for i, c in enumerate(book["Papers"][1], 1)}
     assert book["Papers"].cell(2, papers["Year"]).value == 2025

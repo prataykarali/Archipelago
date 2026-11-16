@@ -108,16 +108,23 @@ def register(app: Flask, _ctx: AppContext) -> None:
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>/xlsx")  # type: ignore[misc]
     def intelligence_xlsx(run_id: uuid.UUID) -> ResponseReturnValue:
+        import re
         from archipelago.scholarly.intelligence.workbook import build_workbook
 
+        mode = (request.args.get("mode") or "standard").strip().lower()
+        if mode not in {"standard", "advanced"}:
+            return jsonify({"error": "invalid_export_mode"}), 400
         run = _run(run_id)
         if not run:
             return jsonify({"error": "not_found"}), 404
+        topic = str((run.get("options") or {}).get("topic") or "research")
+        slug = re.sub(r"[^a-z0-9]+", "-", topic.casefold()).strip("-")[:48] or "research"
+        date_str = str(run.get("retrieved_at") or "")[:10] or "export"
         return send_file(
-            build_workbook(run),
+            build_workbook(run, mode=mode),
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
-            download_name=f"research-{run_id}.xlsx",
+            download_name=f"archipelago-{slug}-{date_str}-{mode}.xlsx",
         )
 
     @app.post("/api/research/intelligence/monitors")  # type: ignore[misc]

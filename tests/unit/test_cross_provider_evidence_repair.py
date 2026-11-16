@@ -231,7 +231,7 @@ def test_workbook_14_sheets_and_accurate_manifest() -> None:
             {"id": "orcid:0000-0001-0002-0003", "name": "Alice Smith", "provider": "orcid", "enrichment_status": "AVAILABLE", "metrics": {"publication_count": 12, "citation_count": None, "h_index": None}},
         ],
     }
-    bio: BytesIO = build_workbook(run)
+    bio: BytesIO = build_workbook(run, mode="advanced")
     wb = load_workbook(bio)
     assert len(wb.sheetnames) == 14
     assert set(wb.sheetnames) == set(HEADERS.keys())

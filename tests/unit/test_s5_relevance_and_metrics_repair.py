@@ -171,7 +171,7 @@ def test_coverage_audit_never_exceeds_100_percent_and_graph_distinguishes_verifi
     assert cov["existence_verified_count"] == 0
     assert cov["unresolved_count"] == 1
 
-    book = load_workbook(BytesIO(build_workbook(run).getvalue()))
+    book = load_workbook(BytesIO(build_workbook(run, mode="advanced").getvalue()))
     ca = book["Coverage_Audit"]
     for r in range(2, ca.max_row + 1):
         pct = ca.cell(r, 9).value
