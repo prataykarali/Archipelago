@@ -231,38 +231,67 @@ class Engine:
             if cards:
                 text = text + "\n" + inventory_card.render_inventory_section(cards)
         elif route in {"GENERAL_EXPLANATION", "DISCONNECTED", "MULTI_CONCEPT"} and (
-            not payload.get("citations") or not payload.get("inventory_cards")
+            not payload.get("anchor_concept") or not payload.get("citations") or not payload.get("inventory_cards")
         ):
-            # Fallback: find closest related OKF node / textbook source for general queries
+            # Fallback: find closest OKF node / textbook source for general queries
+            _FILLER = {
+                "what", "how", "why", "when", "where", "which", "who", "are", "is",
+                "explain", "define", "tell", "about", "does", "the", "and", "for",
+                "with", "from", "into", "concept", "concepts", "related", "topic",
+                "topics", "give", "show", "list", "between", "compare",
+            }
             q_tokens = {
                 tok
                 for tok in re.findall(r"[a-z0-9]{3,}", query.lower())
-                if tok not in {"what", "how", "why", "when", "where", "which", "explain", "define", "tell", "about", "does", "the", "and", "for", "with"}
+                if tok not in _FILLER
             }
             best_cid = None
-            best_hits = 0
+            best_score = 0
             if q_tokens:
                 for cid, node in graph.nodes.items():
-                    hay = f"{graph.label(cid)} {node.get('summary', '')} {node.get('domain', '')}".lower()
-                    hits = sum(1 for tok in q_tokens if tok in hay)
-                    if hits > best_hits:
-                        best_hits = hits
+                    lbl = graph.label(cid).lower()
+                    cid_l = cid.lower().replace("_", " ")
+                    summary_l = str(node.get("summary") or "").lower()
+                    score = 0
+                    for tok in q_tokens:
+                        if tok in lbl or tok in cid_l:
+                            score += 10
+                        elif tok in summary_l:
+                            score += 1
+                    if score > best_score:
+                        best_score = score
                         best_cid = cid
-            if best_cid and best_hits >= 1:
-                if not payload.get("related_concepts"):
-                    payload["related_concepts"] = [node_public(graph.nodes[best_cid])]
-                    rel_pres = [node_public(graph.nodes[p]) for p in graph.prereqs(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
-                    rel_unl = [node_public(graph.nodes[u]) for u in graph.unlocks(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
-                    if rel_pres and not payload.get("prerequisites"):
-                        payload["prerequisites"] = rel_pres
-                    if rel_unl and not payload.get("unlocks"):
-                        payload["unlocks"] = rel_unl
-                if not payload.get("citations"):
+            if best_cid and best_score >= 10:
+                matched_node = graph.nodes[best_cid]
+                if not payload.get("anchor_concept"):
+                    payload["anchor_concept"] = node_public(matched_node)
+                    payload["render_graph"] = True
+                    payload["render_rule"] = "verified_graph_fallback"
+                rel_pres = [node_public(graph.nodes[p]) for p in graph.prereqs(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
+                rel_unl = [node_public(graph.nodes[u]) for u in graph.unlocks(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
+                rel_conn = [node_public(graph.nodes[r]) for r in graph.related(best_cid)[:NEIGHBOUR_NODE_LIMIT]]
+                if rel_pres and not payload.get("prerequisites"):
+                    payload["prerequisites"] = rel_pres
+                if rel_unl and not payload.get("unlocks"):
+                    payload["unlocks"] = rel_unl
+                if rel_conn and not payload.get("related_concepts"):
+                    payload["related_concepts"] = rel_conn
+                if not payload.get("citations") or not any(
+                    c.get("label") or c.get("doc_id") or c.get("url")
+                    for c in (payload.get("citations") or [])
+                    if isinstance(c, dict)
+                ):
                     cite = graph.cite_record(best_cid, query)
+                    if not cite or not (cite.get("label") or cite.get("doc_id") or cite.get("url")):
+                        cite = None
+                        for nbr in (*graph.unlocks(best_cid, 2), *graph.prereqs(best_cid, 2), *graph.related(best_cid)):
+                            cand = graph.cite_record(nbr, query)
+                            if cand and (cand.get("label") or cand.get("doc_id") or cand.get("url")):
+                                cite = cand
+                                break
                     if cite:
                         payload["citations"] = [cite]
-                if not payload.get("inventory_cards"):
-                    matched_node = graph.nodes[best_cid]
+                if not payload.get("inventory"):
                     cards = inventory_card.attach_inventory(
                         payload,
                         best_cid,

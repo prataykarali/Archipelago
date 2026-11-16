@@ -15,6 +15,16 @@ MIN_MATCH_TOKENS = 3
 MAX_CARDS = 2
 
 
+_SUBJECT_PROBES = (
+    (("transaction", "acid", "sql", "dbms", "b-tree", "b+ tree", "lsm", "normal form", "3nf", "concurrency", "relational"), "database system"),
+    (("disk scheduling", "cpu scheduling", "deadlock", "paging", "virtual memory", "semaphore", "mutex", "thread", "process", "kernel", "ostep"), "operating system"),
+    (("dpo", "rlhf", "transformer", "attention", "lora", "rag", "graphrag", "llm", "neural", "backprop", "gradient", "reinforcement"), "artificial intelligence machine learning"),
+    (("tcp", "udp", "http", "routing", "packet", "socket", "osi", "dns"), "computer networks"),
+    (("dijkstra", "sorting", "dynamic programming", "graph", "tree", "heap", "complexity"), "algorithms"),
+    (("compiler", "parser", "lexer", "syntax tree", "ast"), "compilers"),
+)
+
+
 def inventory_cards_for_concept(
     node_id: str,
     node_name: str,
@@ -29,16 +39,23 @@ def inventory_cards_for_concept(
     from .inventory import best_record, match_confidence
 
     haystack = f"{node_name} {node_summary}".strip()
+    hay_lower = haystack.lower()
+    probes = [node_name, haystack]
+    for cues, subject_probe in _SUBJECT_PROBES:
+        if any(cue in hay_lower for cue in cues):
+            probes.append(subject_probe)
+
     cards: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    # Try the full concept first, then progressively narrower: a summary can
-    # dilute the signal of a short concept name.
-    for probe in (node_name, haystack):
+    # Try the full concept first, then progressively narrower / subject-level probes.
+    for probe in probes:
         record, score = best_record(records, probe)
         confidence = match_confidence(score)
-        if record is None or confidence == "none":
+        if record is None or (confidence == "none" and score < 1):
             continue
+        if confidence == "none":
+            confidence = "related"
         key = str(record.get("isbn") or record.get("title") or "")
         if key in seen:
             continue
