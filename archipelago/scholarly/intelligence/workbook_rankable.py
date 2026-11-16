@@ -101,6 +101,7 @@ def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
                     target._style = copy(original._style)
                     if original.hyperlink:
                         target._hyperlink = copy(original.hyperlink)
+                        target._hyperlink.ref = target.coordinate
             else:
                 heading_cell._style = copy(old.cell(1, 1)._style)
                 new.column_dimensions[get_column_letter(new_column)].width = 24

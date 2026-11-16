@@ -168,6 +168,9 @@ def _sample_run() -> dict:
 def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
     wb = load_workbook(BytesIO(build_workbook(_sample_run(), mode="standard").getvalue()))
     assert tuple(wb.sheetnames) == STANDARD_SHEETS
+    assert wb["Papers"].max_column == 19
+    assert wb["Authors"].max_column == 20
+    assert wb["Publications"].max_column == 19
 
     # Check no banned internal codes or JSON blobs anywhere
     for sname in wb.sheetnames:
