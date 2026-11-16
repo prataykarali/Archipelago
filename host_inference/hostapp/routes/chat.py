@@ -99,10 +99,10 @@ def _withdrawn_notice(sources: list) -> str:
 def _research_run_reply(body: dict, query: str, history: object) -> str | None:
     """Answer paper-collection questions from the caller's stored S5 run, or defer."""
     run_id_arg = str(body.get("research_run_id") or body.get("run_id") or "").strip() or None
-    if not run_id_arg and not is_research_request(query, False):
-        return None
     principal = getattr(request, "archipelago_principal", None)
     if not principal or not principal.get("id"):
+        return None
+    if not run_id_arg and not is_research_request(query, True):
         return None
     try:
         from archipelago.scholarly.intelligence.storage import hosted_store

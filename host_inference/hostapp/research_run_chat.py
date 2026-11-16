@@ -20,7 +20,8 @@ FIND = re.compile(
 ORDINALS = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "last": -1}
 COLLECTION = re.compile(
     r"\b(collected|these (works|papers)|this (research )?collection|that paper|the (first|second|third|"
-    r"fourth|fifth|last) paper|that author|the author|authors?|h-index|i10|journals?|conferences?|"
+    r"fourth|fifth|last) paper|(?:last|latest|recent|saved|previous)\s+(?:\d+\s+)?(?:research\s+)?(?:papers?|runs?|searches?)|"
+    r"that author|the author|authors?|h-index|i10|journals?|conferences?|"
     r"venues?|citation relationships?|cit(?:es|ations?)|methods?|datasets?|export|excel|workbook|"
     r"new papers|monitor|monitoring|providers?|results?|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
     r"duplicat(?:ed|es)|external|discuss|mention|cover|quantiz\w*|low[- ]memory|inference)\b",
@@ -385,6 +386,18 @@ def research_chat_reply(
             "text": "There is no saved research collection yet. Ask me to find papers on a topic first.",
             "run_id": None,
         }
+    if re.search(r"\b(?:last|latest|recent|saved|previous)\s+(?:(?P<n>\d+)\s+)?(?:research\s+)?(?:papers?|publications?|studies)\b", query, re.I) and not raw_topic:
+        m_n = re.search(r"\b(?:last|latest|recent|saved|previous)\s+(\d+)\s+", query, re.I)
+        limit_n = min(20, max(1, int(m_n.group(1)))) if m_n else 10
+        papers = list(run.get("papers") or [])[:limit_n]
+        if not papers:
+            return {"text": f"Your latest research collection for “{run.get('topic', 'Research')}” has 0 papers.", "run_id": run_id, "run": run}
+        lines = [f"Here are the last {len(papers)} papers from your Research page collection **“{run.get('topic', 'Research')}”**:"]
+        for i, p in enumerate(papers, 1):
+            authors = ", ".join(str(a.get("name") if isinstance(a, dict) else a) for a in (p.get("authors") or [])[:3])
+            venue = p.get("venue") or p.get("source") or "Scholarly source"
+            lines.append(f"{i}. **{p.get('title', 'Untitled')}** ({p.get('year') or 'n.d.'}) — {authors or 'Unknown authors'} · {venue} — [Open source]({_link(p)})")
+        return {"text": "\n".join(lines), "run_id": run_id, "run": run}
     new_papers = "No monitoring run has been recorded for this collection yet."
     try:
         events = [e for e in store.list_events(owner) if e["kind"] in {"newly_indexed_paper"}]
