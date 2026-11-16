@@ -133,6 +133,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     try {
                         localStorage.setItem(storageKey('archipelago_eval_' + state.target_concept), JSON.stringify(evalData));
                         localStorage.setItem(storageKey('archipelago_choice_' + state.target_concept), 'personalized');
+                        localStorage.setItem(storageKey('archipelago_quiz_cooldown_until'), String(Date.now() + 120000));
                         sessionStorage.removeItem(storageKey('archipelago_adaptive_' + msgId));
                     } catch (_) {}
 

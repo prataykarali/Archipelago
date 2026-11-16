@@ -90,10 +90,10 @@ PROVIDER_MODEL_ENV = {"xkiro": "XKIRO_MODEL", "nvidia": "NVIDIA_MODEL"}
 PROVIDER_BASE_URL = {"xkiro": XKIRO_DEFAULT_BASE_URL, "nvidia": NVIDIA_BASE_URL}
 PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
 
-STREAM_TIMEOUT_SECONDS = 30
-COMPLETE_TIMEOUT_SECONDS = 40
+STREAM_TIMEOUT_SECONDS = 45
+COMPLETE_TIMEOUT_SECONDS = 45
 # Gentle spacing so a burst of polish calls does not trip provider rate limits.
-COMPLETE_SPACING_SECONDS = 0.6
+COMPLETE_SPACING_SECONDS = 0.8
 _provider_lock = threading.Lock()
 _last_provider_call = 0.0
 

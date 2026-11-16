@@ -1,4 +1,5 @@
 import { storageKey } from './storage-key.js';
+import { state as chatState } from './00-state.js';
 // Auto-split from ui/chat/index.html — 12-choose-graph-experience.js
 // Feature module 13 of 22.
 import { dismissGraphChoiceModal, getOrCreateInteractiveZone, getOrCreateQuizZone, showGraphChoiceModal } from './11-populate-topology.js';
@@ -184,10 +185,34 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
         window.startPersonalizedQnA = startPersonalizedQnA;
 
         function switchToPersonalizedGraph(msgId) {
+            if (chatState.isGenerating || window.isGenerating) {
+                const btn = document.getElementById(`quiz-start-${msgId}`);
+                if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.textContent = 'Wait for AI reply to finish…';
+                    setTimeout(() => { if (btn.isConnected) btn.innerHTML = orig; }, 2200);
+                }
+                return;
+            }
             const completed = window._adaptiveState && window._adaptiveState[msgId];
             if (completed && completed.finished) {
                 startPersonalizedQnA(msgId, completed.metadata);
                 return;
+            }
+            if (!(completed && completed.current_mcq)) {
+                try {
+                    const cooldownUntil = Number(localStorage.getItem(storageKey('archipelago_quiz_cooldown_until')) || 0);
+                    if (cooldownUntil && Date.now() < cooldownUntil) {
+                        const rem = Math.max(1, Math.ceil((cooldownUntil - Date.now()) / 1000));
+                        const mins = Math.floor(rem / 60);
+                        const secs = rem % 60;
+                        const btn = document.getElementById(`quiz-start-${msgId}`);
+                        if (btn) {
+                            btn.textContent = `Quiz cooldown (${mins}m ${String(secs).padStart(2, '0')}s)`;
+                        }
+                        return;
+                    }
+                } catch (_) {}
             }
             if (completed && completed.submitted && completed.next_question) {
                 window.advanceAdaptiveStep(msgId);
