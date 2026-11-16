@@ -568,6 +568,38 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         if inventory.match_confidence(title_score) != "none":
             return self._route_shelf_query(shelf_query, best_score)
 
+    if re.search(r"\b(?:number\s+of\s+issues|journal\s+issues?|how\s+many\s+issues|recent\s+publications?|clg\s+works?|college\s+(?:works?|publications?)|institutional\s+publications?)\b", clean_query, re.I):
+        manifest = _load_library_manifest()
+        holdings = list(manifest.get("holdings") or [])
+        journals = list(manifest.get("journal_issues") or [])
+        total_issues = sum(int(j.get("Issues") or j.get("issues") or 1) for j in journals if isinstance(j, dict)) or len(journals)
+        lines = [
+            "**College Library OPAC — Journal Issues & Institutional Holdings**",
+            "",
+            f"- **Indexed Journal Titles:** {len(journals)} ({total_issues} total issues tracked in the Koha OPAC export).",
+            f"- **Catalog Book Holdings:** {len(holdings)} verified holdings in UEM Kolkata Koha OPAC ([https://uemk-opac.l2c2.co.in/](https://uemk-opac.l2c2.co.in/)).",
+        ]
+        if journals:
+            lines.append("")
+            lines.append("**Sample Journal Titles & Issue Counts:**")
+            for j in journals[:10]:
+                if isinstance(j, dict):
+                    j_title = j.get("Title") or j.get("title") or "Journal"
+                    j_cnt = j.get("Issues") or j.get("issues") or 1
+                    lines.append(f"- {j_title} ({j_cnt} issues)")
+        return (
+            "LIBRARY_LOOKUP",
+            "\n".join(lines),
+            None,
+            {
+                "hide_graph": True,
+                "reason": "opac_journal_issues_and_publications",
+                "score": 1.0,
+                "intent_category": IntentCategory.LIBRARY_LOOKUP.value,
+            },
+        )
+    if re.search(r"\b(?:check\s+opac\s+for|opac\s+(?:for|status|check))\b", clean_query, re.I):
+        return self._route_shelf_query(clean_query, best_score)
     if SHELF_RE.search(query):
         shelf_id = (
             anchors[0] if anchors else ("third_normal_form" if "3nf" in query.lower() else None)

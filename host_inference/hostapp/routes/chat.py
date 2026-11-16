@@ -96,6 +96,9 @@ def _withdrawn_notice(sources: list) -> str:
     return ""
 
 
+_RESEARCH_STAFF_ROLES = frozenset({"faculty", "librarian", "administrator"})
+
+
 def _research_run_reply(body: dict, query: str, history: object) -> str | None:
     """Answer paper-collection questions from the caller's stored S5 run, or defer."""
     run_id_arg = str(body.get("research_run_id") or body.get("run_id") or "").strip() or None
@@ -104,6 +107,19 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
         return None
     if not run_id_arg and not is_research_request(query, True):
         return None
+    if str(principal.get("role") or "").lower() not in _RESEARCH_STAFF_ROLES:
+        denied_payload = {
+            "route": "RESEARCH_RESTRICTED",
+            "contract": "GUARDRAIL_INTERCEPT",
+            "render_graph": False,
+            "citations": [],
+        }
+        denied_text = (
+            "Research Intelligence collections, saved runs, and topic monitors are restricted to "
+            "**faculty and librarian** accounts. As a student, you can still ask about academic "
+            "concepts, OPAC book availability, journal issue counts, and college publications."
+        )
+        return json.dumps(denied_payload) + STREAM_MARKER + denied_text + "\n[STREAM_DONE]\n"
     try:
         from archipelago.scholarly.intelligence.storage import hosted_store
 
@@ -306,9 +322,14 @@ def register(app: Flask, ctx: AppContext) -> None:
             t_eng_start = time.perf_counter()
             prepared = ctx.engine.answer(resolved_query)
             t_eng_end = time.perf_counter()
+            principal_role = str((getattr(request, "archipelago_principal", None) or {}).get("role") or "").lower()
+            is_research_staff = principal_role in _RESEARCH_STAFF_ROLES
             should_enrich = (
-                prepared.get("route") in {"RESEARCH_TOPIC", "RESEARCH_UNVERIFIED"}
-                or bool(_RESEARCH_ENRICH_CUE_RE.search(query))
+                is_research_staff
+                and (
+                    prepared.get("route") in {"RESEARCH_TOPIC", "RESEARCH_UNVERIFIED"}
+                    or bool(_RESEARCH_ENRICH_CUE_RE.search(query))
+                )
             )
             if should_enrich:
                 prepared = enrich_with_research(prepared, resolved_query)

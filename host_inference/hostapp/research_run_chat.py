@@ -381,6 +381,11 @@ def research_chat_reply(
             }
         run_id = store.save_run(owner, fresh)
         return {"text": _list(fresh), "run_id": run_id, "run": fresh}
+    if re.search(r"\b(?:list|show|what|my|saved|previous)\b.*\b(?:research\s+)?(?:topics?|runs?|searches?|collections?)\b", query, re.I) and not raw_topic and runs:
+        lines = [f"You have **{len(runs)}** saved Research Intelligence topic run(s):"]
+        for i, r in enumerate(runs[:15], 1):
+            lines.append(f"{i}. **{r.get('topic', 'Untitled')}** ({r.get('paper_count', '?')} papers · {str(r.get('created_at') or '')[:10]})")
+        return {"text": "\n".join(lines), "run_id": run_id, "run": run}
     if run is None:
         return {
             "text": "There is no saved research collection yet. Ask me to find papers on a topic first.",
