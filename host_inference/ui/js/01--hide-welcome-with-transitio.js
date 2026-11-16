@@ -394,6 +394,7 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                             { left: '$', right: '$', display: false },
                             { left: '\\(', right: '\\)', display: false },
                         ],
+                        output: 'html',
                         throwOnError: false,
                     });
                 } catch (err) {

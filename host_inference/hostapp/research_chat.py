@@ -254,6 +254,13 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
     ) or prepared.get("route") == "RESEARCH_UNVERIFIED"
     source_request = prepared.get("route") == "BOOK_PAGE" and RESEARCH_SOURCE_REQUEST.search(query)
     if prepared.get("route") not in ELIGIBLE_ROUTES and not out_of_corpus and not source_request:
+        if prepared.get("route") == "GENERAL_EXPLANATION":
+            payload = dict(prepared.get("payload") or {})
+            if not payload.get("citations"):
+                web_cites = _live_scholarly_sources(query, limit=8)
+                if web_cites:
+                    payload["citations"] = web_cites
+                    prepared = {**prepared, "payload": payload}
         return prepared
     raw_terms = [t for t in SEARCH_WORD.findall(query.casefold()) if t not in SEARCH_STOPWORDS]
     core_terms = {t for t in raw_terms if t not in GENERIC_ACADEMIC_TERMS}

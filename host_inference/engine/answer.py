@@ -195,7 +195,6 @@ class Engine:
             or (
                 route
                 in {
-                    "GRAPH_SYNTHESIS",
                     "GENERAL_EXPLANATION",
                     "RELATION",
                     "CROSS_DOMAIN",
@@ -276,6 +275,7 @@ class Engine:
                 if tok not in _FILLER
             }
             scored_cids: list[tuple[int, str]] = []
+            summary_cids: list[tuple[int, str]] = []
             if q_tokens:
                 for cid, node in graph.nodes.items():
                     lbl = graph.label(cid).lower()
@@ -289,7 +289,12 @@ class Engine:
                             score += 1
                     if score >= 10:
                         scored_cids.append((score, cid))
+                    elif score >= 1:
+                        summary_cids.append((score, cid))
             scored_cids.sort(key=lambda item: (-item[0], item[1]))
+            summary_cids.sort(key=lambda item: (-item[0], item[1]))
+            if not scored_cids and summary_cids:
+                scored_cids = summary_cids[:4]
             best_cid = scored_cids[0][1] if scored_cids else None
             if best_cid:
                 matched_node = graph.nodes[best_cid]

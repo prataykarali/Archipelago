@@ -40,6 +40,7 @@ import { state } from './00-state.js';
                     let p = node.parentNode;
                     while (p && p !== root) {
                         if (SKIP_TAGS.has(p.nodeName)) return NodeFilter.FILTER_REJECT;
+                        if (p.classList && (p.classList.contains('katex') || p.classList.contains('katex-mathml'))) return NodeFilter.FILTER_REJECT;
                         // Skip headings — they are already accent-styled.
                         if (/^H[1-6]$/.test(p.nodeName)) return NodeFilter.FILTER_REJECT;
                         p = p.parentNode;
