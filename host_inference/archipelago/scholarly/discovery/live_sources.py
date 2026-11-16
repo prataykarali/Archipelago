@@ -28,7 +28,7 @@ ARXIV_TIMEOUT_SECONDS = 30
 MAX_SOURCE_RESULTS = 500
 MAX_PAGE_SIZE = 100
 MAX_ARXIV_PAGE_SIZE = 50
-MAX_PAGES_PER_PROVIDER = 6
+MAX_PAGES_PER_PROVIDER = 12
 PAPER_TYPES = frozenset(
     {
         "article",
@@ -100,7 +100,9 @@ class LiveResearchSources:
         )
         self.arxiv = ArXivAdapter()
 
-    def _build_page_params(self, source: str, query: str, page_size: int, page_idx: int) -> dict[str, Any]:
+    def _build_page_params(
+        self, source: str, query: str, page_size: int, page_idx: int
+    ) -> dict[str, Any]:
         offset = page_idx * page_size
         if source == "openalex":
             return {"search": query, "per-page": page_size, "page": page_idx + 1}
@@ -139,7 +141,9 @@ class LiveResearchSources:
                 remaining = count - len(result.records)
                 if remaining <= 0:
                     break
-                page_size = min(remaining, page_cap)
+                # Keep the upstream page size fixed. A shrinking size changes
+                # offset arithmetic after filtered records and repeats pages.
+                page_size = min(count, page_cap)
                 params = self._build_page_params(source, query, page_size, page_idx)
                 response, err = reliability_client().get(
                     self.session,
@@ -157,6 +161,7 @@ class LiveResearchSources:
                         result.status = "rate_limited" if is_rl else "request_failed"
                         result.error = err or "request_failed"
                         return result
+                    result.error = err or "request_failed"
                     break
                 result.http_status = response.status_code
                 result.request_id = response.headers.get("x-request-id") or response.headers.get(
@@ -170,6 +175,7 @@ class LiveResearchSources:
                         result.status = "rate_limited" if result.rate_limited else "http_error"
                         result.error = f"HTTP {response.status_code}"
                         return result
+                    result.error = f"HTTP {response.status_code}"
                     break
                 ctype = (response.headers.get("content-type") or "").lower()
                 if source == "arxiv":
@@ -185,19 +191,23 @@ class LiveResearchSources:
                 if raw_items_count < page_size:
                     break
             result.records = result.records[:count]
-            result.status = "live" if result.records else "live_empty"
+            result.status = (
+                ("live_partial" if result.error else "live") if result.records else "live_empty"
+            )
         except requests.RequestException as exc:
             if not result.records:
                 result.status = "request_failed"
                 result.error = type(exc).__name__
             else:
-                result.status = "live"
+                result.status = "live_partial"
+                result.error = type(exc).__name__
         except (ValueError, KeyError, ET.ParseError) as exc:
             if not result.records:
                 result.status = "parse_failed"
                 result.error = type(exc).__name__
             else:
-                result.status = "live"
+                result.status = "live_partial"
+                result.error = type(exc).__name__
         return result
 
     def _search_extended(
@@ -226,7 +236,9 @@ class LiveResearchSources:
             result.rate_limited = bool(payload.get("rate_limited"))
             result.raw_sha256 = payload.get("raw_sha256")
             result.raw_body = payload.get("raw_body")
-            result.pages_fetched = int(payload.get("pages_fetched") or (1 if payload.get("http_status") == 200 else 0))
+            result.pages_fetched = int(
+                payload.get("pages_fetched") or (1 if payload.get("http_status") == 200 else 0)
+            )
             result.records = list(payload.get("records") or [])
         except requests.RequestException as exc:
             result.status = "request_failed"
@@ -240,7 +252,9 @@ class LiveResearchSources:
         records, _ = self._parse_page(source, body, digest)
         return records
 
-    def _parse_page(self, source: str, body: bytes, digest: str) -> tuple[list[dict[str, Any]], int]:
+    def _parse_page(
+        self, source: str, body: bytes, digest: str
+    ) -> tuple[list[dict[str, Any]], int]:
         if source == "arxiv":
             root = ET.fromstring(body)
             entries = root.findall("atom:entry", self.arxiv.ns)
@@ -252,7 +266,9 @@ class LiveResearchSources:
         if not isinstance(data, dict):
             raise ValueError("expected_json_object")
         if data.get("error") or data.get("status") == "error":
-            raise ValueError(f"provider_error_payload:{data.get('error') or data.get('message') or 'error'}")
+            raise ValueError(
+                f"provider_error_payload:{data.get('error') or data.get('message') or 'error'}"
+            )
         if source == "openalex":
             raw_items = data.get("results")
             if not isinstance(raw_items, list):

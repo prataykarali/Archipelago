@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import logging
 import os
+import re
 from typing import Any, cast
 import uuid
 
@@ -73,10 +74,16 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.intelligence.storage import hosted_store
 
         payload = request.get_json(silent=True)
-        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "")
+        record_user_action(
+            "research_search",
+            str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "",
+        )
         try:
             result = discover(payload if isinstance(payload, dict) else {})
-            if not any(source["status"] in {"live", "live_empty"} for source in result["sources"]):
+            if not any(
+                source["status"] in {"live", "live_partial", "live_empty"}
+                for source in result["sources"]
+            ):
                 return jsonify(
                     {"error": "providers_unavailable", "sources": result["sources"]}
                 ), 503
@@ -108,7 +115,6 @@ def register(app: Flask, _ctx: AppContext) -> None:
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>/xlsx")  # type: ignore[misc]
     def intelligence_xlsx(run_id: uuid.UUID) -> ResponseReturnValue:
-        import re
         from archipelago.scholarly.intelligence.workbook import build_workbook
 
         mode = (request.args.get("mode") or "standard").strip().lower()
@@ -139,7 +145,10 @@ def register(app: Flask, _ctx: AppContext) -> None:
         if _principal()["role"] not in MONITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
         payload = request.get_json(silent=True)
-        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "")
+        record_user_action(
+            "research_search",
+            str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "",
+        )
         try:
             options = validate_options(payload if isinstance(payload, dict) else {})
             cadence_hours = validate_cadence(
@@ -167,7 +176,10 @@ def register(app: Flask, _ctx: AppContext) -> None:
         if _principal()["role"] not in MONITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
         payload = request.get_json(silent=True)
-        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "")
+        record_user_action(
+            "research_search",
+            str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "",
+        )
         if not isinstance(payload, dict):
             return jsonify({"error": "invalid_monitor_update"}), 400
         store = hosted_store()
@@ -237,7 +249,10 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.discovery.scholar_import import import_scholar_citations
 
         payload = request.get_json(silent=True)
-        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "") or {}
+        record_user_action(
+            "research_search",
+            str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "",
+        ) or {}
         if not isinstance(payload, dict) or not str(payload.get("content") or "").strip():
             return jsonify({"error": "empty_import_payload"}), 400
         fmt = str(payload.get("format") or "auto")

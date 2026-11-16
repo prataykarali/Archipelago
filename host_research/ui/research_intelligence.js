@@ -61,19 +61,25 @@ function showRun(run) {
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
   const excelLink = s5('excel-link');
-  excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx`;
+  const scholarLink = s5('scholar-link');
+  if (scholarLink) {
+    scholarLink.hidden = !run.google_scholar_url?.startsWith('https://scholar.google.com/');
+    if (!scholarLink.hidden) scholarLink.href = run.google_scholar_url;
+  }
+  excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=standard`;
   excelLink.onclick = async event => {
     event.preventDefault();
     const runId = activeRunId;
     if (!runId) return;
+    const mode = s5('excel-mode')?.value === 'advanced' ? 'advanced' : 'standard';
     try {
-      const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx`, { cache: 'no-store', credentials: 'include' });
+      const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx?mode=${mode}`, { cache: 'no-store', credentials: 'include' });
       if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
       const blob = await resp.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `archipelago-research-${runId.slice(0, 8)}.xlsx`;
+      a.download = `archipelago-research-${runId.slice(0, 8)}-${mode}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();

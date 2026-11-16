@@ -11,6 +11,7 @@ from archipelago.scholarly.discovery.provider_selector import select_providers
 from archipelago.scholarly.pipeline.relevance import relevance_score
 
 RESEARCH_SOURCES = ("openalex", "crossref", "arxiv", "semantic_scholar")
+MAX_CONCURRENT_PROVIDERS = 4
 
 
 class DiscoveryOrchestrator:
@@ -33,7 +34,7 @@ class DiscoveryOrchestrator:
             query, explicit_sources=explicit_sources, resolved_domain=resolved_domain
         )
         active = plan["selected"] or list(RESEARCH_SOURCES)
-        with ThreadPoolExecutor(max_workers=len(active)) as executor:
+        with ThreadPoolExecutor(max_workers=min(len(active), MAX_CONCURRENT_PROVIDERS)) as executor:
             futures = [
                 executor.submit(self.sources.search, source, query, limit_per_source)
                 for source in active

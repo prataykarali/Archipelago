@@ -31,8 +31,16 @@ from .relevance_engine import disambiguate_query, evaluate_relevance
 
 DEFAULT_TOP_K = 100
 MAX_TOP_K = 500
-SOURCE_MULTIPLIER = 2
+SOURCE_MULTIPLIER = 3
 MAX_CANDIDATE_FETCH = 500
+SSM_QUERY_RE = re.compile(r"\b(?:state[- ]space|space state) models?\b", re.IGNORECASE)
+SSM_EVIDENCE_RE = re.compile(
+    r"\b(?:state[- ]space (?:models?|modelling|modeling|networks?)|"
+    r"structured state space|selective state space|mamba|s4)\b",
+    re.IGNORECASE,
+)
+COMPARABLE_CITATION_PROVIDER = "openalex"
+CITATION_PROVIDER_PRIORITY = ("openalex", "semantic_scholar", "crossref", "europe_pmc", "openaire")
 MAX_QUERY_CHARS = 200
 VERSION_SUFFIX = re.compile(r"/v\d+$", re.IGNORECASE)
 VALID_DOI = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
@@ -93,6 +101,9 @@ def assess_topic_eligibility(
     query = re.sub(r"[^\w]+", " ", QUERY_MODIFIERS.sub(" ", topic).casefold()).strip()
     if not query:
         return False, "empty_query"
+    if SSM_QUERY_RE.search(query):
+        if not SSM_EVIDENCE_RE.search(title or ""):
+            return False, "missing_central_concepts:state_space_model"
     if QUERY_SLM_RE.search(query) and QUERY_EDGE_RE.search(query):
         has_slm = bool(SLM_CONCEPT_RE.search(text_ta))
         has_edge = bool(EDGE_CONCEPT_RE.search(text_ta))
@@ -101,7 +112,11 @@ def assess_topic_eligibility(
             return True, "matched_slm_edge_efficiency_concepts"
         missing = [
             name
-            for name, ok in (("slm", has_slm), ("edge_on_device", has_edge), ("efficiency", has_eff))
+            for name, ok in (
+                ("slm", has_slm),
+                ("edge_on_device", has_edge),
+                ("efficiency", has_eff),
+            )
             if not ok
         ]
         return False, f"missing_central_concepts:{','.join(missing)}"
@@ -146,18 +161,18 @@ SORT_DEFINITIONS: dict[str, dict[str, str]] = {
     },
     "citations": {
         "label": "Most cited",
-        "definition": "Sorted descending by highest observed single-provider citation count; missing values sorted last (never zero).",
-        "source": "OpenAlex / Semantic Scholar / Crossref / Europe PMC",
+        "definition": "Sorted by OpenAlex citation count only; papers without an OpenAlex observation sort last.",
+        "source": "OpenAlex",
     },
     "foundational": {
         "label": "Foundational / High-impact relevant",
-        "definition": "Sorted descending by highest single-provider citation count (tie-broken by FWCI) within the relevant set; missing values sorted last.",
-        "source": "OpenAlex / Semantic Scholar / Crossref",
+        "definition": "Sorted by OpenAlex citation count, then OpenAlex FWCI; missing values sort last.",
+        "source": "OpenAlex",
     },
     "citations_per_year": {
         "label": "Citations per year",
-        "definition": "Sorted descending by citation_count / max(1, current_year - pub_year + 1); missing values sorted last.",
-        "source": "Derived from single-provider citation count and publication year",
+        "definition": "Sorted by OpenAlex citations / max(1, current_year - pub_year + 1); missing values sort last.",
+        "source": "OpenAlex",
     },
     "fwci": {
         "label": "Field-Weighted Citation Impact (FWCI)",
@@ -180,6 +195,20 @@ SORT_DEFINITIONS: dict[str, dict[str, str]] = {
         "source": "Discovery orchestrator",
     },
 }
+
+
+def _provider_citation_count(row: dict[str, Any], provider: str) -> int | None:
+    """Read one provider's observed count without mixing citation corpora."""
+    for observation in row.get("citation_observations") or []:
+        count = observation.get("count")
+        if (
+            observation.get("provider") == provider
+            and isinstance(count, int)
+            and not isinstance(count, bool)
+            and count >= 0
+        ):
+            return count
+    return None
 
 
 def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
@@ -235,14 +264,17 @@ def discover(
     search_query = " ".join(QUERY_MODIFIERS.sub(" ", options["topic"]).split()) or options["topic"]
     disambig = disambiguate_query(
         options["topic"],
-        field_override=options.get("field") or (str(payload.get("domain")) if payload.get("domain") else None),
+        field_override=options.get("field")
+        or (str(payload.get("domain")) if payload.get("domain") else None),
     )
     explicit_sources = (
         [str(s).strip() for s in payload["sources"] if str(s).strip()]
         if isinstance(payload.get("sources"), list)
         else None
     )
-    fetch_limit = min(MAX_CANDIDATE_FETCH, max(options["top_k"] * SOURCE_MULTIPLIER, options["top_k"] + 50))
+    fetch_limit = min(
+        MAX_CANDIDATE_FETCH, max(options["top_k"] * SOURCE_MULTIPLIER, options["top_k"] + 50)
+    )
     if explicit_sources is not None:
         candidates, sources = engine.discover_with_status(
             search_query, fetch_limit, explicit_sources=explicit_sources
@@ -254,9 +286,7 @@ def discover(
             resolved_domain=disambig["resolved_domain"],
         )
     else:
-        candidates, sources = engine.discover_with_status(
-            search_query, fetch_limit
-        )
+        candidates, sources = engine.discover_with_status(search_query, fetch_limit)
     rows: list[dict[str, Any]] = []
     rel_eligible_by_prov: dict[str, int] = {}
     rel_rejected_by_prov: dict[str, dict[str, int]] = {}
@@ -296,9 +326,16 @@ def discover(
             for inst in (a.institutions or [])
         ):
             continue
-        if options["publisher"] and options["publisher"].casefold() not in str(metadata.get("publisher") or "").casefold():
+        if (
+            options["publisher"]
+            and options["publisher"].casefold()
+            not in str(metadata.get("publisher") or "").casefold()
+        ):
             continue
-        if options["provider"] and options["provider"].casefold() not in str(candidate.get("source") or "").casefold():
+        if (
+            options["provider"]
+            and options["provider"].casefold() not in str(candidate.get("source") or "").casefold()
+        ):
             continue
         fields = " ".join(
             str(value) for value in (metadata.get("topics") or metadata.get("keywords") or [])
@@ -324,7 +361,9 @@ def discover(
         for pidx, p in enumerate(provenance):
             if p is not None and hasattr(p, "model_dump"):
                 dumped = p.model_dump(mode="json")
-                dumped["contribution_type"] = "discovery_primary" if pidx == 0 else "discovery_merged"
+                dumped["contribution_type"] = (
+                    "discovery_primary" if pidx == 0 else "discovery_merged"
+                )
                 source_links.append(dumped)
         citation_observations = [
             {"provider": candidate.get("source"), "count": candidate.get("citation_count")}
@@ -333,10 +372,20 @@ def discover(
             for entry in candidate.get("merge_history", [])
         ]
         citation_observations = [
-            entry for entry in citation_observations if isinstance(entry["count"], int)
+            entry
+            for entry in citation_observations
+            if isinstance(entry["count"], int)
+            and not isinstance(entry["count"], bool)
+            and entry["count"] >= 0
         ]
-        citation_observation = max(
-            citation_observations, key=lambda entry: entry["count"], default=None
+        citation_observation = next(
+            (
+                entry
+                for provider in CITATION_PROVIDER_PRIORITY
+                for entry in citation_observations
+                if entry["provider"] == provider
+            ),
+            next(iter(citation_observations), None),
         )
         doi = paper.identifiers.doi
         valid_doi = doi if doi and VALID_DOI.fullmatch(doi) else None
@@ -356,7 +405,11 @@ def discover(
         pub_vs_preprint = (
             "preprint"
             if (paper.publication_type or "").casefold() == "preprint"
-            or (paper.identifiers.arxiv_id and not valid_doi and (paper.venue or "").casefold() == "arxiv")
+            or (
+                paper.identifiers.arxiv_id
+                and not valid_doi
+                and (paper.venue or "").casefold() == "arxiv"
+            )
             else ("published" if (valid_doi or paper.publication_type) else "unknown")
         )
         missing_identity: list[str] = []
@@ -387,92 +440,90 @@ def discover(
             )
         )
         row_obj = {
-                "paper_id": paper.paper_id,
-                "title": clean_title,
-                "subtitle": metadata.get("subtitle"),
-                "year": year,
-                "publication_date": paper.publication_date,
-                "first_online_date": metadata.get("first_online_date"),
-                "doi": valid_doi,
-                "identifiers": paper.identifiers.model_dump(mode="json"),
-                "arxiv_version": metadata.get("arxiv_version"),
-                "authors": [a.model_dump(mode="json") for a in paper.authors],
-                "venue": paper.venue,
-                "publication_type": paper.publication_type,
-                "published_vs_preprint": pub_vs_preprint,
-                "language": paper.language,
-                "abstract": clean_abstract,
-                "is_open_access": paper.is_open_access,
-                "oa_status": metadata.get("oa_status"),
-                "version_status": metadata.get("version_status"),
-                "url": source_url,
-                "landing_page_url": metadata.get("landing_page_url"),
-                "google_scholar_url": generate_scholar_url(
-                    clean_title, paper.authors[0].name if paper.authors else None
-                ),
-                "google_scholar_status": "NOT_AVAILABLE",
-                "citation_count": cit_count,
-                "citations_per_year": cit_per_year,
-                "influential_citations": metadata.get("influential_citations"),
-                "citation_provider": citation_observation["provider"]
-                if citation_observation
-                else None,
-                "citation_observations": citation_observations,
-                "fwci": metadata.get("fwci"),
-                "citation_normalized_percentile": metadata.get("citation_normalized_percentile"),
-                "references": metadata.get("referenced_works") or [],
-                "source_metadata": metadata,
-                "topics": metadata.get("topics") or metadata.get("keywords") or [],
-                "primary_topic": metadata.get("primary_topic"),
-                "research_domain": metadata.get("research_domain"),
-                "research_field": metadata.get("research_field") or metadata.get("research_domain"),
-                "research_subfield": metadata.get("research_subfield"),
-                "methods": metadata.get("methods") or found["methods"],
-                "models": found["models"],
-                "datasets": metadata.get("datasets") or found["datasets"],
-                "tasks": found["tasks"],
-                "evaluation_metrics": metadata.get("evaluation_metrics")
-                or found["evaluation_metrics"],
-                "claims": found["claims"],
-                "claim_status": found["claim_status"],
-                "field_statuses": found["field_statuses"],
-                "code_repo_urls": found["code_repo_urls"],
-                "dataset_repo_urls": found["dataset_repo_urls"],
-                "grants": metadata.get("grants") or [],
-                "corresponding_authors": metadata.get("corresponding_authors") or [],
-                "author_institutions": metadata.get("author_institutions") or [],
-                "countries_distinct_count": metadata.get("countries_distinct_count"),
-                "institutions_distinct_count": metadata.get("institutions_distinct_count"),
-                "author_ids": metadata.get("author_openalex_ids") or [],
-                "publisher": metadata.get("publisher"),
-                "license": paper.license,
-                "oa_url": paper.oa_url,
-                "retrieved_at": max(fetched) if fetched else None,
-                "retraction_status": metadata.get("retraction_status"),
-                "provenance": source_links,
-                "source": candidate.get("source"),
-                "contributing_providers": list(
-                    candidate.get("contributing_providers")
-                    or ([candidate.get("source")] if candidate.get("source") else [])
-                ),
-                "provider_records": dict(candidate.get("provider_records") or {}),
-                "field_provenance": dict(candidate.get("field_provenance") or {}),
-                "conflicting_observations": list(candidate.get("conflicting_observations") or []),
-                "version_relationships": list(candidate.get("version_relationships") or []),
-                "identity_match_confidence": candidate.get("identity_match_confidence") or "single_provider",
-                "evidence_status": "REFERENCE_METADATA_AVAILABLE"
-                if metadata.get("referenced_works")
-                else "ABSTRACT_AVAILABLE"
-                if paper.abstract
-                else "METADATA_ONLY",
-                "eligibility_reason": eligibility_reason,
-                "relevance_classification": rel_eval,
-                "identity_review": review,
-                "discovered_by": discovered_by,
-                "enriched_by": [],
-                "standard_eligible": len(missing_identity) == 0,
-                "standard_exclusion_reasons": missing_identity,
-                "evidence_completeness_score": evidence_completeness,
+            "paper_id": paper.paper_id,
+            "title": clean_title,
+            "subtitle": metadata.get("subtitle"),
+            "year": year,
+            "publication_date": paper.publication_date,
+            "first_online_date": metadata.get("first_online_date"),
+            "doi": valid_doi,
+            "identifiers": paper.identifiers.model_dump(mode="json"),
+            "arxiv_version": metadata.get("arxiv_version"),
+            "authors": [a.model_dump(mode="json") for a in paper.authors],
+            "venue": paper.venue,
+            "publication_type": paper.publication_type,
+            "published_vs_preprint": pub_vs_preprint,
+            "language": paper.language,
+            "abstract": clean_abstract,
+            "is_open_access": paper.is_open_access,
+            "oa_status": metadata.get("oa_status"),
+            "version_status": metadata.get("version_status"),
+            "url": source_url,
+            "landing_page_url": metadata.get("landing_page_url"),
+            "google_scholar_url": generate_scholar_url(
+                clean_title, paper.authors[0].name if paper.authors else None
+            ),
+            "google_scholar_status": "NOT_AVAILABLE",
+            "citation_count": cit_count,
+            "citations_per_year": cit_per_year,
+            "influential_citations": metadata.get("influential_citations"),
+            "citation_provider": citation_observation["provider"] if citation_observation else None,
+            "citation_observations": citation_observations,
+            "fwci": metadata.get("fwci"),
+            "citation_normalized_percentile": metadata.get("citation_normalized_percentile"),
+            "references": metadata.get("referenced_works") or [],
+            "source_metadata": metadata,
+            "topics": metadata.get("topics") or metadata.get("keywords") or [],
+            "primary_topic": metadata.get("primary_topic"),
+            "research_domain": metadata.get("research_domain"),
+            "research_field": metadata.get("research_field") or metadata.get("research_domain"),
+            "research_subfield": metadata.get("research_subfield"),
+            "methods": metadata.get("methods") or found["methods"],
+            "models": found["models"],
+            "datasets": metadata.get("datasets") or found["datasets"],
+            "tasks": found["tasks"],
+            "evaluation_metrics": metadata.get("evaluation_metrics") or found["evaluation_metrics"],
+            "claims": found["claims"],
+            "claim_status": found["claim_status"],
+            "field_statuses": found["field_statuses"],
+            "code_repo_urls": found["code_repo_urls"],
+            "dataset_repo_urls": found["dataset_repo_urls"],
+            "grants": metadata.get("grants") or [],
+            "corresponding_authors": metadata.get("corresponding_authors") or [],
+            "author_institutions": metadata.get("author_institutions") or [],
+            "countries_distinct_count": metadata.get("countries_distinct_count"),
+            "institutions_distinct_count": metadata.get("institutions_distinct_count"),
+            "author_ids": metadata.get("author_openalex_ids") or [],
+            "publisher": metadata.get("publisher"),
+            "license": paper.license,
+            "oa_url": paper.oa_url,
+            "retrieved_at": max(fetched) if fetched else None,
+            "retraction_status": metadata.get("retraction_status"),
+            "provenance": source_links,
+            "source": candidate.get("source"),
+            "contributing_providers": list(
+                candidate.get("contributing_providers")
+                or ([candidate.get("source")] if candidate.get("source") else [])
+            ),
+            "provider_records": dict(candidate.get("provider_records") or {}),
+            "field_provenance": dict(candidate.get("field_provenance") or {}),
+            "conflicting_observations": list(candidate.get("conflicting_observations") or []),
+            "version_relationships": list(candidate.get("version_relationships") or []),
+            "identity_match_confidence": candidate.get("identity_match_confidence")
+            or "single_provider",
+            "evidence_status": "REFERENCE_METADATA_AVAILABLE"
+            if metadata.get("referenced_works")
+            else "ABSTRACT_AVAILABLE"
+            if paper.abstract
+            else "METADATA_ONLY",
+            "eligibility_reason": eligibility_reason,
+            "relevance_classification": rel_eval,
+            "identity_review": review,
+            "discovered_by": discovered_by,
+            "enriched_by": [],
+            "standard_eligible": len(missing_identity) == 0,
+            "standard_exclusion_reasons": missing_identity,
+            "evidence_completeness_score": evidence_completeness,
         }
         row_obj["google_research"] = classify_google_research_paper(row_obj)
         rows.append(row_obj)
@@ -502,10 +553,15 @@ def discover(
             rows.append(row)
             continue
         # Prefer published version over preprint when collapsing versions of the same work
-        if existing.get("published_vs_preprint") == "preprint" and row.get("published_vs_preprint") == "published":
+        if (
+            existing.get("published_vs_preprint") == "preprint"
+            and row.get("published_vs_preprint") == "published"
+        ):
             idx = rows.index(existing)
             row["alternate_dois"] = list({d for d in (existing.get("doi"), row.get("doi")) if d})
-            row["provenance"] = list(row.get("provenance") or []) + list(existing.get("provenance") or [])
+            row["provenance"] = list(row.get("provenance") or []) + list(
+                existing.get("provenance") or []
+            )
             if not row.get("abstract") and existing.get("abstract"):
                 row["abstract"] = existing["abstract"]
             by_work[wkey] = row
@@ -527,8 +583,8 @@ def discover(
     elif sort_mode in {"citations", "foundational"}:
         rows.sort(
             key=lambda row: (
-                row["citation_count"] is not None,
-                row["citation_count"] if row["citation_count"] is not None else -1,
+                _provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) is not None,
+                _provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) or -1,
                 row["fwci"] if row.get("fwci") is not None else -1.0,
                 row["publication_date"] or "",
             ),
@@ -545,8 +601,9 @@ def discover(
     elif sort_mode == "citations_per_year":
         rows.sort(
             key=lambda row: (
-                row["citations_per_year"] is not None,
-                row["citations_per_year"] if row["citations_per_year"] is not None else -1.0,
+                _provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) is not None,
+                (_provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) or 0)
+                / max(1, datetime.now(UTC).year - (row.get("year") or datetime.now(UTC).year) + 1),
                 row["publication_date"] or "",
             ),
             reverse=True,
@@ -573,7 +630,15 @@ def discover(
             key=lambda row: (
                 sum(
                     bool(row.get(k))
-                    for k in ("abstract", "doi", "methods", "datasets", "evaluation_metrics", "grants", "references")
+                    for k in (
+                        "abstract",
+                        "doi",
+                        "methods",
+                        "datasets",
+                        "evaluation_metrics",
+                        "grants",
+                        "references",
+                    )
                 ),
                 row["publication_date"] or "",
             ),
@@ -592,7 +657,7 @@ def discover(
         oc_dois = [str(r["doi"]) for r in selected if r.get("doi")][:10]
         oc_map = fetch_opencitations_for_dois(engine.sources.session, oc_dois) if oc_dois else {}
         gr_status = check_google_research_access(engine.sources.session, options["topic"])
-        sources_out = list(sources) + [gr_status]
+        sources_out = [*sources, gr_status]
         oa_authors = enrich_authors(selected, session=engine.sources.session)
         s2_authors = enrich_s2_authors(selected, session=engine.sources.session, max_authors=10)
         orcid_map = enrich_orcid_authors(selected, session=engine.sources.session, max_authors=10)
@@ -626,7 +691,12 @@ def discover(
         for p in row.get("provenance") or []:
             stype = p.get("source_type")
             ctype = str(p.get("contribution_type") or "")
-            if stype and ctype == "stage2_enrichment" and stype not in disc_set and stype not in enriched_provs:
+            if (
+                stype
+                and ctype == "stage2_enrichment"
+                and stype not in disc_set
+                and stype not in enriched_provs
+            ):
                 enriched_provs.append(stype)
         row["enriched_by"] = enriched_provs
 
@@ -637,9 +707,7 @@ def discover(
         psrc = str(row.get("source") or "unknown")
         selected_primary_by_prov[psrc] = selected_primary_by_prov.get(psrc, 0) + 1
         seen_provs = {
-            p.get("source_type")
-            for p in (row.get("provenance") or [])
-            if p.get("source_type")
+            p.get("source_type") for p in (row.get("provenance") or []) if p.get("source_type")
         }
         for sp in seen_provs:
             source_contributions[sp] = source_contributions.get(sp, 0) + 1

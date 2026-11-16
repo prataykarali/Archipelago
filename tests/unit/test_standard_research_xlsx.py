@@ -32,7 +32,7 @@ def _sample_run() -> dict:
         "papers": [
             {
                 "paper_id": "p1",
-                "title": "=HYPERLINK(\"http://evil\") State-Space Model",
+                "title": '=HYPERLINK("http://evil") State-Space Model',
                 "year": 2024,
                 "publication_date": "2024-03-01",
                 "doi": "10.1000/ssm1",
@@ -45,10 +45,17 @@ def _sample_run() -> dict:
                 "identity_review": [],
                 "citation_count": 15,
                 "citation_provider": "crossref",
-                "citation_observations": [{"provider": "openalex", "count": 12}, {"provider": "crossref", "count": 15}],
+                "citation_observations": [
+                    {"provider": "openalex", "count": 12},
+                    {"provider": "crossref", "count": 15},
+                ],
                 "identifiers": {"doi": "10.1000/ssm1", "openalex_id": "https://openalex.org/W1"},
                 "authors": [
-                    {"name": "Zhi-Hong Han", "orcid": "https://orcid.org/0000-0003-4007-3995", "institutions": ["NWPU"]},
+                    {
+                        "name": "Zhi-Hong Han",
+                        "orcid": "https://orcid.org/0000-0003-4007-3995",
+                        "institutions": ["NWPU"],
+                    },
                     {"name": "Wei Zhang", "institutions": ["Tsinghua"]},
                 ],
                 "venue": "Journal of Applied Models",
@@ -65,7 +72,10 @@ def _sample_run() -> dict:
                     {"source_type": "crossref", "source_url": "https://doi.org/10.1000/ssm1"},
                 ],
                 "source_metadata": {
-                    "author_openalex_ids": ["https://openalex.org/A5119870128", "https://openalex.org/A100"],
+                    "author_openalex_ids": [
+                        "https://openalex.org/A5119870128",
+                        "https://openalex.org/A100",
+                    ],
                     "author_s2_ids": ["2113962797", None],
                 },
             },
@@ -96,7 +106,9 @@ def _sample_run() -> dict:
                     "provider": "arxiv",
                 },
                 "topics": ["Machine Learning"],
-                "provenance": [{"source_type": "arxiv", "source_url": "https://arxiv.org/abs/2501.00001"}],
+                "provenance": [
+                    {"source_type": "arxiv", "source_url": "https://arxiv.org/abs/2501.00001"}
+                ],
                 "source_metadata": {"author_openalex_ids": ["https://openalex.org/A200"]},
             },
         ],
@@ -109,7 +121,9 @@ def _sample_run() -> dict:
                 "enrichment_status": "AVAILABLE",
                 "source_url": "https://openalex.org/A5119870128",
                 "metrics": {"publication_count": 40, "citation_count": 500, "h_index": 12},
-                "current_affiliations": [{"institution": "Northwestern Polytechnical University", "years": [2024]}],
+                "current_affiliations": [
+                    {"institution": "Northwestern Polytechnical University", "years": [2024]}
+                ],
             },
             {
                 "id": "s2:2113962797",
@@ -205,18 +219,89 @@ def test_advanced_export_still_returns_14_sheets() -> None:
         build_workbook(_sample_run(), mode="unknown")
 
 
-def test_authenticated_xlsx_route_supports_standard_and_advanced_modes(tmp_path, monkeypatch) -> None:
+def test_standard_export_revalidates_old_runs_and_deduplicates_works() -> None:
+    run = _sample_run()
+    duplicate = {**run["papers"][0], "paper_id": "duplicate-provider-record"}
+    reordered_author = {
+        **run["papers"][1],
+        "paper_id": "reordered-author",
+        "authors": [{"name": "Zhang, Wei"}],
+    }
+    invalid = {
+        **run["papers"][0],
+        "paper_id": "invalid",
+        "title": "Irrelevant record",
+        "relevance_classification": {"eligible": False},
+    }
+    run["papers"].extend([duplicate, reordered_author, invalid])
+    book = load_workbook(BytesIO(build_workbook(run, mode="standard").getvalue()))
+    assert book["Papers"].max_row == 3
+    assert book["Sources"].max_row == 4
+    assert book["Start Here"]["B9"].value == 2
+
+
+def test_standard_export_deduplicates_matching_titles_with_different_provider_ids() -> None:
+    run = _sample_run()
+    duplicate = {
+        **run["papers"][0],
+        "paper_id": "another-provider-id",
+        "doi": "10.5555/alternate-record",
+        "authors": [{"name": "Different, Indexing"}],
+    }
+    run["papers"].append(duplicate)
+    book = load_workbook(BytesIO(build_workbook(run, mode="standard").getvalue()))
+    assert book["Papers"].max_row == 3
+
+
+def test_title_only_does_not_claim_methods_datasets_or_metrics() -> None:
+    from archipelago.scholarly.intelligence.extraction import extract_evidence
+
+    found = extract_evidence("Transformer on MNIST with accuracy", None)
+    assert found["methods"] == []
+    assert found["datasets"] == []
+    assert found["evaluation_metrics"] == []
+
+
+def test_state_space_query_rejects_incidental_state_space_mentions() -> None:
+    from archipelago.scholarly.intelligence.search import assess_topic_eligibility
+
+    irrelevant, reason = assess_topic_eligibility(
+        "state-space models in machine learning",
+        "Dynamic resource allocation using machine learning",
+        "The agent explores a state space and action space using reinforcement learning.",
+    )
+    relevant, _ = assess_topic_eligibility(
+        "state-space models in machine learning",
+        "Selective State Space Models for Sequence Learning",
+        "We train a Mamba model on sequence data.",
+    )
+    assert not irrelevant
+    assert reason == "missing_central_concepts:state_space_model"
+    assert relevant
+    incidental, _ = assess_topic_eligibility(
+        "state-space models in machine learning",
+        "Machine Learning Techniques in Optical Communication",
+        "State-space models are mentioned as one of many possible approaches.",
+    )
+    assert not incidental
+
+
+def test_authenticated_xlsx_route_supports_standard_and_advanced_modes(
+    tmp_path, monkeypatch
+) -> None:
     from pathlib import Path
     import sys
 
-    from flask import Flask, request as flask_request
+    from flask import Flask
+    from flask import request as flask_request
 
     host_dir = str(Path(__file__).resolve().parents[2] / "host_inference")
     if host_dir not in sys.path:
         sys.path.insert(0, host_dir)
     monkeypatch.setenv("ARCHIPELAGO_SQLITE_PATH", str(tmp_path / "test_xlsx_routes.sqlite3"))
-    import archipelago.scholarly.intelligence.storage as storage_mod
     from hostapp.routes.research_intelligence import register
+
+    import archipelago.scholarly.intelligence.storage as storage_mod
 
     store = storage_mod.ResearchStore(tmp_path / "test_xlsx_routes.sqlite3")
     monkeypatch.setattr(storage_mod, "hosted_store", lambda: store)
