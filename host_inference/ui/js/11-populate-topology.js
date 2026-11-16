@@ -345,12 +345,20 @@ import { storageKey } from './storage-key.js';
                 ? `<button type="button" onclick="promptFromConcept('${escapeHTML(_nodeLabel(anchor)).replace(/'/g, "\\'")}')" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-400/50 text-amber-200 hover:bg-amber-500/30 text-xs font-bold transition-all cursor-pointer"><i class="fa-solid fa-bullseye text-[11px]"></i><span>${escapeHTML(_nodeLabel(anchor))}</span></button>`
                 : `<span class="text-[11px] text-slate-400 italic">General topic</span>`;
 
+            const anchorType = anchor && (anchor.concept_type || anchor.kind || anchor.type);
+            const anchorDiff = anchor && anchor.difficulty;
+            const anchorMetaBadges = [
+                anchorType ? `<span class="px-2 py-0.5 rounded bg-indigo-500/20 border border-indigo-400/40 text-[10px] font-mono text-indigo-200 uppercase">${escapeHTML(String(anchorType))}</span>` : '',
+                anchorDiff ? `<span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 text-[10px] font-mono text-emerald-200 uppercase">${escapeHTML(String(anchorDiff))}</span>` : '',
+            ].filter(Boolean).join(' ');
+
             zone.innerHTML = `
                 <div class="rounded-2xl border border-indigo-500/30 bg-slate-950/70 p-4 space-y-3 shadow-lg">
                     <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
                         <div class="flex items-center gap-2">
                             <span class="w-6 h-6 rounded-lg bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-300 text-xs"><i class="fa-solid fa-diagram-project"></i></span>
                             <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-200">OKF Knowledge Nodes</span>
+                            ${anchorMetaBadges}
                         </div>
                         <span class="text-[10px] font-mono text-slate-400">Click any node to explore</span>
                     </div>

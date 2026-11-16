@@ -177,6 +177,67 @@ def _score(row: dict, core_terms: set[str], phrases: list[str], query: str = "")
     return score
 
 
+def _live_scholarly_sources(query: str, limit: int = 3) -> list[dict]:
+    """Fetch up to ``limit`` real scholarly citations from OpenAlex (HTTPS-only, read-only)."""
+    clean_q = " ".join(
+        t for t in SEARCH_WORD.findall(query) if t.casefold() not in SEARCH_STOPWORDS
+    )[:120].strip()
+    if len(clean_q) < 3:
+        return []
+    try:
+        resp = requests.get(
+            "https://api.openalex.org/works",
+            params={
+                "search": clean_q,
+                "per-page": str(limit),
+                "select": "id,title,publication_year,doi,primary_location,authorships",
+            },
+            timeout=2.5,
+        )
+        if resp.status_code != 200:
+            return []
+        works = (resp.json() or {}).get("results") or []
+    except (requests.RequestException, ValueError):
+        return []
+
+    out: list[dict] = []
+    for idx, work in enumerate(works, start=1):
+        if not isinstance(work, dict):
+            continue
+        title = " ".join(str(work.get("title") or "").split())[:160]
+        if not title:
+            continue
+        doi = str(work.get("doi") or "").strip()
+        loc = (work.get("primary_location") or {}).get("landing_page_url") or ""
+        url = doi if doi.startswith("https://") else (str(loc) if str(loc).startswith("https://") else "")
+        if not url:
+            continue
+        authors = ", ".join(
+            str((a.get("author") or {}).get("display_name") or "")
+            for a in (work.get("authorships") or [])[:3]
+            if isinstance(a, dict) and (a.get("author") or {}).get("display_name")
+        )
+        year = work.get("publication_year")
+        out.append(
+            {
+                "evidence_id": f"S{idx}",
+                "title": title,
+                "doc_title": title,
+                "authors": authors,
+                "publication_year": year,
+                "doi": doi or None,
+                "url": url,
+                "pdf_url": url,
+                "source_type": "scholarly_web",
+                "source_provider": "OpenAlex",
+                "verification_status": "External Scholarly Source",
+                "access_status": "Available",
+                "label": f"[S{idx}: {title[:60]}{f' ({year})' if year else ''}]",
+            }
+        )
+    return out
+
+
 def enrich_with_research(prepared: dict, query: str) -> dict:
     """Attach evidence from the saved research graph when it genuinely matches."""
     try:
@@ -203,7 +264,7 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
         rows = search_records(query, kind=None)
     except (requests.RequestException, RuntimeError, ValueError):
         LOGGER.exception("Research graph lookup unavailable during chat")
-        return prepared
+        rows = []
     limit = MAX_DISCOVERY_SOURCES if DISCOVERY_REQUEST.search(query) else MAX_EVIDENCE_SOURCES
     ranked = sorted(
         (
@@ -216,6 +277,13 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
         reverse=True,
     )[:limit]
     if not ranked:
+        payload = dict(prepared.get("payload") or {})
+        existing_cites = payload.get("citations") or []
+        if not existing_cites and prepared.get("route") not in {"GUARDRAIL_INTERCEPT", "AUTH_GATEWAY"}:
+            web_cites = _live_scholarly_sources(query, limit=3)
+            if web_cites:
+                payload["citations"] = web_cites
+                prepared = {**prepared, "payload": payload}
         return prepared
     payload = dict(prepared.get("payload") or {})
     nodes = []

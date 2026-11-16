@@ -207,6 +207,16 @@ class Engine:
         if extra.get("projection"):
             payload.update(extra["projection"])
         shelf_record = extra.get("inventory") or {}
+        if shelf_record.get("title"):
+            payload["inventory"] = [
+                {
+                    "title": shelf_record.get("title", ""),
+                    "author": shelf_record.get("author", ""),
+                    "isbn": shelf_record.get("isbn", ""),
+                    "confidence": shelf_record.get("status", "OPAC"),
+                    "reader_url": shelf_record.get("reader_url") or shelf_record.get("source_url") or "",
+                }
+            ]
         if shelf_record.get("digital_available"):
             payload["digital_resources"] = [
                 {
