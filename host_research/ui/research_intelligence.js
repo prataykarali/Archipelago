@@ -128,6 +128,7 @@ function showRun(run) {
   };
   const list = s5('paper-results');
   list.replaceChildren();
+  const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));
   for (const paper of run.papers) {
     const article = document.createElement('article');
     article.className = 'research-card';
@@ -140,17 +141,17 @@ function showRun(run) {
     const number = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits) : 'N/A';
     const listValue = value => Array.isArray(value) && value.length ? value.map(item => typeof item === 'string' ? item : item?.name || item?.label || JSON.stringify(item)).join(', ') : 'N/A';
     const metricRows = [
-      ['Citations', number(paper.citation_count)],
+      [`Citations${paper.citation_provider ? ` (${paper.citation_provider})` : ''}`, number(paper.citation_count)],
       ['Citations per year', number(paper.citations_per_year, 2)],
-      ['FWCI', number(paper.fwci, 2)],
-      ['Citation percentile', Number.isFinite(paper.citation_normalized_percentile?.value) ? `${(paper.citation_normalized_percentile.value * 100).toFixed(1)}%` : 'N/A'],
+      ['FWCI (OpenAlex)', number(paper.fwci, 2)],
+      ['Citation percentile (OpenAlex)', Number.isFinite(paper.citation_normalized_percentile?.value) ? `${(paper.citation_normalized_percentile.value * 100).toFixed(1)}%` : 'N/A'],
       ['Topic relevance score', Number.isFinite(paper.relevance_classification?.confidence) ? paper.relevance_classification.confidence.toFixed(2) : 'N/A'],
       ['Publication year', Number.isFinite(paper.year) ? String(paper.year) : 'N/A'],
       ['Benchmark performance', listValue(paper.evaluation_metrics)],
       ['Methodological evidence', listValue(paper.methods)],
       ['Reproducibility', [paper.code_repo_urls?.length ? 'Code linked' : null, paper.dataset_repo_urls?.length ? 'Data linked' : null].filter(Boolean).join(', ') || 'N/A'],
       ['Reference count', Array.isArray(paper.references) && paper.references.length ? String(paper.references.length) : 'N/A'],
-      ['Influential citations', number(paper.influential_citations)],
+      ['Influential citations (Semantic Scholar)', number(paper.influential_citations)],
       ['Open access', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : 'N/A'],
     ];
     for (const [label, value] of metricRows) {
@@ -180,6 +181,40 @@ function showRun(run) {
     references.textContent = `${paper.references.length} provider reference IDs · DOI: ${paper.doi || 'unavailable'}`;
     details.append(summary, body, references);
     article.append(details);
+    const authorDetails = document.createElement('details');
+    const authorSummary = document.createElement('summary');
+    authorSummary.textContent = 'Author parameters';
+    authorDetails.append(authorSummary);
+    const providerIds = paper.source_metadata?.author_openalex_ids || [];
+    paper.authors?.forEach((author, index) => {
+      const id = (providerIds[index] || '').split('/').pop();
+      const observation = authorsById.get(id);
+      const values = observation?.metrics || {};
+      const authorLine = document.createElement('p');
+      authorLine.textContent = [author.name, Number.isFinite(values.h_index) ? `h-index ${values.h_index}` : null,
+        Number.isFinite(values.i10_index) ? `i10-index ${values.i10_index}` : null,
+        Number.isFinite(values.citation_count) ? `${values.citation_count} citations` : null,
+        Number.isFinite(values.publication_count) ? `${values.publication_count} indexed publications` : null,
+        observation?.provider].filter(Boolean).join(' · ');
+      authorDetails.append(authorLine);
+    });
+    article.append(authorDetails);
+    const venueDetails = paper.venue_details;
+    if (venueDetails) {
+      const venueSection = document.createElement('details');
+      const venueSummary = document.createElement('summary');
+      venueSummary.textContent = 'Publication parameters';
+      const venueLine = document.createElement('p');
+      venueLine.textContent = [venueDetails.name,
+        Number.isFinite(venueDetails.works_count) ? `${venueDetails.works_count} indexed works` : null,
+        Number.isFinite(venueDetails.cited_by_count) ? `${venueDetails.cited_by_count} citations` : null,
+        Number.isFinite(venueDetails.h_index) ? `h-index ${venueDetails.h_index}` : null,
+        Number.isFinite(venueDetails.i10_index) ? `i10-index ${venueDetails.i10_index}` : null,
+        Number.isFinite(venueDetails.openalex_2yr_mean_citedness) ? `2-year mean citedness ${venueDetails.openalex_2yr_mean_citedness.toFixed(2)}` : null,
+        venueDetails.provider].filter(Boolean).join(' · ');
+      venueSection.append(venueSummary, venueLine);
+      article.append(venueSection);
+    }
     list.append(article);
   }
   if (!run.papers.length) list.textContent = 'No papers matched the filters in the returned provider results.';
