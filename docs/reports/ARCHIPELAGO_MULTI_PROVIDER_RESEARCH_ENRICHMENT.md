@@ -92,6 +92,8 @@ Default ordering remains `newest` (`publication_date_desc`). Explicitly selectab
 ## 12. Git SHA & Deployment Verification
 
 - Branch: `feature/multi-provider-research-enrichment`
+- Feature Commit SHA: `c500500`
 - Unit Tests: `32 passed, 1 warning` (`test_s5_research_intelligence.py`, `test_s5_enrichment.py`, `test_s5_multisource_providers.py`, `test_s5_multi_provider_enrichment.py`)
 - Runtime Sync Check: `python3 scripts/ops/sync_s5_host_runtime.py --check` exited `0`
-- Git SHA & Vercel verification: *pending commit & deployment*
+- Vercel Preview Deployment: `https://archipelago-667xwngpn-archipelago-6383.vercel.app` (HTTP 200 on `/research`, auth-gated `/api/research/intelligence/readiness`)
+- Vercel Production Promotion: `https://archipelago-blond.vercel.app/research?run=dab152b3-9821-4002-9ce4-5d3ca2292f30` (HTTP 200, verified live HTML & updated multi-provider filters/UI)
