@@ -378,12 +378,27 @@ def extract_evidence(
         if claims
         else ("NOT_FOUND_IN_AVAILABLE_EVIDENCE" if abstract else "EVIDENCE_INSUFFICIENT")
     )
+    benchmark_performance = []
+    for claim in claims:
+        if claim["claim_type"] != "NUMERICAL_RESULT":
+            continue
+        sentence = claim["exact_evidence"]
+        for dataset in datasets:
+            if dataset["name"].casefold() in sentence.casefold():
+                benchmark_performance.append(
+                    {
+                        "name": f"{dataset['name']}: {claim['normalized_value']}",
+                        "evidence": sentence,
+                        "source_url": source_url,
+                    }
+                )
     return {
         "methods": methods,
         "models": models,
         "datasets": datasets,
         "tasks": tasks,
         "evaluation_metrics": metrics,
+        "benchmark_performance": benchmark_performance,
         "claims": claims,
         "claim_status": claim_status,
         "field_statuses": field_statuses,

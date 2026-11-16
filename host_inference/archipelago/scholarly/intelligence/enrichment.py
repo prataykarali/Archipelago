@@ -41,7 +41,10 @@ def _get_json_with_retry(
                 if attempt < MAX_RETRIES:
                     time.sleep(0.4 * (attempt + 1))
                     continue
-                return None, "PROVIDER_RATE_LIMITED" if resp.status_code == 429 else "PROVIDER_ERROR"
+                return (
+                    None,
+                    "PROVIDER_RATE_LIMITED" if resp.status_code == 429 else "PROVIDER_ERROR",
+                )
             resp.raise_for_status()
             data = resp.json()
             return (data if isinstance(data, dict) else None), None
@@ -264,7 +267,9 @@ def enrich_venues(
                 "name": item.get("display_name"),
                 "alternate_titles": item.get("alternate_titles") or [],
                 "type": item.get("type"),
-                "venue_category": classify_venue_category(item.get("display_name"), item.get("type")),
+                "venue_category": classify_venue_category(
+                    item.get("display_name"), item.get("type")
+                ),
                 "publisher": item.get("host_organization_name"),
                 "issn": item.get("issn") or [],
                 "issn_l": item.get("issn_l"),
@@ -278,7 +283,9 @@ def enrich_venues(
                 "i10_index": stats.get("i10_index"),
                 "openalex_2yr_mean_citedness": stats.get("2yr_mean_citedness"),
                 "counts_by_year": (item.get("counts_by_year") or [])[:10],
-                "topics": [t.get("display_name") for t in item.get("topics") or [] if t.get("display_name")][:8],
+                "topics": [
+                    t.get("display_name") for t in item.get("topics") or [] if t.get("display_name")
+                ][:8],
                 "provider": "openalex",
                 "retrieved_at": observed_at,
                 "impact_factor": None,
@@ -297,7 +304,8 @@ def classify_venue_category(name: str | None, venue_type: str | None = None) -> 
     low_name = (name or "").casefold()
     low_type = (venue_type or "").casefold()
     if low_type == "repository" or any(
-        repo in low_name for repo in ("arxiv", "biorxiv", "medrxiv", "ssrn", "preprint", "zenodo", "osf")
+        repo in low_name
+        for repo in ("arxiv", "biorxiv", "medrxiv", "ssrn", "preprint", "zenodo", "osf")
     ):
         return "preprint_repository"
     if "workshop" in low_name or low_type == "workshop":
@@ -306,7 +314,9 @@ def classify_venue_category(name: str | None, venue_type: str | None = None) -> 
         return "institutional_listing"
     if low_type == "journal":
         return "peer_reviewed_journal"
-    if low_type == "conference" or any(tok in low_name for tok in ("conference", "proceedings", "symposium")):
+    if low_type == "conference" or any(
+        tok in low_name for tok in ("conference", "proceedings", "symposium")
+    ):
         return "peer_reviewed_conference"
     return "unknown"
 
@@ -351,14 +361,20 @@ def enrich_s2_authors(
                 client,
                 "semantic_scholar",
                 f"https://api.semanticscholar.org/graph/v1/author/{sid}",
-                params={"fields": "name,aliases,affiliations,homepage,paperCount,citationCount,hIndex,url"},
+                params={
+                    "fields": "name,aliases,affiliations,homepage,paperCount,citationCount,hIndex,url"
+                },
                 headers=headers,
                 timeout=DEFAULT_TIMEOUT_SECONDS,
                 ttl_seconds=ttl,
                 max_retries=1,
             )
             if resp is None or not resp.ok:
-                status = "RATE_LIMITED" if (resp is not None and resp.status_code == 429) or (err and "429" in err) else "PROVIDER_UNAVAILABLE"
+                status = (
+                    "RATE_LIMITED"
+                    if (resp is not None and resp.status_code == 429) or (err and "429" in err)
+                    else "PROVIDER_UNAVAILABLE"
+                )
                 observations.append(
                     {
                         "id": f"s2:{sid}",
@@ -369,7 +385,8 @@ def enrich_s2_authors(
                         "provider": "semantic_scholar",
                         "retrieved_at": observed_at,
                         "metrics": None,
-                        "error": err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
+                        "error": err
+                        or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
                     }
                 )
                 if status == "RATE_LIMITED":
@@ -458,12 +475,16 @@ def enrich_orcid_authors(
             family = ((name_obj.get("family-name") or {}).get("value") or "").strip()
             credit = ((name_obj.get("credit-name") or {}).get("value") or "").strip()
             activities = data.get("activities-summary") or {}
-            works_groups = ((activities.get("works") or {}).get("group") or [])
-            works_count = len(works_groups) if isinstance(works_groups, list) and "works" in activities else None
+            works_groups = (activities.get("works") or {}).get("group") or []
+            works_count = (
+                len(works_groups)
+                if isinstance(works_groups, list) and "works" in activities
+                else None
+            )
             affs: list[dict[str, Any]] = []
-            emp_groups = (((activities.get("employments") or {}).get("affiliation-group")) or [])
+            emp_groups = ((activities.get("employments") or {}).get("affiliation-group")) or []
             for grp in emp_groups[:5]:
-                for sum_item in (grp.get("summaries") or []):
+                for sum_item in grp.get("summaries") or []:
                     emp = sum_item.get("employment-summary") or {}
                     org = (emp.get("organization") or {}).get("name")
                     if org:
@@ -533,7 +554,9 @@ def detect_author_collisions(papers: list[dict[str, Any]]) -> list[str]:
                 continue
             oa_id = oa_ids[idx] if idx < len(oa_ids) else None
             s2_id = s2_ids[idx] if idx < len(s2_ids) else None
-            ident = str(oa_id or author.get("orcid") or s2_id or f"unverified:{paper['paper_id']}:{idx}")
+            ident = str(
+                oa_id or author.get("orcid") or s2_id or f"unverified:{paper['paper_id']}:{idx}"
+            )
             seen.setdefault(name, set()).add(ident)
     return sorted(name for name, idents in seen.items() if len(idents) > 1)
 
@@ -564,7 +587,9 @@ def venue_observation(
     provider = (
         "openalex"
         if venue_id
-        else (metadata.get("venue_provider") or paper.get("source") or paper.get("citation_provider"))
+        else (
+            metadata.get("venue_provider") or paper.get("source") or paper.get("citation_provider")
+        )
     )
     vtype = metadata.get("venue_type")
     return {
@@ -576,7 +601,9 @@ def venue_observation(
         "issn": metadata.get("venue_issn"),
         "issn_l": metadata.get("venue_issn_l"),
         "url": metadata.get("venue_url"),
-        "source_metadata_url": venue_id if isinstance(venue_id, str) and venue_id.startswith("http") else None,
+        "source_metadata_url": venue_id
+        if isinstance(venue_id, str) and venue_id.startswith("http")
+        else None,
         "open_access": metadata.get("venue_is_oa"),
         "provider": provider,
         "retrieved_at": retrieved_at,
@@ -627,9 +654,7 @@ def _attach_provenance(
     paper["provider_records"] = prec
 
 
-def _record_citation_obs(
-    paper: dict[str, Any], provider: str, count: int | None
-) -> None:
+def _record_citation_obs(paper: dict[str, Any], provider: str, count: int | None) -> None:
     """Append a provider-specific citation observation and update primary if higher."""
     if not isinstance(count, int):
         return
@@ -680,10 +705,9 @@ def enrich_papers_multi_provider(
         return any(p.get("source_type") == prov for p in (paper.get("provenance") or []))
 
     # 1. Batched OpenAlex DOI enrichment for papers NOT already from OpenAlex
-    oa_targets = [
-        p for p in papers
-        if p.get("doi") and not _has_prov(p, "openalex")
-    ][:max_per_provider]
+    oa_targets = [p for p in papers if p.get("doi") and not _has_prov(p, "openalex")][
+        :max_per_provider
+    ]
     if oa_targets:
         dois_filter = "|".join(f"https://doi.org/{p['doi'].strip().lower()}" for p in oa_targets)
         audit["openalex"]["attempts"] += len(oa_targets)
@@ -700,7 +724,7 @@ def enrich_papers_multi_provider(
         now = datetime.now(UTC).isoformat()
         if resp is not None and resp.ok:
             by_doi = {}
-            for item in (_safe_json(resp).get("results") or []):
+            for item in _safe_json(resp).get("results") or []:
                 d = str(item.get("doi") or "").lower().removeprefix("https://doi.org/")
                 if d:
                     by_doi[d] = item
@@ -709,10 +733,21 @@ def enrich_papers_multi_provider(
                 item = by_doi.get(d)
                 if item:
                     oa_id = item.get("id")
-                    p.setdefault("identifiers", {})["openalex_id"] = p["identifiers"].get("openalex_id") or oa_id
+                    p.setdefault("identifiers", {})["openalex_id"] = (
+                        p["identifiers"].get("openalex_id") or oa_id
+                    )
                     meta = p.setdefault("source_metadata", {})
                     if item.get("fwci") is not None and p.get("fwci") is None:
                         p["fwci"] = item.get("fwci")
+                    if (
+                        item.get("citation_normalized_percentile") is not None
+                        and p.get("citation_normalized_percentile") is None
+                    ):
+                        p["citation_normalized_percentile"] = item["citation_normalized_percentile"]
+                    if isinstance(item.get("referenced_works"), list):
+                        p["reference_count"] = len(item["referenced_works"])
+                        if not p.get("references"):
+                            p["references"] = item["referenced_works"]
                     prim_loc = item.get("primary_location") or {}
                     src_obj = prim_loc.get("source") or {}
                     if not meta.get("venue_id") and src_obj.get("id"):
@@ -724,7 +759,9 @@ def enrich_papers_multi_provider(
                         ]
                     if not p.get("topics"):
                         p["topics"] = [
-                            t.get("display_name") for t in (item.get("topics") or [])[:5] if t.get("display_name")
+                            t.get("display_name")
+                            for t in (item.get("topics") or [])[:5]
+                            if t.get("display_name")
                         ]
                     _record_citation_obs(p, "openalex", item.get("cited_by_count"))
                     _attach_provenance(p, "openalex", oa_id, oa_id, now)
@@ -732,14 +769,17 @@ def enrich_papers_multi_provider(
                     secondary_matches["openalex"] += 1
         else:
             audit["openalex"]["failures"].append(
-                {"entity_id": "batch_doi", "error": err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable")}
+                {
+                    "entity_id": "batch_doi",
+                    "error": err
+                    or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
+                }
             )
 
     # 2. Crossref DOI enrichment for papers not yet from Crossref
-    cr_targets = [
-        p for p in papers
-        if p.get("doi") and not _has_prov(p, "crossref")
-    ][:max_per_provider]
+    cr_targets = [p for p in papers if p.get("doi") and not _has_prov(p, "crossref")][
+        :max_per_provider
+    ]
     for p in cr_targets:
         doi = p["doi"].strip()
         audit["crossref"]["attempts"] += 1
@@ -754,7 +794,7 @@ def enrich_papers_multi_provider(
         )
         now = datetime.now(UTC).isoformat()
         if resp is not None and resp.ok:
-            msg = (_safe_json(resp).get("message") or {})
+            msg = _safe_json(resp).get("message") or {}
             meta = p.setdefault("source_metadata", {})
             if not meta.get("publisher") and msg.get("publisher"):
                 meta["publisher"] = msg.get("publisher")
@@ -781,9 +821,13 @@ def enrich_papers_multi_provider(
                         )
                 p["grants"] = grants
             if msg.get("reference") and not p.get("references"):
-                refs = [r.get("DOI") for r in msg["reference"] if isinstance(r, dict) and r.get("DOI")]
+                refs = [
+                    r.get("DOI") for r in msg["reference"] if isinstance(r, dict) and r.get("DOI")
+                ]
                 if refs:
                     p["references"] = refs[:50]
+            if p.get("reference_count") is None and isinstance(msg.get("reference-count"), int):
+                p["reference_count"] = msg["reference-count"]
             # Merge author ORCIDs from Crossref
             cr_authors = msg.get("author") or []
             for idx, ba in enumerate(p.get("authors") or []):
@@ -795,7 +839,11 @@ def enrich_papers_multi_provider(
             secondary_matches["crossref"] += 1
         elif resp is None or resp.status_code != 404:
             audit["crossref"]["failures"].append(
-                {"entity_id": p["paper_id"], "error": err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable")}
+                {
+                    "entity_id": p["paper_id"],
+                    "error": err
+                    or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
+                }
             )
 
     # 3. Semantic Scholar enrichment (server-side API key if set; stop gracefully on 429)
@@ -803,7 +851,8 @@ def enrich_papers_multi_provider(
     if os.getenv("SEMANTIC_SCHOLAR_API_KEY"):
         s2_headers["x-api-key"] = os.environ["SEMANTIC_SCHOLAR_API_KEY"]
     s2_targets = [
-        p for p in papers
+        p
+        for p in papers
         if not _has_prov(p, "semantic_scholar")
         and (p.get("doi") or (p.get("identifiers") or {}).get("arxiv_id"))
     ][:max_per_provider]
@@ -835,6 +884,8 @@ def enrich_papers_multi_provider(
                     meta["author_s2_ids"] = [a.get("authorId") for a in (item.get("authors") or [])]
                 if item.get("influentialCitationCount") is not None:
                     p["influential_citations"] = item.get("influentialCitationCount")
+                if p.get("reference_count") is None and isinstance(item.get("referenceCount"), int):
+                    p["reference_count"] = item["referenceCount"]
                 pdf = item.get("openAccessPdf") or {}
                 if not p.get("oa_url") and pdf.get("url"):
                     p["oa_url"] = pdf["url"]
@@ -847,17 +898,20 @@ def enrich_papers_multi_provider(
             audit["semantic_scholar"]["failures"].append(
                 {
                     "entity_id": p["paper_id"],
-                    "error": "HTTP 429 rate_limited" if is_rl else (err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable")),
+                    "error": "HTTP 429 rate_limited"
+                    if is_rl
+                    else (
+                        err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable")
+                    ),
                 }
             )
             if is_rl:
                 break
 
     # 4. OpenAIRE enrichment by DOI
-    oa_air_targets = [
-        p for p in papers
-        if p.get("doi") and not _has_prov(p, "openaire")
-    ][:max_per_provider]
+    oa_air_targets = [p for p in papers if p.get("doi") and not _has_prov(p, "openaire")][
+        :max_per_provider
+    ]
     for p in oa_air_targets:
         doi = p["doi"].strip()
         audit["openaire"]["attempts"] += 1
@@ -873,25 +927,34 @@ def enrich_papers_multi_provider(
         )
         now = datetime.now(UTC).isoformat()
         if resp is not None and resp.ok:
-            items = (_safe_json(resp).get("results") or [])
+            items = _safe_json(resp).get("results") or []
             if items:
                 item = items[0]
                 oaire_id = str(item.get("id") or "").strip() or None
                 ids = p.setdefault("identifiers", {})
                 if oaire_id and not ids.get("openaire_id"):
                     ids["openaire_id"] = oaire_id
-                url = f"https://explore.openaire.eu/search/publication?pid={oaire_id}" if oaire_id else None
+                url = (
+                    f"https://explore.openaire.eu/search/publication?pid={oaire_id}"
+                    if oaire_id
+                    else None
+                )
                 _attach_provenance(p, "openaire", oaire_id or doi, url, now)
                 audit["openaire"]["successes"] += 1
                 secondary_matches["openaire"] += 1
         else:
             audit["openaire"]["failures"].append(
-                {"entity_id": p["paper_id"], "error": err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable")}
+                {
+                    "entity_id": p["paper_id"],
+                    "error": err
+                    or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
+                }
             )
 
     # 5. arXiv enrichment for papers with arxiv_id not yet carrying arXiv provenance
     arx_targets = [
-        p for p in papers
+        p
+        for p in papers
         if (p.get("identifiers") or {}).get("arxiv_id") and not _has_prov(p, "arxiv")
     ][:max_per_provider]
     for p in arx_targets:
@@ -914,14 +977,24 @@ def enrich_papers_multi_provider(
             secondary_matches["arxiv"] += 1
         elif resp is None or not resp.ok:
             audit["arxiv"]["failures"].append(
-                {"entity_id": p["paper_id"], "error": err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable")}
+                {
+                    "entity_id": p["paper_id"],
+                    "error": err
+                    or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
+                }
             )
 
     # 6. DataCite enrichment only if DOI is actually registered in DataCite (404 = not a DataCite DOI, not an error)
     dc_targets = [
-        p for p in papers
-        if p.get("doi") and not _has_prov(p, "datacite")
-        and (p["doi"].startswith("10.5281/") or p["doi"].startswith("10.48550/") or (p.get("identifiers") or {}).get("datacite_doi"))
+        p
+        for p in papers
+        if p.get("doi")
+        and not _has_prov(p, "datacite")
+        and (
+            p["doi"].startswith("10.5281/")
+            or p["doi"].startswith("10.48550/")
+            or (p.get("identifiers") or {}).get("datacite_doi")
+        )
     ][:max_per_provider]
     for p in dc_targets:
         doi = p["doi"].strip()
@@ -942,7 +1015,11 @@ def enrich_papers_multi_provider(
             secondary_matches["datacite"] += 1
         elif resp is None or (resp.status_code not in (200, 404)):
             audit["datacite"]["failures"].append(
-                {"entity_id": p["paper_id"], "error": err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable")}
+                {
+                    "entity_id": p["paper_id"],
+                    "error": err
+                    or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
+                }
             )
 
     return {"providers": audit, "secondary_matches": secondary_matches}

@@ -177,14 +177,14 @@ def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
                         assert code not in val
                     assert not val.strip().startswith('{"')
 
-    # Papers: 2 rows, formula neutralized, missing citation is labelled N/A (never 0)
+    # Papers: 2 rows, formula neutralized, missing citation is blank (never 0)
     paper_rows = list(wb["Papers"].iter_rows(min_row=2, values_only=True))
     paper_headers = [cell.value for cell in wb["Papers"][1]]
     assert len(paper_rows) == 2
     assert str(paper_rows[0][0]).startswith("'=HYPERLINK")
     assert paper_rows[0][5] == 15
     assert paper_rows[0][paper_headers.index("Citation source")] == "Crossref"
-    assert paper_rows[1][paper_headers.index("Citation count")] == "N/A"
+    assert paper_rows[1][paper_headers.index("Citation count")] is None
 
     # Authors: Zhi-Hong Han / Zhen Han deduplicated to 1 row; Wei Zhang kept as 2 distinct rows!
     author_rows = list(wb["Authors"].iter_rows(min_row=2, values_only=True))
@@ -196,7 +196,7 @@ def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
 
     wei_rows = [r for r in author_rows if r[0] == "Wei Zhang"]
     assert len(wei_rows) == 2
-    assert wei_rows[1][3] == "N/A"  # missing is explicit, not 0 or PROVIDER_UNAVAILABLE
+    assert wei_rows[1][3] is None  # missing is blank, not 0 or an internal code
 
     # Publications: 2 rows, no JIF/CiteScore/SJR/CORE, preprint not marked peer-reviewed
     pub_rows = list(wb["Publications"].iter_rows(min_row=2, values_only=True))
@@ -275,9 +275,9 @@ def test_ranking_parameters_are_individual_typed_columns() -> None:
     assert value("Authors", 2, "Metric provider") == "OpenAlex"
     assert value("Publications", 2, "Venue h-index (OpenAlex)") == 12
     assert value("Publications", 2, "2-year mean citedness (OpenAlex)") == 2.75
-    assert "JIF (Clarivate)" not in [cell.value for cell in book["Publications"][1]]
-    assert "CiteScore (Scopus)" not in [cell.value for cell in book["Publications"][1]]
-    assert value("Publications", 3, "Venue h-index (OpenAlex)") == "N/A"
+    assert "JIF (Clarivate)" in [cell.value for cell in book["Publications"][1]]
+    assert "CiteScore (Scopus)" in [cell.value for cell in book["Publications"][1]]
+    assert value("Publications", 3, "Venue h-index (OpenAlex)") is None
 
 
 def test_standard_export_revalidates_old_runs_and_deduplicates_works() -> None:
@@ -441,16 +441,64 @@ def test_rankable_preview_contains_requested_columns_without_fabricating_metrics
     author_headers = preview["sheets"]["Authors"]["headers"]
     venue_headers = preview["sheets"]["Publications"]["headers"]
     assert "Citation count" in paper_headers
-    assert "Benchmark performance" not in paper_headers
-    assert "Checkpoint link available" not in paper_headers
-    assert "g-index" not in author_headers
-    assert "Field-normalized impact" not in author_headers
-    assert "JIF (Clarivate)" not in venue_headers
-    assert "h5-index" not in venue_headers
-    for name in ("Papers", "Authors", "Publications"):
-        assert all(
-            value is not None for row in preview["sheets"][name]["rows"] for value in row["values"]
-        )
+    assert "Benchmark performance" in paper_headers
+    assert "Checkpoint link available" in paper_headers
+    assert "g-index" in author_headers
+    assert "Field-normalized impact" in author_headers
+    assert "JIF (Clarivate)" in venue_headers
+    assert "h5-index" in venue_headers
+    assert (
+        preview["sheets"]["Papers"]["rows"][0]["values"][
+            paper_headers.index("Benchmark performance")
+        ]
+        is None
+    )
+    assert {
+        "Citation count",
+        "Citations per year",
+        "FWCI (OpenAlex)",
+        "Citation percentile (OpenAlex)",
+        "Relevance score (0-1)",
+        "Year",
+        "Benchmark performance",
+        "Method evidence",
+        "Reproducibility indicators",
+        "Indexed references",
+        "Influential citations (Semantic Scholar)",
+        "Open access",
+    }.issubset(paper_headers)
+    assert {
+        "h-index",
+        "i10-index",
+        "g-index",
+        "m-quotient",
+        "Citation count",
+        "Publication count",
+        "Avg citations / work",
+        "Median citations / work",
+        "Recent citations (5y)",
+        "Field-normalized impact",
+        "First-author papers in export",
+        "Last-author papers in export",
+        "Best paper relevance (0-1)",
+        "Verified collaborators in export",
+    }.issubset(author_headers)
+    assert {
+        "JIF (Clarivate)",
+        "CiteScore (Scopus)",
+        "SJR (SCImago)",
+        "SNIP",
+        "Journal quartile",
+        "CORE / ICORE rank",
+        "h5-index",
+        "h5-median",
+        "Venue h-index (OpenAlex)",
+        "Venue i10-index (OpenAlex)",
+        "Acceptance rate",
+        "Indexed works (OpenAlex)",
+        "2-year mean citedness (OpenAlex)",
+        "Indexed status (OpenAlex)",
+    }.issubset(venue_headers)
 
 
 def test_evidence_objects_export_as_readable_names() -> None:

@@ -12,7 +12,6 @@ Never exposes internal UUIDs, raw JSON, unavailable-metric codes, or zero-filled
 
 from __future__ import annotations
 
-from copy import copy
 from datetime import date
 from io import BytesIO
 import math
@@ -38,6 +37,21 @@ from .standard_validation import distinct_standard_papers
 MAX_CELL_CHARS = 32000
 
 STANDARD_SHEETS = ("Start Here", "Papers", "Authors", "Publications", "Sources")
+UNAVAILABLE_REASONS = {
+    "Benchmark performance": "Needs a named benchmark and reported numeric result in the paper evidence",
+    "g-index": "Needs each author's work-level citation distribution",
+    "Median citations / work": "Needs each author's work-level citation distribution",
+    "Field-normalized impact": "No verified author aggregate supplied by connected sources",
+    "JIF (Clarivate)": "Clarivate Journal Citation Reports is not connected",
+    "CiteScore (Scopus)": "Scopus CiteScore is not connected",
+    "SJR (SCImago)": "SCImago data is not joined by verified ISSN",
+    "SNIP": "Scopus SNIP is not connected",
+    "Journal quartile": "SCImago/JCR category-year data is not joined",
+    "CORE / ICORE rank": "ICORE conference catalog is not joined",
+    "Acceptance rate": "No year-specific verified venue source is connected",
+    "h5-index": "No verified five-year venue series is connected",
+    "h5-median": "No verified five-year venue series is connected",
+}
 
 PROVIDER_LABELS: dict[str, str] = {
     "openalex": "OpenAlex",
@@ -246,50 +260,6 @@ def _set_link(cell: Any, url: str | None, display_text: str | None = None) -> No
     cell.font = LINK_FONT
 
 
-def _remove_empty_metric_columns(sheet: Any) -> list[str]:
-    """Hide metrics for which this run contains no verified observation."""
-    original_widths = [
-        sheet.column_dimensions[get_column_letter(i)].width for i in range(1, sheet.max_column + 1)
-    ]
-    removed: list[str] = []
-    kept: list[int] = []
-    for col in range(1, sheet.max_column + 1):
-        if any(sheet.cell(row, col).value is not None for row in range(2, sheet.max_row + 1)):
-            kept.append(col)
-        else:
-            removed.append(str(sheet.cell(1, col).value))
-    saved_rows = [
-        [
-            (
-                sheet.cell(row, col).value,
-                copy(sheet.cell(row, col)._style),
-                copy(sheet.cell(row, col).hyperlink),
-            )
-            for col in kept
-        ]
-        for row in range(1, sheet.max_row + 1)
-    ]
-    sheet._cells.clear()
-    for row_idx, cells in enumerate(saved_rows, 1):
-        for col_idx, (value, style, hyperlink) in enumerate(cells, 1):
-            cell = sheet.cell(row_idx, col_idx, value)
-            cell._style = style
-            if hyperlink:
-                cell.hyperlink = hyperlink
-    for new_col, old_col in enumerate(kept, 1):
-        sheet.column_dimensions[get_column_letter(new_col)].width = original_widths[old_col - 1]
-    for old_col in range(len(kept) + 1, len(original_widths) + 1):
-        sheet.column_dimensions.pop(get_column_letter(old_col), None)
-    if kept:
-        sheet.auto_filter.ref = f"A1:{sheet.cell(1, len(kept)).coordinate}"
-    for row in range(2, sheet.max_row + 1):
-        for col in range(1, len(kept) + 1):
-            cell = sheet.cell(row, col)
-            if cell.value is None:
-                cell.value = "N/A"
-    return removed
-
-
 def _pick_author_observation(
     observations: list[dict[str, Any]],
 ) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
@@ -393,6 +363,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                     "topic_papers": set(),
                     "first_author_papers": set(),
                     "last_author_papers": set(),
+                    "verified_collaborators": set(),
                     "best_relevance": None,
                 },
             )
@@ -416,6 +387,9 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             s2_id = s2_ids[idx] if idx < len(s2_ids) else None
             if oa_id:
                 entry["oa_ids"].add(str(oa_id))
+                for coauthor_id in oa_ids:
+                    if coauthor_id and coauthor_id != oa_id:
+                        entry["verified_collaborators"].add(str(coauthor_id))
             if s2_id:
                 entry["s2_ids"].add(str(s2_id))
             orcid_short = str(author.get("orcid") or "").rsplit("/", 1)[-1]
@@ -591,12 +565,12 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     sh.append(["Notes & limitations", ""])
     sh.cell(sh.max_row, 1).font = SUBTITLE_FONT
     notes = [
-        "N/A means the consulted databases did not report that value. Missing counts are never converted to zero; wholly unavailable columns are omitted.",
+        "Blank metric cells mean the connected sources did not verify that value. Missing counts are never converted to zero. All requested parameter columns remain visible.",
         "Citation counts reflect a single attributed database (with observation provider); Citations/year = citations / max(1, current_year - year + 1).",
         "Methods, datasets, and evaluation metrics are extracted strictly from verified abstracts and structured metadata.",
         "Author rows are merged only when verified by persistent identifiers (ORCID, OpenAlex, or Semantic Scholar).",
-        "Ranking fields are independent sortable observations, not a composite quality score. Provider names identify the metric source.",
-        "OpenAlex 2-year mean citedness is not Clarivate JIF. Licensed venue metrics are omitted when no verified values exist.",
+        "Each parameter is independent; there is no composite quality score. Provider names identify the metric source.",
+        "OpenAlex 2-year mean citedness is not Clarivate JIF. JIF, CiteScore, SJR, SNIP, journal quartile and ICORE are shown only with an exact verified source match.",
         "Recent author citations cover five calendar years including the retrieval year; topic-paper counts cover this export only.",
     ]
     for note in notes:
@@ -631,6 +605,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         ("Influential citations (Semantic Scholar)", 24, False, "#,##0"),
         ("Indexed references", 17, False, "#,##0"),
         ("Benchmark performance", 27, True, None),
+        ("Reproducibility indicators", 28, True, None),
     ]
     if include_methods:
         col_specs.append(("Research method", 26, True, None))
@@ -707,8 +682,23 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             nonnegative_number(paper.get("fwci")),
             openalex_citation_percentile(paper),
             nonnegative_number(paper.get("influential_citations")),
-            len(paper["references"]) if paper.get("references") else None,
-            None,
+            paper.get("reference_count")
+            if paper.get("reference_count") is not None
+            else (len(paper["references"]) if paper.get("references") else None),
+            _safe_cell(_clean_list_field(paper.get("benchmark_performance"))),
+            _safe_cell(
+                ", ".join(
+                    label
+                    for label, present in (
+                        ("Code", paper.get("code_repo_urls")),
+                        ("Data", paper.get("dataset_repo_urls")),
+                        ("Checkpoints", paper.get("checkpoint_urls")),
+                        ("Experimental details", paper.get("experimental_details_url")),
+                    )
+                    if present
+                )
+                or None
+            ),
         ]
         if include_methods:
             row_vals.append(_safe_cell(_clean_list_field(paper.get("methods"))))
@@ -865,7 +855,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 None,
                 len(entry["first_author_papers"]),
                 len(entry["last_author_papers"]),
-                None,
+                len(entry["verified_collaborators"]) if entry["verified_collaborators"] else None,
             ]
         )
         r = authors_sh.max_row
@@ -1065,8 +1055,24 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         int_cols={},
     )
 
-    for ranking_sheet in (papers_sh, authors_sh, pubs_sh):
-        _remove_empty_metric_columns(ranking_sheet)
+    sh.append(["", ""])
+    sh.append(["Parameter availability", "Verified values / rows"])
+    for cell in sh[sh.max_row]:
+        cell.font = HEADER_FONT
+        cell.fill = HEADER_FILL
+    for sheet in (papers_sh, authors_sh, pubs_sh):
+        for column in range(1, sheet.max_column + 1):
+            label = sheet.cell(1, column).value
+            populated = sum(
+                sheet.cell(row, column).value is not None for row in range(2, sheet.max_row + 1)
+            )
+            reason = UNAVAILABLE_REASONS.get(str(label), "Not reported in this search")
+            summary = f"{populated} / {sheet.max_row - 1}"
+            if populated == 0:
+                summary += f" · {reason}"
+            sh.append([f"{sheet.title}: {label}", summary])
+            sh.cell(sh.max_row, 1).font = BODY_FONT
+            sh.cell(sh.max_row, 2).font = BODY_FONT
 
     output = BytesIO()
     book.save(output)

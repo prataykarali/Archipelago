@@ -24,6 +24,7 @@ body[data-research-page="papers"] #intelligence-results,body[data-research-page=
 .paper-metrics>div{min-width:0;padding:10px 12px;border:1px solid var(--ax-border-subtle);border-radius:var(--ax-radius-sm);background:var(--ax-surface-0)}
 .paper-metrics dt{color:var(--ax-text-muted);font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
 .paper-metrics dd{margin:5px 0 0;color:var(--ax-text-primary);font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+#paper-results .research-card details h4{margin:16px 0 4px;color:var(--ax-text-primary);font-size:14px}
 #paper-results .research-card>a{display:inline-flex;align-items:center;gap:6px;margin:8px 0 4px;padding:6px 12px;border-radius:999px;background:var(--ax-surface-3);border:1px solid var(--ax-border-strong);color:#f2d6ff;font-size:12px;font-weight:600;text-decoration:none}
 #paper-results .research-card details,#monitor-list details{margin-top:10px;padding:10px 14px;border-radius:var(--ax-radius-sm);background:var(--ax-surface-0);border:1px solid rgba(140,82,181,.32)}
 #paper-results .research-card summary,#monitor-list summary{cursor:pointer;color:#eac4ff;font-size:12.5px;font-weight:600}

@@ -13,12 +13,12 @@
       <label>Papers to collect (maximum) <select name="top_k"><option>50</option><option selected>100</option><option>200</option><option>500</option></select></label>
       <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
       <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
-      <input name="sort" type="hidden" value="provider">
+      <input name="sort" type="hidden" value="relevance">
     </div>
   </form>
   <p id="intelligence-status" role="status">Ready to search.</p>
   <section id="intelligence-results" hidden aria-labelledby="results-heading">
-    <h2 id="results-heading">Paper results</h2><p id="provider-status"></p><p id="retrieved-at"></p>
+    <h2 id="results-heading">Paper results</h2><p>Each parameter is shown separately. A dash means no connected source verified that value; it is never treated as zero.</p><p id="provider-status"></p><p id="retrieved-at"></p>
     <a id="excel-link" href="#">Download paper data (Excel)</a>
     <div id="paper-results"></div>
   </section>

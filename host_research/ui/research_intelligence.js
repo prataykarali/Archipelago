@@ -99,6 +99,24 @@ async function s5Json(url, options = {}) {
   return data;
 }
 
+const metricNumber = (value, digits = 0) => Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
+const metricList = value => Array.isArray(value) && value.length ? value.map(item => typeof item === 'string' ? item : item?.name || item?.label || JSON.stringify(item)).join(', ') : '—';
+
+function metricGrid(rows) {
+  const grid = document.createElement('dl');
+  grid.className = 'paper-metrics';
+  for (const [label, value] of rows) {
+    const item = document.createElement('div');
+    const term = document.createElement('dt');
+    const description = document.createElement('dd');
+    term.textContent = label;
+    description.textContent = value == null || value === '' ? '—' : String(value);
+    item.append(term, description);
+    grid.append(item);
+  }
+  return grid;
+}
+
 function showRun(run) {
   s5('intelligence-results').hidden = false;
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
@@ -136,34 +154,21 @@ function showRun(run) {
     title.textContent = paper.title;
     const facts = document.createElement('p');
     facts.textContent = [paper.authors?.map(author => author.name).join(', '), paper.venue].filter(Boolean).join(' · ');
-    const metrics = document.createElement('dl');
-    metrics.className = 'paper-metrics';
-    const number = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits) : 'N/A';
-    const listValue = value => Array.isArray(value) && value.length ? value.map(item => typeof item === 'string' ? item : item?.name || item?.label || JSON.stringify(item)).join(', ') : 'N/A';
     const metricRows = [
-      [`Citations${paper.citation_provider ? ` (${paper.citation_provider})` : ''}`, number(paper.citation_count)],
-      ['Citations per year', number(paper.citations_per_year, 2)],
-      ['FWCI (OpenAlex)', number(paper.fwci, 2)],
-      ['Citation percentile (OpenAlex)', Number.isFinite(paper.citation_normalized_percentile?.value) ? `${(paper.citation_normalized_percentile.value * 100).toFixed(1)}%` : 'N/A'],
-      ['Topic relevance score', Number.isFinite(paper.relevance_classification?.confidence) ? paper.relevance_classification.confidence.toFixed(2) : 'N/A'],
-      ['Publication year', Number.isFinite(paper.year) ? String(paper.year) : 'N/A'],
-      ['Benchmark performance', listValue(paper.evaluation_metrics)],
-      ['Methodological evidence', listValue(paper.methods)],
-      ['Reproducibility', [paper.code_repo_urls?.length ? 'Code linked' : null, paper.dataset_repo_urls?.length ? 'Data linked' : null].filter(Boolean).join(', ') || 'N/A'],
-      ['Reference count', Array.isArray(paper.references) && paper.references.length ? String(paper.references.length) : 'N/A'],
-      ['Influential citations (Semantic Scholar)', number(paper.influential_citations)],
-      ['Open access', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : 'N/A'],
+      [`Citation count${paper.citation_provider ? ` (${paper.citation_provider})` : ''}`, metricNumber(paper.citation_count)],
+      ['Citations per year', metricNumber(paper.citations_per_year, 2)],
+      ['FWCI (OpenAlex)', metricNumber(paper.fwci, 2)],
+      ['Citation percentile (OpenAlex)', Number.isFinite(paper.citation_normalized_percentile?.value) ? `${(paper.citation_normalized_percentile.value * 100).toFixed(1)}%` : '—'],
+      ['Topic relevance score (0–1)', metricNumber(paper.relevance_classification?.confidence, 2)],
+      ['Publication year', Number.isFinite(paper.year) ? String(paper.year) : '—'],
+      ['Benchmark performance', metricList(paper.benchmark_performance)],
+      ['Methodological evidence', metricList(paper.methods)],
+      ['Reproducibility indicators', [paper.code_repo_urls?.length ? 'Code' : null, paper.dataset_repo_urls?.length ? 'Data' : null, paper.checkpoint_urls?.length ? 'Checkpoints' : null, paper.experimental_details_url ? 'Experimental details' : null].filter(Boolean).join(', ') || '—'],
+      ['Reference count', metricNumber(paper.reference_count ?? (paper.references?.length || null))],
+      ['Influential citation count (Semantic Scholar)', metricNumber(paper.influential_citations)],
+      ['Open-access status', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : '—'],
     ];
-    for (const [label, value] of metricRows) {
-      const item = document.createElement('div');
-      const term = document.createElement('dt');
-      const description = document.createElement('dd');
-      term.textContent = label;
-      description.textContent = value;
-      item.append(term, description);
-      metrics.append(item);
-    }
-    article.append(title, facts, metrics);
+    article.append(title, facts, metricGrid(metricRows));
     if (paper.url && paper.url.startsWith('https://')) {
       const link = document.createElement('a');
       link.href = paper.url;
@@ -178,7 +183,7 @@ function showRun(run) {
     const body = document.createElement('p');
     body.textContent = paper.abstract || 'Abstract unavailable from selected providers.';
     const references = document.createElement('p');
-    references.textContent = `${paper.references.length} provider reference IDs · DOI: ${paper.doi || 'unavailable'}`;
+    references.textContent = `${paper.references?.length || 0} provider reference IDs · DOI: ${paper.doi || 'unavailable'}`;
     details.append(summary, body, references);
     article.append(details);
     const authorDetails = document.createElement('details');
@@ -190,31 +195,72 @@ function showRun(run) {
       const id = (providerIds[index] || '').split('/').pop();
       const observation = authorsById.get(id);
       const values = observation?.metrics || {};
-      const authorLine = document.createElement('p');
-      authorLine.textContent = [author.name, Number.isFinite(values.h_index) ? `h-index ${values.h_index}` : null,
-        Number.isFinite(values.i10_index) ? `i10-index ${values.i10_index}` : null,
-        Number.isFinite(values.citation_count) ? `${values.citation_count} citations` : null,
-        Number.isFinite(values.publication_count) ? `${values.publication_count} indexed publications` : null,
-        observation?.provider].filter(Boolean).join(' · ');
-      authorDetails.append(authorLine);
+      const matchedPapers = id ? run.papers.filter(record => (record.source_metadata?.author_openalex_ids || []).some(value => value.endsWith(id))) : [];
+      const firstPapers = matchedPapers.filter(record => (record.source_metadata?.author_openalex_ids || [])[0]?.endsWith(id)).length;
+      const lastPapers = matchedPapers.filter(record => (record.source_metadata?.author_openalex_ids || []).at(-1)?.endsWith(id)).length;
+      const coauthors = new Set(matchedPapers.flatMap(record => (record.source_metadata?.author_openalex_ids || []).filter(value => value && !value.endsWith(id))));
+      const recent = Array.isArray(values.counts_by_year) && values.counts_by_year.length ? values.counts_by_year.filter(row => Number.isInteger(row.year) && row.year >= new Date().getFullYear() - 4 && Number.isInteger(row.cited_by_count)).reduce((sum, row) => sum + row.cited_by_count, 0) : null;
+      const relevance = matchedPapers.map(record => record.relevance_classification?.confidence).filter(Number.isFinite);
+      const heading = document.createElement('h4');
+      heading.textContent = author.name;
+      authorDetails.append(heading, metricGrid([
+        ['h-index', metricNumber(values.h_index)],
+        ['i10-index', metricNumber(values.i10_index)],
+        ['g-index', '—'],
+        ['m-quotient', Number.isFinite(values.h_index) && Number.isInteger(values.earliest_year) && values.earliest_year <= new Date().getFullYear() ? metricNumber(values.h_index / (new Date().getFullYear() - values.earliest_year + 1), 2) : '—'],
+        ['Total citations', metricNumber(values.citation_count)],
+        ['Total publications', metricNumber(values.publication_count)],
+        ['Average citations per paper', values.publication_count > 0 && Number.isFinite(values.citation_count) ? metricNumber(values.citation_count / values.publication_count, 2) : '—'],
+        ['Median citations per paper', '—'],
+        ['Recent citations (5 years)', metricNumber(recent)],
+        ['Field-normalized impact', '—'],
+        ['First-author publications (this search)', id ? String(firstPapers) : '—'],
+        ['Last-author publications (this search)', id ? String(lastPapers) : '—'],
+        ['Research relevance (this search)', relevance.length ? metricNumber(Math.max(...relevance), 2) : '—'],
+        ['Verified collaborators (this search)', id ? String(coauthors.size) : '—'],
+      ]));
+      if (observation?.source_url?.startsWith('https://')) {
+        const authorSource = document.createElement('a');
+        authorSource.href = observation.source_url;
+        authorSource.target = '_blank';
+        authorSource.rel = 'noopener noreferrer';
+        authorSource.textContent = `Author source: ${observation.provider} ↗`;
+        authorDetails.append(authorSource);
+      }
     });
     article.append(authorDetails);
     const venueDetails = paper.venue_details;
-    if (venueDetails) {
-      const venueSection = document.createElement('details');
-      const venueSummary = document.createElement('summary');
-      venueSummary.textContent = 'Publication parameters';
-      const venueLine = document.createElement('p');
-      venueLine.textContent = [venueDetails.name,
-        Number.isFinite(venueDetails.works_count) ? `${venueDetails.works_count} indexed works` : null,
-        Number.isFinite(venueDetails.cited_by_count) ? `${venueDetails.cited_by_count} citations` : null,
-        Number.isFinite(venueDetails.h_index) ? `h-index ${venueDetails.h_index}` : null,
-        Number.isFinite(venueDetails.i10_index) ? `i10-index ${venueDetails.i10_index}` : null,
-        Number.isFinite(venueDetails.openalex_2yr_mean_citedness) ? `2-year mean citedness ${venueDetails.openalex_2yr_mean_citedness.toFixed(2)}` : null,
-        venueDetails.provider].filter(Boolean).join(' · ');
-      venueSection.append(venueSummary, venueLine);
-      article.append(venueSection);
+    const verifiedVenue = venueDetails?.provider === 'openalex' && venueDetails?.id &&
+      ['peer_reviewed_journal', 'peer_reviewed_conference'].includes(venueDetails.venue_category);
+    const venueSection = document.createElement('details');
+    const venueSummary = document.createElement('summary');
+    venueSummary.textContent = `Publication parameters${paper.venue ? ` · ${paper.venue}` : ''}`;
+    venueSection.append(venueSummary, metricGrid([
+      ['Journal Impact Factor (JIF)', metricNumber(venueDetails?.jif)],
+      ['CiteScore', metricNumber(venueDetails?.citescore)],
+      ['SCImago Journal Rank (SJR)', metricNumber(venueDetails?.sjr, 3)],
+      ['SNIP', metricNumber(venueDetails?.snip, 3)],
+      ['Q1–Q4 quartile', venueDetails?.quartile || '—'],
+      ['CORE/ICORE rank', venueDetails?.icore_rank || '—'],
+      ['h5-index', metricNumber(venueDetails?.h5_index)],
+      ['h5-median', metricNumber(venueDetails?.h5_median)],
+      ['Venue h-index (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.h_index : null)],
+      ['Venue i10-index (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.i10_index : null)],
+      ['Acceptance rate', metricNumber(venueDetails?.acceptance_rate, 1)],
+      ['Indexed publication count (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.works_count : null)],
+      ['Mean citedness, 2-year (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.openalex_2yr_mean_citedness : null, 2)],
+      ['Indexing status', verifiedVenue ? 'Indexed in OpenAlex' : '—'],
+    ]));
+    const venueSourceUrl = venueDetails?.source_metadata_url || venueDetails?.id;
+    if (verifiedVenue && venueSourceUrl?.startsWith('https://')) {
+      const venueSource = document.createElement('a');
+      venueSource.href = venueSourceUrl;
+      venueSource.target = '_blank';
+      venueSource.rel = 'noopener noreferrer';
+      venueSource.textContent = 'Publication source ↗';
+      venueSection.append(venueSource);
     }
+    article.append(venueSection);
     list.append(article);
   }
   if (!run.papers.length) list.textContent = 'No papers matched the filters in the returned provider results.';

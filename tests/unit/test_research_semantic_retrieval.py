@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from archipelago.scholarly.contracts.okf_models import PaperIdentifiers, PaperRecord
+from archipelago.scholarly.intelligence.extraction import extract_evidence
 from archipelago.scholarly.intelligence.relevance_engine import evaluate_relevance
 from archipelago.scholarly.intelligence.search import discover
 from archipelago.scholarly.intelligence.semantic_rerank import (
@@ -73,3 +74,13 @@ def test_semantic_rerank_requires_configured_provider(monkeypatch: pytest.Monkey
     assert scores == {}
     assert audit["status"] == "unavailable"
     assert semantic_rank_cutoff(scores) is None
+
+
+def test_benchmark_performance_needs_named_benchmark_and_numeric_result() -> None:
+    found = extract_evidence(
+        "A model evaluation",
+        "Our method achieves accuracy 92.1% on ImageNet. We also report F1 0.87 without a named dataset.",
+        "https://example.org/paper",
+    )
+    assert found["benchmark_performance"][0]["name"] == "imagenet: accuracy 92.1%"
+    assert len(found["benchmark_performance"]) == 1
