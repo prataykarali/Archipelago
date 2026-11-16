@@ -223,6 +223,11 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         providers = sorted(
             {s.get("source_type") for s in paper["provenance"] if s.get("source_type")}
         )
+        rel = paper.get("relevance_classification") or {}
+        membership_basis = (
+            f"{rel.get('rule_version', 'archipelago.relevance.v2')}: "
+            f"{rel.get('label', 'RELEVANT')} ({paper.get('eligibility_reason') or rel.get('reason') or 'semantic_match'})"
+        )
         add(
             "Topic_Results",
             [
@@ -230,7 +235,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 pid,
                 paper.get("collection_order") or paper.get("rank"),
                 run.get("ordering"),
-                "Topic terms present in provider title, abstract or fields",
+                membership_basis,
                 "; ".join(providers),
                 "; ".join(f"{p}={statuses.get(p, 'unknown')}" for p in providers),
                 paper.get("retrieved_at") or run["retrieved_at"],
@@ -246,7 +251,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                     source.get("fetched_at"),
                     paper.get("license")
                     or ("open access" if paper.get("is_open_access") else None),
-                    paper["evidence_status"],
+                    f"{paper['evidence_status']} | id={source.get('source_record_id') or 'n/a'} | {source.get('contribution_type') or 'discovery'}",
                 ],
             )
         if not paper.get("abstract"):
@@ -268,61 +273,73 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         s2_ids = smeta.get("author_s2_ids") or []
         s2_id = s2_ids[entry["index"]] if entry["index"] < len(s2_ids) else None
         short = provider_id.rsplit("/", 1)[-1] if provider_id else (f"s2:{s2_id}" if s2_id else None)
-        observation = observations.get(short or "", {})
-        metrics = observation.get("metrics") or {}
-        missing_status = (
-            observation.get("enrichment_status")
-            if observation
-            else ("ENRICHMENT_PENDING" if short else "IDENTITY_UNRESOLVED")
-        )
-        if missing_status == "AVAILABLE":
-            missing_status = "PROVIDER_FIELD_ABSENT"
+        orcid_raw = str(author.get("orcid") or "").rsplit("/", 1)[-1]
+        matched_obs: list[dict[str, Any]] = []
+        for candidate_key in (
+            provider_id.rsplit("/", 1)[-1] if provider_id else None,
+            f"s2:{s2_id}" if s2_id else None,
+            f"orcid:{orcid_raw}" if orcid_raw else None,
+        ):
+            if candidate_key and candidate_key in observations:
+                matched_obs.append(observations[candidate_key])
         fields = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:3]})
-        author_rows_meta.append({"key": key, "short": short})
-        profile_url = (
-            observation.get("source_url")
-            or (f"https://openalex.org/{short}" if short and not str(short).startswith("s2:") else None)
-            or (f"https://www.semanticscholar.org/author/{s2_id}" if s2_id else None)
-        )
-        add(
-            "Authors",
-            [
-                key,
-                observation.get("name") or author["name"],
-                observation.get("orcid") or author.get("orcid"),
-                provider_id,
-                s2_id,
-                "; ".join(author.get("institutions") or []),
-                "; ".join(
-                    str(a["institution"])
-                    for a in observation.get("affiliations") or []
-                    if a.get("institution")
-                ),
-                observation.get("identity_review_status")
-                or observation.get("identity_status")
-                or ("provider_linked" if (provider_id or s2_id) else "unverified_name_only"),
-                _metric(metrics.get("publication_count"), missing_status),
-                _metric(metrics.get("citation_count"), missing_status),
-                _metric(metrics.get("h_index"), missing_status),
-                _metric(metrics.get("i10_index"), missing_status),
-                "; ".join(observation.get("topics") or fields),
-                "; ".join(p["paper_id"] for p in entry["papers"][:3]),
-                "; ".join(sorted(coauthors.get(key, ()))),
-                profile_url,
-                observation.get("provider") or "paper metadata",
-                metrics.get("definition"),
-                metrics.get("coverage"),
-                observation.get("retrieved_at"),
-                "; ".join(
-                    str(a["institution"])
-                    for a in observation.get("current_affiliations") or []
-                    if a.get("institution")
-                ) or None,
-                observation.get("google_scholar_search_url"),
-                observation.get("google_scholar_profile_url") or "NOT_AVAILABLE",
-                observation.get("identity_confidence") or ("high_provider_id" if (provider_id or s2_id) else "low_name_only"),
-            ],
-        )
+        rows_to_emit = matched_obs or [{}]
+        for observation in rows_to_emit:
+            metrics = observation.get("metrics") or {}
+            missing_status = (
+                observation.get("enrichment_status")
+                if observation
+                else ("ENRICHMENT_PENDING" if short else "IDENTITY_UNRESOLVED")
+            )
+            if missing_status == "AVAILABLE":
+                missing_status = "PROVIDER_FIELD_ABSENT"
+            obs_short = observation.get("id") or short
+            author_rows_meta.append({"key": key, "short": obs_short, "obs": observation})
+            profile_url = (
+                observation.get("source_url")
+                or (f"https://openalex.org/{short}" if short and not str(short).startswith(("s2:", "orcid:")) else None)
+                or (f"https://www.semanticscholar.org/author/{s2_id}" if s2_id else None)
+                or (f"https://orcid.org/{orcid_raw}" if orcid_raw else None)
+            )
+            add(
+                "Authors",
+                [
+                    key,
+                    observation.get("name") or author["name"],
+                    observation.get("orcid") or author.get("orcid"),
+                    provider_id,
+                    s2_id,
+                    "; ".join(author.get("institutions") or []),
+                    "; ".join(
+                        str(a["institution"])
+                        for a in observation.get("affiliations") or []
+                        if a.get("institution")
+                    ),
+                    observation.get("identity_review_status")
+                    or observation.get("identity_status")
+                    or ("provider_linked" if (provider_id or s2_id or orcid_raw) else "unverified_name_only"),
+                    _metric(metrics.get("publication_count"), missing_status),
+                    _metric(metrics.get("citation_count"), missing_status),
+                    _metric(metrics.get("h_index"), missing_status),
+                    _metric(metrics.get("i10_index"), missing_status),
+                    "; ".join(observation.get("topics") or fields),
+                    "; ".join(p["paper_id"] for p in entry["papers"][:3]),
+                    "; ".join(sorted(coauthors.get(key, ()))),
+                    profile_url,
+                    observation.get("provider") or "paper metadata",
+                    metrics.get("definition"),
+                    metrics.get("coverage"),
+                    observation.get("retrieved_at"),
+                    "; ".join(
+                        str(a["institution"])
+                        for a in observation.get("current_affiliations") or []
+                        if a.get("institution")
+                    ) or None,
+                    observation.get("google_scholar_search_url"),
+                    observation.get("google_scholar_profile_url") or "NOT_AVAILABLE",
+                    observation.get("identity_confidence") or ("high_provider_id" if (provider_id or s2_id or orcid_raw) else "low_name_only"),
+                ],
+            )
     for vid, entry in venues.items():
         paper = entry["paper"]
         details = paper.get("venue_details") or {}
@@ -368,6 +385,14 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
     kinds: dict[str, int] = {}
     for node in graph["nodes"]:
         kinds[node["kind"]] = kinds.get(node["kind"], 0) + 1
+    sort_meta = run.get("sort_metadata") or {}
+    prov_sel = run.get("provider_selection") or {}
+    enr_audit = run.get("enrichment_audit") or {}
+    failed_enr = {
+        p: v.get("failures", [])
+        for p, v in (enr_audit.get("providers") or {}).items()
+        if v.get("failures")
+    }
     manifest = {
         "topic": topic,
         "requested_count": run["options"].get("top_k"),
@@ -378,14 +403,21 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         "filtered_count": run.get("filtered_count"),
         "selected_count": len(run["papers"]),
         "ordering": run.get("ordering"),
-        "ranking_policy": "No ranking or quality scores are computed; order is collection order only",
+        "sort_algorithm": sort_meta.get("selected") or run.get("ordering"),
+        "sort_version": sort_meta.get("version") or "archipelago.sort.v2",
+        "sort_definition": sort_meta.get("definition") or "Sorted by selected ordering",
+        "relevance_rule_version": "archipelago.relevance.v2",
+        "candidate_waterfall": json.dumps(prov_sel.get("waterfall", {}), sort_keys=True),
+        "source_contributions": json.dumps(prov_sel.get("source_contributions", {}), sort_keys=True),
+        "failed_enrichment_requests": json.dumps(failed_enr, sort_keys=True),
+        "query_disambiguation": json.dumps(run.get("query_disambiguation") or {}, sort_keys=True),
         "provider_status": json.dumps(run.get("sources", []), sort_keys=True),
-        "provider_selection": json.dumps(run.get("provider_selection", {}), sort_keys=True),
+        "provider_selection": json.dumps(prov_sel, sort_keys=True),
         "google_scholar_link": run.get("google_scholar_url") or NA,
         "provider_versions": "unavailable from responses",
         "graph_nodes": json.dumps(kinds, sort_keys=True),
         "graph_edges": len(graph["edges"]),
-        "compatibility": "Topic_Rankings was replaced by Topic_Results (no scores)",
+        "compatibility": "14-sheet research intelligence workbook",
     }
     for key, value in manifest.items():
         add("Run_Manifest", [key, value])

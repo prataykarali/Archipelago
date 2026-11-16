@@ -55,11 +55,28 @@ def classify_domain(query: str) -> str:
     return "general"
 
 
+def classify_domain_candidates(query: str) -> list[str]:
+    """Return all plausible domains matched by a query in priority order."""
+    matches: list[str] = []
+    if BIOMED_RE.search(query):
+        matches.append("biomedical")
+    if DATASET_RE.search(query):
+        matches.append("datasets_software")
+    if AICS_RE.search(query):
+        matches.append("ai_cs")
+    if "general" not in matches:
+        matches.append("general")
+    return matches
+
+
 def select_providers(
-    query: str, explicit_sources: list[str] | None = None
+    query: str,
+    explicit_sources: list[str] | None = None,
+    resolved_domain: str | None = None,
 ) -> dict[str, Any]:
     """Select active providers and record explicit skip reasons for unused sources."""
-    domain = classify_domain(query)
+    detected_domain = classify_domain(query)
+    domain = resolved_domain if resolved_domain in DOMAIN_PROFILES else detected_domain
     if explicit_sources:
         selected = [s for s in explicit_sources if s in ALL_MACHINE_SOURCES]
         reason_prefix = "excluded_by_caller_filter"
@@ -74,6 +91,7 @@ def select_providers(
     ]
     return {
         "domain": domain,
+        "detected_domain": detected_domain,
         "selected": selected,
         "skipped": skipped,
     }

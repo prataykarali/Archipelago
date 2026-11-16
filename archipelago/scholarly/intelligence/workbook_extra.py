@@ -158,7 +158,7 @@ def populate_extra_sheets(
         )
 
     for a in author_rows_meta:
-        obs = observations.get(a.get("short") or "") or {}
+        obs = a.get("obs") or observations.get(a.get("short") or "") or {}
         metrics = obs.get("metrics") or {}
         for mname in ("publication_count", "citation_count", "h_index", "i10_index"):
             if metrics.get(mname) is not None:

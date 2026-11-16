@@ -11,7 +11,11 @@ import math
 import re
 from typing import Any
 
-from archipelago.scholarly.discovery.provider_selector import classify_domain
+from archipelago.scholarly.discovery.provider_selector import (
+    DOMAIN_PROFILES,
+    classify_domain,
+    classify_domain_candidates,
+)
 
 RULE_VERSION = "archipelago.relevance.v2"
 
@@ -120,6 +124,95 @@ def _has_ordered_phrase(tokens: list[str], query_terms: list[str], max_gap: int 
     return any(_chain(1, start) for start in positions[0])
 
 
+def _has_tight_unordered_window(
+    tokens: list[str], query_terms: list[str], max_extra_gap: int = 1
+) -> bool:
+    """Return True if all unique query terms co-occur in a tight contiguous window regardless of order.
+
+    Handles compound-head reorderings (e.g. 'space state model' <-> 'state-space model')
+    without allowing scattered false positives across distant parts of a sentence.
+    """
+    unique_terms = set(query_terms)
+    if len(unique_terms) < 2 or len(tokens) < len(unique_terms):
+        return False
+    norm_tokens = [_singular(t) for t in tokens]
+    window = len(unique_terms) + max_extra_gap
+    for start in range(len(norm_tokens) - len(unique_terms) + 1):
+        span = norm_tokens[start : start + window]
+        if unique_terms.issubset(span):
+            return True
+    return False
+
+
+def disambiguate_query(topic: str, field_override: str | None = None) -> dict[str, Any]:
+    """Expose general-purpose query disambiguation without silently rewriting the user query."""
+    intent = understand_query(topic)
+    domain_candidates = classify_domain_candidates(topic)
+    resolved_domain = intent.domain
+    if field_override:
+        fov = field_override.strip().casefold()
+        if fov in DOMAIN_PROFILES:
+            resolved_domain = fov
+        else:
+            matched_override = classify_domain(fov)
+            if matched_override != "general":
+                resolved_domain = matched_override
+
+    alternatives: list[dict[str, str]] = []
+    if len(intent.terms) >= 2:
+        # General compound-reordering / domain-polysemy check
+        if len(intent.terms) in (2, 3):
+            reversed_phrase = " ".join(reversed(intent.terms))
+            swapped_first_two = (
+                f"{intent.terms[1]} {intent.terms[0]} " + " ".join(intent.terms[2:])
+            ).strip()
+            for variant in dict.fromkeys([swapped_first_two, reversed_phrase]):
+                if variant != " ".join(intent.terms):
+                    alternatives.append(
+                        {
+                            "interpretation": variant,
+                            "domain": resolved_domain,
+                            "reason": "reordered_compound_terminology",
+                        }
+                    )
+        for cand_dom in domain_candidates:
+            if cand_dom != resolved_domain:
+                alternatives.append(
+                    {
+                        "interpretation": f"{intent.clean_query} ({cand_dom})",
+                        "domain": cand_dom,
+                        "reason": "cross_disciplinary_domain_interpretation",
+                    }
+                )
+        if resolved_domain == "general":
+            alternatives.append(
+                {
+                    "interpretation": f"{intent.clean_query} (ai_cs: computational / ML architectures)",
+                    "domain": "ai_cs",
+                    "reason": "general_query_may_target_computational_or_ml_literature",
+                }
+            )
+
+    is_ambiguous = bool(
+        len(domain_candidates) > 1
+        or (resolved_domain == "general" and len(intent.terms) >= 2)
+    )
+    return {
+        "raw_query": intent.raw_query,
+        "clean_query": intent.clean_query,
+        "terms": intent.terms,
+        "detected_domain": intent.domain,
+        "resolved_domain": resolved_domain,
+        "is_ambiguous": is_ambiguous,
+        "alternative_interpretations": alternatives[:5],
+        "rewritten": False,
+        "note": (
+            "Query retained verbatim; reordered compound forms and cross-disciplinary "
+            "interpretations are exposed without silent rewriting."
+        ),
+    }
+
+
 def _sentence_cosine(query_terms: list[str], sentence: str) -> float:
     """Compute lightweight normalized TF-cosine similarity between query terms and a sentence."""
     sent_tokens = [_singular(t) for t in _tokenize(sentence) if t not in STOPWORDS]
@@ -169,16 +262,20 @@ def evaluate_relevance(
     phrase_in_title = clean_phrase in title_sing or any(al in title_clean for al in intent.aliases)
     phrase_in_abs = clean_phrase in abs_sing or any(al in abs_clean for al in intent.aliases)
 
-    # 2. Bigram & ordered-phrase proximity check
+    # 2. Bigram & ordered/reordered-phrase proximity check
     title_tokens = _tokenize(title)
     abs_tokens = _tokenize(abs_text)
     bigram_hits_title = sum(1 for bg in intent.bigrams if bg in title_sing)
     bigram_hits_abs = sum(1 for bg in intent.bigrams if bg in abs_sing)
-    tight_in_title = _has_ordered_phrase(title_tokens, intent.terms, max_gap=1)
+    gap = 1 if len(intent.terms) <= 2 else 2
+    tight_in_title = _has_ordered_phrase(title_tokens, intent.terms, max_gap=gap) or _has_tight_unordered_window(
+        title_tokens, intent.terms, max_extra_gap=0
+    )
+    abs_sentences = [sent for sent in SENTENCE_SPLIT_RE.split(abs_text) if sent.strip()]
     tight_in_abs = any(
-        _has_ordered_phrase(_tokenize(sent), intent.terms, max_gap=1)
-        for sent in SENTENCE_SPLIT_RE.split(abs_text)
-        if sent.strip()
+        _has_ordered_phrase(_tokenize(sent), intent.terms, max_gap=gap)
+        or _has_tight_unordered_window(_tokenize(sent), intent.terms, max_extra_gap=0)
+        for sent in abs_sentences
     )
 
     # 3. Term coverage & peak sentence cosine
@@ -206,8 +303,12 @@ def evaluate_relevance(
         }
 
     # If multi-word query (2+ content terms) has NO phrase, NO alias, and NO ordered phrase in title/abs -> scattered false positive!
+    # For 4+ term multi-concept queries, allow >=2 matching bigrams with >=0.8 term coverage to proceed to concept-overlap scoring.
     multiword = len(intent.terms) >= 2
-    if multiword and not (phrase_in_title or phrase_in_abs or tight_in_title or tight_in_abs):
+    four_term_bigram_ok = len(intent.terms) >= 4 and (
+        bigram_hits_title >= 2 or (bigram_hits_abs >= 2 and term_cov >= 0.8)
+    )
+    if multiword and not (phrase_in_title or phrase_in_abs or tight_in_title or tight_in_abs or four_term_bigram_ok):
         if not abs_text and term_cov < 1.0:
             return {
                 "label": "INSUFFICIENT_EVIDENCE",

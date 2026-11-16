@@ -20,12 +20,14 @@ from .enrichment import (
     detect_author_collisions,
     enrich_authors,
     enrich_orcid_authors,
+    enrich_papers_multi_provider,
     enrich_s2_authors,
     enrich_venues,
+    orcid_author_observations,
     venue_observation,
 )
 from .extraction import extract_evidence
-from .relevance_engine import evaluate_relevance
+from .relevance_engine import disambiguate_query, evaluate_relevance
 
 DEFAULT_TOP_K = 20
 MAX_TOP_K = 100
@@ -230,6 +232,10 @@ def discover(
     options = validate_options(payload)
     engine = orchestrator or DiscoveryOrchestrator()
     search_query = " ".join(QUERY_MODIFIERS.sub(" ", options["topic"]).split()) or options["topic"]
+    disambig = disambiguate_query(
+        options["topic"],
+        field_override=options.get("field") or (str(payload.get("domain")) if payload.get("domain") else None),
+    )
     explicit_sources = (
         [str(s).strip() for s in payload["sources"] if str(s).strip()]
         if isinstance(payload.get("sources"), list)
@@ -239,11 +245,19 @@ def discover(
         candidates, sources = engine.discover_with_status(
             search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER), explicit_sources=explicit_sources
         )
+    elif orchestrator is None:
+        candidates, sources = engine.discover_with_status(
+            search_query,
+            min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER),
+            resolved_domain=disambig["resolved_domain"],
+        )
     else:
         candidates, sources = engine.discover_with_status(
             search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER)
         )
     rows: list[dict[str, Any]] = []
+    rel_eligible_by_prov: dict[str, int] = {}
+    rel_rejected_by_prov: dict[str, dict[str, int]] = {}
     for candidate in candidates:
         paper = candidate["paper"]
         clean_title = clean_scholarly_text(paper.title)
@@ -295,11 +309,21 @@ def discover(
         eligible, eligibility_reason = assess_topic_eligibility(
             options["topic"], clean_title, clean_abstract, fields
         )
+        psrc = str(candidate.get("source") or "unknown")
         if not eligible:
+            rej_map = rel_rejected_by_prov.setdefault(psrc, {})
+            rej_map[eligibility_reason] = rej_map.get(eligibility_reason, 0) + 1
             continue
+        rel_eligible_by_prov[psrc] = rel_eligible_by_prov.get(psrc, 0) + 1
         provenance = [candidate.get("provenance")]
-        provenance.extend(entry.get("provenance") for entry in candidate.get("merge_history", []))
-        source_links = [p.model_dump(mode="json") for p in provenance if p is not None and hasattr(p, "model_dump")]
+        merge_hist = candidate.get("merge_history") or []
+        provenance.extend(entry.get("provenance") for entry in merge_hist)
+        source_links = []
+        for pidx, p in enumerate(provenance):
+            if p is not None and hasattr(p, "model_dump"):
+                dumped = p.model_dump(mode="json")
+                dumped["contribution_type"] = "discovery_primary" if pidx == 0 else "discovery_merged"
+                source_links.append(dumped)
         citation_observations = [
             {"provider": candidate.get("source"), "count": candidate.get("citation_count")}
         ] + [
@@ -398,6 +422,15 @@ def discover(
                 "retraction_status": metadata.get("retraction_status"),
                 "provenance": source_links,
                 "source": candidate.get("source"),
+                "contributing_providers": list(
+                    candidate.get("contributing_providers")
+                    or ([candidate.get("source")] if candidate.get("source") else [])
+                ),
+                "provider_records": dict(candidate.get("provider_records") or {}),
+                "field_provenance": dict(candidate.get("field_provenance") or {}),
+                "conflicting_observations": list(candidate.get("conflicting_observations") or []),
+                "version_relationships": list(candidate.get("version_relationships") or []),
+                "identity_match_confidence": candidate.get("identity_match_confidence") or "single_provider",
                 "evidence_status": "REFERENCE_METADATA_AVAILABLE"
                 if metadata.get("referenced_works")
                 else "ABSTRACT_AVAILABLE"
@@ -516,24 +549,28 @@ def discover(
     for position, row in enumerate(selected, 1):
         row["collection_order"] = position
     retrieved_at = datetime.now(UTC).isoformat()
-    enriched_venues = enrich_venues(selected) if orchestrator is None else {}
+    enrichment_audit: dict[str, Any] = {"providers": {}, "secondary_matches": {}}
     if orchestrator is None:
         from archipelago.scholarly.discovery.extended_sources import fetch_opencitations_for_dois
 
-        oc_dois = [str(r["doi"]) for r in selected if r.get("doi")][:8]
+        enrichment_audit = enrich_papers_multi_provider(selected, session=engine.sources.session)
+        enriched_venues = enrich_venues(selected, session=engine.sources.session)
+        oc_dois = [str(r["doi"]) for r in selected if r.get("doi")][:10]
         oc_map = fetch_opencitations_for_dois(engine.sources.session, oc_dois) if oc_dois else {}
         gr_status = check_google_research_access(engine.sources.session, options["topic"])
         sources_out = list(sources) + [gr_status]
-        oa_authors = enrich_authors(selected)
-        s2_authors = enrich_s2_authors(selected, max_authors=5)
-        orcid_map = enrich_orcid_authors(selected, max_authors=5)
-        author_obs = oa_authors + s2_authors
+        oa_authors = enrich_authors(selected, session=engine.sources.session)
+        s2_authors = enrich_s2_authors(selected, session=engine.sources.session, max_authors=10)
+        orcid_map = enrich_orcid_authors(selected, session=engine.sources.session, max_authors=10)
+        orcid_obs = orcid_author_observations(orcid_map)
+        author_obs = oa_authors + s2_authors + orcid_obs
         for obs in author_obs:
             orc = str(obs.get("orcid") or "").rsplit("/", 1)[-1]
             if orc and orc in orcid_map:
                 obs["orcid_verified"] = True
                 obs["orcid_url"] = orcid_map[orc]["orcid_url"]
     else:
+        enriched_venues = {}
         oc_map = {}
         sources_out = list(sources)
         author_obs = []
@@ -551,7 +588,34 @@ def discover(
                 {"provider": "opencitations", "count": oc_map[doi_key]["count"]}
             )
 
+    # Complete the 11-step per-provider candidate waterfall & source contributions
+    selected_primary_by_prov: dict[str, int] = {}
+    source_contributions: dict[str, int] = {}
+    for row in selected:
+        psrc = str(row.get("source") or "unknown")
+        selected_primary_by_prov[psrc] = selected_primary_by_prov.get(psrc, 0) + 1
+        seen_provs = {
+            p.get("source_type")
+            for p in (row.get("provenance") or [])
+            if p.get("source_type")
+        }
+        for sp in seen_provs:
+            source_contributions[sp] = source_contributions.get(sp, 0) + 1
+
     selection = dict(getattr(engine, "last_selection", {}) or {})
+    waterfall = dict(selection.get("waterfall") or {})
+    for prov, w in waterfall.items():
+        w["relevance_eligible"] = rel_eligible_by_prov.get(prov, 0)
+        w["relevance_rejected"] = rel_rejected_by_prov.get(prov, {})
+        w["selected_primary"] = selected_primary_by_prov.get(prov, 0)
+        w["secondary_metadata_matches"] = enrichment_audit["secondary_matches"].get(prov, 0)
+        audit_p = enrichment_audit["providers"].get(prov) or {}
+        w["enrichment_attempts"] = audit_p.get("attempts", 0)
+        w["enrichment_successes"] = audit_p.get("successes", 0)
+        w["enrichment_failures"] = audit_p.get("failures", [])
+        w["exported_provenance_count"] = source_contributions.get(prov, 0)
+    selection["waterfall"] = waterfall
+    selection["source_contributions"] = source_contributions
     selection["final_returned_count"] = len(selected)
     selection["rate_limits_encountered"] = [
         s["source"] for s in sources_out if s.get("rate_limited")
@@ -563,6 +627,8 @@ def discover(
         "retrieved_at": retrieved_at,
         "sources": sources_out,
         "provider_selection": selection,
+        "query_disambiguation": disambig,
+        "enrichment_audit": enrichment_audit,
         "google_scholar_url": generate_scholar_url(options["topic"]),
         "google_research_url": google_research_search_url(options["topic"]),
         "candidate_count": len(candidates),
@@ -570,6 +636,7 @@ def discover(
         "ordering": "publication_date_desc" if sort_mode == "newest" else sort_mode,
         "sort_metadata": {
             "selected": sort_mode,
+            "version": "archipelago.sort.v2",
             **sort_info,
             "collected_at": retrieved_at,
             "missing_policy": "missing_values_excluded_and_sorted_last_never_zero",

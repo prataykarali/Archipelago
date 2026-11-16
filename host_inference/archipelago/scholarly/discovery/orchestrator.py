@@ -26,9 +26,12 @@ class DiscoveryOrchestrator:
         query: str,
         limit_per_source: int = 10,
         explicit_sources: list[str] | None = None,
+        resolved_domain: str | None = None,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         """Return canonical candidates and source summaries without fake success."""
-        plan = select_providers(query, explicit_sources=explicit_sources)
+        plan = select_providers(
+            query, explicit_sources=explicit_sources, resolved_domain=resolved_domain
+        )
         active = plan["selected"] or list(RESEARCH_SOURCES)
         with ThreadPoolExecutor(max_workers=len(active)) as executor:
             futures = [
@@ -39,6 +42,26 @@ class DiscoveryOrchestrator:
         raw = [item for response in responses for item in response.records]
         candidates = self.canonicalizer.canonicalize_candidates(raw)
         candidates.sort(key=lambda item: -relevance_score(item, query)[0])
+
+        waterfall: dict[str, dict[str, Any]] = {}
+        for response in responses:
+            waterfall[response.source] = {
+                "raw_records": len(response.records),
+                "normalized_records": len(response.records),
+                "matched_to_existing": 0,
+                "unique_primary": 0,
+                "http_status": response.http_status,
+                "status": response.status,
+            }
+        for cand in candidates:
+            psrc = cand.get("source")
+            if psrc in waterfall:
+                waterfall[psrc]["unique_primary"] += 1
+            for m in cand.get("merge_history") or []:
+                msrc = m.get("source")
+                if msrc in waterfall:
+                    waterfall[msrc]["matched_to_existing"] += 1
+
         summaries = [response.summary() for response in responses]
         for skipped in plan["skipped"]:
             summaries.append(
@@ -56,10 +79,12 @@ class DiscoveryOrchestrator:
             )
         self.last_selection = {
             "domain": plan["domain"],
+            "detected_domain": plan.get("detected_domain", plan["domain"]),
             "providers_queried": active,
             "providers_skipped": plan["skipped"],
             "candidate_count": len(raw),
             "deduplicated_count": len(candidates),
+            "waterfall": waterfall,
         }
         return candidates, summaries
 
