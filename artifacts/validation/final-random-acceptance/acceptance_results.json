@@ -1,0 +1,936 @@
+{
+  "seed": 20261116,
+  "results": [
+    {
+      "discipline": "Mathematics",
+      "topic": "topological data analysis",
+      "latency_s": 14.47,
+      "returned": 20,
+      "candidate_count": 127,
+      "filtered_count": 75,
+      "sources": [
+        {
+          "source": "openalex",
+          "requested_at": "2026-11-16T05:40:04.168177+00:00",
+          "status": "live",
+          "record_count": 29,
+          "raw_sha256": "fe92c53d0dac1c7bbd93c3a0fdeb20cbb77594403d1fb9139a15db262daffe1e",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "crossref",
+          "requested_at": "2026-11-16T05:40:04.169510+00:00",
+          "status": "live",
+          "record_count": 15,
+          "raw_sha256": "c28af5b099ee187ae3af7289fce6d43af82f32c9d964e16f31114703ff6e98a4",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "semantic_scholar",
+          "requested_at": "2026-11-16T05:40:04.174373+00:00",
+          "status": "rate_limited",
+          "record_count": 0,
+          "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+          "request_id": "fd8cd1d9-eec7-4b63-b45d-6e4d790a21ce",
+          "http_status": 429,
+          "error": "HTTP 429",
+          "rate_limited": true
+        },
+        {
+          "source": "arxiv",
+          "requested_at": "2026-11-16T05:40:04.176852+00:00",
+          "status": "live",
+          "record_count": 25,
+          "raw_sha256": "d060b94ccfe2fc3a34b8d72928e035785898c3b9943030b4640063a388079dcf",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "openaire",
+          "requested_at": "2026-11-16T05:40:04.178917+00:00",
+          "status": "live",
+          "record_count": 30,
+          "raw_sha256": "6e97eef432f35643f44981f362cb8269a1cb5b87430ac6f06f5ad4d4fd3a5d5e",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "datacite",
+          "requested_at": "2026-11-16T05:40:04.180070+00:00",
+          "status": "live",
+          "record_count": 30,
+          "raw_sha256": "0f642dcfcc81494975aae355c880fcd174a0bf0673b353e3fc02b53f4bdc955f",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "dblp",
+          "requested_at": null,
+          "status": "skipped",
+          "record_count": 0,
+          "raw_sha256": null,
+          "request_id": null,
+          "http_status": null,
+          "error": "not_selected_for_domain:general",
+          "rate_limited": false
+        },
+        {
+          "source": "europe_pmc",
+          "requested_at": null,
+          "status": "skipped",
+          "record_count": 0,
+          "raw_sha256": null,
+          "request_id": null,
+          "http_status": null,
+          "error": "not_selected_for_domain:general",
+          "rate_limited": false
+        },
+        {
+          "source": "pubmed",
+          "requested_at": null,
+          "status": "skipped",
+          "record_count": 0,
+          "raw_sha256": null,
+          "request_id": null,
+          "http_status": null,
+          "error": "not_selected_for_domain:general",
+          "rate_limited": false
+        },
+        {
+          "source": "google_research",
+          "status": "navigation_only",
+          "http_status": 200,
+          "error": null,
+          "official_url": "https://research.google/pubs/?search=topological%20data%20analysis",
+          "raw_sha256": "b929927a409cff450bf2cc5f6b2792c8b18b1219be9d742f4cbea9f86e3fe2ae",
+          "record_count": 0,
+          "records": []
+        }
+      ],
+      "max_coverage_pct": 95,
+      "formula_risks": 0,
+      "graph_nodes": 130,
+      "graph_edges": 243,
+      "graph_coverage": {
+        "raw_reference_count": 428,
+        "identifier_matched_count": 428,
+        "existence_verified_count": 2,
+        "in_collection_edges": 2,
+        "externally_resolved_edges": 426,
+        "unresolved_count": 0,
+        "verification_coverage": 0.0047,
+        "total_reference_links": 428,
+        "resolved_known_works": 428,
+        "resolution_rate": 1.0
+      },
+      "xlsx_sheets": 14,
+      "xlsx_path": "/home/pratay-karali/Desktop/archipelago/Archipelago/artifacts/validation/final-random-acceptance/topological_data_analysis_20.xlsx",
+      "art_xlsx_path": "/home/pratay-karali/.gemini/antigravity/brain/dea69ec5-445d-49df-bd07-fc2cbc10680e/Archipelago_topological_data_analysis_20.xlsx",
+      "papers": [
+        {
+          "title": "Topological analysis of topological insulators and political networks: an interdisciplinary study",
+          "abstract": "Topological data analysis is an emerging powerful data analysis tool inspired by algebraic topology. In this thesis I present my application of topological data analysis to the field of topological insulators and political networks. In the context of topological insulators, I explored the potential of using topological data analysis in classifying ",
+          "year": 2026,
+          "doi": "10.25911/nxvw-xx58",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_________::ebb07e34e61c8db607f768d933e81244",
+          "source": "openaire",
+          "venue": null,
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Cheng, Eve"
+          ]
+        },
+        {
+          "title": "Topological Methods in Economics: From Equilibrium Existence to Topological Data Analysis",
+          "abstract": "This paper surveys how the three branches of topology \u2014 differential, algebraic, and point-set \u2014 enter mathematical economics, and organises classical and contemporary results within a single conceptual frame. The classical layer rests on four pillars: Sard\u2019s theorem and the preimage theorem, which underwrite Smale\u2019s convexity-free proof of Walrasi",
+          "year": 2026,
+          "doi": "10.33138/2957-0506.2026.9.503",
+          "url": "https://doi.org/10.33138/2957-0506.2026.9.503",
+          "source": "crossref",
+          "venue": "Working Papers",
+          "citation_count": 0,
+          "citation_provider": "crossref",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Jakub Ry\u0142ow"
+          ]
+        },
+        {
+          "title": "Active flow control based on topological data analysis and a DMDc reduced-order model for drag reduction",
+          "abstract": "Controlling and reducing undesirable vortical structures in unsteady flows is a major issue in aerodynamics. This paper presents an active control methodology that combines topological data analysis (TDA) through persistence diagrams, a reduced-order model based on dynamic mode decomposition with control (DMDc) and receding-horizon model predictive",
+          "year": 2026,
+          "doi": "10.48550/arxiv.2611.18336",
+          "url": "https://arxiv.org/abs/2611.18336",
+          "source": "datacite",
+          "venue": "arXiv",
+          "citation_count": 0,
+          "citation_provider": "datacite",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Yiphta, Constantini Mbangue Lobe",
+            "Razafindralandy, Dina"
+          ]
+        },
+        {
+          "title": "Quantum Technologies Decoding the Lindisfarne Gospels: 1300-Year-Old Traces of Thought and the Topological Analysis of Cultural Fusion (\u30b5\u30d6\u30bf\u30a4\u30c8\u30eb / \u548c\u984c: \u91cf\u5b50\u6280\u8853\u304c\u7d10\u89e3\u304f\u30ea\u30f3\u30c7\u30a3\u30b9\u30d5\u30a1\u30fc\u30f3\u306e\u798f\u97f3\u66f8:1300\u5e74\u306e\u6642\u3092\u8d85\u3048\u305f\u601d\u8003\u306e\u75d5\u8de1\u3068\u6587\u5316\u878d\u5408\u306e\u4f4d\u76f8\u5e7e\u4f55\u5b66\u7684\u89e3\u6790)",
+          "abstract": "Abstract (English) Produced around 700 CE by the monk Eadfrith at the monastery of Lindisfarne (Holy Island) off the coast of Northumberland, the Lindisfarne Gospels stands as the zenith of Insular art (Hiberno-Saxon art), synthesizing Mediterranean Christian iconography, Anglo-Saxon metalwork motifs, and Celtic spiral interlace into unprecedented ",
+          "year": 2026,
+          "doi": "10.5281/zenodo.23069169",
+          "url": "https://zenodo.org/doi/10.5281/zenodo.23069169",
+          "source": "datacite",
+          "venue": "Zenodo",
+          "citation_count": 0,
+          "citation_provider": "datacite",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Hasebe(\u9577\u8c37\u90e8), Yoko(\u6d0b\u5b50)"
+          ]
+        },
+        {
+          "title": "Distinguishing cosmologies with topological analysis of 21-cm hydrogen 2D brightness fields at Cosmic Dawn",
+          "abstract": "The 21-cm hydrogen line brightness field is a potentially valuable source of information about astrophysical parameters during the cosmological Dark Ages and the Epoch of Reionization. However, it can also be a source of observational data for cosmologists seeking to constrain cosmological parameters. While much of the effort has been focused on co",
+          "year": 2026,
+          "doi": "10.48550/arxiv.2611.18407",
+          "url": "https://arxiv.org/abs/2611.18407",
+          "source": "datacite",
+          "venue": "arXiv",
+          "citation_count": 0,
+          "citation_provider": "datacite",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Tsizh, Maksym",
+            "Rudakovskyi, Anton",
+            "Tymchyshyn, Vitalii"
+          ]
+        },
+        {
+          "title": "Darwin Scaffold Studio: Q1-Level MicroCT and SEM Analysis Platform with Topological Data Analysis",
+          "abstract": "Darwin Scaffold Studio v1.1.0 adds KEC 3.0 Persistent Homology integration for topological data analysis (TDA). Features include Betti numbers computation, topological biomarkers for scaffold connectivity, morphological analysis, and mechanical properties prediction.",
+          "year": 2025,
+          "doi": "10.5281/zenodo.17561015",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_________::c216c0a690c7c1d1b0b76274ea9e69cd",
+          "source": "openaire",
+          "venue": null,
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Agourakis, Demetrios Chiuratto"
+          ]
+        },
+        {
+          "title": "Tracking the Spatiotemporal Spread of the Ohio Overdose Epidemic with Topological Data Analysis",
+          "abstract": "",
+          "year": 2025,
+          "doi": "10.1109/topoinvis68599.2025.00007",
+          "url": "https://doi.org/10.1109/topoinvis68599.2025.00007",
+          "source": "crossref",
+          "venue": "2025 IEEE Workshop on Topological Data Analysis and Visualization (TopoInVis)",
+          "citation_count": 0,
+          "citation_provider": "crossref",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Nicholas Bermingham",
+            "David White",
+            "Nathan Willey"
+          ]
+        },
+        {
+          "title": "An Introduction to Topological Data Analysis Ball Mapper in Python",
+          "abstract": "Visualization of data is an important step in the understanding of data and the evaluation of statistical models. Topological Data Analysis Ball Mapper (TDABM) after Dlotko (2019), provides a model free means to visualize multivariate datasets without information loss. To permit the construction of a TDABM graph, each variable must be ordinal and h",
+          "year": 2025,
+          "doi": null,
+          "url": "http://arxiv.org/abs/2505.03022v2",
+          "source": "arxiv",
+          "venue": "arXiv",
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Simon Rudkin"
+          ]
+        },
+        {
+          "title": "On the limits of topological data analysis for statistical inference",
+          "abstract": "Topological data analysis has emerged as a powerful tool for extracting the metric, geometric and topological features underlying the data as a multi-resolution summary statistic, and has found applications in several areas where data arises from complex sources. In this paper, we examine the use of topological summary statistics through the lens o",
+          "year": 2025,
+          "doi": "10.3934/fods.2024035",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_dedup___::b0ffe3ab8bba8d9a76879796563b12b3",
+          "source": "openaire",
+          "venue": "Foundations of Data Science",
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Vishwanath, Siddharth",
+            "Fukumizu, Kenji",
+            "Kuriki, Satoshi",
+            "Sriperumbudur, Bharath K."
+          ]
+        },
+        {
+          "title": "The Shape of Things: Topological Data Analysis",
+          "abstract": "The Shape of Things: Topological Data Analysis",
+          "year": 2025,
+          "doi": "10.6084/m9.figshare.28278752.v1",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_dedup___::33197134fbeb5b27da72242118858825",
+          "source": "openaire",
+          "venue": null,
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Lazar, Nicole",
+            "Ryu, Hyunnam"
+          ]
+        },
+        {
+          "title": "Evaluating the Generalizability and Explainability of Firn Image Classification with Topological Features",
+          "abstract": "In this paper we evaluate the performance of topological features for generalizable and explainable classification of firn image data, with the broader goal of understanding the advantages, pitfalls, and trade-offs in topological featurization. Firn refers to layers of granular snow within glaciers that haven't yet been compressed into ice. This co",
+          "year": 2025,
+          "doi": "10.48550/arxiv.2504.16150",
+          "url": "https://arxiv.org/abs/2504.16150",
+          "source": "datacite",
+          "venue": "arXiv",
+          "citation_count": 0,
+          "citation_provider": "datacite",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Dimino, Jesse",
+            "Jester, Matt",
+            "Keegan, Kaitlin",
+            "Weighill, Thomas"
+          ]
+        },
+        {
+          "title": "Analyzing Prospects for Quantum Advantage in Topological Data Analysis",
+          "abstract": "Lloyd [Nat. Commun. , 10138 (2016)] were first to demonstrate the promise of quantum algorithms for computing Betti numbers, a way to characterize topological features of data sets. Here, we propose, analyze, and optimize an improved quantum algorithm for topological data analysis (TDA) with reduced scaling, including a method for preparing Dicke s",
+          "year": 2024,
+          "doi": "10.1103/prxquantum.5.010319",
+          "url": "https://openalex.org/W4391564220",
+          "source": "openalex",
+          "venue": "PRX Quantum",
+          "citation_count": 78,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Dominic William Berry",
+            "Yuan Su",
+            "Casper Gyurik",
+            "Robbie King"
+          ]
+        },
+        {
+          "title": "Topological Data Analysis via Undergraduate Linear Algebra",
+          "abstract": "Topological Data Analysis has grown in popularity in recent years as a way to apply tools from algebraic topology to large data sets. One of the main tools in topological data analysis is persistent homology. This paper uses undergraduate linear algebra to provide explicit methods for, and examples of, computing persistent (co)homology.",
+          "year": 2024,
+          "doi": "10.48550/arxiv.2406.17045",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_dedup___::dcb3eb077832c6348894f2cd4b1ec362",
+          "source": "openaire",
+          "venue": null,
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Glass, Cheyne",
+            "Vidaurre, Elizabeth"
+          ]
+        },
+        {
+          "title": "A Survey of Vectorization Methods in Topological Data Analysis",
+          "abstract": "Attempts to incorporate topological information in supervised learning tasks have resulted in the creation of several techniques for vectorizing persistent homology barcodes. In this paper, we study thirteen such methods. Besides describing an organizational framework for these methods, we comprehensively benchmark them against three well-known cla",
+          "year": 2023,
+          "doi": "10.1109/tpami.2023.3308391",
+          "url": "https://openalex.org/W4386275867",
+          "source": "openalex",
+          "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+          "citation_count": 113,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Dashti Ali",
+            "Aras Asaad",
+            "Mar\u00eda-Jos\u00e9 Jim\u00e9nez",
+            "Vidit Nanda"
+          ]
+        },
+        {
+          "title": "Topological data analysis and machine learning",
+          "abstract": "Topological data analysis refers to approaches for systematically and reliably computing abstract \u2018shapes\u2019 of complex data sets. There are various applications of topological data analysis in life and data sciences, with growing interest among physicists. We present a concise review of applications of topological data analysis to physics and machin",
+          "year": 2023,
+          "doi": "10.1080/23746149.2023.2202331",
+          "url": "https://openalex.org/W4367395160",
+          "source": "openalex",
+          "venue": "Advances in Physics X",
+          "citation_count": 55,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Daniel Leykam",
+            "Dimitris G. Angelakis"
+          ]
+        },
+        {
+          "title": "Topological data analysis in medical imaging: current state of the art",
+          "abstract": "Machine learning, and especially deep learning, is rapidly gaining acceptance and clinical usage in a wide range of image analysis applications and is regarded as providing high performance in detecting anatomical structures and identification and classification of patterns of disease in medical images. However, there are many roadblocks to the wid",
+          "year": 2023,
+          "doi": "10.1186/s13244-023-01413-w",
+          "url": "https://openalex.org/W4362506068",
+          "source": "openalex",
+          "venue": "Insights into Imaging",
+          "citation_count": 129,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Yashbir Singh",
+            "Colleen Farrelly",
+            "Quincy Alexander Hathaway",
+            "Tim Leiner"
+          ]
+        },
+        {
+          "title": "Applications of Topological Data Analysis in Economics",
+          "abstract": "Topological data analysis (TDA) is an emerging method that has gained popularity in recent years, especially in the field of data science. TDA offers a powerful tool for analyzing complex and high-dimensional data, making it a promising method for researchers in economics. In this paper, we provide an overview of TDA and explain how it differs from",
+          "year": 2023,
+          "doi": "10.2139/ssrn.4378151",
+          "url": "https://doi.org/10.2139/ssrn.4378151",
+          "source": "crossref",
+          "venue": "Elsevier BV",
+          "citation_count": 4,
+          "citation_provider": "crossref",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Christopher Shultz"
+          ]
+        },
+        {
+          "title": "Topological data analysis and machine learning",
+          "abstract": "Topological data analysis refers to approaches for systematically and reliably computing abstract \u2018shapes\u2019 of complex data sets. There are various applications of topological data analysis in life and data sciences, with growing interest among physicists. We present a concise review of applications of topological data analysis to physics and machin",
+          "year": 2023,
+          "doi": null,
+          "url": "https://explore.openaire.eu/search/publication?pid=od______4037::cc7d0754dea0ea130a5a33656581034f",
+          "source": "openaire",
+          "venue": null,
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Aggelakis Dimitrios",
+            "Aggelakis Dimitrios",
+            "Aggelakis Dimitrios",
+            "Leykam Daniel"
+          ]
+        },
+        {
+          "title": "Topological Data Analysis Helps to Improve Accuracy of Deep Learning Models for Fake News Detection Trained on Very Small Training Sets",
+          "abstract": "Topological data analysis has recently found applications in various areas of science, such as computer vision and understanding of protein folding. However, applications of topological data analysis to natural language processing remain under-researched. This study applies topological data analysis to a particular natural language processing task:",
+          "year": 2022,
+          "doi": "10.3390/bdcc6030074",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_dedup___::97ad5944e2ee46068946f662b13b6d17",
+          "source": "openaire",
+          "venue": "Big Data and Cognitive Computing",
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Ran Deng",
+            "Fedor Duzhin"
+          ]
+        },
+        {
+          "title": "Topological data analysis in biomedicine: A review",
+          "abstract": "Significant technological advances made in recent years have shepherded a dramatic increase in utilization of digital technologies for biomedicine- everything from the widespread use of electronic health records to improved medical imaging capabilities and the rising ubiquity of genomic sequencing contribute to a \"digitization\" of biomedical resear",
+          "year": 2022,
+          "doi": "10.1016/j.jbi.2022.104082",
+          "url": "https://openalex.org/W4225271072",
+          "source": "openalex",
+          "venue": "Journal of Biomedical Informatics",
+          "citation_count": 193,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Yara Skaf",
+            "Reinhard Laubenbacher"
+          ]
+        }
+      ]
+    },
+    {
+      "discipline": "Biomedical / Genetics",
+      "topic": "crispr gene editing",
+      "latency_s": 13.87,
+      "returned": 20,
+      "candidate_count": 132,
+      "filtered_count": 40,
+      "sources": [
+        {
+          "source": "openalex",
+          "requested_at": "2026-11-16T05:40:19.199636+00:00",
+          "status": "live",
+          "record_count": 30,
+          "raw_sha256": "b22f494a443d4ec4751a552c42435673e9d5ba2adfca9c4dfe799608d30601d8",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "crossref",
+          "requested_at": "2026-11-16T05:40:19.201480+00:00",
+          "status": "live",
+          "record_count": 21,
+          "raw_sha256": "ef7c34d2c445d4013891a2ec3c19fef70eabf3a5f4dd4226b6822f057ccded0a",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "semantic_scholar",
+          "requested_at": "2026-11-16T05:40:19.202984+00:00",
+          "status": "rate_limited",
+          "record_count": 0,
+          "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+          "request_id": "f0afa157-ffe7-490b-a6e9-f52cdcb478dc",
+          "http_status": 429,
+          "error": "HTTP 429",
+          "rate_limited": true
+        },
+        {
+          "source": "arxiv",
+          "requested_at": "2026-11-16T05:40:19.204756+00:00",
+          "status": "live",
+          "record_count": 25,
+          "raw_sha256": "60484b5847fefe06793f102403f55b20d10638d66c635153b954513e502a5786",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "openaire",
+          "requested_at": "2026-11-16T05:40:19.206271+00:00",
+          "status": "live",
+          "record_count": 30,
+          "raw_sha256": "b71aa2a24ae24d2c7686d7126b724d712ef7086e4330b3a3316e728facac4bd7",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "datacite",
+          "requested_at": "2026-11-16T05:40:19.207894+00:00",
+          "status": "live",
+          "record_count": 30,
+          "raw_sha256": "58db86eae957fbd7729c669f1495acd459e28c115dad147a6d46a612cc96a565",
+          "request_id": null,
+          "http_status": 200,
+          "error": null,
+          "rate_limited": false
+        },
+        {
+          "source": "dblp",
+          "requested_at": null,
+          "status": "skipped",
+          "record_count": 0,
+          "raw_sha256": null,
+          "request_id": null,
+          "http_status": null,
+          "error": "not_selected_for_domain:general",
+          "rate_limited": false
+        },
+        {
+          "source": "europe_pmc",
+          "requested_at": null,
+          "status": "skipped",
+          "record_count": 0,
+          "raw_sha256": null,
+          "request_id": null,
+          "http_status": null,
+          "error": "not_selected_for_domain:general",
+          "rate_limited": false
+        },
+        {
+          "source": "pubmed",
+          "requested_at": null,
+          "status": "skipped",
+          "record_count": 0,
+          "raw_sha256": null,
+          "request_id": null,
+          "http_status": null,
+          "error": "not_selected_for_domain:general",
+          "rate_limited": false
+        },
+        {
+          "source": "google_research",
+          "status": "navigation_only",
+          "http_status": 200,
+          "error": null,
+          "official_url": "https://research.google/pubs/?search=crispr%20gene%20editing",
+          "raw_sha256": "b929927a409cff450bf2cc5f6b2792c8b18b1219be9d742f4cbea9f86e3fe2ae",
+          "record_count": 0,
+          "records": []
+        }
+      ],
+      "max_coverage_pct": 100,
+      "formula_risks": 0,
+      "graph_nodes": 160,
+      "graph_edges": 378,
+      "graph_coverage": {
+        "raw_reference_count": 840,
+        "identifier_matched_count": 840,
+        "existence_verified_count": 2,
+        "in_collection_edges": 2,
+        "externally_resolved_edges": 838,
+        "unresolved_count": 0,
+        "verification_coverage": 0.0024,
+        "total_reference_links": 840,
+        "resolved_known_works": 840,
+        "resolution_rate": 1.0
+      },
+      "xlsx_sheets": 14,
+      "xlsx_path": "/home/pratay-karali/Desktop/archipelago/Archipelago/artifacts/validation/final-random-acceptance/crispr_gene_editing_20.xlsx",
+      "art_xlsx_path": "/home/pratay-karali/.gemini/antigravity/brain/dea69ec5-445d-49df-bd07-fc2cbc10680e/Archipelago_crispr_gene_editing_20.xlsx",
+      "papers": [
+        {
+          "title": "The potential and innovative applications of CRISPR gene editing technology in enzyme gene development",
+          "abstract": "The CRISPR gene editing technology is simple in design and highly efficient, making it the most widely used gene editing tool today. At present, CRISPR gene editing technology has shown a certain application value in enzyme development, but its application potential has not been fully developed. CRISPR gene editing technology can not only be used t",
+          "year": 2026,
+          "doi": "10.1016/j.enzmictec.2025.110799",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_dedup___::469542ac104a1a2aa4c8c8a76e46bf9c",
+          "source": "openaire",
+          "venue": "Enzyme and Microbial Technology",
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "Youmin Zhu"
+          ]
+        },
+        {
+          "title": "Guide-Guard: Off-Target Predicting in CRISPR Applications",
+          "abstract": "With the introduction of cyber-physical genome sequencing and editing technologies, such as CRISPR, researchers can more easily access tools to investigate and create remedies for a variety of topics in genetics and health science (e.g. agriculture and medicine). As the field advances and grows, new concerns present themselves in the ability to pre",
+          "year": 2026,
+          "doi": "10.1007/978-3-031-21753-1_41",
+          "url": "http://arxiv.org/abs/2602.16327v1",
+          "source": "arxiv",
+          "venue": "arXiv",
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Joseph Bingham",
+            "Netanel Arussy",
+            "Saman Zonouz"
+          ]
+        },
+        {
+          "title": "nf-core/crisprseq: a versatile pipeline for comprehensive analysis of CRISPR gene editing and screening assays",
+          "abstract": "Abstract In recent years, CRISPR technology has become widely applied in scientific research, being simpler, cheaper, and more precise than previous gene-editing techniques. This editing technology can be used for various applications, such as gene knockout, gene knock-in, CRISPR activation (CRISPRa), CRISPR interference (CRISPRi), CRISPR screens, ",
+          "year": 2026,
+          "doi": "10.1093/nargab/lqaf214",
+          "url": "https://explore.openaire.eu/search/publication?pid=doi_dedup___::a6db4238e79d17c6aab1e9dadd6f66cf",
+          "source": "openaire",
+          "venue": "NAR Genomics and Bioinformatics",
+          "citation_count": null,
+          "citation_provider": null,
+          "published_vs_preprint": "published",
+          "authors": [
+            "J\u00falia Mir-Pedrol",
+            "Laurence Kuhlburger",
+            "Marta Sanvicente-Garc\u00eda",
+            "Metin Yazar"
+          ]
+        },
+        {
+          "title": "14 CRISPR GENE EDITING",
+          "abstract": "",
+          "year": 2026,
+          "doi": "10.1016/s0262-4079(26)00148-x",
+          "url": "https://openalex.org/W7125602104",
+          "source": "openalex",
+          "venue": "The New Scientist",
+          "citation_count": 0,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Michael Le Page"
+          ]
+        },
+        {
+          "title": "Treating Chromosomal Abnormalities with CRISPR Gene Editing",
+          "abstract": "",
+          "year": 2025,
+          "doi": "10.58445/rars.3435",
+          "url": "https://doi.org/10.58445/rars.3435",
+          "source": "crossref",
+          "venue": "Polygence",
+          "citation_count": 0,
+          "citation_provider": "crossref",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Eric Japson"
+          ]
+        },
+        {
+          "title": "Lipid Nanoparticles for Delivery of CRISPR Gene Editing Components",
+          "abstract": "Gene editing has emerged as a promising therapeutic option for treating genetic diseases. However, a central challenge in the field is the safe and efficient delivery of these large editing tools, especially in vivo. Lipid nanoparticles (LNPs) are attractive nonviral vectors due to their low immunogenicity and high delivery efficiency. To maximize ",
+          "year": 2025,
+          "doi": "10.1002/smtd.202401632",
+          "url": "https://openalex.org/W4410823748",
+          "source": "openalex",
+          "venue": "Small Methods",
+          "citation_count": 68,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Fan Wu",
+            "Nei Li",
+            "Yi Xiao",
+            "Rohan Palanki"
+          ]
+        },
+        {
+          "title": "Transforming Pharmacogenomics and CRISPR Gene Editing with the Power of Artificial Intelligence for Precision Medicine",
+          "abstract": "Background: Advancements in pharmacogenomics, artificial intelligence (AI), and CRISPR gene-editing technology are revolutionizing precision medicine by enabling highly individualized therapeutic strategies. Artificial intelligence-driven computational techniques improve biomarker discovery and drug optimization while pharmacogenomics helps to iden",
+          "year": 2025,
+          "doi": "10.3390/pharmaceutics17050555",
+          "url": "https://openalex.org/W4409775906",
+          "source": "openalex",
+          "venue": "Pharmaceutics",
+          "citation_count": 51,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Amit Kumar Srivastav",
+            "Manoj Kumar Mishra",
+            "James W. Lillard",
+            "Rajesh Singh"
+          ]
+        },
+        {
+          "title": "Next-Gen Jaw Stem Cell Activation for Real Tooth Regeneration Integrating AI, SI, QC, Advanced Nanodrug Technologies, 3D Bioprinting, CRISPR Gene Editing, Biomimetic Materials, and Photobiomodulation\u2014Global Breakthroughs and Multidisciplinary Innovations in Dental Regenerative Medicine for 2026 and Beyond",
+          "abstract": "The restoration of natural dentition through true biological regeneration, rather than synthetic prosthetics or implants, represents one of the most transformative frontiers in modern regenerative medicine. With the advent of jaw stem cell activation, coupled with the convergence of Artificial Intelligence (AI), Quantum Computing (QC), CRISPR-Cas9 ",
+          "year": 2025,
+          "doi": "10.5281/zenodo.23801601",
+          "url": "https://zenodo.org/doi/10.5281/zenodo.23801601",
+          "source": "datacite",
+          "venue": "Zenodo",
+          "citation_count": 0,
+          "citation_provider": "datacite",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Saini, Dr. Tirath Singh"
+          ]
+        },
+        {
+          "title": "Advanced Technologies for Permanent HIVAIDS Cure: Integrating CRISPR Gene Editing, CAR-T Cell Therapy, Broadly Neutralizing Antibodies, Therapeutic Vaccines, and AI, SI, QC-driven Innovations\u2014Global Insights 2026 and Future Prospects Beyond",
+          "abstract": "The global pursuit of a permanent cure for Human Immunodeficiency Virus (HIV) infection has entered a transformative phase defined by the convergence of molecular biology, computational intelligence, and immuno-engineering. Despite the remarkable success of combination antiretroviral therapy (ART) in suppressing viral replication and improving life",
+          "year": 2025,
+          "doi": "10.5281/zenodo.23806959",
+          "url": "https://zenodo.org/doi/10.5281/zenodo.23806959",
+          "source": "datacite",
+          "venue": "Zenodo",
+          "citation_count": 0,
+          "citation_provider": "datacite",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Saini, Dr. Tirath Singh"
+          ]
+        },
+        {
+          "title": "Universal mRNA Anti-Cancer Vaccine for All Human Diseases: Integrating AI, SI , QC, CRISPR Gene Editing, Nanotechnology, Synthetic Biology, Multi-Omics, Advanced Biomaterials, Digital Twins, Immunoinformatics, and Real-Time Biosensors for Immune Enhancement and Personalized Immunotherapy",
+          "abstract": "The evolution of messenger-RNA (mRNA) technologies has re-defined the boundaries of vaccinology. Following the global validation of mRNA vaccines for COVID-19, researchers have turned to oncology\u2014an arena historically constrained by tumor heterogeneity and immune evasion. Conventional peptide and dendritic-cell vaccines struggled to elicit durable ",
+          "year": 2025,
+          "doi": "10.5281/zenodo.23799452",
+          "url": "https://zenodo.org/doi/10.5281/zenodo.23799452",
+          "source": "datacite",
+          "venue": "Zenodo",
+          "citation_count": 0,
+          "citation_provider": "datacite",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Saini, Dr. Tirath Singh"
+          ]
+        },
+        {
+          "title": "Leveraging CRISPR gene editing technology to optimize the efficacy, safety and accessibility of CAR T-cell therapy",
+          "abstract": "Chimeric Antigen Receptor (CAR)-T-cell therapy has revolutionized cancer immune therapy. However, challenges remain including increasing efficacy, reducing adverse events and increasing accessibility. Use of Clustered Regularly Interspaced Short Palindromic Repeats (CRISPR) technology can effectively perform various functions such as precise integr",
+          "year": 2024,
+          "doi": "10.1038/s41375-024-02444-y",
+          "url": "https://openalex.org/W4403749986",
+          "source": "openalex",
+          "venue": "Leukemia",
+          "citation_count": 160,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Tao Lei",
+            "Yazhuo Wang",
+            "Yuchen Zhang",
+            "Yufei Yang"
+          ]
+        },
+        {
+          "title": "CRISPR Gene Editing to Treat Alcoholism and Nicotine Addiction",
+          "abstract": "",
+          "year": 2024,
+          "doi": "10.58445/rars.933",
+          "url": "https://doi.org/10.58445/rars.933",
+          "source": "crossref",
+          "venue": "Polygence",
+          "citation_count": 0,
+          "citation_provider": "crossref",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Divya Gill"
+          ]
+        },
+        {
+          "title": "In vivo CRISPR gene editing in patients with herpetic stromal keratitis",
+          "abstract": "In vivo CRISPR gene therapy holds large clinical potential, but the safety and efficacy remain largely unknown. Here, we injected a single dose of herpes simplex virus 1 (HSV-1)-targeting CRISPR formulation in the cornea of three patients with severe refractory herpetic stromal keratitis (HSK) during corneal transplantation. Our study is an investi",
+          "year": 2023,
+          "doi": "10.1016/j.ymthe.2023.08.021",
+          "url": "https://openalex.org/W4386319765",
+          "source": "openalex",
+          "venue": "Molecular Therapy",
+          "citation_count": 66,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Anji Wei",
+            "Di Yin",
+            "Zimeng Zhai",
+            "Sikai Ling"
+          ]
+        },
+        {
+          "title": "CRISPR Gene Editing of Virulent Bacteriophage ICP1",
+          "abstract": "Tools for site-directed mutagenesis of virulent bacteriophages (phages; viruses of bacteria) have traditionally lagged those for bacteria, hindering their study. CRISPR gene editing represents a new and highly efficient method for editing virulent phage genomes. Here, I describe methods for using CRISPR gene editing for site-directed mutagenesis of",
+          "year": 2023,
+          "doi": "10.1101/pdb.prot108316",
+          "url": "https://openalex.org/W4367369530",
+          "source": "openalex",
+          "venue": "Cold Spring Harbor Protocols",
+          "citation_count": 2,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Andrew Camilli"
+          ]
+        },
+        {
+          "title": "CRISPR Gene Editing of a Virulent Bacteriophage",
+          "abstract": "Genome editing by site-directed mutagenesis is an important tool in biological research. CRISPR gene editing is the latest such tool developed, and one that is widely applicable to study organisms from all kingdoms of life. Here, I introduce a method for making site-directed, defined mutations in a virulent bacteriophage (a bacterial virus) using C",
+          "year": 2023,
+          "doi": "10.1101/pdb.top107868",
+          "url": "https://openalex.org/W4367369491",
+          "source": "openalex",
+          "venue": "Cold Spring Harbor Protocols",
+          "citation_count": 1,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "preprint",
+          "authors": [
+            "Andrew Camilli"
+          ]
+        },
+        {
+          "title": "How do consumers respond to labels for crispr (gene-editing)?",
+          "abstract": "",
+          "year": 2022,
+          "doi": "10.1016/j.foodpol.2022.102366",
+          "url": "https://openalex.org/W4306926639",
+          "source": "openalex",
+          "venue": "Food Policy",
+          "citation_count": 43,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Yang Hu",
+            "Lisa House",
+            "Zhifeng Gao"
+          ]
+        },
+        {
+          "title": "CRISPR gene editing in conservation biology",
+          "abstract": "Conservation biology requires a bigger toolbox to meet the biodiversity crisis. Is there a role for CRISPR and gene editing?",
+          "year": 2022,
+          "doi": "10.5281/zenodo.7092433",
+          "url": "https://openalex.org/W4296303506",
+          "source": "openalex",
+          "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+          "citation_count": 0,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Sophien Kamoun"
+          ]
+        },
+        {
+          "title": "The future of CRISPR gene editing according to plant scientists",
+          "abstract": "This study surveyed 669 plant scientists globally to elicit how (which outcomes of gene editing), where (which continent) and what (which crops) are most likely to benefit from CRISPR research and if there is a consensus about specific barriers to commercial adoption in agriculture. Further, we disaggregated public and private plant scientists to s",
+          "year": 2022,
+          "doi": "10.1016/j.isci.2022.105012",
+          "url": "https://openalex.org/W4293088194",
+          "source": "openalex",
+          "venue": "iScience",
+          "citation_count": 20,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Job de Lange",
+            "Lawton Lanier Nalley",
+            "Wei Yang",
+            "Aaron M. Shew"
+          ]
+        },
+        {
+          "title": "CRISPR gene editing: a revolution in progress",
+          "abstract": "CRISPR is a gene editing technique that has revolutionised research and has the potential to transform the treatment of many diseases. This article discusses the principles of the technique, its therapeutic applications and potential safety issues.",
+          "year": 2022,
+          "doi": "10.1002/psb.1990",
+          "url": "https://openalex.org/W4283030877",
+          "source": "openalex",
+          "venue": "Prescriber",
+          "citation_count": 1,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Mark Greener"
+          ]
+        },
+        {
+          "title": "Advances in Delivery Mechanisms of CRISPR Gene-Editing Reagents in Plants",
+          "abstract": "Gene-editing by CRISPR/Cas systems has revolutionized plant biology by serving as a functional genomics tool. It has tremendously advanced plant breeding and crop improvement by accelerating the development of improved cultivars, creating genetic variability, and aiding in domestication of wild and orphan crops. Gene-editing is a rapidly evolving f",
+          "year": 2022,
+          "doi": "10.3389/fgeed.2022.830178",
+          "url": "https://openalex.org/W4207050757",
+          "source": "openalex",
+          "venue": "Frontiers in Genome Editing",
+          "citation_count": 109,
+          "citation_provider": "openalex",
+          "published_vs_preprint": "published",
+          "authors": [
+            "Larissa C. Laforest",
+            "Satya Swathi Nadakuduti"
+          ]
+        }
+      ]
+    }
+  ]
+}
