@@ -79,6 +79,11 @@ def register(app: Flask, _ctx: AppContext) -> None:
             str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "",
         )
         try:
+            request_id = (
+                str(uuid.UUID(str(payload.get("client_request_id"))))
+                if isinstance(payload, dict) and payload.get("client_request_id")
+                else None
+            )
             result = discover(payload if isinstance(payload, dict) else {})
             if not any(
                 source["status"] in {"live", "live_partial", "live_empty"}
@@ -87,6 +92,8 @@ def register(app: Flask, _ctx: AppContext) -> None:
                 return jsonify(
                     {"error": "providers_unavailable", "sources": result["sources"]}
                 ), 503
+            if request_id:
+                result["client_request_id"] = request_id
             run_id = hosted_store().save_run(str(_principal()["id"]), result)
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
@@ -100,6 +107,19 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.intelligence.storage import hosted_store
 
         return jsonify({"runs": hosted_store().list_runs(str(_principal()["id"]))})
+
+    @app.get("/api/research/intelligence/search-status/<uuid:request_id>")  # type: ignore[misc]
+    def intelligence_search_status(request_id: uuid.UUID) -> ResponseReturnValue:
+        """Locate a completed search after its browser request was interrupted."""
+        from archipelago.scholarly.intelligence.storage import hosted_store
+
+        store = hosted_store()
+        owner = str(_principal()["id"])
+        for summary in store.list_runs(owner):
+            run = store.get_run(str(summary["run_id"]), owner)
+            if run and run.get("client_request_id") == str(request_id):
+                return jsonify({"status": "completed", "run_id": summary["run_id"]})
+        return jsonify({"status": "pending"})
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>")  # type: ignore[misc]
     def intelligence_run(run_id: uuid.UUID) -> ResponseReturnValue:

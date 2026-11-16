@@ -3,6 +3,49 @@
 const s5 = id => document.getElementById(id);
 let activeRunId = null;
 const S5_STATE_KEY = 'archipelago_research_state_v1';
+const S5_PENDING_KEY = 'archipelago_research_pending_v1';
+const SEARCH_RECOVERY_INTERVAL_MS = 8000;
+const SEARCH_RECOVERY_WINDOW_MS = 360000;
+
+function pendingSearch() {
+  try { return JSON.parse(sessionStorage.getItem(S5_PENDING_KEY) || 'null'); }
+  catch (_) { return null; }
+}
+
+function clearPendingSearch() {
+  sessionStorage.removeItem(S5_PENDING_KEY);
+}
+
+async function recoverPendingSearch() {
+  const pending = pendingSearch();
+  if (!pending?.request_id) return;
+  const status = s5('intelligence-status');
+  const submit = s5('intelligence-form')?.querySelector('button[type="submit"]');
+  if (Date.now() - pending.started_at > SEARCH_RECOVERY_WINDOW_MS) {
+    clearPendingSearch();
+    if (status) status.textContent = 'The search did not finish. Please retry.';
+    return;
+  }
+  if (submit) submit.disabled = true;
+  if (status) status.textContent = `Researching "${pending.topic}". You can visit other pages and return here.`;
+  try {
+    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
+    if (job.status === 'completed') {
+      const run = await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
+      activeRunId = job.run_id;
+      showRun(run);
+      saveResearchState();
+      clearPendingSearch();
+      if (submit) submit.disabled = false;
+      if (status) status.textContent = `Done — loaded ${run.papers?.length || 0} papers for "${pending.topic}".`;
+      await loadHistory();
+      return;
+    }
+  } catch (error) {
+    if (status) status.textContent = `Checking search progress: ${error.message}`;
+  }
+  setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+}
 
 function formatShortDate(iso) {
   if (!iso) return '';
@@ -345,6 +388,7 @@ window.addEventListener('load', async () => {
       s5('intelligence-status').textContent = 'Ready to search.';
     }
   }
+  if (pendingSearch()) void recoverPendingSearch();
   try {
     const me = await s5Json('/api/auth/me');
     if (['faculty', 'librarian', 'administrator'].includes(me.role)) {
@@ -370,18 +414,26 @@ window.addEventListener('load', async () => {
     event.preventDefault();
     const form = event.currentTarget;
     const payload = currentSearchOptions();
+    const requestId = crypto.randomUUID();
+    payload.client_request_id = requestId;
+    sessionStorage.setItem(S5_PENDING_KEY, JSON.stringify({ request_id: requestId, topic: payload.topic, started_at: Date.now() }));
+    saveResearchState();
     s5('intelligence-status').textContent = `Fetching papers from OpenAlex, Crossref, Semantic Scholar & arXiv for "${payload.topic}"…`;
     form.querySelector('button[type="submit"]').disabled = true;
     try {
-      const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true });
+      clearPendingSearch();
       activeRunId = run.run_id;
       showRun(run);
       saveResearchState();
       const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
       s5('intelligence-status').textContent = `Done — loaded ${run.papers.length} papers from ${liveCount} live provider(s).`;
       await loadHistory();
-    } catch (error) { s5('intelligence-status').textContent = error.message; }
-    finally { form.querySelector('button[type="submit"]').disabled = false; }
+    } catch (error) {
+      s5('intelligence-status').textContent = `Search request interrupted (${error.message}); checking for the completed search…`;
+      if (pendingSearch()) void recoverPendingSearch();
+    }
+    finally { if (!pendingSearch()) form.querySelector('button[type="submit"]').disabled = false; }
   });
   s5('graph-button').addEventListener('click', async () => {
     if (!activeRunId) return;

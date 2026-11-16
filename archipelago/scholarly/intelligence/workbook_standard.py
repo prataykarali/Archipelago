@@ -12,6 +12,7 @@ Never exposes internal UUIDs, raw JSON, unavailable-metric codes, or zero-filled
 
 from __future__ import annotations
 
+from copy import copy
 from datetime import date
 from io import BytesIO
 import math
@@ -243,6 +244,50 @@ def _set_link(cell: Any, url: str | None, display_text: str | None = None) -> No
         cell.value = _safe_cell(display_text)
     cell.hyperlink = url
     cell.font = LINK_FONT
+
+
+def _remove_empty_metric_columns(sheet: Any) -> list[str]:
+    """Hide metrics for which this run contains no verified observation."""
+    original_widths = [
+        sheet.column_dimensions[get_column_letter(i)].width for i in range(1, sheet.max_column + 1)
+    ]
+    removed: list[str] = []
+    kept: list[int] = []
+    for col in range(1, sheet.max_column + 1):
+        if any(sheet.cell(row, col).value is not None for row in range(2, sheet.max_row + 1)):
+            kept.append(col)
+        else:
+            removed.append(str(sheet.cell(1, col).value))
+    saved_rows = [
+        [
+            (
+                sheet.cell(row, col).value,
+                copy(sheet.cell(row, col)._style),
+                copy(sheet.cell(row, col).hyperlink),
+            )
+            for col in kept
+        ]
+        for row in range(1, sheet.max_row + 1)
+    ]
+    sheet._cells.clear()
+    for row_idx, cells in enumerate(saved_rows, 1):
+        for col_idx, (value, style, hyperlink) in enumerate(cells, 1):
+            cell = sheet.cell(row_idx, col_idx, value)
+            cell._style = style
+            if hyperlink:
+                cell.hyperlink = hyperlink
+    for new_col, old_col in enumerate(kept, 1):
+        sheet.column_dimensions[get_column_letter(new_col)].width = original_widths[old_col - 1]
+    for old_col in range(len(kept) + 1, len(original_widths) + 1):
+        sheet.column_dimensions.pop(get_column_letter(old_col), None)
+    if kept:
+        sheet.auto_filter.ref = f"A1:{sheet.cell(1, len(kept)).coordinate}"
+    for row in range(2, sheet.max_row + 1):
+        for col in range(1, len(kept) + 1):
+            cell = sheet.cell(row, col)
+            if cell.value is None:
+                cell.value = "N/A"
+    return removed
 
 
 def _pick_author_observation(
@@ -546,12 +591,12 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     sh.append(["Notes & limitations", ""])
     sh.cell(sh.max_row, 1).font = SUBTITLE_FONT
     notes = [
-        "Blank cells mean the consulted databases did not report that value. Missing counts are never converted to zero.",
+        "N/A means the consulted databases did not report that value. Missing counts are never converted to zero; wholly unavailable columns are omitted.",
         "Citation counts reflect a single attributed database (with observation provider); Citations/year = citations / max(1, current_year - year + 1).",
         "Methods, datasets, and evaluation metrics are extracted strictly from verified abstracts and structured metadata.",
         "Author rows are merged only when verified by persistent identifiers (ORCID, OpenAlex, or Semantic Scholar).",
         "Ranking fields are independent sortable observations, not a composite quality score. Provider names identify the metric source.",
-        "OpenAlex 2-year mean citedness is not Clarivate JIF. Licensed JIF, CiteScore, SJR, SNIP, quartile and CORE ranks stay blank unless verified.",
+        "OpenAlex 2-year mean citedness is not Clarivate JIF. Licensed venue metrics are omitted when no verified values exist.",
         "Recent author citations cover five calendar years including the retrieval year; topic-paper counts cover this export only.",
     ]
     for note in notes:
@@ -1019,6 +1064,9 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         wrap_cols={1},
         int_cols={},
     )
+
+    for ranking_sheet in (papers_sh, authors_sh, pubs_sh):
+        _remove_empty_metric_columns(ranking_sheet)
 
     output = BytesIO()
     book.save(output)

@@ -1,4 +1,7 @@
 :root{--ax-surface-0:#0f061d;--ax-surface-1:#170a2a;--ax-surface-2:#21103a;--ax-surface-3:#2c164c;--ax-border-subtle:#5b347a;--ax-border-strong:#8c52b5;--ax-text-primary:#f8f2ff;--ax-text-secondary:#d9c6ea;--ax-text-muted:#a98fc2;--ax-accent:#b239e8;--ax-accent-hover:#c855fa;--ax-radius-sm:8px;--ax-radius-md:12px;--ax-radius-lg:18px;--ax-shadow-card:0 16px 44px rgba(4,1,12,.52)}
+body[data-research-page="papers"] .workspace{width:100%;min-width:0}
+body[data-research-page="papers"] .research-simple{grid-template-columns:minmax(0,1fr);min-width:0}
+body[data-research-page="papers"] #intelligence-results,body[data-research-page="papers"] .rankings-panel,body[data-research-page="papers"] .ranking-preview{min-width:0;max-width:100%}
 #topic-form{font-variant-numeric:tabular-nums}
 .s5-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin:18px 0 4px;padding-top:16px;border-top:1px solid rgba(140,82,181,.28)}
 .research-search .s5-filters label{display:flex;flex-direction:column;gap:6px;margin:0;font:600 12px/1.35 'DM Sans',sans-serif;letter-spacing:.02em;color:var(--ax-text-secondary)}
