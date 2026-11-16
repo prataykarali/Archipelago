@@ -33,14 +33,19 @@ async function recoverPendingSearch() {
     if (job.status === 'completed') {
       const run = await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
       activeRunId = job.run_id;
-      showRun(run);
       saveResearchState();
       clearPendingSearch();
+      showRun(run);
       if (submit) submit.disabled = false;
       if (status) status.textContent = `Done — loaded ${run.papers?.length || 0} papers for "${pending.topic}".`;
       return;
     }
   } catch (error) {
+    if (!pendingSearch()) {
+      if (status) status.textContent = `Papers were saved but could not be displayed (${error.message}). Reload this page to retry.`;
+      if (submit) submit.disabled = false;
+      return;
+    }
     if (status) status.textContent = `Checking search progress: ${error.message}`;
   }
   setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
@@ -97,6 +102,8 @@ async function s5Json(url, options = {}) {
 
 const metricNumber = (value, digits = 0) => Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
 const metricList = value => Array.isArray(value) && value.length ? value.map(item => typeof item === 'string' ? item : item?.name || item?.label || JSON.stringify(item)).join(', ') : '—';
+const openAlexAuthorId = value => typeof value === 'string' && value ? value.split('/').filter(Boolean).at(-1) : null;
+const paperAuthorIds = paper => Array.isArray(paper.source_metadata?.author_openalex_ids) ? paper.source_metadata.author_openalex_ids.map(openAlexAuthorId) : [];
 
 function metricGrid(rows) {
   const grid = document.createElement('dl');
@@ -193,15 +200,15 @@ function showRun(run) {
     const authorSummary = document.createElement('summary');
     authorSummary.textContent = 'Author parameters';
     authorDetails.append(authorSummary);
-    const providerIds = paper.source_metadata?.author_openalex_ids || [];
+    const providerIds = paperAuthorIds(paper);
     paper.authors?.forEach((author, index) => {
-      const id = (providerIds[index] || '').split('/').pop();
+      const id = providerIds[index];
       const observation = authorsById.get(id);
       const values = observation?.metrics || {};
-      const matchedPapers = id ? run.papers.filter(record => (record.source_metadata?.author_openalex_ids || []).some(value => value.endsWith(id))) : [];
-      const firstPapers = matchedPapers.filter(record => (record.source_metadata?.author_openalex_ids || [])[0]?.endsWith(id)).length;
-      const lastPapers = matchedPapers.filter(record => (record.source_metadata?.author_openalex_ids || []).at(-1)?.endsWith(id)).length;
-      const coauthors = new Set(matchedPapers.flatMap(record => (record.source_metadata?.author_openalex_ids || []).filter(value => value && !value.endsWith(id))));
+      const matchedPapers = id ? run.papers.filter(record => paperAuthorIds(record).includes(id)) : [];
+      const firstPapers = matchedPapers.filter(record => paperAuthorIds(record)[0] === id).length;
+      const lastPapers = matchedPapers.filter(record => paperAuthorIds(record).at(-1) === id).length;
+      const coauthors = new Set(matchedPapers.flatMap(record => paperAuthorIds(record).filter(value => value && value !== id)));
       const recent = Array.isArray(values.counts_by_year) && values.counts_by_year.length ? values.counts_by_year.filter(row => Number.isInteger(row.year) && row.year >= new Date().getFullYear() - 4 && Number.isInteger(row.cited_by_count)).reduce((sum, row) => sum + row.cited_by_count, 0) : null;
       const relevance = matchedPapers.map(record => record.relevance_classification?.confidence).filter(Number.isFinite);
       const heading = document.createElement('h4');
@@ -411,13 +418,17 @@ window.addEventListener('load', async () => {
       const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true });
       clearPendingSearch();
       activeRunId = run.run_id;
-      showRun(run);
       saveResearchState();
+      showRun(run);
       const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
       s5('intelligence-status').textContent = `Done — loaded ${run.papers.length} papers from ${liveCount} live provider(s).`;
     } catch (error) {
-      s5('intelligence-status').textContent = `Search request interrupted (${error.message}); checking for the completed search…`;
-      if (pendingSearch()) void recoverPendingSearch();
+      if (pendingSearch()) {
+        s5('intelligence-status').textContent = `Search request interrupted (${error.message}); checking for the completed search…`;
+        void recoverPendingSearch();
+      } else {
+        s5('intelligence-status').textContent = `Papers were saved but could not be displayed (${error.message}). Reload this page to retry.`;
+      }
     }
     finally { if (!pendingSearch()) form.querySelector('button[type="submit"]').disabled = false; }
   });
