@@ -24,10 +24,10 @@ PAGE_SCRIPTS = {
     "rankings": ("research_rankings.js",),
     "progress": ("research_progress.js",),
     "topics": ("research_topics.js",),
-    "paper": ("research_paper.js",),
-    "topic": ("research_topic.js",),
+    "paper": ("research_run_dossier.js", "research_paper.js"),
+    "topic": ("research_run_dossier.js", "research_topic.js"),
 }
-ASSET_VERSION = "20261116rank2"
+ASSET_VERSION = "20261116dossier1"
 
 
 def render_research_page(page: str) -> Response:

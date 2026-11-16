@@ -254,6 +254,8 @@ function renderPaper(okf, key) {
 }
 
 window.addEventListener('load', async () => {
+  const params = new URLSearchParams(location.search);
+  if (params.has('run') || params.has('example')) return;
   if (!await window.archipelagoResearchReady) return;
   const key = new URLSearchParams(location.search).get('key') || '';
   if (!/^[a-f0-9]{64}$/.test(key)) { paperEl('paper-subtitle').textContent = 'Invalid paper link.'; return; }

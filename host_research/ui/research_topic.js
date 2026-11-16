@@ -79,6 +79,8 @@ function renderTopic(data) {
 }
 
 window.addEventListener('load', async () => {
+  const params = new URLSearchParams(location.search);
+  if (params.has('run') || params.has('example')) return;
   if (!await window.archipelagoResearchReady) return;
   const topic = new URLSearchParams(location.search).get('name')?.trim() || '';
   if (topic.length < 3) { topicEl('topic-status').textContent = 'Choose a topic from the research graph.'; return; }

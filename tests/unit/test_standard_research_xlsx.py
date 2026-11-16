@@ -8,6 +8,7 @@ from openpyxl import load_workbook
 import pytest
 
 from archipelago.scholarly.intelligence.ranking_preview import preview_run
+from archipelago.scholarly.intelligence.run_dossier import build_run_dossier
 from archipelago.scholarly.intelligence.workbook import build_workbook
 from archipelago.scholarly.intelligence.workbook_standard import STANDARD_SHEETS
 
@@ -393,6 +394,33 @@ def test_authenticated_xlsx_route_supports_standard_and_advanced_modes(
         assert preview["sheets"][name]["headers"] == [cell.value for cell in workbook[name][1]]
         assert len(preview["sheets"][name]["rows"]) == workbook[name].max_row - 1
     assert preview["sheets"]["Papers"]["rows"][0]["values"][0].startswith("'=HYPERLINK")
+
+    r_dossier = client.get(f"/api/research/intelligence/runs/{run_id}/dossier")
+    assert r_dossier.status_code == 200
+    assert r_dossier.get_json()["paper_count"] == len(preview["sheets"]["Papers"]["rows"])
+
+
+def test_dossier_uses_cleaned_workbook_rows_and_source_evidence() -> None:
+    run = _sample_run()
+    run["papers"][0]["methods"] = [
+        {"name": "state space model", "evidence": "A clean state-space model abstract."}
+    ]
+    dossier = build_run_dossier(run)
+    preview = preview_run(run)
+    assert dossier["paper_count"] == len(preview["sheets"]["Papers"]["rows"])
+    assert dossier["author_count"] == len(preview["sheets"]["Authors"]["rows"])
+    assert (
+        dossier["papers"][0]["rankable_values"] == preview["sheets"]["Papers"]["rows"][0]["values"]
+    )
+    assert dossier["papers"][0]["extracted"]["methods"] == [
+        {
+            "name": "state space model",
+            "evidence": "A clean state-space model abstract.",
+            "location": "",
+        }
+    ]
+    assert dossier["extracted_counts"]["methods"] == {"state space model": 1}
+    assert dossier["papers"][0]["sources"][0]["url"] == "https://openalex.org/W1"
 
 
 def test_rankable_preview_contains_requested_columns_without_fabricating_metrics() -> None:

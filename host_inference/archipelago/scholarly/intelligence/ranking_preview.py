@@ -22,7 +22,7 @@ def preview_workbook(workbook: BytesIO, topic: str, retrieved_at: str) -> dict[s
         sheet = book[name]
         headers = [str(cell.value or "") for cell in sheet[1]]
         rows: list[dict[str, Any]] = []
-        for cells in sheet.iter_rows(min_row=2):
+        for index, cells in enumerate(sheet.iter_rows(min_row=2)):
             values = [
                 value.isoformat() if isinstance(value := cell.value, (date, datetime)) else value
                 for cell in cells
@@ -36,7 +36,7 @@ def preview_workbook(workbook: BytesIO, topic: str, retrieved_at: str) -> dict[s
                 and cell.hyperlink.target
                 and cell.hyperlink.target.startswith("https://")
             }
-            rows.append({"values": values, "links": links})
+            rows.append({"index": index, "values": values, "links": links})
         sheets[name] = {"headers": headers, "rows": rows}
     book.close()
     return {"topic": topic, "retrieved_at": retrieved_at, "sheets": sheets}

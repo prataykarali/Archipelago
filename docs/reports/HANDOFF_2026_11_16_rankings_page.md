@@ -6,6 +6,8 @@
 - Added sortable, searchable Papers, Authors, and Publications tables on the signed-in live search page. The authenticated preview endpoint builds the same standard workbook used by XLSX export, so table cells follow the export's cleansing rules.
 - Added requested rankable columns for paper, author, and publication metrics. Values absent from verified providers remain blank; source-specific scores are labeled.
 - Cleaned method, dataset, and evaluation evidence objects into readable names in the workbook and page.
+- Restored individual paper and topic extraction pages for saved intelligence runs and the public example. Paper titles in ranking tables now open source-backed abstracts, extracted methods, datasets, metrics, claims, provenance, and the exact ranking values. The topic page aggregates verified names, years, providers, and the same cleansed paper set as the workbook.
+- Public example pages bypass the idle-login timer. Saved-run pages remain authenticated and owner scoped. The topic page downloads authenticated XLSX through the bearer-aware fetch bridge.
 - Pushed branch `feature/multi-provider-research-enrichment` and deployed backend and frontend production aliases on Vercel. Local route tests and live public-page checks passed.
 
 ## Deferred

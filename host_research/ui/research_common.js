@@ -1,6 +1,9 @@
 window.archipelagoResearchReady = new Promise(resolve => {
   window.addEventListener('load', async () => {
-    if (document.body.dataset.researchPage === 'rankings') { resolve({ publicPreview: true }); return; }
+    const page = document.body.dataset.researchPage;
+    if (page === 'rankings' || (['paper', 'topic'].includes(page) && new URLSearchParams(location.search).has('example'))) {
+      resolve({ publicPreview: true }); return;
+    }
     await window.archipelagoAuthReady;
     resolve(await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']));
   });

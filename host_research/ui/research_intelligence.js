@@ -64,7 +64,7 @@ function showRun(run) {
     previewRoot.textContent = 'Preparing ranking tables from this run’s Excel workbook…';
     s5Json(`/api/research/intelligence/runs/${previewRunId}/preview`)
       .then(preview => {
-        if (activeRunId === previewRunId) window.renderRankingPreview(previewRoot, preview);
+        if (activeRunId === previewRunId) window.renderRankingPreview(previewRoot, preview, { runId: previewRunId });
       })
       .catch(error => { if (activeRunId === previewRunId) previewRoot.textContent = `Ranking preview unavailable: ${error.message}`; });
   }
@@ -77,6 +77,8 @@ function showRun(run) {
     if (!scholarLink.hidden) scholarLink.href = run.google_scholar_url;
   }
   excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=standard`;
+  const topicDossierLink = s5('topic-dossier-link');
+  if (topicDossierLink) topicDossierLink.href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
   excelLink.onclick = async event => {
     event.preventDefault();
     const runId = activeRunId;

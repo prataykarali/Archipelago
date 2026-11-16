@@ -141,6 +141,14 @@ def register(app: Flask, _ctx: AppContext) -> None:
         run = _run(run_id)
         return jsonify(preview_run(run)) if run else (jsonify({"error": "not_found"}), 404)
 
+    @app.get("/api/research/intelligence/runs/<uuid:run_id>/dossier")  # type: ignore[misc]
+    def intelligence_dossier(run_id: uuid.UUID) -> ResponseReturnValue:
+        """Return aligned topic and paper details for the run owner."""
+        from archipelago.scholarly.intelligence.run_dossier import build_run_dossier
+
+        run = _run(run_id)
+        return jsonify(build_run_dossier(run)) if run else (jsonify({"error": "not_found"}), 404)
+
     @app.post("/api/research/intelligence/monitors")  # type: ignore[misc]
     def intelligence_monitor() -> ResponseReturnValue:
         from archipelago.scholarly.intelligence.search import validate_options

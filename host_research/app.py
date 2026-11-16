@@ -63,6 +63,8 @@ ASSETS = frozenset(
         "research_intelligence.js",
         "research_rankings.js",
         "research_rankings.css",
+        "research_run_dossier.js",
+        "research_run_dossier.css",
         "research_studio.css",
         "research_atlas.css",
         "research_paper.css",
@@ -204,6 +206,7 @@ def research_subpage(page: str = "papers") -> Response | tuple[object, int]:
 
 
 @app.get("/research/example/rankings.json")
+@app.get("/research/example/dossiers.json")
 @app.get("/research/example/Archipelago_State_Space_Models_Rankable.xlsx")
 def research_example() -> Response:
     """Serve a public, checked sample preview and its matching workbook."""

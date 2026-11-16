@@ -48,6 +48,9 @@ const expire = async () => {
   location.replace(`/login?timeout=1&next=${encodeURIComponent(location.pathname + location.search)}`);
 };
 window.archipelagoTouchSession = () => {
+  const page = document.body?.dataset.researchPage;
+  const publicExample = new URLSearchParams(location.search).has('example');
+  if (page === 'rankings' || (publicExample && ['paper', 'topic'].includes(page))) return;
   clearTimeout(idleTimer);
   idleTimer = setTimeout(expire, IDLE_TIMEOUT_MS);
 };

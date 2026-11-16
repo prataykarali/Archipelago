@@ -19,7 +19,7 @@ function rankingCompare(left, right, column, direction) {
   return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" }) * direction;
 }
 
-function renderRankingPreview(root, preview) {
+function renderRankingPreview(root, preview, context = {}) {
   if (!root || !preview?.sheets) return;
   let active = "Papers";
   let sortColumn = -1;
@@ -95,7 +95,13 @@ function renderRankingPreview(root, preview) {
         const td = document.createElement("td");
         const value = rankingText(row.values[index], sheet.headers[index]);
         const link = row.links?.[String(index)];
-        if (link && link.startsWith("https://")) {
+        if (active === "Papers" && index === 0 && (context.runId || context.example)) {
+          const anchor = document.createElement("a");
+          const target = context.runId ? `run=${encodeURIComponent(context.runId)}` : `example=${encodeURIComponent(context.example)}`;
+          anchor.href = `/research/paper?${target}&paper=${row.index}`;
+          anchor.textContent = value;
+          td.append(anchor);
+        } else if (link && link.startsWith("https://")) {
           const anchor = document.createElement("a");
           anchor.href = link;
           anchor.target = "_blank";
@@ -125,7 +131,7 @@ window.addEventListener("load", async () => {
     const response = await fetch("/research/example/rankings.json");
     if (!response.ok) throw new Error(`Example unavailable (${response.status})`);
     const preview = await response.json();
-    renderRankingPreview(sample, preview);
+    renderRankingPreview(sample, preview, { example: "state-space-models" });
     document.getElementById("sample-retrieved").textContent = `${preview.topic} · retrieved ${preview.retrieved_at.slice(0, 10)} · sample data from public providers`;
   } catch (error) { sample.textContent = error.message; }
 });
