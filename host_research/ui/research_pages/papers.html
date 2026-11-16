@@ -10,6 +10,7 @@
   <p class="eyebrow">SCHOLARLY METADATA / S5</p>
   <h2 id="s5-heading">Research intelligence</h2>
   <p>Search scholarly metadata from OpenAlex, Crossref, Semantic Scholar and arXiv. Results are source linked and limited to the returned provider coverage.</p>
+  <p><a href="/research/rankings">View a completed, verified Excel example and its ranking tables ↗</a></p>
   <form id="intelligence-form" class="research-search">
     <label for="topic-input">Research topic</label>
     <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="200" required placeholder="e.g. efficient retrieval augmented generation"><button type="submit">Find papers</button></div>
@@ -27,6 +28,10 @@
     <a id="excel-link" href="#">Download Excel report with separate paper, author, and publication ranking columns</a>
     <a id="scholar-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Review on Google Scholar ↗</a>
     <button id="graph-button" type="button">Inspect research graph</button>
+    <section class="rankings-panel" aria-labelledby="live-rankings-title">
+      <div class="rankings-heading"><div><p class="eyebrow">EXCEL VIEW / THIS TOPIC</p><h3 id="live-rankings-title">Papers · Authors · Publications</h3><p>Sort each parameter independently. Blank cells mean no verified value was returned.</p></div></div>
+      <div id="live-ranking-preview" class="ranking-preview" aria-live="polite"><p>Preparing ranking tables…</p></div>
+    </section>
     <pre id="graph-summary" hidden></pre><div id="paper-results"></div>
   </section>
   <section aria-labelledby="history-heading"><h2 id="history-heading">Previous searches</h2><div id="run-history"></div></section>

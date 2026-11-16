@@ -61,6 +61,8 @@ ASSETS = frozenset(
         "research_simple.css",
         "research_intelligence.css",
         "research_intelligence.js",
+        "research_rankings.js",
+        "research_rankings.css",
         "research_studio.css",
         "research_atlas.css",
         "research_paper.css",
@@ -150,7 +152,13 @@ def require_auth() -> tuple[object, int] | None:
     if not (
         request.path.startswith(("/api/research/", "/api/analytics/", "/api/academic-automation/"))
         or request.path
-        in {"/api/auth/me", "/api/graph/hubs", "/api/graph/page", "/api/graph/subgraph", "/api/library/opac/live"}
+        in {
+            "/api/auth/me",
+            "/api/graph/hubs",
+            "/api/graph/page",
+            "/api/graph/subgraph",
+            "/api/library/opac/live",
+        }
         or request.path.startswith("/api/librarian/")
     ):
         return jsonify({"error": "not_found"}), 404
@@ -193,6 +201,17 @@ def research_subpage(page: str = "papers") -> Response | tuple[object, int]:
     if page not in PAGE_DETAILS:
         return jsonify({"error": "not_found"}), 404
     return render_research_page(page)
+
+
+@app.get("/research/example/rankings.json")
+@app.get("/research/example/Archipelago_State_Space_Models_Rankable.xlsx")
+def research_example() -> Response:
+    """Serve a public, checked sample preview and its matching workbook."""
+    filename = request.path.rsplit("/", 1)[-1]
+    response = send_from_directory(UI / "examples", filename)
+    if filename.endswith(".xlsx"):
+        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
 
 
 @app.get("/librarian")
@@ -309,7 +328,9 @@ def library_opac_live() -> tuple[object, int]:
                         "results": matches,
                         "is_live": False,
                         "source_kind": "dated_koha_export",
-                        "source_updated_at": snapshot.get("source_updated_at") if snapshot else None,
+                        "source_updated_at": snapshot.get("source_updated_at")
+                        if snapshot
+                        else None,
                         "stale": snapshot.get("stale", True) if snapshot else True,
                         "notice": "Live OPAC unavailable; showing dated Koha export snapshot (not verified live availability).",
                     }

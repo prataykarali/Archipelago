@@ -58,6 +58,16 @@ async function s5Json(url, options = {}) {
 
 function showRun(run) {
   s5('intelligence-results').hidden = false;
+  const previewRoot = s5('live-ranking-preview');
+  const previewRunId = activeRunId;
+  if (previewRoot) {
+    previewRoot.textContent = 'Preparing ranking tables from this run’s Excel workbook…';
+    s5Json(`/api/research/intelligence/runs/${previewRunId}/preview`)
+      .then(preview => {
+        if (activeRunId === previewRunId) window.renderRankingPreview(previewRoot, preview);
+      })
+      .catch(error => { if (activeRunId === previewRunId) previewRoot.textContent = `Ranking preview unavailable: ${error.message}`; });
+  }
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
   const excelLink = s5('excel-link');

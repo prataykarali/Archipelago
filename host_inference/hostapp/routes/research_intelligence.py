@@ -133,6 +133,14 @@ def register(app: Flask, _ctx: AppContext) -> None:
             download_name=f"archipelago-{slug}-{date_str}-{mode}.xlsx",
         )
 
+    @app.get("/api/research/intelligence/runs/<uuid:run_id>/preview")  # type: ignore[misc]
+    def intelligence_preview(run_id: uuid.UUID) -> ResponseReturnValue:
+        """Return the three rankable sheets for the run owner."""
+        from archipelago.scholarly.intelligence.ranking_preview import preview_run
+
+        run = _run(run_id)
+        return jsonify(preview_run(run)) if run else (jsonify({"error": "not_found"}), 404)
+
     @app.post("/api/research/intelligence/monitors")  # type: ignore[misc]
     def intelligence_monitor() -> ResponseReturnValue:
         from archipelago.scholarly.intelligence.search import validate_options

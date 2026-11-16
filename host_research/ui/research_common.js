@@ -1,5 +1,6 @@
 window.archipelagoResearchReady = new Promise(resolve => {
   window.addEventListener('load', async () => {
+    if (document.body.dataset.researchPage === 'rankings') { resolve({ publicPreview: true }); return; }
     await window.archipelagoAuthReady;
     resolve(await window.archipelagoAuthorizePage(['faculty', 'librarian', 'administrator']));
   });

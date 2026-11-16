@@ -7,6 +7,7 @@ from io import BytesIO
 from openpyxl import load_workbook
 import pytest
 
+from archipelago.scholarly.intelligence.ranking_preview import preview_run
 from archipelago.scholarly.intelligence.workbook import build_workbook
 from archipelago.scholarly.intelligence.workbook_standard import STANDARD_SHEETS
 
@@ -383,3 +384,30 @@ def test_authenticated_xlsx_route_supports_standard_and_advanced_modes(
 
     r_bad = client.get(f"/api/research/intelligence/runs/{run_id}/xlsx?mode=bogus")
     assert r_bad.status_code == 400
+
+    r_preview = client.get(f"/api/research/intelligence/runs/{run_id}/preview")
+    assert r_preview.status_code == 200
+    preview = r_preview.get_json()
+    workbook = load_workbook(BytesIO(r_default.data))
+    for name in ("Papers", "Authors", "Publications"):
+        assert preview["sheets"][name]["headers"] == [cell.value for cell in workbook[name][1]]
+        assert len(preview["sheets"][name]["rows"]) == workbook[name].max_row - 1
+    assert preview["sheets"]["Papers"]["rows"][0]["values"][0].startswith("'=HYPERLINK")
+
+
+def test_rankable_preview_contains_requested_columns_without_fabricating_metrics() -> None:
+    preview = preview_run(_sample_run())
+    paper_headers = preview["sheets"]["Papers"]["headers"]
+    author_headers = preview["sheets"]["Authors"]["headers"]
+    venue_headers = preview["sheets"]["Publications"]["headers"]
+    assert {"Benchmark performance", "FWCI (OpenAlex)", "Checkpoint link available"} <= set(
+        paper_headers
+    )
+    assert {"g-index", "Median citations / work", "Field-normalized impact"} <= set(author_headers)
+    assert {"JIF (Clarivate)", "h5-index", "h5-median", "Indexed status (OpenAlex)"} <= set(
+        venue_headers
+    )
+    paper = preview["sheets"]["Papers"]["rows"][0]["values"]
+    assert paper[paper_headers.index("Benchmark performance")] is None
+    venue = preview["sheets"]["Publications"]["rows"][0]["values"]
+    assert venue[venue_headers.index("JIF (Clarivate)")] is None

@@ -550,6 +550,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         ("Citation percentile (OpenAlex)", 23, False, "0.0%"),
         ("Influential citations (Semantic Scholar)", 24, False, "#,##0"),
         ("Indexed references", 17, False, "#,##0"),
+        ("Benchmark performance", 27, True, None),
     ]
     if include_methods:
         col_specs.append(("Research method", 26, True, None))
@@ -566,6 +567,8 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             ("Method evidence", 18, False, None),
             ("Code link available", 18, False, None),
             ("Data link available", 18, False, None),
+            ("Checkpoint link available", 20, False, None),
+            ("Experimental details available", 25, False, None),
         ]
     )
 
@@ -625,6 +628,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             openalex_citation_percentile(paper),
             nonnegative_number(paper.get("influential_citations")),
             len(paper["references"]) if paper.get("references") else None,
+            None,
         ]
         if include_methods:
             row_vals.append(_safe_cell(_clean_list_field(paper.get("methods"))))
@@ -641,6 +645,8 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 "Yes" if paper.get("methods") else None,
                 "Yes" if paper.get("code_repo_urls") else None,
                 "Yes" if paper.get("dataset_repo_urls") else None,
+                "Yes" if paper.get("checkpoint_urls") else None,
+                "Yes" if paper.get("experimental_details_url") else None,
             ]
         )
         papers_sh.append(row_vals)
@@ -679,8 +685,37 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         "Topic papers in export",
         "Best paper relevance (0-1)",
         "Metric provider",
+        "g-index",
+        "Median citations / work",
+        "Field-normalized impact",
+        "First-author papers in export",
+        "Last-author papers in export",
+        "Verified collaborators in export",
     ]
-    authors_widths = [26, 36, 22, 16, 15, 11, 28, 16, 24, 12, 20, 21, 13, 22, 24, 18]
+    authors_widths = [
+        26,
+        36,
+        22,
+        16,
+        15,
+        11,
+        28,
+        16,
+        24,
+        12,
+        20,
+        21,
+        13,
+        22,
+        24,
+        18,
+        12,
+        23,
+        22,
+        27,
+        27,
+        31,
+    ]
     _init_data_sheet(authors_sh, authors_headers, authors_widths)
     for entry in authors_by_key.values():
         primary_obs, other_obs = _pick_author_observation(entry["obs"])
@@ -745,6 +780,16 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 len(entry["topic_papers"]),
                 entry["best_relevance"],
                 _safe_cell(metric_src),
+                None,
+                None,
+                None,
+                sum(author_key(p, 0) == entry["key"] for p in papers if p.get("authors")),
+                sum(
+                    author_key(p, len(p["authors"]) - 1) == entry["key"]
+                    for p in papers
+                    if p.get("authors")
+                ),
+                None,
             ]
         )
         r = authors_sh.max_row
@@ -768,6 +813,8 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             13: "0.00",
             14: "#,##0",
             15: "0.000",
+            20: "#,##0",
+            21: "#,##0",
         },
     )
 
@@ -795,8 +842,34 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         "CORE / ICORE rank",
         "Acceptance rate",
         "Venue metric provider",
+        "h5-index",
+        "h5-median",
+        "Indexed status (OpenAlex)",
     ]
-    pubs_widths = [38, 24, 28, 18, 18, 36, 22, 24, 22, 24, 27, 18, 20, 18, 14, 18, 20, 18, 22]
+    pubs_widths = [
+        38,
+        24,
+        28,
+        18,
+        18,
+        36,
+        22,
+        24,
+        22,
+        24,
+        27,
+        18,
+        20,
+        18,
+        14,
+        18,
+        20,
+        18,
+        22,
+        14,
+        14,
+        26,
+    ]
     _init_data_sheet(pubs_sh, pubs_headers, pubs_widths)
     for ventry in venues_by_key.values():
         paper = ventry["paper"]
@@ -838,6 +911,9 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 None,
                 None,
                 _safe_cell(v_prov if rank_metrics["works_count"] is not None else None),
+                None,
+                None,
+                "Yes" if rank_metrics["works_count"] is not None else None,
             ]
         )
         r = pubs_sh.max_row
