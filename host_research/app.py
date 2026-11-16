@@ -8,7 +8,7 @@ from secrets import compare_digest
 from urllib.parse import urlsplit
 
 from discovery import discover
-from flask import Flask, Response, g, jsonify, request, send_from_directory
+from flask import Flask, Response, g, jsonify, redirect, request, send_from_directory
 from koha_snapshot import load_snapshot
 from librarian_store import RECORD_TYPES, list_records, save_record
 from opac_live import lookup_book, search_books
@@ -200,6 +200,10 @@ def static_page() -> Response:
 @app.get("/research/<page>")
 def research_subpage(page: str = "papers") -> Response | tuple[object, int]:
     """Render metadata-first S5 research views."""
+    if page == "rankings":
+        return redirect("/research", code=302)
+    if page in {"topic", "paper"} and request.args.get("example"):
+        return redirect("/research", code=302)
     if page not in PAGE_DETAILS:
         return jsonify({"error": "not_found"}), 404
     return render_research_page(page)
@@ -208,13 +212,9 @@ def research_subpage(page: str = "papers") -> Response | tuple[object, int]:
 @app.get("/research/example/rankings.json")
 @app.get("/research/example/dossiers.json")
 @app.get("/research/example/Archipelago_State_Space_Models_Rankable.xlsx")
-def research_example() -> Response:
-    """Serve a public, checked sample preview and its matching workbook."""
-    filename = request.path.rsplit("/", 1)[-1]
-    response = send_from_directory(UI / "examples", filename)
-    if filename.endswith(".xlsx"):
-        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
-    return response
+def research_example() -> tuple[object, int]:
+    """Retire stale example papers from the live research experience."""
+    return jsonify({"error": "example_retired"}), 404
 
 
 @app.get("/librarian")

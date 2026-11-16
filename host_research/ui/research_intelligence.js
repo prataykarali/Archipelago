@@ -2,8 +2,8 @@
 
 const s5 = id => document.getElementById(id);
 let activeRunId = null;
-const S5_STATE_KEY = 'archipelago_research_state_v1';
-const S5_PENDING_KEY = 'archipelago_research_pending_v1';
+const S5_STATE_KEY = 'archipelago_research_state_v2';
+const S5_PENDING_KEY = 'archipelago_research_pending_v2';
 const SEARCH_RECOVERY_INTERVAL_MS = 8000;
 const SEARCH_RECOVERY_WINDOW_MS = 360000;
 
@@ -38,20 +38,12 @@ async function recoverPendingSearch() {
       clearPendingSearch();
       if (submit) submit.disabled = false;
       if (status) status.textContent = `Done — loaded ${run.papers?.length || 0} papers for "${pending.topic}".`;
-      await loadHistory();
       return;
     }
   } catch (error) {
     if (status) status.textContent = `Checking search progress: ${error.message}`;
   }
   setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
-}
-
-function formatShortDate(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function saveResearchState() {
@@ -73,6 +65,7 @@ function restoreResearchForm() {
     const form = s5('intelligence-form');
     if (form && saved.form) {
       for (const [k, v] of Object.entries(saved.form)) {
+        if (!['topic', 'year_from', 'year_to'].includes(k)) continue;
         const el = form.elements.namedItem(k);
         if (el && v != null && String(v) !== '') el.value = String(v);
       }
@@ -119,6 +112,7 @@ function metricGrid(rows) {
 
 function showRun(run) {
   s5('intelligence-results').hidden = false;
+  s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
   const excelLink = s5('excel-link');
@@ -147,7 +141,7 @@ function showRun(run) {
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));
-  for (const paper of run.papers) {
+  for (const [paperIndex, paper] of run.papers.entries()) {
     const article = document.createElement('article');
     article.className = 'research-card';
     const title = document.createElement('h3');
@@ -168,7 +162,13 @@ function showRun(run) {
       ['Influential citation count (Semantic Scholar)', metricNumber(paper.influential_citations)],
       ['Open-access status', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : '—'],
     ];
-    article.append(title, facts, metricGrid(metricRows));
+    const coverage = document.createElement('p');
+    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper parameters verified`;
+    article.append(title, facts, coverage, metricGrid(metricRows));
+    const paperDetail = document.createElement('a');
+    paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${paperIndex}`;
+    paperDetail.textContent = 'Open paper extraction ↗';
+    article.append(paperDetail);
     if (paper.url && paper.url.startsWith('https://')) {
       const link = document.createElement('a');
       link.href = paper.url;
@@ -264,44 +264,6 @@ function showRun(run) {
     list.append(article);
   }
   if (!run.papers.length) list.textContent = 'No papers matched the filters in the returned provider results.';
-}
-
-async function loadHistory() {
-  const history = s5('run-history');
-  const statusEl = s5('intelligence-status');
-  if (statusEl) statusEl.textContent = 'Loading previous research searches…';
-  try {
-    const data = await s5Json('/api/research/intelligence/runs');
-    history.replaceChildren();
-    if (!data.runs.length) {
-      history.textContent = 'No previous searches yet.';
-    }
-    for (const run of data.runs) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = `${run.topic} · ${formatShortDate(run.created_at)}`;
-      button.addEventListener('click', async () => {
-        activeRunId = run.run_id;
-        if (statusEl) statusEl.textContent = `Loading saved search "${run.topic}"…`;
-        try {
-          const loaded = await s5Json(`/api/research/intelligence/runs/${activeRunId}`);
-          showRun(loaded);
-          saveResearchState();
-          if (statusEl) statusEl.textContent = `Loaded ${loaded.papers?.length || 0} papers for "${run.topic}".`;
-          s5('intelligence-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (err) {
-          if (statusEl) statusEl.textContent = err.message;
-        }
-      });
-      history.append(button);
-    }
-    if (statusEl && statusEl.textContent === 'Loading previous research searches…') {
-      statusEl.textContent = 'Ready to search.';
-    }
-  } catch (error) {
-    history.textContent = error.message;
-    if (statusEl) statusEl.textContent = error.message;
-  }
 }
 
 async function loadMonitors() {
@@ -416,12 +378,10 @@ async function loadUpdates() {
 window.addEventListener('load', async () => {
   if (!await window.archipelagoResearchReady) return;
   const savedRunId = restoreResearchForm();
-  await loadHistory();
-  if (savedRunId) {
+  if (savedRunId && !pendingSearch()) {
     try {
-      s5('intelligence-status').textContent = 'Restoring your previous research view…';
       activeRunId = savedRunId;
-      const run = await s5Json(`/api/research/intelligence/runs/${savedRunId}`);
+      const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(savedRunId)}`);
       showRun(run);
       s5('intelligence-status').textContent = `Restored ${run.papers?.length || 0} papers.`;
     } catch (_) {
@@ -448,7 +408,6 @@ window.addEventListener('load', async () => {
       saveResearchState();
       const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
       s5('intelligence-status').textContent = `Done — loaded ${run.papers.length} papers from ${liveCount} live provider(s).`;
-      await loadHistory();
     } catch (error) {
       s5('intelligence-status').textContent = `Search request interrupted (${error.message}); checking for the completed search…`;
       if (pendingSearch()) void recoverPendingSearch();

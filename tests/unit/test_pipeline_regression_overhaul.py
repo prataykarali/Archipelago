@@ -9,12 +9,20 @@ from openpyxl import load_workbook
 
 from archipelago.scholarly.discovery.live_sources import LiveResearchSources
 from archipelago.scholarly.discovery.resilient_http import reliability_client
-from archipelago.scholarly.intelligence.relevance_engine import disambiguate_query, evaluate_relevance
-from archipelago.scholarly.intelligence.search import discover, validate_options
+from archipelago.scholarly.intelligence.relevance_engine import (
+    disambiguate_query,
+    evaluate_relevance,
+)
+from archipelago.scholarly.intelligence.search import validate_options
 from archipelago.scholarly.intelligence.workbook import build_workbook
 
 
-def _mock_resp(status_code: int, body: bytes, content_type: str = "application/json", headers: dict | None = None):
+def _mock_resp(
+    status_code: int,
+    body: bytes,
+    content_type: str = "application/json",
+    headers: dict | None = None,
+):
     resp = MagicMock()
     resp.status_code = status_code
     resp.ok = 200 <= status_code < 300
@@ -28,17 +36,20 @@ def _mock_resp(status_code: int, body: bytes, content_type: str = "application/j
     return resp
 
 
-def test_validate_options_supports_50_100_default_200_500() -> None:
-    assert validate_options({"topic": "state space models"})["top_k"] == 100
-    for k in (50, 100, 200, 500):
-        assert validate_options({"topic": "state space models", "top_k": k})["top_k"] == k
+def test_validate_options_caps_all_searches_at_thirty_papers() -> None:
+    assert validate_options({"topic": "state space models"})["top_k"] == 30
+    assert validate_options({"topic": "state space models", "top_k": 20})["top_k"] == 20
+    for k in (30, 50, 100, 200, 500):
+        assert validate_options({"topic": "state space models", "top_k": k})["top_k"] == 30
 
 
 def test_non_json_and_error_payload_and_429_handling() -> None:
     reliability_client().clear_cache()
     # 1. HTML instead of JSON -> parse_failed
     sess = MagicMock()
-    sess.get.return_value = _mock_resp(200, b"<html><body>Gateway</body></html>", content_type="text/html")
+    sess.get.return_value = _mock_resp(
+        200, b"<html><body>Gateway</body></html>", content_type="text/html"
+    )
     ls = LiveResearchSources(session=sess)
     res_html = ls.search("openalex", "state space models", 10)
     assert res_html.status == "parse_failed"
@@ -46,14 +57,18 @@ def test_non_json_and_error_payload_and_429_handling() -> None:
 
     # 2. JSON error payload -> parse_failed
     reliability_client().clear_cache()
-    sess.get.return_value = _mock_resp(200, b'{"error": "invalid_query"}', content_type="application/json")
+    sess.get.return_value = _mock_resp(
+        200, b'{"error": "invalid_query"}', content_type="application/json"
+    )
     res_err = ls.search("openalex", "state space models", 10)
     assert res_err.status == "parse_failed"
     assert res_err.records == []
 
     # 3. 429 rate limited -> rate_limited
     reliability_client().clear_cache()
-    sess.get.return_value = _mock_resp(429, b'{"error": "rate limit"}', headers={"Retry-After": "1"})
+    sess.get.return_value = _mock_resp(
+        429, b'{"error": "rate limit"}', headers={"Retry-After": "1"}
+    )
     res_rl = ls.search("openalex", "state space models", 10)
     assert res_rl.status == "rate_limited"
     assert res_rl.rate_limited is True
@@ -104,7 +119,9 @@ def test_openalex_pagination_and_malformed_record_resilience() -> None:
 def test_space_state_model_disambiguation_and_off_domain_rejection() -> None:
     disambig = disambiguate_query("space state model")
     assert disambig["resolved_domain"] == "ai_cs"
-    assert any("state space" in alt["interpretation"] for alt in disambig["alternative_interpretations"])
+    assert any(
+        "state space" in alt["interpretation"] for alt in disambig["alternative_interpretations"]
+    )
 
     # Irrelevant orbital/spacecraft paper should be rejected for AI/ML state-space query
     off = evaluate_relevance(
@@ -134,8 +151,18 @@ def test_standard_excludes_incomplete_papers_keeps_in_advanced_and_preserves_non
     run["papers"][0]["datasets"] = ["wikitext-103"]
     run["papers"][0]["evaluation_metrics"] = ["perplexity"]
     run["papers"][0]["provenance"] = [
-        {"source_type": "openalex", "source_url": "https://openalex.org/W1", "contribution_type": "discovery_primary", "source_record_id": "W1"},
-        {"source_type": "crossref", "source_url": "https://doi.org/10.1000/mamba", "contribution_type": "stage2_enrichment", "source_record_id": "10.1000/mamba"},
+        {
+            "source_type": "openalex",
+            "source_url": "https://openalex.org/W1",
+            "contribution_type": "discovery_primary",
+            "source_record_id": "W1",
+        },
+        {
+            "source_type": "crossref",
+            "source_url": "https://doi.org/10.1000/mamba",
+            "contribution_type": "stage2_enrichment",
+            "source_record_id": "10.1000/mamba",
+        },
     ]
     incomplete = dict(run["papers"][1])
     incomplete["paper_id"] = "p-incomplete"

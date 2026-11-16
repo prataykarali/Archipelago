@@ -84,3 +84,46 @@ def test_benchmark_performance_needs_named_benchmark_and_numeric_result() -> Non
     )
     assert found["benchmark_performance"][0]["name"] == "imagenet: accuracy 92.1%"
     assert len(found["benchmark_performance"]) == 1
+
+
+def test_metadata_rich_paper_is_selected_before_sparse_match() -> None:
+    class Provider:
+        def discover_with_status(self, query: str, limit: int):
+            sparse = PaperRecord(
+                paper_id="sparse",
+                title="Optical character recognition in document images",
+                abstract="Optical character recognition reads document images.",
+                publication_date="2026-01-01",
+            )
+            rich = PaperRecord(
+                paper_id="rich",
+                title="Optical character recognition for printed documents",
+                abstract="Optical character recognition reads printed document images with evaluated methods.",
+                identifiers=PaperIdentifiers(doi="10.1000/ocr-rich"),
+                publication_date="2025-01-01",
+                venue="Document Analysis Journal",
+            )
+            return [
+                {
+                    "paper": sparse,
+                    "source": "crossref",
+                    "citation_count": None,
+                    "source_metadata": {},
+                },
+                {
+                    "paper": rich,
+                    "source": "openalex",
+                    "citation_count": 5,
+                    "source_metadata": {
+                        "fwci": 1.2,
+                        "reference_count": 10,
+                        "venue_id": "https://openalex.org/S1",
+                    },
+                },
+            ], [{"source": "openalex", "status": "live", "record_count": 2}]
+
+    run = discover(
+        {"topic": "optical character recognition", "top_k": 1, "sort": "evidence_completeness"},
+        Provider(),
+    )
+    assert [paper["paper_id"] for paper in run["papers"]] == ["rich"]

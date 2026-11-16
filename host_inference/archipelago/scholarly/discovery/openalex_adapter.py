@@ -9,6 +9,7 @@ import hashlib
 import html
 import json
 import logging
+import os
 import re
 from typing import Any
 import urllib.parse
@@ -52,6 +53,11 @@ class OpenAlexAdapter:
                     "per-page": per_page,
                     "page": page,
                     "sort": "relevance_score:desc",
+                    **(
+                        {"api_key": api_key}
+                        if (api_key := os.getenv("OPENALEX_API_KEY", "").strip())
+                        else {}
+                    ),
                 }
             )
             url = f"{self.base_url}?{params}"
@@ -61,13 +67,21 @@ class OpenAlexAdapter:
                     status = getattr(resp, "status", 200)
                     ctype = (resp.headers.get("Content-Type") or "").lower()
                     if status != 200 or ("json" not in ctype and ctype):
-                        logger.warning("OpenAlex unexpected response status=%s content_type=%s", status, ctype)
+                        logger.warning(
+                            "OpenAlex unexpected response status=%s content_type=%s", status, ctype
+                        )
                         break
                     raw_bytes = resp.read()
                     raw_sha256 = hashlib.sha256(raw_bytes).hexdigest()
                     payload = json.loads(raw_bytes.decode("utf-8"))
                     if not isinstance(payload, dict) or payload.get("error"):
-                        logger.warning("OpenAlex error payload for query '%s': %s", query, payload.get("error") if isinstance(payload, dict) else type(payload).__name__)
+                        logger.warning(
+                            "OpenAlex error payload for query '%s': %s",
+                            query,
+                            payload.get("error")
+                            if isinstance(payload, dict)
+                            else type(payload).__name__,
+                        )
                         break
                     items = payload.get("results")
                     if not isinstance(items, list) or not items:
@@ -81,7 +95,12 @@ class OpenAlexAdapter:
                         break
                     page += 1
             except Exception as e:
-                logger.error("OpenAlex search failed for query '%s' page=%d: %s", query, page, e)
+                logger.error(
+                    "OpenAlex search failed for query '%s' page=%d: %s",
+                    query,
+                    page,
+                    type(e).__name__,
+                )
                 break
         return results
 
@@ -205,11 +224,14 @@ class OpenAlexAdapter:
                     if entry.get("display_name")
                 ],
                 "retraction_status": item.get("is_retracted"),
-                "author_openalex_ids": [(entry.get("author") or {}).get("id") for entry in authorships],
+                "author_openalex_ids": [
+                    (entry.get("author") or {}).get("id") for entry in authorships
+                ],
                 "corresponding_authors": [
                     (entry.get("author") or {}).get("display_name")
                     for entry in authorships
-                    if entry.get("is_corresponding") and (entry.get("author") or {}).get("display_name")
+                    if entry.get("is_corresponding")
+                    and (entry.get("author") or {}).get("display_name")
                 ],
                 "author_institutions": [
                     [

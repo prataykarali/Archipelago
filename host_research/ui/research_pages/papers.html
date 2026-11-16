@@ -5,22 +5,22 @@
 <section id="topic-form" class="research-simple" aria-labelledby="s5-heading">
   <p class="eyebrow">SCHOLARLY METADATA / S5</p>
   <h2 id="s5-heading">Research papers</h2>
-  <p>Search scholarly metadata from OpenAlex, Crossref, Semantic Scholar and arXiv. Results are source linked and limited to the returned provider coverage.</p>
+  <p>Search a topic for up to 30 source-linked papers with the richest verified metadata available. Coverage depends on what the providers report; missing metrics remain blank.</p>
   <form id="intelligence-form" class="research-search">
     <label for="topic-input">Research topic</label>
     <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="200" required placeholder="e.g. efficient retrieval augmented generation"><button type="submit">Find papers</button></div>
     <div class="s5-filters">
-      <label>Papers to collect (maximum) <select name="top_k"><option>50</option><option selected>100</option><option>200</option><option>500</option></select></label>
+      <label>Papers to collect (maximum) <select name="top_k"><option>20</option><option selected>30</option></select></label>
       <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
       <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
-      <input name="sort" type="hidden" value="relevance">
+      <input name="sort" type="hidden" value="evidence_completeness">
     </div>
   </form>
   <p id="intelligence-status" role="status">Ready to search.</p>
   <section id="intelligence-results" hidden aria-labelledby="results-heading">
     <h2 id="results-heading">Paper results</h2><p>Each parameter is shown separately. A dash means no connected source verified that value; it is never treated as zero.</p><p id="provider-status"></p><p id="retrieved-at"></p>
     <a id="excel-link" href="#">Download paper data (Excel)</a>
+    <a id="topic-dossier-link" href="#">Open topic extraction overview ↗</a>
     <div id="paper-results"></div>
   </section>
-  <section aria-labelledby="history-heading"><h2 id="history-heading">Previous searches</h2><div id="run-history"></div></section>
 </section>

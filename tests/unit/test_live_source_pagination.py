@@ -75,3 +75,10 @@ def test_non_json_openalex_response_is_reported_as_parse_failure() -> None:
     assert response.status == "parse_failed"
     assert response.records == []
     assert response.http_status == 200
+
+
+def test_openalex_key_is_sent_only_to_openalex(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENALEX_API_KEY", "test-key")
+    sources = LiveResearchSources()
+    assert sources._build_page_params("openalex", "topic", 5, 0)["api_key"] == "test-key"
+    assert "api_key" not in sources._build_page_params("crossref", "topic", 5, 0)

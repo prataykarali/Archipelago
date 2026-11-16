@@ -105,7 +105,10 @@ class LiveResearchSources:
     ) -> dict[str, Any]:
         offset = page_idx * page_size
         if source == "openalex":
-            return {"search": query, "per-page": page_size, "page": page_idx + 1}
+            params = {"search": query, "per-page": page_size, "page": page_idx + 1}
+            if api_key := os.getenv("OPENALEX_API_KEY", "").strip():
+                params["api_key"] = api_key
+            return params
         if source == "crossref":
             return {"query": query, "rows": page_size, "offset": offset}
         if source == "arxiv":

@@ -34,6 +34,10 @@ def _get_json_with_retry(
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
 ) -> tuple[dict[str, Any] | None, str | None]:
     """Execute GET with rate-limit-aware backoff; return (payload, error_status)."""
+    if url.startswith("https://api.openalex.org/") and (
+        api_key := os.getenv("OPENALEX_API_KEY", "").strip()
+    ):
+        params = {**(params or {}), "api_key": api_key}
     for attempt in range(MAX_RETRIES + 1):
         try:
             resp = client.get(url, params=params, timeout=timeout)

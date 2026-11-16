@@ -30,8 +30,9 @@ from .extraction import extract_evidence
 from .relevance_engine import concept_anchor_coverage, disambiguate_query, evaluate_relevance
 from .semantic_rerank import rerank_candidates, semantic_rank_cutoff
 
-DEFAULT_TOP_K = 100
+DEFAULT_TOP_K = 30
 MAX_TOP_K = 500
+DISPLAY_PAPER_CAP = 30
 SOURCE_MULTIPLIER = 3
 MAX_CANDIDATE_FETCH = 500
 SSM_QUERY_RE = re.compile(r"\b(?:state[- ]space|space state) models?\b", re.IGNORECASE)
@@ -185,8 +186,8 @@ SORT_DEFINITIONS: dict[str, dict[str, str]] = {
         "source": "OpenAlex / Semantic Scholar / arXiv / Europe PMC",
     },
     "evidence_completeness": {
-        "label": "Evidence completeness",
-        "definition": "Sorted descending by count of populated evidence fields (abstract, DOI, methods, datasets, metrics, grants, references).",
+        "label": "Verified metadata coverage",
+        "definition": "Topic-eligible papers with more populated provider-backed paper, author identity, and venue fields first.",
         "source": "Extracted from provider metadata & abstracts",
     },
     "provider": {
@@ -209,6 +210,28 @@ def _provider_citation_count(row: dict[str, Any], provider: str) -> int | None:
         ):
             return count
     return None
+
+
+def _verified_metadata_fields(row: dict[str, Any]) -> int:
+    """Count fields with actual evidence before choosing a bounded paper set."""
+    metadata = row.get("source_metadata") or {}
+    present = (
+        bool(row.get("abstract")),
+        bool(row.get("doi")),
+        bool(row.get("authors")),
+        isinstance(row.get("year"), int),
+        row.get("citation_count") is not None,
+        row.get("fwci") is not None,
+        row.get("citation_normalized_percentile") is not None,
+        row.get("is_open_access") is not None,
+        bool(row.get("methods")),
+        bool(row.get("benchmark_performance")),
+        bool(row.get("references")) or row.get("reference_count") is not None,
+        bool(row.get("code_repo_urls")) or bool(row.get("dataset_repo_urls")),
+        bool(metadata.get("author_openalex_ids")),
+        bool(metadata.get("venue_id")),
+    )
+    return sum(present)
 
 
 def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
@@ -240,7 +263,7 @@ def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("invalid_open_access")
     return {
         "topic": topic,
-        "top_k": top_k,
+        "top_k": min(top_k, DISPLAY_PAPER_CAP),
         "year_from": start,
         "year_to": end,
         "sort": sort,
@@ -669,18 +692,9 @@ def discover(
     elif sort_mode == "evidence_completeness":
         rows.sort(
             key=lambda row: (
-                sum(
-                    bool(row.get(k))
-                    for k in (
-                        "abstract",
-                        "doi",
-                        "methods",
-                        "datasets",
-                        "evaluation_metrics",
-                        "grants",
-                        "references",
-                    )
-                ),
+                row.get("standard_eligible") is True,
+                _verified_metadata_fields(row),
+                (row.get("relevance_classification") or {}).get("confidence", 0.0),
                 row["publication_date"] or "",
             ),
             reverse=True,
