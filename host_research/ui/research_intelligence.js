@@ -101,32 +101,15 @@ async function s5Json(url, options = {}) {
 
 function showRun(run) {
   s5('intelligence-results').hidden = false;
-  const previewRoot = s5('live-ranking-preview');
-  const previewRunId = activeRunId;
-  if (previewRoot) {
-    previewRoot.textContent = 'Preparing ranking tables from this run’s Excel workbook…';
-    s5Json(`/api/research/intelligence/runs/${previewRunId}/preview`)
-      .then(preview => {
-        if (activeRunId === previewRunId) window.renderRankingPreview(previewRoot, preview, { runId: previewRunId });
-      })
-      .catch(error => { if (activeRunId === previewRunId) previewRoot.textContent = `Ranking preview unavailable: ${error.message}`; });
-  }
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
   const excelLink = s5('excel-link');
-  const scholarLink = s5('scholar-link');
-  if (scholarLink) {
-    scholarLink.hidden = !run.google_scholar_url?.startsWith('https://scholar.google.com/');
-    if (!scholarLink.hidden) scholarLink.href = run.google_scholar_url;
-  }
   excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=standard`;
-  const topicDossierLink = s5('topic-dossier-link');
-  if (topicDossierLink) topicDossierLink.href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
   excelLink.onclick = async event => {
     event.preventDefault();
     const runId = activeRunId;
     if (!runId) return;
-    const mode = s5('excel-mode')?.value === 'advanced' ? 'advanced' : 'standard';
+    const mode = 'standard';
     try {
       const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx?mode=${mode}`, { cache: 'no-store', credentials: 'include' });
       if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
@@ -145,31 +128,41 @@ function showRun(run) {
   };
   const list = s5('paper-results');
   list.replaceChildren();
-  const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));
   for (const paper of run.papers) {
     const article = document.createElement('article');
     article.className = 'research-card';
     const title = document.createElement('h3');
-    title.textContent = `${paper.collection_order}. ${paper.title}`;
+    title.textContent = paper.title;
     const facts = document.createElement('p');
-    facts.textContent = [paper.year, paper.authors.map(author => author.name).join(', '), paper.venue, paper.citation_count == null ? null : `${paper.citation_count} citations (${paper.citation_provider})`, paper.evidence_status].filter(Boolean).join(' · ');
-    const reason = document.createElement('p');
-    reason.textContent = `Collection order ${paper.collection_order} (${run.ordering}); topic terms found in provider metadata. Not a quality ranking.`;
-    const ranking = document.createElement('p');
-    const rankingFacts = [
-      Number.isFinite(paper.relevance_classification?.confidence) ? `Relevance ${paper.relevance_classification.confidence.toFixed(3)}` : null,
-      Number.isFinite(paper.citations_per_year) ? `${paper.citations_per_year.toFixed(2)} citations/year` : null,
-      Number.isFinite(paper.fwci) ? `FWCI ${paper.fwci.toFixed(2)} (OpenAlex)` : null,
-      Number.isFinite(paper.citation_normalized_percentile?.value) ? `Citation percentile ${(paper.citation_normalized_percentile.value * 100).toFixed(1)}% (OpenAlex)` : null,
-      Number.isFinite(paper.influential_citations) ? `${paper.influential_citations} influential citations (Semantic Scholar)` : null,
-      paper.references?.length ? `${paper.references.length} indexed references` : null,
-      paper.methods?.length ? 'Method evidence' : null,
-      paper.code_repo_urls?.length ? 'Code linked' : null,
-      paper.dataset_repo_urls?.length ? 'Data linked' : null,
-    ].filter(Boolean);
-    ranking.textContent = rankingFacts.join(' · ');
-    article.append(title, facts, reason);
-    if (rankingFacts.length) article.append(ranking);
+    facts.textContent = [paper.authors?.map(author => author.name).join(', '), paper.venue].filter(Boolean).join(' · ');
+    const metrics = document.createElement('dl');
+    metrics.className = 'paper-metrics';
+    const number = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits) : 'N/A';
+    const listValue = value => Array.isArray(value) && value.length ? value.map(item => typeof item === 'string' ? item : item?.name || item?.label || JSON.stringify(item)).join(', ') : 'N/A';
+    const metricRows = [
+      ['Citations', number(paper.citation_count)],
+      ['Citations per year', number(paper.citations_per_year, 2)],
+      ['FWCI', number(paper.fwci, 2)],
+      ['Citation percentile', Number.isFinite(paper.citation_normalized_percentile?.value) ? `${(paper.citation_normalized_percentile.value * 100).toFixed(1)}%` : 'N/A'],
+      ['Topic relevance score', Number.isFinite(paper.relevance_classification?.confidence) ? paper.relevance_classification.confidence.toFixed(2) : 'N/A'],
+      ['Publication year', Number.isFinite(paper.year) ? String(paper.year) : 'N/A'],
+      ['Benchmark performance', listValue(paper.evaluation_metrics)],
+      ['Methodological evidence', listValue(paper.methods)],
+      ['Reproducibility', [paper.code_repo_urls?.length ? 'Code linked' : null, paper.dataset_repo_urls?.length ? 'Data linked' : null].filter(Boolean).join(', ') || 'N/A'],
+      ['Reference count', Array.isArray(paper.references) && paper.references.length ? String(paper.references.length) : 'N/A'],
+      ['Influential citations', number(paper.influential_citations)],
+      ['Open access', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : 'N/A'],
+    ];
+    for (const [label, value] of metricRows) {
+      const item = document.createElement('div');
+      const term = document.createElement('dt');
+      const description = document.createElement('dd');
+      term.textContent = label;
+      description.textContent = value;
+      item.append(term, description);
+      metrics.append(item);
+    }
+    article.append(title, facts, metrics);
     if (paper.url && paper.url.startsWith('https://')) {
       const link = document.createElement('a');
       link.href = paper.url;
@@ -187,39 +180,6 @@ function showRun(run) {
     references.textContent = `${paper.references.length} provider reference IDs · DOI: ${paper.doi || 'unavailable'}`;
     details.append(summary, body, references);
     article.append(details);
-    const identities = document.createElement('details');
-    const identityHeading = document.createElement('summary');
-    identityHeading.textContent = 'Author and venue intelligence';
-    identities.append(identityHeading);
-    const providerIds = paper.source_metadata?.author_openalex_ids || [];
-    paper.authors.forEach((author, index) => {
-      const id = (providerIds[index] || '').split('/').pop();
-      const observation = authorsById.get(id);
-      const line = document.createElement('p');
-      const metrics = observation?.metrics;
-      const authorFacts = metrics ? [
-        Number.isFinite(metrics.publication_count) ? `${metrics.publication_count} indexed works` : null,
-        Number.isFinite(metrics.citation_count) ? `${metrics.citation_count} citations` : null,
-        Number.isFinite(metrics.h_index) ? `h-index ${metrics.h_index}` : null,
-        Number.isFinite(metrics.i10_index) ? `i10-index ${metrics.i10_index}` : null,
-        Number.isFinite(metrics.citation_count) && metrics.publication_count > 0 ? `${(metrics.citation_count / metrics.publication_count).toFixed(2)} citations/work` : null,
-      ].filter(Boolean) : [];
-      line.textContent = [author.name, ...authorFacts, observation?.provider, observation?.retrieved_at].filter(Boolean).join(' · ');
-      identities.append(line);
-    });
-    const venue = document.createElement('p');
-    const venueDetails = paper.venue_details;
-    const comparableVenue = venueDetails?.provider === 'openalex' && ['peer_reviewed_journal', 'peer_reviewed_conference'].includes(venueDetails.venue_category);
-    const venueFacts = comparableVenue ? [
-      Number.isFinite(venueDetails.works_count) ? `${venueDetails.works_count} indexed works` : null,
-      Number.isFinite(venueDetails.cited_by_count) ? `${venueDetails.cited_by_count} citations` : null,
-      Number.isFinite(venueDetails.h_index) ? `h-index ${venueDetails.h_index}` : null,
-      Number.isFinite(venueDetails.i10_index) ? `i10-index ${venueDetails.i10_index}` : null,
-      Number.isFinite(venueDetails.openalex_2yr_mean_citedness) ? `2-year mean citedness ${venueDetails.openalex_2yr_mean_citedness.toFixed(2)}` : null,
-    ].filter(Boolean) : [];
-    venue.textContent = venueDetails ? [venueDetails.name, venueDetails.venue_category?.replaceAll('_', ' '), venueDetails.publisher, ...venueFacts, venueFacts.length ? 'OpenAlex' : null].filter(Boolean).join(' · ') : 'Venue metadata unavailable.';
-    identities.append(venue);
-    article.append(identities);
     list.append(article);
   }
   if (!run.papers.length) list.textContent = 'No papers matched the filters in the returned provider results.';
@@ -389,27 +349,6 @@ window.addEventListener('load', async () => {
     }
   }
   if (pendingSearch()) void recoverPendingSearch();
-  try {
-    const me = await s5Json('/api/auth/me');
-    if (['faculty', 'librarian', 'administrator'].includes(me.role)) {
-      s5('monitor-section').hidden = false;
-      await loadMonitors();
-      await loadUpdates();
-    }
-  } catch (_) { /* Monitoring remains unavailable without a verified role. */ }
-  s5('monitor-save').addEventListener('click', async () => {
-    const options = currentSearchOptions();
-    const topic = options.topic.trim();
-    if (topic.length < 3) { s5('monitor-status').textContent = 'Enter a topic first.'; return; }
-    try {
-      await s5Json('/api/research/intelligence/monitors', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...options, cadence_hours: Number(s5('monitor-cadence').value) })
-      });
-      s5('monitor-status').textContent = 'Topic saved disabled. Activate it when ready.';
-      await loadMonitors();
-    } catch (error) { s5('monitor-status').textContent = error.message; }
-  });
   s5('intelligence-form').addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -434,16 +373,5 @@ window.addEventListener('load', async () => {
       if (pendingSearch()) void recoverPendingSearch();
     }
     finally { if (!pendingSearch()) form.querySelector('button[type="submit"]').disabled = false; }
-  });
-  s5('graph-button').addEventListener('click', async () => {
-    if (!activeRunId) return;
-    s5('intelligence-status').textContent = 'Building paper & citation graph…';
-    try {
-      const graph = await s5Json(`/api/research/intelligence/runs/${activeRunId}/graph`);
-      const summary = s5('graph-summary');
-      summary.hidden = false;
-      summary.textContent = `${graph.nodes.length} nodes · ${graph.edges.length} sourced relationships\n` + graph.edges.filter(edge => edge.type === 'CITES').map(edge => `${edge.source} cites ${edge.target} via ${edge.provider}`).join('\n');
-      s5('intelligence-status').textContent = `Graph ready: ${graph.nodes.length} nodes · ${graph.edges.length} relationships.`;
-    } catch (error) { s5('intelligence-status').textContent = error.message; }
   });
 });

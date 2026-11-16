@@ -27,7 +27,8 @@ from .enrichment import (
     venue_observation,
 )
 from .extraction import extract_evidence
-from .relevance_engine import disambiguate_query, evaluate_relevance
+from .relevance_engine import concept_anchor_coverage, disambiguate_query, evaluate_relevance
+from .semantic_rerank import rerank_candidates, semantic_rank_cutoff
 
 DEFAULT_TOP_K = 100
 MAX_TOP_K = 500
@@ -101,9 +102,8 @@ def assess_topic_eligibility(
     query = re.sub(r"[^\w]+", " ", QUERY_MODIFIERS.sub(" ", topic).casefold()).strip()
     if not query:
         return False, "empty_query"
-    if SSM_QUERY_RE.search(query):
-        if not SSM_EVIDENCE_RE.search(title or ""):
-            return False, "missing_central_concepts:state_space_model"
+    if SSM_QUERY_RE.search(query) and not SSM_EVIDENCE_RE.search(title or ""):
+        return False, "missing_central_concepts:state_space_model"
     if QUERY_SLM_RE.search(query) and QUERY_EDGE_RE.search(query):
         has_slm = bool(SLM_CONCEPT_RE.search(text_ta))
         has_edge = bool(EDGE_CONCEPT_RE.search(text_ta))
@@ -287,10 +287,17 @@ def discover(
         )
     else:
         candidates, sources = engine.discover_with_status(search_query, fetch_limit)
+    semantic_scores, semantic_audit = rerank_candidates(options["topic"], candidates)
+    semantic_cutoff = semantic_rank_cutoff(semantic_scores, semantic_audit.get("control_baseline"))
+    strongest_scores = sorted(semantic_scores.values(), reverse=True)
+    strong_semantic_cutoff = (
+        strongest_scores[max(0, len(strongest_scores) // 10 - 1)] if strongest_scores else None
+    )
+    control_baseline = semantic_audit.get("control_baseline")
     rows: list[dict[str, Any]] = []
     rel_eligible_by_prov: dict[str, int] = {}
     rel_rejected_by_prov: dict[str, dict[str, int]] = {}
-    for candidate in candidates:
+    for candidate_index, candidate in enumerate(candidates):
         paper = candidate["paper"]
         clean_title = clean_scholarly_text(paper.title)
         clean_abstract = clean_scholarly_text(paper.abstract) if paper.abstract else None
@@ -348,6 +355,38 @@ def discover(
         eligible, eligibility_reason = assess_topic_eligibility(
             options["topic"], clean_title, clean_abstract, fields
         )
+        model_score = semantic_scores.get(candidate_index)
+        anchor_coverage = concept_anchor_coverage(options["topic"], clean_title, clean_abstract)
+        if (
+            not eligible
+            and model_score is not None
+            and semantic_cutoff is not None
+            and model_score >= semantic_cutoff
+            and (
+                anchor_coverage >= 0.5
+                or (
+                    strong_semantic_cutoff is not None
+                    and model_score >= strong_semantic_cutoff
+                    and isinstance(control_baseline, (int, float))
+                    and model_score >= control_baseline + 1.1
+                )
+            )
+            and (clean_abstract or anchor_coverage == 1.0)
+            and not eligibility_reason.startswith("missing_central_concepts")
+            and not eligibility_reason.startswith("field_mismatch")
+        ):
+            eligible = True
+            eligibility_reason = "semantic_rerank_with_concept_anchor"
+            rel_eval = {
+                **rel_eval,
+                "label": "RELEVANT",
+                "eligible": True,
+                "confidence": max(float(rel_eval.get("confidence") or 0.0), 0.55),
+                "reason": eligibility_reason,
+                "semantic_model": semantic_audit.get("model"),
+                "semantic_logit": model_score,
+                "concept_anchor_coverage": anchor_coverage,
+            }
         psrc = str(candidate.get("source") or "unknown")
         if not eligible:
             rej_map = rel_rejected_by_prov.setdefault(psrc, {})
@@ -738,6 +777,7 @@ def discover(
         "sources": sources_out,
         "provider_selection": selection,
         "query_disambiguation": disambig,
+        "semantic_rerank": semantic_audit,
         "enrichment_audit": enrichment_audit,
         "google_scholar_url": generate_scholar_url(options["topic"]),
         "google_research_url": google_research_search_url(options["topic"]),

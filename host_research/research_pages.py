@@ -9,7 +9,10 @@ from flask import Response
 
 UI = Path(__file__).resolve().parent / "ui"
 PAGE_DETAILS = {
-    "papers": ("Research intelligence", "Find, compare and save source-linked scholarly papers."),
+    "papers": (
+        "Research papers",
+        "Find source-linked papers and inspect their reported parameters.",
+    ),
     "rankings": (
         "Research rankings",
         "Explore the exact paper, author, and publication columns in a verified Excel export.",
@@ -20,14 +23,14 @@ PAGE_DETAILS = {
     "topic": ("Topic dossier", "Source-backed overview of all saved papers for one topic."),
 }
 PAGE_SCRIPTS = {
-    "papers": ("research_rankings.js", "research_intelligence.js"),
+    "papers": ("research_intelligence.js",),
     "rankings": ("research_rankings.js",),
     "progress": ("research_progress.js",),
     "topics": ("research_topics.js",),
     "paper": ("research_run_dossier.js", "research_paper.js"),
     "topic": ("research_run_dossier.js", "research_topic.js"),
 }
-ASSET_VERSION = "20261116dossier2"
+ASSET_VERSION = "20261116papers"
 
 
 def render_research_page(page: str) -> Response:

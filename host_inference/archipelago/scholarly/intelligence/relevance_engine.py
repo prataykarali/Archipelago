@@ -17,31 +17,87 @@ from archipelago.scholarly.discovery.provider_selector import (
     classify_domain_candidates,
 )
 
-RULE_VERSION = "archipelago.relevance.v2"
+RULE_VERSION = "archipelago.relevance.v3"
 
 QUERY_MODIFIERS_RE = re.compile(
     r"\b(latest|recent|newest|papers|studies|research|foundational|seminal|classic|survey|review)\b",
     re.IGNORECASE,
 )
-FOUNDATIONAL_RE = re.compile(r"\b(foundational|seminal|classic|highly cited|landmark)\b", re.IGNORECASE)
+FOUNDATIONAL_RE = re.compile(
+    r"\b(foundational|seminal|classic|highly cited|landmark)\b", re.IGNORECASE
+)
 RECENT_RE = re.compile(r"\b(latest|recent|newest|2025|2026)\b", re.IGNORECASE)
 STOPWORDS = frozenset(
-    {"a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of", "on", "or", "the", "to", "using", "via", "with"}
+    {
+        "a",
+        "an",
+        "and",
+        "as",
+        "at",
+        "by",
+        "for",
+        "from",
+        "in",
+        "into",
+        "of",
+        "on",
+        "or",
+        "the",
+        "to",
+        "using",
+        "via",
+        "with",
+    }
 )
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 
 # Common CS/AI acronym expansions (only used as supplemental aliases, never replacing the phrase)
 CONTROLLED_ALIASES: dict[str, tuple[str, ...]] = {
-    "graph neural networks": ("gnn", "graph convolutional", "graph attention", "message passing neural"),
-    "retrieval augmented generation": ("rag", "retrieval-augmented generation", "dense passage retrieval"),
-    "liquid neural networks": ("liquid time-constant", "liquid time constant", "closed-form continuous", "tau-liquid"),
-    "diffusion models": ("denoising diffusion", "latent diffusion", "score-based generative", "ddpm"),
-    "small language models": ("slm", "compact language model", "tiny language model", "sub-billion language model"),
+    "graph neural networks": (
+        "gnn",
+        "graph convolutional",
+        "graph attention",
+        "message passing neural",
+    ),
+    "retrieval augmented generation": (
+        "rag",
+        "retrieval-augmented generation",
+        "dense passage retrieval",
+    ),
+    "liquid neural networks": (
+        "liquid time-constant",
+        "liquid time constant",
+        "closed-form continuous",
+        "tau-liquid",
+    ),
+    "diffusion models": (
+        "denoising diffusion",
+        "latent diffusion",
+        "score-based generative",
+        "ddpm",
+    ),
+    "small language models": (
+        "slm",
+        "compact language model",
+        "tiny language model",
+        "sub-billion language model",
+    ),
     "continual learning": ("lifelong learning", "catastrophic forgetting"),
     "optical character recognition": ("ocr", "scene text recognition", "document text recognition"),
     "speech recognition": ("asr", "automatic speech recognition"),
-    "state space model": ("state-space model", "structured state space", "mamba", "s4", "selective state space"),
-    "space state model": ("state-space model", "state space model", "structured state space", "mamba"),
+    "state space model": (
+        "state-space model",
+        "structured state space",
+        "mamba",
+        "s4",
+        "selective state space",
+    ),
+    "space state model": (
+        "state-space model",
+        "state space model",
+        "structured state space",
+        "mamba",
+    ),
 }
 
 # Off-domain physical/clinical signals when query is AI/CS without those terms
@@ -87,10 +143,40 @@ def _singular(token: str) -> str:
     return token
 
 
+def _concept_root(token: str) -> str:
+    """Normalize common inflections without broad synonym guessing."""
+    token = _singular(token)
+    if len(token) > 6 and token.endswith("ness"):
+        token = token[:-4]
+    if len(token) > 5 and token.endswith("ing"):
+        token = token[:-3]
+    if len(token) > 5 and token.endswith("ed"):
+        token = token[:-2]
+    if len(token) > 4 and token.endswith("y"):
+        token = token[:-1] + "i"
+    if len(token) > 4 and token.endswith("e"):
+        token = token[:-1]
+    return token
+
+
+def concept_anchor_coverage(topic: str, title: str, abstract: str | None) -> float:
+    """Measure how many query concepts appear in title or abstract after inflection folding."""
+    intent = understand_query(topic)
+    roots = {_concept_root(term) for term in intent.terms}
+    if not roots:
+        return 0.0
+    evidence = {_concept_root(token) for token in _tokenize(f"{title} {abstract or ''}")}
+    return len(roots & evidence) / len(roots)
+
+
 def understand_query(topic: str) -> QueryIntent:
     """Parse query intent, domain, temporal preference, content terms, and bigrams."""
     raw = (topic or "").strip()
-    temporal = "foundational" if FOUNDATIONAL_RE.search(raw) else ("recent" if RECENT_RE.search(raw) else "balanced")
+    temporal = (
+        "foundational"
+        if FOUNDATIONAL_RE.search(raw)
+        else ("recent" if RECENT_RE.search(raw) else "balanced")
+    )
     cleaned = " ".join(QUERY_MODIFIERS_RE.sub(" ", raw).split()) or raw
     tokens = [_singular(t) for t in _tokenize(cleaned) if t not in STOPWORDS]
     bigrams = [f"{tokens[i]} {tokens[i + 1]}" for i in range(len(tokens) - 1)]
@@ -128,11 +214,7 @@ def _has_ordered_phrase(tokens: list[str], query_terms: list[str], max_gap: int 
     def _chain(step: int, prev_pos: int) -> bool:
         if step == len(positions):
             return True
-        for p in positions[step]:
-            if 1 <= (p - prev_pos) <= max_gap:
-                if _chain(step + 1, p):
-                    return True
-        return False
+        return any(1 <= (p - prev_pos) <= max_gap and _chain(step + 1, p) for p in positions[step])
 
     return any(_chain(1, start) for start in positions[0])
 
@@ -207,8 +289,7 @@ def disambiguate_query(topic: str, field_override: str | None = None) -> dict[st
             )
 
     is_ambiguous = bool(
-        len(domain_candidates) > 1
-        or (resolved_domain == "general" and len(intent.terms) >= 2)
+        len(domain_candidates) > 1 or (resolved_domain == "general" and len(intent.terms) >= 2)
     )
     return {
         "raw_query": intent.raw_query,
@@ -277,22 +358,34 @@ def evaluate_relevance(
 
     # 2. Bigram & ordered/reordered-phrase proximity check
     title_tokens = _tokenize(title)
-    abs_tokens = _tokenize(abs_text)
     bigram_hits_title = sum(1 for bg in intent.bigrams if bg in title_sing)
     bigram_hits_abs = sum(1 for bg in intent.bigrams if bg in abs_sing)
     gap = 1 if len(intent.terms) <= 2 else 2
-    tight_in_title = _has_ordered_phrase(title_tokens, intent.terms, max_gap=gap) or _has_tight_unordered_window(
-        title_tokens, intent.terms, max_extra_gap=0
-    )
+    tight_in_title = _has_ordered_phrase(
+        title_tokens, intent.terms, max_gap=gap
+    ) or _has_tight_unordered_window(title_tokens, intent.terms, max_extra_gap=0)
     abs_sentences = [sent for sent in SENTENCE_SPLIT_RE.split(abs_text) if sent.strip()]
     tight_in_abs = any(
         _has_ordered_phrase(_tokenize(sent), intent.terms, max_gap=gap)
         or _has_tight_unordered_window(_tokenize(sent), intent.terms, max_extra_gap=0)
         for sent in abs_sentences
     )
+    concept_roots = {_concept_root(term) for term in intent.terms}
+    title_roots = {_concept_root(token) for token in title_tokens}
+    concept_in_title = concept_roots.issubset(title_roots)
+    concept_in_abs_sentence = any(
+        concept_roots.issubset({_concept_root(token) for token in _tokenize(sentence)})
+        for sentence in abs_sentences
+    )
+    relation_query = bool(re.search(r"\b(from|through|via|using|by|for|with|in|on)\b", topic, re.I))
+    concept_coherence = (
+        bool(concept_roots) and relation_query and (concept_in_title or concept_in_abs_sentence)
+    )
 
     # 3. Term coverage & peak sentence cosine
-    term_hits = sum(1 for t in set(intent.terms) if re.search(rf"\b{re.escape(t)}\b", combined_sing))
+    term_hits = sum(
+        1 for t in set(intent.terms) if re.search(rf"\b{re.escape(t)}\b", combined_sing)
+    )
     term_cov = term_hits / len(set(intent.terms))
     sents = [title] + [s for s in SENTENCE_SPLIT_RE.split(abs_text) if s.strip()]
     peak_cos = max((_sentence_cosine(intent.terms, s) for s in sents), default=0.0)
@@ -336,7 +429,14 @@ def evaluate_relevance(
     four_term_bigram_ok = len(intent.terms) >= 4 and (
         bigram_hits_title >= 2 or (bigram_hits_abs >= 2 and term_cov >= 0.8)
     )
-    if multiword and not (phrase_in_title or phrase_in_abs or tight_in_title or tight_in_abs or four_term_bigram_ok):
+    if multiword and not (
+        phrase_in_title
+        or phrase_in_abs
+        or tight_in_title
+        or tight_in_abs
+        or four_term_bigram_ok
+        or concept_coherence
+    ):
         if not abs_text and term_cov < 1.0:
             return {
                 "label": "INSUFFICIENT_EVIDENCE",
@@ -356,16 +456,25 @@ def evaluate_relevance(
         }
 
     # For 3+ term queries (e.g. "liquid neural networks"), require either full phrase/alias OR >=2 bigrams OR tight window with >=0.67 term coverage
-    if len(intent.terms) >= 3 and not (phrase_in_title or phrase_in_abs):
-        if not (tight_in_title or tight_in_abs or bigram_hits_title >= 2 or (bigram_hits_abs >= 2 and term_cov >= 1.0)):
-            return {
-                "label": "BORDERLINE",
-                "eligible": False,
-                "confidence": round(0.35 + 0.1 * peak_cos, 3),
-                "reason": "partial_phrase_overlap_without_full_concept_match",
-                "supporting_fields": ["title", "abstract"] if abs_text else ["title"],
-                "rule_version": RULE_VERSION,
-            }
+    if (
+        len(intent.terms) >= 3
+        and not (phrase_in_title or phrase_in_abs)
+        and not (
+            tight_in_title
+            or tight_in_abs
+            or bigram_hits_title >= 2
+            or (bigram_hits_abs >= 2 and term_cov >= 1.0)
+            or concept_coherence
+        )
+    ):
+        return {
+            "label": "BORDERLINE",
+            "eligible": False,
+            "confidence": round(0.35 + 0.1 * peak_cos, 3),
+            "reason": "partial_phrase_overlap_without_full_concept_match",
+            "supporting_fields": ["title", "abstract"] if abs_text else ["title"],
+            "rule_version": RULE_VERSION,
+        }
 
     # Compute calibrated relevance score [0, 1]
     score = (
@@ -375,6 +484,7 @@ def evaluate_relevance(
         + (0.10 if tight_in_abs or bigram_hits_abs else 0.0)
         + 0.25 * term_cov
         + 0.20 * peak_cos
+        + (0.35 if concept_coherence else 0.0)
     )
     score = min(1.0, round(score, 3))
 
@@ -388,7 +498,9 @@ def evaluate_relevance(
         label = "HIGHLY_RELEVANT"
         eligible = True
         reason = "exact_phrase_or_concept_in_title_and_context"
-    elif score >= 0.45 or phrase_in_abs or (tight_in_title and term_cov >= 1.0):
+    elif (
+        score >= 0.45 or phrase_in_abs or concept_coherence or (tight_in_title and term_cov >= 1.0)
+    ):
         label = "RELEVANT"
         eligible = True
         reason = "tight_phrase_or_abstract_concept_match"
