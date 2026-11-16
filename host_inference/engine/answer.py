@@ -217,13 +217,9 @@ class Engine:
                 }
             ]
 
-        # Pearson catalogue records describe licensed digital books. Attach
-        # them only when the user asks for reading resources, never as physical
-        # shelf holdings on every concept explanation.
-        wants_resources = bool(
-            re.search(r"\b(books?|textbooks?|reading|library|study)\b", query, re.I)
-        )
-        if anchor_ok and decision.render and wants_resources:
+        # Attach matching institutional catalogue / inventory cards whenever
+        # relevant records exist for the concept or query topic.
+        if anchor_ok and decision.render:
             concept = graph.nodes[anchor]
             cards = inventory_card.attach_inventory(
                 payload,
@@ -234,6 +230,58 @@ class Engine:
             )
             if cards:
                 text = text + "\n" + inventory_card.render_inventory_section(cards)
+        elif route in {"GENERAL_EXPLANATION", "DISCONNECTED", "MULTI_CONCEPT"} and (
+            not payload.get("citations") or not payload.get("inventory_cards")
+        ):
+            # Fallback: find closest related OKF node / textbook source for general queries
+            q_tokens = {
+                tok
+                for tok in re.findall(r"[a-z0-9]{3,}", query.lower())
+                if tok not in {"what", "how", "why", "when", "where", "which", "explain", "define", "tell", "about", "does", "the", "and", "for", "with"}
+            }
+            best_cid = None
+            best_hits = 0
+            if q_tokens:
+                for cid, node in graph.nodes.items():
+                    hay = f"{graph.label(cid)} {node.get('summary', '')} {node.get('domain', '')}".lower()
+                    hits = sum(1 for tok in q_tokens if tok in hay)
+                    if hits > best_hits:
+                        best_hits = hits
+                        best_cid = cid
+            if best_cid and best_hits >= 1:
+                if not payload.get("related_concepts"):
+                    payload["related_concepts"] = [node_public(graph.nodes[best_cid])]
+                    rel_pres = [node_public(graph.nodes[p]) for p in graph.prereqs(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
+                    rel_unl = [node_public(graph.nodes[u]) for u in graph.unlocks(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
+                    if rel_pres and not payload.get("prerequisites"):
+                        payload["prerequisites"] = rel_pres
+                    if rel_unl and not payload.get("unlocks"):
+                        payload["unlocks"] = rel_unl
+                if not payload.get("citations"):
+                    cite = graph.cite_record(best_cid, query)
+                    if cite:
+                        payload["citations"] = [cite]
+                if not payload.get("inventory_cards"):
+                    matched_node = graph.nodes[best_cid]
+                    cards = inventory_card.attach_inventory(
+                        payload,
+                        best_cid,
+                        graph.label(best_cid),
+                        str(matched_node.get("summary") or query),
+                        catalogue.load_catalogue(),
+                    )
+                    if cards:
+                        text = text + "\n" + inventory_card.render_inventory_section(cards)
+            elif not payload.get("inventory_cards"):
+                cards = inventory_card.attach_inventory(
+                    payload,
+                    "general",
+                    query,
+                    query,
+                    catalogue.load_catalogue(),
+                )
+                if cards:
+                    text = text + "\n" + inventory_card.render_inventory_section(cards)
 
         # A citation whose only supporting document was withdrawn upstream must
         # say so in the reply, not just omit its link. The UI reads

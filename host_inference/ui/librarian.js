@@ -95,6 +95,8 @@ window.addEventListener('load', async () => {
     document.getElementById('overview').hidden = true;
     const trafficPanel = document.getElementById('people-traffic-panel');
     if (trafficPanel) trafficPanel.hidden = true;
+    const userTrafficPanel = document.getElementById('user-traffic-panel');
+    if (userTrafficPanel) userTrafficPanel.hidden = true;
     document.getElementById('records-panel').hidden = false;
     document.getElementById('records-title').textContent = sections[section][0];
     if (!['librarian','administrator'].includes(principal.role)) {
@@ -157,12 +159,109 @@ function renderTrafficChart(series) {
   });
 }
 
+function renderUserTrafficPanel(ut) {
+  const statusEl = document.getElementById('user-traffic-status');
+  const svg = document.getElementById('user-traffic-chart');
+  const feedEl = document.getElementById('user-traffic-feed');
+  if (!ut || typeof ut !== 'object') {
+    if (statusEl) statusEl.textContent = 'No user activity telemetry recorded yet.';
+    return;
+  }
+  const byAct = ut.by_action || {};
+  document.getElementById('ut-total').textContent = ut.total_actions ?? 0;
+  document.getElementById('ut-sessions').textContent = ut.unique_sessions ?? 0;
+  document.getElementById('ut-chat').textContent = byAct.chat_query ?? 0;
+  document.getElementById('ut-research').textContent = (byAct.research_search ?? 0) + (byAct.reader_open ?? 0);
+  document.getElementById('ut-graph').textContent = (byAct.graph_explore ?? 0) + (byAct.quiz_activity ?? 0);
+  if (statusEl) {
+    statusEl.textContent = ut.total_actions > 0
+      ? `Live across ${ut.unique_sessions || 1} active session(s) · Updated ${new Date().toLocaleTimeString()}`
+      : 'Waiting for user actions (chat, research, reader, graph, or quiz)…';
+  }
+  if (svg) {
+    const NS = 'http://www.w3.org/2000/svg';
+    svg.replaceChildren();
+    const series = Array.isArray(ut.hourly_activity) ? ut.hourly_activity : [];
+    const hasAny = series.some(d => (d.count || 0) > 0);
+    if (!series.length || !hasAny) {
+      const txt = document.createElementNS(NS, 'text');
+      txt.setAttribute('x', '320'); txt.setAttribute('y', '84'); txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('fill', '#94A3B8'); txt.setAttribute('font-size', '13');
+      txt.textContent = 'No user actions recorded yet in this window.';
+      svg.append(txt);
+    } else {
+      const maxVal = Math.max(1, ...series.map(d => Number(d.count || 0)));
+      const w = 640, h = 130, pad = 20;
+      const step = (w - pad * 2) / series.length;
+      const layers = [
+        ['chat_query', '#818cf8', 'Chat'],
+        ['research_search', '#34d399', 'Research'],
+        ['reader_open', '#38bdf8', 'Reader'],
+        ['graph_explore', '#f472b6', 'Graph'],
+        ['quiz_activity', '#fbbf24', 'Quiz'],
+      ];
+      series.forEach((d, idx) => {
+        let yCursor = h;
+        const barW = Math.max(4, step - 4);
+        const x = pad + idx * step + 2;
+        layers.forEach(([key, color, label]) => {
+          const val = Number(d[key] || 0);
+          if (val <= 0) return;
+          const segH = Math.max(2, Math.round((val / maxVal) * (h - 24)));
+          yCursor -= segH;
+          const rect = document.createElementNS(NS, 'rect');
+          rect.setAttribute('x', String(x));
+          rect.setAttribute('y', String(yCursor));
+          rect.setAttribute('width', String(barW));
+          rect.setAttribute('height', String(segH));
+          rect.setAttribute('rx', '1.5');
+          rect.setAttribute('fill', color);
+          const tip = document.createElementNS(NS, 'title');
+          tip.textContent = `${d.hour} · ${label}: ${val}`;
+          rect.append(tip);
+          svg.append(rect);
+        });
+        if ((d.count || 0) === 0) {
+          const base = document.createElementNS(NS, 'rect');
+          base.setAttribute('x', String(x)); base.setAttribute('y', String(h - 2));
+          base.setAttribute('width', String(barW)); base.setAttribute('height', '2');
+          base.setAttribute('fill', '#334155');
+          svg.append(base);
+        }
+        if (idx % Math.max(1, Math.floor(series.length / 6)) === 0) {
+          const lbl = document.createElementNS(NS, 'text');
+          lbl.setAttribute('x', String(pad + idx * step + step / 2));
+          lbl.setAttribute('y', '150'); lbl.setAttribute('text-anchor', 'middle');
+          lbl.setAttribute('fill', '#94A3B8'); lbl.setAttribute('font-size', '10');
+          lbl.textContent = String(d.hour || '').slice(0, 5);
+          svg.append(lbl);
+        }
+      });
+    }
+  }
+  if (feedEl) {
+    feedEl.replaceChildren();
+    const recent = Array.isArray(ut.recent_actions) ? ut.recent_actions : [];
+    recent.slice(0, 8).forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'traffic-feed-item';
+      const left = document.createElement('span');
+      left.textContent = item.detail ? `${item.label}: ${item.detail}` : item.label;
+      const right = document.createElement('small');
+      right.textContent = item.occurred_at ? new Date(item.occurred_at).toLocaleTimeString() : '';
+      row.append(left, right);
+      feedEl.append(row);
+    });
+  }
+}
+
 async function loadPeopleTraffic() {
   const tStatus = document.getElementById('traffic-status');
   try {
     const resp = await fetch('/api/analytics/summary', { cache: 'no-store' });
     if (!resp.ok) throw new Error(`Analytics summary unavailable (${resp.status}).`);
     const data = await resp.json();
+    renderUserTrafficPanel(data.user_traffic);
     const foot = data.physical_footfall || {};
     const occ = data.occupancy || {};
     document.getElementById('kpi-entries').textContent = foot.total_entries ?? '—';

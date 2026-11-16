@@ -12,6 +12,7 @@ from flask import Flask, jsonify, request, send_file
 from flask.typing import ResponseReturnValue
 
 from ..context import AppContext
+from ..user_traffic import record_user_action
 
 LOGGER = logging.getLogger(__name__)
 MONITOR_ROLES = frozenset({"faculty", "librarian", "administrator"})
@@ -72,6 +73,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.intelligence.storage import hosted_store
 
         payload = request.get_json(silent=True)
+        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "")
         try:
             result = discover(payload if isinstance(payload, dict) else {})
             if not any(source["status"] in {"live", "live_empty"} for source in result["sources"]):
@@ -130,6 +132,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
         if _principal()["role"] not in MONITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
         payload = request.get_json(silent=True)
+        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "")
         try:
             options = validate_options(payload if isinstance(payload, dict) else {})
             cadence_hours = validate_cadence(
@@ -157,6 +160,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
         if _principal()["role"] not in MONITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
         payload = request.get_json(silent=True)
+        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "")
         if not isinstance(payload, dict):
             return jsonify({"error": "invalid_monitor_update"}), 400
         store = hosted_store()
@@ -225,7 +229,8 @@ def register(app: Flask, _ctx: AppContext) -> None:
     def intelligence_import() -> ResponseReturnValue:
         from archipelago.scholarly.discovery.scholar_import import import_scholar_citations
 
-        payload = request.get_json(silent=True) or {}
+        payload = request.get_json(silent=True)
+        record_user_action("research_search", str((payload or {}).get("topic") or "") if isinstance(payload, dict) else "") or {}
         if not isinstance(payload, dict) or not str(payload.get("content") or "").strip():
             return jsonify({"error": "empty_import_payload"}), 400
         fmt = str(payload.get("format") or "auto")

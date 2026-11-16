@@ -1,7 +1,7 @@
 import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 13-render-horizontal-graph-card.js
 // Feature module 14 of 22.
-import { getOrCreateInteractiveZone } from './11-populate-topology.js';
+import { getOrCreateInteractiveZone, renderQuizSectionCard } from './11-populate-topology.js';
 import { _nodeId, _nodeLabel, _nodeSummary } from './10-populate-pipeline.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { _initGraphRipple, selectHorizontalNode } from './18--init-graph-ripple.js';
@@ -83,9 +83,6 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            ${quizRelevant && !quizCompleted ? `<button id="quiz-start-${msgId}" onclick="event.stopPropagation(); switchToPersonalizedGraph('${msgId}')" type="button" class="px-2.5 py-1 rounded-lg ${quizBtnCls} text-[10px] transition-all flex items-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-graduation-cap text-xs"></i> <span>${quizBtnLabel}</span>
-                            </button>` : ''}
                             <span class="text-[10px] text-amber-200/80 font-mono hidden sm:inline-block px-2 py-0.5 rounded bg-amber-400/10 border border-amber-400/20">${isResearchGraph ? 'Research Graph' : 'Normal Graph'}</span>
                             <i id="toggle-icon-${cardId}" class="fa-solid fa-chevron-up text-xs text-amber-300 transition-transform"></i>
                         </div>
@@ -383,6 +380,11 @@ import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
             if (titleElObserverTarget && typeof MutationObserver === 'function') {
                 const obs = new MutationObserver(() => updateInspectorLinkAndRels(titleElObserverTarget.textContent));
                 obs.observe(titleElObserverTarget, { childList: true, characterData: true, subtree: true });
+            }
+
+            // Mount the separate Personalized Learning & Diagnostic Quiz card below the graph
+            if (typeof renderQuizSectionCard === 'function') {
+                renderQuizSectionCard(msgId, metadata);
             }
 
             // Draw horizontal SVG map

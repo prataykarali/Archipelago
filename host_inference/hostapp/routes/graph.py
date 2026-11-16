@@ -28,6 +28,32 @@ GLOBAL_PAGE_SIZE = 60
 GLOBAL_PAGE_CEILING = 100
 
 
+_DOMAIN_RULES = (
+    ("LLMs & Alignment", ("llm", "dpo", "rlhf", "transformer", "attention", "gpt", "bert", "lora", "peft", "fine-tuning", "token", "prompt", "alignment", "hallucination", "vllm", "pagedattention", "moe", "flashattention", "quantization")),
+    ("Retrieval & RAG", ("rag", "retrieval", "graphrag", "embedding", "vector", "rerank", "chunk", "bm25", "dense", "semantic search")),
+    ("Operating Systems", ("operating system", "ostep", "silberschatz", "process", "thread", "scheduling", "deadlock", "mutex", "semaphore", "virtual memory", "paging", "tlb", "file system", "kernel", "disk")),
+    ("Database Systems", ("database", "dbms", "sql", "acid", "transaction", "b+ tree", "b-tree", "lsm", "normal form", "3nf", "2nf", "indexing", "query", "concurrency", "lock")),
+    ("Machine Learning & AI", ("neural", "gradient", "backprop", "convolution", "cnn", "rnn", "gnn", "graph neural", "loss", "regression", "classification", "clustering", "reinforcement", "markov", "bayes")),
+    ("Algorithms & Data Structures", ("algorithm", "sort", "search", "graph", "tree", "dynamic programming", "greedy", "dijkstra", "bfs", "dfs", "complexity", "hash", "heap")),
+    ("Computer Networks", ("network", "tcp", "udp", "http", "ip", "routing", "dns", "socket", "osi", "congestion", "packet")),
+    ("Compilers & Languages", ("compiler", "syntax", "ast", "parser", "lexer", "type", "lambda", "grammar", "bytecode")),
+    ("Computer Architecture", ("cache", "cpu", "pipeline", "memory", "register", "alu", "branch", "isa", "simd")),
+)
+
+
+def _infer_domain(node: dict[str, Any], linked_docs: list[str]) -> str:
+    explicit = str(node.get("domain") or "").strip()
+    if explicit:
+        return explicit
+    cats = " ".join(str(c) for c in (node.get("source_categories") or []))
+    tags = " ".join(str(t) for t in (node.get("tags") or []))
+    hay = f"{node.get('label', '')} {node.get('summary', '')} {cats} {tags} {' '.join(linked_docs)}".lower()
+    for domain_name, keywords in _DOMAIN_RULES:
+        if any(kw in hay for kw in keywords):
+            return domain_name
+    return "General Computer Science"
+
+
 def _node_payload(
     graph: Any,
     node_id: str,
@@ -84,7 +110,7 @@ def _node_payload(
         "source_count": len(linked_docs),
         "source_documents": source_documents,
     }
-    domain = str(node.get("domain") or "").strip()
+    domain = _infer_domain(node, linked_docs)
     if domain:
         data["domain"] = domain
     subdomain = str(node.get("subdomain") or "").strip()
@@ -186,7 +212,24 @@ def register(app: Flask, ctx: AppContext) -> None:
         except (TypeError, ValueError):
             return jsonify({"error": "invalid_pagination"}), 400
         query = (request.args.get("q") or "").casefold().strip()
-        nodes = sorted(payload["nodes"], key=lambda row: row["data"]["id"])
+        domain_q = (request.args.get("domain") or "").strip()
+        available_domains = sorted(
+            {
+                str(row["data"].get("domain") or "").strip()
+                for row in payload["nodes"]
+                if str(row["data"].get("domain") or "").strip()
+            }
+        )
+        nodes = sorted(
+            payload["nodes"],
+            key=lambda row: (-int(row["data"].get("degree") or 0), row["data"]["id"]),
+        )
+        if domain_q:
+            nodes = [
+                row
+                for row in nodes
+                if str(row["data"].get("domain") or "").strip().casefold() == domain_q.casefold()
+            ]
         if query:
             document_hits = {
                 cid
@@ -199,7 +242,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                 for row in nodes
                 if query
                 in " ".join(
-                    str(row["data"].get(key) or "") for key in ("id", "name", "summary")
+                    str(row["data"].get(key) or "") for key in ("id", "name", "summary", "domain")
                 ).casefold()
                 or row["data"]["id"] in document_hits
             ]
@@ -218,6 +261,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                 "nodes": page_nodes,
                 "edges": edges,
                 "counts": payload["counts"],
+                "available_domains": available_domains,
                 "corpus_source": payload["corpus_source"],
                 "offset": offset,
                 "graph_version": payload["graph_version"],

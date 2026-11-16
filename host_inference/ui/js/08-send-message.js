@@ -1,6 +1,6 @@
 import { state } from './00-state.js';
 import { setSendButtonState, stopGeneration } from './07-open-page-viewer-modal.js';
-import { dismissGraphChoiceModal, populateTopology } from './11-populate-topology.js';
+import { dismissGraphChoiceModal, populateTopology, renderOkfNodesCard } from './11-populate-topology.js';
 import { API_HOST, CHAT_RESPONSE_TIMEOUT_MS, MAX_HISTORY_TURNS_SENT, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, setLibrarianThinking, showStickyAvatar } from './00-current-origin.js';
 import { _addChatBubbleEffects, appendMessage } from './09-patterns.js';
 import { _updateGlowState, renderMarkdownSafely } from './01--hide-welcome-with-transitio.js';
@@ -190,6 +190,9 @@ import { resetChatUi } from './08-stream-cleanup.js';
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
                     if (firstFinalize && window._lastChatMetadata) {
+                        if (typeof renderOkfNodesCard === 'function') {
+                            renderOkfNodesCard(assistantMsgId, window._lastChatMetadata);
+                        }
                         if (typeof updateBookStackForQuery === 'function') {
                             updateBookStackForQuery(window._lastChatMetadata);
                         }
@@ -304,13 +307,10 @@ import { resetChatUi } from './08-stream-cleanup.js';
                                 assistantText = rest;
                                 typewriter.update(rest, { instant: true });
                             }
-                            awaitingFinalFrame = false;
-                            rest = "";
-                            _finishStreamUi();
-                            break;
                         }
-                        // The final payload may arrive in the next network chunk.
+                        awaitingFinalFrame = false;
                         rest = "";
+                        _finishStreamUi();
                         break;
                     }
                 };

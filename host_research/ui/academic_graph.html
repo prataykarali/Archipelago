@@ -212,14 +212,43 @@
       backBtn.hidden = historyStack.length === 0;
     }
 
-    function populateDomainOptions() {
-      if (!cy || !domainFilter) return;
+    let knownDomains = [];
+    const GRAPH_STATE_KEY = 'archipelago_academic_graph_state_v1';
+
+    function saveGraphState(extra = {}) {
+      try {
+        const next = {
+          q: (queryInput?.value || '').trim(),
+          target_id: currentTarget || '',
+          domain: (domainFilter?.value || '').trim(),
+          relation: (relationFilter?.value || '').trim(),
+          evidence: (evidenceFilter?.value || '').trim(),
+          mode: currentTarget ? 'subgraph' : (currentView?.mode || 'overview'),
+          ...extra,
+        };
+        sessionStorage.setItem(GRAPH_STATE_KEY, JSON.stringify(next));
+        const sp = new URLSearchParams();
+        if (next.target_id) sp.set('target_id', next.target_id);
+        else if (next.q) sp.set('q', next.q);
+        if (next.domain) sp.set('domain', next.domain);
+        if (next.relation) sp.set('relation', next.relation);
+        if (next.evidence) sp.set('evidence', next.evidence);
+        if (next.mode === 'live') sp.set('mode', 'live');
+        const qs = sp.toString();
+        history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
+      } catch (_) {}
+    }
+
+    function populateDomainOptions(extraDomains = []) {
+      if (!domainFilter) return;
       const previous = domainFilter.value;
-      const domains = [...new Set(
-        cy.nodes()
-          .map(node => String(node.data('domain') || '').trim())
-          .filter(Boolean)
-      )].sort((a, b) => a.localeCompare(b));
+      const nodeDomains = cy
+        ? cy.nodes().map(node => String(node.data('domain') || '').trim()).filter(Boolean)
+        : [];
+      const domains = [...new Set([...knownDomains, ...extraDomains, ...nodeDomains])]
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+      knownDomains = domains;
       domainFilter.replaceChildren();
       const allOpt = document.createElement('option');
       allOpt.value = '';
@@ -245,13 +274,16 @@
       cy.nodes().forEach(node => {
         const dom = String(node.data('domain') || '').trim();
         const kind = String(node.data('kind') || '').trim();
-        const evCount = Number(node.data('evidence_count') || 0);
+        const evCount = Number(
+          node.data('source_count') ?? node.data('evidence_count') ?? (node.data('source_documents')?.length || 0)
+        );
         const domainOk = !selectedDomain || dom === selectedDomain;
         const evOk = !selectedEvidence
           || (selectedEvidence === 'sourced' && (evCount > 0 || kind === 'source_document'))
           || (selectedEvidence === 'concepts' && kind !== 'source_document');
         const match = domainOk && evOk;
         if (match) visibleNodes += 1;
+        node.style('display', match ? 'element' : 'none');
         if (hasNodeFilter && !activeSelection) {
           node.toggleClass('muted', !match);
           node.toggleClass('focused', match);
@@ -264,8 +296,8 @@
       cy.edges().forEach(edge => {
         const rel = String(edge.data('rel_label') || '').toUpperCase();
         const relMatch = !selectedRel || rel === selectedRel || (selectedRel === 'RELATED' && rel === 'CONNECTS');
-        const srcOk = !hasNodeFilter || !edge.source().hasClass('muted');
-        const tgtOk = !hasNodeFilter || !edge.target().hasClass('muted');
+        const srcOk = edge.source().style('display') !== 'none';
+        const tgtOk = edge.target().style('display') !== 'none';
         const show = relMatch && srcOk && tgtOk;
         edge.style('display', show ? 'element' : 'none');
         if (show) visibleEdges += 1;
@@ -274,6 +306,7 @@
       if (filterMatchCount) {
         filterMatchCount.textContent = `Showing ${visibleNodes} nodes · ${visibleEdges} edges`;
       }
+      saveGraphState();
     }
 
     function restoreSelectionHighlight() {
@@ -644,7 +677,7 @@
       });
 
       cy.nodes().lock();
-      populateDomainOptions();
+      populateDomainOptions(data.available_domains || []);
       applyRelationFilter();
 
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -758,20 +791,32 @@
       else if (prev.mode === 'subgraph') loadGraph(prev.params, false).catch(showError);
     });
     let pageOffset = 0;
-    async function loadLivePage() {
+    async function loadLivePage(resetOffset = false) {
+      if (resetOffset) pageOffset = 0;
+      currentView = { mode: 'live' };
       status.textContent = 'Loading live indexed concepts…';
-      const response = await fetch(`/api/graph/page?offset=${pageOffset}&limit=36`, { cache: 'no-store' });
+      const qParams = new URLSearchParams({ offset: String(pageOffset), limit: '60' });
+      const selectedDom = (domainFilter?.value || '').trim();
+      if (selectedDom) qParams.set('domain', selectedDom);
+      const response = await fetch(`/api/graph/page?${qParams.toString()}`, { cache: 'no-store' });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || 'Could not load live concept page.');
       if (!data.nodes?.length) { pageOffset = 0; return loadOverview(); }
       pageOffset = data.next_offset || 0;
       renderGraph({ ...data, nodes: data.nodes, edges: data.edges || [] }, true);
       status.textContent = `${data.counts?.concepts || data.matched_total || data.nodes.length} live concepts · showing ${data.nodes.length} (offset ${data.offset || 0})`;
+      saveGraphState({ mode: 'live' });
     }
     document.getElementById('show-core').addEventListener('click', () => { pageOffset = 0; loadOverview().catch(showError); });
     document.getElementById('browse-live').addEventListener('click', () => loadLivePage().catch(showError));
     relationFilter.addEventListener('change', applyRelationFilter);
-    domainFilter?.addEventListener('change', applyRelationFilter);
+    domainFilter?.addEventListener('change', () => {
+      if (!currentTarget) {
+        loadLivePage(true).catch(showError);
+      } else {
+        applyRelationFilter();
+      }
+    });
     evidenceFilter?.addEventListener('change', applyRelationFilter);
     document.getElementById('clear-filters')?.addEventListener('click', () => {
       relationFilter.value = '';
@@ -820,14 +865,32 @@
         if (!principal) return;
         canEditGraph = ['librarian', 'administrator'].includes(principal.role);
       }
+      // Pre-fetch available domains from /api/graph/page so the Domain selector always lists all domains
+      fetch('/api/graph/page?limit=1', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d && Array.isArray(d.available_domains)) populateDomainOptions(d.available_domains); })
+        .catch(() => {});
+
       const params = new URLSearchParams(location.search);
-      const targetId = params.get('target_id');
-      const initial = params.get('q');
+      let savedState = {};
+      try { savedState = JSON.parse(sessionStorage.getItem(GRAPH_STATE_KEY) || '{}') || {}; } catch (_) {}
+      const targetId = params.get('target_id') || savedState.target_id || '';
+      const initial = params.get('q') || savedState.q || '';
+      const initDomain = params.get('domain') ?? savedState.domain ?? '';
+      const initRelation = params.get('relation') ?? savedState.relation ?? '';
+      const initEvidence = params.get('evidence') ?? savedState.evidence ?? '';
+      const initMode = params.get('mode') || savedState.mode || '';
+      if (domainFilter && initDomain) domainFilter.value = initDomain;
+      if (relationFilter && initRelation) relationFilter.value = initRelation;
+      if (evidenceFilter && initEvidence) evidenceFilter.value = initEvidence;
+
       if (targetId) {
         loadGraph({ target_id: targetId, max_nodes: '20' }).catch(showError);
       } else if (initial) {
         queryInput.value = initial;
         loadGraph({ q: initial, max_nodes: '20' }).catch(showError);
+      } else if (initMode === 'live' || initDomain) {
+        loadLivePage(true).catch(() => loadOverview().catch(showError));
       } else {
         loadOverview().catch(() => loadGraph({ q: 'graph retrieval', max_nodes: '20' }).catch(showError));
       }

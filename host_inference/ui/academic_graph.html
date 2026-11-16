@@ -17,20 +17,22 @@
     #graph canvas { filter: drop-shadow(0 0 7px #6366f188); }
     #graph::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35; background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 28px 28px; }
     .graph-frame { background: var(--ax-canvas); box-shadow: 0 25px 90px #020617bd, inset 0 0 0 1px var(--ax-border); border-radius: 0; border: 0; }
-    .graph-panel { background: rgba(30, 41, 59, 0.94); backdrop-filter: blur(16px); border-color: var(--ax-border); color: var(--ax-text); position: absolute; right: 20px; top: 92px; width: min(360px, 32vw); max-height: calc(100% - 110px); overflow-y: auto; overflow-x: hidden; z-index: 2; box-shadow: 0 20px 60px #020617aa; }
     .graph-stage { position: relative; }
-    .graph-toolbar { position: absolute; z-index: 3; left: 24px; top: 24px; width: min(620px, calc(100% - 410px)); }
-    .graph-toolbar input { background: #1E293B; color: #F1F5F9; border-color: rgba(148, 163, 184, 0.35); backdrop-filter: blur(12px); }
+    .graph-toolbar { position: relative; z-index: 3; background: #0F172A; border-bottom: 1px solid var(--ax-border); padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+    .graph-toolbar-main { flex: 1 1 360px; max-width: 680px; }
+    .graph-toolbar-meta { font-size: 0.78rem; color: #CBD5E1; white-space: nowrap; }
+    .graph-toolbar input { background: #1E293B; color: #F1F5F9; border-color: rgba(148, 163, 184, 0.35); }
     .graph-toolbar input::placeholder { color: #CBD5E1; opacity: 0.85; }
+    .graph-panel { background: rgba(30, 41, 59, 0.94); backdrop-filter: blur(16px); border-color: var(--ax-border); color: var(--ax-text); position: absolute; right: 20px; top: 20px; width: min(360px, 32vw); max-height: calc(100% - 40px); overflow-y: auto; overflow-x: hidden; z-index: 2; box-shadow: 0 20px 60px #020617aa; }
     main { max-width: none !important; padding: 0 !important; }
-    .academic-hero { min-height: 220px; display: flex; align-items: center; margin: 20px 24px 0; padding: clamp(20px, 4vw, 48px); background-image: linear-gradient(90deg, #0F172Af2 0%, #1e1b4bc9 45%, #11182766 100%), url('/assets/research_archipelago_v2.png') !important; background-position: center; background-size: cover; position: relative; overflow: hidden; border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 24px; box-shadow: 0 26px 70px #02061791; }
+    .academic-hero { min-height: 220px; display: flex; align-items: center; margin: 20px 24px 0; padding: clamp(20px, 4vw, 48px); background-image: linear-gradient(90deg, #0F172Af2 0%, #1e1b4bc9 45%, #11182766 100%), url('/assets/research_archipelago_v2.webp') !important; background-position: center; background-size: cover; position: relative; overflow: hidden; border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 24px; box-shadow: 0 26px 70px #02061791; }
     .academic-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .25; background-image: radial-gradient(#a78bfa 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, #000, transparent); }
     .academic-hero-copy { position: relative; z-index: 1; }
     @media(max-width: 760px) {
       .academic-hero { margin: 12px 12px 0; padding: 20px; min-height: 160px; }
-      .graph-panel { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 40vh; }
-      .graph-toolbar { left: 12px; top: 12px; width: calc(100% - 24px); }
-      #graph { height: calc(100vh - 70px); min-height: 580px; }
+      .graph-panel { position: static; margin: 12px; width: auto; max-height: none; }
+      .graph-toolbar { padding: 12px; }
+      #graph { height: 58vh; min-height: 420px; }
     }
     .graph-panel [hidden] { display: none !important; }
     .graph-panel button:focus-visible, .graph-panel a:focus-visible, .graph-panel select:focus-visible, #query:focus-visible, .graph-toolbar button:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
@@ -54,12 +56,18 @@
     <aside class="border-b border-slate-700/70 bg-[#1E293B] px-5 py-3 text-sm text-[#F1F5F9]" aria-label="Scholarly research">
       Looking for papers? <a href="/research#topic-form" class="font-semibold text-[#A78BFA] underline underline-offset-4 hover:text-[#F1F5F9]">Open Research Intelligence</a> for source-linked metadata search, saved runs and Excel export. Browsing this academic graph needs no SLM or OCR.
     </aside>
+    <div class="graph-toolbar">
+      <div class="graph-toolbar-main">
+        <p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-[#CBD5E1]">Librarian Space / Knowledge graph · select a concept or edge to inspect</p>
+        <form id="search-form" class="flex w-full gap-2">
+          <label for="query" class="sr-only">Search a concept</label>
+          <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="touch-target min-w-0 flex-1 rounded-xl border border-slate-600 bg-[#1E293B] px-4 py-2 text-sm text-[#F1F5F9] outline-none focus:border-[#A78BFA]">
+          <button type="submit" class="touch-target cursor-pointer rounded-xl bg-[#A78BFA] px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-[#C4B5FD]">Explore</button>
+        </form>
+      </div>
+      <div id="filter-match-count" class="graph-toolbar-meta" aria-live="polite"></div>
+    </div>
     <div class="graph-stage">
-      <div class="graph-toolbar"><p class="mb-2 text-xs font-bold uppercase tracking-[.22em] text-[#CBD5E1]">Librarian Space / Knowledge graph · select a concept or edge to inspect</p><form id="search-form" class="flex w-full gap-2">
-        <label for="query" class="sr-only">Search a concept</label>
-        <input id="query" required minlength="2" maxlength="160" placeholder="Explore a concept" class="touch-target min-w-0 flex-1 rounded-xl border border-slate-600 bg-[#1E293B] px-4 py-2 text-sm text-[#F1F5F9] outline-none focus:border-[#A78BFA]">
-        <button type="submit" class="touch-target cursor-pointer rounded-xl bg-[#A78BFA] px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-[#C4B5FD]">Explore</button>
-      </form></div>
       <section class="graph-frame overflow-hidden bg-[#111827]"><div id="graph" tabindex="0" aria-label="Interactive full-screen academic knowledge graph"></div></section>
       <aside class="graph-panel rounded-2xl border border-slate-700 p-4 sm:p-5" aria-live="polite">
         <div class="mb-3 flex flex-wrap gap-2">
@@ -67,8 +75,24 @@
           <button id="show-core" type="button" class="touch-target flex-1 cursor-pointer rounded-xl border border-slate-600 bg-[#0F172A] px-3 py-2 text-left text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Main concepts</button>
           <button id="browse-live" type="button" class="touch-target cursor-pointer rounded-xl border border-violet-400/50 bg-[#0F172A] px-3 py-2 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Live page</button>
         </div>
+        <label for="domain-filter" class="text-xs font-medium text-[#CBD5E1]">Domain</label>
+        <select id="domain-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-xs text-[#F1F5F9]"><option value="">All domains</option></select>
         <label for="relation-filter" class="text-xs font-medium text-[#CBD5E1]">Relationship filter</label>
         <select id="relation-filter" class="touch-target mb-3 mt-1 w-full cursor-pointer rounded-lg border border-slate-600 bg-[#0F172A] p-2 text-xs text-[#F1F5F9]"><option value="">All stored types</option><option value="REQUIRES">Requires</option><option value="UNLOCKS">Unlocks</option><option value="RELATED">Related</option><option value="SOURCED_FROM">Sourced from</option></select>
+        <details id="advanced-filters" class="mb-3 rounded-lg border border-slate-700 bg-[#0F172A] p-2.5 text-xs text-[#CBD5E1]">
+          <summary class="cursor-pointer font-semibold text-[#F1F5F9]">Advanced filters</summary>
+          <div class="mt-2.5 space-y-2">
+            <div>
+              <label for="evidence-filter" class="block text-[11px] font-medium text-[#CBD5E1]">Source backing</label>
+              <select id="evidence-filter" class="mt-1 w-full cursor-pointer rounded border border-slate-600 bg-[#1E293B] p-1.5 text-xs text-[#F1F5F9]">
+                <option value="">All nodes</option>
+                <option value="sourced">With source evidence</option>
+                <option value="concepts">Concepts only</option>
+              </select>
+            </div>
+            <button id="clear-filters" type="button" class="w-full cursor-pointer rounded border border-slate-600 bg-[#1E293B] px-2.5 py-1.5 text-xs font-semibold text-[#F1F5F9] hover:bg-slate-800">Clear filters</button>
+          </div>
+        </details>
         <div class="mb-3 flex flex-wrap gap-3 text-xs text-[#CBD5E1]" aria-label="Relationship colors">
           <span><span class="text-[#60A5FA]">◆</span> Requires</span>
           <span><span class="text-[#F472B6]">◆</span> Unlocks</span>
@@ -168,7 +192,10 @@
     const sourceList = document.getElementById('node-sources');
     const edgeDetails = document.getElementById('edge-details');
     const queryInput = document.getElementById('query');
+    const domainFilter = document.getElementById('domain-filter');
     const relationFilter = document.getElementById('relation-filter');
+    const evidenceFilter = document.getElementById('evidence-filter');
+    const filterMatchCount = document.getElementById('filter-match-count');
     const backBtn = document.getElementById('nav-back');
     const expandBtn = document.getElementById('expand-neighborhood');
     const annotationForm = document.getElementById('graph-annotation-form');
@@ -185,14 +212,101 @@
       backBtn.hidden = historyStack.length === 0;
     }
 
+    let knownDomains = [];
+    const GRAPH_STATE_KEY = 'archipelago_academic_graph_state_v1';
+
+    function saveGraphState(extra = {}) {
+      try {
+        const next = {
+          q: (queryInput?.value || '').trim(),
+          target_id: currentTarget || '',
+          domain: (domainFilter?.value || '').trim(),
+          relation: (relationFilter?.value || '').trim(),
+          evidence: (evidenceFilter?.value || '').trim(),
+          mode: currentTarget ? 'subgraph' : (currentView?.mode || 'overview'),
+          ...extra,
+        };
+        sessionStorage.setItem(GRAPH_STATE_KEY, JSON.stringify(next));
+        const sp = new URLSearchParams();
+        if (next.target_id) sp.set('target_id', next.target_id);
+        else if (next.q) sp.set('q', next.q);
+        if (next.domain) sp.set('domain', next.domain);
+        if (next.relation) sp.set('relation', next.relation);
+        if (next.evidence) sp.set('evidence', next.evidence);
+        if (next.mode === 'live') sp.set('mode', 'live');
+        const qs = sp.toString();
+        history.replaceState(null, '', qs ? `${location.pathname}?${qs}` : location.pathname);
+      } catch (_) {}
+    }
+
+    function populateDomainOptions(extraDomains = []) {
+      if (!domainFilter) return;
+      const previous = domainFilter.value;
+      const nodeDomains = cy
+        ? cy.nodes().map(node => String(node.data('domain') || '').trim()).filter(Boolean)
+        : [];
+      const domains = [...new Set([...knownDomains, ...extraDomains, ...nodeDomains])]
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+      knownDomains = domains;
+      domainFilter.replaceChildren();
+      const allOpt = document.createElement('option');
+      allOpt.value = '';
+      allOpt.textContent = domains.length ? `All domains (${domains.length})` : 'All domains';
+      domainFilter.append(allOpt);
+      for (const dom of domains) {
+        const opt = document.createElement('option');
+        opt.value = dom;
+        opt.textContent = dom;
+        domainFilter.append(opt);
+      }
+      if (domains.includes(previous)) domainFilter.value = previous;
+    }
+
     function applyRelationFilter() {
       if (!cy) return;
-      const selected = relationFilter.value.toUpperCase();
+      const selectedRel = relationFilter.value.toUpperCase();
+      const selectedDomain = (domainFilter?.value || '').trim();
+      const selectedEvidence = (evidenceFilter?.value || '').trim();
+      const hasNodeFilter = Boolean(selectedDomain || selectedEvidence);
+
+      let visibleNodes = 0;
+      cy.nodes().forEach(node => {
+        const dom = String(node.data('domain') || '').trim();
+        const kind = String(node.data('kind') || '').trim();
+        const evCount = Number(
+          node.data('source_count') ?? node.data('evidence_count') ?? (node.data('source_documents')?.length || 0)
+        );
+        const domainOk = !selectedDomain || dom === selectedDomain;
+        const evOk = !selectedEvidence
+          || (selectedEvidence === 'sourced' && (evCount > 0 || kind === 'source_document'))
+          || (selectedEvidence === 'concepts' && kind !== 'source_document');
+        const match = domainOk && evOk;
+        if (match) visibleNodes += 1;
+        node.style('display', match ? 'element' : 'none');
+        if (hasNodeFilter && !activeSelection) {
+          node.toggleClass('muted', !match);
+          node.toggleClass('focused', match);
+        } else if (!activeSelection) {
+          node.removeClass('muted focused');
+        }
+      });
+
+      let visibleEdges = 0;
       cy.edges().forEach(edge => {
         const rel = String(edge.data('rel_label') || '').toUpperCase();
-        const match = !selected || rel === selected || (selected === 'RELATED' && rel === 'CONNECTS');
-        edge.style('display', match ? 'element' : 'none');
+        const relMatch = !selectedRel || rel === selectedRel || (selectedRel === 'RELATED' && rel === 'CONNECTS');
+        const srcOk = edge.source().style('display') !== 'none';
+        const tgtOk = edge.target().style('display') !== 'none';
+        const show = relMatch && srcOk && tgtOk;
+        edge.style('display', show ? 'element' : 'none');
+        if (show) visibleEdges += 1;
       });
+
+      if (filterMatchCount) {
+        filterMatchCount.textContent = `Showing ${visibleNodes} nodes · ${visibleEdges} edges`;
+      }
+      saveGraphState();
     }
 
     function restoreSelectionHighlight() {
@@ -563,6 +677,7 @@
       });
 
       cy.nodes().lock();
+      populateDomainOptions(data.available_domains || []);
       applyRelationFilter();
 
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -676,19 +791,45 @@
       else if (prev.mode === 'subgraph') loadGraph(prev.params, false).catch(showError);
     });
     let pageOffset = 0;
-    async function loadLivePage() {
+    async function loadLivePage(resetOffset = false) {
+      if (resetOffset) pageOffset = 0;
+      currentView = { mode: 'live' };
       status.textContent = 'Loading live indexed concepts…';
-      const response = await fetch(`/api/graph/page?offset=${pageOffset}&limit=36`, { cache: 'no-store' });
+      const qParams = new URLSearchParams({ offset: String(pageOffset), limit: '60' });
+      const selectedDom = (domainFilter?.value || '').trim();
+      if (selectedDom) qParams.set('domain', selectedDom);
+      const response = await fetch(`/api/graph/page?${qParams.toString()}`, { cache: 'no-store' });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || 'Could not load live concept page.');
       if (!data.nodes?.length) { pageOffset = 0; return loadOverview(); }
       pageOffset = data.next_offset || 0;
       renderGraph({ ...data, nodes: data.nodes, edges: data.edges || [] }, true);
       status.textContent = `${data.counts?.concepts || data.matched_total || data.nodes.length} live concepts · showing ${data.nodes.length} (offset ${data.offset || 0})`;
+      saveGraphState({ mode: 'live' });
     }
     document.getElementById('show-core').addEventListener('click', () => { pageOffset = 0; loadOverview().catch(showError); });
     document.getElementById('browse-live').addEventListener('click', () => loadLivePage().catch(showError));
     relationFilter.addEventListener('change', applyRelationFilter);
+    domainFilter?.addEventListener('change', () => {
+      if (!currentTarget) {
+        loadLivePage(true).catch(showError);
+      } else {
+        applyRelationFilter();
+      }
+    });
+    evidenceFilter?.addEventListener('change', applyRelationFilter);
+    document.getElementById('clear-filters')?.addEventListener('click', () => {
+      relationFilter.value = '';
+      if (domainFilter) domainFilter.value = '';
+      if (evidenceFilter) evidenceFilter.value = '';
+      activeSelection = null;
+      edgeDetails.hidden = true;
+      if (cy) {
+        applyRelationFilter();
+        restoreSelectionHighlight();
+        cy.fit(undefined, 42);
+      }
+    });
     expandBtn.addEventListener('click', () => {
       if (!currentTarget) return;
       currentMaxNodes = Math.min(100, currentMaxNodes + 15);
@@ -699,6 +840,8 @@
     document.getElementById('zoom-fit').addEventListener('click', () => cy?.fit(undefined, 42));
     document.getElementById('graph-reset').addEventListener('click', () => {
       relationFilter.value = '';
+      if (domainFilter) domainFilter.value = '';
+      if (evidenceFilter) evidenceFilter.value = '';
       activeSelection = null;
       edgeDetails.hidden = true;
       if (cy) {
@@ -722,14 +865,32 @@
         if (!principal) return;
         canEditGraph = ['librarian', 'administrator'].includes(principal.role);
       }
+      // Pre-fetch available domains from /api/graph/page so the Domain selector always lists all domains
+      fetch('/api/graph/page?limit=1', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d && Array.isArray(d.available_domains)) populateDomainOptions(d.available_domains); })
+        .catch(() => {});
+
       const params = new URLSearchParams(location.search);
-      const targetId = params.get('target_id');
-      const initial = params.get('q');
+      let savedState = {};
+      try { savedState = JSON.parse(sessionStorage.getItem(GRAPH_STATE_KEY) || '{}') || {}; } catch (_) {}
+      const targetId = params.get('target_id') || savedState.target_id || '';
+      const initial = params.get('q') || savedState.q || '';
+      const initDomain = params.get('domain') ?? savedState.domain ?? '';
+      const initRelation = params.get('relation') ?? savedState.relation ?? '';
+      const initEvidence = params.get('evidence') ?? savedState.evidence ?? '';
+      const initMode = params.get('mode') || savedState.mode || '';
+      if (domainFilter && initDomain) domainFilter.value = initDomain;
+      if (relationFilter && initRelation) relationFilter.value = initRelation;
+      if (evidenceFilter && initEvidence) evidenceFilter.value = initEvidence;
+
       if (targetId) {
         loadGraph({ target_id: targetId, max_nodes: '20' }).catch(showError);
       } else if (initial) {
         queryInput.value = initial;
         loadGraph({ q: initial, max_nodes: '20' }).catch(showError);
+      } else if (initMode === 'live' || initDomain) {
+        loadLivePage(true).catch(() => loadOverview().catch(showError));
       } else {
         loadOverview().catch(() => loadGraph({ q: 'graph retrieval', max_nodes: '20' }).catch(showError));
       }

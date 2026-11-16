@@ -66,8 +66,8 @@
       loadingText.textContent = `Resolving ${resourceId}...`;
 
       try {
-        // Fetch document metadata from backend reader info route
-        const infoResp = await fetch(`/api/reader/info/${encodeURIComponent(resourceId)}?page=${pageNum}`);
+        // Fetch document metadata from backend reader info route (query param avoids %2F path issues)
+        const infoResp = await fetch(`/api/reader/info?doc=${encodeURIComponent(resourceId)}&page=${pageNum}`);
         let docInfo = {};
         if (infoResp.ok) {
           docInfo = await infoResp.json();
@@ -88,8 +88,9 @@
         document.getElementById('doc-author').textContent = author;
         document.getElementById('doc-badge').textContent = badge;
 
-        // Build streaming URL for the PDF
-        rawPdfUrl = docInfo.pdf_url || `/papers/${encodeURIComponent(resourceId)}`;
+        // Build streaming URL for the PDF without double-prefixing papers/ or encoding slashes
+        const cleanSegs = resourceId.replace(/^\/+/, '').replace(/^(papers\/)+/, '').split('/').map(encodeURIComponent).join('/');
+        rawPdfUrl = docInfo.pdf_url || `/papers/${cleanSegs}`;
         const anchorUrl = rawPdfUrl + (rawPdfUrl.includes('#') ? '' : `#page=${pageNum}`);
         document.getElementById('btn-raw-pdf').href = anchorUrl;
         errorFallbackLink.href = anchorUrl;

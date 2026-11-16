@@ -22,6 +22,7 @@ from archipelago.scholarly.intelligence.storage import hosted_store
 from ..config import ELEVATED_ROLES, LIBRARIAN_ROLES, UI
 from ..context import AppContext
 from ..koha_bridge import load_koha_snapshot
+from ..user_traffic import summarize_user_traffic
 
 BUCKET = "archipelago-cache"
 S4_SNAPSHOT_OBJECT = "s4_academic_automation_snapshot.json"
@@ -261,6 +262,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                 tz_name=tz_name,
                 include_demo=include_demo,
             )
+            summary["user_traffic"] = summarize_user_traffic(tz_name)
         except ValueError as exc:
             return jsonify({"error": str(exc)}), HTTP_BAD_REQUEST
         except (RuntimeError, requests.RequestException):

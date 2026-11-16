@@ -26,6 +26,7 @@ from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
 from ..context import AppContext
+from ..user_traffic import record_user_action
 from ..conversation import contextual_query
 from ..research_chat import enrich_with_research
 from ..research_run_chat import is_research_request, research_chat_reply
@@ -235,6 +236,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "Query exceeds maximum limit of 500 characters"}), 400
         if not query:
             return jsonify({"error": "Query cannot be empty"}), 400
+        record_user_action("chat_query", query, session_id=str(body.get("session_id") or ""))
 
         template_id = str(body.get("reply_template_id") or "").strip()
         if template_id and not valid_reply_template_id(template_id):
@@ -414,9 +416,11 @@ def register(app: Flask, ctx: AppContext) -> None:
                         if "[" in chunk and active_citations is not None:
                             chunk, _removed = validate_response_citations(chunk, active_citations)
                         yield chunk
+                yield "\n[STREAM_DONE]\n"
             except Exception as exc:
                 logger.error("Chat stream error: %s", exc)
                 yield "\n\nAn unexpected error occurred during synthesis. Please retry your question."
+                yield "\n[STREAM_DONE]\n"
             finally:
                 t_end = time.perf_counter()
                 provider_stream_ms = (
@@ -442,6 +446,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/api/chat/diagnostic-mcqs")
     def diagnostic_mcqs():
         concept = request.args.get("concept") or ""
+        record_user_action("quiz_activity", concept)
         principal = getattr(request, "archipelago_principal", None)
         if principal:
             saved = ctx.limiter.completed_quiz(principal["id"], concept)
@@ -472,6 +477,8 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.post("/api/chat/telemetry")
     def telemetry():
+        body = request.get_json(silent=True) or {}
+        record_user_action("graph_explore", str(body.get("concept_id") or body.get("event") or ""))
         return ("", TELEMETRY_NO_CONTENT)
 
     @app.route("/api/roadmap", methods=["GET", "POST", "OPTIONS"])

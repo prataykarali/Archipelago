@@ -2,12 +2,50 @@
 
 const s5 = id => document.getElementById(id);
 let activeRunId = null;
+const S5_STATE_KEY = 'archipelago_research_state_v1';
+
+function formatShortDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function saveResearchState() {
+  try {
+    const form = s5('intelligence-form');
+    const data = form ? Object.fromEntries(new FormData(form)) : {};
+    sessionStorage.setItem(S5_STATE_KEY, JSON.stringify({ run_id: activeRunId, form: data }));
+    if (activeRunId) {
+      const sp = new URLSearchParams(location.search);
+      sp.set('run', activeRunId);
+      history.replaceState(null, '', `${location.pathname}?${sp.toString()}`);
+    }
+  } catch (_) {}
+}
+
+function restoreResearchForm() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(S5_STATE_KEY) || '{}') || {};
+    const form = s5('intelligence-form');
+    if (form && saved.form) {
+      for (const [k, v] of Object.entries(saved.form)) {
+        const el = form.elements.namedItem(k);
+        if (el && v != null && String(v) !== '') el.value = String(v);
+      }
+    }
+    const urlRun = new URLSearchParams(location.search).get('run');
+    return urlRun || saved.run_id || null;
+  } catch (_) {
+    return null;
+  }
+}
 
 function currentSearchOptions() {
   const payload = Object.fromEntries(new FormData(s5('intelligence-form')));
   payload.top_k = Number(payload.top_k);
   for (const field of ['year_from', 'year_to']) payload[field] = payload[field] ? Number(payload[field]) : null;
-  payload.open_access = payload.open_access === '' ? null : payload.open_access === 'true';
+  payload.open_access = payload.open_access === 'true' ? true : payload.open_access === 'false' ? false : null;
   return payload;
 }
 
@@ -99,20 +137,40 @@ function showRun(run) {
 
 async function loadHistory() {
   const history = s5('run-history');
+  const statusEl = s5('intelligence-status');
+  if (statusEl) statusEl.textContent = 'Loading previous research searches…';
   try {
     const data = await s5Json('/api/research/intelligence/runs');
     history.replaceChildren();
+    if (!data.runs.length) {
+      history.textContent = 'No previous searches yet.';
+    }
     for (const run of data.runs) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = `${run.topic} · ${run.created_at}`;
+      button.textContent = `${run.topic} · ${formatShortDate(run.created_at)}`;
       button.addEventListener('click', async () => {
         activeRunId = run.run_id;
-        showRun(await s5Json(`/api/research/intelligence/runs/${activeRunId}`));
+        if (statusEl) statusEl.textContent = `Loading saved search "${run.topic}"…`;
+        try {
+          const loaded = await s5Json(`/api/research/intelligence/runs/${activeRunId}`);
+          showRun(loaded);
+          saveResearchState();
+          if (statusEl) statusEl.textContent = `Loaded ${loaded.papers?.length || 0} papers for "${run.topic}".`;
+          s5('intelligence-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err.message;
+        }
       });
       history.append(button);
     }
-  } catch (error) { history.textContent = error.message; }
+    if (statusEl && statusEl.textContent === 'Loading previous research searches…') {
+      statusEl.textContent = 'Ready to search.';
+    }
+  } catch (error) {
+    history.textContent = error.message;
+    if (statusEl) statusEl.textContent = error.message;
+  }
 }
 
 async function loadMonitors() {
@@ -226,7 +284,20 @@ async function loadUpdates() {
 
 window.addEventListener('load', async () => {
   if (!await window.archipelagoResearchReady) return;
+  const savedRunId = restoreResearchForm();
   await loadHistory();
+  if (savedRunId) {
+    try {
+      s5('intelligence-status').textContent = 'Restoring your previous research view…';
+      activeRunId = savedRunId;
+      const run = await s5Json(`/api/research/intelligence/runs/${savedRunId}`);
+      showRun(run);
+      s5('intelligence-status').textContent = `Restored ${run.papers?.length || 0} papers.`;
+    } catch (_) {
+      activeRunId = null;
+      s5('intelligence-status').textContent = 'Ready to search.';
+    }
+  }
   try {
     const me = await s5Json('/api/auth/me');
     if (['faculty', 'librarian', 'administrator'].includes(me.role)) {
@@ -252,22 +323,28 @@ window.addEventListener('load', async () => {
     event.preventDefault();
     const form = event.currentTarget;
     const payload = currentSearchOptions();
-    s5('intelligence-status').textContent = 'Searching scholarly providers…';
+    s5('intelligence-status').textContent = `Fetching papers from OpenAlex, Crossref, Semantic Scholar & arXiv for "${payload.topic}"…`;
     form.querySelector('button[type="submit"]').disabled = true;
     try {
       const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       activeRunId = run.run_id;
       showRun(run);
-      s5('intelligence-status').textContent = `${run.papers.length} papers selected.`;
+      saveResearchState();
+      const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
+      s5('intelligence-status').textContent = `Done — loaded ${run.papers.length} papers from ${liveCount} live provider(s).`;
       await loadHistory();
     } catch (error) { s5('intelligence-status').textContent = error.message; }
     finally { form.querySelector('button[type="submit"]').disabled = false; }
   });
   s5('graph-button').addEventListener('click', async () => {
     if (!activeRunId) return;
-    const graph = await s5Json(`/api/research/intelligence/runs/${activeRunId}/graph`);
-    const summary = s5('graph-summary');
-    summary.hidden = false;
-    summary.textContent = `${graph.nodes.length} nodes · ${graph.edges.length} sourced relationships\n` + graph.edges.filter(edge => edge.type === 'CITES').map(edge => `${edge.source} cites ${edge.target} via ${edge.provider}`).join('\n');
+    s5('intelligence-status').textContent = 'Building paper & citation graph…';
+    try {
+      const graph = await s5Json(`/api/research/intelligence/runs/${activeRunId}/graph`);
+      const summary = s5('graph-summary');
+      summary.hidden = false;
+      summary.textContent = `${graph.nodes.length} nodes · ${graph.edges.length} sourced relationships\n` + graph.edges.filter(edge => edge.type === 'CITES').map(edge => `${edge.source} cites ${edge.target} via ${edge.provider}`).join('\n');
+      s5('intelligence-status').textContent = `Graph ready: ${graph.nodes.length} nodes · ${graph.edges.length} relationships.`;
+    } catch (error) { s5('intelligence-status').textContent = error.message; }
   });
 });

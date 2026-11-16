@@ -2,7 +2,7 @@ import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 15-submit-adaptive-answer.js
 // Feature module 16 of 22.
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
-import { getOrCreateInteractiveZone } from './11-populate-topology.js';
+import { getOrCreateQuizZone } from './11-populate-topology.js';
 import { renderAdaptiveMCQCard } from './14-render-adaptive-mcqcard.js';
 import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.js';
 
@@ -186,7 +186,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
             if (!state || !state.next_question) return;
 
             // Swipe out current card before showing next
-            const zone = getOrCreateInteractiveZone(msgId);
+            const zone = getOrCreateQuizZone(msgId);
             const currentCard = zone ? zone.querySelector('.adaptive-card-content') : null;
             if (currentCard) {
                 currentCard.classList.add('swipe-out-left');
@@ -216,7 +216,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         // ── Final Correct Question Celebration + Transition to Graph ──
         function revealFinalCorrectQuestionAndFinish(msgId, completionData, evalData, metadata) {
-            const zone = getOrCreateInteractiveZone(msgId);
+            const zone = getOrCreateQuizZone(msgId);
             if (!zone) {
                 renderPersonalizedGraphCard(msgId, evalData, metadata);
                 return;

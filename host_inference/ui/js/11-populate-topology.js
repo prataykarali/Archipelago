@@ -1,6 +1,7 @@
 // Auto-split from ui/chat/index.html — 11-populate-topology.js
 // Feature module 12 of 22.
 import { _nodeId, _nodeLabel, _nodeSummary, selectGraphNode } from './10-populate-pipeline.js';
+import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { _initGraphRipple } from './18--init-graph-ripple.js';
 import { storageKey } from './storage-key.js';
 
@@ -307,6 +308,74 @@ import { storageKey } from './storage-key.js';
         // ── Interactive Concept Graph Mode Choice (Personalized vs Normal) ──
         window._activeChoiceContext = window._activeChoiceContext || null;
 
+        function getOrCreateOkfNodesZone(msgId) {
+            const msgEl = document.getElementById(`msg-body-${msgId}`);
+            if (!msgEl) return null;
+            let zone = document.getElementById(`okf-nodes-zone-${msgId}`);
+            if (!zone) {
+                zone = document.createElement('div');
+                zone.id = `okf-nodes-zone-${msgId}`;
+                zone.className = 'w-full mt-4 pt-3 border-t border-white/10';
+                msgEl.appendChild(zone);
+            }
+            return zone;
+        }
+
+        function renderOkfNodesCard(msgId, metadata) {
+            if (!metadata || typeof metadata !== 'object') return;
+            const anchor = metadata.anchor_concept || null;
+            const prereqs = Array.isArray(metadata.prerequisites) ? metadata.prerequisites : [];
+            const unlocks = Array.isArray(metadata.unlocks) ? metadata.unlocks : [];
+            const related = Array.isArray(metadata.related_concepts || metadata.related) ? (metadata.related_concepts || metadata.related) : [];
+            if (!anchor && !prereqs.length && !unlocks.length && !related.length) return;
+
+            const zone = getOrCreateOkfNodesZone(msgId);
+            if (!zone) return;
+
+            const renderPills = (items, pillCls, iconCls, emptyLabel) => {
+                if (!items.length) return `<span class="text-[11px] text-slate-400 italic">${emptyLabel}</span>`;
+                return items.slice(0, 6).map(item => {
+                    const lbl = _nodeLabel(item);
+                    const safeLbl = escapeHTML(lbl);
+                    return `<button type="button" onclick="promptFromConcept('${safeLbl.replace(/'/g, "\\'")}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${pillCls}"><i class="${iconCls} text-[10px]"></i><span>${safeLbl}</span></button>`;
+                }).join('');
+            };
+
+            const anchorHtml = anchor
+                ? `<button type="button" onclick="promptFromConcept('${escapeHTML(_nodeLabel(anchor)).replace(/'/g, "\\'")}')" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-400/50 text-amber-200 hover:bg-amber-500/30 text-xs font-bold transition-all cursor-pointer"><i class="fa-solid fa-bullseye text-[11px]"></i><span>${escapeHTML(_nodeLabel(anchor))}</span></button>`
+                : `<span class="text-[11px] text-slate-400 italic">General topic</span>`;
+
+            zone.innerHTML = `
+                <div class="rounded-2xl border border-indigo-500/30 bg-slate-950/70 p-4 space-y-3 shadow-lg">
+                    <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-300 text-xs"><i class="fa-solid fa-diagram-project"></i></span>
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-200">OKF Knowledge Nodes</span>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-400">Click any node to explore</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1.5">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-amber-300">Target Concept</div>
+                            <div class="flex flex-wrap gap-1.5">${anchorHtml}</div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-purple-300">Requires (Prerequisites)</div>
+                            <div class="flex flex-wrap gap-1.5">${renderPills(prereqs, 'bg-purple-500/15 border-purple-400/40 text-purple-200 hover:bg-purple-500/30', 'fa-solid fa-arrow-up-right-from-square', 'None indexed')}</div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Unlocks (Next Topics)</div>
+                            <div class="flex flex-wrap gap-1.5">${renderPills(unlocks, 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/30', 'fa-solid fa-unlock-keyhole', 'None indexed')}</div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-cyan-300">Related Concepts</div>
+                            <div class="flex flex-wrap gap-1.5">${renderPills(related, 'bg-cyan-500/15 border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/30', 'fa-solid fa-link', 'None indexed')}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function getOrCreateInteractiveZone(msgId) {
             const msgEl = document.getElementById(`msg-body-${msgId}`);
             if (!msgEl) return null;
@@ -314,13 +383,66 @@ import { storageKey } from './storage-key.js';
             if (!zone) {
                 zone = document.createElement('div');
                 zone.id = `interactive-zone-${msgId}`;
-                zone.className = 'w-full mt-4 pt-3 border-t border-white/10 relative overflow-hidden transition-all duration-300';
+                zone.className = 'w-full mt-4 relative overflow-hidden transition-all duration-300';
                 msgEl.appendChild(zone);
             }
             return zone;
         }
 
+        function getOrCreateQuizZone(msgId) {
+            const msgEl = document.getElementById(`msg-body-${msgId}`);
+            if (!msgEl) return null;
+            let zone = document.getElementById(`quiz-zone-${msgId}`);
+            if (!zone) {
+                zone = document.createElement('div');
+                zone.id = `quiz-zone-${msgId}`;
+                zone.className = 'w-full mt-4 relative overflow-hidden transition-all duration-300';
+                msgEl.appendChild(zone);
+            }
+            return zone;
+        }
+
+        function renderQuizSectionCard(msgId, metadata) {
+            if (!metadata || !metadata.anchor_concept) return;
+            const route = (metadata.routing && metadata.routing.route) || metadata.contract || '';
+            const isResearchGraph = route === 'RESEARCH_EVIDENCE' || Boolean(metadata.graph_mode === 'research' || metadata.research_run_id);
+            if (isResearchGraph) return;
+
+            const zone = getOrCreateQuizZone(msgId);
+            if (!zone) return;
+            // Don't clobber an active or completed quiz already mounted in this zone
+            if (zone.querySelector('.diagnostic-mcq-card, .personalized-graph-card')) return;
+
+            const anchor = metadata.anchor_concept;
+            const anchorLabel = _nodeLabel(anchor) || 'this concept';
+            const existingAdaptive = window._adaptiveState && window._adaptiveState[msgId];
+            const hasOngoingQuiz = existingAdaptive && existingAdaptive.current_mcq && !existingAdaptive.submitted;
+            const btnLabel = hasOngoingQuiz
+                ? `Resume Quiz (Q${existingAdaptive.question_count}/${existingAdaptive.max_questions})`
+                : 'Take Adaptive Quiz & Build Personalized Graph';
+
+            zone.innerHTML = `
+                <div class="rounded-2xl border border-purple-500/35 bg-gradient-to-br from-slate-900/95 via-purple-950/25 to-slate-900/95 p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-xl bg-purple-500/25 border border-purple-400/50 flex items-center justify-center text-purple-200 text-xs shrink-0"><i class="fa-solid fa-graduation-cap"></i></span>
+                            <h4 class="text-sm font-extrabold text-white tracking-tight">Personalized Learning Path &amp; Diagnostic Quiz</h4>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">Test your mastery of <strong class="text-purple-200">${escapeHTML(anchorLabel)}</strong> and its prerequisite/unlocked OKF nodes to generate your personalized mastery graph.</p>
+                    </div>
+                    <button id="quiz-start-${msgId}" onclick="switchToPersonalizedGraph('${msgId}')" type="button" class="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-extrabold shadow-lg shadow-purple-600/30 transition-all cursor-pointer">
+                        <i class="fa-solid fa-play text-[11px]"></i>
+                        <span>${btnLabel}</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        window.getOrCreateOkfNodesZone = getOrCreateOkfNodesZone;
+        window.renderOkfNodesCard = renderOkfNodesCard;
         window.getOrCreateInteractiveZone = getOrCreateInteractiveZone;
+        window.getOrCreateQuizZone = getOrCreateQuizZone;
+        window.renderQuizSectionCard = renderQuizSectionCard;
 
         function showGraphChoiceModal(msgId, metadata) {
             const modal = document.getElementById('graph-choice-modal');
@@ -348,4 +470,4 @@ import { storageKey } from './storage-key.js';
 
         window.dismissGraphChoiceModal = dismissGraphChoiceModal;
 
-export { dismissGraphChoiceModal, getOrCreateInteractiveZone, populateTopology, showGraphChoiceModal, toggleGraphCardsSetting, toggleHorizontalGraphCard, updateGraphToggleUI };
+export { dismissGraphChoiceModal, getOrCreateInteractiveZone, getOrCreateOkfNodesZone, getOrCreateQuizZone, populateTopology, renderOkfNodesCard, renderQuizSectionCard, showGraphChoiceModal, toggleGraphCardsSetting, toggleHorizontalGraphCard, updateGraphToggleUI };

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import re
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 from engine import _hf_doc_path
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
@@ -19,6 +19,7 @@ import requests
 
 from ..config import UI
 from ..context import AppContext
+from ..user_traffic import record_user_action
 
 READER_PAGE_FILE = "reader.html"
 HF_REPO_NAME = os.environ.get("HF_LIBRARY_REPO", "Prataykarali/Library_books")
@@ -113,10 +114,14 @@ def register(app: Flask, ctx: AppContext) -> None:
         """Serve the full PDF reader interface."""
         return send_from_directory(UI, READER_PAGE_FILE)
 
+    @app.get("/api/reader/info")
     @app.get("/api/reader/info/<path:resource_id>")
-    def reader_info_api(resource_id: str):
+    def reader_info_api(resource_id: str = ""):
         """Metadata inspection endpoint for reader.html."""
-        clean_id = resource_id.removeprefix("book/").strip()
+        raw_id = resource_id or request.args.get("doc") or request.args.get("id") or request.args.get("doc_id") or ""
+        clean_id = unquote(raw_id).removeprefix("book/").strip()
+        if clean_id:
+            record_user_action("reader_open", clean_id)
         try:
             page = max(MIN_PAGE, int(request.args.get("page") or 1))
         except (ValueError, TypeError):
@@ -165,6 +170,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/pdfs/<path:doc_path>")
     def hosted_paper(doc_path: str):
         """Stream one dataset PDF. The browser opens #page=N on this response."""
+        doc_path = unquote(doc_path).lstrip("/")
         if not doc_path or ".." in doc_path or "\\" in doc_path or "\x00" in doc_path:
             return jsonify({"error": "bad_path", "detail": "Invalid document path."}), 400
         if not SAFE_DOC_PATH_PATTERN.match(doc_path):

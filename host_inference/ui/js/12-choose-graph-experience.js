@@ -1,7 +1,7 @@
 import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 12-choose-graph-experience.js
 // Feature module 13 of 22.
-import { dismissGraphChoiceModal, getOrCreateInteractiveZone, showGraphChoiceModal } from './11-populate-topology.js';
+import { dismissGraphChoiceModal, getOrCreateInteractiveZone, getOrCreateQuizZone, showGraphChoiceModal } from './11-populate-topology.js';
 import { _nodeId, _nodeLabel } from './10-populate-pipeline.js';
 import { renderHorizontalGraphCard } from './13-render-horizontal-graph-card.js';
 import { renderAdaptiveMCQCard } from './14-render-adaptive-mcqcard.js';
@@ -86,7 +86,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             const anchor = metadata.anchor_concept;
             const anchorId = _nodeId(anchor);
             const anchorLabel = _nodeLabel(anchor) || 'Target Concept';
-            const zone = getOrCreateInteractiveZone(msgId);
+            const zone = getOrCreateQuizZone(msgId);
             if (!zone) return;
             try {
                 const saved = localStorage.getItem(storageKey('archipelago_eval_' + anchorId));
@@ -198,7 +198,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             if (state && state.current_mcq) {
                 const anchorId = state.target_concept || (state.metadata && _nodeId(state.metadata.anchor_concept));
                 try { localStorage.setItem(storageKey('archipelago_choice_' + anchorId), 'personalized'); } catch (_) {}
-                const zone = getOrCreateInteractiveZone(msgId);
+                const zone = getOrCreateQuizZone(msgId);
                 if (zone) {
                     zone.innerHTML = '';
                     renderAdaptiveMCQCard(msgId);
@@ -226,7 +226,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
                             window.advanceAdaptiveStep(msgId);
                             return;
                         }
-                        const zone = getOrCreateInteractiveZone(msgId);
+                        const zone = getOrCreateQuizZone(msgId);
                         if (zone) {
                             zone.innerHTML = '';
                             renderAdaptiveMCQCard(msgId);
