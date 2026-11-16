@@ -53,7 +53,7 @@ ACADEMIC_DOMAIN_RE = re.compile(
     r"compiler|compilers|lexer|lexical|parser|parsing|syntax|semantic|ast|code generation|register allocation|"
     r"operating system|process|processes|thread|threads|scheduling|deadlock|banker|mutex|semaphore|concurrency|synchronization|"
     r"virtual memory|pag(?:ing|ng)|page table|page replacement|thrashing|filesystem|file system|inode|syscall|address translation|\bmmu\b|"
-    r"database|sql|acid|transaction|transactions|serializability|normalization|b-tree|b\+ tree|relational algebra|"
+    r"database|db|buffer|pool|sql|acid|transaction|transactions|serializability|normalization|b-tree|b\+ tree|lsm|index(?:ing|es)?|relational algebra|"
     r"network|networks|tcp|udp|ip|http|dns|routing|congestion|slow start|aimd|cwnd|flow control|osi|mac|packet|packets|socket|"
     r"distributed|consensus|paxos|raft|cap theorem|replication|sharding|vector clock|federated|"
     r"architecture|cpu|cache|caches|kv cach(?:e|ing)|flashattention|pipeline|pipelining|risc|isa|alu|instruction|hazard|"
