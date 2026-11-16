@@ -12,10 +12,12 @@ from .workbook_standard import _valid_author_name
 EXTRACTION_FIELDS = ("methods", "datasets", "evaluation_metrics", "claims")
 
 
-def _extractions(items: Any) -> list[dict[str, str]]:
-    """Keep named facts and their actual abstract evidence, without raw objects."""
+def _extractions(items: Any, title: str, abstract: str) -> list[dict[str, str]]:
+    """Keep named facts backed by exact title or abstract evidence."""
     if not isinstance(items, list):
         return []
+    normalized_title = " ".join(title.casefold().split())
+    normalized_abstract = " ".join(abstract.casefold().split())
     facts: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
     for item in items:
@@ -29,7 +31,17 @@ def _extractions(items: Any) -> list[dict[str, str]]:
             name, evidence, location = item.strip(), "", ""
         else:
             continue
-        if not name or (name.casefold(), evidence.casefold()) in seen:
+        normalized_evidence = " ".join(evidence.casefold().split())
+        if (
+            not name
+            or not normalized_evidence
+            or not (
+                normalized_evidence in normalized_title
+                or normalized_evidence in normalized_abstract
+            )
+        ):
+            continue
+        if (name.casefold(), evidence.casefold()) in seen:
             continue
         seen.add((name.casefold(), evidence.casefold()))
         facts.append({"name": name, "evidence": evidence, "location": location})
@@ -41,6 +53,8 @@ def _https(raw: Any) -> str | None:
 
 
 def _paper_detail(paper: dict[str, Any], index: int, values: list[Any]) -> dict[str, Any]:
+    title = str(paper.get("title") or "")
+    abstract = str(paper.get("abstract") or "")
     sources = []
     seen: set[tuple[str, str]] = set()
     for source in paper.get("provenance") or []:
@@ -54,7 +68,7 @@ def _paper_detail(paper: dict[str, Any], index: int, values: list[Any]) -> dict[
         sources.append({"name": name, "url": url})
     return {
         "index": index,
-        "title": str(paper.get("title") or ""),
+        "title": title,
         "authors": [
             str(author["name"])
             for author in paper.get("authors") or []
@@ -65,10 +79,12 @@ def _paper_detail(paper: dict[str, Any], index: int, values: list[Any]) -> dict[
         "publication_type": str(paper.get("publication_type") or ""),
         "doi": str(paper.get("doi") or ""),
         "url": _https(paper.get("url") or paper.get("oa_url")),
-        "abstract": str(paper.get("abstract") or ""),
+        "abstract": abstract,
         "evidence_status": str(paper.get("evidence_status") or ""),
         "sources": sources,
-        "extracted": {field: _extractions(paper.get(field)) for field in EXTRACTION_FIELDS},
+        "extracted": {
+            field: _extractions(paper.get(field), title, abstract) for field in EXTRACTION_FIELDS
+        },
         "rankable_values": values,
     }
 

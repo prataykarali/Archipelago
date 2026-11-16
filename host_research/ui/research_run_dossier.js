@@ -55,7 +55,7 @@ function addExtractionCard(dashboard, field, label, facts) {
   const card = dossierCard(`${label} · ${facts.length}`, `run-${field}`);
   if (!facts.length) {
     const empty = document.createElement("p"); empty.className = "run-empty";
-    empty.textContent = `No named ${label.toLowerCase()} were verified in the source abstract.`;
+    empty.textContent = `No named ${label.toLowerCase()} were verified in the source title or abstract.`;
     card.append(empty);
   } else {
     const list = document.createElement("ul");
@@ -77,12 +77,13 @@ function addExtractionCard(dashboard, field, label, facts) {
 
 function renderRunPaper(dossier, paper, context) {
   const query = context.run ? `run=${encodeURIComponent(context.run)}` : "example=state-space-models";
+  document.querySelector(".paper-cover span").textContent = "PAPER";
   dossierEl("paper-topic-link").textContent = dossier.topic;
   dossierEl("paper-topic-link").href = `/research/topic?${query}`;
   dossierEl("paper-title").textContent = paper.title;
   dossierEl("paper-authors").textContent = paper.authors.join(" · ");
   dossierEl("paper-venue").textContent = [paper.venue, paper.year].filter(Boolean).join(" · ");
-  dossierEl("paper-subtitle").textContent = `Retrieved ${dossier.retrieved_at.slice(0, 10)} · source metadata and abstract evidence · ${paper.sources.length} source records`;
+  dossierEl("paper-subtitle").textContent = `Retrieved ${dossier.retrieved_at.slice(0, 10)} · source title and abstract evidence · ${paper.sources.length} source records`;
   const tags = dossierEl("paper-tags");
   for (const fact of paper.extracted.methods.slice(0, 4)) {
     const tag = document.createElement("span"); tag.textContent = fact.name; tags.append(tag);
@@ -136,7 +137,7 @@ function renderRunTopic(dossier, context) {
   const query = context.run ? `run=${encodeURIComponent(context.run)}` : "example=state-space-models";
   dossierEl("topic-title").textContent = dossier.topic;
   dossierEl("topic-breadcrumb").textContent = dossier.topic;
-  dossierEl("topic-status").textContent = `${dossier.paper_count} verified papers · retrieved ${dossier.retrieved_at.slice(0, 10)} · source metadata and abstract evidence`;
+  dossierEl("topic-status").textContent = `${dossier.paper_count} verified papers · retrieved ${dossier.retrieved_at.slice(0, 10)} · source title and abstract evidence`;
   const actions = dossierEl("topic-actions");
   const xlsx = context.run ? `/api/research/intelligence/runs/${encodeURIComponent(context.run)}/xlsx?mode=standard` : "/research/example/Archipelago_State_Space_Models_Rankable.xlsx";
   const excelLink = dossierLink("Download Excel ↗", xlsx, "topic-action");

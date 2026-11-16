@@ -403,7 +403,8 @@ def test_authenticated_xlsx_route_supports_standard_and_advanced_modes(
 def test_dossier_uses_cleaned_workbook_rows_and_source_evidence() -> None:
     run = _sample_run()
     run["papers"][0]["methods"] = [
-        {"name": "state space model", "evidence": "A clean state-space model abstract."}
+        {"name": "state space model", "evidence": "A clean state-space model abstract."},
+        {"name": "invented result", "evidence": "A claim absent from the source"},
     ]
     dossier = build_run_dossier(run)
     preview = preview_run(run)
