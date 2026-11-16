@@ -25,6 +25,7 @@ from .enrichment import (
     venue_observation,
 )
 from .extraction import extract_evidence
+from .relevance_engine import evaluate_relevance
 
 DEFAULT_TOP_K = 20
 MAX_TOP_K = 100
@@ -84,9 +85,8 @@ def clean_scholarly_text(raw: str | None) -> str:
 def assess_topic_eligibility(
     topic: str, title: str, abstract: str | None, fields: str = ""
 ) -> tuple[bool, str]:
-    """Evaluate central-concept eligibility without ranking scores."""
+    """Evaluate central-concept eligibility using semantic proximity and domain compatibility."""
     text_ta = " ".join((title or "", abstract or ""))
-    evidence = re.sub(r"[^\w]+", " ", " ".join((title, abstract or "", fields)).casefold())
     query = re.sub(r"[^\w]+", " ", QUERY_MODIFIERS.sub(" ", topic).casefold()).strip()
     if not query:
         return False, "empty_query"
@@ -104,16 +104,8 @@ def assess_topic_eligibility(
         return False, f"missing_central_concepts:{','.join(missing)}"
     if QUERY_GNN_RE.search(query) and not GNN_CONCEPT_RE.search(text_ta):
         return False, "missing_central_concepts:gnn"
-    alias_matched = False
-    for phrase, alias in TOPIC_ALIASES.items():
-        if phrase in query and re.search(rf"\b{re.escape(alias)}\b", evidence):
-            query = query.replace(phrase, " ")
-            alias_matched = True
-    terms = [word for word in query.split() if word not in TOPIC_STOPWORDS]
-    matched = (bool(terms) or alias_matched) and all(
-        re.search(rf"\b{re.escape(word)}s?\b", evidence) for word in terms
-    )
-    return matched, ("matched_query_terms" if matched else "missing_query_terms")
+    rel = evaluate_relevance(topic, title, abstract, fields)
+    return bool(rel["eligible"]), str(rel["reason"])
 
 
 def topic_matches(topic: str, title: str, abstract: str | None, fields: str = "") -> bool:
@@ -153,6 +145,11 @@ SORT_DEFINITIONS: dict[str, dict[str, str]] = {
         "label": "Most cited",
         "definition": "Sorted descending by highest observed single-provider citation count; missing values sorted last (never zero).",
         "source": "OpenAlex / Semantic Scholar / Crossref / Europe PMC",
+    },
+    "foundational": {
+        "label": "Foundational / High-impact relevant",
+        "definition": "Sorted descending by highest single-provider citation count (tie-broken by FWCI) within the relevant set; missing values sorted last.",
+        "source": "OpenAlex / Semantic Scholar / Crossref",
     },
     "citations_per_year": {
         "label": "Citations per year",
@@ -292,6 +289,9 @@ def discover(
         )
         if options["field"] and options["field"].casefold() not in fields.casefold():
             continue
+        rel_eval = evaluate_relevance(
+            options["topic"], clean_title, clean_abstract, fields, metadata.get("research_domain")
+        )
         eligible, eligibility_reason = assess_topic_eligibility(
             options["topic"], clean_title, clean_abstract, fields
         )
@@ -404,6 +404,7 @@ def discover(
                 if paper.abstract
                 else "METADATA_ONLY",
                 "eligibility_reason": eligibility_reason,
+                "relevance_classification": rel_eval,
                 "identity_review": review,
         }
         row_obj["google_research"] = classify_google_research_paper(row_obj)
@@ -419,20 +420,29 @@ def discover(
         if prior is None or (row["doi"] or "") > (prior["doi"] or ""):
             versioned[key] = row
     dedup_rows = unique + list(versioned.values())
-    by_work: dict[tuple[str, str, int], dict[str, Any]] = {}
+    by_work: dict[tuple[str, str], dict[str, Any]] = {}
     rows = []
     for row in dedup_rows:
         authors = row.get("authors") or []
         ntitle = normalize_title(row.get("title") or "")
-        yr = row.get("year")
-        if not ntitle or not authors or not yr:
+        if not ntitle or not authors:
             rows.append(row)
             continue
-        wkey = (ntitle, authors[0]["name"].casefold().strip(), int(yr))
+        wkey = (ntitle, authors[0]["name"].casefold().strip())
         existing = by_work.get(wkey)
         if existing is None:
             by_work[wkey] = row
             rows.append(row)
+            continue
+        # Prefer published version over preprint when collapsing versions of the same work
+        if existing.get("published_vs_preprint") == "preprint" and row.get("published_vs_preprint") == "published":
+            idx = rows.index(existing)
+            row["alternate_dois"] = list({d for d in (existing.get("doi"), row.get("doi")) if d})
+            row["provenance"] = list(row.get("provenance") or []) + list(existing.get("provenance") or [])
+            if not row.get("abstract") and existing.get("abstract"):
+                row["abstract"] = existing["abstract"]
+            by_work[wkey] = row
+            rows[idx] = row
             continue
         alt_dois = list(existing.get("alternate_dois") or [])
         for d in (existing.get("doi"), row.get("doi")):
@@ -447,11 +457,20 @@ def discover(
     sort_mode = options["sort"]
     if sort_mode == "newest":
         rows.sort(key=lambda row: (row["publication_date"] or "", row["paper_id"]), reverse=True)
-    elif sort_mode == "citations":
+    elif sort_mode in {"citations", "foundational"}:
         rows.sort(
             key=lambda row: (
                 row["citation_count"] is not None,
                 row["citation_count"] if row["citation_count"] is not None else -1,
+                row["fwci"] if row.get("fwci") is not None else -1.0,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "relevance":
+        rows.sort(
+            key=lambda row: (
+                (row.get("relevance_classification") or {}).get("confidence", 0.0),
                 row["publication_date"] or "",
             ),
             reverse=True,
@@ -501,13 +520,13 @@ def discover(
     if orchestrator is None:
         from archipelago.scholarly.discovery.extended_sources import fetch_opencitations_for_dois
 
-        oc_dois = [str(r["doi"]) for r in selected if r.get("doi")]
+        oc_dois = [str(r["doi"]) for r in selected if r.get("doi")][:8]
         oc_map = fetch_opencitations_for_dois(engine.sources.session, oc_dois) if oc_dois else {}
         gr_status = check_google_research_access(engine.sources.session, options["topic"])
         sources_out = list(sources) + [gr_status]
         oa_authors = enrich_authors(selected)
-        s2_authors = enrich_s2_authors(selected)
-        orcid_map = enrich_orcid_authors(selected)
+        s2_authors = enrich_s2_authors(selected, max_authors=5)
+        orcid_map = enrich_orcid_authors(selected, max_authors=5)
         author_obs = oa_authors + s2_authors
         for obs in author_obs:
             orc = str(obs.get("orcid") or "").rsplit("/", 1)[-1]

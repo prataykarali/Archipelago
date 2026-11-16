@@ -18,10 +18,11 @@
       <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
       <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
       <label>Sort <select name="sort">
-        <option value="newest">Newest first</option>
-        <option value="relevance">Query relevance</option>
+        <option value="newest">Newest relevant (default)</option>
+        <option value="relevance">Most relevant</option>
+        <option value="foundational">Foundational / High-impact relevant</option>
         <option value="citations">Most cited (single-provider)</option>
-        <option value="citations_per_year">Citations per year</option>
+        <option value="citations_per_year">Citation velocity (citations/yr)</option>
         <option value="fwci">FWCI (OpenAlex)</option>
         <option value="open_access">Verified open access</option>
         <option value="evidence_completeness">Evidence completeness</option>
@@ -78,7 +79,14 @@
     <div id="external-verification-links" class="s5-badges"></div>
     <a id="excel-link" href="#">Download 14-sheet Excel report</a>
     <button id="graph-button" type="button">Inspect research graph</button>
+    <div id="s5-view-tabs" class="s5-actions" role="tablist" aria-label="Exploration modes">
+      <button type="button" data-view="papers" aria-selected="true">Papers</button>
+      <button type="button" data-view="authors" aria-selected="false">Authors</button>
+      <button type="button" data-view="venues" aria-selected="false">Publications &amp; Sources</button>
+    </div>
     <pre id="graph-summary" hidden></pre><div id="paper-results"></div>
+    <div id="author-results" hidden></div>
+    <div id="venue-results" hidden></div>
   </section>
   <section aria-labelledby="history-heading"><h2 id="history-heading">Previous searches</h2><div id="run-history"></div></section>
   <section id="monitor-section" hidden aria-labelledby="monitor-heading">

@@ -20,8 +20,8 @@ ALL_MACHINE_SOURCES = (
 DOMAIN_PROFILES: dict[str, tuple[str, ...]] = {
     "biomedical": ("openalex", "semantic_scholar", "europe_pmc", "pubmed", "crossref", "openaire"),
     "datasets_software": ("openalex", "datacite", "crossref", "openaire", "arxiv"),
-    "ai_cs": ("openalex", "semantic_scholar", "arxiv", "dblp", "crossref", "openaire", "europe_pmc"),
-    "general": ("openalex", "crossref", "semantic_scholar", "arxiv", "openaire", "europe_pmc", "datacite"),
+    "ai_cs": ("openalex", "semantic_scholar", "arxiv", "dblp", "crossref", "openaire"),
+    "general": ("openalex", "crossref", "semantic_scholar", "arxiv", "openaire", "datacite"),
 }
 
 BIOMED_RE = re.compile(
@@ -38,7 +38,8 @@ AICS_RE = re.compile(
     r"\b(ai|artificial intelligence|machine learning|deep learning|neural|llm|slms?|"
     r"small language models?|language models?|transformers?|quantization|model compression|"
     r"on[- ]device|edge inference|edge ai|rag|retrieval|continual learning|ocr|"
-    r"speech recognition|nlp|graph|vision|robot|agent|jarvis|algorithm|compiler|distributed)\b",
+    r"speech recognition|nlp|graph|vision|robot|agent|jarvis|algorithm|compiler|distributed|"
+    r"diffusion|generative|reinforcement learning|attention|embedding|database|systems?)\b",
     re.I,
 )
 

@@ -75,8 +75,9 @@ def build_graph(run: dict[str, Any]) -> dict[str, Any]:
             anorm = str(arxiv_id).strip().casefold()
             known[anorm] = pid
 
-    total_reference_links = 0
-    resolved_known_works = 0
+    raw_reference_count = 0
+    identifier_matched_count = 0
+    existence_verified_count = 0
     in_collection_edges = 0
     for paper in run["papers"]:
         paper_id = "paper:" + paper["paper_id"]
@@ -136,28 +137,40 @@ def build_graph(run: dict[str, Any]) -> dict[str, Any]:
         for reference in paper.get("references") or []:
             if not isinstance(reference, str) or not reference.strip():
                 continue
-            total_reference_links += 1
+            raw_reference_count += 1
             ref_norm = reference.strip()
             ref_low = ref_norm.casefold().removeprefix("https://doi.org/")
             if ref_norm.startswith("https://openalex.org/W") or ref_low.startswith("10."):
-                resolved_known_works += 1
+                identifier_matched_count += 1
             cited = known.get(ref_norm) or known.get(ref_norm.rsplit("/", 1)[-1]) or known.get(ref_low)
             if cited and cited != paper["paper_id"]:
+                existence_verified_count += 1
                 before = len(seen)
                 edge(paper_id, "paper:" + cited, "CITES", provider)
                 if len(seen) > before:
                     in_collection_edges += 1
+    unresolved_count = max(0, raw_reference_count - identifier_matched_count)
+    externally_resolved_edges = max(0, identifier_matched_count - in_collection_edges)
     return {
         "schema": "archipelago.scholarly_graph.v1",
         "run_at": run["retrieved_at"],
         "nodes": list(nodes.values()),
         "edges": edges,
         "coverage_report": {
-            "total_reference_links": total_reference_links,
-            "resolved_known_works": resolved_known_works,
+            "raw_reference_count": raw_reference_count,
+            "identifier_matched_count": identifier_matched_count,
+            "existence_verified_count": existence_verified_count,
             "in_collection_edges": in_collection_edges,
-            "resolution_rate": round(resolved_known_works / total_reference_links, 4)
-            if total_reference_links
+            "externally_resolved_edges": externally_resolved_edges,
+            "unresolved_count": unresolved_count,
+            "verification_coverage": round(existence_verified_count / raw_reference_count, 4)
+            if raw_reference_count
+            else None,
+            # Backwards-compatible aliases
+            "total_reference_links": raw_reference_count,
+            "resolved_known_works": identifier_matched_count,
+            "resolution_rate": round(identifier_matched_count / raw_reference_count, 4)
+            if raw_reference_count
             else None,
         },
     }

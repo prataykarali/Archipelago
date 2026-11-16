@@ -175,7 +175,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 _names(paper.get("methods") or []),
                 _names(paper.get("datasets") or []),
                 _names(paper.get("evaluation_metrics") or []),
-                paper["abstract"],
+                paper.get("abstract"),
                 vid,
                 paper["venue"],
                 paper.get("publisher") or evidence.get("publisher"),
@@ -249,7 +249,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                     paper["evidence_status"],
                 ],
             )
-        if not paper["abstract"]:
+        if not paper.get("abstract"):
             add("Errors_Review", [pid, "abstract_unavailable", "No abstract in provider response"])
         if paper.get("retraction_status") is True:
             add("Errors_Review", [pid, "retracted", "Provider marked work retracted"])

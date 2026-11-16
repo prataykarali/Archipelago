@@ -110,8 +110,10 @@ function filterAndSortPapers(papers, opts) {
   const copy = [...filtered];
   if (sort === 'newest') {
     copy.sort((a, b) => (b.publication_date || '').localeCompare(a.publication_date || ''));
-  } else if (sort === 'citations') {
-    copy.sort((a, b) => (b.citation_count ?? -1) - (a.citation_count ?? -1));
+  } else if (sort === 'citations' || sort === 'foundational') {
+    copy.sort((a, b) => ((b.citation_count ?? -1) - (a.citation_count ?? -1)) || ((b.fwci ?? -1) - (a.fwci ?? -1)));
+  } else if (sort === 'relevance') {
+    copy.sort((a, b) => ((b.relevance_classification?.confidence ?? 0) - (a.relevance_classification?.confidence ?? 0)) || (b.publication_date || '').localeCompare(a.publication_date || ''));
   } else if (sort === 'citations_per_year') {
     copy.sort((a, b) => (b.citations_per_year ?? -1) - (a.citations_per_year ?? -1));
   } else if (sort === 'fwci') {
@@ -185,6 +187,9 @@ function showRun(run) {
     badges.className = 's5-badges';
     const provNames = [...new Set((paper.provenance || []).map(p => p.source_type).filter(Boolean))];
     for (const pn of provNames) badges.append(makeBadge(pn, 's5-badge--live'));
+    if (paper.relevance_classification?.label) {
+      badges.append(makeBadge(`${paper.relevance_classification.label} (${paper.relevance_classification.confidence ?? ''})`, 's5-badge--live'));
+    }
     if (paper.published_vs_preprint) badges.append(makeBadge(paper.published_vs_preprint));
     if (paper.is_open_access === true) badges.append(makeBadge('Open Access', 's5-badge--live'));
     if (paper.google_research?.official_listing) badges.append(makeBadge('GOOGLE_RESEARCH_OFFICIAL_LISTING', 's5-badge--live'));
@@ -253,6 +258,69 @@ function showRun(run) {
     list.append(article);
   }
   if (!visiblePapers.length) list.textContent = 'No papers matched the current filters in the returned provider results.';
+
+  const authEl = s5('author-results');
+  if (authEl) {
+    authEl.replaceChildren();
+    const seenAuth = new Map();
+    for (const p of visiblePapers) {
+      const oaIds = p.source_metadata?.author_openalex_ids || [];
+      (p.authors || []).forEach((a, idx) => {
+        const oid = (oaIds[idx] || '').split('/').pop();
+        const obs = oid ? authorsById.get(oid) : null;
+        const key = oid || a.orcid || `${a.name}::${p.paper_id}`;
+        if (!seenAuth.has(key)) seenAuth.set(key, { name: a.name, orcid: a.orcid, oid, obs, insts: a.institutions || [], papers: [] });
+        seenAuth.get(key).papers.push(p.title);
+      });
+    }
+    for (const item of seenAuth.values()) {
+      const card = document.createElement('article');
+      card.className = 'research-card';
+      const h = document.createElement('h3');
+      h.textContent = item.obs?.name || item.name;
+      const m = item.obs?.metrics;
+      const info = document.createElement('p');
+      info.textContent = [
+        item.oid ? `OpenAlex: ${item.oid}` : 'OpenAlex: unresolved',
+        item.obs?.orcid || item.orcid ? `ORCID: ${item.obs?.orcid || item.orcid}` : null,
+        item.insts.length ? `Affiliation: ${item.insts.join(', ')}` : null,
+        m ? `${m.publication_count ?? 'N/A'} works · ${m.citation_count ?? 'N/A'} citations · h-index ${m.h_index ?? 'N/A'}` : 'Metrics unavailable',
+      ].filter(Boolean).join(' · ');
+      const pubs = document.createElement('p');
+      pubs.textContent = `In this run (${item.papers.length}): ${item.papers.slice(0, 3).join('; ')}`;
+      card.append(h, info, pubs, makeExtLink(`https://scholar.google.com/scholar?q=${encodeURIComponent(`author:"${item.name}"`)}`, 'Google Scholar author search ↗'));
+      authEl.append(card);
+    }
+  }
+
+  const venEl = s5('venue-results');
+  if (venEl) {
+    venEl.replaceChildren();
+    const seenVen = new Map();
+    for (const p of visiblePapers) {
+      if (!p.venue) continue;
+      const vd = p.venue_details || { name: p.venue };
+      const k = vd.id || p.venue;
+      if (!seenVen.has(k)) seenVen.set(k, { vd, count: 0 });
+      seenVen.get(k).count += 1;
+    }
+    for (const { vd, count } of seenVen.values()) {
+      const card = document.createElement('article');
+      card.className = 'research-card';
+      const h = document.createElement('h3');
+      h.textContent = `${vd.name} (${count} paper${count === 1 ? '' : 's'})`;
+      const info = document.createElement('p');
+      info.textContent = [
+        `Category: ${vd.venue_category || vd.type || 'unknown'}`,
+        vd.publisher ? `Publisher: ${vd.publisher}` : null,
+        vd.works_count != null ? `OpenAlex works: ${vd.works_count}` : null,
+        'JIF/CiteScore/SJR: LICENSE_RESTRICTED',
+      ].filter(Boolean).join(' · ');
+      card.append(h, info);
+      if (vd.url) card.append(makeExtLink(vd.url, 'Official venue website ↗'));
+      venEl.append(card);
+    }
+  }
 }
 
 async function loadHistory() {
@@ -439,6 +507,18 @@ window.addEventListener('load', async () => {
       await loadMonitors();
     } catch (error) { s5('monitor-status').textContent = error.message; }
   });
+  const tabs = s5('s5-view-tabs');
+  if (tabs) {
+    tabs.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-view]');
+      if (!btn) return;
+      const view = btn.dataset.view;
+      for (const b of tabs.querySelectorAll('button[data-view]')) b.setAttribute('aria-selected', String(b === btn));
+      s5('paper-results').hidden = view !== 'papers';
+      s5('author-results').hidden = view !== 'authors';
+      s5('venue-results').hidden = view !== 'venues';
+    });
+  }
   s5('intelligence-form').addEventListener('change', event => {
     if (activeRunData && event.target?.name && event.target.name !== 'topic' && event.target.name !== 'top_k') {
       showRun(activeRunData);
