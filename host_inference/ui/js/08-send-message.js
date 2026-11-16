@@ -148,7 +148,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 typewriter = new SmoothTypewriterStream((textToPaint) => {
                     paintAssistant(textToPaint);
                 }, {
-                    speed: 12,
+                    speed: 4,
                     onLiveChange: (live) => {
                         if (!msgEl) return;
                         msgEl.classList.toggle('is-live-streaming', !!live);

@@ -97,10 +97,16 @@
 
         loadingText.textContent = `Rendering page ${pageNum}...`;
 
-        // Load the PDF via PDF.js
+        // Load the PDF via PDF.js (include bearer token if stored by auth_bridge)
+        let authHeader = {};
+        try {
+          const tok = localStorage.getItem('archipelago_access_token') || sessionStorage.getItem('archipelago_access_token') || '';
+          if (tok) authHeader = { Authorization: `Bearer ${tok}` };
+        } catch (_) {}
         const loadingTask = pdfjsLib.getDocument({
           url: rawPdfUrl,
           withCredentials: true,
+          httpHeaders: authHeader,
           cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
           cMapPacked: true,
         });

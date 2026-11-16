@@ -165,9 +165,20 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                         }
                     }
                     if (hint) {
-                        hint.textContent = isTick ? 'Correct! Advancing towards target concept.' : 'Prerequisite gap detected. Leaping back 2 hops to foundational concepts.';
+                        hint.textContent = isTick
+                            ? 'Correct! Advancing to next question…'
+                            : 'Prerequisite gap detected. Moving to foundational review…';
                     }
                     try { sessionStorage.setItem(storageKey('archipelago_adaptive_' + msgId), JSON.stringify(state)); } catch (_) {}
+                    if (state.next_question) {
+                        if (state._advanceTimer) clearTimeout(state._advanceTimer);
+                        state._advanceTimer = setTimeout(() => {
+                            state._advanceTimer = null;
+                            if (window._adaptiveState[msgId]?.next_question) {
+                                advanceAdaptiveStep(msgId);
+                            }
+                        }, 900);
+                    }
                 }
 
             } catch (err) {
@@ -183,7 +194,17 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         function advanceAdaptiveStep(msgId) {
             const state = window._adaptiveState[msgId];
-            if (!state || !state.next_question) return;
+            if (!state) return;
+            if (state._advanceTimer) {
+                clearTimeout(state._advanceTimer);
+                state._advanceTimer = null;
+            }
+            if (!state.next_question) {
+                if (state.evaluation) {
+                    renderPersonalizedGraphCard(msgId, state.evaluation, state.metadata);
+                }
+                return;
+            }
 
             // Swipe out current card before showing next
             const zone = getOrCreateQuizZone(msgId);

@@ -177,7 +177,7 @@ def _score(row: dict, core_terms: set[str], phrases: list[str], query: str = "")
     return score
 
 
-def _live_scholarly_sources(query: str, limit: int = 3) -> list[dict]:
+def _live_scholarly_sources(query: str, limit: int = 8) -> list[dict]:
     """Fetch up to ``limit`` real scholarly citations from OpenAlex (HTTPS-only, read-only)."""
     clean_q = " ".join(
         t for t in SEARCH_WORD.findall(query) if t.casefold() not in SEARCH_STOPWORDS
@@ -189,10 +189,10 @@ def _live_scholarly_sources(query: str, limit: int = 3) -> list[dict]:
             "https://api.openalex.org/works",
             params={
                 "search": clean_q,
-                "per-page": str(limit),
+                "per-page": str(min(10, limit)),
                 "select": "id,title,publication_year,doi,primary_location,authorships",
             },
-            timeout=2.5,
+            timeout=1.8,
         )
         if resp.status_code != 200:
             return []
@@ -280,7 +280,7 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
         payload = dict(prepared.get("payload") or {})
         existing_cites = payload.get("citations") or []
         if not existing_cites and prepared.get("route") not in {"GUARDRAIL_INTERCEPT", "AUTH_GATEWAY"}:
-            web_cites = _live_scholarly_sources(query, limit=3)
+            web_cites = _live_scholarly_sources(query, limit=8)
             if web_cites:
                 payload["citations"] = web_cites
                 prepared = {**prepared, "payload": payload}

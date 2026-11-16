@@ -73,8 +73,8 @@ import { API_CONTRACT } from './00-current-origin.js';
                 // inventory table ONLY from records verified against the Koha export;
                 // render cited PDFs and research papers in a compact Sources & Resources block.
                 const citations = getResponseCitations(metadata) || [];
-                const verifiedHoldings = citations.filter(c => Boolean(c && c.koha_record_verified)).slice(0, 8);
-                const otherSources = citations.filter(c => !(c && c.koha_record_verified)).slice(0, 8);
+                const verifiedHoldings = citations.filter(c => Boolean(c && c.koha_record_verified)).slice(0, 10);
+                const otherSources = citations.filter(c => !(c && c.koha_record_verified)).slice(0, 10);
                 const inventoryCards = (Array.isArray(metadata.inventory) && metadata.inventory.length)
                     ? metadata.inventory.slice(0, 6)
                     : (Array.isArray(metadata.digital_resources) ? metadata.digital_resources.slice(0, 6) : []);

@@ -133,17 +133,37 @@ class Engine:
             for c in (graph.unlocks(anchor, 2)[:NEIGHBOUR_NODE_LIMIT] if anchor else [])
         ]
         rel = [node_public(graph.nodes[c]) for c in (graph.related(anchor) if anchor else [])]
+        def _collect_up_to_10_citations(seed_ids: list[str]) -> list[dict]:
+            collected: list[dict] = []
+            seen_keys: set[tuple[str, object]] = set()
+            for cid in seed_ids:
+                if not cid or cid not in graph.nodes:
+                    continue
+                cand = graph.cite_record(cid, query)
+                if cand and (cand.get("label") or cand.get("doc_id") or cand.get("url")):
+                    key = (str(cand.get("doc_id") or cand.get("url") or cand.get("label")), cand.get("page_number"))
+                    if key not in seen_keys:
+                        seen_keys.add(key)
+                        collected.append(cand)
+                        if len(collected) >= 10:
+                            break
+            return collected
+
+        initial_cites = extra.get("citations") or (
+            [extra["citation"]] if extra.get("citation") else []
+        )
+        if not initial_cites and anchor_ok:
+            cite_seeds = [anchor] + [
+                n["id"] for n in (*pres, *unl, *rel) if isinstance(n, dict) and n.get("id")
+            ]
+            initial_cites = _collect_up_to_10_citations(cite_seeds)
+
         payload = {
             "anchor_concept": node_public(graph.nodes[anchor]) if anchor_ok else None,
             "prerequisites": pres if anchor_ok else [],
             "unlocks": unl if anchor_ok else [],
             "related_concepts": rel if anchor_ok else [],
-            "citations": extra.get("citations")
-            or (
-                [extra["citation"]]
-                if extra.get("citation")
-                else ([graph.cite_record(anchor, query)] if anchor_ok else [])
-            ),
+            "citations": initial_cites[:10],
             "routing": {
                 "route": route,
                 "score": extra.get("score", 1.0),
@@ -255,8 +275,7 @@ class Engine:
                 for tok in re.findall(r"[a-z0-9]{3,}", query.lower())
                 if tok not in _FILLER
             }
-            best_cid = None
-            best_score = 0
+            scored_cids: list[tuple[int, str]] = []
             if q_tokens:
                 for cid, node in graph.nodes.items():
                     lbl = graph.label(cid).lower()
@@ -268,10 +287,11 @@ class Engine:
                             score += 10
                         elif tok in summary_l:
                             score += 1
-                    if score > best_score:
-                        best_score = score
-                        best_cid = cid
-            if best_cid and best_score >= 10:
+                    if score >= 10:
+                        scored_cids.append((score, cid))
+            scored_cids.sort(key=lambda item: (-item[0], item[1]))
+            best_cid = scored_cids[0][1] if scored_cids else None
+            if best_cid:
                 matched_node = graph.nodes[best_cid]
                 if not payload.get("anchor_concept"):
                     payload["anchor_concept"] = node_public(matched_node)
@@ -280,6 +300,9 @@ class Engine:
                 rel_pres = [node_public(graph.nodes[p]) for p in graph.prereqs(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
                 rel_unl = [node_public(graph.nodes[u]) for u in graph.unlocks(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
                 rel_conn = [node_public(graph.nodes[r]) for r in graph.related(best_cid)[:NEIGHBOUR_NODE_LIMIT]]
+                for _sc, extra_cid in scored_cids[1:4]:
+                    if extra_cid != best_cid and all(n.get("id") != extra_cid for n in rel_conn):
+                        rel_conn.append(node_public(graph.nodes[extra_cid]))
                 if rel_pres and not payload.get("prerequisites"):
                     payload["prerequisites"] = rel_pres
                 if rel_unl and not payload.get("unlocks"):
@@ -291,16 +314,15 @@ class Engine:
                     for c in (payload.get("citations") or [])
                     if isinstance(c, dict)
                 ):
-                    cite = graph.cite_record(best_cid, query)
-                    if not cite or not (cite.get("label") or cite.get("doc_id") or cite.get("url")):
-                        cite = None
-                        for nbr in (*graph.unlocks(best_cid, 2), *graph.prereqs(best_cid, 2), *graph.related(best_cid)):
-                            cand = graph.cite_record(nbr, query)
-                            if cand and (cand.get("label") or cand.get("doc_id") or cand.get("url")):
-                                cite = cand
-                                break
-                    if cite:
-                        payload["citations"] = [cite]
+                    seed_ids = (
+                        [cid for _sc, cid in scored_cids[:4]]
+                        + list(graph.unlocks(best_cid, 2))
+                        + list(graph.prereqs(best_cid, 2))
+                        + list(graph.related(best_cid))
+                    )
+                    cites = _collect_up_to_10_citations(seed_ids)
+                    if cites:
+                        payload["citations"] = cites
                 if not payload.get("inventory"):
                     cards = inventory_card.attach_inventory(
                         payload,
