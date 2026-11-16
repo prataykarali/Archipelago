@@ -22,6 +22,15 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from .graph import author_key, venue_key
+from .ranking_metrics import (
+    author_average_citations,
+    author_m_quotient,
+    author_recent_citations,
+    comparable_venue_metrics,
+    nonnegative_number,
+    openalex_citation_percentile,
+    relevance_score,
+)
 from .standard_validation import distinct_standard_papers
 
 MAX_CELL_CHARS = 32000
@@ -270,6 +279,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     disambig = run.get("query_disambiguation") or {}
     domain_label = str(disambig.get("resolved_domain") or "general").replace("_", " ").upper()
     retrieved_date = _short_date(run.get("retrieved_at"))
+    ranking_year = int(retrieved_date[:4]) if retrieved_date[:4].isdigit() else date.today().year
     sort_meta = run.get("sort_metadata") or {}
     sort_label = sort_meta.get("label") or run.get("ordering") or "Relevance"
     sort_def = sort_meta.get("definition") or ""
@@ -306,8 +316,14 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                     "fields": [],
                     "obs": [],
                     "seen_obs_keys": set(),
+                    "topic_papers": set(),
+                    "best_relevance": None,
                 },
             )
+            entry["topic_papers"].add(str(paper.get("paper_id") or paper.get("title")))
+            paper_relevance = relevance_score(paper)
+            if paper_relevance is not None:
+                entry["best_relevance"] = max(entry["best_relevance"] or 0, paper_relevance)
             for pf in paper_fields:
                 if pf and pf not in entry["fields"]:
                     entry["fields"].append(pf)
@@ -339,6 +355,12 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 {"paper": paper, "papers": [], "topics": set()},
             )
             ventry["papers"].append(paper)
+            current_metrics = comparable_venue_metrics(ventry["paper"].get("venue_details") or {})
+            candidate_metrics = comparable_venue_metrics(paper.get("venue_details") or {})
+            if sum(value is not None for value in candidate_metrics.values()) > sum(
+                value is not None for value in current_metrics.values()
+            ):
+                ventry["paper"] = paper
             for t in (paper.get("topics") or [])[:3]:
                 if t:
                     ventry["topics"].add(str(t))
@@ -461,15 +483,15 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     guide_rows = [
         (
             "Papers",
-            "Deduplicated valid papers with authors, year, venue, citations, citations/year, relevance, extracted evidence, OA status, and links.",
+            "One row per valid paper. Filter or sort relevance, citations, citations/year, FWCI, percentile, year, and evidence independently.",
         ),
         (
             "Authors",
-            "Consolidated researcher identities with verified affiliations, ORCID, publication/citation counts, h-index, and research field.",
+            "One row per verified researcher identity. Independent publication, citation, h-index, i10, recent-citation, and topic-paper fields.",
         ),
         (
             "Publications",
-            "Deduplicated journals, conferences, and repositories with category, publisher, official link, and covered paper count.",
+            "One row per venue. Journal, conference, and repository categories remain separate; only verified venue metrics are populated.",
         ),
         (
             "Sources",
@@ -493,6 +515,9 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         "Citation counts reflect a single attributed database (with observation provider); Citations/year = citations / max(1, current_year - year + 1).",
         "Methods, datasets, and evaluation metrics are extracted strictly from verified abstracts and structured metadata.",
         "Author rows are merged only when verified by persistent identifiers (ORCID, OpenAlex, or Semantic Scholar).",
+        "Ranking fields are independent sortable observations, not a composite quality score. Provider names identify the metric source.",
+        "OpenAlex 2-year mean citedness is not Clarivate JIF. Licensed JIF, CiteScore, SJR, SNIP, quartile and CORE ranks stay blank unless verified.",
+        "Recent author citations cover five calendar years including the retrieval year; topic-paper counts cover this export only.",
     ]
     for note in notes:
         sh.append(["Note", note])
@@ -520,6 +545,11 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         ("Citations per year", 16, False, "0.00"),
         ("Citation source", 18, False, None),
         ("Topic relevance", 20, False, None),
+        ("Relevance score (0-1)", 18, False, "0.000"),
+        ("FWCI (OpenAlex)", 17, False, "0.00"),
+        ("Citation percentile (OpenAlex)", 23, False, "0.0%"),
+        ("Influential citations (Semantic Scholar)", 24, False, "#,##0"),
+        ("Indexed references", 17, False, "#,##0"),
     ]
     if include_methods:
         col_specs.append(("Research method", 26, True, None))
@@ -533,6 +563,9 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             ("DOI", 26, False, None),
             ("Paper link", 16, False, None),
             ("Verified sources", 28, True, None),
+            ("Method evidence", 18, False, None),
+            ("Code link available", 18, False, None),
+            ("Data link available", 18, False, None),
         ]
     )
 
@@ -587,6 +620,11 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             cit_py,
             _safe_cell(cit_prov),
             _safe_cell(_format_relevance(paper.get("relevance_classification"))),
+            relevance_score(paper),
+            nonnegative_number(paper.get("fwci")),
+            openalex_citation_percentile(paper),
+            nonnegative_number(paper.get("influential_citations")),
+            len(paper["references"]) if paper.get("references") else None,
         ]
         if include_methods:
             row_vals.append(_safe_cell(_clean_list_field(paper.get("methods"))))
@@ -600,6 +638,9 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 _safe_cell(doi),
                 _safe_cell(paper_url),
                 _safe_cell(verified_sources or None),
+                "Yes" if paper.get("methods") else None,
+                "Yes" if paper.get("code_repo_urls") else None,
+                "Yes" if paper.get("dataset_repo_urls") else None,
             ]
         )
         papers_sh.append(row_vals)
@@ -631,8 +672,15 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         "Research field",
         "Profile URL",
         "Verified sources",
+        "i10-index",
+        "Avg citations / work",
+        "Recent citations (5y)",
+        "m-quotient",
+        "Topic papers in export",
+        "Best paper relevance (0-1)",
+        "Metric provider",
     ]
-    authors_widths = [26, 36, 22, 16, 15, 11, 28, 16, 24]
+    authors_widths = [26, 36, 22, 16, 15, 11, 28, 16, 24, 12, 20, 21, 13, 22, 24, 18]
     _init_data_sheet(authors_sh, authors_headers, authors_widths)
     for entry in authors_by_key.values():
         primary_obs, other_obs = _pick_author_observation(entry["obs"])
@@ -686,6 +734,17 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 _safe_cell(research_field),
                 _safe_cell(profile_url),
                 _safe_cell(", ".join(all_sources) or None),
+                nonnegative_number(metrics.get("i10_index")) if avail else None,
+                author_average_citations(metrics) if avail else None,
+                author_recent_citations(metrics, ranking_year)
+                if avail and metric_src == "OpenAlex"
+                else None,
+                author_m_quotient(metrics, ranking_year)
+                if avail and metric_src == "OpenAlex"
+                else None,
+                len(entry["topic_papers"]),
+                entry["best_relevance"],
+                _safe_cell(metric_src),
             ]
         )
         r = authors_sh.max_row
@@ -699,7 +758,17 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         authors_headers,
         widths=authors_widths,
         wrap_cols={1, 2, 7, 9},
-        int_cols={4: "#,##0", 5: "#,##0", 6: "0"},
+        int_cols={
+            4: "#,##0",
+            5: "#,##0",
+            6: "0",
+            10: "0",
+            11: "0.00",
+            12: "#,##0",
+            13: "0.00",
+            14: "#,##0",
+            15: "0.000",
+        },
     )
 
     # ------------------------------------------------------------------
@@ -713,8 +782,21 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         "Official link",
         "Covered paper count",
         "Verified available metrics",
+        "Indexed works (OpenAlex)",
+        "Indexed citations (OpenAlex)",
+        "Venue h-index (OpenAlex)",
+        "Venue i10-index (OpenAlex)",
+        "2-year mean citedness (OpenAlex)",
+        "JIF (Clarivate)",
+        "CiteScore (Scopus)",
+        "SJR (SCImago)",
+        "SNIP",
+        "Journal quartile",
+        "CORE / ICORE rank",
+        "Acceptance rate",
+        "Venue metric provider",
     ]
-    pubs_widths = [38, 24, 28, 18, 18, 36]
+    pubs_widths = [38, 24, 28, 18, 18, 36, 22, 24, 22, 24, 27, 18, 20, 18, 14, 18, 20, 18, 22]
     _init_data_sheet(pubs_sh, pubs_headers, pubs_widths)
     for ventry in venues_by_key.values():
         paper = ventry["paper"]
@@ -722,15 +804,16 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         vcat = str(det.get("venue_category") or "unknown")
         vtype_label = VENUE_CATEGORY_LABELS.get(vcat, "Unverified")
         v_url = det.get("url")
+        rank_metrics = comparable_venue_metrics(det)
         metric_parts: list[str] = []
         if det.get("issn"):
             metric_parts.append(f"ISSN: {det['issn']}")
         if det.get("is_oa") is True:
             metric_parts.append("Open-access venue")
-        if det.get("works_count"):
-            metric_parts.append(f"Indexed works: {det['works_count']:,}")
-        if det.get("cited_by_count"):
-            metric_parts.append(f"Total citations: {det['cited_by_count']:,}")
+        if rank_metrics["works_count"] is not None:
+            metric_parts.append(f"Indexed works: {rank_metrics['works_count']:,}")
+        if rank_metrics["cited_by_count"] is not None:
+            metric_parts.append(f"Total citations: {rank_metrics['cited_by_count']:,}")
         v_prov = _provider_label(det.get("provider"))
         if metric_parts and v_prov:
             metric_parts.append(f"Source: {v_prov}")
@@ -742,6 +825,19 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 _safe_cell(v_url),
                 len(ventry["papers"]),
                 _safe_cell("; ".join(metric_parts) or None),
+                rank_metrics["works_count"],
+                rank_metrics["cited_by_count"],
+                rank_metrics["h_index"],
+                rank_metrics["i10_index"],
+                rank_metrics["openalex_2yr_mean_citedness"],
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                _safe_cell(v_prov if rank_metrics["works_count"] is not None else None),
             ]
         )
         r = pubs_sh.max_row
@@ -753,7 +849,7 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         pubs_headers,
         widths=pubs_widths,
         wrap_cols={1, 3, 6},
-        int_cols={5: "#,##0"},
+        int_cols={5: "#,##0", 7: "#,##0", 8: "#,##0", 9: "0", 10: "0", 11: "0.00"},
     )
 
     # ------------------------------------------------------------------

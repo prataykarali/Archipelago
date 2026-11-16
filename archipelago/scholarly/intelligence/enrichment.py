@@ -106,7 +106,11 @@ def _author_observation_from_oa(
             "h_index": stats.get("h_index"),
             "i10_index": stats.get("i10_index"),
             "2yr_mean_citedness": stats.get("2yr_mean_citedness"),
-            "counts_by_year": counts[:10],
+            "counts_by_year": sorted(
+                (row for row in counts if isinstance(row.get("year"), int)),
+                key=lambda row: row["year"],
+                reverse=True,
+            )[:10],
             "earliest_year": min(years) if years else None,
             "latest_year": max(years) if years else None,
             "definition": "OpenAlex indexed works and citations at retrieval time",
@@ -670,7 +674,7 @@ def enrich_papers_multi_provider(
         prov: {"attempts": 0, "successes": 0, "failures": []}
         for prov in ("openalex", "crossref", "semantic_scholar", "openaire", "arxiv", "datacite")
     }
-    secondary_matches: dict[str, int] = {prov: 0 for prov in audit}
+    secondary_matches: dict[str, int] = dict.fromkeys(audit, 0)
 
     def _has_prov(paper: dict[str, Any], prov: str) -> bool:
         return any(p.get("source_type") == prov for p in (paper.get("provenance") or []))

@@ -100,7 +100,21 @@ function showRun(run) {
     facts.textContent = [paper.year, paper.authors.map(author => author.name).join(', '), paper.venue, paper.citation_count == null ? null : `${paper.citation_count} citations (${paper.citation_provider})`, paper.evidence_status].filter(Boolean).join(' · ');
     const reason = document.createElement('p');
     reason.textContent = `Collection order ${paper.collection_order} (${run.ordering}); topic terms found in provider metadata. Not a quality ranking.`;
+    const ranking = document.createElement('p');
+    const rankingFacts = [
+      Number.isFinite(paper.relevance_classification?.confidence) ? `Relevance ${paper.relevance_classification.confidence.toFixed(3)}` : null,
+      Number.isFinite(paper.citations_per_year) ? `${paper.citations_per_year.toFixed(2)} citations/year` : null,
+      Number.isFinite(paper.fwci) ? `FWCI ${paper.fwci.toFixed(2)} (OpenAlex)` : null,
+      Number.isFinite(paper.citation_normalized_percentile?.value) ? `Citation percentile ${(paper.citation_normalized_percentile.value * 100).toFixed(1)}% (OpenAlex)` : null,
+      Number.isFinite(paper.influential_citations) ? `${paper.influential_citations} influential citations (Semantic Scholar)` : null,
+      paper.references?.length ? `${paper.references.length} indexed references` : null,
+      paper.methods?.length ? 'Method evidence' : null,
+      paper.code_repo_urls?.length ? 'Code linked' : null,
+      paper.dataset_repo_urls?.length ? 'Data linked' : null,
+    ].filter(Boolean);
+    ranking.textContent = rankingFacts.join(' · ');
     article.append(title, facts, reason);
+    if (rankingFacts.length) article.append(ranking);
     if (paper.url && paper.url.startsWith('https://')) {
       const link = document.createElement('a');
       link.href = paper.url;
@@ -128,12 +142,27 @@ function showRun(run) {
       const observation = authorsById.get(id);
       const line = document.createElement('p');
       const metrics = observation?.metrics;
-      line.textContent = `${author.name} · ${observation?.identity_status || 'unresolved identity'} · ${id || author.orcid || 'no provider ID'} · ${metrics ? `${metrics.publication_count ?? 'N/A'} indexed works, ${metrics.citation_count ?? 'N/A'} citations, h-index ${metrics.h_index ?? 'N/A'}, i10-index ${metrics.i10_index ?? 'N/A'} (${observation.provider}, ${observation.retrieved_at})` : 'metrics N/A'}`;
+      const authorFacts = metrics ? [
+        Number.isFinite(metrics.publication_count) ? `${metrics.publication_count} indexed works` : null,
+        Number.isFinite(metrics.citation_count) ? `${metrics.citation_count} citations` : null,
+        Number.isFinite(metrics.h_index) ? `h-index ${metrics.h_index}` : null,
+        Number.isFinite(metrics.i10_index) ? `i10-index ${metrics.i10_index}` : null,
+        Number.isFinite(metrics.citation_count) && metrics.publication_count > 0 ? `${(metrics.citation_count / metrics.publication_count).toFixed(2)} citations/work` : null,
+      ].filter(Boolean) : [];
+      line.textContent = [author.name, ...authorFacts, observation?.provider, observation?.retrieved_at].filter(Boolean).join(' · ');
       identities.append(line);
     });
     const venue = document.createElement('p');
     const venueDetails = paper.venue_details;
-    venue.textContent = venueDetails ? `${venueDetails.name} · ${venueDetails.id || 'unresolved ID'} · ${venueDetails.publisher || 'publisher N/A'} · impact factor/CiteScore/SJR/CORE N/A · ${venueDetails.provider || 'provider N/A'}` : 'Venue metadata unavailable.';
+    const comparableVenue = venueDetails?.provider === 'openalex' && ['peer_reviewed_journal', 'peer_reviewed_conference'].includes(venueDetails.venue_category);
+    const venueFacts = comparableVenue ? [
+      Number.isFinite(venueDetails.works_count) ? `${venueDetails.works_count} indexed works` : null,
+      Number.isFinite(venueDetails.cited_by_count) ? `${venueDetails.cited_by_count} citations` : null,
+      Number.isFinite(venueDetails.h_index) ? `h-index ${venueDetails.h_index}` : null,
+      Number.isFinite(venueDetails.i10_index) ? `i10-index ${venueDetails.i10_index}` : null,
+      Number.isFinite(venueDetails.openalex_2yr_mean_citedness) ? `2-year mean citedness ${venueDetails.openalex_2yr_mean_citedness.toFixed(2)}` : null,
+    ].filter(Boolean) : [];
+    venue.textContent = venueDetails ? [venueDetails.name, venueDetails.venue_category?.replaceAll('_', ' '), venueDetails.publisher, ...venueFacts, venueFacts.length ? 'OpenAlex' : null].filter(Boolean).join(' · ') : 'Venue metadata unavailable.';
     identities.append(venue);
     article.append(identities);
     list.append(article);

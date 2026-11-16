@@ -17,14 +17,14 @@
       <label>Papers to collect (maximum) <select name="top_k"><option>50</option><option selected>100</option><option>200</option><option>500</option></select></label>
       <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
       <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
-      <label>Sort <select name="sort"><option value="newest">Newest first</option><option value="provider">Provider order</option></select></label>
+      <label>Paper order <select name="sort"><option value="relevance" selected>Most relevant</option><option value="citations">Most cited (OpenAlex)</option><option value="citations_per_year">Citations per year (OpenAlex)</option><option value="fwci">FWCI (OpenAlex)</option><option value="newest">Newest first</option><option value="evidence_completeness">Most documented evidence</option><option value="provider">Provider order</option></select></label>
     </div>
   </form>
   <p id="intelligence-status" role="status">Ready to search.</p>
   <section id="intelligence-results" hidden aria-labelledby="results-heading">
     <h2 id="results-heading">Paper results</h2><p id="provider-status"></p><p id="retrieved-at"></p>
     <label>Excel format <select id="excel-mode"><option value="standard" selected>Standard (5 sheets)</option><option value="advanced">Advanced (14 sheets)</option></select></label>
-    <a id="excel-link" href="#">Download Excel report</a>
+    <a id="excel-link" href="#">Download Excel report with separate paper, author, and publication ranking columns</a>
     <a id="scholar-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Review on Google Scholar ↗</a>
     <button id="graph-button" type="button">Inspect research graph</button>
     <pre id="graph-summary" hidden></pre><div id="paper-results"></div>

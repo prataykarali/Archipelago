@@ -219,6 +219,64 @@ def test_advanced_export_still_returns_14_sheets() -> None:
         build_workbook(_sample_run(), mode="unknown")
 
 
+def test_ranking_parameters_are_individual_typed_columns() -> None:
+    run = _sample_run()
+    paper = run["papers"][0]
+    paper.update(
+        {
+            "fwci": 2.5,
+            "citation_normalized_percentile": {"value": 0.92},
+            "influential_citations": 4,
+            "references": ["https://openalex.org/W2"],
+            "methods": ["State-space model"],
+            "code_repo_urls": ["https://github.com/example/code"],
+            "relevance_classification": {"label": "RELEVANT", "confidence": 0.87},
+        }
+    )
+    run["author_observations"][0]["metrics"].update(
+        {
+            "i10_index": 8,
+            "earliest_year": 2018,
+            "counts_by_year": [{"year": 2026, "cited_by_count": 9}],
+        }
+    )
+    paper["venue_details"].update(
+        {
+            "id": "https://openalex.org/S1",
+            "works_count": 100,
+            "cited_by_count": 500,
+            "h_index": 12,
+            "i10_index": 15,
+            "openalex_2yr_mean_citedness": 2.75,
+        }
+    )
+    run["papers"][1]["venue_details"].update(
+        {"id": "https://openalex.org/S2", "works_count": 200, "h_index": 30}
+    )
+    book = load_workbook(BytesIO(build_workbook(run, mode="standard").getvalue()))
+
+    def value(sheet: str, row: int, header: str):
+        headings = [cell.value for cell in book[sheet][1]]
+        return book[sheet].cell(row, headings.index(header) + 1).value
+
+    assert value("Papers", 2, "Relevance score (0-1)") == 0.87
+    assert value("Papers", 2, "FWCI (OpenAlex)") == 2.5
+    assert value("Papers", 2, "Citation percentile (OpenAlex)") == 0.92
+    assert value("Papers", 2, "Influential citations (Semantic Scholar)") == 4
+    assert value("Papers", 2, "Indexed references") == 1
+    assert value("Papers", 2, "Code link available") == "Yes"
+    assert value("Authors", 2, "i10-index") == 8
+    assert value("Authors", 2, "Avg citations / work") == 12.5
+    assert value("Authors", 2, "Recent citations (5y)") == 9
+    assert value("Authors", 2, "Topic papers in export") == 1
+    assert value("Authors", 2, "Metric provider") == "OpenAlex"
+    assert value("Publications", 2, "Venue h-index (OpenAlex)") == 12
+    assert value("Publications", 2, "2-year mean citedness (OpenAlex)") == 2.75
+    assert value("Publications", 2, "JIF (Clarivate)") is None
+    assert value("Publications", 2, "CiteScore (Scopus)") is None
+    assert value("Publications", 3, "Venue h-index (OpenAlex)") is None
+
+
 def test_standard_export_revalidates_old_runs_and_deduplicates_works() -> None:
     run = _sample_run()
     duplicate = {**run["papers"][0], "paper_id": "duplicate-provider-record"}
