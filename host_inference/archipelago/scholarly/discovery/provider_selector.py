@@ -39,7 +39,8 @@ AICS_RE = re.compile(
     r"small language models?|language models?|transformers?|quantization|model compression|"
     r"on[- ]device|edge inference|edge ai|rag|retrieval|continual learning|ocr|"
     r"speech recognition|nlp|graph|vision|robot|agent|jarvis|algorithm|compiler|distributed|"
-    r"diffusion|generative|reinforcement learning|attention|embedding|database|systems?)\b",
+    r"diffusion|generative|reinforcement learning|attention|embedding|database|systems?|"
+    r"state[- ]?space|space[- ]?state|mamba|sequence modeling)\b",
     re.I,
 )
 

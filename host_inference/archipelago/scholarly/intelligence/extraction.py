@@ -23,11 +23,14 @@ METHODS = (
     "elastic weight consolidation", "meta-learning", "attention mechanism", "diffusion",
     "connectionist temporal classification", "end-to-end", "data augmentation", "ablation study",
     "zero-shot", "few-shot", "survey", "systematic review", "benchmark",
+    "state space model", "state-space model", "structured state space", "selective state space",
+    "kalman filter", "hidden markov model", "sequence modeling",
 )
 MODELS = (
     "gpt-4", "gpt-3.5", "chatgpt", "llama", "bert", "roberta", "t5", "hugginggpt",
     "clip", "vit", "resnet", "whisper", "wav2vec", "conformer", "layoutlm", "donut",
     "trocr", "gat", "gcn", "graphsage", "gin", "stable diffusion", "qwen", "gemini",
+    "mamba", "s4", "s4d", "s5", "hippo", "hyena", "rwkv", "retnet",
 )
 DATASETS = (
     "cora", "citeseer", "pubmed", "ogb", "imagenet", "cifar-10", "cifar-100", "mnist",
@@ -35,18 +38,20 @@ DATASETS = (
     "mmmu", "longbench", "beir", "omni-bench",
     "humaneval", "glue", "superglue", "librispeech", "common voice", "openslr",
     "ocr-bench", "icdar", "docvqa", "funsd", "sroie", "tudataset", "qm9", "mimic",
-    "mathvista", "alpaca", "toolbench",
+    "mathvista", "alpaca", "toolbench", "long range arena", "wikitext", "wikitext-103",
+    "the pile", "pg19", "speech commands", "etth1", "weather",
 )
 TASKS = (
     "question answering", "text generation", "document understanding", "optical character recognition",
     "speech recognition", "node classification", "link prediction", "graph classification",
     "information retrieval", "code generation", "task planning", "reasoning", "summarization",
     "image classification", "object detection", "named entity recognition",
+    "language modeling", "time series forecasting", "sequence modeling",
 )
 METRICS = (
     "accuracy", "f1", "f1-score", "precision", "recall", "auc", "auroc", "bleu", "rouge",
     "word error rate", "wer", "character error rate", "cer", "mean average precision",
-    "perplexity", "exact match", "pass@1", "success rate", "win rate", "latency", "throughput",
+    "perplexity", "bits per byte", "bpb", "exact match", "pass@1", "success rate", "win rate", "latency", "throughput",
     "mse", "rmse", "mae", "ndcg", "mrr",
 )
 SENTENCE = re.compile(r"(?<=[.!?])\s+")

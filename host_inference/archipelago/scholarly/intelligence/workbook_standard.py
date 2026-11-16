@@ -82,12 +82,64 @@ THIN_BORDER = Border(
 )
 
 
+_PLACEHOLDER_TOKENS = frozenset(
+    {
+        "none",
+        "null",
+        "n/a",
+        "na",
+        "unknown",
+        "not_available",
+        "provider_unavailable",
+        "license_restricted",
+        "identity_review_required",
+        "unavailable",
+    }
+)
+
+
 def _safe_cell(value: Any) -> Any:
     """Prevent spreadsheet formula execution from untrusted metadata."""
     if value is None or isinstance(value, (int, float, bool, date)):
         return value
     text = str(value)[:MAX_CELL_CHARS]
+    if text.strip().casefold() in _PLACEHOLDER_TOKENS:
+        return None
     return "'" + text if text.startswith(("=", "+", "-", "@")) else text
+
+
+def _clean_list_field(items: Any) -> str | None:
+    if not isinstance(items, (list, tuple)):
+        return None
+    cleaned = [
+        str(x).strip()
+        for x in items
+        if x and str(x).strip().casefold() not in _PLACEHOLDER_TOKENS
+    ]
+    return ", ".join(dict.fromkeys(cleaned)) or None
+
+
+def _is_standard_valid_paper(paper: dict[str, Any]) -> bool:
+    if paper.get("standard_eligible") is False:
+        return False
+    title = str(paper.get("title") or "").strip()
+    authors = [a for a in (paper.get("authors") or []) if isinstance(a, dict) and a.get("name")]
+    year = paper.get("year")
+    pub_date = str(paper.get("publication_date") or "").strip()
+    has_year = isinstance(year, int) or (len(pub_date) >= 4 and pub_date[:4].isdigit())
+    has_link = bool(paper.get("doi") or paper.get("url") or paper.get("oa_url"))
+    has_prov = bool(paper.get("provenance") or paper.get("discovered_by") or paper.get("source"))
+    return bool(title and authors and has_year and has_link and has_prov)
+
+
+def _format_relevance(rel: dict[str, Any] | None) -> str | None:
+    if not isinstance(rel, dict):
+        return None
+    label = str(rel.get("label") or "").replace("_", " ").title()
+    conf = rel.get("confidence")
+    if label and isinstance(conf, (int, float)):
+        return f"{label} ({conf:.2f})"
+    return label or None
 
 
 def _provider_label(raw: str | None) -> str | None:
@@ -207,11 +259,18 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         book.remove(default_sheet)
     sheets = {name: book.create_sheet(name) for name in STANDARD_SHEETS}
 
-    papers = run.get("papers") or []
+    all_papers = run.get("papers") or []
+    papers = [p for p in all_papers if _is_standard_valid_paper(p)]
+    excluded_identity = len(all_papers) - len(papers)
+    candidate_count = int(run.get("candidate_count") or len(all_papers))
+    excluded_total = max(0, candidate_count - len(papers))
     topic = str((run.get("options") or {}).get("topic") or "Research Topic")
+    disambig = run.get("query_disambiguation") or {}
+    domain_label = str(disambig.get("resolved_domain") or "general").replace("_", " ").upper()
     retrieved_date = _short_date(run.get("retrieved_at"))
     sort_meta = run.get("sort_metadata") or {}
     sort_label = sort_meta.get("label") or run.get("ordering") or "Relevance"
+    sort_def = sort_meta.get("definition") or ""
 
     # Build deduplicated author & venue registries before Start Here so counts are exact
     obs_by_id: dict[str, dict[str, Any]] = {
@@ -225,6 +284,9 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         smeta = paper.get("source_metadata") or {}
         oa_ids = smeta.get("author_openalex_ids") or []
         s2_ids = smeta.get("author_s2_ids") or []
+        paper_fields = [str(t) for t in (paper.get("topics") or [])[:2] if t]
+        if paper.get("research_field"):
+            paper_fields.insert(0, str(paper["research_field"]))
         for idx, author in enumerate(paper.get("authors") or []):
             key = author_key(paper, idx)
             norm_name = " ".join(str(author.get("name") or "").casefold().split())
@@ -239,10 +301,14 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                     "oa_ids": set(),
                     "s2_ids": set(),
                     "paper_affs": [],
+                    "fields": [],
                     "obs": [],
                     "seen_obs_keys": set(),
                 },
             )
+            for pf in paper_fields:
+                if pf and pf not in entry["fields"]:
+                    entry["fields"].append(pf)
             if author.get("orcid"):
                 entry["orcids"].add(str(author["orcid"]).strip())
             for inst in author.get("institutions") or []:
@@ -275,33 +341,69 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
                 if t:
                     ventry["topics"].add(str(t))
 
-    # Collect contributing live source labels
-    contributing_sources = sorted(
+    # Collect contributing live discovery vs enrichment source labels
+    discovery_sources = sorted(
         {
-            _provider_label(p.get("source_type"))
+            lbl
             for paper in papers
             for p in (paper.get("provenance") or [])
-            if _provider_label(p.get("source_type"))
-        }
-        | {
-            _provider_label(o.get("provider"))
-            for o in (run.get("citation_observations") or [])
-            if _provider_label(o.get("provider"))
-        }
-        | {
-            _provider_label(o.get("provider"))
-            for o in (run.get("author_observations") or [])
-            if o.get("enrichment_status") == "AVAILABLE" and _provider_label(o.get("provider"))
+            if str(p.get("contribution_type") or "discovery").startswith("discovery")
+            and (lbl := _provider_label(p.get("source_type")))
         }
     )
+    enrichment_sources = sorted(
+        (
+            {
+                lbl
+                for paper in papers
+                for p in (paper.get("provenance") or [])
+                if str(p.get("contribution_type") or "") == "stage2_enrichment"
+                and (lbl := _provider_label(p.get("source_type")))
+            }
+            | {
+                lbl
+                for o in (run.get("author_observations") or [])
+                if o.get("enrichment_status") == "AVAILABLE"
+                and (lbl := _provider_label(o.get("provider")))
+            }
+        )
+        - set(discovery_sources)
+    )
+    source_cov_parts = []
+    if discovery_sources:
+        source_cov_parts.append(f"Discovery: {', '.join(discovery_sources)}")
+    if enrichment_sources:
+        source_cov_parts.append(f"Enrichment: {', '.join(enrichment_sources)}")
+    source_cov_str = " | ".join(source_cov_parts) or "OpenAlex"
+
+    # Coverage stats for optional fields
+    n_papers = len(papers)
+    n_cit = sum(1 for p in papers if isinstance(p.get("citation_count"), int))
+    n_methods = sum(1 for p in papers if _clean_list_field(p.get("methods")))
+    n_datasets = sum(1 for p in papers if _clean_list_field(p.get("datasets")))
+    n_metrics = sum(1 for p in papers if _clean_list_field(p.get("evaluation_metrics")))
+    omitted_cols: list[str] = []
+    if n_papers > 0:
+        if n_methods == 0:
+            omitted_cols.append("Research method")
+        if n_datasets == 0:
+            omitted_cols.append("Dataset / benchmark")
+        if n_metrics == 0:
+            omitted_cols.append("Evaluation metric")
+    coverage_summary = (
+        f"Citations: {n_cit}/{n_papers}; Methods: {n_methods}/{n_papers}; "
+        f"Datasets: {n_datasets}/{n_papers}; Metrics: {n_metrics}/{n_papers}"
+    )
+    if omitted_cols:
+        coverage_summary += f" (Empty optional columns omitted from Papers: {', '.join(omitted_cols)})"
 
     # ------------------------------------------------------------------
     # Sheet 1: Start Here
     # ------------------------------------------------------------------
     sh = sheets["Start Here"]
     sh.views.sheetView[0].showGridLines = True
-    sh.column_dimensions["A"].width = 28
-    sh.column_dimensions["B"].width = 78
+    sh.column_dimensions["A"].width = 30
+    sh.column_dimensions["B"].width = 80
 
     sh.append(["Archipelago Research Report", ""])
     sh["A1"].font = TITLE_FONT
@@ -311,13 +413,17 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     sh.append(["", ""])
 
     summary_rows = [
-        ("Research topic", topic),
-        ("Collected on", retrieved_date or "Not recorded"),
-        ("Papers included", len(papers)),
+        ("Search query", topic),
+        ("Topic / domain", domain_label),
+        ("Retrieval date", retrieved_date or "Not recorded"),
+        ("Discovery candidates", candidate_count),
+        ("Valid papers included", n_papers),
+        ("Excluded (filtered / incomplete)", f"{excluded_total} (including {excluded_identity} lacking core IDs)" if excluded_identity else excluded_total),
         ("Distinct researchers", len(authors_by_key)),
         ("Publications / venues", len(venues_by_key)),
-        ("Sorted by", sort_label),
-        ("Sources consulted", ", ".join(contributing_sources) or "OpenAlex"),
+        ("Ordering method", f"{sort_label} — {sort_def}" if sort_def else sort_label),
+        ("Source coverage", source_cov_str),
+        ("Optional field coverage", coverage_summary),
         ("Export mode", "Standard Research Export (5 sheets)"),
     ]
     sh.append(["Summary", "Details"])
@@ -341,10 +447,10 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         c.fill = HEADER_FILL
         c.border = THIN_BORDER
     guide_rows = [
-        ("Papers", "Bibliographic details, abstracts, citation counts, open-access status, and direct links."),
-        ("Authors", "Deduplicated researchers with affiliations, publication/citation metrics, and ORCID links."),
-        ("Publications", "Journals, conferences, and repositories where these papers appeared."),
-        ("Sources", "Direct links to each scholarly database that verified each paper."),
+        ("Papers", "Deduplicated valid papers with authors, year, venue, citations, citations/year, relevance, extracted evidence, OA status, and links."),
+        ("Authors", "Consolidated researcher identities with verified affiliations, ORCID, publication/citation counts, h-index, and research field."),
+        ("Publications", "Deduplicated journals, conferences, and repositories with category, publisher, official link, and covered paper count."),
+        ("Sources", "Readable provenance per paper and provider: source name, URL, Discovery vs Enrichment role, retrieval date, and verification status."),
     ]
     for tab, desc in guide_rows:
         sh.append([tab, desc])
@@ -356,12 +462,13 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         sh.cell(r, 2).alignment = Alignment(wrap_text=True, vertical="top")
 
     sh.append(["", ""])
-    sh.append(["Notes on reading this export", ""])
+    sh.append(["Notes & limitations", ""])
     sh.cell(sh.max_row, 1).font = SUBTITLE_FONT
     notes = [
-        "Blank metric cells mean the consulted databases did not report that value. Missing values are never replaced with zero.",
-        "Citation counts reflect a single attributed database (shown in 'Citation source') rather than blending counts across sources.",
-        "Researcher rows are merged only when verified by persistent identifiers (ORCID, OpenAlex, or Semantic Scholar); same-name researchers without shared IDs are kept separate.",
+        "Blank cells mean the consulted databases did not report that value. Missing counts are never converted to zero.",
+        "Citation counts reflect a single attributed database (with observation provider); Citations/year = citations / max(1, current_year - year + 1).",
+        "Methods, datasets, and evaluation metrics are extracted strictly from verified abstracts and structured metadata.",
+        "Author rows are merged only when verified by persistent identifiers (ORCID, OpenAlex, or Semantic Scholar).",
     ]
     for note in notes:
         sh.append(["Note", note])
@@ -375,19 +482,48 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     # Sheet 2: Papers
     # ------------------------------------------------------------------
     papers_sh = sheets["Papers"]
-    papers_headers = [
-        "Paper title", "Authors", "Publication year", "Journal/conference",
-        "Paper type", "Citation count", "Citation source", "Open access",
-        "DOI", "Paper link", "Indexed by", "Abstract",
+    include_methods = n_papers == 0 or n_methods > 0
+    include_datasets = n_papers == 0 or n_datasets > 0
+    include_metrics = n_papers == 0 or n_metrics > 0
+
+    col_specs: list[tuple[str, int, bool, str | None]] = [
+        ("Paper title", 44, True, None),
+        ("Authors", 30, True, None),
+        ("Year", 10, False, "0"),
+        ("Publication venue", 28, True, None),
+        ("Publication type", 18, False, None),
+        ("Citation count", 14, False, "#,##0"),
+        ("Citations per year", 16, False, "0.00"),
+        ("Citation source", 18, False, None),
+        ("Topic relevance", 20, False, None),
     ]
-    papers_widths = [44, 30, 14, 28, 18, 14, 18, 12, 26, 16, 30, 56]
+    if include_methods:
+        col_specs.append(("Research method", 26, True, None))
+    if include_datasets:
+        col_specs.append(("Dataset / benchmark", 24, True, None))
+    if include_metrics:
+        col_specs.append(("Evaluation metric", 22, True, None))
+    col_specs.extend([
+        ("Open access", 12, False, None),
+        ("DOI", 26, False, None),
+        ("Paper link", 16, False, None),
+        ("Verified sources", 28, True, None),
+    ])
+
+    papers_headers = [c[0] for c in col_specs]
+    papers_widths = [c[1] for c in col_specs]
+    papers_wrap = {i for i, c in enumerate(col_specs, 1) if c[2]}
+    papers_num = {i: c[3] for i, c in enumerate(col_specs, 1) if c[3]}
+    doi_col_idx = papers_headers.index("DOI") + 1
+    link_col_idx = papers_headers.index("Paper link") + 1
+
     _init_data_sheet(papers_sh, papers_headers, papers_widths)
     for paper in papers:
         authors_str = "; ".join(a.get("name") or "" for a in (paper.get("authors") or []) if a.get("name"))
         doi = paper.get("doi")
         doi_url = f"https://doi.org/{doi}" if doi else None
         paper_url = paper.get("url") or paper.get("oa_url") or doi_url
-        indexed_by = ", ".join(
+        verified_sources = ", ".join(
             sorted(
                 {
                     lbl
@@ -398,38 +534,47 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         )
         oa_val = "Yes" if paper.get("is_open_access") is True else ("No" if paper.get("is_open_access") is False else None)
         cit_count = paper.get("citation_count")
+        cit_py = paper.get("citations_per_year")
         cit_prov = _provider_label(paper.get("citation_provider")) if cit_count is not None else None
-        abstract = paper.get("abstract") or ""
-        if len(abstract) > 1200:
-            abstract = abstract[:1197].rstrip() + "..."
-        papers_sh.append(
-            [
-                _safe_cell(paper.get("title")),
-                _safe_cell(authors_str or None),
-                paper.get("year"),
-                _safe_cell(paper.get("venue")),
-                _safe_cell(_clean_human_type(paper.get("publication_type"))),
-                cit_count,
-                _safe_cell(cit_prov),
-                oa_val,
-                _safe_cell(doi),
-                _safe_cell(paper_url),
-                _safe_cell(indexed_by or None),
-                _safe_cell(abstract or None),
-            ]
-        )
+        year_val = paper.get("year")
+        if year_val is None and isinstance(paper.get("publication_date"), str) and paper["publication_date"][:4].isdigit():
+            year_val = int(paper["publication_date"][:4])
+        row_vals: list[Any] = [
+            _safe_cell(paper.get("title")),
+            _safe_cell(authors_str or None),
+            year_val,
+            _safe_cell(paper.get("venue")),
+            _safe_cell(_clean_human_type(paper.get("publication_type"))),
+            cit_count,
+            cit_py,
+            _safe_cell(cit_prov),
+            _safe_cell(_format_relevance(paper.get("relevance_classification"))),
+        ]
+        if include_methods:
+            row_vals.append(_safe_cell(_clean_list_field(paper.get("methods"))))
+        if include_datasets:
+            row_vals.append(_safe_cell(_clean_list_field(paper.get("datasets"))))
+        if include_metrics:
+            row_vals.append(_safe_cell(_clean_list_field(paper.get("evaluation_metrics"))))
+        row_vals.extend([
+            oa_val,
+            _safe_cell(doi),
+            _safe_cell(paper_url),
+            _safe_cell(verified_sources or None),
+        ])
+        papers_sh.append(row_vals)
         r = papers_sh.max_row
         if doi_url:
-            _set_link(papers_sh.cell(r, 9), doi_url, doi)
+            _set_link(papers_sh.cell(r, doi_col_idx), doi_url, doi)
         if paper_url:
-            _set_link(papers_sh.cell(r, 10), paper_url, "Open paper")
+            _set_link(papers_sh.cell(r, link_col_idx), paper_url, "Open paper")
 
     _style_data_sheet(
         papers_sh,
         papers_headers,
-        widths=[44, 30, 14, 28, 18, 14, 18, 12, 26, 16, 30, 56],
-        wrap_cols={1, 2, 4, 11, 12},
-        int_cols={3: "0", 6: "#,##0"},
+        widths=papers_widths,
+        wrap_cols=papers_wrap,
+        int_cols=papers_num,
     )
 
     # ------------------------------------------------------------------
@@ -437,13 +582,12 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     # ------------------------------------------------------------------
     authors_sh = sheets["Authors"]
     authors_headers = [
-        "Author name", "Affiliation (latest / reported)", "Indexed publications",
-        "Citation count", "h-index", "Metric source", "ORCID profile",
-        "Researcher profile", "Other verified sources", "Identity verification note",
+        "Author name", "Verified affiliations", "ORCID",
+        "Publication count", "Citation count", "h-index",
+        "Research field", "Profile URL", "Verified sources",
     ]
-    authors_widths = [26, 36, 18, 15, 11, 18, 22, 16, 24, 38]
+    authors_widths = [26, 36, 22, 16, 15, 11, 28, 16, 24]
     _init_data_sheet(authors_sh, authors_headers, authors_widths)
-    collisions = set(run.get("author_collisions") or [])
     for key, entry in authors_by_key.items():
         primary_obs, other_obs = _pick_author_observation(entry["obs"])
         metrics = (primary_obs or {}).get("metrics") or {}
@@ -468,59 +612,44 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
             s2_s = next(iter(sorted(entry["s2_ids"])))
             profile_url = f"https://www.semanticscholar.org/author/{s2_s}"
 
-        other_sources = sorted(
+        obs_fields = (primary_obs or {}).get("fields") or []
+        research_field = _clean_list_field(obs_fields[:3] if obs_fields else entry["fields"][:3])
+
+        all_sources = sorted(
             {
                 lbl
-                for o in other_obs
-                if (lbl := _provider_label(o.get("provider"))) and lbl != metric_src
+                for o in ([primary_obs] if primary_obs else []) + list(other_obs)
+                if (lbl := _provider_label(o.get("provider")))
             }
+            | ({metric_src} if metric_src else set())
+            | ({"ORCID"} if orcid_url and any(o.get("orcid_verified") for o in entry["obs"]) else set())
         )
-        if orcid_url and metric_src != "ORCID" and "ORCID" not in other_sources and any(
-            o.get("orcid_verified") for o in entry["obs"]
-        ):
-            other_sources.append("ORCID")
-
-        # Identity verification note (only when helpful/needed)
-        notes_parts: list[str] = []
-        alt_names = {
-            str(o.get("name")).strip()
-            for o in entry["obs"]
-            if o.get("name") and str(o.get("name")).strip().casefold() != str(display_name).strip().casefold()
-        }
-        if alt_names:
-            notes_parts.append(f"Also listed as: {', '.join(sorted(alt_names))}")
-        norm_disp = " ".join(str(display_name).casefold().split())
-        if norm_disp in collisions or len(name_to_keys.get(norm_disp, ())) > 1:
-            notes_parts.append("Multiple researchers share this name; kept separate by verified ID")
-        elif key.startswith("author-unverified:"):
-            notes_parts.append("Name-only entry; no persistent researcher ID")
 
         authors_sh.append(
             [
                 _safe_cell(display_name),
                 _safe_cell(aff_str),
+                _safe_cell(orcid_url),
                 pub_count,
                 cit_count,
                 h_index,
-                _safe_cell(metric_src),
-                _safe_cell(orcid_url),
+                _safe_cell(research_field),
                 _safe_cell(profile_url),
-                _safe_cell(", ".join(other_sources) or None),
-                _safe_cell("; ".join(notes_parts) or None),
+                _safe_cell(", ".join(all_sources) or None),
             ]
         )
         r = authors_sh.max_row
         if orcid_url:
-            _set_link(authors_sh.cell(r, 7), orcid_url, orcid_short)
+            _set_link(authors_sh.cell(r, 3), orcid_url, orcid_short)
         if profile_url:
             _set_link(authors_sh.cell(r, 8), profile_url, "View profile")
 
     _style_data_sheet(
         authors_sh,
         authors_headers,
-        widths=[26, 36, 18, 15, 11, 18, 22, 16, 24, 38],
-        wrap_cols={1, 2, 9, 10},
-        int_cols={3: "#,##0", 4: "#,##0", 5: "0"},
+        widths=authors_widths,
+        wrap_cols={1, 2, 7, 9},
+        int_cols={4: "#,##0", 5: "#,##0", 6: "0"},
     )
 
     # ------------------------------------------------------------------
@@ -528,10 +657,10 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
     # ------------------------------------------------------------------
     pubs_sh = sheets["Publications"]
     pubs_headers = [
-        "Publication / venue name", "Publication type", "Publisher",
-        "Research areas", "Official website", "Metadata source",
+        "Venue name", "Category", "Publisher",
+        "Official link", "Covered paper count", "Verified available metrics",
     ]
-    pubs_widths = [38, 24, 28, 38, 20, 18]
+    pubs_widths = [38, 24, 28, 18, 18, 36]
     _init_data_sheet(pubs_sh, pubs_headers, pubs_widths)
     for ventry in venues_by_key.values():
         paper = ventry["paper"]
@@ -539,61 +668,87 @@ def build_standard_workbook(run: dict[str, Any]) -> BytesIO:
         vcat = str(det.get("venue_category") or "unknown")
         vtype_label = VENUE_CATEGORY_LABELS.get(vcat, "Unverified")
         v_url = det.get("url")
+        metric_parts: list[str] = []
+        if det.get("issn"):
+            metric_parts.append(f"ISSN: {det['issn']}")
+        if det.get("is_oa") is True:
+            metric_parts.append("Open-access venue")
+        if det.get("works_count"):
+            metric_parts.append(f"Indexed works: {det['works_count']:,}")
+        if det.get("cited_by_count"):
+            metric_parts.append(f"Total citations: {det['cited_by_count']:,}")
         v_prov = _provider_label(det.get("provider"))
+        if metric_parts and v_prov:
+            metric_parts.append(f"Source: {v_prov}")
         pubs_sh.append(
             [
                 _safe_cell(paper.get("venue")),
                 _safe_cell(vtype_label),
                 _safe_cell(det.get("publisher")),
-                _safe_cell(", ".join(sorted(ventry["topics"])) or None),
                 _safe_cell(v_url),
-                _safe_cell(v_prov),
+                len(ventry["papers"]),
+                _safe_cell("; ".join(metric_parts) or None),
             ]
         )
         r = pubs_sh.max_row
         if v_url:
-            _set_link(pubs_sh.cell(r, 5), v_url, "Official website")
+            _set_link(pubs_sh.cell(r, 4), v_url, "Official website")
 
     _style_data_sheet(
         pubs_sh,
         pubs_headers,
-        widths=[38, 24, 28, 38, 20, 18],
-        wrap_cols={1, 3, 4},
-        int_cols={},
+        widths=pubs_widths,
+        wrap_cols={1, 3, 6},
+        int_cols={5: "#,##0"},
     )
 
     # ------------------------------------------------------------------
     # Sheet 5: Sources
     # ------------------------------------------------------------------
     sources_sh = sheets["Sources"]
-    source_cols = ["openalex", "crossref", "semantic_scholar", "openaire", "datacite", "arxiv"]
-    sources_headers = ["Paper title", "DOI"] + [PROVIDER_LABELS[s] for s in source_cols]
-    sources_widths = [46, 26, 18, 18, 22, 18, 18, 16]
+    sources_headers = [
+        "Paper title", "Source name", "Source URL",
+        "Discovery vs Enrichment", "Retrieved date", "Verification status",
+    ]
+    sources_widths = [46, 20, 22, 22, 14, 22]
     _init_data_sheet(sources_sh, sources_headers, sources_widths)
     for paper in papers:
-        doi = paper.get("doi")
-        doi_url = f"https://doi.org/{doi}" if doi else None
-        prov_urls: dict[str, str] = {}
+        title = paper.get("title")
+        seen_prov_rows: set[tuple[str, str]] = set()
         for p in paper.get("provenance") or []:
             stype = str(p.get("source_type") or "").casefold()
+            sname = _provider_label(stype)
+            if not sname:
+                continue
+            ctype = str(p.get("contribution_type") or "discovery")
+            role = "Enrichment" if ctype == "stage2_enrichment" else "Discovery"
+            dedup_key = (stype, role)
+            if dedup_key in seen_prov_rows:
+                continue
+            seen_prov_rows.add(dedup_key)
             surl = p.get("source_url")
-            if stype in source_cols and isinstance(surl, str) and surl.startswith(("https://", "http://")):
-                prov_urls.setdefault(stype, surl)
-        row_vals: list[Any] = [_safe_cell(paper.get("title")), _safe_cell(doi)]
-        for sc in source_cols:
-            row_vals.append(_safe_cell(prov_urls.get(sc)))
-        sources_sh.append(row_vals)
-        r = sources_sh.max_row
-        if doi_url:
-            _set_link(sources_sh.cell(r, 2), doi_url, doi)
-        for idx, sc in enumerate(source_cols, 3):
-            if sc in prov_urls:
-                _set_link(sources_sh.cell(r, idx), prov_urls[sc], f"View on {PROVIDER_LABELS[sc]}")
+            if not (isinstance(surl, str) and surl.startswith(("https://", "http://"))):
+                surl = f"https://doi.org/{paper['doi']}" if paper.get("doi") else None
+            rdate = _short_date(p.get("fetched_at") or paper.get("retrieved_at") or run.get("retrieved_at"))
+            vstatus = "Verified record" if p.get("source_record_id") or p.get("artifact_sha256") else "Referenced"
+            sources_sh.append(
+                [
+                    _safe_cell(title),
+                    _safe_cell(sname),
+                    _safe_cell(surl),
+                    role,
+                    rdate or None,
+                    vstatus,
+                ]
+            )
+            r = sources_sh.max_row
+            if surl:
+                _set_link(sources_sh.cell(r, 3), surl, f"View on {sname}")
 
     _style_data_sheet(
         sources_sh,
         sources_headers,
-        widths=[46, 26, 18, 18, 22, 18, 18, 16],
+        widths=sources_widths,
         wrap_cols={1},
         int_cols={},
     )

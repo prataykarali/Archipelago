@@ -40,6 +40,8 @@ CONTROLLED_ALIASES: dict[str, tuple[str, ...]] = {
     "continual learning": ("lifelong learning", "catastrophic forgetting"),
     "optical character recognition": ("ocr", "scene text recognition", "document text recognition"),
     "speech recognition": ("asr", "automatic speech recognition"),
+    "state space model": ("state-space model", "structured state space", "mamba", "s4", "selective state space"),
+    "space state model": ("state-space model", "state space model", "structured state space", "mamba"),
 }
 
 # Off-domain physical/clinical signals when query is AI/CS without those terms
@@ -47,6 +49,17 @@ PHYSICAL_CHEM_RE = re.compile(
     r"\b(vapor[- ]liquid|liquid[- ]vapor|liquid metal|pure[- ]liquid|liquid chromatography|"
     r"liquid crystal|level sensor|microplastics|viscosity|electrolyte|alloy|alloying|"
     r"capillary|distillation|solubility|aqueous|molar|enthalpy)\b",
+    re.IGNORECASE,
+)
+OFF_DOMAIN_NON_AI_RE = re.compile(
+    r"\b(spacecraft|orbital|satellite|thruster|attitude control|propulsion|lunar|martian|"
+    r"soil moisture|watershed|hydrolog|catchment|forestry|fisheries|ecological|species abundance|"
+    r"myocardial|cardiovascular|arterial|cohort|patients?|clinical trial|tumou?r|carcinoma)\b",
+    re.IGNORECASE,
+)
+AI_CS_CONTEXT_RE = re.compile(
+    r"\b(neural|deep learning|machine learning|transformer|language model|mamba|sequence model|"
+    r"token|autoregressive|attention|representation learning|classification|benchmark|training|inference)\b",
     re.IGNORECASE,
 )
 
@@ -298,6 +311,21 @@ def evaluate_relevance(
             "eligible": False,
             "confidence": 0.12,
             "reason": "field_mismatch_physical_chemistry_or_materials",
+            "supporting_fields": ["title", "abstract"] if abs_text else ["title"],
+            "rule_version": RULE_VERSION,
+        }
+    off_domain_non_ai = bool(
+        intent.domain == "ai_cs"
+        and OFF_DOMAIN_NON_AI_RE.search(f"{title} {abs_text} {fields}")
+        and not OFF_DOMAIN_NON_AI_RE.search(intent.raw_query)
+        and not AI_CS_CONTEXT_RE.search(f"{title} {abs_text} {fields}")
+    )
+    if off_domain_non_ai:
+        return {
+            "label": "IRRELEVANT",
+            "eligible": False,
+            "confidence": 0.14,
+            "reason": "field_mismatch_non_ai_domain",
             "supporting_fields": ["title", "abstract"] if abs_text else ["title"],
             "rule_version": RULE_VERSION,
         }

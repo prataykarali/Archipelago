@@ -166,7 +166,7 @@ def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
     assert len(paper_rows) == 2
     assert str(paper_rows[0][0]).startswith("'=HYPERLINK")
     assert paper_rows[0][5] == 15
-    assert paper_rows[0][6] == "Crossref"
+    assert paper_rows[0][7] == "Crossref"
     assert paper_rows[1][5] is None
 
     # Authors: Zhi-Hong Han / Zhen Han deduplicated to 1 row; Wei Zhang kept as 2 distinct rows!
@@ -174,29 +174,28 @@ def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
     assert len(author_rows) == 3
     han_rows = [r for r in author_rows if "Han" in str(r[0])]
     assert len(han_rows) == 1
-    assert han_rows[0][2] == 40  # OpenAlex count, not blended
-    assert han_rows[0][5] == "OpenAlex"
+    assert han_rows[0][3] == 40  # OpenAlex count, not blended
     assert "Semantic Scholar" in str(han_rows[0][8])
-    assert "Zhen Han" in str(han_rows[0][9])
 
     wei_rows = [r for r in author_rows if r[0] == "Wei Zhang"]
     assert len(wei_rows) == 2
-    assert all("Multiple researchers share this name" in str(r[9]) for r in wei_rows)
-    assert wei_rows[1][2] is None  # missing stays None, not 0 or PROVIDER_UNAVAILABLE
+    assert wei_rows[1][3] is None  # missing stays None, not 0 or PROVIDER_UNAVAILABLE
 
     # Publications: 2 rows, no JIF/CiteScore/SJR/CORE, preprint not marked peer-reviewed
     pub_rows = list(wb["Publications"].iter_rows(min_row=2, values_only=True))
     assert len(pub_rows) == 2
     assert pub_rows[0][1] == "Peer-reviewed journal"
+    assert pub_rows[0][4] == 1
     assert pub_rows[1][1] == "Preprint repository"
+    assert pub_rows[1][4] == 1
 
-    # Sources: only verified providers have links
+    # Sources: readable per-(paper, provider) provenance rows with Discovery vs Enrichment
     src_rows = list(wb["Sources"].iter_rows(min_row=2, values_only=True))
-    assert len(src_rows) == 2
-    assert src_rows[0][2] == "View on OpenAlex"
-    assert src_rows[0][3] == "View on Crossref"
-    assert src_rows[0][4] is None  # Semantic Scholar did not verify p1
-    assert src_rows[1][7] == "View on arXiv"
+    assert len(src_rows) == 3
+    src_pairs = {(r[1], r[2], r[3]) for r in src_rows}
+    assert ("OpenAlex", "View on OpenAlex", "Discovery") in src_pairs
+    assert ("Crossref", "View on Crossref", "Discovery") in src_pairs
+    assert ("arXiv", "View on arXiv", "Discovery") in src_pairs
 
 
 def test_advanced_export_still_returns_14_sheets() -> None:

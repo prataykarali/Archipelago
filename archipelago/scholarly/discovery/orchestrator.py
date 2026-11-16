@@ -48,6 +48,7 @@ class DiscoveryOrchestrator:
             waterfall[response.source] = {
                 "raw_records": len(response.records),
                 "normalized_records": len(response.records),
+                "pages_fetched": response.pages_fetched,
                 "matched_to_existing": 0,
                 "unique_primary": 0,
                 "http_status": response.http_status,
@@ -55,12 +56,16 @@ class DiscoveryOrchestrator:
             }
         for cand in candidates:
             psrc = cand.get("source")
+            disc = [psrc] if psrc else []
             if psrc in waterfall:
                 waterfall[psrc]["unique_primary"] += 1
             for m in cand.get("merge_history") or []:
                 msrc = m.get("source")
+                if msrc and msrc not in disc:
+                    disc.append(msrc)
                 if msrc in waterfall:
                     waterfall[msrc]["matched_to_existing"] += 1
+            cand["discovered_by"] = disc
 
         summaries = [response.summary() for response in responses]
         for skipped in plan["skipped"]:

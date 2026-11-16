@@ -29,9 +29,10 @@ from .enrichment import (
 from .extraction import extract_evidence
 from .relevance_engine import disambiguate_query, evaluate_relevance
 
-DEFAULT_TOP_K = 20
-MAX_TOP_K = 100
+DEFAULT_TOP_K = 100
+MAX_TOP_K = 500
 SOURCE_MULTIPLIER = 2
+MAX_CANDIDATE_FETCH = 500
 MAX_QUERY_CHARS = 200
 VERSION_SUFFIX = re.compile(r"/v\d+$", re.IGNORECASE)
 VALID_DOI = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
@@ -241,19 +242,20 @@ def discover(
         if isinstance(payload.get("sources"), list)
         else None
     )
+    fetch_limit = min(MAX_CANDIDATE_FETCH, max(options["top_k"] * SOURCE_MULTIPLIER, options["top_k"] + 50))
     if explicit_sources is not None:
         candidates, sources = engine.discover_with_status(
-            search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER), explicit_sources=explicit_sources
+            search_query, fetch_limit, explicit_sources=explicit_sources
         )
     elif orchestrator is None:
         candidates, sources = engine.discover_with_status(
             search_query,
-            min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER),
+            fetch_limit,
             resolved_domain=disambig["resolved_domain"],
         )
     else:
         candidates, sources = engine.discover_with_status(
-            search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER)
+            search_query, fetch_limit
         )
     rows: list[dict[str, Any]] = []
     rel_eligible_by_prov: dict[str, int] = {}
@@ -357,6 +359,33 @@ def discover(
             or (paper.identifiers.arxiv_id and not valid_doi and (paper.venue or "").casefold() == "arxiv")
             else ("published" if (valid_doi or paper.publication_type) else "unknown")
         )
+        missing_identity: list[str] = []
+        if not clean_title:
+            missing_identity.append("missing_title")
+        if not paper.authors:
+            missing_identity.append("missing_authors")
+        if year is None:
+            missing_identity.append("missing_year")
+        if not (source_url or valid_doi):
+            missing_identity.append("missing_url_or_doi")
+        if not source_links:
+            missing_identity.append("missing_provenance")
+        discovered_by = list(
+            candidate.get("discovered_by")
+            or ([candidate.get("source")] if candidate.get("source") else [])
+        )
+        evidence_completeness = sum(
+            bool(val)
+            for val in (
+                clean_abstract,
+                valid_doi,
+                metadata.get("methods") or found["methods"],
+                metadata.get("datasets") or found["datasets"],
+                metadata.get("evaluation_metrics") or found["evaluation_metrics"],
+                metadata.get("grants"),
+                metadata.get("referenced_works"),
+            )
+        )
         row_obj = {
                 "paper_id": paper.paper_id,
                 "title": clean_title,
@@ -439,6 +468,11 @@ def discover(
                 "eligibility_reason": eligibility_reason,
                 "relevance_classification": rel_eval,
                 "identity_review": review,
+                "discovered_by": discovered_by,
+                "enriched_by": [],
+                "standard_eligible": len(missing_identity) == 0,
+                "standard_exclusion_reasons": missing_identity,
+                "evidence_completeness_score": evidence_completeness,
         }
         row_obj["google_research"] = classify_google_research_paper(row_obj)
         rows.append(row_obj)
@@ -587,6 +621,14 @@ def discover(
             row["citation_observations"].append(
                 {"provider": "opencitations", "count": oc_map[doi_key]["count"]}
             )
+        disc_set = set(row.get("discovered_by") or [])
+        enriched_provs: list[str] = []
+        for p in row.get("provenance") or []:
+            stype = p.get("source_type")
+            ctype = str(p.get("contribution_type") or "")
+            if stype and ctype == "stage2_enrichment" and stype not in disc_set and stype not in enriched_provs:
+                enriched_provs.append(stype)
+        row["enriched_by"] = enriched_provs
 
     # Complete the 11-step per-provider candidate waterfall & source contributions
     selected_primary_by_prov: dict[str, int] = {}

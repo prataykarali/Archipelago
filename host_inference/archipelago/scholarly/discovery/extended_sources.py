@@ -159,132 +159,224 @@ def clean_openaire_author(raw: str) -> str | None:
 
 
 def search_openaire(session: requests.Session, query: str, limit: int) -> dict[str, Any]:
-    """Query OpenAIRE Graph API v1 researchProducts."""
-    resp = session.get(
-        OPENAIRE_URL,
-        params={"search": query, "pageSize": min(max(1, limit), 30), "page": 1},
-        headers={"Accept": "application/json"},
-        timeout=TIMEOUT_SECONDS,
-    )
-    sha = hashlib.sha256(resp.content).hexdigest()
-    if resp.status_code == 429:
-        return {"status": "rate_limited", "http_status": 429, "error": "http_429", "rate_limited": True, "raw_sha256": sha, "raw_body": resp.content, "records": []}
-    resp.raise_for_status()
-    items = resp.json().get("results") or []
+    """Query OpenAIRE Graph API v1 researchProducts with pagination and validation."""
+    from archipelago.scholarly.discovery.resilient_http import reliability_client
+
+    target = max(1, min(limit, 500))
+    page_size = min(target, 50)
+    ttl = 900.0 if isinstance(session, requests.Session) else 0.0
     records: list[dict[str, Any]] = []
-    for item in items:
-        raw_title = str(item.get("mainTitle") or "").strip()
-        title = clean_openaire_title(raw_title)
-        if not title:
-            continue
-        pids = item.get("pids") or []
-        doi = next((str(p.get("value")).strip() for p in pids if (p.get("scheme") or "").lower() == "doi" and p.get("value")), None)
-        oa_id = str(item.get("id") or "").strip() or None
-        raw_authors = [str(a.get("fullName")).strip() for a in (item.get("authors") or []) if isinstance(a, dict) and a.get("fullName")]
-        authors = [PaperAuthor(name=cleaned) for raw_a in raw_authors if (cleaned := clean_openaire_author(raw_a))]
-        desc = item.get("descriptions") or []
-        abstract = clean_openaire_title(str(desc[0])) if desc and isinstance(desc[0], str) else None
-        projects = [
-            {"funder": (p.get("funding") or [{}])[0].get("shortName") if isinstance(p.get("funding"), list) and p.get("funding") else None, "award_id": p.get("code"), "title": p.get("title")}
-            for p in (item.get("projects") or [])
-            if isinstance(p, dict)
-        ]
-        access = ((item.get("bestAccessRight") or {}).get("label") or "").lower()
-        is_oa = True if "open" in access else (False if access else None)
-        url = f"https://explore.openaire.eu/search/publication?pid={oa_id}" if oa_id else None
-        paper = PaperRecord(
-            title=title,
-            identifiers=PaperIdentifiers(doi=doi, openaire_id=oa_id),
-            abstract=abstract,
-            authors=authors,
-            venue=str((item.get("container") or {}).get("name") or "").strip() or None,
-            publication_date=str(item.get("publicationDate") or "").strip()[:10] or None,
-            publication_type=str(item.get("type") or "publication").lower(),
-            is_open_access=is_oa,
+    pages_fetched = 0
+    last_sha: str | None = None
+    last_body: bytes | None = None
+    last_status: int | None = None
+
+    for page in range(1, 7):
+        remaining = target - len(records)
+        if remaining <= 0:
+            break
+        cur_size = min(remaining, page_size)
+        resp, err = reliability_client().get(
+            session,
+            "openaire",
+            OPENAIRE_URL,
+            params={"search": query, "pageSize": cur_size, "page": page},
+            headers={"Accept": "application/json"},
+            timeout=TIMEOUT_SECONDS,
+            ttl_seconds=ttl,
         )
-        records.append(
-            {
-                "source": "openaire",
-                "paper": paper,
-                "provenance": _prov("openaire", oa_id or doi, url, sha),
-                "citation_count": None,
-                "source_metadata": {
-                    "openaire_id": oa_id,
-                    "raw_title": raw_title if raw_title != title else None,
-                    "grants": projects,
-                    "oa_status": access or None,
-                    "landing_page_url": url,
-                },
-            }
-        )
-    return {"status": "live" if records else "live_empty", "http_status": resp.status_code, "raw_sha256": sha, "raw_body": resp.content, "records": records}
+        if resp is None:
+            if page == 1:
+                is_rl = bool(err and "429" in err)
+                return {"status": "rate_limited" if is_rl else "request_failed", "http_status": None, "error": err or "request_failed", "rate_limited": is_rl, "pages_fetched": 0, "records": []}
+            break
+        last_status = resp.status_code
+        last_body = resp.content
+        last_sha = hashlib.sha256(resp.content).hexdigest()
+        if resp.status_code == 429:
+            if page == 1:
+                return {"status": "rate_limited", "http_status": 429, "error": "http_429", "rate_limited": True, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        if not resp.ok:
+            if page == 1:
+                return {"status": "http_error", "http_status": resp.status_code, "error": f"HTTP {resp.status_code}", "rate_limited": False, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        ctype = (resp.headers.get("content-type") or "").lower()
+        if ctype and "json" not in ctype and "javascript" not in ctype:
+            if page == 1:
+                return {"status": "parse_failed", "http_status": resp.status_code, "error": "unexpected_content_type", "rate_limited": False, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        payload = resp.json()
+        if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+            if page == 1:
+                return {"status": "parse_failed", "http_status": resp.status_code, "error": "invalid_json_structure", "rate_limited": False, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        items = payload["results"]
+        pages_fetched += 1
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            raw_title = str(item.get("mainTitle") or "").strip()
+            title = clean_openaire_title(raw_title)
+            if not title:
+                continue
+            pids = item.get("pids") or []
+            doi = next((str(p.get("value")).strip() for p in pids if isinstance(p, dict) and (p.get("scheme") or "").lower() == "doi" and p.get("value")), None)
+            oa_id = str(item.get("id") or "").strip() or None
+            raw_authors = [str(a.get("fullName")).strip() for a in (item.get("authors") or []) if isinstance(a, dict) and a.get("fullName")]
+            authors = [PaperAuthor(name=cleaned) for raw_a in raw_authors if (cleaned := clean_openaire_author(raw_a))]
+            desc = item.get("descriptions") or []
+            abstract = clean_openaire_title(str(desc[0])) if desc and isinstance(desc[0], str) else None
+            projects = [
+                {"funder": (p.get("funding") or [{}])[0].get("shortName") if isinstance(p.get("funding"), list) and p.get("funding") else None, "award_id": p.get("code"), "title": p.get("title")}
+                for p in (item.get("projects") or [])
+                if isinstance(p, dict)
+            ]
+            access = ((item.get("bestAccessRight") or {}).get("label") or "").lower()
+            is_oa = True if "open" in access else (False if access else None)
+            url = f"https://explore.openaire.eu/search/publication?pid={oa_id}" if oa_id else None
+            paper = PaperRecord(
+                title=title,
+                identifiers=PaperIdentifiers(doi=doi, openaire_id=oa_id),
+                abstract=abstract,
+                authors=authors,
+                venue=str((item.get("container") or {}).get("name") or "").strip() or None,
+                publication_date=str(item.get("publicationDate") or "").strip()[:10] or None,
+                publication_type=str(item.get("type") or "publication").lower(),
+                is_open_access=is_oa,
+            )
+            records.append(
+                {
+                    "source": "openaire",
+                    "paper": paper,
+                    "provenance": _prov("openaire", oa_id or doi, url, last_sha),
+                    "citation_count": None,
+                    "source_metadata": {
+                        "openaire_id": oa_id,
+                        "raw_title": raw_title if raw_title != title else None,
+                        "grants": projects,
+                        "oa_status": access or None,
+                        "landing_page_url": url,
+                    },
+                }
+            )
+        if len(items) < cur_size:
+            break
+    return {"status": "live" if records else "live_empty", "http_status": last_status, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": records[:target]}
 
 
 def search_datacite(session: requests.Session, query: str, limit: int) -> dict[str, Any]:
-    """Query DataCite REST API for datasets, software, and research outputs."""
-    resp = session.get(
-        DATACITE_URL,
-        params={"query": query, "page[size]": min(max(1, limit), 30)},
-        headers={"Accept": "application/json"},
-        timeout=TIMEOUT_SECONDS,
-    )
-    sha = hashlib.sha256(resp.content).hexdigest()
-    if resp.status_code == 429:
-        return {"status": "rate_limited", "http_status": 429, "error": "http_429", "rate_limited": True, "raw_sha256": sha, "raw_body": resp.content, "records": []}
-    resp.raise_for_status()
-    items = resp.json().get("data") or []
+    """Query DataCite REST API with pagination and validation."""
+    from archipelago.scholarly.discovery.resilient_http import reliability_client
+
+    target = max(1, min(limit, 500))
+    page_size = min(target, 50)
+    ttl = 900.0 if isinstance(session, requests.Session) else 0.0
     records: list[dict[str, Any]] = []
-    for item in items:
-        attrs = item.get("attributes") or {}
-        titles = attrs.get("titles") or []
-        title = str((titles[0] or {}).get("title") or "").strip() if titles else ""
-        if not title:
-            continue
-        doi = str(attrs.get("doi") or item.get("id") or "").strip() or None
-        rtype = str((attrs.get("types") or {}).get("resourceTypeGeneral") or "dataset").strip().lower()
-        creators = [
-            PaperAuthor(name=str(c.get("name")).strip())
-            for c in (attrs.get("creators") or [])
-            if isinstance(c, dict) and c.get("name")
-        ]
-        descs = attrs.get("descriptions") or []
-        abstract = str((descs[0] or {}).get("description") or "").strip() if descs else None
-        url = str(attrs.get("url") or (f"https://doi.org/{doi}" if doi else "")).strip() or None
-        grants = [
-            {"funder": f.get("funderName"), "award_id": f.get("awardNumber"), "title": f.get("awardTitle")}
-            for f in (attrs.get("fundingReferences") or [])
-            if isinstance(f, dict)
-        ]
-        related = attrs.get("relatedIdentifiers") or []
-        year = str(attrs.get("publicationYear") or "").strip() or None
-        paper = PaperRecord(
-            title=title,
-            identifiers=PaperIdentifiers(doi=doi, datacite_doi=doi),
-            abstract=abstract,
-            authors=creators,
-            venue=str(attrs.get("publisher") or "").strip() or None,
-            publication_date=year,
-            publication_type=rtype,
-            is_open_access=True,
-            oa_url=url,
+    pages_fetched = 0
+    last_sha: str | None = None
+    last_body: bytes | None = None
+    last_status: int | None = None
+
+    for page in range(1, 7):
+        remaining = target - len(records)
+        if remaining <= 0:
+            break
+        cur_size = min(remaining, page_size)
+        resp, err = reliability_client().get(
+            session,
+            "datacite",
+            DATACITE_URL,
+            params={"query": query, "page[size]": cur_size, "page[number]": page},
+            headers={"Accept": "application/json"},
+            timeout=TIMEOUT_SECONDS,
+            ttl_seconds=ttl,
         )
-        records.append(
-            {
-                "source": "datacite",
-                "paper": paper,
-                "provenance": _prov("datacite", doi, url, sha),
-                "citation_count": attrs.get("citationCount"),
-                "source_metadata": {
-                    "datacite_doi": doi,
-                    "resource_type_general": rtype,
-                    "publisher": attrs.get("publisher"),
-                    "related_identifiers": related[:15],
-                    "grants": grants,
-                    "landing_page_url": url,
-                },
-            }
-        )
-    return {"status": "live" if records else "live_empty", "http_status": resp.status_code, "raw_sha256": sha, "raw_body": resp.content, "records": records}
+        if resp is None:
+            if page == 1:
+                is_rl = bool(err and "429" in err)
+                return {"status": "rate_limited" if is_rl else "request_failed", "http_status": None, "error": err or "request_failed", "rate_limited": is_rl, "pages_fetched": 0, "records": []}
+            break
+        last_status = resp.status_code
+        last_body = resp.content
+        last_sha = hashlib.sha256(resp.content).hexdigest()
+        if resp.status_code == 429:
+            if page == 1:
+                return {"status": "rate_limited", "http_status": 429, "error": "http_429", "rate_limited": True, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        if not resp.ok:
+            if page == 1:
+                return {"status": "http_error", "http_status": resp.status_code, "error": f"HTTP {resp.status_code}", "rate_limited": False, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        ctype = (resp.headers.get("content-type") or "").lower()
+        if ctype and "json" not in ctype and "javascript" not in ctype:
+            if page == 1:
+                return {"status": "parse_failed", "http_status": resp.status_code, "error": "unexpected_content_type", "rate_limited": False, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        payload = resp.json()
+        if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+            if page == 1:
+                return {"status": "parse_failed", "http_status": resp.status_code, "error": "invalid_json_structure", "rate_limited": False, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": []}
+            break
+        items = payload["data"]
+        pages_fetched += 1
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            attrs = item.get("attributes") or {}
+            titles = attrs.get("titles") or []
+            title = str((titles[0] or {}).get("title") or "").strip() if titles and isinstance(titles[0], dict) else ""
+            if not title:
+                continue
+            doi = str(attrs.get("doi") or item.get("id") or "").strip() or None
+            rtype = str((attrs.get("types") or {}).get("resourceTypeGeneral") or "dataset").strip().lower()
+            creators = [
+                PaperAuthor(name=str(c.get("name")).strip())
+                for c in (attrs.get("creators") or [])
+                if isinstance(c, dict) and c.get("name")
+            ]
+            descs = attrs.get("descriptions") or []
+            abstract = str((descs[0] or {}).get("description") or "").strip() if descs and isinstance(descs[0], dict) else None
+            url = str(attrs.get("url") or (f"https://doi.org/{doi}" if doi else "")).strip() or None
+            grants = [
+                {"funder": f.get("funderName"), "award_id": f.get("awardNumber"), "title": f.get("awardTitle")}
+                for f in (attrs.get("fundingReferences") or [])
+                if isinstance(f, dict)
+            ]
+            related = attrs.get("relatedIdentifiers") or []
+            year = str(attrs.get("publicationYear") or "").strip() or None
+            container = attrs.get("container") or {}
+            venue_name = str(container.get("title") or "").strip() or None
+            paper = PaperRecord(
+                title=title,
+                identifiers=PaperIdentifiers(doi=doi, datacite_doi=doi),
+                abstract=abstract,
+                authors=creators,
+                venue=venue_name,
+                publication_date=year,
+                publication_type=rtype,
+                is_open_access=True,
+                oa_url=url,
+            )
+            records.append(
+                {
+                    "source": "datacite",
+                    "paper": paper,
+                    "provenance": _prov("datacite", doi, url, last_sha),
+                    "citation_count": attrs.get("citationCount"),
+                    "source_metadata": {
+                        "datacite_doi": doi,
+                        "resource_type_general": rtype,
+                        "publisher": attrs.get("publisher"),
+                        "related_identifiers": related[:15],
+                        "grants": grants,
+                        "landing_page_url": url,
+                    },
+                }
+            )
+        if len(items) < cur_size:
+            break
+    return {"status": "live" if records else "live_empty", "http_status": last_status, "raw_sha256": last_sha, "raw_body": last_body, "pages_fetched": pages_fetched, "records": records[:target]}
 
 
 def fetch_opencitations_for_dois(
