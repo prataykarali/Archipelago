@@ -93,7 +93,7 @@ PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
 STREAM_TIMEOUT_SECONDS = 30
 COMPLETE_TIMEOUT_SECONDS = 40
 # Gentle spacing so a burst of polish calls does not trip provider rate limits.
-COMPLETE_SPACING_SECONDS = 0.15
+COMPLETE_SPACING_SECONDS = 0.6
 _provider_lock = threading.Lock()
 _last_provider_call = 0.0
 

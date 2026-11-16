@@ -489,9 +489,14 @@ class Engine:
             {"step": selected["provider"], "status": "ok", "details": selected["model"]}
         )
         yield json.dumps(payload) + "\n[STREAM_START]\n"
+        yielded_len = len(first_token)
         yield first_token
         if stream is not None:
-            yield from stream
+            for tok in stream:
+                yielded_len += len(tok)
+                yield tok
+        if yielded_len < 80 and grounded_text:
+            yield "\n\n" + grounded_text
         source_lines = list(
             dict.fromkeys(
                 f"- {citation_link(citation)}"
