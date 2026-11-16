@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .graph import author_key
+
 EXTRA_HEADERS: dict[str, list[str]] = {
     "Institutions_Affiliations": [
         "Institution Key", "Institution Name", "ROR ID", "OpenAlex Institution ID",
@@ -37,6 +39,19 @@ def populate_extra_sheets(
     papers = run.get("papers") or []
     observations = {row["id"]: row for row in run.get("author_observations") or []}
     institutions: dict[str, dict[str, Any]] = {}
+    seen_inst_names: dict[str, str] = {}
+
+    def _linked_author_id(paper: dict[str, Any], idx: int) -> str | None:
+        author_ids = paper.get("author_ids") or []
+        aid = author_ids[idx] if idx < len(author_ids) else None
+        if aid:
+            text = str(aid)
+            if text.startswith(("author:", "author-unverified:")):
+                return text
+            return f"author:{text.rsplit('/', 1)[-1]}"
+        if idx < len(paper.get("authors") or []):
+            return author_key(paper, idx)
+        return None
 
     for paper in papers:
         pid = paper["paper_id"]
@@ -73,13 +88,36 @@ def populate_extra_sheets(
                     "OpenAlex Field-Weighted Citation Impact", "Field-normalized citation indicator",
                 ],
             )
+        if paper.get("citations_per_year") is not None:
+            add(
+                "Metric_Observations",
+                [
+                    "Paper", pid, "citations_per_year", paper.get("citations_per_year"),
+                    paper.get("citation_provider") or prov,
+                    paper.get("retrieved_at") or run.get("retrieved_at"),
+                    "Derived single-provider citations divided by years since publication",
+                    "Derived from provider citation count",
+                ],
+            )
+        if paper.get("influential_citations") is not None:
+            add(
+                "Metric_Observations",
+                [
+                    "Paper", pid, "influential_citations", paper.get("influential_citations"),
+                    "semantic_scholar",
+                    paper.get("retrieved_at") or run.get("retrieved_at"),
+                    "Semantic Scholar influential citation count",
+                    "Semantic Scholar Academic Graph",
+                ],
+            )
         for idx, inst_list in enumerate(paper.get("author_institutions") or []):
-            aid = (paper.get("author_ids") or [None])[idx] if idx < len(paper.get("author_ids") or []) else None
+            linked_aid = _linked_author_id(paper, idx)
             for inst in inst_list or []:
                 name = inst.get("name")
                 if not name:
                     continue
                 ikey = inst.get("ror") or inst.get("id") or name.casefold()
+                seen_inst_names.setdefault(name.casefold(), ikey)
                 rec = institutions.setdefault(
                     ikey,
                     {
@@ -89,8 +127,26 @@ def populate_extra_sheets(
                     },
                 )
                 rec["papers"].add(pid)
-                if aid:
-                    rec["authors"].add(str(aid).rsplit("/", 1)[-1])
+                if linked_aid:
+                    rec["authors"].add(linked_aid)
+        for idx, author in enumerate(paper.get("authors") or []):
+            linked_aid = _linked_author_id(paper, idx)
+            for name in author.get("institutions") or []:
+                if not name:
+                    continue
+                ikey = seen_inst_names.get(name.casefold()) or name.casefold()
+                seen_inst_names.setdefault(name.casefold(), ikey)
+                rec = institutions.setdefault(
+                    ikey,
+                    {
+                        "key": ikey, "name": name, "ror": None, "id": None,
+                        "cc": None, "type": None,
+                        "papers": set(), "authors": set(), "provider": prov,
+                    },
+                )
+                rec["papers"].add(pid)
+                if linked_aid:
+                    rec["authors"].add(linked_aid)
 
     for rec in institutions.values():
         add(
@@ -144,12 +200,18 @@ def populate_extra_sheets(
     )
     err_auth = max(0, att_auth - ok_auth - pend_auth)
 
+    total_refs = sum(len(p.get("references") or []) for p in papers)
+    gr_affil = sum(1 for p in papers if (p.get("google_research") or {}).get("google_author_affiliation"))
+    gr_official = sum(1 for p in papers if (p.get("google_research") or {}).get("official_listing"))
     audit_rows = [
         ("Papers: DOI", n_papers, n_papers, n_papers, sum(bool(p.get("doi")) for p in papers), 0, 0, sum(bool(p.get("doi")) for p in papers), "PROVIDER_FIELD_ABSENT"),
         ("Papers: Abstract", n_papers, n_papers, n_papers, sum(bool(p.get("abstract")) for p in papers), 0, 0, sum(bool(p.get("abstract")) for p in papers), "PROVIDER_FIELD_ABSENT"),
         ("Papers: Methods", n_papers, n_papers, n_papers, sum(bool(p.get("methods")) for p in papers), 0, 0, sum(bool(p.get("methods")) for p in papers), "NOT_FOUND_IN_AVAILABLE_EVIDENCE"),
         ("Papers: Datasets", n_papers, n_papers, n_papers, sum(bool(p.get("datasets")) for p in papers), 0, 0, sum(bool(p.get("datasets")) for p in papers), "NOT_FOUND_IN_AVAILABLE_EVIDENCE"),
         ("Papers: Evaluation Metrics", n_papers, n_papers, n_papers, sum(bool(p.get("evaluation_metrics")) for p in papers), 0, 0, sum(bool(p.get("evaluation_metrics")) for p in papers), "NOT_FOUND_IN_AVAILABLE_EVIDENCE"),
+        ("Papers: Google Research Official Listing", n_papers, n_papers, n_papers, gr_official, 0, 0, gr_official, "AUTOMATED_ACCESS_RESTRICTED"),
+        ("Papers: Google Author Affiliation", n_papers, n_papers, n_papers, gr_affil, 0, 0, gr_affil, "PROVIDER_FIELD_ABSENT"),
+        ("Papers: References Populated", n_papers, n_papers, n_papers, sum(bool(p.get("references")) for p in papers), 0, 0, total_refs, "PROVIDER_FIELD_ABSENT"),
         ("Authors: Provider Bibliometrics", n_authors, elig_auth, att_auth, ok_auth, pend_auth, err_auth, ok_auth, "IDENTITY_UNRESOLVED" if elig_auth < n_authors else "PROVIDER_FIELD_ABSENT"),
         ("Venues: Official URL", n_venues, n_venues, n_venues, sum(bool((v.get("details") or {}).get("url")) for v in venue_rows_meta), 0, 0, sum(bool((v.get("details") or {}).get("url")) for v in venue_rows_meta), "PROVIDER_FIELD_ABSENT"),
         ("Venues: Licensed JIF/CiteScore/SJR", n_venues, 0, 0, 0, 0, 0, 0, "LICENSE_RESTRICTED"),

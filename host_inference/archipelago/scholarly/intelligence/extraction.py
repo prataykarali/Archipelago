@@ -13,10 +13,12 @@ from typing import Any
 METHODS = (
     "graph convolutional network", "graph attention network", "graph neural network",
     "message passing", "transformer", "convolutional neural network", "recurrent neural network",
-    "lstm", "contrastive learning", "self-supervised learning", "semi-supervised learning",
+    "lstm", "liquid neural network", "liquid time-constant", "closed-form continuous",
+    "contrastive learning", "self-supervised learning", "semi-supervised learning",
     "supervised learning", "reinforcement learning", "rlhf", "transfer learning", "fine-tuning",
     "instruction tuning", "lora", "qlora", "knowledge distillation", "retrieval-augmented generation",
-    "dense retrieval", "large language model", "multi-agent", "task planning", "tool use",
+    "dense retrieval", "reranking", "large language model", "multimodal", "omni-modal",
+    "multi-agent", "task planning", "tool use",
     "chain-of-thought", "prompt engineering", "experience replay", "regularization",
     "elastic weight consolidation", "meta-learning", "attention mechanism", "diffusion",
     "connectionist temporal classification", "end-to-end", "data augmentation", "ablation study",
@@ -25,11 +27,12 @@ METHODS = (
 MODELS = (
     "gpt-4", "gpt-3.5", "chatgpt", "llama", "bert", "roberta", "t5", "hugginggpt",
     "clip", "vit", "resnet", "whisper", "wav2vec", "conformer", "layoutlm", "donut",
-    "trocr", "gat", "gcn", "graphsage", "gin", "stable diffusion",
+    "trocr", "gat", "gcn", "graphsage", "gin", "stable diffusion", "qwen", "gemini",
 )
 DATASETS = (
     "cora", "citeseer", "pubmed", "ogb", "imagenet", "cifar-10", "cifar-100", "mnist",
-    "coco", "squad", "ms marco", "natural questions", "hotpotqa", "gsm8k", "mmlu",
+    "coco", "squad", "ms marco", "natural questions", "hotpotqa", "triviaqa", "gsm8k", "mmlu",
+    "mmmu", "longbench", "beir", "omni-bench",
     "humaneval", "glue", "superglue", "librispeech", "common voice", "openslr",
     "ocr-bench", "icdar", "docvqa", "funsd", "sroie", "tudataset", "qm9", "mimic",
     "mathvista", "alpaca", "toolbench",
@@ -44,6 +47,7 @@ METRICS = (
     "accuracy", "f1", "f1-score", "precision", "recall", "auc", "auroc", "bleu", "rouge",
     "word error rate", "wer", "character error rate", "cer", "mean average precision",
     "perplexity", "exact match", "pass@1", "success rate", "win rate", "latency", "throughput",
+    "mse", "rmse", "mae", "ndcg", "mrr",
 )
 SENTENCE = re.compile(r"(?<=[.!?])\s+")
 NUM_RESULT_RE = re.compile(
@@ -54,6 +58,10 @@ NUM_RESULT_RE = re.compile(
 BASELINE_RE = re.compile(r"\b(?:outperforms?|compared (?:to|with)|baseline|state-of-the-art|sota)\b", re.IGNORECASE)
 LIMIT_RE = re.compile(r"\b(?:limitation|drawback|challenge|fails? to|bottleneck|struggles? with)\b", re.IGNORECASE)
 CONTRIB_RE = re.compile(r"\b(?:we propose|we introduce|we present|our main contribution|in this paper)\b", re.IGNORECASE)
+RQ_RE = re.compile(r"\b(?:we investigate|we study|we address|research question|whether|how does|can we)\b", re.IGNORECASE)
+ABLATION_RE = re.compile(r"\b(?:ablation|ablations|ablate)\b", re.IGNORECASE)
+CODE_URL_RE = re.compile(r"https?://(?:github\.com|gitlab\.com)/[^\s,;)\]]+", re.IGNORECASE)
+DATASET_URL_RE = re.compile(r"https?://huggingface\.co/datasets/[^\s,;)\]]+", re.IGNORECASE)
 
 
 def _find(vocab: tuple[str, ...], sentences: list[tuple[str, str]], claim_type: str) -> list[dict[str, str]]:
@@ -123,7 +131,13 @@ def extract_evidence(
                     "reviewed_at": now,
                 }
             )
-        for ctype, rx in (("BASELINE", BASELINE_RE), ("LIMITATION", LIMIT_RE), ("CONTRIBUTION", CONTRIB_RE)):
+        for ctype, rx in (
+            ("BASELINE", BASELINE_RE),
+            ("LIMITATION", LIMIT_RE),
+            ("CONTRIBUTION", CONTRIB_RE),
+            ("RESEARCH_QUESTION", RQ_RE),
+            ("ABLATION", ABLATION_RE),
+        ):
             if rx.search(sentence):
                 claims.append(
                     {
@@ -137,6 +151,49 @@ def extract_evidence(
                         "reviewed_at": now,
                     }
                 )
+    code_urls = CODE_URL_RE.findall(abstract or "")
+    dataset_urls = DATASET_URL_RE.findall(abstract or "")
+    for cu in code_urls[:3]:
+        claims.append(
+            {
+                "claim_type": "CODE_REPO_URL",
+                "normalized_value": cu,
+                "exact_evidence": cu,
+                "source_url": source_url,
+                "location": "abstract",
+                "extraction_method": "explicit_url_match",
+                "status": "AVAILABLE",
+                "reviewed_at": now,
+            }
+        )
+    for du in dataset_urls[:3]:
+        claims.append(
+            {
+                "claim_type": "DATASET_REPO_URL",
+                "normalized_value": du,
+                "exact_evidence": du,
+                "source_url": source_url,
+                "location": "abstract",
+                "extraction_method": "explicit_url_match",
+                "status": "AVAILABLE",
+                "reviewed_at": now,
+            }
+        )
+    claim_types_present = {c["claim_type"] for c in claims}
+    absent_status = "NOT_FOUND_IN_AVAILABLE_EVIDENCE" if abstract else "SOURCE_NOT_ACCESSIBLE"
+    field_statuses = {
+        "research_question": "PRESENT_WITH_EVIDENCE" if "RESEARCH_QUESTION" in claim_types_present else absent_status,
+        "contribution": "PRESENT_WITH_EVIDENCE" if "CONTRIBUTION" in claim_types_present else absent_status,
+        "methods": "PRESENT_WITH_EVIDENCE" if methods else absent_status,
+        "datasets": "PRESENT_WITH_EVIDENCE" if datasets else absent_status,
+        "evaluation_metrics": "PRESENT_WITH_EVIDENCE" if metrics else absent_status,
+        "numeric_results": "PRESENT_WITH_EVIDENCE" if "NUMERICAL_RESULT" in claim_types_present else absent_status,
+        "baselines": "PRESENT_WITH_EVIDENCE" if "BASELINE" in claim_types_present else absent_status,
+        "ablations": "PRESENT_WITH_EVIDENCE" if "ABLATION" in claim_types_present else absent_status,
+        "limitations": "PRESENT_WITH_EVIDENCE" if "LIMITATION" in claim_types_present else absent_status,
+        "code_repo_url": "PRESENT_WITH_EVIDENCE" if code_urls else absent_status,
+        "dataset_repo_url": "PRESENT_WITH_EVIDENCE" if dataset_urls else absent_status,
+    }
     claim_status = (
         "AVAILABLE"
         if claims
@@ -150,4 +207,7 @@ def extract_evidence(
         "evaluation_metrics": metrics,
         "claims": claims,
         "claim_status": claim_status,
+        "field_statuses": field_statuses,
+        "code_repo_urls": code_urls[:3],
+        "dataset_repo_urls": dataset_urls[:3],
     }

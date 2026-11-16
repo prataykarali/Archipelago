@@ -1,0 +1,675 @@
+[
+  {
+    "topic": "omni ai models",
+    "requested": 20,
+    "returned": 20,
+    "candidate_count": 119,
+    "filtered_count": 58,
+    "sources": [
+      {
+        "source": "openalex",
+        "requested_at": "2026-11-16T04:58:09.401901+00:00",
+        "status": "live",
+        "record_count": 33,
+        "raw_sha256": "974d6c0e71cb6b5a44637a8fc6709a00d3a00d684bd7fed70945a821d45d9859",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "semantic_scholar",
+        "requested_at": "2026-11-16T04:58:09.403269+00:00",
+        "status": "live",
+        "record_count": 39,
+        "raw_sha256": "04314332763070a83761706e8de8e5dce022c5665f6ae7b5c4238e2b567a57d2",
+        "request_id": "58f62a40-ad5e-4ccf-9016-6bf55ecd785b",
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "arxiv",
+        "requested_at": "2026-11-16T04:58:09.408579+00:00",
+        "status": "request_failed",
+        "record_count": 0,
+        "raw_sha256": null,
+        "request_id": null,
+        "http_status": null,
+        "error": "ReadTimeout",
+        "rate_limited": false
+      },
+      {
+        "source": "dblp",
+        "requested_at": "2026-11-16T04:58:09.410430+00:00",
+        "status": "blocked_bot_challenge",
+        "record_count": 0,
+        "raw_sha256": "2722b90f077fc5089d9e36da8f75b0978a7054224a1a439293861e3a1d85c838",
+        "request_id": null,
+        "http_status": 202,
+        "error": "dblp_bot_protection_gate",
+        "rate_limited": false
+      },
+      {
+        "source": "crossref",
+        "requested_at": "2026-11-16T04:58:09.410897+00:00",
+        "status": "live",
+        "record_count": 27,
+        "raw_sha256": "b3c900e5ebbfb1a6b4f0cc6411bf436e0c21b849c8456391e0dbf5b5d5c35950",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "openaire",
+        "requested_at": "2026-11-16T04:58:09.413561+00:00",
+        "status": "live",
+        "record_count": 30,
+        "raw_sha256": "8989e8ae22954d952ef9331f561bf6ac0e0284ca8dd42946faf37165c3879f3e",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "europe_pmc",
+        "requested_at": "2026-11-16T04:58:09.419150+00:00",
+        "status": "live",
+        "record_count": 25,
+        "raw_sha256": "1b6498160c408d012facabcedca802965ad4f852dfe0937c9741958c21025127",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "datacite",
+        "requested_at": null,
+        "status": "skipped",
+        "record_count": 0,
+        "raw_sha256": null,
+        "request_id": null,
+        "http_status": null,
+        "error": "not_selected_for_domain:ai_cs",
+        "rate_limited": false
+      },
+      {
+        "source": "pubmed",
+        "requested_at": null,
+        "status": "skipped",
+        "record_count": 0,
+        "raw_sha256": null,
+        "request_id": null,
+        "http_status": null,
+        "error": "not_selected_for_domain:ai_cs",
+        "rate_limited": false
+      },
+      {
+        "source": "google_research",
+        "status": "navigation_only",
+        "http_status": 200,
+        "error": null,
+        "official_url": "https://research.google/pubs/?search=omni%20ai%20models",
+        "raw_sha256": "ffeee29d28a5169cffc47a2cee61beb29d68857dc19a574e2cff36a06565ec8a",
+        "record_count": 0,
+        "records": []
+      }
+    ],
+    "paper_provider_contributions": {
+      "europe_pmc": 9,
+      "openalex": 8,
+      "semantic_scholar": 4,
+      "openaire": 7
+    },
+    "author_observations_count": 127,
+    "author_collisions": [
+      "yuan yao"
+    ],
+    "graph_nodes": 289,
+    "graph_edges": 1516,
+    "citation_coverage": {
+      "total_reference_links": 249,
+      "resolved_known_works": 249,
+      "in_collection_edges": 0,
+      "resolution_rate": 1.0
+    },
+    "methods_coverage_pct": 80.0,
+    "datasets_coverage_pct": 0.0,
+    "eval_metrics_coverage_pct": 40.0,
+    "funding_coverage_pct": 0.0,
+    "google_affiliated_papers": 0,
+    "xlsx_sheets": [
+      "Papers",
+      "Authors",
+      "Venues",
+      "References",
+      "Citation_Edges",
+      "Topic_Results",
+      "Sources_Provenance",
+      "Errors_Review",
+      "Run_Manifest",
+      "Institutions_Affiliations",
+      "Funding_Grants",
+      "Research_Claims",
+      "Metric_Observations",
+      "Coverage_Audit"
+    ],
+    "xlsx_row_counts": {
+      "Papers": 20,
+      "Authors": 232,
+      "Venues": 3,
+      "References": 249,
+      "Citation_Edges": 0,
+      "Topic_Results": 20,
+      "Sources_Provenance": 28,
+      "Errors_Review": 0,
+      "Run_Manifest": 17,
+      "Institutions_Affiliations": 12,
+      "Funding_Grants": 0,
+      "Research_Claims": 99,
+      "Metric_Observations": 505,
+      "Coverage_Audit": 11
+    },
+    "sample_papers": [
+      {
+        "title": "Large language models as developers of quantification software for bone scintigraphy in transthyretin cardiac amyloidosis: a one-shot comparison on a synthetic DICOM phantom",
+        "year": 2026,
+        "doi": "10.21203/rs.3.rs-11403312/v1",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Development and Pilot Evaluation of a Standardized and Accessible Rubric (OMNI) for Assessing Generative AI in Health Care Contexts: Four-Stage Mixed Methods Study",
+        "year": 2026,
+        "doi": "10.2196/100531",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 1,
+        "citations_per_year": 1.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Omni-UBench: Benchmarking Omni-Modal LLM-based Guardrails Across Safety, Utility, and Reliability",
+        "year": 2026,
+        "doi": "10.48550/arxiv.2610.31713",
+        "source": "openalex",
+        "venue": "arXiv (Cornell University)",
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "preprint"
+      },
+      {
+        "title": "From Sight to Insight: A Comprehensive Survey of Large Models in Medicine",
+        "year": 2026,
+        "doi": "10.20944/preprints202609.0266.v1",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "OmniScientist: An Omni-Modal Omni-Discipline AI Scientist",
+        "year": 2026,
+        "doi": "10.48550/arxiv.2608.13558",
+        "source": "openalex",
+        "venue": "arXiv (Cornell University)",
+        "citation_count": 4,
+        "citations_per_year": 4.0,
+        "published_vs_preprint": "preprint"
+      }
+    ]
+  },
+  {
+    "topic": "liquid neural networks",
+    "requested": 20,
+    "returned": 20,
+    "candidate_count": 103,
+    "filtered_count": 82,
+    "sources": [
+      {
+        "source": "openalex",
+        "requested_at": "2026-11-16T04:59:56.298995+00:00",
+        "status": "live",
+        "record_count": 23,
+        "raw_sha256": "feea946ed6e10e446eb9cdde39b7c19df2b40ca5ae239f2b3c978db66b3cfdd0",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "semantic_scholar",
+        "requested_at": "2026-11-16T04:59:56.300947+00:00",
+        "status": "rate_limited",
+        "record_count": 0,
+        "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+        "request_id": "431cfcf8-068e-46b0-a90d-bf9068254285",
+        "http_status": 429,
+        "error": "HTTP 429",
+        "rate_limited": true
+      },
+      {
+        "source": "arxiv",
+        "requested_at": "2026-11-16T04:59:56.303558+00:00",
+        "status": "rate_limited",
+        "record_count": 0,
+        "raw_sha256": "467622e2f17f01d302d6c790b13078569f17d71cd83910558535019a594e07c1",
+        "request_id": null,
+        "http_status": 429,
+        "error": "HTTP 429",
+        "rate_limited": true
+      },
+      {
+        "source": "dblp",
+        "requested_at": "2026-11-16T04:59:56.305538+00:00",
+        "status": "blocked_bot_challenge",
+        "record_count": 0,
+        "raw_sha256": "4a0970b72552d655a4c74fb201ee74dbd6dc87a42627f3f182d16eb635f774dd",
+        "request_id": null,
+        "http_status": 202,
+        "error": "dblp_bot_protection_gate",
+        "rate_limited": false
+      },
+      {
+        "source": "crossref",
+        "requested_at": "2026-11-16T04:59:56.307876+00:00",
+        "status": "live",
+        "record_count": 33,
+        "raw_sha256": "d8e00f080d88fab2a9f2366e0f66ce8e5df5e855070c2c57c6db884ee7a5f6c3",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "openaire",
+        "requested_at": "2026-11-16T04:59:56.308694+00:00",
+        "status": "live",
+        "record_count": 30,
+        "raw_sha256": "7731cce1fffd82e06a135d6ab1fffa9bc52afa3839dd3fbeb1a625c6f9dbc965",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "europe_pmc",
+        "requested_at": "2026-11-16T04:59:56.312135+00:00",
+        "status": "live",
+        "record_count": 25,
+        "raw_sha256": "96464b41a2f267a301bebf4b1f6c1084801096b452321cf842b0eeebceadfcc2",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "datacite",
+        "requested_at": null,
+        "status": "skipped",
+        "record_count": 0,
+        "raw_sha256": null,
+        "request_id": null,
+        "http_status": null,
+        "error": "not_selected_for_domain:ai_cs",
+        "rate_limited": false
+      },
+      {
+        "source": "pubmed",
+        "requested_at": null,
+        "status": "skipped",
+        "record_count": 0,
+        "raw_sha256": null,
+        "request_id": null,
+        "http_status": null,
+        "error": "not_selected_for_domain:ai_cs",
+        "rate_limited": false
+      },
+      {
+        "source": "google_research",
+        "status": "navigation_only",
+        "http_status": 200,
+        "error": null,
+        "official_url": "https://research.google/pubs/?search=liquid%20neural%20networks",
+        "raw_sha256": "ffeee29d28a5169cffc47a2cee61beb29d68857dc19a574e2cff36a06565ec8a",
+        "record_count": 0,
+        "records": []
+      }
+    ],
+    "paper_provider_contributions": {
+      "europe_pmc": 14,
+      "openalex": 4,
+      "openaire": 2,
+      "crossref": 1
+    },
+    "author_observations_count": 6,
+    "author_collisions": [
+      "kim e"
+    ],
+    "graph_nodes": 124,
+    "graph_edges": 150,
+    "citation_coverage": {
+      "total_reference_links": 25,
+      "resolved_known_works": 25,
+      "in_collection_edges": 0,
+      "resolution_rate": 1.0
+    },
+    "methods_coverage_pct": 70.0,
+    "datasets_coverage_pct": 0.0,
+    "eval_metrics_coverage_pct": 45.0,
+    "funding_coverage_pct": 0.0,
+    "google_affiliated_papers": 0,
+    "xlsx_sheets": [
+      "Papers",
+      "Authors",
+      "Venues",
+      "References",
+      "Citation_Edges",
+      "Topic_Results",
+      "Sources_Provenance",
+      "Errors_Review",
+      "Run_Manifest",
+      "Institutions_Affiliations",
+      "Funding_Grants",
+      "Research_Claims",
+      "Metric_Observations",
+      "Coverage_Audit"
+    ],
+    "xlsx_row_counts": {
+      "Papers": 20,
+      "Authors": 72,
+      "Venues": 6,
+      "References": 25,
+      "Citation_Edges": 0,
+      "Topic_Results": 20,
+      "Sources_Provenance": 21,
+      "Errors_Review": 2,
+      "Run_Manifest": 17,
+      "Institutions_Affiliations": 2,
+      "Funding_Grants": 0,
+      "Research_Claims": 69,
+      "Metric_Observations": 91,
+      "Coverage_Audit": 11
+    },
+    "sample_papers": [
+      {
+        "title": "Peri-Infarct Cortical Network Remapping During Stroke Recovery via a Soft Liquid Metal Neural Interface",
+        "year": 2026,
+        "doi": "10.1002/adhm.71933",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Integrating Vision Liquid Time-Constant and Wavelet for RGB-D Salient Object Detection",
+        "year": 2026,
+        "doi": "10.21203/rs.3.rs-10809276/v1",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "A coarse-to-fine modulation classification scheme utilizing Transformers and Liquid Neural Networks for Smart Grids",
+        "year": 2026,
+        "doi": "10.1371/journal.pone.0359526",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Wafer-scale integration of atomically thin metal oxide in memtransistor arrays for artificial neural networks",
+        "year": 2026,
+        "doi": "10.21203/rs.3.rs-11326561/v1",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Terahertz liquid networks: a mesoscopic passive architecture for circumventing physical deadlocks in brain-computer interfaces",
+        "year": 2026,
+        "doi": "10.1039/d6na00618c",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      }
+    ]
+  },
+  {
+    "topic": "retrieval augmented generation",
+    "requested": 20,
+    "returned": 20,
+    "candidate_count": 105,
+    "filtered_count": 99,
+    "sources": [
+      {
+        "source": "openalex",
+        "requested_at": "2026-11-16T05:00:07.239971+00:00",
+        "status": "live",
+        "record_count": 22,
+        "raw_sha256": "2c8cd0cce60f16e9f537279b7b541f4fcd3dce9d37240b08135a0be260525a22",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "semantic_scholar",
+        "requested_at": "2026-11-16T05:00:07.240801+00:00",
+        "status": "rate_limited",
+        "record_count": 0,
+        "raw_sha256": "65ab993d12c5c2cc9b68e6da2bb79b326930283e520363ffcdc145f88cd5a148",
+        "request_id": "a807c81a-47e2-4c45-8137-ea7240efc34f",
+        "http_status": 429,
+        "error": "HTTP 429",
+        "rate_limited": true
+      },
+      {
+        "source": "arxiv",
+        "requested_at": "2026-11-16T05:00:07.245253+00:00",
+        "status": "rate_limited",
+        "record_count": 0,
+        "raw_sha256": "467622e2f17f01d302d6c790b13078569f17d71cd83910558535019a594e07c1",
+        "request_id": null,
+        "http_status": 429,
+        "error": "HTTP 429",
+        "rate_limited": true
+      },
+      {
+        "source": "dblp",
+        "requested_at": "2026-11-16T05:00:07.247635+00:00",
+        "status": "blocked_bot_challenge",
+        "record_count": 0,
+        "raw_sha256": "887e6b54385df71db1261af5ae36dd642be34712be3a439047cde5dd3a56c429",
+        "request_id": null,
+        "http_status": 202,
+        "error": "dblp_bot_protection_gate",
+        "rate_limited": false
+      },
+      {
+        "source": "crossref",
+        "requested_at": "2026-11-16T05:00:07.250071+00:00",
+        "status": "live",
+        "record_count": 30,
+        "raw_sha256": "08ee769a4e9037beeded4c621082f8919507da9f2c83cc3171b211a11ec18da6",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "openaire",
+        "requested_at": "2026-11-16T05:00:07.252439+00:00",
+        "status": "live",
+        "record_count": 30,
+        "raw_sha256": "b4f4e6d6bc2b73a2c530ccf69f82a36682b416e1cbcfbfb764218f19dbdd457f",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "europe_pmc",
+        "requested_at": "2026-11-16T05:00:07.254141+00:00",
+        "status": "live",
+        "record_count": 25,
+        "raw_sha256": "c382a7817ab12a6c20fca6cac468b96d46592a2aad2303338b72be54849f58f8",
+        "request_id": null,
+        "http_status": 200,
+        "error": null,
+        "rate_limited": false
+      },
+      {
+        "source": "datacite",
+        "requested_at": null,
+        "status": "skipped",
+        "record_count": 0,
+        "raw_sha256": null,
+        "request_id": null,
+        "http_status": null,
+        "error": "not_selected_for_domain:ai_cs",
+        "rate_limited": false
+      },
+      {
+        "source": "pubmed",
+        "requested_at": null,
+        "status": "skipped",
+        "record_count": 0,
+        "raw_sha256": null,
+        "request_id": null,
+        "http_status": null,
+        "error": "not_selected_for_domain:ai_cs",
+        "rate_limited": false
+      },
+      {
+        "source": "google_research",
+        "status": "navigation_only",
+        "http_status": 200,
+        "error": null,
+        "official_url": "https://research.google/pubs/?search=retrieval%20augmented%20generation",
+        "raw_sha256": "ffeee29d28a5169cffc47a2cee61beb29d68857dc19a574e2cff36a06565ec8a",
+        "record_count": 0,
+        "records": []
+      }
+    ],
+    "paper_provider_contributions": {
+      "europe_pmc": 20,
+      "crossref": 1
+    },
+    "author_observations_count": 0,
+    "author_collisions": [
+      "wang l"
+    ],
+    "graph_nodes": 146,
+    "graph_edges": 182,
+    "citation_coverage": {
+      "total_reference_links": 0,
+      "resolved_known_works": 0,
+      "in_collection_edges": 0,
+      "resolution_rate": null
+    },
+    "methods_coverage_pct": 95.0,
+    "datasets_coverage_pct": 10.0,
+    "eval_metrics_coverage_pct": 65.0,
+    "funding_coverage_pct": 0.0,
+    "google_affiliated_papers": 0,
+    "xlsx_sheets": [
+      "Papers",
+      "Authors",
+      "Venues",
+      "References",
+      "Citation_Edges",
+      "Topic_Results",
+      "Sources_Provenance",
+      "Errors_Review",
+      "Run_Manifest",
+      "Institutions_Affiliations",
+      "Funding_Grants",
+      "Research_Claims",
+      "Metric_Observations",
+      "Coverage_Audit"
+    ],
+    "xlsx_row_counts": {
+      "Papers": 20,
+      "Authors": 111,
+      "Venues": 1,
+      "References": 0,
+      "Citation_Edges": 0,
+      "Topic_Results": 20,
+      "Sources_Provenance": 21,
+      "Errors_Review": 2,
+      "Run_Manifest": 17,
+      "Institutions_Affiliations": 0,
+      "Funding_Grants": 0,
+      "Research_Claims": 114,
+      "Metric_Observations": 48,
+      "Coverage_Audit": 11
+    },
+    "sample_papers": [
+      {
+        "title": "Dynamic Knowledge Grounding for Retrieval-Augmented Generation: Uncertainty-Aware Evidence Fusion with Adaptive Retrieval Control",
+        "year": 2026,
+        "doi": "10.21203/rs.3.rs-11186227/v1",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "An AI-driven system for travel vaccination guidance using agentic retrieval augmented generation (RAG)",
+        "year": 2026,
+        "doi": "10.1016/j.tmaid.2026.103036",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Applications, Technical Characteristics, and Evaluation Approaches of Retrieval-Augmented Generation in Nursing: Scoping Review",
+        "year": 2026,
+        "doi": "10.2196/98495",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Evaluating retrieval-augmented generation versus long-context input for clinical reasoning over electronic health records",
+        "year": 2026,
+        "doi": "10.1093/jamia/ocag139",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 1,
+        "citations_per_year": 1.0,
+        "published_vs_preprint": "published"
+      },
+      {
+        "title": "Provenance-Aware PCR6 for Conflicting Evidence in Retrieval-Augmented Generation",
+        "year": 2026,
+        "doi": "10.1590/scielopreprints.18188",
+        "source": "europe_pmc",
+        "venue": null,
+        "citation_count": 0,
+        "citations_per_year": 0.0,
+        "published_vs_preprint": "published"
+      }
+    ]
+  }
+]

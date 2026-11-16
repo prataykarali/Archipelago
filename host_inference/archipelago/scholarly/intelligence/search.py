@@ -8,9 +8,22 @@ import re
 from typing import Any
 
 from archipelago.scholarly.discovery.canonicalizer import normalize_title
+from archipelago.scholarly.discovery.google_research import (
+    check_google_research_access,
+    classify_google_research_paper,
+    google_research_search_url,
+)
 from archipelago.scholarly.discovery.orchestrator import DiscoveryOrchestrator
+from archipelago.scholarly.discovery.scholar_deeplink import generate_scholar_url
 
-from .enrichment import enrich_authors, enrich_venues, venue_observation
+from .enrichment import (
+    detect_author_collisions,
+    enrich_authors,
+    enrich_orcid_authors,
+    enrich_s2_authors,
+    enrich_venues,
+    venue_observation,
+)
 from .extraction import extract_evidence
 
 DEFAULT_TOP_K = 20
@@ -125,6 +138,50 @@ def _version_key(row: dict[str, Any]) -> tuple[str, str, str, int | None] | None
     )
 
 
+SORT_DEFINITIONS: dict[str, dict[str, str]] = {
+    "newest": {
+        "label": "Newest publication",
+        "definition": "Sorted descending by provider-reported publication_date (missing dates last).",
+        "source": "Provider bibliographic metadata",
+    },
+    "relevance": {
+        "label": "Query relevance",
+        "definition": "Sorted by provider relevance order (tie-broken by publication date).",
+        "source": "Upstream provider search ranking",
+    },
+    "citations": {
+        "label": "Most cited",
+        "definition": "Sorted descending by highest observed single-provider citation count; missing values sorted last (never zero).",
+        "source": "OpenAlex / Semantic Scholar / Crossref / Europe PMC",
+    },
+    "citations_per_year": {
+        "label": "Citations per year",
+        "definition": "Sorted descending by citation_count / max(1, current_year - pub_year + 1); missing values sorted last.",
+        "source": "Derived from single-provider citation count and publication year",
+    },
+    "fwci": {
+        "label": "Field-Weighted Citation Impact (FWCI)",
+        "definition": "Sorted descending by OpenAlex FWCI; missing values sorted last.",
+        "source": "OpenAlex",
+    },
+    "open_access": {
+        "label": "Verified open access",
+        "definition": "Verified open-access papers first, tie-broken by publication date.",
+        "source": "OpenAlex / Semantic Scholar / arXiv / Europe PMC",
+    },
+    "evidence_completeness": {
+        "label": "Evidence completeness",
+        "definition": "Sorted descending by count of populated evidence fields (abstract, DOI, methods, datasets, metrics, grants, references).",
+        "source": "Extracted from provider metadata & abstracts",
+    },
+    "provider": {
+        "label": "Provider order",
+        "definition": "Preserves the canonicalized multi-provider return order.",
+        "source": "Discovery orchestrator",
+    },
+}
+
+
 def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
     """Validate user filters without accepting arbitrary provider URLs."""
     topic = str(payload.get("topic") or "").strip()
@@ -144,8 +201,10 @@ def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("invalid_year")
     if start and end and start > end:
         raise ValueError("invalid_year_range")
-    sort = payload.get("sort", "newest")
-    if sort not in {"relevance", "newest", "provider"}:
+    sort = str(payload.get("sort") or "newest").strip()
+    if sort == "most_cited":
+        sort = "citations"
+    if sort not in SORT_DEFINITIONS:
         raise ValueError("invalid_sort")
     oa = payload.get("open_access")
     if oa is not None and not isinstance(oa, bool):
@@ -155,11 +214,15 @@ def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
         "top_k": top_k,
         "year_from": start,
         "year_to": end,
-        "sort": "newest" if sort == "relevance" else sort,
+        "sort": sort,
         "open_access": oa,
         "paper_type": str(payload.get("paper_type") or "").strip()[:80],
         "field": str(payload.get("field") or "").strip()[:80],
         "venue": str(payload.get("venue") or "").strip()[:120],
+        "author": str(payload.get("author") or "").strip()[:120],
+        "institution": str(payload.get("institution") or "").strip()[:120],
+        "publisher": str(payload.get("publisher") or "").strip()[:120],
+        "provider": str(payload.get("provider") or "").strip()[:60],
     }
 
 
@@ -210,6 +273,20 @@ def discover(
             continue
         if options["venue"] and options["venue"].casefold() not in (paper.venue or "").casefold():
             continue
+        if options["author"] and not any(
+            options["author"].casefold() in (a.name or "").casefold() for a in paper.authors
+        ):
+            continue
+        if options["institution"] and not any(
+            options["institution"].casefold() in (inst or "").casefold()
+            for a in paper.authors
+            for inst in (a.institutions or [])
+        ):
+            continue
+        if options["publisher"] and options["publisher"].casefold() not in str(metadata.get("publisher") or "").casefold():
+            continue
+        if options["provider"] and options["provider"].casefold() not in str(candidate.get("source") or "").casefold():
+            continue
         fields = " ".join(
             str(value) for value in (metadata.get("topics") or metadata.get("keywords") or [])
         )
@@ -243,18 +320,33 @@ def discover(
         source_url = next((p.get("source_url") for p in source_links if p.get("source_url")), None)
         found = extract_evidence(clean_title, clean_abstract, source_url=source_url)
         fetched = [p.get("fetched_at") for p in source_links if p.get("fetched_at")]
-        rows.append(
-            {
+        cit_count = citation_observation["count"] if citation_observation else None
+        current_yr = datetime.now(UTC).year
+        cit_per_year = (
+            round(cit_count / max(1, current_yr - year + 1), 2)
+            if isinstance(cit_count, int) and isinstance(year, int)
+            else None
+        )
+        pub_vs_preprint = (
+            "preprint"
+            if (paper.publication_type or "").casefold() == "preprint"
+            or (paper.identifiers.arxiv_id and not valid_doi and (paper.venue or "").casefold() == "arxiv")
+            else ("published" if (valid_doi or paper.publication_type) else "unknown")
+        )
+        row_obj = {
                 "paper_id": paper.paper_id,
                 "title": clean_title,
                 "subtitle": metadata.get("subtitle"),
                 "year": year,
                 "publication_date": paper.publication_date,
+                "first_online_date": metadata.get("first_online_date"),
                 "doi": valid_doi,
                 "identifiers": paper.identifiers.model_dump(mode="json"),
+                "arxiv_version": metadata.get("arxiv_version"),
                 "authors": [a.model_dump(mode="json") for a in paper.authors],
                 "venue": paper.venue,
                 "publication_type": paper.publication_type,
+                "published_vs_preprint": pub_vs_preprint,
                 "language": paper.language,
                 "abstract": clean_abstract,
                 "is_open_access": paper.is_open_access,
@@ -262,7 +354,13 @@ def discover(
                 "version_status": metadata.get("version_status"),
                 "url": source_url,
                 "landing_page_url": metadata.get("landing_page_url"),
-                "citation_count": citation_observation["count"] if citation_observation else None,
+                "google_scholar_url": generate_scholar_url(
+                    clean_title, paper.authors[0].name if paper.authors else None
+                ),
+                "google_scholar_status": "NOT_AVAILABLE",
+                "citation_count": cit_count,
+                "citations_per_year": cit_per_year,
+                "influential_citations": metadata.get("influential_citations"),
                 "citation_provider": citation_observation["provider"]
                 if citation_observation
                 else None,
@@ -284,6 +382,9 @@ def discover(
                 or found["evaluation_metrics"],
                 "claims": found["claims"],
                 "claim_status": found["claim_status"],
+                "field_statuses": found["field_statuses"],
+                "code_repo_urls": found["code_repo_urls"],
+                "dataset_repo_urls": found["dataset_repo_urls"],
                 "grants": metadata.get("grants") or [],
                 "corresponding_authors": metadata.get("corresponding_authors") or [],
                 "author_institutions": metadata.get("author_institutions") or [],
@@ -304,8 +405,9 @@ def discover(
                 else "METADATA_ONLY",
                 "eligibility_reason": eligibility_reason,
                 "identity_review": review,
-            }
-        )
+        }
+        row_obj["google_research"] = classify_google_research_paper(row_obj)
+        rows.append(row_obj)
     versioned: dict[tuple[str, str, str, int | None], dict[str, Any]] = {}
     unique: list[dict[str, Any]] = []
     for row in rows:
@@ -342,8 +444,55 @@ def discover(
         )
         if not existing.get("abstract") and row.get("abstract"):
             existing["abstract"] = row["abstract"]
-    if options["sort"] == "newest":
+    sort_mode = options["sort"]
+    if sort_mode == "newest":
         rows.sort(key=lambda row: (row["publication_date"] or "", row["paper_id"]), reverse=True)
+    elif sort_mode == "citations":
+        rows.sort(
+            key=lambda row: (
+                row["citation_count"] is not None,
+                row["citation_count"] if row["citation_count"] is not None else -1,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "citations_per_year":
+        rows.sort(
+            key=lambda row: (
+                row["citations_per_year"] is not None,
+                row["citations_per_year"] if row["citations_per_year"] is not None else -1.0,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "fwci":
+        rows.sort(
+            key=lambda row: (
+                row["fwci"] is not None,
+                row["fwci"] if row["fwci"] is not None else -1.0,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "open_access":
+        rows.sort(
+            key=lambda row: (
+                row["is_open_access"] is True,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "evidence_completeness":
+        rows.sort(
+            key=lambda row: (
+                sum(
+                    bool(row.get(k))
+                    for k in ("abstract", "doi", "methods", "datasets", "evaluation_metrics", "grants", "references")
+                ),
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
     selected = rows[: options["top_k"]]
     for position, row in enumerate(selected, 1):
         row["collection_order"] = position
@@ -354,8 +503,26 @@ def discover(
 
         oc_dois = [str(r["doi"]) for r in selected if r.get("doi")]
         oc_map = fetch_opencitations_for_dois(engine.sources.session, oc_dois) if oc_dois else {}
+        gr_status = check_google_research_access(engine.sources.session, options["topic"])
+        sources_out = list(sources) + [gr_status]
+        oa_authors = enrich_authors(selected)
+        s2_authors = enrich_s2_authors(selected)
+        orcid_map = enrich_orcid_authors(selected)
+        author_obs = oa_authors + s2_authors
+        for obs in author_obs:
+            orc = str(obs.get("orcid") or "").rsplit("/", 1)[-1]
+            if orc and orc in orcid_map:
+                obs["orcid_verified"] = True
+                obs["orcid_url"] = orcid_map[orc]["orcid_url"]
     else:
         oc_map = {}
+        sources_out = list(sources)
+        author_obs = []
+    collisions = detect_author_collisions(selected)
+    if collisions:
+        for obs in author_obs:
+            if " ".join(str(obs.get("name") or "").casefold().split()) in collisions:
+                obs["identity_review_status"] = "IDENTITY_REVIEW_REQUIRED"
     for row in selected:
         row["venue_details"] = venue_observation(row, retrieved_at, enriched_venues)
         row["retrieved_at"] = row["retrieved_at"] or retrieved_at
@@ -364,23 +531,31 @@ def discover(
             row["citation_observations"].append(
                 {"provider": "opencitations", "count": oc_map[doi_key]["count"]}
             )
-    from archipelago.scholarly.discovery.scholar_deeplink import generate_scholar_url
 
     selection = dict(getattr(engine, "last_selection", {}) or {})
     selection["final_returned_count"] = len(selected)
     selection["rate_limits_encountered"] = [
-        s["source"] for s in sources if s.get("rate_limited")
+        s["source"] for s in sources_out if s.get("rate_limited")
     ]
+    sort_info = SORT_DEFINITIONS[sort_mode]
     return {
         "schema": "archipelago.research_intelligence.v2",
         "options": options,
         "retrieved_at": retrieved_at,
-        "sources": sources,
+        "sources": sources_out,
         "provider_selection": selection,
         "google_scholar_url": generate_scholar_url(options["topic"]),
+        "google_research_url": google_research_search_url(options["topic"]),
         "candidate_count": len(candidates),
         "filtered_count": len(rows),
-        "ordering": "publication_date_desc" if options["sort"] == "newest" else "provider_returned",
+        "ordering": "publication_date_desc" if sort_mode == "newest" else sort_mode,
+        "sort_metadata": {
+            "selected": sort_mode,
+            **sort_info,
+            "collected_at": retrieved_at,
+            "missing_policy": "missing_values_excluded_and_sorted_last_never_zero",
+        },
+        "author_collisions": collisions,
         "papers": selected,
-        "author_observations": enrich_authors(selected) if orchestrator is None else [],
+        "author_observations": author_obs,
     }

@@ -26,6 +26,8 @@ HEADERS = {
         "Keywords and topics", "Research field", "Methods", "Datasets", "Evaluation metrics",
         "Abstract", "Venue ID", "Venue", "Publisher", "Citations", "Citation provider",
         "Open access", "License", "Retrieved at", "Evidence status",
+        "Citations per year", "FWCI", "Published vs Preprint", "First online date",
+        "Google Research status", "Google Scholar URL",
     ],
     "Authors": [
         "Author ID", "Name", "ORCID", "OpenAlex ID", "Semantic Scholar ID",
@@ -33,11 +35,14 @@ HEADERS = {
         "Publication count", "Citation count", "h-index", "i10-index",
         "Primary research fields", "Representative papers", "Coauthor IDs",
         "Profile URL", "Source", "Metric definition", "Coverage", "Observed at",
+        "Current/last-known affiliation", "Google Scholar search", "Google Scholar profile",
+        "Identity confidence",
     ],
     "Venues": [
         "Venue ID", "Name", "Type", "Publisher", "ISSN", "Subject areas", "Open access",
         "Venue URL", "Journal Impact Factor", "CiteScore", "SJR", "CORE classification",
         "Other metrics", "Metric source", "Provider", "Retrieved at", "Paper IDs",
+        "Venue category",
     ],
     "References": [
         "Source paper ID",
@@ -127,11 +132,17 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         if edge["type"] == "COAUTHORED_WITH":
             coauthors.setdefault(edge["source"], set()).add(edge["target"])
             coauthors.setdefault(edge["target"], set()).add(edge["source"])
-    by_openalex = {
-        p["identifiers"].get("openalex_id"): p
-        for p in run["papers"]
-        if p["identifiers"].get("openalex_id")
-    }
+    by_known: dict[str, dict[str, Any]] = {}
+    for p in run["papers"]:
+        pids = p.get("identifiers") or {}
+        for k in (pids.get("openalex_id"), str(pids.get("openalex_id") or "").rsplit("/", 1)[-1], pids.get("semantic_scholar_id")):
+            if k:
+                by_known[str(k)] = p
+        d = pids.get("doi") or p.get("doi")
+        if d:
+            dn = str(d).strip().casefold().removeprefix("https://doi.org/")
+            by_known[dn] = p
+            by_known[f"https://doi.org/{dn}"] = p
     observations = {row["id"]: row for row in run.get("author_observations", [])}
     statuses = {s.get("source"): s.get("status") for s in run.get("sources", [])}
     authors: dict[str, dict[str, Any]] = {}
@@ -174,6 +185,12 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 paper.get("license"),
                 paper.get("retrieved_at") or run["retrieved_at"],
                 paper["evidence_status"],
+                paper.get("citations_per_year"),
+                paper.get("fwci"),
+                paper.get("published_vs_preprint"),
+                _date(paper.get("first_online_date")),
+                ", ".join((paper.get("google_research") or {}).get("classifications") or ["NONE"]),
+                paper.get("google_scholar_url"),
             ],
         )
         sheets["Papers"].cell(sheets["Papers"].max_row, 4).number_format = "yyyy-mm-dd"
@@ -187,7 +204,11 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         if vid:
             venues.setdefault(vid, {"paper": paper, "papers": []})["papers"].append(paper)
         for reference in paper["references"]:
-            cited = by_openalex.get(reference) if isinstance(reference, str) else None
+            cited = (
+                by_known.get(reference)
+                or by_known.get(reference.rsplit("/", 1)[-1])
+                or by_known.get(reference.strip().casefold().removeprefix("https://doi.org/"))
+            ) if isinstance(reference, str) else None
             add(
                 "References",
                 [
@@ -241,9 +262,12 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
     for key, entry in authors.items():
         author = entry["author"]
         source_paper = entry["source_paper"]
-        provider_ids = (source_paper.get("source_metadata") or {}).get("author_openalex_ids") or []
+        smeta = source_paper.get("source_metadata") or {}
+        provider_ids = smeta.get("author_openalex_ids") or []
         provider_id = provider_ids[entry["index"]] if entry["index"] < len(provider_ids) else None
-        short = provider_id.rsplit("/", 1)[-1] if provider_id else None
+        s2_ids = smeta.get("author_s2_ids") or []
+        s2_id = s2_ids[entry["index"]] if entry["index"] < len(s2_ids) else None
+        short = provider_id.rsplit("/", 1)[-1] if provider_id else (f"s2:{s2_id}" if s2_id else None)
         observation = observations.get(short or "", {})
         metrics = observation.get("metrics") or {}
         missing_status = (
@@ -255,6 +279,11 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
             missing_status = "PROVIDER_FIELD_ABSENT"
         fields = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:3]})
         author_rows_meta.append({"key": key, "short": short})
+        profile_url = (
+            observation.get("source_url")
+            or (f"https://openalex.org/{short}" if short and not str(short).startswith("s2:") else None)
+            or (f"https://www.semanticscholar.org/author/{s2_id}" if s2_id else None)
+        )
         add(
             "Authors",
             [
@@ -262,15 +291,16 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 observation.get("name") or author["name"],
                 observation.get("orcid") or author.get("orcid"),
                 provider_id,
-                None,
+                s2_id,
                 "; ".join(author.get("institutions") or []),
                 "; ".join(
                     str(a["institution"])
                     for a in observation.get("affiliations") or []
                     if a.get("institution")
                 ),
-                observation.get("identity_status")
-                or ("provider_linked" if provider_id else "unverified_name_only"),
+                observation.get("identity_review_status")
+                or observation.get("identity_status")
+                or ("provider_linked" if (provider_id or s2_id) else "unverified_name_only"),
                 _metric(metrics.get("publication_count"), missing_status),
                 _metric(metrics.get("citation_count"), missing_status),
                 _metric(metrics.get("h_index"), missing_status),
@@ -278,11 +308,19 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 "; ".join(observation.get("topics") or fields),
                 "; ".join(p["paper_id"] for p in entry["papers"][:3]),
                 "; ".join(sorted(coauthors.get(key, ()))),
-                f"https://openalex.org/{short}" if short else None,
+                profile_url,
                 observation.get("provider") or "paper metadata",
                 metrics.get("definition"),
                 metrics.get("coverage"),
                 observation.get("retrieved_at"),
+                "; ".join(
+                    str(a["institution"])
+                    for a in observation.get("current_affiliations") or []
+                    if a.get("institution")
+                ) or None,
+                observation.get("google_scholar_search_url"),
+                observation.get("google_scholar_profile_url") or "NOT_AVAILABLE",
+                observation.get("identity_confidence") or ("high_provider_id" if (provider_id or s2_id) else "low_name_only"),
             ],
         )
     for vid, entry in venues.items():
@@ -320,6 +358,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 details.get("provider"),
                 details.get("retrieved_at") or run["retrieved_at"],
                 "; ".join(p["paper_id"] for p in entry["papers"]),
+                details.get("venue_category"),
             ],
         )
     populate_extra_sheets(add, run, author_rows_meta, venue_rows_meta)

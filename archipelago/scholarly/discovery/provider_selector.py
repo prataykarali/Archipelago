@@ -18,10 +18,10 @@ ALL_MACHINE_SOURCES = (
 )
 
 DOMAIN_PROFILES: dict[str, tuple[str, ...]] = {
-    "biomedical": ("openalex", "semantic_scholar", "europe_pmc", "pubmed", "crossref"),
-    "datasets_software": ("openalex", "datacite", "crossref", "openaire"),
-    "ai_cs": ("openalex", "semantic_scholar", "arxiv", "dblp", "crossref"),
-    "general": ("openalex", "crossref", "semantic_scholar", "arxiv", "openaire"),
+    "biomedical": ("openalex", "semantic_scholar", "europe_pmc", "pubmed", "crossref", "openaire"),
+    "datasets_software": ("openalex", "datacite", "crossref", "openaire", "arxiv"),
+    "ai_cs": ("openalex", "semantic_scholar", "arxiv", "dblp", "crossref", "openaire", "europe_pmc"),
+    "general": ("openalex", "crossref", "semantic_scholar", "arxiv", "openaire", "europe_pmc", "datacite"),
 }
 
 BIOMED_RE = re.compile(

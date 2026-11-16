@@ -9,7 +9,7 @@
 <section id="topic-form" class="research-simple" aria-labelledby="s5-heading">
   <p class="eyebrow">SCHOLARLY METADATA / S5</p>
   <h2 id="s5-heading">Research intelligence</h2>
-  <p>Search scholarly metadata from OpenAlex, Crossref, Semantic Scholar and arXiv. Results are source linked and limited to the returned provider coverage.</p>
+  <p>Search scholarly metadata across OpenAlex, Crossref, Semantic Scholar, arXiv, Europe PMC, OpenAIRE, DataCite, DBLP, ORCID, and official Google Research / Google Scholar verification links. Results are source-linked with explicit provider provenance.</p>
   <form id="intelligence-form" class="research-search">
     <label for="topic-input">Research topic</label>
     <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="200" required placeholder="e.g. efficient retrieval augmented generation"><button type="submit">Find papers</button></div>
@@ -17,13 +17,66 @@
       <label>Papers to collect (maximum) <select name="top_k"><option>10</option><option selected>20</option><option>50</option><option>100</option></select></label>
       <label>From year <input name="year_from" type="number" min="1800" max="2100"></label>
       <label>To year <input name="year_to" type="number" min="1800" max="2100"></label>
-      <label>Sort <select name="sort"><option value="newest">Newest first</option><option value="provider">Provider order</option></select></label>
+      <label>Sort <select name="sort">
+        <option value="newest">Newest first</option>
+        <option value="relevance">Query relevance</option>
+        <option value="citations">Most cited (single-provider)</option>
+        <option value="citations_per_year">Citations per year</option>
+        <option value="fwci">FWCI (OpenAlex)</option>
+        <option value="open_access">Verified open access</option>
+        <option value="evidence_completeness">Evidence completeness</option>
+        <option value="provider">Provider order</option>
+      </select></label>
+      <label>Author <input name="author" placeholder="Filter by author"></label>
+      <label>Institution <input name="institution" placeholder="Filter by institution"></label>
+      <label>Venue <input name="venue" placeholder="Filter by venue"></label>
+      <label>Publisher <input name="publisher" placeholder="Filter by publisher"></label>
+      <label>Paper type <select name="paper_type">
+        <option value="">All types</option>
+        <option value="article">Article / Journal</option>
+        <option value="proceedings">Proceedings / Conference</option>
+        <option value="preprint">Preprint</option>
+        <option value="review">Review</option>
+      </select></label>
+      <label>Open access <select name="open_access">
+        <option value="">Any</option>
+        <option value="true">Open access only</option>
+        <option value="false">Closed / non-OA</option>
+      </select></label>
+      <label>Provider <select name="provider">
+        <option value="">All providers</option>
+        <option value="openalex">OpenAlex</option>
+        <option value="crossref">Crossref</option>
+        <option value="semantic_scholar">Semantic Scholar</option>
+        <option value="arxiv">arXiv</option>
+        <option value="europe_pmc">Europe PMC</option>
+        <option value="openaire">OpenAIRE</option>
+        <option value="datacite">DataCite</option>
+        <option value="dblp">DBLP</option>
+      </select></label>
+      <label>Google Research <select name="google_research">
+        <option value="">All papers</option>
+        <option value="official">Official listing only</option>
+        <option value="affiliated">Google-affiliated author</option>
+      </select></label>
+      <label>Evidence field <select name="evidence_field">
+        <option value="">Any</option>
+        <option value="methods">Has methods</option>
+        <option value="datasets">Has datasets</option>
+        <option value="evaluation_metrics">Has evaluation metrics</option>
+        <option value="grants">Has funding/grants</option>
+        <option value="references">Has references</option>
+      </select></label>
     </div>
   </form>
   <p id="intelligence-status" role="status">Ready to search.</p>
   <section id="intelligence-results" hidden aria-labelledby="results-heading">
-    <h2 id="results-heading">Paper results</h2><p id="provider-status"></p><p id="retrieved-at"></p>
-    <a id="excel-link" href="#">Download nine-sheet Excel report</a>
+    <h2 id="results-heading">Paper results</h2>
+    <div id="provider-status" class="s5-badges"></div>
+    <p id="retrieved-at"></p>
+    <p id="sort-definition" class="s5-sort-note"></p>
+    <div id="external-verification-links" class="s5-badges"></div>
+    <a id="excel-link" href="#">Download 14-sheet Excel report</a>
     <button id="graph-button" type="button">Inspect research graph</button>
     <pre id="graph-summary" hidden></pre><div id="paper-results"></div>
   </section>

@@ -113,17 +113,33 @@ class LiveResearchSources:
             },
             "semantic_scholar": {"query": query, "limit": count, "fields": S2_FIELDS},
         }[source]
-        headers = {"User-Agent": "Archipelago-Research/2.0 (scholarly metadata discovery)"}
+        headers = {
+            "User-Agent": (
+                f"Archipelago-Research/2.0 (mailto:{os.getenv('ARCHIPELAGO_CONTACT_EMAIL', 'researcher@archipelago.local')})"
+            )
+        }
         if source == "semantic_scholar" and os.getenv("SEMANTIC_SCHOLAR_API_KEY"):
             headers["x-api-key"] = os.environ["SEMANTIC_SCHOLAR_API_KEY"]
         result = SourceResponse(source=source, requested_at=requested_at, status="unavailable")
         try:
-            response = self.session.get(
+            from archipelago.scholarly.discovery.resilient_http import reliability_client
+
+            ttl = 900.0 if isinstance(self.session, requests.Session) else 0.0
+            response, err = reliability_client().get(
+                self.session,
+                source,
                 SOURCE_URLS[source],
                 params=params,
                 headers=headers,
                 timeout=ARXIV_TIMEOUT_SECONDS if source == "arxiv" else SOURCE_TIMEOUT_SECONDS,
+                ttl_seconds=ttl,
             )
+            if response is None:
+                is_rl = bool(err and "429" in err)
+                result.rate_limited = is_rl
+                result.status = "rate_limited" if is_rl else "request_failed"
+                result.error = err or "request_failed"
+                return result
             result.http_status = response.status_code
             result.request_id = response.headers.get("x-request-id") or response.headers.get(
                 "x-amzn-requestid"

@@ -22,23 +22,32 @@ class AuthorResponse:
     def json(self) -> dict:
         """Supply metrics with explicit provider identity."""
         return {
-            "id": "https://openalex.org/A123",
-            "display_name": "J. Researcher",
-            "works_count": 12,
-            "cited_by_count": 34,
-            "summary_stats": {"h_index": 4, "i10_index": 1},
-            "affiliations": [],
+            "results": [
+                {
+                    "id": "https://openalex.org/A123",
+                    "display_name": "J. Researcher",
+                    "works_count": 12,
+                    "cited_by_count": 34,
+                    "summary_stats": {"h_index": 4, "i10_index": 1},
+                    "affiliations": [],
+                }
+            ]
         }
 
 
 class AuthorSession:
     """Reject unexpected author lookups."""
 
-    def get(self, url: str, timeout: int) -> AuthorResponse:
+    status_code = 200
+
+    def get(self, url: str, params: dict | None = None, timeout: int = 8) -> AuthorResponse:
         """Allow only the validated OpenAlex ID."""
-        assert url == "https://api.openalex.org/authors/A123"
+        assert url == "https://api.openalex.org/authors"
+        assert params == {"filter": "openalex_id:A123", "per-page": 1}
         assert timeout > 0
-        return AuthorResponse()
+        resp = AuthorResponse()
+        resp.status_code = 200
+        return resp
 
 
 def test_same_name_does_not_merge_without_provider_id() -> None:

@@ -3,20 +3,27 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import os
 import re
 import time
 from typing import Any
 
 import requests
 
+from archipelago.scholarly.discovery.resilient_http import reliability_client
+from archipelago.scholarly.discovery.scholar_deeplink import generate_scholar_author_url
+
 AUTHOR_ID = re.compile(r"^(?:https://openalex\.org/)?(A\d+)$")
 SOURCE_ID = re.compile(r"^(?:https://openalex\.org/)?(S\d+)$")
+ORCID_RE = re.compile(r"(\d{4}-\d{4}-\d{4}-\d{3}[\dX])")
 BATCH_SIZE = 50
 DEFAULT_AUTHOR_BATCHES = 4
 DEFAULT_TIMEOUT_SECONDS = 8
 MAX_RETRIES = 2
 
 _AUTHOR_CACHE: dict[str, dict[str, Any]] = {}
+_S2_AUTHOR_CACHE: dict[str, dict[str, Any]] = {}
+_ORCID_CACHE: dict[str, dict[str, Any]] = {}
 _VENUE_CACHE: dict[str, dict[str, Any]] = {}
 
 
@@ -57,28 +64,41 @@ def _author_observation_from_oa(
     counts = data.get("counts_by_year") or []
     years = [c.get("year") for c in counts if isinstance(c.get("year"), int)]
     affs = []
+    current_affs = []
+    latest_aff_year = -1
     for entry in data.get("affiliations") or []:
         inst = entry.get("institution") or {}
         if inst.get("display_name"):
-            affs.append(
-                {
-                    "institution": inst.get("display_name"),
-                    "institution_id": inst.get("id"),
-                    "ror": inst.get("ror"),
-                    "country_code": inst.get("country_code"),
-                    "type": inst.get("type"),
-                    "years": entry.get("years") or [],
-                }
-            )
+            yrs = [y for y in (entry.get("years") or []) if isinstance(y, int)]
+            aff_item = {
+                "institution": inst.get("display_name"),
+                "institution_id": inst.get("id"),
+                "ror": inst.get("ror"),
+                "country_code": inst.get("country_code"),
+                "type": inst.get("type"),
+                "years": yrs,
+            }
+            affs.append(aff_item)
+            if yrs and max(yrs) > latest_aff_year:
+                latest_aff_year = max(yrs)
+                current_affs = [aff_item]
+            elif yrs and max(yrs) == latest_aff_year:
+                current_affs.append(aff_item)
+    name = data.get("display_name") or fallback_name
+    orcid_val = data.get("orcid") or fallback_orcid
     return {
         "id": author_id,
-        "name": data.get("display_name") or fallback_name,
+        "name": name,
         "aliases": data.get("display_name_alternatives") or [],
-        "orcid": data.get("orcid") or fallback_orcid,
+        "orcid": orcid_val,
         "identity_status": "provider_linked",
+        "identity_confidence": "high_provider_id",
         "enrichment_status": "AVAILABLE",
         "provider": "openalex",
         "source_url": f"https://openalex.org/{author_id}",
+        "google_scholar_search_url": generate_scholar_author_url(name),
+        "google_scholar_profile_url": None,
+        "google_scholar_status": "NOT_AVAILABLE",
         "retrieved_at": observed_at,
         "metrics": {
             "publication_count": data.get("works_count"),
@@ -94,6 +114,7 @@ def _author_observation_from_oa(
             "author_id": author_id,
         },
         "affiliations": affs,
+        "current_affiliations": current_affs or affs[:1],
         "topics": [
             entry.get("display_name")
             for entry in data.get("topics") or []
@@ -239,6 +260,7 @@ def enrich_venues(
                 "name": item.get("display_name"),
                 "alternate_titles": item.get("alternate_titles") or [],
                 "type": item.get("type"),
+                "venue_category": classify_venue_category(item.get("display_name"), item.get("type")),
                 "publisher": item.get("host_organization_name"),
                 "issn": item.get("issn") or [],
                 "issn_l": item.get("issn_l"),
@@ -266,6 +288,199 @@ def enrich_venues(
     return by_id
 
 
+def classify_venue_category(name: str | None, venue_type: str | None = None) -> str:
+    """Strictly distinguish peer-reviewed venues, workshops, preprint repositories, and institutional listings."""
+    low_name = (name or "").casefold()
+    low_type = (venue_type or "").casefold()
+    if low_type == "repository" or any(
+        repo in low_name for repo in ("arxiv", "biorxiv", "medrxiv", "ssrn", "preprint", "zenodo", "osf")
+    ):
+        return "preprint_repository"
+    if "workshop" in low_name or low_type == "workshop":
+        return "workshop"
+    if "google research" in low_name or low_type == "institution":
+        return "institutional_listing"
+    if low_type == "journal":
+        return "peer_reviewed_journal"
+    if low_type == "conference" or any(tok in low_name for tok in ("conference", "proceedings", "symposium")):
+        return "peer_reviewed_conference"
+    return "unknown"
+
+
+def enrich_s2_authors(
+    papers: list[dict[str, Any]],
+    session: requests.Session | None = None,
+    max_authors: int = 20,
+) -> list[dict[str, Any]]:
+    """Fetch Semantic Scholar author metrics for authors with S2 author IDs, bounded and cached."""
+    client = session or requests.Session()
+    targets: dict[str, str] = {}
+    for paper in papers:
+        s2_ids = (paper.get("source_metadata") or {}).get("author_s2_ids") or []
+        for idx, author in enumerate(paper.get("authors") or []):
+            s2_id = s2_ids[idx] if idx < len(s2_ids) else None
+            if isinstance(s2_id, str) and s2_id.isdigit() and s2_id not in targets:
+                targets[s2_id] = author.get("name") or "Unknown"
+                if len(targets) >= max_authors:
+                    break
+        if len(targets) >= max_authors:
+            break
+    if not targets:
+        return []
+
+    observations: list[dict[str, Any]] = []
+    pending: list[str] = []
+    for sid in targets:
+        if sid in _S2_AUTHOR_CACHE:
+            observations.append(_S2_AUTHOR_CACHE[sid])
+        else:
+            pending.append(sid)
+
+    if pending:
+        headers = {"User-Agent": "Archipelago-Research/2.0"}
+        if os.getenv("SEMANTIC_SCHOLAR_API_KEY"):
+            headers["x-api-key"] = os.environ["SEMANTIC_SCHOLAR_API_KEY"]
+        observed_at = datetime.now(UTC).isoformat()
+        ttl = 3600.0 if isinstance(client, requests.Session) else 0.0
+        for sid in pending:
+            resp, err = reliability_client().get(
+                client,
+                "semantic_scholar",
+                f"https://api.semanticscholar.org/graph/v1/author/{sid}",
+                params={"fields": "name,aliases,affiliations,homepage,paperCount,citationCount,hIndex,url"},
+                headers=headers,
+                timeout=DEFAULT_TIMEOUT_SECONDS,
+                ttl_seconds=ttl,
+                max_retries=1,
+            )
+            if resp is None or not resp.ok:
+                status = "RATE_LIMITED" if (resp is not None and resp.status_code == 429) or (err and "429" in err) else "PROVIDER_UNAVAILABLE"
+                observations.append(
+                    {
+                        "id": f"s2:{sid}",
+                        "s2_author_id": sid,
+                        "name": targets[sid],
+                        "identity_status": "provider_linked",
+                        "enrichment_status": status,
+                        "provider": "semantic_scholar",
+                        "retrieved_at": observed_at,
+                        "metrics": None,
+                        "error": err or (f"HTTP {resp.status_code}" if resp is not None else "unavailable"),
+                    }
+                )
+                if status == "RATE_LIMITED":
+                    break
+                continue
+            item = resp.json()
+            name = item.get("name") or targets[sid]
+            obs = {
+                "id": f"s2:{sid}",
+                "s2_author_id": sid,
+                "name": name,
+                "aliases": item.get("aliases") or [],
+                "identity_status": "provider_linked",
+                "identity_confidence": "high_provider_id",
+                "enrichment_status": "AVAILABLE",
+                "provider": "semantic_scholar",
+                "source_url": item.get("url") or f"https://www.semanticscholar.org/author/{sid}",
+                "google_scholar_search_url": generate_scholar_author_url(name),
+                "google_scholar_profile_url": None,
+                "google_scholar_status": "NOT_AVAILABLE",
+                "retrieved_at": observed_at,
+                "metrics": {
+                    "publication_count": item.get("paperCount"),
+                    "citation_count": item.get("citationCount"),
+                    "h_index": item.get("hIndex"),
+                    "i10_index": None,
+                    "definition": "Semantic Scholar indexed papers, citations, and h-index",
+                    "coverage": "Semantic Scholar corpus; may differ from OpenAlex",
+                    "author_id": sid,
+                },
+                "affiliations": [
+                    {"institution": aff, "years": []}
+                    for aff in (item.get("affiliations") or [])
+                    if isinstance(aff, str) and aff
+                ],
+                "current_affiliations": [
+                    {"institution": aff, "years": []}
+                    for aff in (item.get("affiliations") or [])
+                    if isinstance(aff, str) and aff
+                ],
+                "topics": [],
+            }
+            _S2_AUTHOR_CACHE[sid] = obs
+            observations.append(obs)
+    return observations
+
+
+def enrich_orcid_authors(
+    papers: list[dict[str, Any]],
+    session: requests.Session | None = None,
+    max_authors: int = 15,
+) -> dict[str, dict[str, Any]]:
+    """Fetch public ORCID person records for authors with verified ORCID IDs."""
+    client = session or requests.Session()
+    orcids: list[str] = []
+    for paper in papers:
+        for author in paper.get("authors") or []:
+            raw = str(author.get("orcid") or "")
+            m = ORCID_RE.search(raw)
+            if m and m.group(1) not in orcids:
+                orcids.append(m.group(1))
+                if len(orcids) >= max_authors:
+                    break
+        if len(orcids) >= max_authors:
+            break
+    out: dict[str, dict[str, Any]] = {}
+    ttl = 3600.0 if isinstance(client, requests.Session) else 0.0
+    for orcid_id in orcids:
+        if orcid_id in _ORCID_CACHE:
+            out[orcid_id] = _ORCID_CACHE[orcid_id]
+            continue
+        resp, _err = reliability_client().get(
+            client,
+            "orcid",
+            f"https://pub.orcid.org/v3.0/{orcid_id}/person",
+            headers={"Accept": "application/json", "User-Agent": "Archipelago-Research/2.0"},
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            ttl_seconds=ttl,
+            max_retries=1,
+        )
+        if resp is not None and resp.ok:
+            data = resp.json()
+            name_obj = (data.get("name") or {})
+            given = ((name_obj.get("given-names") or {}).get("value") or "").strip()
+            family = ((name_obj.get("family-name") or {}).get("value") or "").strip()
+            credit = ((name_obj.get("credit-name") or {}).get("value") or "").strip()
+            rec = {
+                "orcid": orcid_id,
+                "orcid_url": f"https://orcid.org/{orcid_id}",
+                "verified": True,
+                "display_name": credit or f"{given} {family}".strip() or None,
+                "retrieved_at": datetime.now(UTC).isoformat(),
+            }
+            _ORCID_CACHE[orcid_id] = rec
+            out[orcid_id] = rec
+    return out
+
+
+def detect_author_collisions(papers: list[dict[str, Any]]) -> list[str]:
+    """Flag normalized author names that appear with distinct or missing provider IDs."""
+    seen: dict[str, set[str]] = {}
+    for paper in papers:
+        oa_ids = (paper.get("source_metadata") or {}).get("author_openalex_ids") or []
+        s2_ids = (paper.get("source_metadata") or {}).get("author_s2_ids") or []
+        for idx, author in enumerate(paper.get("authors") or []):
+            name = " ".join(str(author.get("name") or "").casefold().split())
+            if not name:
+                continue
+            oa_id = oa_ids[idx] if idx < len(oa_ids) else None
+            s2_id = s2_ids[idx] if idx < len(s2_ids) else None
+            ident = str(oa_id or author.get("orcid") or s2_id or f"unverified:{paper['paper_id']}:{idx}")
+            seen.setdefault(name, set()).add(ident)
+    return sorted(name for name, idents in seen.items() if len(idents) > 1)
+
+
 def venue_observation(
     paper: dict[str, Any],
     retrieved_at: str,
@@ -281,10 +496,12 @@ def venue_observation(
     if short and enriched_venues and short in enriched_venues:
         return enriched_venues[short]
     provider = "openalex" if venue_id else paper.get("citation_provider")
+    vtype = metadata.get("venue_type")
     return {
         "id": venue_id,
         "name": name,
-        "type": metadata.get("venue_type"),
+        "type": vtype,
+        "venue_category": classify_venue_category(name, vtype),
         "publisher": metadata.get("publisher"),
         "issn": metadata.get("venue_issn"),
         "issn_l": metadata.get("venue_issn_l"),
