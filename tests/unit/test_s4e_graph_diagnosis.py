@@ -86,9 +86,15 @@ def test_s1_document_scoped_evaluation_reproduction(db_conn) -> None:
 def test_vacuous_direction_accuracy_reproduced(db_conn) -> None:
     lora_path = ROOT / "pilot_corpus" / "gold" / "gold_lora.json"
     rep = evaluate_pipeline(db_conn, str(lora_path), doc_id="papers/Hu2021_LoRA.pdf")
-    # Demonstrating the defect: returns 1.0 (100%) even though matched undirected edges is 0
+    # S4-F fix (Task B): direction_accuracy is now None (undefined) when matched_undirected=0,
+    # replacing the previous spurious 1.0.  The test asserts the corrected behaviour;
+    # the historical defect is documented here as a comment:
+    #   OLD (pre-S4-F): assert rep["edge_comparison"]["direction_accuracy"] == 1.0
     assert rep["edge_comparison"]["directed"]["true_positives"] == 0
-    assert rep["edge_comparison"]["direction_accuracy"] == 1.0
+    assert rep["edge_comparison"]["direction_accuracy"] is None, (
+        "Expected direction_accuracy=None when denominator=0 (S4-F fix Task B)"
+    )
+    assert rep["edge_comparison"]["direction_accuracy_status"] == "undefined"
 
 
 def test_exactly_nine_cycles_detected_and_eight_are_librarian_upload(db_audit, db_export) -> None:

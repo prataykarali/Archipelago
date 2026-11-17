@@ -1,0 +1,482 @@
+{
+  "LoRA": {
+    "scope": {
+      "mode": "document",
+      "doc_id": "papers/Hu2021_LoRA.pdf"
+    },
+    "baseline": {
+      "concept_f1": 0.1904761904761905,
+      "concept_precision": 0.18181818181818182,
+      "concept_recall": 0.2,
+      "concept_tp": 4,
+      "concept_fp": 18,
+      "concept_fn": 16,
+      "directed_edge_f1": 0.0,
+      "directed_edge_tp": 0,
+      "undirected_edge_f1": 0.0,
+      "undirected_edge_tp": 0,
+      "direction_accuracy": null,
+      "direction_accuracy_note": "ok",
+      "unscopable_edges": 101,
+      "skipped_related": 1334
+    },
+    "corrected": {
+      "concept_f1": 0.1904761904761905,
+      "concept_precision": 0.18181818181818182,
+      "concept_recall": 0.2,
+      "concept_tp": 4,
+      "concept_fp": 18,
+      "concept_fn": 16,
+      "concept_matched_pairs": [
+        [
+          "fine-tuning",
+          "fine-tuning"
+        ],
+        [
+          "low-rank adaptation",
+          "low-rank adaptation"
+        ],
+        [
+          "parameter-efficient fine-tuning",
+          "parameter-efficient fine-tuning"
+        ],
+        [
+          "adapter",
+          "adapter layers"
+        ]
+      ],
+      "directed_edge_f1": 0.0,
+      "directed_edge_tp": 0,
+      "directed_edge_fp": 13,
+      "directed_edge_fn": 21,
+      "undirected_edge_f1": 0.0,
+      "undirected_edge_tp": 0,
+      "direction_accuracy": null,
+      "direction_accuracy_status": "undefined",
+      "direction_accuracy_denominator": 0,
+      "equiv_map_applied": {
+        "adapter": "adapter layer"
+      },
+      "ambiguous_mappings": [],
+      "scoping": {
+        "in_scope_edges": 13,
+        "out_of_scope_edges": 1776,
+        "unscopable_edges": 101,
+        "skipped_related": 1334
+      },
+      "matched_directed_pairs": [],
+      "matched_undirected_pairs": [],
+      "failed_matches_sample": [
+        {
+          "predicted_edge": [
+            "fine tuning",
+            "adapter layer"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "fine tuning",
+            "gpt 2"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "fine tuning",
+            "gpt 3"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "fine tuning",
+            "low rank adaptation"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "gpt",
+            "adapter layer"
+          ],
+          "failure_reason": "target_concept_present_but_wrong_source"
+        },
+        {
+          "predicted_edge": [
+            "gpt",
+            "low rank adaptation"
+          ],
+          "failure_reason": "target_concept_present_but_wrong_source"
+        },
+        {
+          "predicted_edge": [
+            "gpt",
+            "prelayer"
+          ],
+          "failure_reason": "both_endpoints_absent_from_gold_edges"
+        },
+        {
+          "predicted_edge": [
+            "gpt 2",
+            "gpt 3"
+          ],
+          "failure_reason": "both_endpoints_absent_from_gold_edges"
+        },
+        {
+          "predicted_edge": [
+            "low rank adaptation",
+            "feature adaptation"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "matrix decomposition",
+            "low rank adaptation"
+          ],
+          "failure_reason": "target_concept_present_but_wrong_source"
+        }
+      ]
+    },
+    "concept_provenance": {
+      "globally_absent_gold_concepts": [
+        "adam optimizer",
+        "frozen pre trained weight",
+        "gradient update",
+        "inference latency",
+        "intrinsic rank",
+        "low rank matrix",
+        "prefix tuning",
+        "query and value projection matrice",
+        "rank decomposition matrice",
+        "scaling factor alpha",
+        "singular value decomposition",
+        "subspace similarity",
+        "task switching cost",
+        "vram optimization",
+        "weight matrix reparameterization",
+        "weight merging"
+      ],
+      "globally_absent_count": 16,
+      "note": "Globally absent = gold concept key not present anywhere in DB. These are genuine extraction failures, not scoping artifacts."
+    },
+    "relation_semantics_audit": {
+      "raw_cycle_count": 9,
+      "unique_cycle_count": 9,
+      "deduplication_method": "minimum_rotation",
+      "note": "structural_audit() builds a prerequisite-only graph (REQUIRES+UNLOCKS). RELATED edges are excluded from cycle detection. Raw DFS count is non-deterministic (9-10); unique count is 9.",
+      "cycles_by_length": {
+        "length_2": 8,
+        "length_6_or_more": 1
+      },
+      "cycles": [
+        [
+          "self_attention",
+          "long_context_transformer",
+          "self_attention"
+        ],
+        [
+          "transformer",
+          "token_dropping",
+          "transformer"
+        ],
+        [
+          "inception_score",
+          "graph_convolutional_network",
+          "neural_network",
+          "probability_distribution",
+          "maximum_likelihood_estimation",
+          "reward_model",
+          "inception_score"
+        ],
+        [
+          "language_model",
+          "summarization",
+          "language_model"
+        ],
+        [
+          "reinforcement_learning",
+          "binary_cross_entropy",
+          "reinforcement_learning"
+        ],
+        [
+          "kl_divergence",
+          "direct_preference_optimization",
+          "kl_divergence"
+        ],
+        [
+          "direct_preference_optimization",
+          "gae",
+          "direct_preference_optimization"
+        ],
+        [
+          "direct_preference_optimization",
+          "bradley_terry_preference_model",
+          "direct_preference_optimization"
+        ],
+        [
+          "sparse_mixture_of_experts",
+          "sparse_routing",
+          "sparse_mixture_of_experts"
+        ]
+      ]
+    }
+  },
+  "Attention": {
+    "scope": {
+      "mode": "document",
+      "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf"
+    },
+    "baseline": {
+      "concept_f1": 0.4,
+      "concept_precision": 0.36666666666666664,
+      "concept_recall": 0.44,
+      "concept_tp": 11,
+      "concept_fp": 19,
+      "concept_fn": 14,
+      "directed_edge_f1": 0.0,
+      "directed_edge_tp": 0,
+      "undirected_edge_f1": 0.0,
+      "undirected_edge_tp": 0,
+      "direction_accuracy": null,
+      "direction_accuracy_note": "ok",
+      "unscopable_edges": 101,
+      "skipped_related": 1334
+    },
+    "corrected": {
+      "concept_f1": 0.4,
+      "concept_precision": 0.36666666666666664,
+      "concept_recall": 0.44,
+      "concept_tp": 11,
+      "concept_fp": 19,
+      "concept_fn": 14,
+      "concept_matched_pairs": [
+        [
+          "attention head",
+          "attention heads"
+        ],
+        [
+          "attention mechanism",
+          "attention mechanism"
+        ],
+        [
+          "multi-head attention",
+          "multi-head attention"
+        ],
+        [
+          "recurrent neural network",
+          "recurrent neural networks"
+        ],
+        [
+          "self-attention",
+          "self-attention"
+        ],
+        [
+          "transformer encoder",
+          "transformer encoder"
+        ],
+        [
+          "transformer",
+          "transformer decoder"
+        ],
+        [
+          "embeddings",
+          "sinusoidal embeddings"
+        ],
+        [
+          "sequence",
+          "sequence-to-sequence models"
+        ],
+        [
+          "fully connected feed-forward network",
+          "feed-forward networks"
+        ],
+        [
+          "optimizer",
+          "adam optimizer"
+        ]
+      ],
+      "directed_edge_f1": 0.0,
+      "directed_edge_tp": 0,
+      "directed_edge_fp": 21,
+      "directed_edge_fn": 26,
+      "undirected_edge_f1": 0.0,
+      "undirected_edge_tp": 0,
+      "direction_accuracy": null,
+      "direction_accuracy_status": "undefined",
+      "direction_accuracy_denominator": 0,
+      "equiv_map_applied": {
+        "transformer": "transformer decoder",
+        "embedding": "sinusoidal embedding",
+        "sequence": "sequence to sequence model",
+        "fully connected feed forward network": "feed forward network",
+        "optimizer": "adam optimizer"
+      },
+      "ambiguous_mappings": [],
+      "scoping": {
+        "in_scope_edges": 21,
+        "out_of_scope_edges": 1771,
+        "unscopable_edges": 101,
+        "skipped_related": 1334
+      },
+      "matched_directed_pairs": [],
+      "matched_undirected_pairs": [],
+      "failed_matches_sample": [
+        {
+          "predicted_edge": [
+            "attention head",
+            "transformer layer"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "attention mechanism",
+            "transformer encoder"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "feed forward network",
+            "multi head attention"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "multi head attention",
+            "intra attention"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "multi head attention",
+            "multihead"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "multi head attention",
+            "transformer decoder"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "neural network",
+            "big model"
+          ],
+          "failure_reason": "both_endpoints_absent_from_gold_edges"
+        },
+        {
+          "predicted_edge": [
+            "self attention",
+            "attention head"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "self attention",
+            "wordpiece"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        },
+        {
+          "predicted_edge": [
+            "sequence to sequence model",
+            "self attention"
+          ],
+          "failure_reason": "source_concept_present_but_wrong_target"
+        }
+      ]
+    },
+    "concept_provenance": {
+      "globally_absent_gold_concepts": [
+        "adam optimizer",
+        "convolutional neural network",
+        "encoder decoder attention",
+        "feed forward network",
+        "label smoothing",
+        "masked self attention",
+        "positional encoding",
+        "query key and value vector",
+        "residual connection",
+        "scale factor",
+        "scaled dot product attention",
+        "sequence to sequence model",
+        "sinusoidal embedding",
+        "softmax function",
+        "teacher forcing",
+        "transformer decoder"
+      ],
+      "globally_absent_count": 16,
+      "note": "Globally absent = gold concept key not present anywhere in DB. These are genuine extraction failures, not scoping artifacts."
+    },
+    "relation_semantics_audit": {
+      "raw_cycle_count": 9,
+      "unique_cycle_count": 9,
+      "deduplication_method": "minimum_rotation",
+      "note": "structural_audit() builds a prerequisite-only graph (REQUIRES+UNLOCKS). RELATED edges are excluded from cycle detection. Raw DFS count is non-deterministic (9-10); unique count is 9.",
+      "cycles_by_length": {
+        "length_2": 8,
+        "length_6_or_more": 1
+      },
+      "cycles": [
+        [
+          "self_attention",
+          "long_context_transformer",
+          "self_attention"
+        ],
+        [
+          "transformer",
+          "token_dropping",
+          "transformer"
+        ],
+        [
+          "inception_score",
+          "graph_convolutional_network",
+          "neural_network",
+          "probability_distribution",
+          "maximum_likelihood_estimation",
+          "reward_model",
+          "inception_score"
+        ],
+        [
+          "language_model",
+          "summarization",
+          "language_model"
+        ],
+        [
+          "reinforcement_learning",
+          "binary_cross_entropy",
+          "reinforcement_learning"
+        ],
+        [
+          "kl_divergence",
+          "direct_preference_optimization",
+          "kl_divergence"
+        ],
+        [
+          "direct_preference_optimization",
+          "gae",
+          "direct_preference_optimization"
+        ],
+        [
+          "direct_preference_optimization",
+          "bradley_terry_preference_model",
+          "direct_preference_optimization"
+        ],
+        [
+          "sparse_mixture_of_experts",
+          "sparse_routing",
+          "sparse_mixture_of_experts"
+        ]
+      ]
+    }
+  }
+}

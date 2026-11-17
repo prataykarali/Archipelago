@@ -145,3 +145,41 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
   - Repair or remove the 101 directed edges with invalid provenance tags (requires human review).
 - **Known Limitations:** 0% Edge F1 is genuine — not an evaluator-only artifact. Even with evaluator fixes, low concept recall will keep Edge F1 near 0%. No new Archipelago features introduced.
 - **Branch / Remote:** `research/s4-e-graph-diagnosis` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s4-e-graph-diagnosis)
+
+### S4-F — Gold Graph Evaluator Integrity Repair
+- **Scientific Objective:** Repair five scientifically invalid evaluator behaviours without modifying gold fixtures, graph DB, extraction pipeline, or human annotations. Confirm that 0% Edge F1 is a genuine extraction failure, not an evaluator artifact.
+- **Implemented Changes:**
+  - `okf/eval/gold/compare_aligned.py` (new) — concept-aligned edge evaluator, direction accuracy guard, provenance scoping, relation semantics audit, `evaluate_pipeline_corrected()`
+  - `okf/eval/gold/part01_load_gold_graph.py` — Task B fix: `direction_accuracy` returns `None` + `direction_accuracy_status="undefined"` when denominator=0, replacing spurious `1.0`
+  - `research/s4-f-evaluator-repair/S4F_EVALUATOR_REPAIR_REPORT.md`
+  - `research/s4-f-evaluator-repair/s4f_eval_results.json`
+  - `research/s4-f-evaluator-repair/scripts/run_s4f_eval.py`
+  - `tests/unit/test_s4f_evaluator_repair.py` (24 new tests)
+  - `tests/unit/test_s4e_graph_diagnosis.py` (updated for direction_accuracy=None)
+- **Test Results:** **84/84** combined S1–S4-F regression + targeted tests passing (60 prior + 24 new S4-F).
+- **Task A — Concept-aligned edge evaluation:** New `compare_edges_aligned()` propagates the fuzzy equiv map from `compare_concepts()` into edge evaluation. Result: Directed Edge F1 **still 0.0** after alignment — confirmed genuine extraction failure (predicted edges connect different concept pairs, not just differently-labelled endpoints).
+- **Task B — Direction accuracy guard:** `direction_accuracy=None` + `status="undefined"` when `matched_undirected==0`. Previous `1.0` was vacuous truth (denominator=0).
+- **Task C — Provenance-aware scoping:** Scoping bucket now reports `in_scope`, `out_of_scope`, `unscopable`, and `skipped_related` separately. `evaluate_pipeline_corrected()` adds `globally_absent_gold_concepts` (16/20 LoRA, 16/25 Attention).
+- **Task D — Relation semantics:** `audit_relation_semantics()` deduplicates DFS cycles via minimum-rotation; stable count = 9. RELATED edges confirmed excluded from cycle detection by design. REQUIRES direction inversion in `_add_edge_record()` verified correct.
+- **Task E — Reproducible before/after:** `s4f_eval_results.json` contains baseline and corrected metrics side by side. All baseline concept F1 numbers preserved exactly.
+- **Known Limitations:** 0% Edge F1 is genuine — requires extraction pipeline improvements (not evaluator fixes). 101 unscopable directed edges, 1334 unevaluated RELATED edges, and 9 graph cycles remain unchanged (all require human review or S4-G authorization).
+- **Breaking change:** `direction_accuracy` field in `compare_edges()` return dict changed from `float` to `float | None`. Downstream callers that test `== 1.0` as success must be updated.
+- **Branch / Remote:** `research/s4-f-evaluator-repair` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s4-f-evaluator-repair)
+
+### S4-F — Gold Graph Evaluator Integrity Repair
+- **Scientific Objective:** Repair five scientifically invalid evaluator behaviours without modifying gold fixtures, graph DB, extraction pipeline, or human annotations. Confirm that 0% Edge F1 is a genuine extraction failure, not an evaluator artifact.
+- **Implemented Changes:**
+  - `okf/eval/gold/compare_aligned.py` (new) — concept-aligned edge evaluator, direction accuracy guard, provenance scoping, relation semantics audit, `evaluate_pipeline_corrected()`
+  - `okf/eval/gold/part01_load_gold_graph.py` — Task B fix: `direction_accuracy` returns `None` + `direction_accuracy_status="undefined"` when denominator=0, replacing spurious `1.0`
+  - `research/s4-f-evaluator-repair/S4F_EVALUATOR_REPAIR_REPORT.md`
+  - `research/s4-f-evaluator-repair/s4f_eval_results.json`
+  - `research/s4-f-evaluator-repair/scripts/run_s4f_eval.py`
+  - `tests/unit/test_s4f_evaluator_repair.py` (24 new tests)
+  - `tests/unit/test_s4e_graph_diagnosis.py` (updated for direction_accuracy=None)
+- **Test Results:** 84/84 combined S1-S4-F regression + targeted tests passing (60 prior + 24 new S4-F).
+- **Key Finding (Task A):** After concept-aligned edge evaluation, Directed Edge F1 remains 0.0 for LoRA and Attention. This confirms the 0% result is a genuine extraction failure.
+- **Key Finding (Task B):** direction_accuracy=None when matched_undirected=0. Previous 1.0 was vacuous (denominator=0 bug).
+- **Key Finding (Task C):** 16 of 20 LoRA gold concepts and 16 of 25 Attention gold concepts are globally absent from okf_graph.db.
+- **Key Finding (Task D):** 9 unique prerequisite-only cycles (8 length-2 symmetric, 1 length-6). RELATED edges excluded from cycle detection by design.
+- **Breaking change:** direction_accuracy field changed from float to float|None. Callers testing == 1.0 must update.
+- **Branch / Remote:** research/s4-f-evaluator-repair

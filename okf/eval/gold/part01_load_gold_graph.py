@@ -340,19 +340,28 @@ def compare_edges(
             "false_negatives": fn,
         }
 
-    # Calculate direction accuracy for matched undirected edges
+    # Calculate direction accuracy for matched undirected edges.
+    # S4-F fix (Task B): return None with explicit status when denominator=0,
+    # rather than the previously spurious 1.0 (vacuous truth).
     matched_undir = ext_undir.keys() & gold_undir.keys()
     correct_directions = 0
     for edge in matched_undir:
         if ext_undir[edge] == gold_undir[edge]:
             correct_directions += 1
 
-    dir_accuracy = correct_directions / len(matched_undir) if matched_undir else 1.0
+    if matched_undir:
+        dir_accuracy: float | None = correct_directions / len(matched_undir)
+        dir_accuracy_status = "computed"
+    else:
+        dir_accuracy = None
+        dir_accuracy_status = "undefined"
 
     return {
         "directed": dir_metrics,
         "undirected": undir_metrics,
         "direction_accuracy": dir_accuracy,
+        "direction_accuracy_status": dir_accuracy_status,
+        "direction_accuracy_denominator": len(matched_undir),
         "doc_id": doc_id,
         "predicted_edge_count": len(ext_edges),
         "gold_edge_count": len(gold_edges),
