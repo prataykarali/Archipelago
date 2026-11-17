@@ -131,8 +131,8 @@ def _answer(
         return "The stored collection contains no papers that matched the topic, so there is nothing to report."
     if EXPORT.search(query):
         return (
-            f"Download the single 14-sheet workbook for this collection: "
-            f"/api/research/intelligence/runs/{run_id}/xlsx ({len(papers)} papers)."
+            f"Open the [Papers page](/research/papers?run={run_id}) and select Download paper data (Excel). "
+            f"Its four sheets contain complete comparable paper and author fields for {len(papers)} papers."
         )
     if NEW_PAPERS.search(query):
         return new_papers

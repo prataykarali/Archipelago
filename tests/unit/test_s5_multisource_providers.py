@@ -330,7 +330,7 @@ def test_p1_slm_eligibility_domain_openaire_cleanup_and_chat_filters() -> None:
     none_ans = _answer("Which papers discuss neuromorphic spiking?", run, "", "r1", "")
     assert "No papers in this collection contain explicit evidence" in none_ans
     exp_ans = _answer("Export this research collection to Excel.", run, "", "r1", "")
-    assert "14-sheet workbook" in exp_ans
+    assert "four sheets" in exp_ans
 
 
 def test_double_escaped_html_gnn_gate_and_version_collapse() -> None:

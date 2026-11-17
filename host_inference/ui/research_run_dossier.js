@@ -185,8 +185,8 @@ function renderRunTopic(dossier, context) {
   }
   const abstracts = dossier.papers.filter(paper => paper.abstract).length;
   const latestYear = Object.keys(dossier.years).map(Number).filter(Number.isFinite).sort((a, b) => b - a)[0];
-  const topMethod = Object.entries(dossier.extracted_counts.methods || {}).sort((a, b) => b[1] - a[1])[0];
-  dossierEl("topic-conclusion").textContent = `${dossier.paper_count} source-linked papers span ${Object.keys(dossier.years).length} publication years${latestYear ? `, most recently ${latestYear}` : ""}. ${abstracts} have provider abstracts. ${topMethod ? `The most frequently evidenced method term is “${topMethod[0]}” (${topMethod[1]} papers).` : "No method term was verified in the available titles or abstracts."} These are coverage observations, not a judgment of scientific quality.`;
+  const reported = Object.fromEntries(DOSSIER_SECTIONS.map(([field]) => [field, dossier.papers.filter(paper => paper.extracted[field].length).length]));
+  dossierEl("topic-conclusion").textContent = `${dossier.paper_count} source-linked papers span ${Object.keys(dossier.years).length} publication years${latestYear ? `, most recently ${latestYear}` : ""}. ${abstracts} have provider abstracts; ${reported.methods} report methods, ${reported.datasets} name datasets or benchmarks, ${reported.evaluation_metrics} report evaluation metrics, and ${reported.claims} contain extracted claims. These counts describe source coverage, not scientific quality.`;
   const coverage = dossierEl("topic-coverage");
   coverage.replaceChildren();
   const counts = DOSSIER_SECTIONS.map(([field, label]) => [label, dossier.papers.filter(p => p.extracted[field].length).length]);
@@ -198,23 +198,6 @@ function renderRunTopic(dossier, context) {
   const providers = Object.entries(dossier.providers); const providerMax = Math.max(1, ...providers.map(([, count]) => count));
   dossierEl("topic-providers").replaceChildren();
   providers.forEach(([label, count]) => addDossierBar(dossierEl("topic-providers"), label, count, providerMax));
-  document.querySelector(".topic-extraction-panel").hidden = false;
-  const extracted = dossierEl("topic-extracted");
-  extracted.replaceChildren();
-  for (const [field, label] of DOSSIER_SECTIONS) {
-    const group = document.createElement("section"); group.className = "topic-extract-group";
-    const title = document.createElement("h3"); title.textContent = label;
-    const list = document.createElement("ul");
-    const entries = Object.entries(dossier.extracted_counts[field]);
-    if (!entries.length) { const empty = document.createElement("li"); empty.textContent = "No verified names"; list.append(empty); }
-    for (const [name, count] of entries) {
-      const item = document.createElement("li");
-      const term = document.createElement("span"); term.textContent = name;
-      const value = document.createElement("strong"); value.textContent = String(count);
-      item.append(term, value); list.append(item);
-    }
-    group.append(title, list); extracted.append(group);
-  }
 }
 
 function renderSavedTopicPreview(savedRun, runId) {
