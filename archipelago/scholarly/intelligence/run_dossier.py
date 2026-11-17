@@ -123,7 +123,6 @@ def build_run_dossier(run: dict[str, Any]) -> dict[str, Any]:
         "retrieved_at": preview["retrieved_at"],
         "paper_count": len(papers),
         "author_count": len(preview["sheets"]["Authors"]["rows"]),
-        "publication_count": len(preview["sheets"]["Publications"]["rows"]),
         "paper_headers": preview["sheets"]["Papers"]["headers"],
         "extracted_counts": extracted_counts,
         "years": dict(sorted(years.items(), reverse=True)),

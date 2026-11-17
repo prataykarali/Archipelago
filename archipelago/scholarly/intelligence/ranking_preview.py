@@ -1,4 +1,4 @@
-"""Expose the same three ranking sheets used by the standard Excel export."""
+"""Expose the paper and author ranking sheets used by the standard export."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 
 from .workbook import build_workbook
 
-RANKING_SHEETS = ("Papers", "Authors", "Publications")
+RANKING_SHEETS = ("Papers", "Authors")
 
 
 def preview_workbook(workbook: BytesIO, topic: str, retrieved_at: str) -> dict[str, Any]:

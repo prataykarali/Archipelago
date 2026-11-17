@@ -12,6 +12,8 @@ from archipelago.scholarly.intelligence.run_dossier import build_run_dossier
 from archipelago.scholarly.intelligence.workbook import build_workbook
 from archipelago.scholarly.intelligence.workbook_standard import STANDARD_SHEETS
 
+VISIBLE_SHEETS = tuple(name for name in STANDARD_SHEETS if name != "Publications")
+
 pytestmark = pytest.mark.unit
 
 BANNED_CODES = (
@@ -167,10 +169,9 @@ def _sample_run() -> dict:
 
 def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
     wb = load_workbook(BytesIO(build_workbook(_sample_run(), mode="standard").getvalue()))
-    assert tuple(wb.sheetnames) == STANDARD_SHEETS
-    assert wb["Papers"].max_column == 19
+    assert tuple(wb.sheetnames) == VISIBLE_SHEETS
+    assert wb["Papers"].max_column == 37
     assert wb["Authors"].max_column == 20
-    assert wb["Publications"].max_column == 19
 
     # Check no banned internal codes or JSON blobs anywhere
     for sname in wb.sheetnames:
@@ -203,12 +204,9 @@ def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
     assert len(wei_rows) == 2
     assert wei_rows[1][author_headers.index("Total Publications")] is None
 
-    # Publications: 2 rows, no JIF/CiteScore/SJR/CORE, preprint not marked peer-reviewed
-    pub_rows = list(wb["Publications"].iter_rows(min_row=2, values_only=True))
-    assert len(pub_rows) == 2
-    pub_headers = [cell.value for cell in wb["Publications"][1]]
-    assert pub_rows[0][pub_headers.index("Category")] == "Peer-reviewed journal"
-    assert pub_rows[1][pub_headers.index("Category")] == "Preprint repository"
+    # Venue facts are repeated on their corresponding paper rows.
+    assert paper_rows[0][paper_headers.index("Venue Category")] == "Peer-reviewed journal"
+    assert paper_rows[1][paper_headers.index("Venue Category")] == "Preprint repository"
 
     # Sources: readable per-(paper, provider) provenance rows with Discovery vs Enrichment
     src_rows = list(wb["Sources"].iter_rows(min_row=2, values_only=True))
@@ -276,11 +274,11 @@ def test_ranking_parameters_are_individual_typed_columns() -> None:
     assert value("Authors", 2, "Average Citations per Paper") == 12.5
     assert value("Authors", 2, "Recent Citations") == 9
     assert value("Authors", 2, "Metric Provider") == "OpenAlex"
-    assert value("Publications", 2, "Venue h-index") == 12
-    assert value("Publications", 2, "Mean Citedness") == 2.75
-    assert "Journal Impact Factor (JIF)" in [cell.value for cell in book["Publications"][1]]
-    assert "CiteScore" in [cell.value for cell in book["Publications"][1]]
-    assert value("Publications", 3, "Venue h-index") is None
+    assert value("Papers", 2, "Venue h-index") == 12
+    assert value("Papers", 2, "Mean Citedness") == 2.75
+    assert "Journal Impact Factor (JIF)" in [cell.value for cell in book["Papers"][1]]
+    assert "CiteScore" in [cell.value for cell in book["Papers"][1]]
+    assert value("Papers", 3, "Venue h-index") is None
 
 
 def test_standard_export_revalidates_old_runs_and_deduplicates_works() -> None:
@@ -381,7 +379,7 @@ def test_authenticated_xlsx_route_supports_standard_and_advanced_modes(
 
     r_default = client.get(f"/api/research/intelligence/runs/{run_id}/xlsx")
     assert r_default.status_code == 200
-    assert load_workbook(BytesIO(r_default.data)).sheetnames == list(STANDARD_SHEETS)
+    assert load_workbook(BytesIO(r_default.data)).sheetnames == list(VISIBLE_SHEETS)
 
     r_adv = client.get(f"/api/research/intelligence/runs/{run_id}/xlsx?mode=advanced")
     assert r_adv.status_code == 200
@@ -400,7 +398,7 @@ def test_authenticated_xlsx_route_supports_standard_and_advanced_modes(
     assert r_preview.status_code == 200
     preview = r_preview.get_json()
     workbook = load_workbook(BytesIO(r_default.data))
-    for name in ("Papers", "Authors", "Publications"):
+    for name in ("Papers", "Authors"):
         assert preview["sheets"][name]["headers"] == [cell.value for cell in workbook[name][1]]
         assert len(preview["sheets"][name]["rows"]) == workbook[name].max_row - 1
     assert preview["sheets"]["Papers"]["rows"][0]["values"][0].startswith("'=HYPERLINK")
@@ -448,7 +446,7 @@ def test_rankable_preview_contains_requested_columns_without_fabricating_metrics
     preview = preview_run(_sample_run())
     paper_headers = preview["sheets"]["Papers"]["headers"]
     author_headers = preview["sheets"]["Authors"]["headers"]
-    venue_headers = preview["sheets"]["Publications"]["headers"]
+    venue_headers = paper_headers
     assert "Citation Count" in paper_headers
     assert "Benchmark Performance" in paper_headers
     assert "Reproducibility Indicators" in paper_headers

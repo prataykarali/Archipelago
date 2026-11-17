@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import json
 import os
 from secrets import compare_digest
 from urllib.parse import urlsplit
@@ -12,6 +13,7 @@ from flask import Flask, Response, g, jsonify, redirect, request, send_from_dire
 from koha_snapshot import load_snapshot
 from librarian_store import RECORD_TYPES, list_records, save_record
 from opac_live import lookup_book, search_books
+from ranking_overlay import merge_dossier, merge_preview, merge_workbook
 import requests
 from research_pages import PAGE_DETAILS, UI, render_research_page
 from storage import topic_inventory, verify_user
@@ -442,7 +444,27 @@ def _forward(path: str) -> Response | tuple[object, int]:
         return jsonify({"error": "research_backend_unavailable"}), 503
     if REDIRECT_MIN_STATUS <= upstream.status_code < REDIRECT_MAX_STATUS:
         return jsonify({"error": "research_backend_redirected"}), 502
-    response = Response(upstream.content, status=upstream.status_code)
+    payload = upstream.content
+    if upstream.ok and path.startswith("/api/research/intelligence/runs/"):
+        try:
+            if path.endswith("/preview"):
+                payload = json.dumps(merge_preview(upstream.json())).encode("utf-8")
+            elif path.endswith("/dossier"):
+                preview_url = f"{research_backend_origin()}{path.removesuffix('/dossier')}/preview"
+                preview_response = requests.get(
+                    preview_url,
+                    headers=headers,
+                    timeout=PROXY_TIMEOUT_SECONDS,
+                )
+                if preview_response.ok:
+                    payload = json.dumps(
+                        merge_dossier(upstream.json(), preview_response.json())
+                    ).encode("utf-8")
+            elif path.endswith("/xlsx") and request.args.get("mode", "standard") == "standard":
+                payload = merge_workbook(payload)
+        except (ValueError, KeyError, IndexError, requests.RequestException):
+            app.logger.exception("Could not align research ranking columns")
+    response = Response(payload, status=upstream.status_code)
     response.headers["Content-Type"] = upstream.headers.get("Content-Type", "application/json")
     return response
 

@@ -139,7 +139,7 @@ function renderRunPaper(dossier, paper, context) {
   const rows = rankingRows(dossier, paper);
   const coverage = document.createElement("p");
   coverage.className = "run-ranking-coverage";
-  coverage.textContent = `${rows.filter(([, value]) => reportedRankingValue(value)).length} of ${rows.length} ranking parameters reported by sources. Missing values are not estimated.`;
+  coverage.textContent = `${rows.filter(([, value]) => reportedRankingValue(value)).length} of ${rows.length} ranking parameters reported by sources. Missing values are not estimated. JIF, CiteScore, SJR, SNIP, quartiles and CORE rank need verified publisher or index data; OpenAlex venue metrics appear only for matched journal or conference records.`;
   metrics.append(coverage);
   metrics.append(rankingGrid(rows)); dashboard.append(metrics);
   tabs.append(dossierLink("Ranking parameters", "#run-rankings"));
@@ -176,7 +176,7 @@ function renderRunTopic(dossier, context) {
   });
   actions.append(excelLink, dossierLink("Ranking tables ↗", context.run ? `/research/papers?run=${encodeURIComponent(context.run)}` : "/research/rankings", "topic-action secondary"));
   const stats = dossierEl("topic-stats");
-  for (const [label, count, icon] of [["Papers", dossier.paper_count, "▤"], ["Authors", dossier.author_count, "♙"], ["Publications", dossier.publication_count, "⌂"], ["Source providers", Object.keys(dossier.providers).length, "✦"]]) {
+  for (const [label, count, icon] of [["Papers", dossier.paper_count, "▤"], ["Authors", dossier.author_count, "♙"], ["Source providers", Object.keys(dossier.providers).length, "✦"]]) {
     const tile = document.createElement("div"); tile.className = "topic-stat";
     const symbol = document.createElement("span"); symbol.textContent = icon;
     const copy = document.createElement("div");

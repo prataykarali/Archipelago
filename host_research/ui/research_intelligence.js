@@ -222,8 +222,19 @@ async function showRun(run) {
       ['Influential citation count (Semantic Scholar)', metricNumber(paper.influential_citations)],
       ['Open-access status', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : '—'],
     ];
+    const venueHeaders = [
+      'Journal Impact Factor (JIF)', 'CiteScore', 'SCImago Journal Rank (SJR)',
+      'Source Normalized Impact per Paper (SNIP)', 'Q1-Q4 Quartile', 'CORE/ICORE Rank',
+      'h5-index', 'h5-median', 'Venue h-index', 'Venue i10-index',
+      'Acceptance Rate', 'Indexed Publication Count', 'Mean Citedness', 'Indexing Status'
+    ];
+    for (const header of venueHeaders) {
+      const index = dossier.paper_headers.indexOf(header);
+      const value = index >= 0 ? detail.rankable_values[index] : null;
+      metricRows.push([header, value == null || value === '' ? '—' : String(value)]);
+    }
     const coverage = document.createElement('p');
-    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper parameters reported · ${paper.abstract ? 'Abstract available' : 'No provider abstract'} · ${paper.doi ? 'DOI available' : 'No DOI reported'}`;
+    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper and venue parameters reported · ${paper.abstract ? 'Abstract available' : 'No provider abstract'} · ${paper.doi ? 'DOI available' : 'No DOI reported'}. JIF, CiteScore, SJR and SNIP require their licensed source; a blank is not zero.`;
     article.append(title, facts, coverage, metricGrid(metricRows));
     const paperDetail = document.createElement('a');
     paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${detail.index}`;
@@ -289,38 +300,6 @@ async function showRun(run) {
       }
     });
     article.append(authorDetails);
-    const venueDetails = paper.venue_details;
-    const verifiedVenue = venueDetails?.provider === 'openalex' && venueDetails?.id &&
-      ['peer_reviewed_journal', 'peer_reviewed_conference'].includes(venueDetails.venue_category);
-    const venueSection = document.createElement('details');
-    const venueSummary = document.createElement('summary');
-    venueSummary.textContent = `Publication parameters${paper.venue ? ` · ${paper.venue}` : ''}`;
-    venueSection.append(venueSummary, metricGrid([
-      ['Journal Impact Factor (JIF)', metricNumber(venueDetails?.jif)],
-      ['CiteScore', metricNumber(venueDetails?.citescore)],
-      ['SCImago Journal Rank (SJR)', metricNumber(venueDetails?.sjr, 3)],
-      ['SNIP', metricNumber(venueDetails?.snip, 3)],
-      ['Q1–Q4 quartile', venueDetails?.quartile || '—'],
-      ['CORE/ICORE rank', venueDetails?.icore_rank || '—'],
-      ['h5-index', metricNumber(venueDetails?.h5_index)],
-      ['h5-median', metricNumber(venueDetails?.h5_median)],
-      ['Venue h-index (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.h_index : null)],
-      ['Venue i10-index (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.i10_index : null)],
-      ['Acceptance rate', metricNumber(venueDetails?.acceptance_rate, 1)],
-      ['Indexed publication count (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.works_count : null)],
-      ['Mean citedness, 2-year (OpenAlex)', metricNumber(verifiedVenue ? venueDetails.openalex_2yr_mean_citedness : null, 2)],
-      ['Indexing status', verifiedVenue ? 'Indexed in OpenAlex' : '—'],
-    ]));
-    const venueSourceUrl = venueDetails?.source_metadata_url || venueDetails?.id;
-    if (verifiedVenue && venueSourceUrl?.startsWith('https://')) {
-      const venueSource = document.createElement('a');
-      venueSource.href = venueSourceUrl;
-      venueSource.target = '_blank';
-      venueSource.rel = 'noopener noreferrer';
-      venueSource.textContent = 'Publication source ↗';
-      venueSection.append(venueSource);
-    }
-    article.append(venueSection);
     list.append(article);
   }
   if (!paperRows.length) list.textContent = 'No source-linked papers with enough verified identity metadata matched this topic.';

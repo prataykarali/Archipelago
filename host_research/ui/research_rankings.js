@@ -1,6 +1,6 @@
 "use strict";
 
-const RANKING_NAMES = ["Papers", "Authors", "Publications"];
+const RANKING_NAMES = ["Papers", "Authors"];
 
 function rankingText(value, header = "") {
   if (value === null || value === undefined || value === "") return "";

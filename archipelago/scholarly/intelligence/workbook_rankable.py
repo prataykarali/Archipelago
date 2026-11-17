@@ -32,6 +32,24 @@ RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
         ("Paper Link", "Paper link"),
         ("Citation Provider", "Citation source"),
         ("Verified Sources", "Verified sources"),
+        ("Journal Impact Factor (JIF)", "JIF (Clarivate)"),
+        ("CiteScore", "CiteScore (Scopus)"),
+        ("SCImago Journal Rank (SJR)", "SJR (SCImago)"),
+        ("Source Normalized Impact per Paper (SNIP)", "SNIP"),
+        ("Q1-Q4 Quartile", "Journal quartile"),
+        ("CORE/ICORE Rank", "CORE / ICORE rank"),
+        ("h5-index", "h5-index"),
+        ("h5-median", "h5-median"),
+        ("Venue h-index", "Venue h-index (OpenAlex)"),
+        ("Venue i10-index", "Venue i10-index (OpenAlex)"),
+        ("Acceptance Rate", "Acceptance rate"),
+        ("Indexed Publication Count", "Indexed works (OpenAlex)"),
+        ("Mean Citedness", "2-year mean citedness (OpenAlex)"),
+        ("Indexing Status", "Indexed status (OpenAlex)"),
+        ("Venue Category", "Category"),
+        ("Venue Publisher", "Publisher"),
+        ("Venue Official Link", "Official link"),
+        ("Venue Metric Provider", "Venue metric provider"),
     ),
     "Authors": (
         ("Author Name", "Author name"),
@@ -55,48 +73,52 @@ RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
         ("Metric Provider", "Metric provider"),
         ("Verified Sources", "Verified sources"),
     ),
-    "Publications": (
-        ("Venue Name", "Venue name"),
-        ("Journal Impact Factor (JIF)", "JIF (Clarivate)"),
-        ("CiteScore", "CiteScore (Scopus)"),
-        ("SCImago Journal Rank (SJR)", "SJR (SCImago)"),
-        ("Source Normalized Impact per Paper (SNIP)", "SNIP"),
-        ("Q1-Q4 Quartile", "Journal quartile"),
-        ("CORE/ICORE Rank", "CORE / ICORE rank"),
-        ("h5-index", "h5-index"),
-        ("h5-median", "h5-median"),
-        ("Venue h-index", "Venue h-index (OpenAlex)"),
-        ("Venue i10-index", "Venue i10-index (OpenAlex)"),
-        ("Acceptance Rate", "Acceptance rate"),
-        ("Indexed Publication Count", "Indexed works (OpenAlex)"),
-        ("Mean Citedness", "2-year mean citedness (OpenAlex)"),
-        ("Indexing Status", "Indexed status (OpenAlex)"),
-        ("Category", "Category"),
-        ("Publisher", "Publisher"),
-        ("Official Link", "Official link"),
-        ("Metric Provider", "Venue metric provider"),
-    ),
 }
 
 
 def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
     """Keep source-backed values while presenting all requested parameters in fixed order."""
     book = load_workbook(build_standard_workbook(run))
+    venue_sheet = book["Publications"]
+    venue_headers = {str(cell.value): cell.column for cell in venue_sheet[1]}
+    venues = {
+        str(venue_sheet.cell(row, venue_headers["Venue name"]).value or "").strip().casefold(): row
+        for row in range(2, venue_sheet.max_row + 1)
+    }
     for sheet_name, columns in RANKABLE_COLUMNS.items():
         old = book[sheet_name]
         index = book.sheetnames.index(sheet_name)
         new = book.create_sheet(f"_new_{sheet_name}", index)
         old_headers = {str(cell.value): cell.column for cell in old[1]}
         for new_column, (heading, source_heading) in enumerate(columns, 1):
-            source_column = old_headers.get(source_heading)
+            source_sheet = old if source_heading in old_headers else venue_sheet
+            source_column = (old_headers if source_sheet is old else venue_headers).get(
+                source_heading
+            )
             heading_cell = new.cell(1, new_column, heading)
             if source_column is not None:
-                source_header = old.cell(1, source_column)
+                source_header = source_sheet.cell(1, source_column)
                 heading_cell._style = copy(source_header._style)
-                source_width = old.column_dimensions[get_column_letter(source_column)].width
+                source_width = source_sheet.column_dimensions[
+                    get_column_letter(source_column)
+                ].width
                 new.column_dimensions[get_column_letter(new_column)].width = source_width
                 for row in range(2, old.max_row + 1):
-                    original = old.cell(row, source_column)
+                    venue_name = (
+                        str(old.cell(row, old_headers["Publication venue"]).value or "")
+                        .strip()
+                        .casefold()
+                        if sheet_name == "Papers"
+                        else ""
+                    )
+                    venue_row = venues.get(venue_name)
+                    original = (
+                        source_sheet.cell(venue_row, source_column)
+                        if source_sheet is venue_sheet and venue_row
+                        else (old.cell(row, source_column) if source_sheet is old else None)
+                    )
+                    if original is None:
+                        continue
                     target = new.cell(row, new_column, original.value)
                     target._style = copy(original._style)
                     if original.hyperlink:
@@ -111,6 +133,18 @@ def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
         new.auto_filter.ref = f"A1:{get_column_letter(len(columns))}{new.max_row}"
         book.remove(old)
         new.title = sheet_name
+    book.remove(venue_sheet)
+    start = book["Start Here"]
+    for row in start.iter_rows():
+        for cell in row:
+            if cell.value == "Standard Research Export (5 sheets)":
+                cell.value = "Standard Research Export (4 sheets)"
+            elif cell.value == "Publications":
+                cell.value = "Venue metrics"
+            elif isinstance(cell.value, str) and cell.value.startswith("Publications: "):
+                cell.value = cell.value.replace("Publications: ", "Papers venue metric: ", 1)
+            elif isinstance(cell.value, str) and cell.value.startswith("One row per venue."):
+                cell.value = "Venue ranking fields appear on each paper row in the Papers sheet."
     output = BytesIO()
     book.save(output)
     output.seek(0)
