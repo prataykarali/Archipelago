@@ -208,6 +208,7 @@ def validate_provenance_record(
     claimed_page_number: Optional[int],
     evidence_text: str,
     conn: Any,
+    strict_page_match: bool = False,
 ) -> dict[str, Any]:
     """Hardened provenance validation against the frozen Kùzu corpus.
 
@@ -370,8 +371,12 @@ def validate_provenance_record(
 
     result["failure_layers"] = failures
     # is_valid: source pointer valid AND evidence match valid
-    # L3 page mismatch is flagged but does not block (annotation items may span pages)
-    result["is_valid"] = result["source_pointer_valid"] and result["evidence_match_valid"]
+    # In strict_page_match mode, page mismatch also blocks admission
+    if strict_page_match and result["page_valid"] is False:
+        result["is_valid"] = False
+    else:
+        result["is_valid"] = result["source_pointer_valid"] and result["evidence_match_valid"]
+
     if result["is_valid"]:
         result["reason"] = "VERIFIED: document found, chunk linked to document, evidence matched"
     else:
@@ -383,6 +388,7 @@ def validate_provenance_record(
 def validate_candidate_pool(
     candidates: list[dict[str, Any]],
     conn: Any,
+    strict_page_match: bool = False,
 ) -> dict[str, Any]:
     """Validate a list of annotation candidates against the corpus.
 
@@ -417,6 +423,7 @@ def validate_candidate_pool(
             claimed_page_number=cand.get("claimed_page_number"),
             evidence_text=str(cand.get("evidence_text", "")),
             conn=conn,
+            strict_page_match=strict_page_match,
         )
         v["item_id"] = item_id
         # Classify

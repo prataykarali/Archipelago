@@ -272,3 +272,35 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
   - Zero human judgments fabricated: all candidates remain `CANDIDATE_UNLABELED`.
   - TOC domain maintained as exploratory (`WITHIN_DOCUMENT_CHUNK_SPLIT`) until independent document is acquired.
 - **Scientific Constraints Verified:** No modifications to `okf_graph.db` or gold fixtures; no AI-generated or synthetic text; human annotation columns blank; original 36 invalid S4-G2 items preserved unchanged; STOP maintained before human labeling or retrieval experiments.
+
+### S4-G3 — Controlled Extraction Pipeline Repair & Blinded Annotation Handoff
+- **Branch:** `research/s4-g3-extraction-repair`
+- **Base Branch:** `research/s4-g2-2-corpus-locked-annotation`
+- **Base Commit:** `0f78955bdc2e719d01be4aef5fa67d60f3420ac9`
+- **Scientific Objective:** Repair the evidence-grounded academic concept-and-relation extraction pipeline across supported domains, eliminate spurious book-index explosions and prerequisite cycles, establish a blinded human annotation package, audit copyright/redistribution, and complete a controlled evaluation without modifying the production graph.
+- **Implemented Changes:**
+  - `okf/pilot/repaired_extractor.py` — New repaired extraction pipeline featuring:
+    1. Automated document pre-screening: rejects book indices, bibliographies, sparse catalog records (`is_excluded_document`).
+    2. Concept denoising: filters numeric tokens (`128KB`, `65B`, `48GB`), measurement units, figure/table references, and discourse markers while preserving canonical domain acronyms (`ANN`, `GNN`, `NIDS`, `LoRA`, `QLORA`, `LSTM`, `BERT`, `TLB`, `DFA`, `NFA`, `3NF`, `AST`, `CFG`) and compound terminology (`Virtual Memory`, `Page Table`, `Relational Algebra`).
+    3. Clause-aware relation extraction: enforces syntactic binding within clauses/tight sentence scope ($\le 150$ chars) and preserves semantic direction for asymmetric `REQUIRES`, `PART_OF`, and `USES` relations.
+    4. Prerequisite-specific DAG enforcement: implements reachability DFS cycle prevention specifically on prerequisite relations (`REQUIRES`, `INFERRED_REQUIRES`), allowing heterogeneous multi-relational graphs to retain natural non-prerequisite cyclic patterns.
+  - `okf/eval/integrity_validators.py` — Updated with `strict_page_match=True` gate requiring exact page number agreement for strict admission.
+  - `research/s4-g3-extraction-repair/annotation_package/` — Full annotation handoff:
+    - `blinded/blinded_human_annotation_pool.csv` & `blinded_human_annotation_workbook.md`: 24 items with neutral IDs (`ANN-01` to `ANN-24`), blank judgment fields, and stripped hints.
+    - `blinded/ANNOTATOR_INSTRUCTIONS.md`: Strict evidence-grounded guidelines.
+    - `admin/selection_manifest.json`: Master cryptographic linkage with byte offsets and SHA-256 chunk fingerprints.
+    - `admin/candidate_reconciliation_report.md`: Reconciles the 5 intermediate rejected specifications.
+    - `public/candidate_metadata_index.csv`: Content-free public release index (zero verbatim text).
+  - `research/s4-g3-extraction-repair/copyright_audit/source_redistribution_and_git_exposure_audit.md` — Legal audit establishing that Open Access $\neq$ unrestricted redistribution, detailing proprietary vs CC licenses, and providing Git history exposure review without destructive history rewrites.
+  - `research/s4-g3-extraction-repair/scripts/run_s4g3_evaluation.py` — Controlled benchmark comparing baseline vs repaired extractor across 12 documents.
+  - `research/s4-g3-extraction-repair/evaluation_results/` — `s4g3_controlled_comparison_results.json` and `comparison_metrics_table.csv`.
+  - `research/s4-g3-extraction-repair/S4G3_EXTRACTION_REPAIR_REPORT.md` — Full scientific report.
+  - `tests/unit/test_s4g3_extraction_repair.py` — 96 unit and adversarial tests covering pre-screening, denoising, clause relations, cycle prevention, blinded package integrity, and strict page verification.
+- **Test Results:** **264/264** tests passing across S1–S4-G3 (96 new S4-G3 tests + 168 regression tests).
+- **Key Findings:**
+  - **Index Explosion Eliminated:** Baseline exploded into 39,435 edges taking 177s on `data_science_2019/Index_...`; repaired pipeline instantly excluded it (0 edges, 0.00s).
+  - **Concept Noise Purged:** Noisy concept rate dropped from **33.8% average (up to 52.0%) to 0.0%**.
+  - **Prerequisite Cycles Purged (208 $\to$ 0):** Baseline formed 208 prerequisite cycles across papers; repaired pipeline formed **0 prerequisite cycles**.
+  - **Runtime Speedup:** Overall runtime reduced from **242.89s to 0.90s** (~270x faster).
+  - **Safeguards Maintained:** Unsupported relation rate strictly reported as `NOT_MEASURED`; retrieval effectiveness strictly reported as `NOT_EVALUATED`.
+- **STOP Confirmed:** S4-G3 is complete. Production graph untouched; gold fixtures untouched; zero human labels fabricated.
