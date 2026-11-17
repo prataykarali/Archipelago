@@ -211,3 +211,53 @@ def test_graphrag_fairness_protocol_documents_unavailability() -> None:
     proto = json.loads((RESEARCH / "graphrag_fairness_protocol.json").read_text(encoding="utf-8"))
     assert proto["graphrag_pool_status"]["available_in_repo"] is False
     assert "never" in proto["graphrag_pool_status"]["reason"].lower() or "cannot" in proto["graphrag_pool_status"]["reason"].lower()
+
+# ── 6. Stage 1 Independent Reviewer Package Tests ─────────────────────────────
+
+@pytest.fixture(scope="module")
+def stage1_handoff_md() -> str:
+    path = LOCAL_ONLY / "stage1_handoff_package" / "stage1_independent_worksheet.md"
+    return path.read_text(encoding="utf-8")
+
+@pytest.fixture(scope="module")
+def stage1_handoff_json() -> list[dict]:
+    path = LOCAL_ONLY / "stage1_handoff_package" / "stage1_independent_template.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+def test_stage1_handoff_candidates_count(stage1_handoff_json: list[dict]) -> None:
+    """Stage 1 package must contain exactly 113 candidates across 6 queries."""
+    assert len(stage1_handoff_json) == 6
+    total_candidates = sum(len(q["passage_relevance_judgments"]) for q in stage1_handoff_json)
+    assert total_candidates == 113
+    for q in stage1_handoff_json:
+        qid = q["query_id"]
+        assert len(q["passage_relevance_judgments"]) == EXPECTED_POOL_SIZES[qid]
+
+def test_stage1_handoff_all_judgments_null(stage1_handoff_json: list[dict]) -> None:
+    """Stage 1 package must have zero prefilled relevance scores."""
+    for q in stage1_handoff_json:
+        for cid, val in q["passage_relevance_judgments"].items():
+            assert val is None, f"{q['query_id']} {cid} was prefilled with {val}"
+        assert q["answerability_assessment"] is None
+        assert q["requires_multiple_supporting_passages"] is None
+
+def test_stage1_handoff_blinding_and_corpus_caveat(stage1_handoff_md: str) -> None:
+    """Stage 1 worksheet must include the pool vs corpus boundary notice and hide system labels."""
+    assert "CRITICAL NOTICE ON ANSWERABILITY SCOPE" in stage1_handoff_md
+    assert "cannot certify that an unanswered question is absent from the entire corpus" in stage1_handoff_md
+    # Blinding
+    cat_pattern = re.compile(
+        r"\b(multi_hop_prerequisite|cross_paper_comparison|single_hop_definition|provenance_citation_check)\b",
+        re.I
+    )
+    for line in stage1_handoff_md.splitlines():
+        if line.startswith("## ") or line.startswith("**Question"):
+            assert not cat_pattern.search(line), f"Leaked category in header: {line}"
+    assert "bm25" not in stage1_handoff_md.lower() or "retrieval system identities (`bm25`" in stage1_handoff_md.lower()
+    assert "**Source Document(s):**" not in stage1_handoff_md
+
+def test_calibration_files_marked_in_manifest() -> None:
+    """Prior Reviewer B files must be documented as calibration records, not independent evidence."""
+    report = (RESEARCH / "STAGE1_HANDOFF_VALIDATION_REPORT.md").read_text(encoding="utf-8")
+    assert "CALIBRATION RECORD ONLY" in report
+    assert "MUST NOT be used as independent double-blind adjudication evidence" in report
