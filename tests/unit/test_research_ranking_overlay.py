@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 from io import BytesIO
+from pathlib import Path
+import sys
+from types import SimpleNamespace
 
 from openpyxl import Workbook, load_workbook
+import pytest
 
 from archipelago.scholarly.intelligence.workbook import build_workbook
 from archipelago.scholarly.intelligence.workbook_standard import build_standard_workbook
 from host_research.ranking_overlay import merge_dossier, merge_preview, merge_workbook
 from tests.unit.test_standard_research_xlsx import _sample_run
+
+HOST_RESEARCH = Path(__file__).resolve().parents[2] / "host_research"
+if str(HOST_RESEARCH) not in sys.path:
+    sys.path.insert(0, str(HOST_RESEARCH))
 
 
 def _preview() -> dict:
@@ -155,3 +163,41 @@ def test_production_overlay_agrees_with_canonical_export() -> None:
                         live_row[live_headers.index(heading)]
                         == canonical_row[canonical_headers.index(heading)]
                     )
+
+
+def test_standard_export_proxy_marks_current_schema_and_cannot_return_publications(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from host_research import app as research_app
+
+    run = _sample_run()
+    old_payload = build_standard_workbook(run).getvalue()
+    monkeypatch.setattr(
+        research_app.requests,
+        "request",
+        lambda *args, **kwargs: SimpleNamespace(
+            ok=True,
+            status_code=200,
+            content=old_payload,
+            headers={
+                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        research_app.requests,
+        "get",
+        lambda *args, **kwargs: SimpleNamespace(ok=True, json=lambda: run),
+    )
+    with research_app.app.test_request_context(
+        "/api/research/intelligence/runs/11111111-1111-1111-1111-111111111111/xlsx?mode=standard"
+    ):
+        response = research_app._forward(
+            "/api/research/intelligence/runs/11111111-1111-1111-1111-111111111111/xlsx"
+        )
+    assert response.status_code == 200
+    assert response.headers["X-Archipelago-Export-Schema"] == "paper-venue-v2"
+    assert response.cache_control.no_store
+    workbook = load_workbook(BytesIO(response.get_data()), read_only=True)
+    assert "Publications" not in workbook.sheetnames
+    assert "Venue h-index" in [cell.value for cell in workbook["Papers"][1]]

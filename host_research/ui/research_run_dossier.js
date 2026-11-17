@@ -163,7 +163,7 @@ function renderRunTopic(dossier, context) {
   const xlsx = context.run ? `/api/research/intelligence/runs/${encodeURIComponent(context.run)}/xlsx?mode=standard` : "/research/example/Archipelago_State_Space_Models_Rankable.xlsx";
   const excelLink = dossierLink("Download Excel ↗", xlsx, "topic-action");
   actions.append(excelLink, dossierLink("Ranking tables ↗", context.run ? `/research/papers?run=${encodeURIComponent(context.run)}` : "/research/rankings", "topic-action secondary"));
-  if (context.run) void prepareResearchExcelLink(excelLink, xlsx, `archipelago-research-${context.run.slice(0, 8)}-standard.xlsx`, dossierEl("topic-status"));
+  if (context.run) void prepareResearchExcelLink(excelLink, xlsx, `archipelago-research-${context.run.slice(0, 8)}-paper-venue-v2.xlsx`, dossierEl("topic-status"));
   const stats = dossierEl("topic-stats");
   for (const [label, count, icon] of [["Papers", dossier.paper_count, "▤"], ["Authors", dossier.author_count, "♙"], ["Source providers", Object.keys(dossier.providers).length, "✦"]]) {
     const tile = document.createElement("div"); tile.className = "topic-stat";

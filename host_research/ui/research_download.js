@@ -1,6 +1,7 @@
 "use strict";
 
 const preparedResearchExports = new WeakMap();
+const RESEARCH_EXPORT_SCHEMA = 'paper-venue-v2';
 
 async function prepareResearchExcelLink(link, endpoint, filename, status) {
   const previous = preparedResearchExports.get(link);
@@ -16,6 +17,9 @@ async function prepareResearchExcelLink(link, endpoint, filename, status) {
   try {
     const response = await fetch(endpoint, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Excel export failed (${response.status})`);
+    if (response.headers.get('X-Archipelago-Export-Schema') !== RESEARCH_EXPORT_SCHEMA) {
+      throw new Error('This export is outdated. Refresh the Research page and retry.');
+    }
     const workbook = await response.blob();
     const signature = new Uint8Array(await workbook.slice(0, 2).arrayBuffer());
     if (signature[0] !== 0x50 || signature[1] !== 0x4b) throw new Error('The export response was not an Excel workbook.');

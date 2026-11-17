@@ -178,13 +178,13 @@ async function showRun(run) {
   s5('intelligence-results').hidden = false;
   s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
   s5('paper-list-link').textContent = `Browse ${paperRows.length} paper pages ↓`;
-  s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
+  s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters · Current Excel: 4 sheets; venue metrics on Papers`;
   s5('provider-status').textContent = (run.sources || []).map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ') + (dossierError ? ' · Detailed rankings are temporarily unavailable; saved paper records are shown.' : '');
   const excelLink = s5('excel-link');
   void prepareResearchExcelLink(
     excelLink,
     `/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/xlsx?mode=standard`,
-    `archipelago-research-${activeRunId.slice(0, 8)}-standard.xlsx`,
+    `archipelago-research-${activeRunId.slice(0, 8)}-paper-venue-v2.xlsx`,
     s5('provider-status')
   );
   const list = s5('paper-results');

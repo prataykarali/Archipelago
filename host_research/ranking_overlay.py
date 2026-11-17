@@ -65,6 +65,7 @@ VENUE_COLUMNS = (
     "Official Link",
     "Metric Provider",
 )
+EXPORT_SCHEMA = "paper-venue-v2"
 VENUE_RENAMES = {
     "Category": "Venue Category",
     "Publisher": "Venue Publisher",
@@ -220,8 +221,14 @@ def merge_dossier(
 def merge_workbook(payload: bytes, run: dict[str, Any] | None = None) -> bytes:
     """Apply the same ranking schema to the downloaded standard workbook."""
     book = load_workbook(BytesIO(payload))
-    if "Publications" not in book or "Papers" not in book:
-        return payload
+    if "Publications" not in book:
+        if "Papers" in book and set(VENUE_COLUMNS[:5]).issubset(
+            {cell.value for cell in book["Papers"][1]}
+        ):
+            return payload
+        raise ValueError("outdated_research_workbook_schema")
+    if "Papers" not in book or "Authors" not in book:
+        raise ValueError("incomplete_research_workbook_schema")
     preview: dict[str, Any] = {"sheets": {}}
     for name in ("Papers", "Authors", "Publications"):
         sheet = book[name]

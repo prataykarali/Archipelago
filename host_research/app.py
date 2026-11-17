@@ -13,7 +13,7 @@ from flask import Flask, Response, g, jsonify, redirect, request, send_from_dire
 from koha_snapshot import load_snapshot
 from librarian_store import RECORD_TYPES, list_records, save_record
 from opac_live import lookup_book, search_books
-from ranking_overlay import merge_dossier, merge_preview, merge_workbook
+from ranking_overlay import EXPORT_SCHEMA, merge_dossier, merge_preview, merge_workbook
 import requests
 from research_pages import PAGE_DETAILS, UI, render_research_page
 from storage import topic_inventory, verify_user
@@ -418,6 +418,7 @@ def graph_proxy() -> Response | tuple[object, int]:
 
 def _forward(path: str) -> Response | tuple[object, int]:
     """Relay a fixed-origin backend request with the verified user token."""
+    standard_export = request.args.get("mode", "standard") == "standard"
     try:
         url = f"{research_backend_origin()}{path}"
     except ValueError:
@@ -469,13 +470,16 @@ def _forward(path: str) -> Response | tuple[object, int]:
                 payload = json.dumps(
                     merge_dossier(upstream.json(), preview_response.json(), run)
                 ).encode("utf-8")
-            elif path.endswith("/xlsx") and request.args.get("mode", "standard") == "standard":
+            elif path.endswith("/xlsx") and standard_export:
                 payload = merge_workbook(payload, run)
         except (ValueError, KeyError, IndexError, requests.RequestException):
             app.logger.exception("Could not align research ranking columns")
             return jsonify({"error": "ranking_transform_failed"}), 502
     response = Response(payload, status=upstream.status_code)
     response.headers["Content-Type"] = upstream.headers.get("Content-Type", "application/json")
+    if upstream.ok and path.endswith("/xlsx") and standard_export:
+        response.cache_control.no_store = True
+        response.headers["X-Archipelago-Export-Schema"] = EXPORT_SCHEMA
     return response
 
 

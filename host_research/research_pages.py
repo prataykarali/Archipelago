@@ -30,7 +30,7 @@ PAGE_SCRIPTS = {
     "paper": ("research_run_dossier.js", "research_paper.js"),
     "topic": ("research_download.js", "research_run_dossier.js", "research_topic.js"),
 }
-ASSET_VERSION = "20261117exceldownload3"
+ASSET_VERSION = "20261117papervenue4"
 
 
 def render_research_page(page: str) -> Response:
@@ -55,4 +55,7 @@ def render_research_page(page: str) -> Response:
         .replace("__SCRIPTS__", "\n  ".join(scripts))
         .replace("__CONTENT__", fragment)
     )
-    return Response(html, mimetype="text/html")
+    response = Response(html, mimetype="text/html")
+    if page in {"papers", "topic"}:
+        response.cache_control.no_store = True
+    return response
