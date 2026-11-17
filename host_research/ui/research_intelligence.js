@@ -261,6 +261,9 @@ async function showRun(run) {
     const authorSummary = document.createElement('summary');
     authorSummary.textContent = 'Author parameters';
     authorDetails.append(authorSummary);
+    const authorCoverage = document.createElement('p');
+    authorCoverage.textContent = 'g-index and median citations need a complete work-level citation series; field-normalized author impact needs a verified provider aggregate. First/last-author and collaborator counts cover this search only.';
+    authorDetails.append(authorCoverage);
     const providerIds = paperAuthorIds(paper);
     paper.authors?.forEach((author, index) => {
       const id = providerIds[index];
