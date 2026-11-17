@@ -22,6 +22,9 @@ body[data-research-page="topic"] .workspace { max-width: none; padding: 0; }
 .topic-panel, .topic-papers { border: 1px solid #dce2f3; background: #fff; border-radius: 11px; padding: 16px; }
 .topic-panel h2, .topic-papers h2 { margin: 0; font: 700 17px 'Space Grotesk', sans-serif; color: #1b2455; }.topic-panel h2:not(:first-child) { margin-top: 24px; }
 .topic-panel > p { margin: 5px 0 14px; color: #66718f; font-size: 11px; }
+.topic-conclusion { margin: 14px 0; }
+.topic-conclusion #topic-conclusion { font-size: 14px; line-height: 1.6; color: #334166; margin: 8px 0 0; }
+.topic-browse-note { color: #465275; font-size: 13px; margin: 12px 0; }
 .topic-bar-row { display: grid; grid-template-columns: minmax(100px, 35%) minmax(0, 1fr) 30px; gap: 8px; align-items: center; padding: 6px 0; font-size: 11px; text-transform: capitalize; }
 .topic-bar-row > span { overflow-wrap: anywhere; color: #455172; }.topic-bar-row strong { text-align: right; color: #33265e; }
 .topic-bar-track { height: 8px; background: #ecedfa; border-radius: 10px; overflow: hidden; }.topic-bar-track i { display: block; height: 100%; border-radius: 10px; background: linear-gradient(90deg, #6945e6, #d078fc); }

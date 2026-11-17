@@ -86,6 +86,22 @@ def _paper_detail(paper: dict[str, Any], index: int, values: list[Any]) -> dict[
             field: _extractions(paper.get(field), title, abstract) for field in EXTRACTION_FIELDS
         },
         "rankable_values": values,
+        "provider_metrics": {
+            label: value
+            for label, value in (
+                ("Citation count", paper.get("citation_count")),
+                ("Citations per year", paper.get("citations_per_year")),
+                ("OpenAlex FWCI", paper.get("fwci")),
+                (
+                    "OpenAlex citation percentile",
+                    (paper.get("citation_normalized_percentile") or {}).get("value"),
+                ),
+                ("Reference count", paper.get("reference_count")),
+                ("Semantic Scholar influential citations", paper.get("influential_citations")),
+                ("Open access", paper.get("is_open_access")),
+            )
+            if value is not None
+        },
     }
 
 

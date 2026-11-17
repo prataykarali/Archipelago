@@ -90,6 +90,7 @@ export async function postChatRequest(inputVal, signal) {
             request_id: crypto.randomUUID(),
             mode: state.currentMode,
             history: cleanHistory,
+            research_run_id: new URLSearchParams(window.location.search).get('research_run_id') || undefined,
             session_id: state.conversationSessionId,
             // Enable synthesis so that local SLM generates natural academic answers
             synthesis: true

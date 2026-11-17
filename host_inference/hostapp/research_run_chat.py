@@ -11,8 +11,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .research_concepts import DISCUSS_RE, _filter_by_concept
+
 FIND = re.compile(
-    r"\b(?:find|search|collect|get|look up)\b(?:\s+(?P<count>\d{1,3}))?"
+    r"\b(?:find|search|collect|get|look up|show|recommend|discover)\b(?:\s+(?:me|the))?(?:\s+(?P<count>\d{1,3}))?"
     r"(?:\s+(?P<pre_topic>[a-z0-9][a-z0-9\s\-]{2,80}?))?\s+(?:research\s+)?(?:papers?|publications?|studies)\b"
     r"(?:\s+(?:on|about|for|regarding)\s+(?P<topic>.+))?",
     re.I,
@@ -24,7 +26,7 @@ COLLECTION = re.compile(
     r"that author|the author|authors?|h-index|i10|journals?|conferences?|"
     r"venues?|citation relationships?|cit(?:es|ations?)|methods?|datasets?|export|excel|workbook|"
     r"new papers|monitor|monitoring|providers?|results?|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
-    r"duplicat(?:ed|es)|external|discuss|mention|cover|quantiz\w*|low[- ]memory|inference)\b",
+    r"duplicat(?:ed|es)|external|discuss|mention|cover|rank(?:ing|ed)?|compare|best|relevan\w*|quantiz\w*|low[- ]memory|inference)\b",
     re.I,
 )
 RESEARCH_WORDS = re.compile(
@@ -94,76 +96,31 @@ def _observation(run: dict[str, Any], paper: dict[str, Any], author_index: int) 
     return next((o for o in run.get("author_observations", []) if o["id"] == short), None)
 
 
-def _list(run: dict[str, Any]) -> str:
+def _paper_page(run_id: str, index: int) -> str:
+    """Return a stable local paper URL for a saved collection."""
+    return f"/research/paper?run={run_id}&paper={index}"
+
+
+def _markdown_title(value: Any) -> str:
+    """Keep provider-supplied titles from changing chat link syntax."""
+    return re.sub(r"([\\\[\]()*_`])", r"\\\1", str(value or "Untitled"))
+
+
+def _list(run: dict[str, Any], run_id: str) -> str:
     lines = [
         f"This collection for “{run['options']['topic']}” has {len(run['papers'])} papers "
-        f"(requested up to {run['options']['top_k']}; order: {run.get('ordering')}, not a quality ranking)."
+        f"(requested up to {run['options']['top_k']}; stored order: {run.get('ordering')}). "
+        f"[Browse comparable discovery ranks](/research/papers?run={run_id}); these are not scientific-quality scores."
     ]
     for i, p in enumerate(run["papers"], 1):
         authors = ", ".join(a["name"] for a in p["authors"][:6]) or "authors unavailable"
         if len(p["authors"]) > 6:
             authors += f" and {len(p['authors']) - 6} more"
         lines.append(
-            f"[{i}] {p['title']} — {authors} — {p.get('year') or 'year unavailable'} — {_link(p)}"
+            f"[{i}] [{_markdown_title(p['title'])}]({_paper_page(run_id, i - 1)}) — {authors} — "
+            f"{p.get('year') or 'year unavailable'} — [provider record]({_link(p)})"
         )
     return "\n".join(lines)
-
-
-CONCEPT_SYNONYMS: dict[str, tuple[str, ...]] = {
-    "quantization": ("quantized", "quantize", "int4", "int8", "4-bit", "8-bit", "low-bit"),
-    "low-memory inference": ("low memory", "memory-efficient", "memory footprint", "memory constraint", "kv cache", "ram"),
-    "low memory inference": ("low-memory", "memory-efficient", "memory footprint", "memory constraint", "kv cache", "ram"),
-    "pruning": ("pruned", "sparsity", "sparse"),
-    "distillation": ("knowledge distillation", "distilled"),
-}
-DISCUSS_RE = re.compile(
-    r"\b(?:which|what)\s+(?:papers?\s+)?(?:discuss|mention|cover|use|evaluate|focus on)\s+(.+?)\??$",
-    re.I,
-)
-
-
-def _filter_by_concept(concept: str, papers: list[dict[str, Any]]) -> str:
-    clean = re.sub(r"[?.!]+$", "", concept.strip().lower())
-    syns = CONCEPT_SYNONYMS.get(clean, ())
-    matches: list[str] = []
-    for i, p in enumerate(papers, 1):
-        fields: list[tuple[str, str]] = [
-            ("title", str(p.get("title") or "")),
-            ("abstract", str(p.get("abstract") or "")),
-            ("topics", ", ".join(str(t) for t in (p.get("topics") or []))),
-            ("claims", " ".join(str(c.get("evidence_text") or "") for c in (p.get("claims") or []) if isinstance(c, dict))),
-        ]
-        hit_desc = None
-        for loc, text in fields:
-            if not text:
-                continue
-            m = re.search(rf"\b{re.escape(clean)}\b", text, re.I)
-            if m:
-                start, end = max(0, m.start() - 30), min(len(text), m.end() + 45)
-                snippet = " ".join(text[start:end].split())
-                hit_desc = f"exact match in {loc}: “{snippet}”"
-                break
-        if not hit_desc and syns:
-            for syn in syns:
-                for loc, text in fields:
-                    if not text:
-                        continue
-                    m = re.search(rf"\b{re.escape(syn)}\b", text, re.I)
-                    if m:
-                        start, end = max(0, m.start() - 30), min(len(text), m.end() + 45)
-                        snippet = " ".join(text[start:end].split())
-                        hit_desc = f"documented synonym ({syn}) in {loc}: “{snippet}”"
-                        break
-                if hit_desc:
-                    break
-        if hit_desc:
-            matches.append(f"[{i}] {p['title']} — {_link(p)} — {hit_desc}")
-    if not matches:
-        return (
-            f"No papers in this collection contain explicit evidence for “{clean}” "
-            "in their title, abstract, provider topics, or extracted claims."
-        )
-    return f"Papers in this collection with evidence for “{clean}” ({len(matches)}/{len(papers)}):\n" + "\n".join(matches)
 
 
 def _answer(
@@ -238,7 +195,14 @@ def _answer(
         merged = [
             f"[{i}] {p['title']} (sources: {', '.join(sorted({prov.get('source_type', '') for prov in (p.get('provenance') or []) if prov.get('source_type')}))})"
             for i, p in enumerate(papers, 1)
-            if len({prov.get("source_type") for prov in (p.get("provenance") or []) if prov.get("source_type")}) > 1
+            if len(
+                {
+                    prov.get("source_type")
+                    for prov in (p.get("provenance") or [])
+                    if prov.get("source_type")
+                }
+            )
+            > 1
         ]
         if not merged:
             return "No multi-provider deduplicated overlaps were recorded in this collection."
@@ -259,8 +223,14 @@ def _answer(
             or (target == "arxiv" and (p.get("identifiers") or {}).get("arxiv_id"))
         ]
         if not matched:
-            src_info = next((s for s in (run.get("sources") or []) if s.get("source") == target), None)
-            reason = f" (provider status: {src_info['status']}{' - ' + src_info['error'] if src_info.get('error') else ''})" if src_info else ""
+            src_info = next(
+                (s for s in (run.get("sources") or []) if s.get("source") == target), None
+            )
+            reason = (
+                f" (provider status: {src_info['status']}{' - ' + src_info['error'] if src_info.get('error') else ''})"
+                if src_info
+                else ""
+            )
             return f"No papers in this collection are attributed to {target}{reason}."
         return f"Papers in this collection linked to {target}:\n" + "\n".join(matched)
     if re.search(r"\bproviders?\b", query, re.I):
@@ -284,7 +254,10 @@ def _answer(
                 if isinstance(obs, dict) and obs.get("count") is not None
             )
             for i, p in enumerate(papers, 1)
-            if any(isinstance(obs, dict) and obs.get("count") is not None for obs in (p.get("citation_observations") or []))
+            if any(
+                isinstance(obs, dict) and obs.get("count") is not None
+                for obs in (p.get("citation_observations") or [])
+            )
         ]
         return (
             "External provider-reported citation counts:\n" + "\n".join(ext)
@@ -328,9 +301,9 @@ def _answer(
                 f"[{i}] {'; '.join(found) if found else 'none stated in the available abstract'}"
             )
         return "\n".join(lines)
-    if (dmatch := DISCUSS_RE.search(query)):
-        return _filter_by_concept(dmatch.group(1), papers)
-    return _list(run)
+    if dmatch := DISCUSS_RE.search(query):
+        return _filter_by_concept(dmatch.group(1), papers, _link)
+    return _list(run, run_id)
 
 
 def research_chat_reply(
@@ -361,13 +334,25 @@ def research_chat_reply(
     raw_topic = (find.group("topic") or find.group("pre_topic") or "").strip() if find else ""
     if raw_topic and raw_topic.casefold() not in {"the", "some", "these", "all", "collected", "my"}:
         topic = re.sub(r"[?.!]+$", "", raw_topic)
-        req_k = int(find.group("count")) if find and find.group("count") and int(find.group("count")) in {10, 20, 50, 100} else 20
+        req_k = (
+            int(find.group("count"))
+            if find and find.group("count") and int(find.group("count")) in {10, 20, 30}
+            else 30
+        )
         norm = topic.casefold().rstrip("s")
         for candidate in runs:
             if norm in candidate["topic"].casefold().rstrip("s"):
                 loaded = store.get_run(candidate["run_id"], owner)
-                if loaded and loaded.get("options", {}).get("top_k") == req_k and loaded.get("papers"):
-                    return {"text": _list(loaded), "run_id": candidate["run_id"], "run": loaded}
+                if (
+                    loaded
+                    and loaded.get("options", {}).get("top_k") == req_k
+                    and loaded.get("papers")
+                ):
+                    return {
+                        "text": _list(loaded, candidate["run_id"]),
+                        "run_id": candidate["run_id"],
+                        "run": loaded,
+                    }
         from archipelago.scholarly.intelligence.search import discover
 
         try:
@@ -380,28 +365,56 @@ def research_chat_reply(
                 "run_id": run_id,
             }
         run_id = store.save_run(owner, fresh)
-        return {"text": _list(fresh), "run_id": run_id, "run": fresh}
-    if re.search(r"\b(?:list|show|what|my|saved|previous)\b.*\b(?:research\s+)?(?:topics?|runs?|searches?|collections?)\b", query, re.I) and not raw_topic and runs:
+        return {"text": _list(fresh, run_id), "run_id": run_id, "run": fresh}
+    if (
+        re.search(
+            r"\b(?:list|show|what|my|saved|previous)\b.*\b(?:research\s+)?(?:topics?|runs?|searches?|collections?)\b",
+            query,
+            re.I,
+        )
+        and not raw_topic
+        and runs
+    ):
         lines = [f"You have **{len(runs)}** saved Research Intelligence topic run(s):"]
         for i, r in enumerate(runs[:15], 1):
-            lines.append(f"{i}. **{r.get('topic', 'Untitled')}** ({r.get('paper_count', '?')} papers · {str(r.get('created_at') or '')[:10]})")
+            lines.append(
+                f"{i}. [{r.get('topic', 'Untitled')}](/research/topic?run={r['run_id']}) ({r.get('paper_count', '?')} papers · {str(r.get('created_at') or '')[:10]}) · [Browse papers](/research/papers?run={r['run_id']})"
+            )
         return {"text": "\n".join(lines), "run_id": run_id, "run": run}
     if run is None:
         return {
             "text": "There is no saved research collection yet. Ask me to find papers on a topic first.",
             "run_id": None,
         }
-    if re.search(r"\b(?:last|latest|recent|saved|previous)\s+(?:(?P<n>\d+)\s+)?(?:research\s+)?(?:papers?|publications?|studies)\b", query, re.I) and not raw_topic:
+    if (
+        re.search(
+            r"\b(?:last|latest|recent|saved|previous)\s+(?:(?P<n>\d+)\s+)?(?:research\s+)?(?:papers?|publications?|studies)\b",
+            query,
+            re.I,
+        )
+        and not raw_topic
+    ):
         m_n = re.search(r"\b(?:last|latest|recent|saved|previous)\s+(\d+)\s+", query, re.I)
         limit_n = min(20, max(1, int(m_n.group(1)))) if m_n else 10
         papers = list(run.get("papers") or [])[:limit_n]
         if not papers:
-            return {"text": f"Your latest research collection for “{run.get('topic', 'Research')}” has 0 papers.", "run_id": run_id, "run": run}
-        lines = [f"Here are the last {len(papers)} papers from your Research page collection **“{run.get('topic', 'Research')}”**:"]
+            return {
+                "text": f"Your latest research collection for “{run.get('topic', 'Research')}” has 0 papers.",
+                "run_id": run_id,
+                "run": run,
+            }
+        lines = [
+            f"Here are the last {len(papers)} papers from your Research page collection **“{run.get('topic', 'Research')}”**:"
+        ]
         for i, p in enumerate(papers, 1):
-            authors = ", ".join(str(a.get("name") if isinstance(a, dict) else a) for a in (p.get("authors") or [])[:3])
+            authors = ", ".join(
+                str(a.get("name") if isinstance(a, dict) else a)
+                for a in (p.get("authors") or [])[:3]
+            )
             venue = p.get("venue") or p.get("source") or "Scholarly source"
-            lines.append(f"{i}. **{p.get('title', 'Untitled')}** ({p.get('year') or 'n.d.'}) — {authors or 'Unknown authors'} · {venue} — [Open source]({_link(p)})")
+            lines.append(
+                f"{i}. [{_markdown_title(p.get('title'))}]({_paper_page(run_id, i - 1)}) ({p.get('year') or 'n.d.'}) — {authors or 'Unknown authors'} · {venue} — [Open source]({_link(p)})"
+            )
         return {"text": "\n".join(lines), "run_id": run_id, "run": run}
     new_papers = "No monitoring run has been recorded for this collection yet."
     try:

@@ -59,7 +59,9 @@ function paperCard(paper, index) {
 function renderTopic(data) {
   topicEl('topic-title').textContent = data.topic;
   topicEl('topic-breadcrumb').textContent = data.topic;
-  topicEl('topic-status').textContent = `${data.paper_count} active papers from the local ingestion pipeline. Select a paper for its full evidence-aware OKF.`;
+  topicEl('topic-status').textContent = `${data.paper_count} active papers from the local ingestion pipeline. Browse individual papers on the separate Research page.`;
+  const namedSections = Object.values(data.section_coverage || {}).filter(value => Number(value) > 0).length;
+  topicEl('topic-conclusion').textContent = `${data.paper_count} active papers are saved for this topic across ${Object.keys(data.publication_years || {}).length} publication years. ${namedSections} evidence sections have at least one reported field. These totals describe source coverage, not scientific quality.`;
   // The graph resolves topic IDs from its own index; link to the full atlas.
   topicEl('topic-actions').append(topicLink('Explore full graph ↗', '/research/topics', 'topic-action'), topicLink('Search another topic', '/research', 'topic-action secondary'));
   const states = data.access_states;
@@ -72,10 +74,7 @@ function renderTopic(data) {
   topicBars(topicEl('topic-coverage'), Object.entries(data.section_coverage).sort((a, b) => b[1] - a[1]));
   topicBars(topicEl('topic-years'), Object.entries(data.publication_years));
   topicBars(topicEl('topic-providers'), Object.entries(data.providers).sort((a, b) => b[1] - a[1]));
-  topicEl('topic-paper-count').textContent = `${data.paper_count} papers`;
-  const list = topicEl('topic-paper-list');
-  if (!data.paper_count) { const empty = document.createElement('p'); empty.className = 'topic-empty'; empty.textContent = 'No completed local ingestion has saved papers for this topic yet.'; list.append(empty); }
-  data.papers.forEach((paper, index) => list.append(paperCard(paper, index)));
+  topicEl('topic-papers-link').href = `/research/?topic=${encodeURIComponent(data.topic)}`;
 }
 
 window.addEventListener('load', async () => {

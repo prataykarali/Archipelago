@@ -9,10 +9,10 @@ from typing import Any
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
+from .comparable_rank import FIELDS as COMPARABLE_FIELDS
+from .comparable_rank import comparable_papers
 from .search_rankings import (
     AUTHOR_FIELDS,
-    PAPER_FIELDS,
-    VENUE_FIELDS,
     author_values,
     matching_paper,
     ordered_author_keys,
@@ -27,54 +27,14 @@ RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
     "Papers": (
         ("Paper Title", "Paper title"),
         ("Authors", "Authors"),
-        ("Citation Count", "Citation count"),
-        ("Citations per Year", "Citations per year"),
-        ("Field-Weighted Citation Impact (FWCI)", "FWCI (OpenAlex)"),
-        ("Citation Percentile", "Citation percentile (OpenAlex)"),
-        ("Topic Relevance Score", "Relevance score (0-1)"),
+        *((heading, "") for heading in COMPARABLE_FIELDS),
         ("Publication Year", "Year"),
-        *((heading, "") for heading in PAPER_FIELDS),
-        ("Benchmark Performance", "Benchmark performance"),
-        ("Methodological Evidence", "Research method"),
-        ("Reproducibility Indicators", "Reproducibility indicators"),
-        ("Reference Count", "Indexed references"),
-        ("Influential Citation Count", "Influential citations (Semantic Scholar)"),
-        ("Open-Access Status", "Open access"),
-        ("Publication Venue", "Publication venue"),
-        ("DOI", "DOI"),
         ("Paper Link", "Paper link"),
-        ("Citation Provider", "Citation source"),
         ("Verified Sources", "Verified sources"),
-        *((heading, "") for heading in VENUE_FIELDS),
-        ("Venue h-index", "Venue h-index (OpenAlex)"),
-        ("Venue i10-index", "Venue i10-index (OpenAlex)"),
-        ("Indexed Publication Count", "Indexed works (OpenAlex)"),
-        ("Mean Citedness", "2-year mean citedness (OpenAlex)"),
-        ("Indexing Status", "Indexed status (OpenAlex)"),
-        ("Venue Category", "Category"),
-        ("Venue Publisher", "Publisher"),
-        ("Venue Official Link", "Official link"),
-        ("Venue Metric Provider", "Venue metric provider"),
     ),
     "Authors": (
         ("Author Name", "Author name"),
         *((heading, "") for heading in AUTHOR_FIELDS),
-        ("h-index", "h-index"),
-        ("i10-index", "i10-index"),
-        ("m-quotient", "m-quotient"),
-        ("Total Citations", "Citation count"),
-        ("Total Publications", "Publication count"),
-        ("Average Citations per Paper", "Avg citations / work"),
-        ("Recent Citations", "Recent citations (5y)"),
-        ("First-Author Publications", "First-author papers in export"),
-        ("Last-Author Publications", "Last-author papers in export"),
-        ("Research Relevance", "Best paper relevance (0-1)"),
-        ("Collaboration Network", "Verified collaborators in export"),
-        ("ORCID", "ORCID"),
-        ("Verified Affiliations", "Verified affiliations"),
-        ("Profile URL", "Profile URL"),
-        ("Metric Provider", "Metric provider"),
-        ("Verified Sources", "Verified sources"),
     ),
 }
 
@@ -86,6 +46,7 @@ def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
     author_keys = ordered_author_keys(papers)
     topic = str((run.get("options") or {}).get("topic") or "")
     as_of_year = ranking_year(run)
+    comparable = comparable_papers(run)
     venue_sheet = book["Publications"]
     venue_headers = {str(cell.value): cell.column for cell in venue_sheet[1]}
     venues = {
@@ -143,9 +104,14 @@ def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
                     papers,
                 )
                 if paper is not None:
+                    paper_index = next(
+                        (index for index, candidate in enumerate(papers) if candidate is paper),
+                        None,
+                    )
                     calculated = {
                         **paper_values(paper, topic, as_of_year),
                         **venue_values(str(paper.get("venue") or ""), papers, topic),
+                        **(comparable[paper_index] if paper_index is not None else {}),
                     }
                     for column, (heading, _) in enumerate(columns, 1):
                         if heading in calculated:
@@ -162,17 +128,50 @@ def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
         book.remove(old)
         new.title = sheet_name
     book.remove(venue_sheet)
-    start = book["Start Here"]
-    for row in start.iter_rows():
-        for cell in row:
-            if cell.value == "Standard Research Export (5 sheets)":
-                cell.value = "Standard Research Export (4 sheets)"
-            elif cell.value == "Publications":
-                cell.value = "Venue metrics"
-            elif isinstance(cell.value, str) and cell.value.startswith("Publications: "):
-                cell.value = cell.value.replace("Publications: ", "Papers venue metric: ", 1)
-            elif isinstance(cell.value, str) and cell.value.startswith("One row per venue."):
-                cell.value = "Venue ranking fields appear on each paper row in the Papers sheet."
+    book.remove(book["Start Here"])
+    start = book.create_sheet("Start Here", 0)
+    start.column_dimensions["A"].width = 32
+    start.column_dimensions["B"].width = 100
+    guide = (
+        ("Archipelago Research Export", "Complete, search-scoped discovery ranking"),
+        ("Topic", topic),
+        ("Retrieved", str(run.get("retrieved_at") or "")),
+        ("Papers", len(papers)),
+        (
+            "Papers sheet",
+            "One admitted paper per row. Every ranking column has a value for every row.",
+        ),
+        (
+            "Authors sheet",
+            "Search-scoped byline counts; these are not global author impact measures.",
+        ),
+        ("Sources sheet", "Provider records and source links for audit."),
+        (
+            "Discovery fit",
+            "50% title query match + 25% abstract query match + 15% recency within this search + 10% source corroboration within this search.",
+        ),
+        (
+            "Normalization",
+            "Recency and source corroboration use min-max scaling across these admitted papers. If all values tie, every paper receives a neutral 50 for that component.",
+        ),
+        (
+            "Absent abstract",
+            "Abstract query match is 0 observed words when no abstract was supplied; Abstract Reported distinguishes that case.",
+        ),
+        (
+            "Meaning",
+            "Discovery fit prioritizes a query within this saved cohort. It does not measure scientific quality or replace peer review.",
+        ),
+        (
+            "Provider facts",
+            "Citation, FWCI, benchmark and licensed venue values are excluded from the complete score. Open a paper dossier or advanced audit to inspect reported provider values.",
+        ),
+    )
+    for label, value in guide:
+        start.append((label, value))
+        start.cell(start.max_row, 2).alignment = copy(book["Papers"].cell(2, 2).alignment)
+    for cell in start[1]:
+        cell._style = copy(book["Papers"].cell(1, 1)._style)
     output = BytesIO()
     book.save(output)
     output.seek(0)

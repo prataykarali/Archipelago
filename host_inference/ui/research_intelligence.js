@@ -65,14 +65,11 @@ async function recoverPendingSearch() {
   try {
     const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
     if (job.status === 'completed') {
-      const run = await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
+      await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
       activeRunId = job.run_id;
       saveResearchState();
       clearPendingSearch();
-      await showRun(run);
-      void loadRecentRuns();
-      if (submit) submit.disabled = false;
-      if (status) status.textContent = `Done — loaded ${s5('paper-results').children.length} source-linked papers for "${pending.topic}".`;
+      location.assign(`/research/papers?run=${encodeURIComponent(job.run_id)}`);
       return;
     }
   } catch (error) {
@@ -169,68 +166,56 @@ function metricGrid(rows) {
 function renderRun(run, dossier = null, dossierError = null, prepareExport = false) {
   const normalizedTitle = value => String(value || '').trim().toLocaleLowerCase().replace(/\s+/g, ' ');
   const details = dossier?.papers || [];
-  const paperRows = (run.papers || []).map(paper => ({
+  const paperRows = (run.papers || []).map((paper, originalIndex) => ({
     paper,
+    originalIndex,
     detail: details.find(detail =>
       detail.doi && paper.doi && String(paper.doi).toLocaleLowerCase() === String(detail.doi).toLocaleLowerCase()
     ) || details.find(detail => normalizedTitle(paper.title) === normalizedTitle(detail.title)) || null
-  }));
+  })).filter(row => !dossier || row.detail).sort((a, b) => {
+    const scoreColumn = dossier?.paper_headers?.indexOf('Discovery Fit Score (%)') ?? -1;
+    const aScore = scoreColumn >= 0 ? a.detail?.rankable_values?.[scoreColumn] : null;
+    const bScore = scoreColumn >= 0 ? b.detail?.rankable_values?.[scoreColumn] : null;
+    return typeof aScore === 'number' && typeof bScore === 'number' ? bScore - aScore : a.originalIndex - b.originalIndex;
+  });
   s5('intelligence-results').hidden = false;
+  if (document.body.classList.contains('research-browse-mode')) {
+    s5('results-heading').textContent = `${paperRows.length} papers · ${run.options?.topic || 'Saved research'}`;
+  }
   s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
-  s5('paper-list-link').textContent = `Browse ${paperRows.length} paper pages ↓`;
-  s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters · Current Excel: 4 sheets; venue metrics on Papers`;
+  s5('paper-list-link').textContent = `Browse ${paperRows.length} papers ↗`;
+  s5('paper-list-link').href = `/research/papers?run=${encodeURIComponent(activeRunId)}`;
+  s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${paperRows.length} source-linked papers · Discovery rank compares query match, recency and source corroboration within this search; it is not scientific quality.`;
   s5('provider-status').textContent = (run.sources || []).map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ') + (dossierError ? ' · Detailed rankings are temporarily unavailable; saved paper records are shown.' : '');
   const excelLink = s5('excel-link');
   if (prepareExport) void prepareResearchExcelLink(
     excelLink,
     `/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/xlsx?mode=standard`,
-    `archipelago-research-${activeRunId.slice(0, 8)}-paper-venue-v2.xlsx`,
+    `archipelago-research-${activeRunId.slice(0, 8)}-complete-ranking.xlsx`,
     s5('provider-status')
   );
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));
   const visiblePapers = paperRows.map(row => row.paper);
-  for (const { detail, paper } of paperRows) {
+  for (const { detail, paper, originalIndex } of paperRows) {
     const article = document.createElement('article');
     article.className = 'research-card';
     const title = document.createElement('h3');
-    title.textContent = paper.title;
+    const rankColumn = dossier?.paper_headers?.indexOf('Discovery Rank') ?? -1;
+    const rank = rankColumn >= 0 ? detail?.rankable_values?.[rankColumn] : null;
+    title.textContent = `${rank ? `#${rank} · ` : `#${originalIndex + 1} · `}${paper.title}`;
     const facts = document.createElement('p');
     facts.textContent = [paper.authors?.map(author => author.name).join(', '), paper.venue].filter(Boolean).join(' · ');
-    const metricRows = [
-      [`Citation count${paper.citation_provider ? ` (${paper.citation_provider})` : ''}`, metricNumber(paper.citation_count)],
-      ['Citations per year', metricNumber(paper.citations_per_year, 2)],
-      ['FWCI (OpenAlex)', metricNumber(paper.fwci, 2)],
-      ['Citation percentile (OpenAlex)', Number.isFinite(paper.citation_normalized_percentile?.value) ? `${(paper.citation_normalized_percentile.value * 100).toFixed(1)}%` : '—'],
-      ['Topic relevance score (0–1)', metricNumber(paper.relevance_classification?.confidence, 2)],
-      ['Publication year', Number.isFinite(paper.year) ? String(paper.year) : '—'],
-      ['Benchmark performance', metricList(paper.benchmark_performance)],
-      ['Methodological evidence', metricList(paper.methods)],
-      ['Reproducibility indicators', [paper.code_repo_urls?.length ? 'Code' : null, paper.dataset_repo_urls?.length ? 'Data' : null, paper.checkpoint_urls?.length ? 'Checkpoints' : null, paper.experimental_details_url ? 'Experimental details' : null].filter(Boolean).join(', ') || '—'],
-      ['Reference count', metricNumber(paper.reference_count ?? (paper.references?.length || null))],
-      ['Influential citation count (Semantic Scholar)', metricNumber(paper.influential_citations)],
-      ['Open-access status', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : '—'],
-    ];
-    const additionalHeaders = [
-      'Paper Age (Years)', 'Title Query Match (%)', 'Verified Source Count',
-      'Author Count', 'Metadata Completeness (%)', 'Method Reported',
-      'Benchmark Reported', 'Code Link Reported', 'Data Link Reported',
-      'Venue Papers in This Search', 'Venue Author Bylines in This Search',
-      'Venue Newest Paper Year in This Search', 'Venue Median Paper Year in This Search',
-      'Venue Mean Title Match in This Search (%)',
-      'Venue Public Full-Text Links in This Search',
-      'Venue h-index', 'Venue i10-index', 'Indexed Publication Count',
-      'Mean Citedness', 'Indexing Status'
-    ];
-    for (const header of additionalHeaders) {
-      const index = (dossier?.paper_headers || []).indexOf(header);
-      const value = index >= 0 ? detail?.rankable_values?.[index] : null;
-      metricRows.push([header, value == null || value === '' ? '—' : String(value)]);
-    }
+    const metricRows = ['Discovery Fit Score (%)', 'Title Query Match (%)', 'Abstract Query Match (%)', 'Recency Within Search (%)', 'Source Corroboration Within Search (%)', 'Verified Source Count', 'Author Count', 'Abstract Reported', 'Metadata Completeness (%)']
+      .map(header => {
+        const index = (dossier?.paper_headers || []).indexOf(header);
+        return [header, index >= 0 ? detail?.rankable_values?.[index] : null];
+      }).filter(([, value]) => value !== null && value !== undefined);
     const coverage = document.createElement('p');
-    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper and venue parameters filled · search counts cover these retrieved papers only · 0 for an evidence flag means the retrieved record did not report it. Provider metrics remain blank when unreported.`;
-    article.append(title, facts, coverage, metricGrid(metricRows));
+    coverage.textContent = detail ? `${metricRows.length} complete comparable values · fit = 50% title + 25% abstract + 15% recency + 10% source corroboration` : 'Loading comparable ranking values…';
+    article.append(title, facts, coverage);
+    if (metricRows.length) article.append(metricGrid(metricRows));
     const paperDetail = document.createElement('a');
     if (detail) {
       paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${detail.index}`;
@@ -259,14 +244,12 @@ function renderRun(run, dossier = null, dossierError = null, prepareExport = fal
     authorSummary.textContent = 'Author parameters';
     authorDetails.append(authorSummary);
     const authorCoverage = document.createElement('p');
-    authorCoverage.textContent = 'Byline measures cover this search only. Provider citation metrics appear when verified.';
+    authorCoverage.textContent = 'Comparable byline counts cover this saved search only.';
     authorDetails.append(authorCoverage);
     const providerIds = paperAuthorIds(paper);
     paper.authors?.forEach((author, index) => {
       const id = providerIds[index];
       const observation = authorsById.get(id);
-      const values = observation?.metrics || {};
-      const recent = Array.isArray(values.counts_by_year) && values.counts_by_year.length ? values.counts_by_year.filter(row => Number.isInteger(row.year) && row.year >= new Date().getFullYear() - 4 && Number.isInteger(row.cited_by_count)).reduce((sum, row) => sum + row.cited_by_count, 0) : null;
       const bylinePapers = visiblePapers.filter(record => id
         ? paperAuthorIds(record).includes(id)
         : record.authors?.some(person => person.name?.trim().toLocaleLowerCase() === author.name?.trim().toLocaleLowerCase()));
@@ -285,13 +268,6 @@ function renderRun(run, dossier = null, dossierError = null, prepareExport = fal
       const heading = document.createElement('h4');
       heading.textContent = author.name;
       authorDetails.append(heading, metricGrid([
-        ['h-index', metricNumber(values.h_index)],
-        ['i10-index', metricNumber(values.i10_index)],
-        ['m-quotient', Number.isFinite(values.h_index) && Number.isInteger(values.earliest_year) && values.earliest_year <= new Date().getFullYear() ? metricNumber(values.h_index / (new Date().getFullYear() - values.earliest_year + 1), 2) : '—'],
-        ['Total citations', metricNumber(values.citation_count)],
-        ['Total publications', metricNumber(values.publication_count)],
-        ['Average citations per paper', values.publication_count > 0 && Number.isFinite(values.citation_count) ? metricNumber(values.citation_count / values.publication_count, 2) : '—'],
-        ['Recent citations (5 years)', metricNumber(recent)],
         ['Papers in this search', String(bylinePapers.length)],
         ['Mean title match in this search (%)', matches.length ? metricNumber(matches.reduce((sum, value) => sum + value, 0) / matches.length, 1) : '0'],
         ['Newest paper year in this search', bylineYears.length ? String(bylineYears.at(-1)) : '—'],
@@ -348,7 +324,7 @@ async function loadRecentRuns() {
     for (const run of recent) {
       if (!run.run_id) continue;
       const link = document.createElement('a');
-      link.href = `/research/?run=${encodeURIComponent(run.run_id)}#paper-results`;
+      link.href = `/research/topic?run=${encodeURIComponent(run.run_id)}`;
       link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
       list.append(link);
     }
@@ -372,6 +348,11 @@ async function restoreRun(runId) {
 }
 
 window.addEventListener('load', async () => {
+  const browsing = location.pathname.replace(/\/$/, '') === '/research/papers';
+  const linkedRun = new URLSearchParams(location.search).get('run');
+  if (browsing && !linkedRun) { location.replace('/research'); return; }
+  if (!browsing && linkedRun) { location.replace(`/research/papers?run=${encodeURIComponent(linkedRun)}`); return; }
+  if (browsing) document.body.classList.add('research-browse-mode');
   if (!await window.archipelagoResearchReady) return;
   const savedRunId = restoreResearchForm();
   s5('intelligence-form').addEventListener('submit', async event => {
@@ -395,10 +376,8 @@ window.addEventListener('load', async () => {
       clearPendingSearch();
       activeRunId = run.run_id;
       saveResearchState();
-      await showRun(run);
-      void loadRecentRuns();
-      const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
-      s5('intelligence-status').textContent = `Done — loaded ${s5('paper-results').children.length} source-linked papers from ${liveCount} live provider(s).`;
+      location.assign(`/research/papers?run=${encodeURIComponent(run.run_id)}`);
+      return;
     } catch (error) {
       if (error.httpStatus) {
         clearPendingSearch();
@@ -414,7 +393,7 @@ window.addEventListener('load', async () => {
   });
   void loadRecentRuns();
   if (pendingSearch()) void recoverPendingSearch();
-  else if (savedRunId) void restoreRun(savedRunId);
+  else if (savedRunId && browsing) void restoreRun(savedRunId);
 });
 
 window.addEventListener('pageshow', event => { if (event.persisted) void loadRecentRuns(); });
