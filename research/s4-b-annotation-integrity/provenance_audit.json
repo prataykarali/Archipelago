@@ -1,0 +1,211 @@
+{
+  "audit_phase": "S4-B_PROVENANCE_AUDIT",
+  "total_candidate_passages": 113,
+  "unique_passage_ids": 96,
+  "intra_query_duplicates": [],
+  "cross_query_passage_reuse": [
+    {
+      "passage_id": "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-002",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-002"
+      ]
+    },
+    {
+      "passage_id": "papers/karpukhin2020_dpr.pdf::chunk_035",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-013"
+      ]
+    },
+    {
+      "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_006",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/devlin2018_bert.pdf::chunk_017",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/hu2021_lora.pdf::chunk_023",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/kwon2023_vllm.pdf::chunk_009",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-002"
+      ]
+    },
+    {
+      "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+      "appears_in_queries": [
+        "CIKM-PILOT-001",
+        "CIKM-PILOT-002",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_009",
+      "appears_in_queries": [
+        "CIKM-PILOT-005",
+        "CIKM-PILOT-004",
+        "CIKM-PILOT-023"
+      ]
+    },
+    {
+      "passage_id": "papers/kwon2023_vllm.pdf::chunk_008",
+      "appears_in_queries": [
+        "CIKM-PILOT-013",
+        "CIKM-PILOT-023"
+      ]
+    },
+    {
+      "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
+      "appears_in_queries": [
+        "CIKM-PILOT-002",
+        "CIKM-PILOT-004"
+      ]
+    },
+    {
+      "passage_id": "papers/velickovic2017_gat.pdf::chunk_012",
+      "appears_in_queries": [
+        "CIKM-PILOT-002",
+        "CIKM-PILOT-004"
+      ]
+    }
+  ],
+  "suspicious_passages": [
+    {
+      "query_id": "CIKM-PILOT-001",
+      "cand_id": "CAND-02",
+      "passage_id": "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+      "issues": [
+        "SYNTHETIC_DOC_ID:doc_attention_is_all_you_need"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-005",
+      "cand_id": "CAND-02",
+      "passage_id": "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+      "issues": [
+        "SYNTHETIC_DOC_ID:doc_lora_low_rank_adaptation_of_large"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-013",
+      "cand_id": "CAND-11",
+      "passage_id": "doc_vllm_efficient_memory_management_for::doc_vllm_efficient_memory_management_for_p4_2",
+      "issues": [
+        "SYNTHETIC_DOC_ID:doc_vllm_efficient_memory_management_for"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-002",
+      "cand_id": "CAND-09",
+      "passage_id": "upload_17869808::upload_17869808_p3_3",
+      "issues": [
+        "UPLOAD_DOC_NOT_IN_FROZEN_CORPUS:upload_17869808"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-002",
+      "cand_id": "CAND-15",
+      "passage_id": "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+      "issues": [
+        "SYNTHETIC_DOC_ID:doc_attention_is_all_you_need"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-004",
+      "cand_id": "CAND-20",
+      "passage_id": "doc_electronic_devices_and_circuit_theory::doc_electronic_devices_and_circuit_theory_p240_1",
+      "issues": [
+        "SYNTHETIC_DOC_ID:doc_electronic_devices_and_circuit_theory"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-004",
+      "cand_id": "CAND-22",
+      "passage_id": "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+      "issues": [
+        "SYNTHETIC_DOC_ID:doc_attention_is_all_you_need"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-023",
+      "cand_id": "CAND-14",
+      "passage_id": "upload_863f97ee::upload_863f97ee_p5_4",
+      "issues": [
+        "UPLOAD_DOC_NOT_IN_FROZEN_CORPUS:upload_863f97ee"
+      ]
+    },
+    {
+      "query_id": "CIKM-PILOT-023",
+      "cand_id": "CAND-22",
+      "passage_id": "doc_direct_preference_optimization_your_language::doc_direct_preference_optimization_your_language_p4_2",
+      "issues": [
+        "SYNTHETIC_DOC_ID:doc_direct_preference_optimization_your_language"
+      ]
+    }
+  ],
+  "summary": {
+    "intra_query_duplicate_count": 0,
+    "cross_query_reused_count": 14,
+    "suspicious_passage_count": 9
+  },
+  "flags_for_adjudication": [
+    {
+      "type": "UPLOAD_DOCS_IN_POOL",
+      "detail": "Passages from upload_* doc IDs are not in the frozen 764-passage corpus and may not receive consistent treatment across runs.",
+      "affected_passage_ids": [
+        "upload_17869808::upload_17869808_p3_3",
+        "upload_863f97ee::upload_863f97ee_p5_4"
+      ]
+    },
+    {
+      "type": "SYNTHETIC_SUMMARY_DOCS_IN_POOL",
+      "detail": "Passages from doc_* (synthetic LLM-generated summaries) have different provenance from raw PDF chunks and may not appear in GraphRAG pool.",
+      "affected_passage_ids": [
+        "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+        "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+        "doc_vllm_efficient_memory_management_for::doc_vllm_efficient_memory_management_for_p4_2",
+        "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+        "doc_electronic_devices_and_circuit_theory::doc_electronic_devices_and_circuit_theory_p240_1",
+        "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+        "doc_direct_preference_optimization_your_language::doc_direct_preference_optimization_your_language_p4_2"
+      ]
+    }
+  ]
+}

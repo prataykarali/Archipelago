@@ -1,0 +1,36 @@
+{
+  "protocol_phase": "S4-B_GRAPHRAG_FAIRNESS_PROTOCOL",
+  "purpose": "Before any system comparison (BM25 vs dense vs hybrid_rrf vs GraphRAG), GraphRAG-retrieved passages must be added to the annotation judgment pool. Unjudged GraphRAG passages MUST NOT silently become relevance-0 labels.",
+  "steps": [
+    {
+      "step": 1,
+      "action": "Run GraphRAG retrieval on all 6 pilot queries",
+      "responsible": "Research engineer",
+      "output": "graphrag_retrieved_passages.jsonl (top-K per query)"
+    },
+    {
+      "step": 2,
+      "action": "De-duplicate against existing pool using passage_id",
+      "responsible": "Automated script",
+      "output": "graphrag_novel_passages.jsonl (passages NOT already in A/B pool)"
+    },
+    {
+      "step": 3,
+      "action": "Extend the annotation pool for BOTH Reviewer A and Reviewer B with novel passages",
+      "note": "Reviewer A must annotate new passages; Reviewer B gets new passages in their fresh worksheet",
+      "responsible": "Study coordinator + both reviewers"
+    },
+    {
+      "step": 4,
+      "action": "Adjudicate disagreements on the extended pool",
+      "note": "Only then run system-level comparison metrics",
+      "responsible": "Lead adjudicator"
+    }
+  ],
+  "anti_patterns": [
+    "Do NOT infer relevance-0 for unjudged GraphRAG passages",
+    "Do NOT compare systems using pools where GraphRAG candidates were not judged",
+    "Do NOT mark any record ADJUDICATED_GOLD until both reviewers have annotated GraphRAG passages"
+  ],
+  "compatibility_note": "The current blinded pool format supports extension. New passages are appended as CAND-NN items with new sequential IDs. The pool_item_to_passage_id mapping in reviewer templates must be updated before distributing extended worksheets."
+}

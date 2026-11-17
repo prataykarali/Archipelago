@@ -1,0 +1,78 @@
+{
+  "audit_phase": "S4-B_QUESTION_CATEGORY_AUDIT",
+  "questions_audited": [
+    {
+      "query_id": "CIKM-PILOT-001",
+      "question": "What foundational sequence-modeling limitations motivated replacing recurrence with self-attention in the Transformer?",
+      "assigned_category": "multi_hop_prerequisite",
+      "audit_verdict": "VALID_MULTI_HOP",
+      "reasoning": "Requires understanding (1) RNN sequential computation constraints, (2) parallelization as a motivation, and (3) self-attention as the solution. These are distinct conceptual steps requiring passage CAND-11 (RNN limitations) AND CAND-14 or CAND-10 (self-attention motivation). Directed prerequisite: RNNs \u2192 motivation-for-change \u2192 self-attention.",
+      "flags": [],
+      "single_doc_sufficient": false
+    },
+    {
+      "query_id": "CIKM-PILOT-005",
+      "question": "What mathematical assumption about weight updates during fine-tuning justifies LoRA's low-rank matrix decomposition?",
+      "assigned_category": "multi_hop_prerequisite",
+      "audit_verdict": "BORDERLINE_SINGLE_HOP",
+      "reasoning": "The question asks for the 'intrinsic rank' hypothesis from Aghajanyan et al. (2020), as cited in hu2021_lora.pdf (CAND-04 / CAND-12). This is primarily a single-document question answerable from CAND-12 alone. The 'prerequisite chain' (Fine-Tuning \u2192 Intrinsic Rank \u2192 Low-Rank Adaptation) describes concepts but does not require multi-document graph traversal to answer. Recommend downgrading to single_hop_definition or cross_paper_reference.",
+      "flags": [
+        "CATEGORY_OVERSTATED_MAY_BE_SINGLE_HOP"
+      ],
+      "single_doc_sufficient": true
+    },
+    {
+      "query_id": "CIKM-PILOT-013",
+      "question": "How does PagedAttention apply virtual memory paging concepts to eliminate KV-cache fragmentation in LLM serving?",
+      "assigned_category": "multi_hop_prerequisite",
+      "audit_verdict": "VALID_MULTI_HOP",
+      "reasoning": "Requires understanding (1) virtual memory paging concepts (OS background), and (2) KV-cache management in LLMs. Neither concept is fully explained in kwon2023_vllm.pdf alone \u2014 OS paging is assumed background knowledge. The analogy drawn in the paper does constitute a cross-domain prerequisite link. Reviewer A gave non-zero scores to multiple vLLM candidates: CAND-06 and CAND-07 and CAND-09 scored 2 (kwon2023 chunks describing PagedAttention and virtual memory paging analogy directly). The OS paging 'background knowledge' hop is implicit but the vLLM paper itself explains the analogy sufficiently. Category may be better classified as single_hop_definition or cross_domain_analogy but multi_hop_prerequisite is defensible. Flag advisory only.",
+      "flags": [
+        "OS_PAGING_BACKGROUND_NOT_IN_CORPUS"
+      ],
+      "single_doc_sufficient": false
+    },
+    {
+      "query_id": "CIKM-PILOT-002",
+      "question": "Why does scaled dot-product attention divide by the square root of the key dimension before applying softmax?",
+      "assigned_category": "single_hop_definition",
+      "audit_verdict": "VALID_SINGLE_HOP",
+      "reasoning": "Directly answerable from vaswani2017 Section 3.2.1 (CAND-13, score 2). No prerequisite chain needed. Category is correctly assigned.",
+      "flags": [],
+      "single_doc_sufficient": true
+    },
+    {
+      "query_id": "CIKM-PILOT-004",
+      "question": "How does multi-head self-attention in Vaswani et al. (2017) differ from additive encoder-decoder alignment in Bahdanau et al. (2014)?",
+      "assigned_category": "cross_paper_comparison",
+      "audit_verdict": "VALID_CROSS_PAPER",
+      "reasoning": "Requires passages from both vaswani2017 and bahdanau2014. Reviewer A correctly scored passages from both papers (CAND-08: 2, CAND-21: 2 from bahdanau; CAND-16: 2 from vaswani). Category is correctly assigned.",
+      "flags": [],
+      "single_doc_sufficient": false
+    },
+    {
+      "query_id": "CIKM-PILOT-023",
+      "question": "What exact hyperparameters does DeepSeek-R1 use for GRPO reinforcement learning on math benchmarks?",
+      "assigned_category": "unanswerable_out_of_corpus",
+      "audit_verdict": "VALID_UNANSWERABLE",
+      "reasoning": "DeepSeek-R1 is not in the frozen corpus. All 27 candidate passages scored 0. Corpus search confirms no GRPO/DeepSeek-R1 coverage. Category correctly assigned, pending upload_863f97ee manual verification.",
+      "flags": [
+        "MANUAL_VERIFY_upload_863f97ee_content"
+      ],
+      "single_doc_sufficient": false
+    }
+  ],
+  "summary": {
+    "VALID_AND_UNCHANGED": [
+      "CIKM-PILOT-001",
+      "CIKM-PILOT-013",
+      "CIKM-PILOT-002",
+      "CIKM-PILOT-004",
+      "CIKM-PILOT-023"
+    ],
+    "FLAGGED_FOR_RECONSIDERATION": [
+      "CIKM-PILOT-005"
+    ],
+    "action": "CIKM-PILOT-005 may be reclassified as single_hop_definition. Do NOT silently rewrite the question set \u2014 this requires a lead researcher decision. Current category is preserved as-is; this audit is advisory only."
+  }
+}

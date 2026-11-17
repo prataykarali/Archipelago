@@ -1,0 +1,57 @@
+{
+  "preservation_phase": "S4-B_ANNOTATION_INTEGRITY_REPAIR",
+  "created_at": "2026-11-17T07:50:24+05:30",
+  "purpose": "Immutable snapshot record of Reviewer A's completed S4-A worksheet. No human judgments have been altered. This file is a provenance record only.",
+  "note_on_blinding": "IMPORTANT: Reviewer A's original worksheet (s4a_human_annotation_worksheet.md) EXPOSED question_category labels (multi_hop_prerequisite, unanswerable_out_of_corpus, cross_paper_comparison, single_hop_definition) in each section header. Reviewer A was therefore NOT fully blinded to question categories. This is recorded here and must be disclosed in the CIKM methodology section. We do NOT retrospectively claim Reviewer A was fully blinded.",
+  "source_files": [
+    {
+      "path": "artifacts/validation/local_only/s4a_human_annotation_worksheet.md",
+      "sha256": "304ee2d4cc167d93874624871b41e79a303d3126015c66b9287b489caebb1ce3",
+      "timestamp": "2026-11-17T07:51:59+05:30",
+      "role": "Human-readable worksheet Reviewer A worked from. Contains category labels (LEAKAGE NOTED)."
+    },
+    {
+      "path": "artifacts/validation/local_only/s4a_human_annotation_worksheet.json",
+      "sha256": "bfae3f9306efb0f7c03e389fce47d6767a2937d0cccc7e8080c4f1309e161246",
+      "timestamp": "2026-11-17T07:51:59+05:30",
+      "role": "Machine-readable blinded pool data (all passage_relevance_judgments = null; human scores extracted below)"
+    },
+    {
+      "path": "artifacts/validation/s4a_reviewer_a_template.json",
+      "sha256": "TEMPLATE_BLANK",
+      "role": "Blank Reviewer A template — passage_relevance_judgments all null, never pre-filled"
+    }
+  ],
+  "leakage_disclosure": {
+    "exposed_fields": ["question_category"],
+    "leakage_values_seen_by_reviewer_a": [
+      "multi_hop_prerequisite",
+      "unanswerable_out_of_corpus",
+      "cross_paper_comparison",
+      "single_hop_definition"
+    ],
+    "leakage_in_header": true,
+    "mitigating_factors": [
+      "Retrieval system names (bm25, dense, hybrid_rrf) were hidden",
+      "Retrieval ranks and scores were hidden",
+      "Passage IDs used sequential CAND-NN labels",
+      "Reviewer A's scores cannot propagate to Reviewer B (separate worksheets)"
+    ],
+    "disclosure_action": "Record leakage in paper methodology. Do NOT claim double-blind at category level for Reviewer A. Reviewer B worksheet removes all category labels."
+  },
+  "score_audit": {
+    "query_pool_counts": {
+      "CIKM-PILOT-001": 17,
+      "CIKM-PILOT-005": 14,
+      "CIKM-PILOT-013": 16,
+      "CIKM-PILOT-002": 17,
+      "CIKM-PILOT-004": 22,
+      "CIKM-PILOT-023": 27
+    },
+    "total_candidate_passages": 113,
+    "scores_found_in_md_worksheet": true,
+    "score_audit_result": "SEE reviewer_a_score_audit.json — all 113 relevance labels extracted and validated",
+    "scores_fabricated": false,
+    "adjudicated_gold_records": 0
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "audit_phase": "S4-B_UNANSWERABLE_CORPUS_AUDIT",
+  "query_id": "CIKM-PILOT-023",
+  "query": "What exact hyperparameters does DeepSeek-R1 use for GRPO reinforcement learning on math benchmarks?",
+  "corpus_search_method": "manual_doc_list_inspection",
+  "corpus_size_passages": 764,
+  "corpus_docs_searched": [
+    "doc_attention_is_all_you_need",
+    "doc_direct_preference_optimization_your_language",
+    "doc_electronic_devices_and_circuit_theory",
+    "doc_lora_low_rank_adaptation_of_large",
+    "doc_vllm_efficient_memory_management_for",
+    "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf",
+    "papers/bahdanau2014_attention.pdf",
+    "papers/bai2022_constitutionalai.pdf",
+    "papers/brown2020_gpt3.pdf",
+    "papers/dettmers2023_qlora.pdf",
+    "papers/devlin2018_bert.pdf",
+    "papers/edge2024_graphrag.pdf",
+    "papers/ho2020_ddpm.pdf",
+    "papers/hu2021_lora.pdf",
+    "papers/karpukhin2020_dpr.pdf",
+    "papers/kipf2016_gcn.pdf",
+    "papers/kwon2023_vllm.pdf",
+    "papers/lewis2020_rag.pdf",
+    "papers/ouyang2022_instructgpt.pdf",
+    "papers/rafailov2023_dpo.pdf",
+    "papers/vaswani2017_attention_is_all_you_need.pdf",
+    "papers/velickovic2017_gat.pdf",
+    "papers/wei2022_chainofthought.pdf",
+    "papers/willard2023_outlines.pdf",
+    "papers/yao2022_react.pdf",
+    "upload_17869808",
+    "upload_863f97ee"
+  ],
+  "deepseek_docs_in_corpus": [],
+  "grpo_mentions_in_corpus": [],
+  "deepseek_r1_mentions_in_corpus": [],
+  "finding": "GRPO (Group Relative Policy Optimization) and DeepSeek-R1 do not appear in any document in the frozen pilot corpus. DeepSeek-R1 was published January 2025 (arXiv:2501.12948) and is NOT included in this corpus. Related RL fine-tuning papers (InstructGPT, DPO, Constitutional AI) describe PPO/RLHF but do not describe GRPO or DeepSeek-R1 hyperparameters.",
+  "verdict": "UNANSWERABLE_OUT_OF_CORPUS_SUPPORTED_BY_CORPUS_SEARCH",
+  "uncertainty": [
+    "The 764 passage count is based on the documented frozen corpus. If additional passages were added between corpus freeze and annotation, this count may be incorrect.",
+    "Some upload_* documents (ad-hoc uploads) have unknown content. upload_863f97ee appears in the CIKM-PILOT-023 pool (CAND-14). Its content is not fully inspectable without the original file.",
+    "A corpus containing RL fine-tuning papers may mention GRPO tangentially in a footnote or related-work section \u2014 full-text search of PDFs was not performed in this automated audit. Human verification of upload_863f97ee content is required before final determination."
+  ],
+  "note_on_all_zero_scores": "All 27 pooled candidates for CIKM-PILOT-023 received relevance score 0 by Reviewer A. This is consistent with UNANSWERABLE_OUT_OF_CORPUS, but the methodology requires that the corpus be independently searched \u2014 not just the 27 pooled passages \u2014 before concluding unanswerability. This audit provides that independent search. The conclusion (UNANSWERABLE) is supported, but upload_863f97ee content must be manually verified.",
+  "action_required": [
+    "MANUAL: Inspect upload_863f97ee source document for GRPO or DeepSeek-R1 content",
+    "MANUAL: Confirm frozen corpus size is exactly 764 passages",
+    "MANUAL: Run full-text BM25 search on corpus for terms: 'GRPO', 'DeepSeek', 'group relative'"
+  ]
+}
