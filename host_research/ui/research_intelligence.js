@@ -9,6 +9,7 @@ const SEARCH_RECOVERY_WINDOW_MS = 360000;
 const SEARCH_PROGRESS_TICK_MS = 1000;
 const SEARCH_SLOW_NOTICE_MS = 30000;
 const SEARCH_LONG_NOTICE_MS = 90000;
+const DOWNLOAD_URL_LIFETIME_MS = 60000;
 let progressTimer = null;
 
 function pendingSearch() {
@@ -69,6 +70,7 @@ async function recoverPendingSearch() {
       saveResearchState();
       clearPendingSearch();
       await showRun(run);
+      void loadRecentRuns();
       if (submit) submit.disabled = false;
       if (status) status.textContent = `Done — loaded ${s5('paper-results').children.length} source-linked papers for "${pending.topic}".`;
       return;
@@ -92,7 +94,7 @@ function saveResearchState() {
     if (activeRunId) {
       const sp = new URLSearchParams(location.search);
       sp.set('run', activeRunId);
-      history.replaceState(null, '', `${location.pathname}?${sp.toString()}`);
+      history.replaceState(null, '', `${location.pathname}?${sp.toString()}${location.hash}`);
     }
   } catch (_) {}
 }
@@ -165,16 +167,20 @@ function metricGrid(rows) {
 }
 
 async function showRun(run) {
-  const dossier = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/dossier`);
-  const paperRows = (dossier.papers || []).map(detail => ({
+  let dossier = null;
+  let dossierError = null;
+  try { dossier = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/dossier`); }
+  catch (error) { dossierError = error; }
+  let paperRows = (dossier?.papers || []).map(detail => ({
     detail,
-    paper: run.papers.find(paper => paper.title === detail.title && String(paper.doi || '') === detail.doi)
+    paper: (run.papers || []).find(paper => paper.title === detail.title && String(paper.doi || '') === detail.doi)
   })).filter(row => row.paper);
+  if (!paperRows.length) paperRows = (run.papers || []).map(paper => ({ detail: null, paper }));
   s5('intelligence-results').hidden = false;
   s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
   s5('paper-list-link').textContent = `Browse ${paperRows.length} paper pages ↓`;
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
-  s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
+  s5('provider-status').textContent = (run.sources || []).map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ') + (dossierError ? ' · Detailed rankings are temporarily unavailable; saved paper records are shown.' : '');
   const excelLink = s5('excel-link');
   excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=standard`;
   excelLink.onclick = async event => {
@@ -193,7 +199,7 @@ async function showRun(run) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_LIFETIME_MS);
     } catch (err) {
       s5('provider-status').textContent = err.message || 'Could not download workbook.';
     }
@@ -235,17 +241,19 @@ async function showRun(run) {
       'Mean Citedness', 'Indexing Status'
     ];
     for (const header of additionalHeaders) {
-      const index = dossier.paper_headers.indexOf(header);
-      const value = index >= 0 ? detail.rankable_values[index] : null;
+      const index = (dossier?.paper_headers || []).indexOf(header);
+      const value = index >= 0 ? detail?.rankable_values?.[index] : null;
       metricRows.push([header, value == null || value === '' ? '—' : String(value)]);
     }
     const coverage = document.createElement('p');
     coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper and venue parameters filled · search counts cover these retrieved papers only · 0 for an evidence flag means the retrieved record did not report it. Provider metrics remain blank when unreported.`;
     article.append(title, facts, coverage, metricGrid(metricRows));
     const paperDetail = document.createElement('a');
-    paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${detail.index}`;
-    paperDetail.textContent = 'Open paper page ↗';
-    article.append(paperDetail);
+    if (detail) {
+      paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${detail.index}`;
+      paperDetail.textContent = 'Open paper page ↗';
+      article.append(paperDetail);
+    }
     if (paper.url && paper.url.startsWith('https://')) {
       const link = document.createElement('a');
       link.href = paper.url;
@@ -324,134 +332,41 @@ async function showRun(run) {
   if (!paperRows.length) list.textContent = 'No source-linked papers with enough verified identity metadata matched this topic.';
 }
 
-async function loadMonitors() {
-  const data = await s5Json('/api/research/intelligence/monitors');
-  const list = s5('monitor-list');
-  list.replaceChildren();
-  for (const monitor of data.monitors) {
-    const row = document.createElement('p');
-    const label = document.createElement('span');
-    label.textContent = `${monitor.options.topic} · ${monitor.enabled ? 'active' : 'disabled'} · last successful check ${monitor.last_success_at || 'never'} · next check ${monitor.next_run_at || 'not scheduled'}${monitor.last_error ? ` · error ${monitor.last_error} (retry ${monitor.consecutive_failures || 0})` : ''}`;
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.textContent = monitor.enabled ? 'Disable' : 'Activate';
-    toggle.addEventListener('click', async () => {
-      try {
-        await s5Json(`/api/research/intelligence/monitors/${monitor.id}`, {
-          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enabled: !monitor.enabled })
-        });
-        s5('monitor-status').textContent = monitor.enabled ? 'Monitoring disabled.' : 'Monitoring activated. A configured worker will refresh this topic.';
-        await loadMonitors();
-      } catch (error) { s5('monitor-status').textContent = error.message; }
-    });
-    row.append(label, toggle);
-    const cadenceLabel = document.createElement('label');
-    cadenceLabel.textContent = 'Check every ';
-    const cadence = document.createElement('select');
-    cadence.setAttribute('aria-label', `Refresh frequency for ${monitor.options.topic}`);
-    for (const [hours, caption] of [['6', '6 hours'], ['24', '24 hours'], ['168', '7 days']]) {
-      const option = new Option(caption, hours);
-      cadence.append(option);
+async function loadRecentRuns() {
+  const status = s5('recent-research-status');
+  const list = s5('recent-research-list');
+  try {
+    const data = await s5Json('/api/research/intelligence/runs');
+    list.replaceChildren();
+    const runs = Array.isArray(data.runs) ? data.runs : [];
+    status.textContent = runs.length ? `${runs.length} saved topic${runs.length === 1 ? '' : 's'} — select one to reopen its papers.` : 'No saved topics yet.';
+    for (const run of runs) {
+      if (!run.run_id) continue;
+      const link = document.createElement('a');
+      link.href = `/research/?run=${encodeURIComponent(run.run_id)}#topic-form`;
+      link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
+      list.append(link);
     }
-    cadence.value = String(monitor.cadence_hours || 24);
-    cadence.addEventListener('change', async () => {
-      try {
-        await s5Json(`/api/research/intelligence/monitors/${monitor.id}`, {
-          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cadence_hours: Number(cadence.value) })
-        });
-        s5('monitor-status').textContent = 'Monitoring frequency updated.';
-        await loadMonitors();
-      } catch (error) { s5('monitor-status').textContent = error.message; }
-    });
-    cadenceLabel.append(cadence);
-    row.append(cadenceLabel);
-    if (monitor.enabled) {
-      const refresh = document.createElement('button');
-      refresh.type = 'button';
-      refresh.textContent = 'Refresh now';
-      refresh.addEventListener('click', async () => {
-        refresh.disabled = true;
-        s5('monitor-status').textContent = 'Refreshing metadata…';
-        try {
-          const result = await s5Json(`/api/research/intelligence/monitors/${monitor.id}/run`, { method: 'POST' });
-          s5('monitor-status').textContent = `Refresh ${result.status}.`;
-          await loadMonitors();
-          await loadUpdates();
-        } catch (error) { s5('monitor-status').textContent = error.message; }
-        finally { refresh.disabled = false; }
-      });
-      row.append(refresh);
-    }
-    const history = document.createElement('details');
-    const historySummary = document.createElement('summary');
-    historySummary.textContent = 'Execution history';
-    history.append(historySummary);
-    history.addEventListener('toggle', async () => {
-      if (!history.open) return;
-      try {
-        const data = await s5Json(`/api/research/intelligence/monitors/${monitor.id}/history`);
-        history.replaceChildren(historySummary);
-        for (const item of data.history) {
-          const entry = document.createElement('p');
-          entry.textContent = `${item.finished_at || item.created_at} · ${item.status}${item.error ? ` · ${item.error}` : ''}`;
-          history.append(entry);
-        }
-      } catch (error) { history.append(document.createTextNode(error.message)); }
-    });
-    row.append(history);
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.textContent = 'Remove monitor';
-    remove.setAttribute('aria-label', `Remove monitor for ${monitor.options.topic}`);
-    remove.addEventListener('click', async () => {
-      if (!confirm(`Remove monitoring for ${monitor.options.topic} and its update history?`)) return;
-      try {
-        await s5Json(`/api/research/intelligence/monitors/${monitor.id}`, { method: 'DELETE' });
-        s5('monitor-status').textContent = 'Monitor removed.';
-        await loadMonitors();
-        await loadUpdates();
-      } catch (error) { s5('monitor-status').textContent = error.message; }
-    });
-    row.append(remove);
-    list.append(row);
-  }
+  } catch (error) { status.textContent = `Could not load saved topics: ${error.message}`; }
 }
 
-async function loadUpdates() {
-  const list = s5('research-updates');
+async function restoreRun(runId) {
+  const status = s5('intelligence-status');
+  status.textContent = 'Loading saved papers…';
   try {
-    const data = await s5Json('/api/research/intelligence/updates');
-    list.replaceChildren();
-    if (!data.updates.length) list.textContent = 'No updates yet.';
-    for (const update of data.updates) {
-      const entry = document.createElement('p');
-      entry.textContent = `${update.created_at} · ${update.kind.replaceAll('_', ' ')} · ${update.payload.title || update.subject_id}`;
-      list.append(entry);
-    }
-  } catch (error) { list.textContent = error.message; }
+    const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(runId)}`);
+    activeRunId = runId;
+    if (run.options?.topic) s5('topic-input').value = run.options.topic;
+    await showRun(run);
+    status.textContent = `Restored ${s5('paper-results').children.length} source-linked papers.`;
+  } catch (error) {
+    status.textContent = `Could not restore this saved search: ${error.message}. Choose another saved topic or retry.`;
+  }
 }
 
 window.addEventListener('load', async () => {
   if (!await window.archipelagoResearchReady) return;
   const savedRunId = restoreResearchForm();
-  if (savedRunId && !pendingSearch()) {
-    try {
-      activeRunId = savedRunId;
-      const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(savedRunId)}`);
-      await showRun(run);
-      s5('intelligence-status').textContent = `Restored ${s5('paper-results').children.length} source-linked papers.`;
-    } catch (error) {
-      activeRunId = null;
-      sessionStorage.removeItem(S5_STATE_KEY);
-      s5('intelligence-status').textContent = error.message || 'Ready to search.';
-      const query = new URLSearchParams(location.search);
-      query.delete('run');
-      history.replaceState(null, '', `${location.pathname}?${query.toString()}`);
-    }
-  }
-  if (pendingSearch()) void recoverPendingSearch();
   s5('intelligence-form').addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -474,6 +389,7 @@ window.addEventListener('load', async () => {
       activeRunId = run.run_id;
       saveResearchState();
       await showRun(run);
+      void loadRecentRuns();
       const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
       s5('intelligence-status').textContent = `Done — loaded ${s5('paper-results').children.length} source-linked papers from ${liveCount} live provider(s).`;
     } catch (error) {
@@ -489,4 +405,7 @@ window.addEventListener('load', async () => {
     }
     finally { if (!pendingSearch()) form.querySelector('button[type="submit"]').disabled = false; }
   });
+  void loadRecentRuns();
+  if (pendingSearch()) void recoverPendingSearch();
+  else if (savedRunId) void restoreRun(savedRunId);
 });

@@ -171,7 +171,7 @@ function renderRunTopic(dossier, context) {
       const download = dossierLink("", blobUrl);
       download.download = `archipelago-research-${context.run.slice(0, 8)}.xlsx`;
       document.body.append(download); download.click(); download.remove();
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
     } catch (error) { dossierEl("topic-status").textContent = error.message; }
   });
   actions.append(excelLink, dossierLink("Ranking tables ↗", context.run ? `/research/papers?run=${encodeURIComponent(context.run)}` : "/research/rankings", "topic-action secondary"));
