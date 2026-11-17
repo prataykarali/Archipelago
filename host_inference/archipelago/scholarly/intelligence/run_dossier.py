@@ -6,6 +6,7 @@ from collections import Counter
 from typing import Any
 
 from .ranking_preview import preview_run
+from .search_rankings import author_identity_key, ordered_author_keys
 from .standard_validation import distinct_standard_papers
 from .workbook_standard import _valid_author_name
 
@@ -74,7 +75,12 @@ def _paper_detail(paper: dict[str, Any], index: int, values: list[Any]) -> dict[
             for author in paper.get("authors") or []
             if isinstance(author, dict) and _valid_author_name(author)
         ],
-        "year": paper.get("year"),
+        "author_keys": [
+            author_identity_key(paper, author_index)
+            for author_index, author in enumerate(paper.get("authors") or [])
+            if isinstance(author, dict) and _valid_author_name(author)
+        ],
+        "year": paper.get("year") or int(str(paper.get("publication_date"))[:4]),
         "venue": str(paper.get("venue") or ""),
         "publication_type": str(paper.get("publication_type") or ""),
         "doi": str(paper.get("doi") or ""),
@@ -120,6 +126,10 @@ def build_run_dossier(run: dict[str, Any]) -> dict[str, Any]:
         _paper_detail(paper, index, ranking_rows[index]["values"])
         for index, paper in enumerate(valid_papers)
     ]
+    author_keys = ordered_author_keys(valid_papers)
+    author_rows = preview["sheets"]["Authors"]["rows"]
+    if len(author_keys) != len(author_rows):
+        raise ValueError("dossier_author_workbook_mismatch")
     extracted_counts: dict[str, dict[str, int]] = {}
     for field in EXTRACTION_FIELDS:
         counts = Counter(
@@ -139,6 +149,11 @@ def build_run_dossier(run: dict[str, Any]) -> dict[str, Any]:
         "retrieved_at": preview["retrieved_at"],
         "paper_count": len(papers),
         "author_count": len(preview["sheets"]["Authors"]["rows"]),
+        "author_headers": preview["sheets"]["Authors"]["headers"],
+        "authors": [
+            {"key": key, "values": row["values"]}
+            for key, row in zip(author_keys, author_rows, strict=True)
+        ],
         "paper_headers": preview["sheets"]["Papers"]["headers"],
         "extracted_counts": extracted_counts,
         "years": dict(sorted(years.items(), reverse=True)),

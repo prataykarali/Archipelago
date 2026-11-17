@@ -31,10 +31,25 @@ for name in ('Papers', 'Authors'):
     assert all(value is not None and value != '' for row in rows[1:] for value in row)
 headers = [cell.value for cell in book['Papers'][1]]
 assert 'Discovery Fit Score (%)' in headers
+assert 'Venue Papers in This Search' in headers
+assert 'Public Full-Text Link Reported' in headers
 assert 'FWCI (OpenAlex)' not in headers
+author_headers = [cell.value for cell in book['Authors'][1]]
+assert len(author_headers) >= 18
+assert 'Mean Abstract Match in This Search (%)' in author_headers
+assert 'Mean Verified Sources in This Search' in author_headers
+assert 'Distinct Reported Venues in This Search' in author_headers
 dossier = build_run_dossier(run)
 assert len(dossier['papers']) == book['Papers'].max_row - 1
 assert sorted(p['rankable_values'][headers.index('Discovery Rank')] for p in dossier['papers']) == [1, 2]
+assert len(dossier['authors']) == book['Authors'].max_row - 1
+assert dossier['author_headers'] == author_headers
+assert all(p['author_keys'] for p in dossier['papers'])
+run['papers'][1]['year'] = None
+run['papers'][1]['venue'] = None
+fallback = load_workbook(build_workbook(run), data_only=True)
+for name in ('Papers', 'Authors'):
+    assert all(value is not None and value != '' for row in list(fallback[name].values)[1:] for value in row)
 assert FIND.search('recommend me 30 papers on space state model').group('count') == '30'
 assert f'/research/paper?run={run_id}&paper=0' in _list(run, run_id)
 """

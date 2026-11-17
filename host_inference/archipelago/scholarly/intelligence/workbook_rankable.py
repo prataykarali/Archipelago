@@ -143,7 +143,15 @@ def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
         ),
         (
             "Authors sheet",
-            "Search-scoped byline counts; these are not global author impact measures.",
+            "Search-scoped byline, query-match, collaboration, venue, source and evidence counts; these are not global author impact measures.",
+        ),
+        (
+            "Venue measures",
+            "Venue paper counts and title match summarize only papers in this search with a reported venue. Venue Reported distinguishes an absent venue from a genuine zero count.",
+        ),
+        (
+            "Evidence flags",
+            "A 1 means the saved provider record reported that item; 0 means it was not reported. Neither proves the item does not exist.",
         ),
         ("Sources sheet", "Provider records and source links for audit."),
         (

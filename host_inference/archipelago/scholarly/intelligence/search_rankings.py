@@ -27,6 +27,17 @@ AUTHOR_FIELDS = (
     "Newest Paper Year in This Search",
     "Median Paper Year in This Search",
     "Distinct Coauthor Bylines in This Search",
+    "Mean Abstract Match in This Search (%)",
+    "Abstract-Reported Papers in This Search",
+    "Oldest Paper Year in This Search",
+    "Publication Span in This Search (Years)",
+    "Distinct Reported Venues in This Search",
+    "Single-Author Papers in This Search",
+    "Coauthored Papers in This Search",
+    "Mean Team Size in This Search",
+    "Mean Verified Sources in This Search",
+    "DOI-Reported Papers in This Search",
+    "Public Full-Text Links in This Search",
 )
 VENUE_FIELDS = (
     "Venue Papers in This Search",
@@ -67,7 +78,10 @@ def _authors(paper: dict[str, Any]) -> list[str]:
 
 def _year(paper: dict[str, Any]) -> int | None:
     value = paper.get("year")
-    return value if isinstance(value, int) and not isinstance(value, bool) else None
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    published = str(paper.get("publication_date") or "")
+    return int(published[:4]) if published[:4].isdigit() else None
 
 
 def author_identity_key(paper: dict[str, Any], index: int) -> str:
@@ -180,6 +194,10 @@ def author_values(
         for index, author in enumerate(paper.get("authors") or [])
         if _valid_author(author) and index not in positions(paper)
     }
+    team_sizes = [len(_authors(paper)) for paper in matching]
+    source_counts = [
+        paper_values(paper, topic, _year(paper) or 0)["Verified Source Count"] for paper in matching
+    ]
     values = (
         len(matching),
         sum(
@@ -206,6 +224,21 @@ def author_values(
         max(valid_years) if valid_years else None,
         median(valid_years) if valid_years else None,
         len(coauthors),
+        round(
+            sum(title_match(paper.get("abstract"), topic) for paper in matching) / len(matching), 1
+        )
+        if matching
+        else 0.0,
+        sum(bool(paper.get("abstract")) for paper in matching),
+        min(valid_years) if valid_years else None,
+        max(valid_years) - min(valid_years) if valid_years else None,
+        len({_key(paper.get("venue")) for paper in matching if _key(paper.get("venue"))}),
+        sum(size == 1 for size in team_sizes),
+        sum(size > 1 for size in team_sizes),
+        round(sum(team_sizes) / len(team_sizes), 1) if team_sizes else 0.0,
+        round(sum(source_counts) / len(source_counts), 1) if source_counts else 0.0,
+        sum(bool(paper.get("doi")) for paper in matching),
+        sum(str(paper.get("oa_url") or "").startswith("https://") for paper in matching),
     )
     return dict(zip(AUTHOR_FIELDS, values, strict=True))
 

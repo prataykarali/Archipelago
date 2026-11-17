@@ -207,7 +207,7 @@ function renderRun(run, dossier = null, dossierError = null, prepareExport = fal
     title.textContent = `${rank ? `#${rank} · ` : `#${originalIndex + 1} · `}${paper.title}`;
     const facts = document.createElement('p');
     facts.textContent = [paper.authors?.map(author => author.name).join(', '), paper.venue].filter(Boolean).join(' · ');
-    const metricRows = ['Discovery Fit Score (%)', 'Title Query Match (%)', 'Abstract Query Match (%)', 'Recency Within Search (%)', 'Source Corroboration Within Search (%)', 'Verified Source Count', 'Author Count', 'Abstract Reported', 'Metadata Completeness (%)']
+    const metricRows = ['Discovery Fit Score (%)', 'Title Query Match (%)', 'Abstract Query Match (%)', 'Recency Within Search (%)', 'Source Corroboration Within Search (%)', 'Verified Source Count', 'Author Count', 'Abstract Reported', 'Metadata Completeness (%)', 'Paper Age at Retrieval (Years)', 'DOI Reported', 'Public Full-Text Link Reported', 'Venue Reported', 'Venue Papers in This Search']
       .map(header => {
         const index = (dossier?.paper_headers || []).indexOf(header);
         return [header, index >= 0 ? detail?.rankable_values?.[index] : null];
@@ -250,6 +250,21 @@ function renderRun(run, dossier = null, dossierError = null, prepareExport = fal
     paper.authors?.forEach((author, index) => {
       const id = providerIds[index];
       const observation = authorsById.get(id);
+      const rankedAuthor = dossier?.authors?.find(item => item.key === detail?.author_keys?.[index]);
+      if (rankedAuthor) {
+        const heading = document.createElement('h4');
+        heading.textContent = author.name;
+        authorDetails.append(heading, metricGrid(dossier.author_headers.slice(1).map((label, offset) => [label, rankedAuthor.values[offset + 1]])));
+        if (observation?.source_url?.startsWith('https://')) {
+          const source = document.createElement('a');
+          source.href = observation.source_url;
+          source.target = '_blank';
+          source.rel = 'noopener noreferrer';
+          source.textContent = `Author source: ${observation.provider} ↗`;
+          authorDetails.append(source);
+        }
+        return;
+      }
       const bylinePapers = visiblePapers.filter(record => id
         ? paperAuthorIds(record).includes(id)
         : record.authors?.some(person => person.name?.trim().toLocaleLowerCase() === author.name?.trim().toLocaleLowerCase()));

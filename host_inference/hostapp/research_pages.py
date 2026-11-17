@@ -24,7 +24,7 @@ PAGE_SCRIPTS = {
 }
 SHELL = UI / "research_shell.html"
 FRAGMENTS = UI / "research_pages"
-ASSET_VERSION = "20261117completefit2"
+ASSET_VERSION = "20261117expandedsearch3"
 
 
 def render_research_page(page: str) -> Response:

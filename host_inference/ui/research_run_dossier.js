@@ -140,6 +140,21 @@ function renderRunPaper(dossier, paper, context) {
   metrics.append(coverage);
   metrics.append(rankingGrid(rows)); dashboard.append(metrics);
   tabs.append(dossierLink("Ranking parameters", "#run-rankings"));
+  if (Array.isArray(dossier.authors) && Array.isArray(paper.author_keys)) {
+    const authors = dossierCard("Authors in this search", "run-author-rankings", true);
+    const note = document.createElement("p");
+    note.textContent = "Byline measures use only the saved papers in this search. They do not claim a global author impact rank.";
+    authors.append(note);
+    paper.author_keys.forEach((key, index) => {
+      const author = dossier.authors.find(item => item.key === key);
+      if (!author) return;
+      const heading = document.createElement("h3");
+      heading.textContent = paper.authors[index] || author.values[0];
+      authors.append(heading, rankingGrid(dossier.author_headers.slice(1).map((label, offset) => [label, author.values[offset + 1]])));
+    });
+    dashboard.append(authors);
+    tabs.append(dossierLink("Authors", "#run-author-rankings"));
+  }
   const reported = Object.entries(paper.provider_metrics || {});
   if (reported.length) {
     const provider = dossierCard("Additional provider facts", "run-provider-facts", true);

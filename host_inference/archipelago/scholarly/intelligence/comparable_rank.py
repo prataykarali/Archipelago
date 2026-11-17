@@ -21,6 +21,13 @@ FIELDS = (
     "Author Count",
     "Abstract Reported",
     "Metadata Completeness (%)",
+    "Paper Age at Retrieval (Years)",
+    "DOI Reported",
+    "Public Full-Text Link Reported",
+    "Venue Reported",
+    "Venue Papers in This Search",
+    "Venue Mean Title Match in This Search (%)",
+    "Venue Public Full-Text Links in This Search",
 )
 
 
@@ -53,6 +60,11 @@ def comparable_papers(run: dict[str, Any]) -> list[dict[str, int | float]]:
         int(paper_values(paper, topic, ranking_year(run))["Verified Source Count"])
         for paper in papers
     ]
+    venue_groups: dict[str, list[dict[str, Any]]] = {}
+    for paper in papers:
+        venue = " ".join(str(paper.get("venue") or "").casefold().split())
+        if venue:
+            venue_groups.setdefault(venue, []).append(paper)
     rows: list[dict[str, int | float]] = []
     for paper, year, sources in zip(papers, years, source_counts, strict=True):
         base = paper_values(paper, topic, ranking_year(run))
@@ -67,6 +79,8 @@ def comparable_papers(run: dict[str, Any]) -> list[dict[str, int | float]]:
             + WEIGHTS["sources"] * corroboration,
             1,
         )
+        venue = " ".join(str(paper.get("venue") or "").casefold().split())
+        venue_papers = venue_groups.get(venue, []) if venue else []
         rows.append(
             {
                 "Discovery Fit Score (%)": score,
@@ -79,6 +93,23 @@ def comparable_papers(run: dict[str, Any]) -> list[dict[str, int | float]]:
                 "Author Count": int(base["Author Count"]),
                 "Abstract Reported": int(bool(paper.get("abstract"))),
                 "Metadata Completeness (%)": float(base["Metadata Completeness (%)"]),
+                "Paper Age at Retrieval (Years)": max(0, ranking_year(run) - year),
+                "DOI Reported": int(bool(paper.get("doi"))),
+                "Public Full-Text Link Reported": int(
+                    str(paper.get("oa_url") or "").startswith("https://")
+                ),
+                "Venue Reported": int(bool(venue)),
+                "Venue Papers in This Search": len(venue_papers),
+                "Venue Mean Title Match in This Search (%)": round(
+                    sum(title_match(item.get("title"), topic) for item in venue_papers)
+                    / len(venue_papers),
+                    1,
+                )
+                if venue_papers
+                else 0.0,
+                "Venue Public Full-Text Links in This Search": sum(
+                    str(item.get("oa_url") or "").startswith("https://") for item in venue_papers
+                ),
             }
         )
     for rank, index in enumerate(
