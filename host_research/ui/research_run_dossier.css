@@ -12,6 +12,14 @@
 .run-metric-grid div{border:1px solid #e0e3f1;background:#fbfaff;border-radius:7px;padding:9px}
 .run-metric-grid dt{color:#69738c;font-size:10px}
 .run-metric-grid dd{margin:4px 0 0;color:#222959;font-size:12px;font-weight:700;overflow-wrap:anywhere}
+.run-metric-grid .run-metric-missing{background:#f7f8fc}
+.run-metric-missing dd{color:#69738c;font-weight:500}
+.run-ranking-coverage{margin:0 0 12px;color:#465271;font-size:12px}
+.topic-ranking-details{margin-top:12px;border-top:1px solid #e0e3f1;padding-top:10px}
+.topic-ranking-details summary{cursor:pointer;color:#5933bd;font-size:12px;font-weight:700}
+.topic-ranking-details .run-metric-grid{margin-top:12px}
+.dossier-load-progress{display:block;width:min(100%,420px);height:8px;margin:10px 0;accent-color:#7135cf}
+.dossier-load-progress[hidden]{display:none}
 .topic-extraction-panel{margin-top:13px}
 #topic-extracted{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
 .topic-extract-group h3{font:700 13px 'Space Grotesk',sans-serif;color:#2b2761;margin:5px 0 8px}

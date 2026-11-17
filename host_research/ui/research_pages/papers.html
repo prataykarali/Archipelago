@@ -5,7 +5,7 @@
 <section id="topic-form" class="research-simple" aria-labelledby="s5-heading">
   <p class="eyebrow">SCHOLARLY METADATA / S5</p>
   <h2 id="s5-heading">Research papers</h2>
-  <p>Search a topic for up to 30 source-linked papers with the richest verified metadata available. Coverage depends on what the providers report; missing metrics remain blank.</p>
+  <p>Search for up to 30 deduplicated, source-linked papers across connected scholarly providers. Each view shows the ranking fields they actually report; unavailable metrics are clearly marked and never invented.</p>
   <form id="intelligence-form" class="research-search">
     <label for="topic-input">Research topic</label>
     <div class="research-search-row"><input id="topic-input" name="topic" minlength="3" maxlength="200" required placeholder="e.g. efficient retrieval augmented generation"><button type="submit">Find papers</button></div>
@@ -17,10 +17,15 @@
     </div>
   </form>
   <p id="intelligence-status" role="status">Ready to search.</p>
+  <div id="research-progress" class="research-progress" hidden aria-labelledby="research-progress-title">
+    <div class="research-progress-head"><strong id="research-progress-title">Searching for papers</strong><span id="research-elapsed">0s elapsed</span></div>
+    <progress id="research-progress-bar" aria-label="Search in progress"></progress>
+    <p id="research-progress-message">Request sent. Waiting for the research service to respond.</p>
+    <p class="research-progress-note">The service does not report a percentage or internal stages. Elapsed time starts when you submit; you can return to this page to check for a saved result.</p>
+  </div>
   <section id="intelligence-results" hidden aria-labelledby="results-heading">
     <h2 id="results-heading">Paper results</h2><p>Each parameter is shown separately. A dash means no connected source verified that value; it is never treated as zero.</p><p id="provider-status"></p><p id="retrieved-at"></p>
-    <a id="excel-link" href="#">Download paper data (Excel)</a>
-    <a id="topic-dossier-link" href="#">Open topic extraction overview ↗</a>
+    <div class="research-result-actions"><a id="excel-link" href="#">Download paper data (Excel)</a><a id="topic-dossier-link" href="#">Open total topic summary ↗</a><a id="paper-list-link" href="#paper-results">Browse paper pages ↓</a></div>
     <div id="paper-results"></div>
   </section>
 </section>

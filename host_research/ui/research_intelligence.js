@@ -6,6 +6,10 @@ const S5_STATE_KEY = 'archipelago_research_state_v2';
 const S5_PENDING_KEY = 'archipelago_research_pending_v2';
 const SEARCH_RECOVERY_INTERVAL_MS = 8000;
 const SEARCH_RECOVERY_WINDOW_MS = 360000;
+const SEARCH_PROGRESS_TICK_MS = 1000;
+const SEARCH_SLOW_NOTICE_MS = 30000;
+const SEARCH_LONG_NOTICE_MS = 90000;
+let progressTimer = null;
 
 function pendingSearch() {
   try { return JSON.parse(sessionStorage.getItem(S5_PENDING_KEY) || 'null'); }
@@ -14,6 +18,34 @@ function pendingSearch() {
 
 function clearPendingSearch() {
   sessionStorage.removeItem(S5_PENDING_KEY);
+  renderSearchProgress();
+}
+
+function renderSearchProgress() {
+  const panel = s5('research-progress');
+  if (!panel) return;
+  const pending = pendingSearch();
+  panel.hidden = !pending;
+  if (!pending) {
+    if (progressTimer) clearInterval(progressTimer);
+    progressTimer = null;
+    return;
+  }
+  const elapsedSeconds = Math.floor(Math.max(0, Date.now() - pending.started_at) / SEARCH_PROGRESS_TICK_MS);
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = String(elapsedSeconds % 60).padStart(2, '0');
+  s5('research-elapsed').textContent = minutes ? `${minutes}m ${seconds}s elapsed` : `${elapsedSeconds}s elapsed`;
+  const age = Date.now() - pending.started_at;
+  s5('research-progress-message').textContent = age >= SEARCH_LONG_NOTICE_MS
+    ? 'Still waiting for a saved result. Provider requests can be slow; you may leave this page and return.'
+    : age >= SEARCH_SLOW_NOTICE_MS
+      ? 'The request is taking longer than usual. Waiting for the research service to respond.'
+      : 'Request sent. Waiting for the research service to respond.';
+}
+
+function startSearchProgress() {
+  renderSearchProgress();
+  if (!progressTimer) progressTimer = setInterval(renderSearchProgress, SEARCH_PROGRESS_TICK_MS);
 }
 
 async function recoverPendingSearch() {
@@ -27,6 +59,7 @@ async function recoverPendingSearch() {
     return;
   }
   if (submit) submit.disabled = true;
+  startSearchProgress();
   if (status) status.textContent = `Researching "${pending.topic}". You can visit other pages and return here.`;
   try {
     const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
@@ -35,9 +68,9 @@ async function recoverPendingSearch() {
       activeRunId = job.run_id;
       saveResearchState();
       clearPendingSearch();
-      showRun(run);
+      await showRun(run);
       if (submit) submit.disabled = false;
-      if (status) status.textContent = `Done — loaded ${run.papers?.length || 0} papers for "${pending.topic}".`;
+      if (status) status.textContent = `Done — loaded ${s5('paper-results').children.length} source-linked papers for "${pending.topic}".`;
       return;
     }
   } catch (error) {
@@ -95,13 +128,24 @@ function currentSearchOptions() {
 
 async function s5Json(url, options = {}) {
   const response = await fetch(url, { cache: 'no-store', ...options });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || data.error || 'Research service unavailable');
+  let data;
+  try { data = await response.json(); }
+  catch (_) { data = { error: `HTTP ${response.status}` }; }
+  if (!response.ok) {
+    const error = new Error(data.message || data.error || 'Research service unavailable');
+    error.httpStatus = response.status;
+    throw error;
+  }
   return data;
 }
 
 const metricNumber = (value, digits = 0) => Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
-const metricList = value => Array.isArray(value) && value.length ? value.map(item => typeof item === 'string' ? item : item?.name || item?.label || JSON.stringify(item)).join(', ') : '—';
+const metricList = value => {
+  if (!Array.isArray(value)) return '—';
+  const names = value.map(item => typeof item === 'string' ? item : item?.name || item?.label || item?.normalized_value)
+    .filter(item => typeof item === 'string' && item.trim());
+  return names.length ? names.join(', ') : '—';
+};
 const openAlexAuthorId = value => typeof value === 'string' && value ? value.split('/').filter(Boolean).at(-1) : null;
 const paperAuthorIds = paper => Array.isArray(paper.source_metadata?.author_openalex_ids) ? paper.source_metadata.author_openalex_ids.map(openAlexAuthorId) : [];
 
@@ -120,9 +164,15 @@ function metricGrid(rows) {
   return grid;
 }
 
-function showRun(run) {
+async function showRun(run) {
+  const dossier = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/dossier`);
+  const paperRows = (dossier.papers || []).map(detail => ({
+    detail,
+    paper: run.papers.find(paper => paper.title === detail.title && String(paper.doi || '') === detail.doi)
+  })).filter(row => row.paper);
   s5('intelligence-results').hidden = false;
   s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
+  s5('paper-list-link').textContent = `Browse ${paperRows.length} paper pages ↓`;
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
   const excelLink = s5('excel-link');
@@ -151,7 +201,7 @@ function showRun(run) {
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));
-  for (const [paperIndex, paper] of run.papers.entries()) {
+  for (const { detail, paper } of paperRows) {
     const article = document.createElement('article');
     article.className = 'research-card';
     const title = document.createElement('h3');
@@ -173,11 +223,11 @@ function showRun(run) {
       ['Open-access status', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : '—'],
     ];
     const coverage = document.createElement('p');
-    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper parameters verified`;
+    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper parameters reported · ${paper.abstract ? 'Abstract available' : 'No provider abstract'} · ${paper.doi ? 'DOI available' : 'No DOI reported'}`;
     article.append(title, facts, coverage, metricGrid(metricRows));
     const paperDetail = document.createElement('a');
-    paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${paperIndex}`;
-    paperDetail.textContent = 'Open paper extraction ↗';
+    paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${detail.index}`;
+    paperDetail.textContent = 'Open paper page ↗';
     article.append(paperDetail);
     if (paper.url && paper.url.startsWith('https://')) {
       const link = document.createElement('a');
@@ -273,7 +323,7 @@ function showRun(run) {
     article.append(venueSection);
     list.append(article);
   }
-  if (!run.papers.length) list.textContent = 'No papers matched the filters in the returned provider results.';
+  if (!paperRows.length) list.textContent = 'No source-linked papers with enough verified identity metadata matched this topic.';
 }
 
 async function loadMonitors() {
@@ -392,8 +442,8 @@ window.addEventListener('load', async () => {
     try {
       activeRunId = savedRunId;
       const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(savedRunId)}`);
-      showRun(run);
-      s5('intelligence-status').textContent = `Restored ${run.papers?.length || 0} papers.`;
+      await showRun(run);
+      s5('intelligence-status').textContent = `Restored ${s5('paper-results').children.length} source-linked papers.`;
     } catch (error) {
       activeRunId = null;
       sessionStorage.removeItem(S5_STATE_KEY);
@@ -408,22 +458,31 @@ window.addEventListener('load', async () => {
     event.preventDefault();
     const form = event.currentTarget;
     const payload = currentSearchOptions();
+    activeRunId = null;
+    s5('intelligence-results').hidden = true;
+    const searchUrl = new URLSearchParams(location.search);
+    searchUrl.delete('run');
+    history.replaceState(null, '', `${location.pathname}?${searchUrl.toString()}`);
     const requestId = crypto.randomUUID();
     payload.client_request_id = requestId;
     sessionStorage.setItem(S5_PENDING_KEY, JSON.stringify({ request_id: requestId, topic: payload.topic, started_at: Date.now() }));
+    startSearchProgress();
     saveResearchState();
-    s5('intelligence-status').textContent = `Fetching papers from OpenAlex, Crossref, Semantic Scholar & arXiv for "${payload.topic}"…`;
+    s5('intelligence-status').textContent = `Search request sent for "${payload.topic}". Waiting for a result…`;
     form.querySelector('button[type="submit"]').disabled = true;
     try {
       const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true });
       clearPendingSearch();
       activeRunId = run.run_id;
       saveResearchState();
-      showRun(run);
+      await showRun(run);
       const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
-      s5('intelligence-status').textContent = `Done — loaded ${run.papers.length} papers from ${liveCount} live provider(s).`;
+      s5('intelligence-status').textContent = `Done — loaded ${s5('paper-results').children.length} source-linked papers from ${liveCount} live provider(s).`;
     } catch (error) {
-      if (pendingSearch()) {
+      if (error.httpStatus) {
+        clearPendingSearch();
+        s5('intelligence-status').textContent = `Search failed: ${error.message}. Please retry.`;
+      } else if (pendingSearch()) {
         s5('intelligence-status').textContent = `Search request interrupted (${error.message}); checking for the completed search…`;
         void recoverPendingSearch();
       } else {

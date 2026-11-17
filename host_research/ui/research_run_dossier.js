@@ -6,6 +6,31 @@ const DOSSIER_SECTIONS = [
   ["evaluation_metrics", "Evaluation metrics"], ["claims", "Extracted claims"]
 ];
 const ABSTRACT_PREVIEW_CHARS = 280;
+const RANKING_SUMMARY_HEADERS = ["Citation Count", "Citations per Year", "Topic Relevance Score", "Field-Weighted Citation Impact (FWCI)", "Reference Count"];
+const RANKING_IDENTITY_HEADERS = new Set(["Paper", "Paper Title", "Title", "Authors", "Publication Year", "Year", "Venue Name", "Venue", "Paper link", "DOI"]);
+
+function reportedRankingValue(value) {
+  return value !== null && value !== undefined && value !== "" &&
+    !(typeof value === "string" && value.startsWith("=HYPERLINK("));
+}
+
+function rankingRows(dossier, paper) {
+  return dossier.paper_headers.map((header, index) => [header, paper.rankable_values[index]])
+    .filter(([header]) => !RANKING_IDENTITY_HEADERS.has(header));
+}
+
+function rankingGrid(rows) {
+  const grid = document.createElement("dl"); grid.className = "run-metric-grid";
+  rows.forEach(([header, raw]) => {
+    const item = document.createElement("div");
+    if (!reportedRankingValue(raw)) item.className = "run-metric-missing";
+    const term = document.createElement("dt"); term.textContent = header;
+    const description = document.createElement("dd");
+    description.textContent = reportedRankingValue(raw) ? dossierText(raw) : "Not reported";
+    item.append(term, description); grid.append(item);
+  });
+  return grid;
+}
 
 function dossierLink(label, href, className = "") {
   const a = document.createElement("a");
@@ -83,7 +108,7 @@ function renderRunPaper(dossier, paper, context) {
   dossierEl("paper-title").textContent = paper.title;
   dossierEl("paper-authors").textContent = paper.authors.join(" · ");
   dossierEl("paper-venue").textContent = [paper.venue, paper.year].filter(Boolean).join(" · ");
-  dossierEl("paper-subtitle").textContent = `Retrieved ${dossier.retrieved_at.slice(0, 10)} · source title and abstract evidence · ${paper.sources.length} source records`;
+  dossierEl("paper-subtitle").textContent = `Retrieved ${dossier.retrieved_at.slice(0, 10)} · ${paper.abstract ? "source title and abstract" : "source title only"} · ${paper.sources.length} source records`;
   const tags = dossierEl("paper-tags");
   for (const fact of paper.extracted.methods.slice(0, 4)) {
     const tag = document.createElement("span"); tag.textContent = fact.name; tags.append(tag);
@@ -110,17 +135,13 @@ function renderRunPaper(dossier, paper, context) {
     addExtractionCard(dashboard, field, label, paper.extracted[field]);
     tabs.append(dossierLink(label, `#run-${field}`));
   }
-  const metrics = dossierCard("All verified ranking parameters", "run-rankings", true);
-  const grid = document.createElement("dl"); grid.className = "run-metric-grid";
-  dossier.paper_headers.forEach((header, index) => {
-    const raw = paper.rankable_values[index];
-    if (raw === null || raw === undefined || raw === "") return;
-    const item = document.createElement("div");
-    const term = document.createElement("dt"); term.textContent = header;
-    const description = document.createElement("dd"); description.textContent = dossierText(raw);
-    item.append(term, description); grid.append(item);
-  });
-  metrics.append(grid); dashboard.append(metrics);
+  const metrics = dossierCard("Ranking parameters and coverage", "run-rankings", true);
+  const rows = rankingRows(dossier, paper);
+  const coverage = document.createElement("p");
+  coverage.className = "run-ranking-coverage";
+  coverage.textContent = `${rows.filter(([, value]) => reportedRankingValue(value)).length} of ${rows.length} ranking parameters reported by sources. Missing values are not estimated.`;
+  metrics.append(coverage);
+  metrics.append(rankingGrid(rows)); dashboard.append(metrics);
   tabs.append(dossierLink("Ranking parameters", "#run-rankings"));
   const sources = dossierCard(`Source records · ${paper.sources.length}`, "run-sources", true);
   const sourceList = document.createElement("ul");
@@ -137,7 +158,7 @@ function renderRunTopic(dossier, context) {
   const query = context.run ? `run=${encodeURIComponent(context.run)}` : "example=state-space-models";
   dossierEl("topic-title").textContent = dossier.topic;
   dossierEl("topic-breadcrumb").textContent = dossier.topic;
-  dossierEl("topic-status").textContent = `${dossier.paper_count} verified papers · retrieved ${dossier.retrieved_at.slice(0, 10)} · source title and abstract evidence`;
+  dossierEl("topic-status").textContent = `${dossier.paper_count} source-linked papers · retrieved ${dossier.retrieved_at.slice(0, 10)} · ${dossier.papers.filter(paper => paper.abstract).length} with provider abstracts`;
   const actions = dossierEl("topic-actions");
   const xlsx = context.run ? `/api/research/intelligence/runs/${encodeURIComponent(context.run)}/xlsx?mode=standard` : "/research/example/Archipelago_State_Space_Models_Rankable.xlsx";
   const excelLink = dossierLink("Download Excel ↗", xlsx, "topic-action");
@@ -197,11 +218,25 @@ function renderRunTopic(dossier, context) {
     const abstract = document.createElement("p"); abstract.className = "topic-paper-abstract";
     abstract.textContent = paper.abstract ? `${paper.abstract.slice(0, ABSTRACT_PREVIEW_CHARS)}${paper.abstract.length > ABSTRACT_PREVIEW_CHARS ? "…" : ""}` : "Source metadata only.";
     const badges = document.createElement("div"); badges.className = "topic-paper-badges";
+    const rankings = rankingRows(dossier, paper);
+    const coverage = document.createElement("span");
+    coverage.textContent = `${rankings.filter(([, value]) => reportedRankingValue(value)).length}/${rankings.length} ranking fields reported`;
+    badges.append(coverage);
+    for (const header of RANKING_SUMMARY_HEADERS) {
+      const value = paper.rankable_values[dossier.paper_headers.indexOf(header)];
+      if (!reportedRankingValue(value)) continue;
+      const badge = document.createElement("span"); badge.textContent = `${header}: ${dossierText(value)}`; badges.append(badge);
+    }
     for (const [field, label] of DOSSIER_SECTIONS) {
       if (!paper.extracted[field].length) continue;
       const badge = document.createElement("span"); badge.textContent = `${paper.extracted[field].length} ${label.toLowerCase()}`; badges.append(badge);
     }
-    card.append(title, authors, abstract, badges); list.append(card);
+    const allRankings = document.createElement("details");
+    allRankings.className = "topic-ranking-details";
+    const rankingSummary = document.createElement("summary");
+    rankingSummary.textContent = "All ranking parameters and missing values";
+    allRankings.append(rankingSummary, rankingGrid(rankings));
+    card.append(title, authors, abstract, badges, allRankings); list.append(card);
   }
 }
 
@@ -209,11 +244,17 @@ window.addEventListener("load", async () => {
   const params = new URLSearchParams(location.search);
   const run = params.get("run");
   const example = params.get("example");
-  if (!run && !example) return;
-  if (!await window.archipelagoResearchReady) return;
   const paperPage = document.body.dataset.researchPage === "paper";
   const status = dossierEl(paperPage ? "paper-subtitle" : "topic-status");
+  const loadProgress = dossierEl(paperPage ? "paper-load-progress" : "topic-load-progress");
+  if (!run && !example) {
+    if (params.has(paperPage ? "key" : "name")) return;
+    status.textContent = "Choose a research run from the search page.";
+    if (loadProgress) loadProgress.hidden = true;
+    return;
+  }
   try {
+    if (!await window.archipelagoResearchReady) throw new Error("Sign in to view this research dossier.");
     if (example && example !== "state-space-models") throw new Error("Unknown example.");
     if (run && !/^[a-f0-9-]{36}$/i.test(run)) throw new Error("Invalid research run.");
     const url = run ? `/api/research/intelligence/runs/${encodeURIComponent(run)}/dossier` : "/research/example/dossiers.json";
@@ -227,4 +268,5 @@ window.addEventListener("load", async () => {
       renderRunPaper(dossier, dossier.papers[index], { run, example });
     } else renderRunTopic(dossier, { run, example });
   } catch (error) { status.textContent = error.message; }
+  finally { if (loadProgress) loadProgress.hidden = true; }
 });
