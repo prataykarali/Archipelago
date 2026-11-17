@@ -168,6 +168,10 @@ def test_research_page_stays_on_blond_and_keeps_staff_graph_private(hosted_app, 
     linked_run = client.get("/research/?run=a9989dd5-5346-4ce2-82cd-2dec9fd6db04")
     assert linked_run.status_code == 200
     assert b"Previous research topics" in linked_run.data
+    topics = client.get("/research/topics")
+    assert topics.status_code == 200
+    assert b"Recent research topics" in topics.data
+    assert b"cytoscape.min.js" not in topics.data
     assert client.get("/research.html").status_code == 404
     assert client.get("/api/research/graph/subgraph?q=graph").status_code == 403
     role["value"] = "faculty"

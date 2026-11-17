@@ -1,6 +1,8 @@
-<section class="atlas-stage" aria-labelledby="atlas-title">
-  <div id="atlas-canvas" aria-label="Full-screen interactive research graph"></div>
-  <div class="atlas-top"><p class="eyebrow">ARCHIPELAGO / RESEARCH NETWORK</p><h1 id="atlas-title">Explore the research atlas</h1><p id="atlas-status" role="status">Loading verified topics…</p><a href="/research" class="atlas-back">← Start a new ingestion</a></div>
-  <div class="atlas-controls"><button id="atlas-minus" aria-label="Zoom out">−</button><button id="atlas-fit">Fit graph</button><button id="atlas-plus" aria-label="Zoom in">+</button><button id="atlas-reset">All topics</button></div>
-  <aside class="atlas-directory" aria-live="polite"><h2 id="atlas-directory-title">Topics</h2><p id="atlas-directory-summary">Select a glowing circle to open its paper network.</p><div id="atlas-directory-items"></div></aside>
+<section class="recent-topics" aria-labelledby="recent-topics-title">
+  <header class="recent-topics-header">
+    <div><p class="eyebrow">RESEARCH / SAVED SEARCHES</p><h1 id="recent-topics-title">Recent research topics</h1><p>Open a saved topic to see its papers. The latest search for each topic is shown.</p></div>
+    <a href="/research#topic-form">Find new papers →</a>
+  </header>
+  <p id="topics-status" role="status">Loading your recent topics…</p>
+  <div id="topics-list" class="recent-topics-list"></div>
 </section>

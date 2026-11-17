@@ -9,6 +9,7 @@ const SEARCH_RECOVERY_WINDOW_MS = 360000;
 const SEARCH_PROGRESS_TICK_MS = 1000;
 const SEARCH_SLOW_NOTICE_MS = 30000;
 const SEARCH_LONG_NOTICE_MS = 90000;
+const RECENT_TOPIC_LIMIT = 10;
 let progressTimer = null;
 
 function pendingSearch() {
@@ -165,23 +166,22 @@ function metricGrid(rows) {
   return grid;
 }
 
-async function showRun(run) {
-  let dossier = null;
-  let dossierError = null;
-  try { dossier = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/dossier`); }
-  catch (error) { dossierError = error; }
-  let paperRows = (dossier?.papers || []).map(detail => ({
-    detail,
-    paper: (run.papers || []).find(paper => paper.title === detail.title && String(paper.doi || '') === detail.doi)
-  })).filter(row => row.paper);
-  if (!paperRows.length) paperRows = (run.papers || []).map(paper => ({ detail: null, paper }));
+function renderRun(run, dossier = null, dossierError = null, prepareExport = false) {
+  const normalizedTitle = value => String(value || '').trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+  const details = dossier?.papers || [];
+  const paperRows = (run.papers || []).map(paper => ({
+    paper,
+    detail: details.find(detail =>
+      detail.doi && paper.doi && String(paper.doi).toLocaleLowerCase() === String(detail.doi).toLocaleLowerCase()
+    ) || details.find(detail => normalizedTitle(paper.title) === normalizedTitle(detail.title)) || null
+  }));
   s5('intelligence-results').hidden = false;
   s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
   s5('paper-list-link').textContent = `Browse ${paperRows.length} paper pages ↓`;
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters · Current Excel: 4 sheets; venue metrics on Papers`;
   s5('provider-status').textContent = (run.sources || []).map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ') + (dossierError ? ' · Detailed rankings are temporarily unavailable; saved paper records are shown.' : '');
   const excelLink = s5('excel-link');
-  void prepareResearchExcelLink(
+  if (prepareExport) void prepareResearchExcelLink(
     excelLink,
     `/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/xlsx?mode=standard`,
     `archipelago-research-${activeRunId.slice(0, 8)}-paper-venue-v2.xlsx`,
@@ -315,6 +315,21 @@ async function showRun(run) {
   if (!paperRows.length) list.textContent = 'No source-linked papers with enough verified identity metadata matched this topic.';
 }
 
+function showRun(run) {
+  const runId = activeRunId;
+  renderRun(run, null, null, true);
+  void s5Json(`/api/research/intelligence/runs/${encodeURIComponent(runId)}/dossier`)
+    .then(dossier => {
+      if (activeRunId !== runId) return;
+      renderRun(run, dossier);
+      s5('intelligence-status').textContent = `Loaded ${s5('paper-results').children.length} verified paper pages.`;
+    })
+    .catch(error => {
+      if (activeRunId !== runId) return;
+      s5('provider-status').textContent += ` · Detailed rankings unavailable (${error.message}); saved paper records remain visible.`;
+    });
+}
+
 async function loadRecentRuns() {
   const status = s5('recent-research-status');
   const list = s5('recent-research-list');
@@ -322,11 +337,18 @@ async function loadRecentRuns() {
     const data = await s5Json('/api/research/intelligence/runs');
     list.replaceChildren();
     const runs = Array.isArray(data.runs) ? data.runs : [];
-    status.textContent = runs.length ? `${runs.length} saved topic${runs.length === 1 ? '' : 's'} — select one to reopen its papers.` : 'No saved topics yet.';
-    for (const run of runs) {
+    const seen = new Set();
+    const recent = runs.filter(run => {
+      const key = String(run.topic || '').trim().toLocaleLowerCase();
+      if (!run.run_id || !key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, RECENT_TOPIC_LIMIT);
+    status.textContent = recent.length ? `Showing ${recent.length} latest topics — select one to reopen its papers.` : 'No saved topics yet.';
+    for (const run of recent) {
       if (!run.run_id) continue;
       const link = document.createElement('a');
-      link.href = `/research/?run=${encodeURIComponent(run.run_id)}#topic-form`;
+      link.href = `/research/?run=${encodeURIComponent(run.run_id)}#paper-results`;
       link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
       list.append(link);
     }
@@ -343,7 +365,9 @@ async function restoreRun(runId) {
     await showRun(run);
     status.textContent = `Restored ${s5('paper-results').children.length} source-linked papers.`;
   } catch (error) {
-    status.textContent = `Could not restore this saved search: ${error.message}. Choose another saved topic or retry.`;
+    status.textContent = error.httpStatus === 410
+      ? 'This older search cannot use the current paper format. Search the topic again to create updated paper pages.'
+      : `Could not restore this saved search: ${error.message}. Choose another saved topic or retry.`;
   }
 }
 
@@ -392,3 +416,6 @@ window.addEventListener('load', async () => {
   if (pendingSearch()) void recoverPendingSearch();
   else if (savedRunId) void restoreRun(savedRunId);
 });
+
+window.addEventListener('pageshow', event => { if (event.persisted) void loadRecentRuns(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) void loadRecentRuns(); });

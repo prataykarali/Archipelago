@@ -6,6 +6,7 @@ const DOSSIER_SECTIONS = [
   ["evaluation_metrics", "Evaluation metrics"], ["claims", "Extracted claims"]
 ];
 const ABSTRACT_PREVIEW_CHARS = 280;
+const TOPIC_PAPER_PREVIEW_LIMIT = 10;
 const RANKING_SUMMARY_HEADERS = ["Citation Count", "Citations per Year", "Topic Relevance Score", "Field-Weighted Citation Impact (FWCI)", "Reference Count"];
 const RANKING_IDENTITY_HEADERS = new Set(["Paper", "Paper Title", "Title", "Authors", "Publication Year", "Year", "Venue Name", "Venue", "Paper link", "DOI"]);
 
@@ -160,11 +161,13 @@ function renderRunTopic(dossier, context) {
   dossierEl("topic-breadcrumb").textContent = dossier.topic;
   dossierEl("topic-status").textContent = `${dossier.paper_count} source-linked papers · retrieved ${dossier.retrieved_at.slice(0, 10)} · ${dossier.papers.filter(paper => paper.abstract).length} with provider abstracts`;
   const actions = dossierEl("topic-actions");
+  actions.replaceChildren();
   const xlsx = context.run ? `/api/research/intelligence/runs/${encodeURIComponent(context.run)}/xlsx?mode=standard` : "/research/example/Archipelago_State_Space_Models_Rankable.xlsx";
   const excelLink = dossierLink("Download Excel ↗", xlsx, "topic-action");
-  actions.append(excelLink, dossierLink("Ranking tables ↗", context.run ? `/research/papers?run=${encodeURIComponent(context.run)}` : "/research/rankings", "topic-action secondary"));
+  actions.append(excelLink, dossierLink("Browse papers ↓", "#topic-papers", "topic-action secondary"), dossierLink("Ranking tables ↗", context.run ? `/research/papers?run=${encodeURIComponent(context.run)}` : "/research/rankings", "topic-action secondary"));
   if (context.run) void prepareResearchExcelLink(excelLink, xlsx, `archipelago-research-${context.run.slice(0, 8)}-paper-venue-v2.xlsx`, dossierEl("topic-status"));
   const stats = dossierEl("topic-stats");
+  stats.replaceChildren();
   for (const [label, count, icon] of [["Papers", dossier.paper_count, "▤"], ["Authors", dossier.author_count, "♙"], ["Source providers", Object.keys(dossier.providers).length, "✦"]]) {
     const tile = document.createElement("div"); tile.className = "topic-stat";
     const symbol = document.createElement("span"); symbol.textContent = icon;
@@ -174,15 +177,19 @@ function renderRunTopic(dossier, context) {
     copy.append(name, value); tile.append(symbol, copy); stats.append(tile);
   }
   const coverage = dossierEl("topic-coverage");
+  coverage.replaceChildren();
   const counts = DOSSIER_SECTIONS.map(([field, label]) => [label, dossier.papers.filter(p => p.extracted[field].length).length]);
   const maxCoverage = Math.max(1, ...counts.map(([, count]) => count));
   counts.forEach(([label, count]) => addDossierBar(coverage, label, count, maxCoverage));
   const yearCounts = Object.entries(dossier.years); const yearMax = Math.max(1, ...yearCounts.map(([, count]) => count));
+  dossierEl("topic-years").replaceChildren();
   yearCounts.forEach(([label, count]) => addDossierBar(dossierEl("topic-years"), label, count, yearMax));
   const providers = Object.entries(dossier.providers); const providerMax = Math.max(1, ...providers.map(([, count]) => count));
+  dossierEl("topic-providers").replaceChildren();
   providers.forEach(([label, count]) => addDossierBar(dossierEl("topic-providers"), label, count, providerMax));
   document.querySelector(".topic-extraction-panel").hidden = false;
   const extracted = dossierEl("topic-extracted");
+  extracted.replaceChildren();
   for (const [field, label] of DOSSIER_SECTIONS) {
     const group = document.createElement("section"); group.className = "topic-extract-group";
     const title = document.createElement("h3"); title.textContent = label;
@@ -199,8 +206,20 @@ function renderRunTopic(dossier, context) {
   }
   dossierEl("topic-paper-count").textContent = `${dossier.paper_count} papers`;
   const list = dossierEl("topic-paper-list");
-  for (const paper of dossier.papers) {
+  list.replaceChildren();
+  const more = dossierEl("topic-paper-more");
+  more.hidden = dossier.papers.length <= TOPIC_PAPER_PREVIEW_LIMIT;
+  more.textContent = `Show all ${dossier.papers.length} papers`;
+  more.onclick = () => {
+    const expanded = more.dataset.expanded === "true";
+    more.dataset.expanded = String(!expanded);
+    more.textContent = expanded ? `Show top ${TOPIC_PAPER_PREVIEW_LIMIT} papers` : "Show fewer papers";
+    for (const card of list.children) card.hidden = expanded && Number(card.dataset.position) >= TOPIC_PAPER_PREVIEW_LIMIT;
+  };
+  for (const [position, paper] of dossier.papers.entries()) {
     const card = document.createElement("article"); card.className = "topic-paper-card";
+    card.dataset.position = String(position);
+    card.hidden = position >= TOPIC_PAPER_PREVIEW_LIMIT;
     const title = dossierLink(paper.title, `/research/paper?${query}&paper=${paper.index}`, "topic-paper-title");
     const authors = document.createElement("p"); authors.className = "topic-paper-authors";
     authors.textContent = [paper.authors.join(", "), paper.year, paper.venue].filter(Boolean).join(" · ");
@@ -229,6 +248,33 @@ function renderRunTopic(dossier, context) {
   }
 }
 
+function renderSavedTopicPreview(savedRun, runId) {
+  const papers = savedRun.papers || [];
+  const topic = savedRun.options?.topic || "Saved topic";
+  dossierEl("topic-title").textContent = topic;
+  dossierEl("topic-breadcrumb").textContent = topic;
+  dossierEl("topic-status").textContent = `${papers.length} saved papers shown. Loading detailed topic metrics…`;
+  dossierEl("topic-actions").append(dossierLink("Browse all paper rankings →", `/research/?run=${encodeURIComponent(runId)}#paper-results`, "topic-action"));
+  dossierEl("topic-paper-count").textContent = `${papers.length} papers`;
+  const list = dossierEl("topic-paper-list");
+  for (const paper of papers.slice(0, TOPIC_PAPER_PREVIEW_LIMIT)) {
+    const card = document.createElement("article");
+    card.className = "topic-paper-card";
+    const link = dossierLink(paper.title || "Untitled paper", `/research/?run=${encodeURIComponent(runId)}#paper-results`, "topic-paper-title");
+    const facts = document.createElement("p");
+    facts.className = "topic-paper-authors";
+    facts.textContent = [paper.authors?.map(author => author.name).join(", "), paper.year, paper.venue].filter(Boolean).join(" · ");
+    card.append(link, facts);
+    list.append(card);
+  }
+  if (papers.length > TOPIC_PAPER_PREVIEW_LIMIT) {
+    const more = dossierEl("topic-paper-more");
+    more.hidden = false;
+    more.textContent = "Browse all papers and rankings";
+    more.onclick = () => { location.href = `/research/?run=${encodeURIComponent(runId)}#paper-results`; };
+  }
+}
+
 window.addEventListener("load", async () => {
   const params = new URLSearchParams(location.search);
   const run = params.get("run");
@@ -247,6 +293,12 @@ window.addEventListener("load", async () => {
     if (example && example !== "state-space-models") throw new Error("Unknown example.");
     if (run && !/^[a-f0-9-]{36}$/i.test(run)) throw new Error("Invalid research run.");
     const url = run ? `/api/research/intelligence/runs/${encodeURIComponent(run)}/dossier` : "/research/example/dossiers.json";
+    if (run && !paperPage) {
+      try {
+        const savedResponse = await fetch(`/api/research/intelligence/runs/${encodeURIComponent(run)}`, { cache: "no-store" });
+        if (savedResponse.ok) renderSavedTopicPreview(await savedResponse.json(), run);
+      } catch (_) { /* The dossier request below can still restore this topic. */ }
+    }
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) throw new Error(`Research dossier unavailable (${response.status}).`);
     const dossier = await response.json();
@@ -256,6 +308,10 @@ window.addEventListener("load", async () => {
       if (!Number.isInteger(index) || index < 0 || index >= dossier.papers.length) throw new Error("Choose a paper from the ranking table.");
       renderRunPaper(dossier, dossier.papers[index], { run, example });
     } else renderRunTopic(dossier, { run, example });
-  } catch (error) { status.textContent = error.message; }
+  } catch (error) {
+    status.textContent = dossierEl("topic-paper-list")?.children.length
+      ? `Saved papers are available below. Detailed topic metrics could not load (${error.message}).`
+      : error.message;
+  }
   finally { if (loadProgress) loadProgress.hidden = true; }
 });

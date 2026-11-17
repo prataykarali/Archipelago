@@ -11,7 +11,7 @@ from .config import UI
 PAGE_DETAILS = {
     "papers": ("Research", "Explore the research graph and ingest papers for a new topic."),
     "progress": ("Ingestion progress", "Follow your local research job and inspect its results."),
-    "topics": ("Research atlas", "Explore topics and their verified paper networks."),
+    "topics": ("Recent topics", "Open recent saved searches and their papers."),
     "paper": ("Paper OKF", "Source-backed observations for one research paper."),
     "topic": ("Topic dossier", "Source-backed overview of all saved papers for one topic."),
 }
@@ -24,7 +24,7 @@ PAGE_SCRIPTS = {
 }
 SHELL = UI / "research_shell.html"
 FRAGMENTS = UI / "research_pages"
-ASSET_VERSION = "20261117blondunified"
+ASSET_VERSION = "20261117recenttopics"
 
 
 def render_research_page(page: str) -> Response:
@@ -32,13 +32,7 @@ def render_research_page(page: str) -> Response:
     title, subtitle = PAGE_DETAILS[page]
     shell = SHELL.read_text(encoding="utf-8")
     fragment = (FRAGMENTS / f"{page}.html").read_text(encoding="utf-8")
-    scripts = (
-        [
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js" defer></script>'
-        ]
-        if page == "topics"
-        else []
-    )
+    scripts: list[str] = []
     scripts.extend(
         f'<script src="/{name}?v={ASSET_VERSION}" defer></script>' for name in PAGE_SCRIPTS[page]
     )

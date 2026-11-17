@@ -34,3 +34,10 @@ body[data-research-page="topic"] .workspace { max-width: none; padding: 0; }
 .topic-empty { color: #64708a; font-size: 13px; }.topic-app :focus-visible { outline: 3px solid #7348d7; outline-offset: 2px; }
 @media (max-width: 1050px) { .topic-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topic-insights { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .topic-app .topic-hero { grid-template-columns: 1fr; padding: 22px; }.topic-hero-art { display: none; } #topic-paper-list { grid-template-columns: 1fr; } }
+.topic-app .topic-hero { min-height: 150px; padding: 20px 28px; grid-template-columns: minmax(0, 1fr) 130px; }
+.topic-app .topic-hero-art { height: 110px; transform: scale(.6); transform-origin: center; }
+.topic-app .topic-papers { margin: 12px 0; }
+.topic-paper-more { display: block; margin: 16px auto 0; border: 1px solid #bca7ed; border-radius: 8px; background: #f1eaff; color: #4b248c; font-weight: 700; padding: 10px 16px; cursor: pointer; }
+.topic-paper-more[hidden] { display: none; }
+.topic-paper-more:focus-visible { outline: 3px solid #7348d7; outline-offset: 2px; }
+@media (max-width: 760px) { .topic-app .topic-hero { grid-template-columns: 1fr; } }
