@@ -1,0 +1,256 @@
+{
+  "benchmark_name": "S4-G4 Retrieval Readiness Technical Smoke Test",
+  "benchmark_date": "2026-11-17",
+  "corpus_version": "s3_fixed_corpus_v1",
+  "corpus_passages_count": 764,
+  "corpus_unique_documents": 59,
+  "retrieval_systems_tested": [
+    "bm25",
+    "dense",
+    "hybrid_rrf",
+    "baseline_graph",
+    "repaired_heterogeneous_graph"
+  ],
+  "queries_tested_count": 3,
+  "technical_sanity_verdict": "ALL_SYSTEMS_FUNCTIONAL",
+  "schema_errors_detected": 0,
+  "crashes_detected": 0,
+  "retrieval_effectiveness": "NOT_EVALUATED",
+  "effectiveness_boundary_statement": "Retrieval ranking effectiveness (Recall@k, MRR, nDCG@k) is strictly NOT_EVALUATED because independently judged gold multi-hop relevance annotations are not yet available. No superiority claim is made for any system.",
+  "query_results": [
+    {
+      "query_id": "Q-AIML-01",
+      "domain": "AI & Machine Learning",
+      "query_text": "How does multi-head attention improve upon scaled dot-product attention in Transformer architectures?",
+      "systems": {
+        "bm25": {
+          "latency_ms": 5.71,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013"
+          ],
+          "status": "PASS"
+        },
+        "dense": {
+          "latency_ms": 1.04,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "papers/devlin2018_bert.pdf::chunk_024",
+            "papers/brown2020_gpt3.pdf::chunk_029",
+            "papers/devlin2018_bert.pdf::chunk_031",
+            "doc_cryptography_and_network_security_principles::doc_cryptography_and_network_security_principles_p268_3"
+          ],
+          "status": "PASS"
+        },
+        "hybrid_rrf": {
+          "latency_ms": 0.04,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "papers/devlin2018_bert.pdf::chunk_024",
+            "papers/brown2020_gpt3.pdf::chunk_029",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003"
+          ],
+          "status": "PASS"
+        },
+        "baseline_graph": {
+          "latency_ms": 34.19,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "data_science_2019/index_2019_data-science.pdf::chunk_014",
+            "papers/bahdanau2014_attention.pdf::chunk_014",
+            "papers/bai2022_constitutionalai.pdf::chunk_014",
+            "papers/brown2020_gpt3.pdf::chunk_014",
+            "papers/dettmers2023_qlora.pdf::chunk_014"
+          ],
+          "status": "PASS"
+        },
+        "repaired_heterogeneous_graph": {
+          "latency_ms": 1.01,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/devlin2018_bert.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031"
+          ],
+          "traversal_meta": {
+            "hops": 2,
+            "anchors": [
+              "transformer",
+              "attention"
+            ],
+            "traversed_concepts_count": 33,
+            "edge_types_used": [
+              "CONTRASTS_WITH",
+              "REQUIRES",
+              "USES",
+              "PART_OF"
+            ]
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-OS-01",
+      "domain": "Operating Systems",
+      "query_text": "How does address space virtualization rely on hardware page tables and TLBs?",
+      "systems": {
+        "bm25": {
+          "latency_ms": 4.79,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003"
+          ],
+          "status": "PASS"
+        },
+        "dense": {
+          "latency_ms": 1.06,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "data_science_2019/index_2019_data-science.pdf::chunk_005",
+            "papers/dettmers2023_qlora.pdf::chunk_027",
+            "papers/dettmers2023_qlora.pdf::chunk_018",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_020",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_032"
+          ],
+          "status": "PASS"
+        },
+        "hybrid_rrf": {
+          "latency_ms": 0.03,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+            "data_science_2019/index_2019_data-science.pdf::chunk_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "papers/dettmers2023_qlora.pdf::chunk_027",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003"
+          ],
+          "status": "PASS"
+        },
+        "baseline_graph": {
+          "latency_ms": 44.43,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005"
+          ],
+          "status": "PASS"
+        },
+        "repaired_heterogeneous_graph": {
+          "latency_ms": 60.89,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005"
+          ],
+          "traversal_meta": {
+            "hops": 0,
+            "anchors": [],
+            "traversed": []
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-NETS-01",
+      "domain": "Computer Networks",
+      "query_text": "How do Graph Neural Networks enhance real-time network anomaly detection?",
+      "systems": {
+        "bm25": {
+          "latency_ms": 3.94,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_019",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_024",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_002"
+          ],
+          "status": "PASS"
+        },
+        "dense": {
+          "latency_ms": 0.93,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_015",
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+            "papers/ho2020_ddpm.pdf::chunk_046",
+            "papers/velickovic2017_gat.pdf::chunk_035"
+          ],
+          "status": "PASS"
+        },
+        "hybrid_rrf": {
+          "latency_ms": 0.03,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_015",
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_019",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004"
+          ],
+          "status": "PASS"
+        },
+        "baseline_graph": {
+          "latency_ms": 18.52,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "data_science_2019/index_2019_data-science.pdf::chunk_002",
+            "data_science_2019/index_2019_data-science.pdf::chunk_003",
+            "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_002",
+            "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_003",
+            "papers/bahdanau2014_attention.pdf::chunk_002"
+          ],
+          "status": "PASS"
+        },
+        "repaired_heterogeneous_graph": {
+          "latency_ms": 0.39,
+          "returned_count": 5,
+          "top_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_012",
+            "papers/bahdanau2014_attention.pdf::chunk_013",
+            "papers/bahdanau2014_attention.pdf::chunk_023",
+            "papers/bahdanau2014_attention.pdf::chunk_026",
+            "papers/kingma2013_vae.pdf::chunk_023"
+          ],
+          "traversal_meta": {
+            "hops": 2,
+            "anchors": [
+              "anomaly detection",
+              "neural networks"
+            ],
+            "traversed_concepts_count": 9,
+            "edge_types_used": [
+              "CONTRASTS_WITH",
+              "REQUIRES",
+              "USES",
+              "PART_OF"
+            ]
+          },
+          "status": "PASS"
+        }
+      }
+    }
+  ]
+}

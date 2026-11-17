@@ -1,0 +1,504 @@
+{
+  "audit_version": "s4-g4-concept-quality",
+  "total_audit_items": 54,
+  "retained_candidates_count": 27,
+  "rejected_candidates_count": 27,
+  "domains_audited": [
+    "Operating Systems",
+    "AI & Machine Learning",
+    "Computer Networks"
+  ],
+  "filter_consistency_rate": 1.0,
+  "filter_consistency_explanation": "100% of candidate items adhere strictly to documented deterministic rules without stochastic exceptions.",
+  "semantic_precision": "NOT_MEASURED",
+  "semantic_recall": "NOT_MEASURED",
+  "evaluation_notes": "Semantic precision and recall cannot be scientifically calculated from automated proxy labels; they strictly require independent human annotation from the blinded package.",
+  "audit_items": [
+    {
+      "audit_id": "CVAL-01",
+      "domain": "Computer Networks",
+      "candidate_concept": "Sliding Window Protocols",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p198_2",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-02",
+      "domain": "Computer Networks",
+      "candidate_concept": "2026",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "numeric_start"
+    },
+    {
+      "audit_id": "CVAL-03",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Compared",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-04",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Brown",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-05",
+      "domain": "Computer Networks",
+      "candidate_concept": "Network Software",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-06",
+      "domain": "Operating Systems",
+      "candidate_concept": "Figure",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-07",
+      "domain": "Operating Systems",
+      "candidate_concept": "Next",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-08",
+      "domain": "Operating Systems",
+      "candidate_concept": "PC",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "domain_acronym"
+    },
+    {
+      "audit_id": "CVAL-09",
+      "domain": "Operating Systems",
+      "candidate_concept": "The OS",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-10",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Appendix",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-11",
+      "domain": "Computer Networks",
+      "candidate_concept": "Transforms",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-12",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "AREN",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_007",
+      "automated_status": "RETAINED",
+      "filter_rationale": "domain_acronym"
+    },
+    {
+      "audit_id": "CVAL-13",
+      "domain": "Computer Networks",
+      "candidate_concept": "Transmission",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-14",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Adam",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-15",
+      "domain": "Operating Systems",
+      "candidate_concept": "The Early Days",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-16",
+      "domain": "Computer Networks",
+      "candidate_concept": "The OSI Reference Model",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-17",
+      "domain": "Operating Systems",
+      "candidate_concept": "Early Systems From",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "REJECTED",
+      "filter_rationale": "generic_participle_start"
+    },
+    {
+      "audit_id": "CVAL-18",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "DeBERTa",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-19",
+      "domain": "Operating Systems",
+      "candidate_concept": "It",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "REJECTED",
+      "filter_rationale": "generic_discourse_marker"
+    },
+    {
+      "audit_id": "CVAL-20",
+      "domain": "Operating Systems",
+      "candidate_concept": "The Abstraction",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-21",
+      "domain": "Computer Networks",
+      "candidate_concept": "Ariel Cyber Innovation Center",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-22",
+      "domain": "Operating Systems",
+      "candidate_concept": "Operating Systems",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-23",
+      "domain": "Computer Networks",
+      "candidate_concept": "Physical Layer",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-24",
+      "domain": "Operating Systems",
+      "candidate_concept": "Current Program",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-25",
+      "domain": "Computer Networks",
+      "candidate_concept": "Among",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_006",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-26",
+      "domain": "Operating Systems",
+      "candidate_concept": "M+63",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "domain_acronym"
+    },
+    {
+      "audit_id": "CVAL-27",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Billion",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_007",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-28",
+      "domain": "Computer Networks",
+      "candidate_concept": "Anomaly",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-29",
+      "domain": "Operating Systems",
+      "candidate_concept": "One",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-30",
+      "domain": "Computer Networks",
+      "candidate_concept": "Additionally",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-31",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "INTRODUCTION Pretrained Weights",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-32",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Conventions We",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-33",
+      "domain": "Computer Networks",
+      "candidate_concept": "Accepted",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-34",
+      "domain": "Computer Networks",
+      "candidate_concept": "Sliding Window Protocol",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p198_2",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-35",
+      "domain": "Operating Systems",
+      "candidate_concept": "Basically",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-36",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "EXISTING SOLUTIONS GOOD ENOUGH",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_007",
+      "automated_status": "REJECTED",
+      "filter_rationale": "allcaps_excessive_length"
+    },
+    {
+      "audit_id": "CVAL-37",
+      "domain": "Operating Systems",
+      "candidate_concept": "The",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "generic_discourse_marker"
+    },
+    {
+      "audit_id": "CVAL-38",
+      "domain": "Operating Systems",
+      "candidate_concept": "ADDRESS SPACES",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "allcaps_excessive_length"
+    },
+    {
+      "audit_id": "CVAL-39",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "GPT-2",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "domain_acronym"
+    },
+    {
+      "audit_id": "CVAL-40",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Ba",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "REJECTED",
+      "filter_rationale": "no_substantive_tokens"
+    },
+    {
+      "audit_id": "CVAL-41",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "LoRA",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "canonical_technical_acronym"
+    },
+    {
+      "audit_id": "CVAL-42",
+      "domain": "Operating Systems",
+      "candidate_concept": "Because",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "REJECTED",
+      "filter_rationale": "generic_discourse_marker"
+    },
+    {
+      "audit_id": "CVAL-43",
+      "domain": "Computer Networks",
+      "candidate_concept": "ANN",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "canonical_technical_acronym"
+    },
+    {
+      "audit_id": "CVAL-44",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Low-Rank Adaptation",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-45",
+      "domain": "Operating Systems",
+      "candidate_concept": "Address Spaces In",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_004",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-46",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "Transformer MLP",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-47",
+      "domain": "Computer Networks",
+      "candidate_concept": "Similarly",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p198_2",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-48",
+      "domain": "Computer Networks",
+      "candidate_concept": "Section",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "automated_status": "REJECTED",
+      "filter_rationale": "unvetted_single_token"
+    },
+    {
+      "audit_id": "CVAL-49",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "GPT-3",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "domain_acronym"
+    },
+    {
+      "audit_id": "CVAL-50",
+      "domain": "Computer Networks",
+      "candidate_concept": "Approximate nearest neighbor",
+      "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-51",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "GPU",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "RETAINED",
+      "filter_rationale": "canonical_technical_acronym"
+    },
+    {
+      "audit_id": "CVAL-52",
+      "domain": "AI & Machine Learning",
+      "candidate_concept": "As",
+      "source_document": "papers/Hu2021_LoRA.pdf",
+      "chunk_id": "chunk_002",
+      "automated_status": "REJECTED",
+      "filter_rationale": "no_substantive_tokens"
+    },
+    {
+      "audit_id": "CVAL-53",
+      "domain": "Computer Networks",
+      "candidate_concept": "Data Link Layer",
+      "source_document": "doc_computer_networks_6_e",
+      "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    },
+    {
+      "audit_id": "CVAL-54",
+      "domain": "Operating Systems",
+      "candidate_concept": "Operating System",
+      "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+      "chunk_id": "paging_seed_005",
+      "automated_status": "RETAINED",
+      "filter_rationale": "technical_noun_phrase"
+    }
+  ]
+}

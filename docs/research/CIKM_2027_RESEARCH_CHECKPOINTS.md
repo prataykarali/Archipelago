@@ -304,3 +304,24 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
   - **Runtime Speedup:** Overall runtime reduced from **242.89s to 0.90s** (~270x faster).
   - **Safeguards Maintained:** Unsupported relation rate strictly reported as `NOT_MEASURED`; retrieval effectiveness strictly reported as `NOT_EVALUATED`.
 - **STOP Confirmed:** S4-G3 is complete. Production graph untouched; gold fixtures untouched; zero human labels fabricated.
+
+### S4-G4 — Final Extraction Validation & Retrieval Readiness
+- **Branch:** `research/s4-g4-validation-readiness`
+- **Base Branch:** `research/s4-g3-extraction-repair`
+- **Base Commit:** `8ff96f22bf3cb39c37a7f59648f8c0872e9d6148`
+- **Scientific Objective:** Validate the repaired extractor, protect annotation materials from public repository exposure, audit concept quality independently of extractor heuristics, analyze zero-edge documents, freeze extractor hyperparameters, construct and smoke-test the offline multi-hop retrieval comparison harness, and reconcile all test suite counts.
+- **Implemented Changes:**
+  - `PUBLIC_EXPOSURE_AND_REMEDIATION_AUDIT.md`: Complete audit of historical Git exposure across 10 commits and 11 documents. Documents proprietary copyright of Pearson textbooks, Elsevier journal, and OSTEP. Provides safe remediation playbook (`git-filter-repo`) for repository owners.
+  - `.gitignore`: Updated with strict exclusion rules for `data/annotation_local/` and local annotation files.
+  - `hydrate_local_annotation_pool.py`: Safe on-demand hydration script verifying 100% SHA-256 hashes against local `okf_graph.db` without tracking verbatim text in Git.
+  - `candidate_metadata_index.csv`: Public metadata-only candidate index with accurate redistribution statuses (Pearson, Elsevier, OSTEP as `RESTRICTED_METADATA_ONLY`).
+  - `build_concept_quality_audit.py`: Independent concept quality audit package sampling 54 candidates (27 retained, 27 rejected) across OS, AIML, and Networks. Emits public blinded pool with empty human fields. Reports 100% filter consistency and leaves semantic precision/recall as `NOT_MEASURED`.
+  - `RELATION_COVERAGE_AND_ZERO_EDGE_AUDIT.md`: Detailed structural and syntactic root-cause analysis explaining zero edges in `08_Paging.pdf`, `doc_computer_networks_6_e`, `doc_fundamentals_of_database_system_7e`, and `doc_compilers_principles_techniques_and_tools`.
+  - `okf/pilot/repaired_extractor_config.json`: Formally frozen extractor configuration (version `s4-g3-repaired-v1.0`).
+  - `run_retrieval_smoke_test.py`: Offline multi-hop retrieval comparison harness executing BM25, Dense, Hybrid RRF, Baseline Graph, and Repaired Heterogeneous Graph retrieval on identical 764 passages.
+  - `retrieval_smoke_test_report.json`: Technical sanity verdict `ALL_SYSTEMS_FUNCTIONAL` (0 schema errors, 0 crashes, sub-10ms latencies). Strictly enforces `retrieval_effectiveness = "NOT_EVALUATED"` pending independently judged gold query relevance labels.
+  - `tests/unit/test_s4g4_validation_readiness.py`: 10 validation tests covering public exposure rules, metadata schemas, local hydration, concept quality audit, zero-edge behavior, retrieval smoke test, and test reconciliation.
+- **Test Results:** **274/274** tests passing across S1–S4-G4 (10 new S4-G4 tests + 264 regression tests).
+- **Test Reconciliation:** Resolved the 270 vs 264 discrepancy by identifying an erroneous entry in the S4-G3 report table where `test_s4e_graph_diagnosis.py` was listed as 12 items while actually containing exactly 6 ($270 - 6 = 264$).
+- **STOP Confirmed:** S4-G4 is complete. All research objectives achieved. No further autonomous milestones initiated.
+

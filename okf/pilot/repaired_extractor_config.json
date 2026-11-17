@@ -1,0 +1,53 @@
+{
+  "extractor_name": "Archipelago Repaired Academic Graph Extractor",
+  "version": "s4-g3-repaired-v1.0",
+  "frozen_date": "2026-11-17",
+  "scope": "Multi-domain academic concept and relation extraction",
+  "document_prescreening": {
+    "enabled": true,
+    "excluded_patterns": [
+      "index_\\d{4}",
+      "/index_",
+      "about-the-authors",
+      "hints-from-probability",
+      "catalogs/",
+      "table-of-contents"
+    ],
+    "rationale": "Prevents combinatorial explosion and dense false cycles caused by back-of-book indices and author lists."
+  },
+  "concept_extraction": {
+    "boundary_cleaning": "Unicode NFC normalization, whitespace collapse, punctuation stripping",
+    "min_length_chars": 2,
+    "max_word_count": 4,
+    "filter_numeric_tokens": true,
+    "filter_figure_table_references": true,
+    "filter_generic_discourse_markers": true,
+    "generic_discourse_count": 55,
+    "canonical_acronyms_count": 32,
+    "canonical_acronyms": [
+      "ANN", "GNN", "GCN", "GAT", "NIDS", "LoRA", "QLORA", "LSTM", "BERT", "GPT", "TLB",
+      "DFA", "NFA", "PTE", "ACID", "3NF", "SVD", "TCP", "UDP", "IP", "OSI", "MMU", "ALU",
+      "DPO", "AST", "CFG", "PDA", "LLM", "NMT", "SAGA", "D-MAGIC", "CPU", "GPU"
+    ]
+  },
+  "relation_extraction": {
+    "syntactic_scope": "clause_bound",
+    "max_character_distance_between_arguments": 150,
+    "clause_split_delimiters": [";", ":", " — ", " - ", ", whereas", ", while", ", but", ", although", ", because", ", since", ", however", ", moreover"],
+    "supported_relation_types": [
+      "REQUIRES",
+      "INFERRED_REQUIRES",
+      "PART_OF",
+      "USES",
+      "CONTRASTS_WITH",
+      "RELATED"
+    ],
+    "default_confidence_threshold": 0.70,
+    "abstention_policy": "Strict abstention when arguments cross clause boundaries or lack explicit relational verb triggers."
+  },
+  "graph_integrity_and_cycles": {
+    "prerequisite_cycle_prevention": "Full reachability DFS on REQUIRES and INFERRED_REQUIRES edges",
+    "heterogeneous_cycle_policy": "Permits reciprocal symmetric relations on CONTRASTS_WITH and RELATED; allows semantic cycles across heterogeneous edges (e.g., A USES B, B CONTRASTS_WITH A).",
+    "dag_guarantee": "Strict DAG on prerequisite relation subgraphs."
+  }
+}

@@ -134,3 +134,9 @@ data/catalogs/pearson_session_cache.json
 artifacts/validation/local_only/
 artifacts/validation/s3_retrieval_candidates_export.json
 artifacts/validation/s3_retrieval_candidates_export.csv
+
+# Local-only annotation materials containing proprietary or verbatim text (S4-G4)
+data/annotation_local/
+/data/annotation_local/
+research/s4-g4-validation-readiness/annotation_local/
+
