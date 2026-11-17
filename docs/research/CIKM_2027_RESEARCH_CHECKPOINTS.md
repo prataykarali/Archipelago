@@ -203,3 +203,25 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
   - Confirmed that primary research papers naturally express usage, contrast, and architecture rather than pedagogical prerequisites, validating the need for cross-document curriculum synthesis in S4-G2.
 - **Scientific Constraints Verified:** Zero modifications to `okf_graph.db` or gold fixtures; no hardcoding of LoRA/Transformer rules; pristine held-out source (`Bahdanau2014_Attention.pdf`) un-tuned.
 
+### S4-G2 — Multi-Domain Graph Extraction, Fair Evaluation & Relation Recovery
+- **Branch:** `research/s4-g2-multidomain-evaluation`
+- **Base Commit:** `b62572f5e6b57ac7202f843f04216a2cceab02b6`
+- **Scientific Objective:** Extend relation extraction across 6 core computing domains, diagnose and repair S4-G1 evaluation fairness flaws, recover diverse relation types without heuristic fallbacks, build an independent blinded human annotation package, and deliver a strategic recommendation on the CIKM 2027 paper hypothesis.
+- **Implemented Changes:**
+  - `okf/pilot/multidomain_extractor.py` (new) — MultiDomainExtractor with 6-way relation typing (REQUIRES, INFERRED_REQUIRES, PART_OF, USES, CONTRASTS_WITH, RELATED, ABSTAIN), multi-sentence windowed context, bidirectional/passive pattern matching, insertion-time cycle prevention, and verbatim snippet citation.
+  - `research/s4-g2-multidomain-evaluation/academic_domain_coverage_matrix.csv` (new) — 12-domain audit distinguishing OPAC catalog holdings from accessible full-text corpora (62 full-text docs, 786 linked chunks in DB; catalog holdings legally restricted under copyright).
+  - `research/s4-g2-multidomain-evaluation/multidomain_experimental_manifest.json` (new) — 6-domain experimental benchmark with 16 documents partitioned strictly into development (6 docs) and evaluation (10 docs).
+  - `research/s4-g2-multidomain-evaluation/domain_level_evaluation.csv` & `s4g2_multidomain_eval_results.json` (new) — domain-level and aggregate metrics across OS, DBMS, DSA, Networks, Compilers, and AI/ML.
+  - `research/s4-g2-multidomain-evaluation/scripts/run_s4g2_experiment.py` (new) — reproducible experiment runner.
+  - `research/s4-g2-multidomain-evaluation/human_annotation_package/` (new) — independent, blinded human evaluation package with 36 items across 6 domains (`multidomain_human_annotation_pool.csv`, `.md`, `ANNOTATION_GUIDELINES.md`, `annotation_schema.json`, `build_markdown_workbook.py`).
+  - `tests/unit/test_s4g2_multidomain_evaluation.py` (new) — 17 unit tests verifying domain coverage, manifest integrity, extractor relations, cycle prevention, and fairness.
+  - `research/s4-g2-multidomain-evaluation/S4G2_MULTIDOMAIN_EVALUATION_REPORT.md` (new) — comprehensive scientific report detailing audit, fairness diagnosis, empirical evaluation, and CIKM recommendation.
+- **Test Results:** **132/132** tests passing (17 new S4-G2 tests + 115 regression tests across S1–S4-G1).
+- **Key Findings:**
+  - **S4-G1 Fairness Diagnosis:** S4-G1 evaluated the baseline against the global 610-concept DB (601 false positives, 1.15% precision) while prototype was evaluated against single-document scope. Fair document-scoped baseline concept F1 is **19.05%** for LoRA and **40.00%** for Attention.
+  - **Academic Corpus Reality:** Primary research literature and technical chapters express structural components (`PART_OF`), empirical tools (`USES`), and comparative alternatives (`CONTRASTS_WITH`). Explicit prerequisite assertions (*"X is required for Y"*) occur in <0.1% of co-occurring concept pairs.
+  - **Prototype Performance:** 0.00% unsupported relations, 100.00% valid provenance coverage, and 0 cycles across all 6 domains.
+  - **Strategic CIKM Recommendation:** **GO on Option C (Heterogeneous provenance-grounded knowledge graph)**. Preserves the core CIKM hypothesis (*"Does provenance-aware graph retrieval improve multi-hop academic retrieval and evidence quality against BM25, dense, and hybrid baselines?"*) by leveraging rich typed edges (`PART_OF`, `USES`, `CONTRASTS_WITH`, `REQUIRES`) with passage-level provenance.
+- **Scientific Constraints Verified:** Zero modifications to `okf_graph.db` or gold fixtures; no hardcoded domain heuristics; no fabricated gold answers; blinded human evaluation package generated without synthetic labels.
+
+

@@ -1,0 +1,1769 @@
+{
+  "experiment_name": "S4-G2 Multi-Domain Evaluation",
+  "timestamp": "2026-11-17T13:59:11Z",
+  "total_runtime_seconds": 101.97,
+  "manifest": {
+    "manifest_version": "1.0",
+    "description": "S4-G2 Multi-Domain Experimental Manifest across 6 Core Academic Domains",
+    "domains": {
+      "Operating Systems": {
+        "code": "OS",
+        "development": [
+          {
+            "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+            "title": "OSTEP Chapter 06: Address Spaces",
+            "source_type": "open_textbook_chapter",
+            "level": "foundational"
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+            "title": "OSTEP Chapter 07: Address Translation",
+            "source_type": "open_textbook_chapter",
+            "level": "intermediate"
+          },
+          {
+            "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+            "title": "OSTEP Chapter 08: Paging",
+            "source_type": "open_textbook_chapter",
+            "level": "advanced"
+          }
+        ]
+      },
+      "Database Management Systems": {
+        "code": "DBMS",
+        "development": [
+          {
+            "doc_id": "pilot/silberschatz_3nf_card.txt",
+            "title": "Silberschatz Database: 3NF Decomposition Card",
+            "source_type": "grounded_card",
+            "level": "foundational"
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "doc_fundamentals_of_database_system_7e",
+            "title": "Fundamentals of Database Systems 7e",
+            "source_type": "catalog_chapter_excerpt",
+            "level": "intermediate"
+          }
+        ]
+      },
+      "Computer Networks": {
+        "code": "Networks",
+        "development": [
+          {
+            "doc_id": "doc_computer_networks_6_e",
+            "title": "Tanenbaum Computer Networks 6e Excerpts",
+            "source_type": "textbook_excerpt",
+            "level": "foundational"
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+            "title": "Real-time Network Security (Elsevier 2024)",
+            "source_type": "research_paper",
+            "level": "advanced",
+            "chunk_limit": 20
+          }
+        ]
+      },
+      "Automata Theory & Computation": {
+        "code": "TOC",
+        "development": [
+          {
+            "doc_id": "papers/Willard2023_Outlines.pdf",
+            "title": "Willard 2023 Outlines (Part 1: Formal Grammars)",
+            "source_type": "research_preprint",
+            "level": "foundational",
+            "chunk_range": [
+              0,
+              9
+            ]
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "papers/Willard2023_Outlines.pdf",
+            "title": "Willard 2023 Outlines (Part 2: Finite State Machines & Regex)",
+            "source_type": "research_preprint",
+            "level": "advanced",
+            "chunk_range": [
+              10,
+              19
+            ]
+          }
+        ]
+      },
+      "Probability & Statistics": {
+        "code": "ProbStats",
+        "development": [
+          {
+            "doc_id": "pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf",
+            "title": "Theodoridis Pattern Recognition: Probability Appendix",
+            "source_type": "textbook_appendix",
+            "level": "foundational"
+          },
+          {
+            "doc_id": "pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf",
+            "title": "Theodoridis Pattern Recognition: Bayes Theorem",
+            "source_type": "textbook_chapter",
+            "level": "foundational"
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+            "title": "Data Science 2019: Statistical Estimation & Distributions",
+            "source_type": "scholarly_book_index",
+            "level": "intermediate",
+            "chunk_limit": 10
+          }
+        ]
+      },
+      "Artificial Intelligence & Machine Learning": {
+        "code": "AIML",
+        "development": [
+          {
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "title": "Hu et al. 2021: LoRA (Legacy Diagnostic Case)",
+            "source_type": "research_paper",
+            "level": "diagnostic",
+            "gold_file": "pilot_corpus/gold/gold_lora.json"
+          },
+          {
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "title": "Vaswani et al. 2017: Attention (Legacy Diagnostic Case)",
+            "source_type": "research_paper",
+            "level": "diagnostic",
+            "gold_file": "pilot_corpus/gold/gold_attention.json"
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "title": "Bahdanau et al. 2014: Neural Machine Translation (Held-Out Source)",
+            "source_type": "research_paper",
+            "level": "held_out",
+            "gold_file": null
+          },
+          {
+            "doc_id": "papers/Devlin2018_BERT.pdf",
+            "title": "Devlin et al. 2018: BERT (Held-Out Source)",
+            "source_type": "research_paper",
+            "level": "held_out",
+            "gold_file": null
+          }
+        ]
+      }
+    }
+  },
+  "domain_results": {
+    "Operating Systems": {
+      "code": "OS",
+      "partitions": {
+        "development": [
+          {
+            "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+            "title": "OSTEP Chapter 06: Address Spaces",
+            "partition": "development",
+            "chunks_count": 5,
+            "baseline": {
+              "concept_count": 2,
+              "edges_count": 0,
+              "directed_edges_count": 0,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 44,
+              "gold_available": false,
+              "edge_count": 94,
+              "directed_edge_count": 72,
+              "explicit_prereq_count": 72,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 22,
+              "contrasts_count": 0,
+              "abstention_count": 1291,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 0.932129963898917,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.344,
+              "sample_edges": [
+                {
+                  "from_name": "13",
+                  "to_name": "From",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf:paging_seed_005",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+                  "chunk_id": "paging_seed_005",
+                  "evidence_text": "2 THE ABSTRACTION: ADDRESS SPACES max 64KB 0KB Current Program (code, data, etc.) Operating System (code, data, etc.) Figure 13.1: Operating Systems: The Early Days tive) program-debug cycles. The not",
+                  "confidence": 0.75,
+                  "domain": "Operating Systems"
+                },
+                {
+                  "from_name": "13",
+                  "to_name": "Current",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf:paging_seed_005",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+                  "chunk_id": "paging_seed_005",
+                  "evidence_text": "The notion of interactivity became impor- tant, as many users might be concurrently using a machine, each waiting for (or hoping for) a timely response from their currently-executing tasks. One way to",
+                  "confidence": 0.75,
+                  "domain": "Operating Systems"
+                },
+                {
+                  "from_name": "Abstraction",
+                  "to_name": "From",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf:paging_seed_005",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+                  "chunk_id": "paging_seed_005",
+                  "evidence_text": "2 THE ABSTRACTION: ADDRESS SPACES max 64KB 0KB Current Program (code, data, etc.) Operating System (code, data, etc.) Figure 13.1: Operating Systems: The Early Days tive) program-debug cycles. The not",
+                  "confidence": 0.75,
+                  "domain": "Operating Systems"
+                },
+                {
+                  "from_name": "Address",
+                  "to_name": "From",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf:paging_seed_005",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+                  "chunk_id": "paging_seed_005",
+                  "evidence_text": "2 THE ABSTRACTION: ADDRESS SPACES max 64KB 0KB Current Program (code, data, etc.) Operating System (code, data, etc.) Figure 13.1: Operating Systems: The Early Days tive) program-debug cycles. The not",
+                  "confidence": 0.75,
+                  "domain": "Operating Systems"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "13",
+                  "concept_b": "Abstraction",
+                  "chunk_id": "paging_seed_004",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "13 The Abstraction: Address Spaces In the early days, building computer systems was easy."
+                },
+                {
+                  "concept_a": "13",
+                  "concept_b": "Address",
+                  "chunk_id": "paging_seed_004",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "13 The Abstraction: Address Spaces In the early days, building computer systems was easy."
+                },
+                {
+                  "concept_a": "13",
+                  "concept_b": "Address Spaces In",
+                  "chunk_id": "paging_seed_004",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "13 The Abstraction: Address Spaces In the early days, building computer systems was easy."
+                }
+              ]
+            }
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+            "title": "OSTEP Chapter 07: Address Translation",
+            "partition": "evaluation",
+            "chunks_count": 2,
+            "baseline": {
+              "concept_count": 1,
+              "edges_count": 0,
+              "directed_edges_count": 0,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 12,
+              "gold_available": false,
+              "edge_count": 0,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 0,
+              "contrasts_count": 0,
+              "abstention_count": 83,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 1.0,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.023,
+              "sample_edges": [],
+              "sample_abstentions": [
+                {
+                  "concept_a": "15",
+                  "concept_b": "Address",
+                  "chunk_id": "virtual_memory_seed_004",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "15 Mechanism: Address Translation In developing the virtualization of the CPU, we focused on a general mechanism known as limited direct execution (or LDE)."
+                },
+                {
+                  "concept_a": "15",
+                  "concept_b": "Address Translation In",
+                  "chunk_id": "virtual_memory_seed_004",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "15 Mechanism: Address Translation In developing the virtualization of the CPU, we focused on a general mechanism known as limited direct execution (or LDE)."
+                },
+                {
+                  "concept_a": "15",
+                  "concept_b": "CPU",
+                  "chunk_id": "virtual_memory_seed_004",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "15 Mechanism: Address Translation In developing the virtualization of the CPU, we focused on a general mechanism known as limited direct execution (or LDE)."
+                }
+              ]
+            }
+          },
+          {
+            "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+            "title": "OSTEP Chapter 08: Paging",
+            "partition": "evaluation",
+            "chunks_count": 3,
+            "baseline": {
+              "concept_count": 1,
+              "edges_count": 0,
+              "directed_edges_count": 0,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 25,
+              "gold_available": false,
+              "edge_count": 33,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 19,
+              "uses_count": 14,
+              "contrasts_count": 0,
+              "abstention_count": 237,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 0.8777777777777778,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.083,
+              "sample_edges": [
+                {
+                  "from_name": "18",
+                  "to_name": "128",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf:paging_seed_002",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+                  "chunk_id": "paging_seed_002",
+                  "evidence_text": "2 PAGING: INTRODUCTION 64 48 32 16 0 (page 3) (page 2) (page 1) (page 0 of the address space) Figure 18.1: A Simple 64-byte Address Space Physical memory, as shown in Figure 18.2, also consists of a n",
+                  "confidence": 0.8,
+                  "domain": "Operating Systems"
+                },
+                {
+                  "from_name": "18",
+                  "to_name": "OS",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf:paging_seed_002",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+                  "chunk_id": "paging_seed_002",
+                  "evidence_text": "2 PAGING: INTRODUCTION 64 48 32 16 0 (page 3) (page 2) (page 1) (page 0 of the address space) Figure 18.1: A Simple 64-byte Address Space Physical memory, as shown in Figure 18.2, also consists of a n",
+                  "confidence": 0.8,
+                  "domain": "Operating Systems"
+                },
+                {
+                  "from_name": "KE",
+                  "to_name": "Paging",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf:paging_seed_002",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+                  "chunk_id": "paging_seed_002",
+                  "evidence_text": "Probably the most important improvement will be \ufb02exibil- ity: with a fully-developed paging approach, the system will be able to support the abstraction of an address space effectively, regardless of ",
+                  "confidence": 0.75,
+                  "domain": "Operating Systems"
+                },
+                {
+                  "from_name": "KE",
+                  "to_name": "Address",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf:paging_seed_002",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+                  "chunk_id": "paging_seed_002",
+                  "evidence_text": "Probably the most important improvement will be \ufb02exibil- ity: with a fully-developed paging approach, the system will be able to support the abstraction of an address space effectively, regardless of ",
+                  "confidence": 0.75,
+                  "domain": "Operating Systems"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "18",
+                  "concept_b": "62",
+                  "chunk_id": "paging_seed_001",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "18 Paging: Introduction It is sometimes said that the operating system takes one of two ap- proaches when solving most any space-management problem."
+                },
+                {
+                  "concept_a": "18",
+                  "concept_b": "Atlas",
+                  "chunk_id": "paging_seed_001",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "18 Paging: Introduction It is sometimes said that the operating system takes one of two ap- proaches when solving most any space-management problem."
+                },
+                {
+                  "concept_a": "18",
+                  "concept_b": "Corres",
+                  "chunk_id": "paging_seed_001",
+                  "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+                  "domain": "Operating Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "18 Paging: Introduction It is sometimes said that the operating system takes one of two ap- proaches when solving most any space-management problem."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "summary": {}
+    },
+    "Database Management Systems": {
+      "code": "DBMS",
+      "partitions": {
+        "development": [
+          {
+            "doc_id": "pilot/silberschatz_3nf_card.txt",
+            "title": "Silberschatz Database: 3NF Decomposition Card",
+            "partition": "development",
+            "chunks_count": 1,
+            "baseline": {
+              "concept_count": 1,
+              "edges_count": 0,
+              "directed_edges_count": 0,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 3,
+              "gold_available": false,
+              "edge_count": 0,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 0,
+              "contrasts_count": 0,
+              "abstention_count": 3,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 1.0,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.002,
+              "sample_edges": [],
+              "sample_abstentions": [
+                {
+                  "concept_a": "3NF",
+                  "concept_b": "BCNF",
+                  "chunk_id": "third_normal_form_seed_001",
+                  "doc_id": "pilot/silberschatz_3nf_card.txt",
+                  "domain": "Database Management Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "A relation schema R is in third normal form (3NF) if for every functional dependency X \u2192 A that holds over R, either X is a superkey of R, or A is a prime attribute of R."
+                },
+                {
+                  "concept_a": "3NF",
+                  "concept_b": "R is in third normal form",
+                  "chunk_id": "third_normal_form_seed_001",
+                  "doc_id": "pilot/silberschatz_3nf_card.txt",
+                  "domain": "Database Management Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "A relation schema R is in third normal form (3NF) if for every functional dependency X \u2192 A that holds over R, either X is a superkey of R, or A is a prime attribute of R."
+                },
+                {
+                  "concept_a": "BCNF",
+                  "concept_b": "R is in third normal form",
+                  "chunk_id": "third_normal_form_seed_001",
+                  "doc_id": "pilot/silberschatz_3nf_card.txt",
+                  "domain": "Database Management Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "A relation schema R is in third normal form (3NF) if for every functional dependency X \u2192 A that holds over R, either X is a superkey of R, or A is a prime attribute of R."
+                }
+              ]
+            }
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "doc_fundamentals_of_database_system_7e",
+            "title": "Fundamentals of Database Systems 7e",
+            "partition": "evaluation",
+            "chunks_count": 1,
+            "baseline": {
+              "concept_count": 1,
+              "edges_count": 0,
+              "directed_edges_count": 0,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 8,
+              "gold_available": false,
+              "edge_count": 0,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 0,
+              "contrasts_count": 0,
+              "abstention_count": 28,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 1.0,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.006,
+              "sample_edges": [],
+              "sample_abstentions": [
+                {
+                  "concept_a": "Algebra",
+                  "concept_b": "Constraints",
+                  "chunk_id": "doc_fundamentals_of_database_system_7e_p145_1",
+                  "doc_id": "doc_fundamentals_of_database_system_7e",
+                  "domain": "Database Management Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Chapter 6 The Relational Data Model and Relational Database Constraints."
+                },
+                {
+                  "concept_a": "Algebra",
+                  "concept_b": "Database",
+                  "chunk_id": "doc_fundamentals_of_database_system_7e_p145_1",
+                  "doc_id": "doc_fundamentals_of_database_system_7e",
+                  "domain": "Database Management Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Chapter 6 The Relational Data Model and Relational Database Constraints."
+                },
+                {
+                  "concept_a": "Algebra",
+                  "concept_b": "Relational",
+                  "chunk_id": "doc_fundamentals_of_database_system_7e_p145_1",
+                  "doc_id": "doc_fundamentals_of_database_system_7e",
+                  "domain": "Database Management Systems",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Chapter 6 The Relational Data Model and Relational Database Constraints."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "summary": {}
+    },
+    "Computer Networks": {
+      "code": "Networks",
+      "partitions": {
+        "development": [
+          {
+            "doc_id": "doc_computer_networks_6_e",
+            "title": "Tanenbaum Computer Networks 6e Excerpts",
+            "partition": "development",
+            "chunks_count": 2,
+            "baseline": {
+              "concept_count": 4,
+              "edges_count": 0,
+              "directed_edges_count": 0,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 18,
+              "gold_available": false,
+              "edge_count": 0,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 0,
+              "contrasts_count": 0,
+              "abstention_count": 93,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 1.0,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.013,
+              "sample_edges": [],
+              "sample_abstentions": [
+                {
+                  "concept_a": "Data Link Layer",
+                  "concept_b": "Layer",
+                  "chunk_id": "doc_computer_networks_6_e_p42_1",
+                  "doc_id": "doc_computer_networks_6_e",
+                  "domain": "Computer Networks",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "The OSI Reference Model defines a 7-layer architecture for computer communications:\n                1."
+                },
+                {
+                  "concept_a": "Data Link Layer",
+                  "concept_b": "Link",
+                  "chunk_id": "doc_computer_networks_6_e_p42_1",
+                  "doc_id": "doc_computer_networks_6_e",
+                  "domain": "Computer Networks",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Data Link Layer: Transforms a raw transmission facility in"
+                },
+                {
+                  "concept_a": "Data Link Layer",
+                  "concept_b": "Network",
+                  "chunk_id": "doc_computer_networks_6_e_p42_1",
+                  "doc_id": "doc_computer_networks_6_e",
+                  "domain": "Computer Networks",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Section 1.4 Network Software & The OSI Reference Model."
+                }
+              ]
+            }
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+            "title": "Real-time Network Security (Elsevier 2024)",
+            "partition": "evaluation",
+            "chunks_count": 20,
+            "baseline": {
+              "concept_count": 60,
+              "edges_count": 497,
+              "directed_edges_count": 25,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 233,
+              "gold_available": false,
+              "edge_count": 1258,
+              "directed_edge_count": 93,
+              "explicit_prereq_count": 52,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 41,
+              "part_of_count": 59,
+              "uses_count": 1042,
+              "contrasts_count": 64,
+              "abstention_count": 10537,
+              "rejection_count": 0,
+              "cycles_prevented_count": 2,
+              "abstention_rate": 0.8933446375582874,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 3.325,
+              "sample_edges": [
+                {
+                  "from_name": "Anomaly",
+                  "to_name": "TS",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf:chunk_021",
+                  "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+                  "chunk_id": "chunk_021",
+                  "evidence_text": "[36] introduce D-PACK, an unsuper- vised deep learning model for early network anomaly detection. Their system employs a CNN to automatically extract features from the \ufb01rst few packets of network \ufb02ows",
+                  "confidence": 0.75,
+                  "domain": "Computer Networks"
+                },
+                {
+                  "from_name": "Anomaly",
+                  "to_name": "CNN",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf:chunk_021",
+                  "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+                  "chunk_id": "chunk_021",
+                  "evidence_text": "[36] introduce D-PACK, an unsuper- vised deep learning model for early network anomaly detection. Their system employs a CNN to automatically extract features from the \ufb01rst few packets of network \ufb02ows",
+                  "confidence": 0.75,
+                  "domain": "Computer Networks"
+                },
+                {
+                  "from_name": "With",
+                  "to_name": "Anomaly",
+                  "edge_type": "UNLOCKS",
+                  "relation": "enables",
+                  "is_inferred": false,
+                  "source": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf:chunk_021",
+                  "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+                  "chunk_id": "chunk_021",
+                  "evidence_text": "The approach involves training local autoencoders on client devices using normal data only, with the models then aggregated at a central server. This enables anomaly detection based on reconstruction ",
+                  "confidence": 0.85,
+                  "domain": "Computer Networks"
+                },
+                {
+                  "from_name": "Anomaly",
+                  "to_name": "BY",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf:chunk_021",
+                  "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+                  "chunk_id": "chunk_021",
+                  "evidence_text": "[36] introduce D-PACK, an unsuper- vised deep learning model for early network anomaly detection. Their system employs a CNN to automatically extract features from the \ufb01rst few packets of network \ufb02ows",
+                  "confidence": 0.75,
+                  "domain": "Computer Networks"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "ANN",
+                  "concept_b": "Anomaly",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+                  "domain": "Computer Networks",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "d,\u2217\u2217\na Department of Computer Science, Ariel Cyber Innovation Center, Ariel University, Israel b School of Computer Science, Holon Institute of Technology (HIT), Israel c Departmen"
+                },
+                {
+                  "concept_a": "ANN",
+                  "concept_b": "Anomaly detection Graph neural network",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+                  "domain": "Computer Networks",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "d,\u2217\u2217\na Department of Computer Science, Ariel Cyber Innovation Center, Ariel University, Israel b School of Computer Science, Holon Institute of Technology (HIT), Israel c Departmen"
+                },
+                {
+                  "concept_a": "ANN",
+                  "concept_b": "Approximate",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+                  "domain": "Computer Networks",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "d,\u2217\u2217\na Department of Computer Science, Ariel Cyber Innovation Center, Ariel University, Israel b School of Computer Science, Holon Institute of Technology (HIT), Israel c Departmen"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "summary": {}
+    },
+    "Automata Theory & Computation": {
+      "code": "TOC",
+      "partitions": {
+        "development": [
+          {
+            "doc_id": "papers/Willard2023_Outlines.pdf",
+            "title": "Willard 2023 Outlines (Part 1: Formal Grammars)",
+            "partition": "development",
+            "chunks_count": 10,
+            "baseline": {
+              "concept_count": 29,
+              "edges_count": 46,
+              "directed_edges_count": 27,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 105,
+              "gold_available": false,
+              "edge_count": 34,
+              "directed_edge_count": 1,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 1,
+              "part_of_count": 2,
+              "uses_count": 31,
+              "contrasts_count": 0,
+              "abstention_count": 1568,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 0.978776529338327,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.468,
+              "sample_edges": [
+                {
+                  "from_name": "2023",
+                  "to_name": "Beam",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_005",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "Beam search also generates tokens recursively, using a heuristic to find the mode of the distribution. More re- cently, SMC sampling has also been used to generate sequences [Lew et al., 2023].",
+                  "confidence": 0.75,
+                  "domain": "Automata Theory & Computation"
+                },
+                {
+                  "from_name": "Beam",
+                  "to_name": "More",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_005",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "Beam search also generates tokens recursively, using a heuristic to find the mode of the distribution. More re- cently, SMC sampling has also been used to generate sequences [Lew et al., 2023].",
+                  "confidence": 0.75,
+                  "domain": "Automata Theory & Computation"
+                },
+                {
+                  "from_name": "Beam",
+                  "to_name": "SMC",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_005",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "Beam search also generates tokens recursively, using a heuristic to find the mode of the distribution. More re- cently, SMC sampling has also been used to generate sequences [Lew et al., 2023].",
+                  "confidence": 0.75,
+                  "domain": "Automata Theory & Computation"
+                },
+                {
+                  "from_name": "Beam",
+                  "to_name": "Sampling",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_005",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "Beam search also generates tokens recursively, using a heuristic to find the mode of the distribution. More re- cently, SMC sampling has also been used to generate sequences [Lew et al., 2023].",
+                  "confidence": 0.75,
+                  "domain": "Automata Theory & Computation"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "10",
+                  "concept_b": "104",
+                  "chunk_id": "chunk_005",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "domain": "Automata Theory & Computation",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "The vocabularies, V, are composed of strings from a fixed alphabet [Sennrich et al., 2015] and N is often on the order of 104 or larger."
+                },
+                {
+                  "concept_a": "10",
+                  "concept_b": "11",
+                  "chunk_id": "chunk_005",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "domain": "Automata Theory & Computation",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "The vocabularies, V, are composed of strings from a fixed alphabet [Sennrich et al., 2015] and N is often on the order of 104 or larger."
+                },
+                {
+                  "concept_a": "10",
+                  "concept_b": "12",
+                  "chunk_id": "chunk_005",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "domain": "Automata Theory & Computation",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "The vocabularies, V, are composed of strings from a fixed alphabet [Sennrich et al., 2015] and N is often on the order of 104 or larger."
+                }
+              ]
+            }
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "papers/Willard2023_Outlines.pdf",
+            "title": "Willard 2023 Outlines (Part 2: Finite State Machines & Regex)",
+            "partition": "evaluation",
+            "chunks_count": 10,
+            "baseline": {
+              "concept_count": 29,
+              "edges_count": 46,
+              "directed_edges_count": 27,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 82,
+              "gold_available": false,
+              "edge_count": 156,
+              "directed_edge_count": 26,
+              "explicit_prereq_count": 10,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 16,
+              "part_of_count": 36,
+              "uses_count": 94,
+              "contrasts_count": 0,
+              "abstention_count": 1391,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 0.8991596638655462,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 0.512,
+              "sample_edges": [
+                {
+                  "from_name": "LALR",
+                  "to_name": "PDA",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_019",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_019",
+                  "evidence_text": "For parser state and terminal combinations that correspond to REDUCE operations of an LALR(1) parser, these parser configurations will consist of more than just the top- of-stack values in \u0393; they wil",
+                  "confidence": 0.8,
+                  "domain": "Automata Theory & Computation"
+                },
+                {
+                  "from_name": "LALR",
+                  "to_name": "Ultimately",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_019",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_019",
+                  "evidence_text": "For parser state and terminal combinations that correspond to REDUCE operations of an LALR(1) parser, these parser configurations will consist of more than just the top- of-stack values in \u0393; they wil",
+                  "confidence": 0.8,
+                  "domain": "Automata Theory & Computation"
+                },
+                {
+                  "from_name": "LALR",
+                  "to_name": "More",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_019",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_019",
+                  "evidence_text": "For parser state and terminal combinations that correspond to REDUCE operations of an LALR(1) parser, these parser configurations will consist of more than just the top- of-stack values in \u0393; they wil",
+                  "confidence": 0.8,
+                  "domain": "Automata Theory & Computation"
+                },
+                {
+                  "from_name": "PDA",
+                  "to_name": "REDUCE",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Willard2023_Outlines.pdf:chunk_019",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "chunk_id": "chunk_019",
+                  "evidence_text": "For parser state and terminal combinations that correspond to REDUCE operations of an LALR(1) parser, these parser configurations will consist of more than just the top- of-stack values in \u0393; they wil",
+                  "confidence": 0.8,
+                  "domain": "Automata Theory & Computation"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "LALR",
+                  "concept_b": "REDUCE",
+                  "chunk_id": "chunk_019",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "domain": "Automata Theory & Computation",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "For parser state and terminal combinations that correspond to REDUCE operations of an LALR(1) parser, these parser configurations will consist of more than just the top- of-stack v"
+                },
+                {
+                  "concept_a": "LALR",
+                  "concept_b": "Find",
+                  "chunk_id": "chunk_019",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "domain": "Automata Theory & Computation",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "The stack values provided by this map are needed in order to find paths\u2013 if any\u2013through the PDA that allow successful, complete parses of each string in V starting from their possi"
+                },
+                {
+                  "concept_a": "PDA",
+                  "concept_b": "Find",
+                  "chunk_id": "chunk_019",
+                  "doc_id": "papers/Willard2023_Outlines.pdf",
+                  "domain": "Automata Theory & Computation",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "The stack values provided by this map are needed in order to find paths\u2013 if any\u2013through the PDA that allow successful, complete parses of each string in V starting from their possi"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "summary": {}
+    },
+    "Probability & Statistics": {
+      "code": "ProbStats",
+      "partitions": {
+        "development": [
+          {
+            "doc_id": "pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf",
+            "title": "Theodoridis Pattern Recognition: Probability Appendix",
+            "partition": "development",
+            "chunks_count": 1,
+            "baseline": {
+              "concept_count": 2,
+              "edges_count": 2,
+              "directed_edges_count": 1,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 64,
+              "gold_available": false,
+              "edge_count": 0,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 0,
+              "contrasts_count": 0,
+              "abstention_count": 2016,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 1.0,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 1.449,
+              "sample_edges": [],
+              "sample_abstentions": [
+                {
+                  "concept_a": "10",
+                  "concept_b": "11",
+                  "chunk_id": "Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition__structure",
+                  "doc_id": "pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Then the probability of an arbitrary event B is given by\n  - A.3 STATISTICAL INDEPENDENCE\n  - A.4 MARGINALIZATION\n  - A.5 CHARACTERISTIC FUNCTIONS\n  - A.6 Moments and Cumulants 917"
+                },
+                {
+                  "concept_a": "10",
+                  "concept_b": "12",
+                  "chunk_id": "Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition__structure",
+                  "doc_id": "pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Then the probability of an arbitrary event B is given by\n  - A.3 STATISTICAL INDEPENDENCE\n  - A.4 MARGINALIZATION\n  - A.5 CHARACTERISTIC FUNCTIONS\n  - A.6 Moments and Cumulants 917"
+                },
+                {
+                  "concept_a": "10",
+                  "concept_b": "13",
+                  "chunk_id": "Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition__structure",
+                  "doc_id": "pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Then the probability of an arbitrary event B is given by\n  - A.3 STATISTICAL INDEPENDENCE\n  - A.4 MARGINALIZATION\n  - A.5 CHARACTERISTIC FUNCTIONS\n  - A.6 Moments and Cumulants 917"
+                }
+              ]
+            }
+          },
+          {
+            "doc_id": "pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf",
+            "title": "Theodoridis Pattern Recognition: Bayes Theorem",
+            "partition": "development",
+            "chunks_count": 2,
+            "baseline": {
+              "concept_count": 4,
+              "edges_count": 3,
+              "directed_edges_count": 0,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 172,
+              "gold_available": false,
+              "edge_count": 0,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 0,
+              "contrasts_count": 0,
+              "abstention_count": 9298,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 1.0,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 6.341,
+              "sample_edges": [],
+              "sample_abstentions": [
+                {
+                  "concept_a": "101",
+                  "concept_b": "114",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "batch and pattern modes,169 momentum term,170 Bagging (bootstrap aggregating),220,226 Barlow\u2019s hypothesis,342 Barycentric correction procedure,101 Basic sequential algorithmic sche"
+                },
+                {
+                  "concept_a": "101",
+                  "concept_b": "13",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "batch and pattern modes,169 momentum term,170 Bagging (bootstrap aggregating),220,226 Barlow\u2019s hypothesis,342 Barycentric correction procedure,101 Basic sequential algorithmic sche"
+                },
+                {
+                  "concept_a": "101",
+                  "concept_b": "14",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "batch and pattern modes,169 momentum term,170 Bagging (bootstrap aggregating),220,226 Barlow\u2019s hypothesis,342 Barycentric correction procedure,101 Basic sequential algorithmic sche"
+                }
+              ]
+            }
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+            "title": "Data Science 2019: Statistical Estimation & Distributions",
+            "partition": "evaluation",
+            "chunks_count": 10,
+            "baseline": {
+              "concept_count": 33,
+              "edges_count": 46,
+              "directed_edges_count": 14,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 622,
+              "gold_available": false,
+              "edge_count": 14894,
+              "directed_edge_count": 0,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 0,
+              "part_of_count": 0,
+              "uses_count": 14894,
+              "contrasts_count": 0,
+              "abstention_count": 83238,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 0.8482248400114132,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 45.935,
+              "sample_edges": [
+                {
+                  "from_name": "11",
+                  "to_name": "125",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "data_science_2019/Index_2019_Data-Science.pdf:chunk_007",
+                  "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+                  "chunk_id": "chunk_007",
+                  "evidence_text": "See also Machine learning (ML) AI Winter (1960s\u00012006),\n310\u0001311 algorithm, 526 convolutional neural networks,\n324\u0001331, 330f deep architectures\nAI models using, 335 autoencoders, 334, 337f RNN, 332\u0001334,",
+                  "confidence": 0.75,
+                  "domain": "Probability & Statistics"
+                },
+                {
+                  "from_name": "11",
+                  "to_name": "126",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "data_science_2019/Index_2019_Data-Science.pdf:chunk_007",
+                  "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+                  "chunk_id": "chunk_007",
+                  "evidence_text": "See also Machine learning (ML) AI Winter (1960s\u00012006),\n310\u0001311 algorithm, 526 convolutional neural networks,\n324\u0001331, 330f deep architectures\nAI models using, 335 autoencoders, 334, 337f RNN, 332\u0001334,",
+                  "confidence": 0.75,
+                  "domain": "Probability & Statistics"
+                },
+                {
+                  "from_name": "11",
+                  "to_name": "15",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "data_science_2019/Index_2019_Data-Science.pdf:chunk_007",
+                  "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+                  "chunk_id": "chunk_007",
+                  "evidence_text": "algorithm, 523 approach, 15 for Golf data, 72f for Golf dataset, 76f, 90f implementation, 73\u000186 model, 81\u000184 operator, 152 path, 66\u000167 works, 66\u000173 Decision-making model, 34 Decomposed data, forecasti",
+                  "confidence": 0.75,
+                  "domain": "Probability & Statistics"
+                },
+                {
+                  "from_name": "11",
+                  "to_name": "152",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "data_science_2019/Index_2019_Data-Science.pdf:chunk_007",
+                  "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+                  "chunk_id": "chunk_007",
+                  "evidence_text": "algorithm, 523 approach, 15 for Golf data, 72f for Golf dataset, 76f, 90f implementation, 73\u000186 model, 81\u000184 operator, 152 path, 66\u000167 works, 66\u000173 Decision-making model, 34 Decomposed data, forecasti",
+                  "confidence": 0.75,
+                  "domain": "Probability & Statistics"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "11",
+                  "concept_b": "2006",
+                  "chunk_id": "chunk_007",
+                  "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "algorithm, 523 approach, 15 for Golf data, 72f for Golf dataset, 76f, 90f implementation, 73\u000186 model, 81\u000184 operator, 152 path, 66\u000167 works, 66\u000173 Decision-making model, 34 Decomp"
+                },
+                {
+                  "concept_a": "11",
+                  "concept_b": "310",
+                  "chunk_id": "chunk_007",
+                  "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "algorithm, 523 approach, 15 for Golf data, 72f for Golf dataset, 76f, 90f implementation, 73\u000186 model, 81\u000184 operator, 152 path, 66\u000167 works, 66\u000173 Decision-making model, 34 Decomp"
+                },
+                {
+                  "concept_a": "11",
+                  "concept_b": "311",
+                  "chunk_id": "chunk_007",
+                  "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+                  "domain": "Probability & Statistics",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "algorithm, 523 approach, 15 for Golf data, 72f for Golf dataset, 76f, 90f implementation, 73\u000186 model, 81\u000184 operator, 152 path, 66\u000167 works, 66\u000173 Decision-making model, 34 Decomp"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "summary": {}
+    },
+    "Artificial Intelligence & Machine Learning": {
+      "code": "AIML",
+      "partitions": {
+        "development": [
+          {
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "title": "Hu et al. 2021: LoRA (Legacy Diagnostic Case)",
+            "partition": "development",
+            "chunks_count": 29,
+            "baseline": {
+              "concept_precision": 0.18181818181818182,
+              "concept_recall": 0.2,
+              "concept_f1": 0.1904761904761905,
+              "concept_tp": 4,
+              "concept_fp": 18,
+              "concept_fn": 16,
+              "directed_edge_f1_exact": 0.0,
+              "directed_edge_f1_aligned": 0.0,
+              "undirected_edge_f1": 0.0,
+              "direction_accuracy": null,
+              "direction_accuracy_status": "undefined",
+              "gold_available": true
+            },
+            "prototype": {
+              "concept_precision": 0.02631578947368421,
+              "concept_recall": 0.85,
+              "concept_f1": 0.051051051051051045,
+              "concept_tp": 17,
+              "concept_fp": 629,
+              "concept_fn": 3,
+              "directed_edge_f1_exact": 0.0,
+              "directed_edge_f1_aligned": 0.0,
+              "undirected_edge_f1": 0.005934718100890208,
+              "direction_accuracy": 0.0,
+              "direction_accuracy_status": "computed",
+              "gold_available": true,
+              "concept_count": 646,
+              "edge_count": 2427,
+              "directed_edge_count": 658,
+              "explicit_prereq_count": 192,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 466,
+              "part_of_count": 118,
+              "uses_count": 690,
+              "contrasts_count": 961,
+              "abstention_count": 84974,
+              "rejection_count": 0,
+              "cycles_prevented_count": 8,
+              "abstention_rate": 0.9722314389995538,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 22.316,
+              "sample_edges": [
+                {
+                  "from_name": "NY",
+                  "to_name": "With",
+                  "edge_type": "RELATED",
+                  "relation": "contrasts_with",
+                  "is_inferred": false,
+                  "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+                  "doc_id": "papers/Hu2021_LoRA.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "\u2022 Our simple linear design allows us to merge the trainable matrices with the frozen weights when deployed, introducing no inference latency compared to a fully \ufb01ne-tuned model, by construction. \u2022 LoR",
+                  "confidence": 0.85,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "NY",
+                  "to_name": "Trainable",
+                  "edge_type": "RELATED",
+                  "relation": "contrasts_with",
+                  "is_inferred": false,
+                  "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+                  "doc_id": "papers/Hu2021_LoRA.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "\u2022 Our simple linear design allows us to merge the trainable matrices with the frozen weights when deployed, introducing no inference latency compared to a fully \ufb01ne-tuned model, by construction. \u2022 LoR",
+                  "confidence": 0.85,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "NY",
+                  "to_name": "LOW",
+                  "edge_type": "RELATED",
+                  "relation": "contrasts_with",
+                  "is_inferred": false,
+                  "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+                  "doc_id": "papers/Hu2021_LoRA.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "\u2022 Our simple linear design allows us to merge the trainable matrices with the frozen weights when deployed, introducing no inference latency compared to a fully \ufb01ne-tuned model, by construction. \u2022 LoR",
+                  "confidence": 0.85,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "NY",
+                  "to_name": "MATRICES",
+                  "edge_type": "RELATED",
+                  "relation": "contrasts_with",
+                  "is_inferred": false,
+                  "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+                  "doc_id": "papers/Hu2021_LoRA.pdf",
+                  "chunk_id": "chunk_005",
+                  "evidence_text": "\u2022 Our simple linear design allows us to merge the trainable matrices with the frozen weights when deployed, introducing no inference latency compared to a fully \ufb01ne-tuned model, by construction. \u2022 LoR",
+                  "confidence": 0.85,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "04805",
+                  "concept_b": "08",
+                  "chunk_id": "chunk_036",
+                  "doc_id": "papers/Hu2021_LoRA.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "In Proceedings of the 25th international conference on Machine learning, ICML \u201908, pp."
+                },
+                {
+                  "concept_a": "04805",
+                  "concept_b": "10",
+                  "chunk_id": "chunk_036",
+                  "doc_id": "papers/Hu2021_LoRA.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "doi: 10.18653/ v1/s17-2001."
+                },
+                {
+                  "concept_a": "04805",
+                  "concept_b": "1145",
+                  "chunk_id": "chunk_036",
+                  "doc_id": "papers/Hu2021_LoRA.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "doi: 10.1145/1390156.1390177."
+                }
+              ]
+            }
+          },
+          {
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "title": "Vaswani et al. 2017: Attention (Legacy Diagnostic Case)",
+            "partition": "development",
+            "chunks_count": 28,
+            "baseline": {
+              "concept_precision": 0.36666666666666664,
+              "concept_recall": 0.44,
+              "concept_f1": 0.4,
+              "concept_tp": 11,
+              "concept_fp": 19,
+              "concept_fn": 14,
+              "directed_edge_f1_exact": 0.0,
+              "directed_edge_f1_aligned": 0.0,
+              "undirected_edge_f1": 0.0,
+              "direction_accuracy": null,
+              "direction_accuracy_status": "undefined",
+              "gold_available": true
+            },
+            "prototype": {
+              "concept_precision": 0.0639269406392694,
+              "concept_recall": 0.56,
+              "concept_f1": 0.11475409836065574,
+              "concept_tp": 14,
+              "concept_fp": 205,
+              "concept_fn": 11,
+              "directed_edge_f1_exact": 0.0,
+              "directed_edge_f1_aligned": 0.0,
+              "undirected_edge_f1": 0.0,
+              "direction_accuracy": null,
+              "direction_accuracy_status": "undefined",
+              "gold_available": true,
+              "concept_count": 219,
+              "edge_count": 826,
+              "directed_edge_count": 94,
+              "explicit_prereq_count": 45,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 49,
+              "part_of_count": 167,
+              "uses_count": 316,
+              "contrasts_count": 249,
+              "abstention_count": 10593,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 0.9276644189508714,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 2.281,
+              "sample_edges": [
+                {
+                  "from_name": "Aidan",
+                  "to_name": "Brain",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_003",
+                  "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                  "chunk_id": "chunk_003",
+                  "evidence_text": "Lukasz and Aidan spent countless long days designing various parts of and implementing tensor2tensor, replacing our earlier codebase, greatly improving results and massively accelerating our research.",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "Aidan",
+                  "to_name": "Google",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_003",
+                  "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                  "chunk_id": "chunk_003",
+                  "evidence_text": "Lukasz and Aidan spent countless long days designing various parts of and implementing tensor2tensor, replacing our earlier codebase, greatly improving results and massively accelerating our research.",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "Aidan",
+                  "to_name": "Google Brain",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_003",
+                  "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                  "chunk_id": "chunk_003",
+                  "evidence_text": "Lukasz and Aidan spent countless long days designing various parts of and implementing tensor2tensor, replacing our earlier codebase, greatly improving results and massively accelerating our research.",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "Aidan",
+                  "to_name": "Research",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_003",
+                  "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                  "chunk_id": "chunk_003",
+                  "evidence_text": "Lukasz and Aidan spent countless long days designing various parts of and implementing tensor2tensor, replacing our earlier codebase, greatly improving results and massively accelerating our research.",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "2014",
+                  "concept_b": "28",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Our model achieves 28.4 BLEU on the WMT 2014 English- to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU."
+                },
+                {
+                  "concept_a": "2014",
+                  "concept_b": "41",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Our model achieves 28.4 BLEU on the WMT 2014 English- to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU."
+                },
+                {
+                  "concept_a": "2014",
+                  "concept_b": "BLEU",
+                  "chunk_id": "chunk_002",
+                  "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Our model achieves 28.4 BLEU on the WMT 2014 English- to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU."
+                }
+              ]
+            }
+          }
+        ],
+        "evaluation": [
+          {
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "title": "Bahdanau et al. 2014: Neural Machine Translation (Held-Out Source)",
+            "partition": "evaluation",
+            "chunks_count": 29,
+            "baseline": {
+              "concept_count": 22,
+              "edges_count": 116,
+              "directed_edges_count": 21,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 453,
+              "gold_available": false,
+              "edge_count": 1413,
+              "directed_edge_count": 159,
+              "explicit_prereq_count": 75,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 84,
+              "part_of_count": 513,
+              "uses_count": 471,
+              "contrasts_count": 270,
+              "abstention_count": 50886,
+              "rejection_count": 0,
+              "cycles_prevented_count": 4,
+              "abstention_rate": 0.9729822749956978,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 11.309,
+              "sample_edges": [
+                {
+                  "from_name": "1997",
+                  "to_name": "Second",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+                  "doc_id": "papers/Bahdanau2014_Attention.pdf",
+                  "chunk_id": "chunk_006",
+                  "evidence_text": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014a; Sutskever et al.,",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "1997",
+                  "to_name": "TO",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+                  "doc_id": "papers/Bahdanau2014_Attention.pdf",
+                  "chunk_id": "chunk_006",
+                  "evidence_text": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014a; Sutskever et al.,",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "1997",
+                  "to_name": "Sentence",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+                  "doc_id": "papers/Bahdanau2014_Attention.pdf",
+                  "chunk_id": "chunk_006",
+                  "evidence_text": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014a; Sutskever et al.,",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "1997",
+                  "to_name": "THE",
+                  "edge_type": "RELATED",
+                  "relation": "part_of",
+                  "is_inferred": false,
+                  "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+                  "doc_id": "papers/Bahdanau2014_Attention.pdf",
+                  "chunk_id": "chunk_006",
+                  "evidence_text": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014a; Sutskever et al.,",
+                  "confidence": 0.8,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "1997",
+                  "concept_b": "2013",
+                  "chunk_id": "chunk_006",
+                  "doc_id": "papers/Bahdanau2014_Attention.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014"
+                },
+                {
+                  "concept_a": "1997",
+                  "concept_b": "2014",
+                  "chunk_id": "chunk_006",
+                  "doc_id": "papers/Bahdanau2014_Attention.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014"
+                },
+                {
+                  "concept_a": "1997",
+                  "concept_b": "Blunsom",
+                  "chunk_id": "chunk_006",
+                  "doc_id": "papers/Bahdanau2014_Attention.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014"
+                }
+              ]
+            }
+          },
+          {
+            "doc_id": "papers/Devlin2018_BERT.pdf",
+            "title": "Devlin et al. 2018: BERT (Held-Out Source)",
+            "partition": "evaluation",
+            "chunks_count": 29,
+            "baseline": {
+              "concept_count": 22,
+              "edges_count": 87,
+              "directed_edges_count": 39,
+              "gold_available": false
+            },
+            "prototype": {
+              "concept_count": 342,
+              "gold_available": false,
+              "edge_count": 1761,
+              "directed_edge_count": 87,
+              "explicit_prereq_count": 0,
+              "inferred_prereq_count": 0,
+              "unlocks_count": 87,
+              "part_of_count": 176,
+              "uses_count": 1240,
+              "contrasts_count": 258,
+              "abstention_count": 25299,
+              "rejection_count": 0,
+              "cycles_prevented_count": 0,
+              "abstention_rate": 0.9349223946784923,
+              "valid_provenance_coverage": 1.0,
+              "unsupported_relation_rate": 0.0,
+              "runtime_seconds": 6.881,
+              "sample_edges": [
+                {
+                  "from_name": "BERT",
+                  "to_name": "Each",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Devlin2018_BERT.pdf:chunk_010",
+                  "doc_id": "papers/Devlin2018_BERT.pdf",
+                  "chunk_id": "chunk_010",
+                  "evidence_text": "For \ufb01ne- tuning, the BERT model is \ufb01rst initialized with the pre-trained parameters, and all of the param- eters are \ufb01ne-tuned using labeled data from the downstream tasks. Each downstream task has se",
+                  "confidence": 0.75,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "BERT",
+                  "to_name": "SEP",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Devlin2018_BERT.pdf:chunk_010",
+                  "doc_id": "papers/Devlin2018_BERT.pdf",
+                  "chunk_id": "chunk_010",
+                  "evidence_text": "For \ufb01ne- tuning, the BERT model is \ufb01rst initialized with the pre-trained parameters, and all of the param- eters are \ufb01ne-tuned using labeled data from the downstream tasks. Each downstream task has se",
+                  "confidence": 0.75,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "BERT",
+                  "to_name": "EA",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Devlin2018_BERT.pdf:chunk_010",
+                  "doc_id": "papers/Devlin2018_BERT.pdf",
+                  "chunk_id": "chunk_010",
+                  "evidence_text": "For \ufb01ne- tuning, the BERT model is \ufb01rst initialized with the pre-trained parameters, and all of the param- eters are \ufb01ne-tuned using labeled data from the downstream tasks.",
+                  "confidence": 0.75,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                },
+                {
+                  "from_name": "BERT",
+                  "to_name": "EN",
+                  "edge_type": "RELATED",
+                  "relation": "uses",
+                  "is_inferred": false,
+                  "source": "papers/Devlin2018_BERT.pdf:chunk_010",
+                  "doc_id": "papers/Devlin2018_BERT.pdf",
+                  "chunk_id": "chunk_010",
+                  "evidence_text": "For \ufb01ne- tuning, the BERT model is \ufb01rst initialized with the pre-trained parameters, and all of the param- eters are \ufb01ne-tuned using labeled data from the downstream tasks. Each downstream task has se",
+                  "confidence": 0.75,
+                  "domain": "Artificial Intelligence & Machine Learning"
+                }
+              ],
+              "sample_abstentions": [
+                {
+                  "concept_a": "2017",
+                  "concept_b": "Annotated",
+                  "chunk_id": "chunk_010",
+                  "doc_id": "papers/Devlin2018_BERT.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "(2017) and released in the tensor2tensor library.1 Because the use of Transformers has become common and our im- plementation is almost identical to the original, we will omit an e"
+                },
+                {
+                  "concept_a": "2017",
+                  "concept_b": "Architecture",
+                  "chunk_id": "chunk_010",
+                  "doc_id": "papers/Devlin2018_BERT.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "There is mini-\nmal difference between the pre-trained architec- ture and the \ufb01nal downstream architecture."
+                },
+                {
+                  "concept_a": "2017",
+                  "concept_b": "BERT",
+                  "chunk_id": "chunk_010",
+                  "doc_id": "papers/Devlin2018_BERT.pdf",
+                  "domain": "Artificial Intelligence & Machine Learning",
+                  "reason": "Co-occurrence without explicit or pedagogical dependency evidence (abstained to prevent hallucinated dependency)",
+                  "evidence": "We introduce BERT and its detailed implementa- tion in this section."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "summary": {}
+    }
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "manifest_version": "1.0",
+  "description": "S4-G2 Multi-Domain Experimental Manifest across 6 Core Academic Domains",
+  "domains": {
+    "Operating Systems": {
+      "code": "OS",
+      "development": [
+        {
+          "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+          "title": "OSTEP Chapter 06: Address Spaces",
+          "source_type": "open_textbook_chapter",
+          "level": "foundational"
+        }
+      ],
+      "evaluation": [
+        {
+          "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+          "title": "OSTEP Chapter 07: Address Translation",
+          "source_type": "open_textbook_chapter",
+          "level": "intermediate"
+        },
+        {
+          "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf",
+          "title": "OSTEP Chapter 08: Paging",
+          "source_type": "open_textbook_chapter",
+          "level": "advanced"
+        }
+      ]
+    },
+    "Database Management Systems": {
+      "code": "DBMS",
+      "development": [
+        {
+          "doc_id": "pilot/silberschatz_3nf_card.txt",
+          "title": "Silberschatz Database: 3NF Decomposition Card",
+          "source_type": "grounded_card",
+          "level": "foundational"
+        }
+      ],
+      "evaluation": [
+        {
+          "doc_id": "doc_fundamentals_of_database_system_7e",
+          "title": "Fundamentals of Database Systems 7e",
+          "source_type": "catalog_chapter_excerpt",
+          "level": "intermediate"
+        }
+      ]
+    },
+    "Computer Networks": {
+      "code": "Networks",
+      "development": [
+        {
+          "doc_id": "doc_computer_networks_6_e",
+          "title": "Tanenbaum Computer Networks 6e Excerpts",
+          "source_type": "textbook_excerpt",
+          "level": "foundational"
+        }
+      ],
+      "evaluation": [
+        {
+          "doc_id": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+          "title": "Real-time Network Security (Elsevier 2024)",
+          "source_type": "research_paper",
+          "level": "advanced",
+          "chunk_limit": 20
+        }
+      ]
+    },
+    "Automata Theory & Computation": {
+      "code": "TOC",
+      "development": [
+        {
+          "doc_id": "papers/Willard2023_Outlines.pdf",
+          "title": "Willard 2023 Outlines (Part 1: Formal Grammars)",
+          "source_type": "research_preprint",
+          "level": "foundational",
+          "chunk_range": [
+            0,
+            9
+          ]
+        }
+      ],
+      "evaluation": [
+        {
+          "doc_id": "papers/Willard2023_Outlines.pdf",
+          "title": "Willard 2023 Outlines (Part 2: Finite State Machines & Regex)",
+          "source_type": "research_preprint",
+          "level": "advanced",
+          "chunk_range": [
+            10,
+            19
+          ]
+        }
+      ]
+    },
+    "Probability & Statistics": {
+      "code": "ProbStats",
+      "development": [
+        {
+          "doc_id": "pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf",
+          "title": "Theodoridis Pattern Recognition: Probability Appendix",
+          "source_type": "textbook_appendix",
+          "level": "foundational"
+        },
+        {
+          "doc_id": "pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf",
+          "title": "Theodoridis Pattern Recognition: Bayes Theorem",
+          "source_type": "textbook_chapter",
+          "level": "foundational"
+        }
+      ],
+      "evaluation": [
+        {
+          "doc_id": "data_science_2019/Index_2019_Data-Science.pdf",
+          "title": "Data Science 2019: Statistical Estimation & Distributions",
+          "source_type": "scholarly_book_index",
+          "level": "intermediate",
+          "chunk_limit": 10
+        }
+      ]
+    },
+    "Artificial Intelligence & Machine Learning": {
+      "code": "AIML",
+      "development": [
+        {
+          "doc_id": "papers/Hu2021_LoRA.pdf",
+          "title": "Hu et al. 2021: LoRA (Legacy Diagnostic Case)",
+          "source_type": "research_paper",
+          "level": "diagnostic",
+          "gold_file": "pilot_corpus/gold/gold_lora.json"
+        },
+        {
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "title": "Vaswani et al. 2017: Attention (Legacy Diagnostic Case)",
+          "source_type": "research_paper",
+          "level": "diagnostic",
+          "gold_file": "pilot_corpus/gold/gold_attention.json"
+        }
+      ],
+      "evaluation": [
+        {
+          "doc_id": "papers/Bahdanau2014_Attention.pdf",
+          "title": "Bahdanau et al. 2014: Neural Machine Translation (Held-Out Source)",
+          "source_type": "research_paper",
+          "level": "held_out",
+          "gold_file": null
+        },
+        {
+          "doc_id": "papers/Devlin2018_BERT.pdf",
+          "title": "Devlin et al. 2018: BERT (Held-Out Source)",
+          "source_type": "research_paper",
+          "level": "held_out",
+          "gold_file": null
+        }
+      ]
+    }
+  }
+}
