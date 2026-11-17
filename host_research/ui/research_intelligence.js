@@ -201,6 +201,7 @@ async function showRun(run) {
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));
+  const visiblePapers = paperRows.map(row => row.paper);
   for (const { detail, paper } of paperRows) {
     const article = document.createElement('article');
     article.className = 'research-card';
@@ -222,19 +223,24 @@ async function showRun(run) {
       ['Influential citation count (Semantic Scholar)', metricNumber(paper.influential_citations)],
       ['Open-access status', paper.is_open_access === true ? 'Yes' : paper.is_open_access === false ? 'No' : '—'],
     ];
-    const venueHeaders = [
-      'Journal Impact Factor (JIF)', 'CiteScore', 'SCImago Journal Rank (SJR)',
-      'Source Normalized Impact per Paper (SNIP)', 'Q1-Q4 Quartile', 'CORE/ICORE Rank',
-      'h5-index', 'h5-median', 'Venue h-index', 'Venue i10-index',
-      'Acceptance Rate', 'Indexed Publication Count', 'Mean Citedness', 'Indexing Status'
+    const additionalHeaders = [
+      'Paper Age (Years)', 'Title Query Match (%)', 'Verified Source Count',
+      'Author Count', 'Metadata Completeness (%)', 'Method Reported',
+      'Benchmark Reported', 'Code Link Reported', 'Data Link Reported',
+      'Venue Papers in This Search', 'Venue Author Bylines in This Search',
+      'Venue Newest Paper Year in This Search', 'Venue Median Paper Year in This Search',
+      'Venue Mean Title Match in This Search (%)',
+      'Venue Public Full-Text Links in This Search',
+      'Venue h-index', 'Venue i10-index', 'Indexed Publication Count',
+      'Mean Citedness', 'Indexing Status'
     ];
-    for (const header of venueHeaders) {
+    for (const header of additionalHeaders) {
       const index = dossier.paper_headers.indexOf(header);
       const value = index >= 0 ? detail.rankable_values[index] : null;
       metricRows.push([header, value == null || value === '' ? '—' : String(value)]);
     }
     const coverage = document.createElement('p');
-    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper and venue parameters reported · ${paper.abstract ? 'Abstract available' : 'No provider abstract'} · ${paper.doi ? 'DOI available' : 'No DOI reported'}. JIF, CiteScore, SJR and SNIP require their licensed source; a blank is not zero.`;
+    coverage.textContent = `${metricRows.filter(([, value]) => value !== '—').length} of ${metricRows.length} paper and venue parameters filled · search counts cover these retrieved papers only · 0 for an evidence flag means the retrieved record did not report it. Provider metrics remain blank when unreported.`;
     article.append(title, facts, coverage, metricGrid(metricRows));
     const paperDetail = document.createElement('a');
     paperDetail.href = `/research/paper?run=${encodeURIComponent(activeRunId)}&paper=${detail.index}`;
@@ -262,36 +268,46 @@ async function showRun(run) {
     authorSummary.textContent = 'Author parameters';
     authorDetails.append(authorSummary);
     const authorCoverage = document.createElement('p');
-    authorCoverage.textContent = 'g-index and median citations need a complete work-level citation series; field-normalized author impact needs a verified provider aggregate. First/last-author and collaborator counts cover this search only.';
+    authorCoverage.textContent = 'Byline measures cover this search only. Provider citation metrics appear when verified.';
     authorDetails.append(authorCoverage);
     const providerIds = paperAuthorIds(paper);
     paper.authors?.forEach((author, index) => {
       const id = providerIds[index];
       const observation = authorsById.get(id);
       const values = observation?.metrics || {};
-      const matchedPapers = id ? run.papers.filter(record => paperAuthorIds(record).includes(id)) : [];
-      const firstPapers = matchedPapers.filter(record => paperAuthorIds(record)[0] === id).length;
-      const lastPapers = matchedPapers.filter(record => paperAuthorIds(record).at(-1) === id).length;
-      const coauthors = new Set(matchedPapers.flatMap(record => paperAuthorIds(record).filter(value => value && value !== id)));
       const recent = Array.isArray(values.counts_by_year) && values.counts_by_year.length ? values.counts_by_year.filter(row => Number.isInteger(row.year) && row.year >= new Date().getFullYear() - 4 && Number.isInteger(row.cited_by_count)).reduce((sum, row) => sum + row.cited_by_count, 0) : null;
-      const relevance = matchedPapers.map(record => record.relevance_classification?.confidence).filter(Number.isFinite);
+      const bylinePapers = visiblePapers.filter(record => id
+        ? paperAuthorIds(record).includes(id)
+        : record.authors?.some(person => person.name?.trim().toLocaleLowerCase() === author.name?.trim().toLocaleLowerCase()));
+      const isAuthorAt = (record, position) => id
+        ? paperAuthorIds(record)[position] === id
+        : record.authors?.[position]?.name?.trim().toLocaleLowerCase() === author.name?.trim().toLocaleLowerCase();
+      const bylineYears = bylinePapers.map(record => record.year).filter(Number.isInteger).sort((a, b) => a - b);
+      const allQueryWords = new Set((run.options?.topic || '').toLocaleLowerCase().match(/\w+/g) || []);
+      const queryWords = new Set([...allQueryWords].filter(word => !new Set(['a', 'an', 'and', 'for', 'in', 'of', 'on', 'the', 'to', 'with']).has(word)));
+      if (!queryWords.size) allQueryWords.forEach(word => queryWords.add(word));
+      const matches = bylinePapers.map(record => {
+        const titleWords = new Set((record.title || '').toLocaleLowerCase().match(/\w+/g) || []);
+        return queryWords.size ? 100 * [...queryWords].filter(word => titleWords.has(word)).length / queryWords.size : 0;
+      });
+      const bylineCoauthors = new Set(bylinePapers.flatMap(record => (record.authors || []).map(person => person.name?.trim().toLocaleLowerCase()).filter(name => name && name !== author.name?.trim().toLocaleLowerCase())));
       const heading = document.createElement('h4');
       heading.textContent = author.name;
       authorDetails.append(heading, metricGrid([
         ['h-index', metricNumber(values.h_index)],
         ['i10-index', metricNumber(values.i10_index)],
-        ['g-index', '—'],
         ['m-quotient', Number.isFinite(values.h_index) && Number.isInteger(values.earliest_year) && values.earliest_year <= new Date().getFullYear() ? metricNumber(values.h_index / (new Date().getFullYear() - values.earliest_year + 1), 2) : '—'],
         ['Total citations', metricNumber(values.citation_count)],
         ['Total publications', metricNumber(values.publication_count)],
         ['Average citations per paper', values.publication_count > 0 && Number.isFinite(values.citation_count) ? metricNumber(values.citation_count / values.publication_count, 2) : '—'],
-        ['Median citations per paper', '—'],
         ['Recent citations (5 years)', metricNumber(recent)],
-        ['Field-normalized impact', '—'],
-        ['First-author publications (this search)', id ? String(firstPapers) : '—'],
-        ['Last-author publications (this search)', id ? String(lastPapers) : '—'],
-        ['Research relevance (this search)', relevance.length ? metricNumber(Math.max(...relevance), 2) : '—'],
-        ['Verified collaborators (this search)', id ? String(coauthors.size) : '—'],
+        ['Papers in this search', String(bylinePapers.length)],
+        ['Mean title match in this search (%)', matches.length ? metricNumber(matches.reduce((sum, value) => sum + value, 0) / matches.length, 1) : '0'],
+        ['Newest paper year in this search', bylineYears.length ? String(bylineYears.at(-1)) : '—'],
+        ['Median paper year in this search', bylineYears.length ? String((bylineYears[Math.floor((bylineYears.length - 1) / 2)] + bylineYears[Math.ceil((bylineYears.length - 1) / 2)]) / 2) : '—'],
+        ['Distinct coauthor bylines in this search', String(bylineCoauthors.size)],
+        ['First-author publications (this search)', String(bylinePapers.filter(record => isAuthorAt(record, 0)).length)],
+        ['Last-author publications (this search)', String(bylinePapers.filter(record => isAuthorAt(record, (record.authors?.length || 1) - 1)).length)],
       ]));
       if (observation?.source_url?.startsWith('https://')) {
         const authorSource = document.createElement('a');

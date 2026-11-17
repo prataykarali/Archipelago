@@ -9,6 +9,18 @@ from typing import Any
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
+from .search_rankings import (
+    AUTHOR_FIELDS,
+    PAPER_FIELDS,
+    VENUE_FIELDS,
+    author_values,
+    matching_paper,
+    ordered_author_keys,
+    paper_values,
+    ranking_year,
+    venue_values,
+)
+from .standard_validation import distinct_standard_papers
 from .workbook_standard import build_standard_workbook
 
 RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
@@ -21,6 +33,7 @@ RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
         ("Citation Percentile", "Citation percentile (OpenAlex)"),
         ("Topic Relevance Score", "Relevance score (0-1)"),
         ("Publication Year", "Year"),
+        *((heading, "") for heading in PAPER_FIELDS),
         ("Benchmark Performance", "Benchmark performance"),
         ("Methodological Evidence", "Research method"),
         ("Reproducibility Indicators", "Reproducibility indicators"),
@@ -32,17 +45,9 @@ RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
         ("Paper Link", "Paper link"),
         ("Citation Provider", "Citation source"),
         ("Verified Sources", "Verified sources"),
-        ("Journal Impact Factor (JIF)", "JIF (Clarivate)"),
-        ("CiteScore", "CiteScore (Scopus)"),
-        ("SCImago Journal Rank (SJR)", "SJR (SCImago)"),
-        ("Source Normalized Impact per Paper (SNIP)", "SNIP"),
-        ("Q1-Q4 Quartile", "Journal quartile"),
-        ("CORE/ICORE Rank", "CORE / ICORE rank"),
-        ("h5-index", "h5-index"),
-        ("h5-median", "h5-median"),
+        *((heading, "") for heading in VENUE_FIELDS),
         ("Venue h-index", "Venue h-index (OpenAlex)"),
         ("Venue i10-index", "Venue i10-index (OpenAlex)"),
-        ("Acceptance Rate", "Acceptance rate"),
         ("Indexed Publication Count", "Indexed works (OpenAlex)"),
         ("Mean Citedness", "2-year mean citedness (OpenAlex)"),
         ("Indexing Status", "Indexed status (OpenAlex)"),
@@ -53,16 +58,14 @@ RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "Authors": (
         ("Author Name", "Author name"),
+        *((heading, "") for heading in AUTHOR_FIELDS),
         ("h-index", "h-index"),
         ("i10-index", "i10-index"),
-        ("g-index", "g-index"),
         ("m-quotient", "m-quotient"),
         ("Total Citations", "Citation count"),
         ("Total Publications", "Publication count"),
         ("Average Citations per Paper", "Avg citations / work"),
-        ("Median Citations per Paper", "Median citations / work"),
         ("Recent Citations", "Recent citations (5y)"),
-        ("Field-Normalized Impact", "Field-normalized impact"),
         ("First-Author Publications", "First-author papers in export"),
         ("Last-Author Publications", "Last-author papers in export"),
         ("Research Relevance", "Best paper relevance (0-1)"),
@@ -77,8 +80,12 @@ RANKABLE_COLUMNS: dict[str, tuple[tuple[str, str], ...]] = {
 
 
 def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
-    """Keep source-backed values while presenting all requested parameters in fixed order."""
+    """Keep provider facts and add explicit search-scoped ranking measurements."""
     book = load_workbook(build_standard_workbook(run))
+    papers = distinct_standard_papers(run.get("papers") or [])
+    author_keys = ordered_author_keys(papers)
+    topic = str((run.get("options") or {}).get("topic") or "")
+    as_of_year = ranking_year(run)
     venue_sheet = book["Publications"]
     venue_headers = {str(cell.value): cell.column for cell in venue_sheet[1]}
     venues = {
@@ -129,6 +136,27 @@ def build_rankable_workbook(run: dict[str, Any]) -> BytesIO:
                 new.column_dimensions[get_column_letter(new_column)].width = 24
         for row in range(2, old.max_row + 1):
             new.row_dimensions[row].height = old.row_dimensions[row].height
+            if sheet_name == "Papers":
+                paper = matching_paper(
+                    old.cell(row, old_headers["Paper title"]).value,
+                    old.cell(row, old_headers["Year"]).value,
+                    papers,
+                )
+                if paper is not None:
+                    calculated = {
+                        **paper_values(paper, topic, as_of_year),
+                        **venue_values(str(paper.get("venue") or ""), papers, topic),
+                    }
+                    for column, (heading, _) in enumerate(columns, 1):
+                        if heading in calculated:
+                            new.cell(row, column, calculated[heading])
+            else:
+                name = str(old.cell(row, old_headers["Author name"]).value or "")
+                identity_key = author_keys[row - 2] if row - 2 < len(author_keys) else None
+                calculated = author_values(name, papers, topic, identity_key)
+                for column, (heading, _) in enumerate(columns, 1):
+                    if heading in calculated:
+                        new.cell(row, column, calculated[heading])
         new.freeze_panes = "C2"
         new.auto_filter.ref = f"A1:{get_column_letter(len(columns))}{new.max_row}"
         book.remove(old)

@@ -170,8 +170,8 @@ def _sample_run() -> dict:
 def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
     wb = load_workbook(BytesIO(build_workbook(_sample_run(), mode="standard").getvalue()))
     assert tuple(wb.sheetnames) == VISIBLE_SHEETS
-    assert wb["Papers"].max_column == 37
-    assert wb["Authors"].max_column == 20
+    assert wb["Papers"].max_column == 43
+    assert wb["Authors"].max_column == 24
 
     # Check no banned internal codes or JSON blobs anywhere
     for sname in wb.sheetnames:
@@ -203,6 +203,7 @@ def test_standard_export_has_5_sheets_no_codes_and_dedups_zhihong_han() -> None:
     wei_rows = [r for r in author_rows if r[0] == "Wei Zhang"]
     assert len(wei_rows) == 2
     assert wei_rows[1][author_headers.index("Total Publications")] is None
+    assert [r[author_headers.index("Papers in This Search")] for r in wei_rows] == [1, 1]
 
     # Venue facts are repeated on their corresponding paper rows.
     assert paper_rows[0][paper_headers.index("Venue Category")] == "Peer-reviewed journal"
@@ -276,8 +277,10 @@ def test_ranking_parameters_are_individual_typed_columns() -> None:
     assert value("Authors", 2, "Metric Provider") == "OpenAlex"
     assert value("Papers", 2, "Venue h-index") == 12
     assert value("Papers", 2, "Mean Citedness") == 2.75
-    assert "Journal Impact Factor (JIF)" in [cell.value for cell in book["Papers"][1]]
-    assert "CiteScore" in [cell.value for cell in book["Papers"][1]]
+    assert value("Papers", 2, "Title Query Match (%)") == 100
+    assert value("Papers", 2, "Verified Source Count") == 2
+    assert value("Papers", 2, "Venue Papers in This Search") == 1
+    assert "CiteScore" not in [cell.value for cell in book["Papers"][1]]
     assert value("Papers", 3, "Venue h-index") is None
 
 
@@ -450,10 +453,10 @@ def test_rankable_preview_contains_requested_columns_without_fabricating_metrics
     assert "Citation Count" in paper_headers
     assert "Benchmark Performance" in paper_headers
     assert "Reproducibility Indicators" in paper_headers
-    assert "g-index" in author_headers
-    assert "Field-Normalized Impact" in author_headers
-    assert "Journal Impact Factor (JIF)" in venue_headers
-    assert "h5-index" in venue_headers
+    assert "Papers in This Search" in author_headers
+    assert "Distinct Coauthor Bylines in This Search" in author_headers
+    assert "Venue Papers in This Search" in venue_headers
+    assert "Venue Public Full-Text Links in This Search" in venue_headers
     assert (
         preview["sheets"]["Papers"]["rows"][0]["values"][
             paper_headers.index("Benchmark Performance")
@@ -477,31 +480,24 @@ def test_rankable_preview_contains_requested_columns_without_fabricating_metrics
     assert {
         "h-index",
         "i10-index",
-        "g-index",
         "m-quotient",
         "Total Citations",
         "Total Publications",
         "Average Citations per Paper",
-        "Median Citations per Paper",
         "Recent Citations",
-        "Field-Normalized Impact",
+        "Papers in This Search",
+        "Mean Title Match in This Search (%)",
         "First-Author Publications",
         "Last-Author Publications",
         "Research Relevance",
         "Collaboration Network",
     }.issubset(author_headers)
     assert {
-        "Journal Impact Factor (JIF)",
-        "CiteScore",
-        "SCImago Journal Rank (SJR)",
-        "Source Normalized Impact per Paper (SNIP)",
-        "Q1-Q4 Quartile",
-        "CORE/ICORE Rank",
-        "h5-index",
-        "h5-median",
+        "Venue Papers in This Search",
+        "Venue Author Bylines in This Search",
+        "Venue Public Full-Text Links in This Search",
         "Venue h-index",
         "Venue i10-index",
-        "Acceptance Rate",
         "Indexed Publication Count",
         "Mean Citedness",
         "Indexing Status",

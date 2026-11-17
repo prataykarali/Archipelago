@@ -139,7 +139,7 @@ function renderRunPaper(dossier, paper, context) {
   const rows = rankingRows(dossier, paper);
   const coverage = document.createElement("p");
   coverage.className = "run-ranking-coverage";
-  coverage.textContent = `${rows.filter(([, value]) => reportedRankingValue(value)).length} of ${rows.length} ranking parameters reported by sources. Missing values are not estimated. JIF, CiteScore, SJR, SNIP, quartiles and CORE rank need verified publisher or index data; OpenAlex venue metrics appear only for matched journal or conference records.`;
+  coverage.textContent = `${rows.filter(([, value]) => reportedRankingValue(value)).length} of ${rows.length} ranking parameters filled. Search-scoped counts use these retrieved papers only. Evidence flags show whether the retrieved record reports the item; provider metrics remain blank when unreported.`;
   metrics.append(coverage);
   metrics.append(rankingGrid(rows)); dashboard.append(metrics);
   tabs.append(dossierLink("Ranking parameters", "#run-rankings"));

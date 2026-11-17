@@ -1,134 +1,274 @@
-"""Place source-backed venue rankings beside their papers in librarian responses."""
+"""Show search-scoped rankings consistently in librarian previews and Excel."""
 
 from __future__ import annotations
 
+from copy import copy
 from io import BytesIO
 from typing import Any
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
-VENUE_COLUMNS = (
-    ("Journal Impact Factor (JIF)", "Journal Impact Factor (JIF)"),
-    ("CiteScore", "CiteScore"),
-    ("SCImago Journal Rank (SJR)", "SCImago Journal Rank (SJR)"),
-    ("Source Normalized Impact per Paper (SNIP)", "Source Normalized Impact per Paper (SNIP)"),
-    ("Q1-Q4 Quartile", "Q1-Q4 Quartile"),
-    ("CORE/ICORE Rank", "CORE/ICORE Rank"),
-    ("h5-index", "h5-index"),
-    ("h5-median", "h5-median"),
-    ("Venue h-index", "Venue h-index"),
-    ("Venue i10-index", "Venue i10-index"),
-    ("Acceptance Rate", "Acceptance Rate"),
-    ("Indexed Publication Count", "Indexed Publication Count"),
-    ("Mean Citedness", "Mean Citedness"),
-    ("Indexing Status", "Indexing Status"),
-    ("Venue Category", "Category"),
-    ("Venue Publisher", "Publisher"),
-    ("Venue Official Link", "Official Link"),
-    ("Venue Metric Provider", "Metric Provider"),
-)
+if __package__:
+    from .search_rankings import (
+        AUTHOR_FIELDS,
+        PAPER_FIELDS,
+        VENUE_FIELDS,
+        author_values,
+        matching_paper,
+        ordered_author_keys,
+        paper_values,
+        ranking_year,
+        venue_values,
+    )
+else:
+    from search_rankings import (
+        AUTHOR_FIELDS,
+        PAPER_FIELDS,
+        VENUE_FIELDS,
+        author_values,
+        matching_paper,
+        ordered_author_keys,
+        paper_values,
+        ranking_year,
+        venue_values,
+    )
 
-
-def _venue_key(name: Any) -> str:
-    return " ".join(str(name or "").casefold().split())
-
-
-def merge_preview(preview: dict[str, Any]) -> dict[str, Any]:
-    """Append venue values to each paper row and remove the venue-only table."""
-    sheets = preview.get("sheets") or {}
-    papers = sheets.get("Papers") or {}
-    venues = sheets.get("Publications")
-    if not venues:
-        return preview
-    paper_headers = papers.get("headers") or []
-    venue_headers = venues.get("headers") or []
-    if "Publication Venue" not in paper_headers or "Venue Name" not in venue_headers:
-        return preview
-    venue_name_index = venue_headers.index("Venue Name")
-    venue_rows = {
-        _venue_key(row["values"][venue_name_index]): row
-        for row in venues.get("rows") or []
-        if len(row.get("values") or []) > venue_name_index
+REMOVED_PAPER_COLUMNS = frozenset(
+    {
+        "Journal Impact Factor (JIF)",
+        "CiteScore",
+        "SCImago Journal Rank (SJR)",
+        "Source Normalized Impact per Paper (SNIP)",
+        "Q1-Q4 Quartile",
+        "CORE/ICORE Rank",
+        "h5-index",
+        "h5-median",
+        "Acceptance Rate",
     }
-    indices = [
-        venue_headers.index(source) if source in venue_headers else None
-        for _, source in VENUE_COLUMNS
+)
+REMOVED_AUTHOR_COLUMNS = frozenset(
+    {
+        "g-index",
+        "Median Citations per Paper",
+        "Field-Normalized Impact",
+    }
+)
+VENUE_COLUMNS = (
+    "Venue h-index",
+    "Venue i10-index",
+    "Indexed Publication Count",
+    "Mean Citedness",
+    "Indexing Status",
+    "Category",
+    "Publisher",
+    "Official Link",
+    "Metric Provider",
+)
+VENUE_RENAMES = {
+    "Category": "Venue Category",
+    "Publisher": "Venue Publisher",
+    "Official Link": "Venue Official Link",
+    "Metric Provider": "Venue Metric Provider",
+}
+
+
+def _key(value: Any) -> str:
+    return " ".join(str(value or "").casefold().split())
+
+
+def _index(headers: list[str], *names: str) -> int | None:
+    return next((headers.index(name) for name in names if name in headers), None)
+
+
+def _paper_metrics(
+    row: dict[str, Any],
+    headers: list[str],
+    run: dict[str, Any],
+    selected: list[dict[str, Any]],
+) -> dict[str, Any]:
+    values = row.get("values") or []
+    title_index = _index(headers, "Paper Title", "Paper title")
+    year_index = _index(headers, "Publication Year", "Year")
+    title = values[title_index] if title_index is not None else ""
+    year = values[year_index] if year_index is not None else None
+    paper = matching_paper(title, year, run.get("papers") or [])
+    if paper is None:
+        return {}
+    topic = str((run.get("options") or {}).get("topic") or "")
+    return {
+        **paper_values(paper, topic, ranking_year(run)),
+        **venue_values(str(paper.get("venue") or ""), selected, topic),
+    }
+
+
+def _filter_row(row: dict[str, Any], keep: list[int]) -> None:
+    values = row.get("values") or []
+    links = row.get("links") or {}
+    row["values"] = [values[index] if index < len(values) else None for index in keep]
+    row["links"] = {
+        str(offset): links[str(index)] for offset, index in enumerate(keep) if str(index) in links
+    }
+
+
+def merge_preview(preview: dict[str, Any], run: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Put venue and derived metrics beside papers, and remove empty columns."""
+    sheets = preview.get("sheets") or {}
+    paper_sheet = sheets.get("Papers") or {}
+    author_sheet = sheets.get("Authors") or {}
+    venue_sheet = sheets.get("Publications") or {}
+    old_headers = list(paper_sheet.get("headers") or [])
+    if not venue_sheet and all(heading in old_headers for heading in PAPER_FIELDS):
+        return preview
+    venue_headers = venue_sheet.get("headers") or []
+    venue_name_index = _index(venue_headers, "Venue Name", "Venue name")
+    venue_rows = {
+        _key(row["values"][venue_name_index]): row
+        for row in venue_sheet.get("rows") or []
+        if venue_name_index is not None and len(row.get("values") or []) > venue_name_index
+    }
+    keep = [
+        index for index, heading in enumerate(old_headers) if heading not in REMOVED_PAPER_COLUMNS
     ]
-    original_count = len(paper_headers)
-    paper_headers.extend(heading for heading, _ in VENUE_COLUMNS)
-    paper_venue_index = paper_headers.index("Publication Venue")
-    for paper in papers.get("rows") or []:
-        values = paper.get("values") or []
-        venue = (
-            venue_rows.get(_venue_key(values[paper_venue_index]))
-            if len(values) > paper_venue_index
-            else None
-        )
-        source_values = (venue or {}).get("values") or []
-        source_links = (venue or {}).get("links") or {}
-        for offset, index in enumerate(indices):
-            values.append(
-                source_values[index] if index is not None and index < len(source_values) else None
+    selected = []
+    title_index = _index(old_headers, "Paper Title", "Paper title")
+    if run and title_index is not None:
+        year_index = _index(old_headers, "Publication Year", "Year")
+        for row in paper_sheet.get("rows") or []:
+            values = row.get("values") or []
+            title = values[title_index] if len(values) > title_index else ""
+            year = (
+                values[year_index] if year_index is not None and len(values) > year_index else None
             )
-            if index is not None and str(index) in source_links:
-                paper.setdefault("links", {})[str(original_count + offset)] = source_links[
-                    str(index)
-                ]
+            paper = matching_paper(title, year, run.get("papers") or [])
+            if paper is not None:
+                selected.append(paper)
+    author_keys = ordered_author_keys(selected)
+    added = (
+        *PAPER_FIELDS,
+        *VENUE_FIELDS,
+        *(VENUE_RENAMES.get(name, name) for name in VENUE_COLUMNS),
+    )
+    paper_sheet["headers"] = [old_headers[index] for index in keep] + list(added)
+    venue_index = _index(old_headers, "Publication Venue", "Publication venue")
+    for row in paper_sheet.get("rows") or []:
+        original = row.get("values") or []
+        venue_name = (
+            original[venue_index] if venue_index is not None and len(original) > venue_index else ""
+        )
+        venue_row = venue_rows.get(_key(venue_name)) or {}
+        venue_values_row = venue_row.get("values") or []
+        venue_links = venue_row.get("links") or {}
+        calculated = _paper_metrics(row, old_headers, run, selected) if run else {}
+        _filter_row(row, keep)
+        for heading in (*PAPER_FIELDS, *VENUE_FIELDS):
+            row["values"].append(calculated.get(heading))
+        for name in VENUE_COLUMNS:
+            index = venue_headers.index(name) if name in venue_headers else None
+            column = len(row["values"])
+            row["values"].append(
+                venue_values_row[index]
+                if index is not None and index < len(venue_values_row)
+                else None
+            )
+            if index is not None and str(index) in venue_links:
+                row["links"][str(column)] = venue_links[str(index)]
+    author_headers = list(author_sheet.get("headers") or [])
+    author_keep = [
+        index
+        for index, heading in enumerate(author_headers)
+        if heading not in REMOVED_AUTHOR_COLUMNS
+    ]
+    author_sheet["headers"] = [author_headers[index] for index in author_keep] + list(AUTHOR_FIELDS)
+    for author_number, row in enumerate(author_sheet.get("rows") or []):
+        original = row.get("values") or []
+        name_index = _index(author_headers, "Author Name", "Author name")
+        name = original[name_index] if name_index is not None and len(original) > name_index else ""
+        _filter_row(row, author_keep)
+        identity_key = author_keys[author_number] if author_number < len(author_keys) else None
+        values = (
+            author_values(
+                str(name),
+                selected,
+                str((run.get("options") or {}).get("topic") or ""),
+                identity_key,
+            )
+            if run
+            else {}
+        )
+        row["values"].extend(values.get(heading) for heading in AUTHOR_FIELDS)
     sheets.pop("Publications", None)
     return preview
 
 
-def merge_dossier(dossier: dict[str, Any], preview: dict[str, Any]) -> dict[str, Any]:
-    """Align paper detail ranking values with the merged preview."""
-    merged = merge_preview(preview)
-    paper_sheet = (merged.get("sheets") or {}).get("Papers") or {}
-    rows = paper_sheet.get("rows") or []
+def merge_dossier(
+    dossier: dict[str, Any], preview: dict[str, Any], run: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Align each paper page with exactly the preview and Excel columns."""
+    merged = merge_preview(preview, run)
+    sheet = (merged.get("sheets") or {}).get("Papers") or {}
+    rows = sheet.get("rows") or []
     papers = dossier.get("papers") or []
     if len(rows) == len(papers):
-        dossier["paper_headers"] = paper_sheet.get("headers") or dossier.get("paper_headers")
+        dossier["paper_headers"] = sheet.get("headers") or dossier.get("paper_headers")
         for paper, row in zip(papers, rows, strict=True):
             paper["rankable_values"] = row.get("values") or paper.get("rankable_values")
     dossier.pop("publication_count", None)
     return dossier
 
 
-def merge_workbook(payload: bytes) -> bytes:
-    """Move existing venue values into paper columns in the downloaded workbook."""
+def merge_workbook(payload: bytes, run: dict[str, Any] | None = None) -> bytes:
+    """Apply the same ranking schema to the downloaded standard workbook."""
     book = load_workbook(BytesIO(payload))
     if "Publications" not in book or "Papers" not in book:
         return payload
-    papers = book["Papers"]
-    venues = book["Publications"]
-    paper_headers = {str(cell.value): cell.column for cell in papers[1]}
-    venue_headers = {str(cell.value): cell.column for cell in venues[1]}
-    if "Publication Venue" not in paper_headers or "Venue Name" not in venue_headers:
-        return payload
-    venue_rows = {
-        _venue_key(venues.cell(row, venue_headers["Venue Name"]).value): row
-        for row in range(2, venues.max_row + 1)
-    }
-    for heading, source in VENUE_COLUMNS:
-        column = papers.max_column + 1
-        papers.cell(1, column, heading)
-        papers.column_dimensions[get_column_letter(column)].width = 24
-        for row in range(2, papers.max_row + 1):
-            venue_name = papers.cell(row, paper_headers["Publication Venue"]).value
-            venue_row = venue_rows.get(_venue_key(venue_name))
-            source_col = venue_headers.get(source)
-            if venue_row is None or source_col is None:
-                continue
-            original = venues.cell(venue_row, source_col)
-            target = papers.cell(row, column, original.value)
-            if original.hyperlink:
-                target.hyperlink = original.hyperlink.target
-    papers.auto_filter.ref = f"A1:{get_column_letter(papers.max_column)}{papers.max_row}"
-    book.remove(venues)
+    preview: dict[str, Any] = {"sheets": {}}
+    for name in ("Papers", "Authors", "Publications"):
+        sheet = book[name]
+        preview["sheets"][name] = {
+            "headers": [str(cell.value or "") for cell in sheet[1]],
+            "rows": [
+                {
+                    "values": [cell.value for cell in cells],
+                    "links": {
+                        str(index): cell.hyperlink.target
+                        for index, cell in enumerate(cells)
+                        if cell.hyperlink
+                        and cell.hyperlink.target
+                        and cell.hyperlink.target.startswith("https://")
+                    },
+                }
+                for cells in sheet.iter_rows(min_row=2)
+            ],
+        }
+    merged = merge_preview(preview, run)
+    for name in ("Papers", "Authors"):
+        sheet = book[name]
+        current = merged["sheets"][name]
+        heading_style = copy(sheet.cell(1, 1)._style)
+        row_styles = {
+            row_number: copy(sheet.cell(row_number, 1)._style)
+            for row_number in range(2, sheet.max_row + 1)
+        }
+        sheet.delete_cols(1, sheet.max_column)
+        for column, heading in enumerate(current["headers"], 1):
+            cell = sheet.cell(1, column, heading)
+            cell._style = copy(heading_style)
+            sheet.column_dimensions[get_column_letter(column)].width = 24
+        for row_number, row in enumerate(current["rows"], 2):
+            for column, value in enumerate(row["values"], 1):
+                cell = sheet.cell(row_number, column, value)
+                cell._style = copy(row_styles[row_number])
+                link = (row.get("links") or {}).get(str(column - 1))
+                if link:
+                    cell.hyperlink = link
+        sheet.auto_filter.ref = f"A1:{get_column_letter(sheet.max_column)}{sheet.max_row}"
+    book.remove(book["Publications"])
     if "Start Here" in book:
-        for row in book["Start Here"]:
-            for cell in row:
+        for cells in book["Start Here"]:
+            for cell in cells:
                 if cell.value == "Publications":
-                    cell.value = "Venue metrics"
+                    cell.value = "Venue metrics on Papers"
                 elif cell.value == "Standard Research Export (5 sheets)":
                     cell.value = "Standard Research Export (4 sheets)"
                 elif isinstance(cell.value, str) and cell.value.startswith("Publications: "):

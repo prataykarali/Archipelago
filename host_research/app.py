@@ -447,8 +447,15 @@ def _forward(path: str) -> Response | tuple[object, int]:
     payload = upstream.content
     if upstream.ok and path.startswith("/api/research/intelligence/runs/"):
         try:
+            run = None
+            if path.endswith(("/preview", "/dossier", "/xlsx")):
+                run_url = f"{research_backend_origin()}{path.rsplit('/', 1)[0]}"
+                run_response = requests.get(run_url, headers=headers, timeout=PROXY_TIMEOUT_SECONDS)
+                if not run_response.ok:
+                    return jsonify({"error": "ranking_run_unavailable"}), 502
+                run = run_response.json()
             if path.endswith("/preview"):
-                payload = json.dumps(merge_preview(upstream.json())).encode("utf-8")
+                payload = json.dumps(merge_preview(upstream.json(), run)).encode("utf-8")
             elif path.endswith("/dossier"):
                 preview_url = f"{research_backend_origin()}{path.removesuffix('/dossier')}/preview"
                 preview_response = requests.get(
@@ -456,14 +463,16 @@ def _forward(path: str) -> Response | tuple[object, int]:
                     headers=headers,
                     timeout=PROXY_TIMEOUT_SECONDS,
                 )
-                if preview_response.ok:
-                    payload = json.dumps(
-                        merge_dossier(upstream.json(), preview_response.json())
-                    ).encode("utf-8")
+                if not preview_response.ok:
+                    return jsonify({"error": "ranking_preview_unavailable"}), 502
+                payload = json.dumps(
+                    merge_dossier(upstream.json(), preview_response.json(), run)
+                ).encode("utf-8")
             elif path.endswith("/xlsx") and request.args.get("mode", "standard") == "standard":
-                payload = merge_workbook(payload)
+                payload = merge_workbook(payload, run)
         except (ValueError, KeyError, IndexError, requests.RequestException):
             app.logger.exception("Could not align research ranking columns")
+            return jsonify({"error": "ranking_transform_failed"}), 502
     response = Response(payload, status=upstream.status_code)
     response.headers["Content-Type"] = upstream.headers.get("Content-Type", "application/json")
     return response
