@@ -9,7 +9,6 @@ const SEARCH_RECOVERY_WINDOW_MS = 360000;
 const SEARCH_PROGRESS_TICK_MS = 1000;
 const SEARCH_SLOW_NOTICE_MS = 30000;
 const SEARCH_LONG_NOTICE_MS = 90000;
-const DOWNLOAD_URL_LIFETIME_MS = 60000;
 let progressTimer = null;
 
 function pendingSearch() {
@@ -182,28 +181,12 @@ async function showRun(run) {
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = (run.sources || []).map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ') + (dossierError ? ' · Detailed rankings are temporarily unavailable; saved paper records are shown.' : '');
   const excelLink = s5('excel-link');
-  excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx?mode=standard`;
-  excelLink.onclick = async event => {
-    event.preventDefault();
-    const runId = activeRunId;
-    if (!runId) return;
-    const mode = 'standard';
-    try {
-      const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx?mode=${mode}`, { cache: 'no-store', credentials: 'include' });
-      if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `archipelago-research-${runId.slice(0, 8)}-${mode}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_LIFETIME_MS);
-    } catch (err) {
-      s5('provider-status').textContent = err.message || 'Could not download workbook.';
-    }
-  };
+  void prepareResearchExcelLink(
+    excelLink,
+    `/api/research/intelligence/runs/${encodeURIComponent(activeRunId)}/xlsx?mode=standard`,
+    `archipelago-research-${activeRunId.slice(0, 8)}-standard.xlsx`,
+    s5('provider-status')
+  );
   const list = s5('paper-results');
   list.replaceChildren();
   const authorsById = new Map((run.author_observations || []).map(author => [author.id, author]));

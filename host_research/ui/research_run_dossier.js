@@ -162,19 +162,8 @@ function renderRunTopic(dossier, context) {
   const actions = dossierEl("topic-actions");
   const xlsx = context.run ? `/api/research/intelligence/runs/${encodeURIComponent(context.run)}/xlsx?mode=standard` : "/research/example/Archipelago_State_Space_Models_Rankable.xlsx";
   const excelLink = dossierLink("Download Excel ↗", xlsx, "topic-action");
-  if (context.run) excelLink.addEventListener("click", async event => {
-    event.preventDefault();
-    try {
-      const response = await fetch(xlsx, { cache: "no-store" });
-      if (!response.ok) throw new Error(`Excel download unavailable (${response.status}).`);
-      const blobUrl = URL.createObjectURL(await response.blob());
-      const download = dossierLink("", blobUrl);
-      download.download = `archipelago-research-${context.run.slice(0, 8)}.xlsx`;
-      document.body.append(download); download.click(); download.remove();
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-    } catch (error) { dossierEl("topic-status").textContent = error.message; }
-  });
   actions.append(excelLink, dossierLink("Ranking tables ↗", context.run ? `/research/papers?run=${encodeURIComponent(context.run)}` : "/research/rankings", "topic-action secondary"));
+  if (context.run) void prepareResearchExcelLink(excelLink, xlsx, `archipelago-research-${context.run.slice(0, 8)}-standard.xlsx`, dossierEl("topic-status"));
   const stats = dossierEl("topic-stats");
   for (const [label, count, icon] of [["Papers", dossier.paper_count, "▤"], ["Authors", dossier.author_count, "♙"], ["Source providers", Object.keys(dossier.providers).length, "✦"]]) {
     const tile = document.createElement("div"); tile.className = "topic-stat";

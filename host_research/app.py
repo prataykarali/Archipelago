@@ -63,6 +63,7 @@ ASSETS = frozenset(
         "research_simple.css",
         "research_intelligence.css",
         "research_intelligence.js",
+        "research_download.js",
         "research_rankings.js",
         "research_rankings.css",
         "research_run_dossier.js",

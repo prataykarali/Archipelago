@@ -23,14 +23,14 @@ PAGE_DETAILS = {
     "topic": ("Topic dossier", "Source-backed overview of all saved papers for one topic."),
 }
 PAGE_SCRIPTS = {
-    "papers": ("research_intelligence.js",),
+    "papers": ("research_download.js", "research_intelligence.js"),
     "rankings": ("research_rankings.js",),
     "progress": ("research_progress.js",),
     "topics": ("research_topics.js",),
     "paper": ("research_run_dossier.js", "research_paper.js"),
-    "topic": ("research_run_dossier.js", "research_topic.js"),
+    "topic": ("research_download.js", "research_run_dossier.js", "research_topic.js"),
 }
-ASSET_VERSION = "20261117savedresearch2"
+ASSET_VERSION = "20261117exceldownload3"
 
 
 def render_research_page(page: str) -> Response:
