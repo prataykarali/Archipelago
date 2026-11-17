@@ -254,12 +254,15 @@ function renderPaper(okf, key) {
 }
 
 window.addEventListener('load', async () => {
-  if (!await window.archipelagoResearchReady) return;
+  const params = new URLSearchParams(location.search);
+  if (params.has('run') || params.has('example')) return;
+  if (!await window.archipelagoResearchReady) { paperEl('paper-load-progress').hidden = true; return; }
   const key = new URLSearchParams(location.search).get('key') || '';
-  if (!/^[a-f0-9]{64}$/.test(key)) { paperEl('paper-subtitle').textContent = 'Invalid paper link.'; return; }
+  if (!/^[a-f0-9]{64}$/.test(key)) { paperEl('paper-subtitle').textContent = 'Invalid paper link.'; paperEl('paper-load-progress').hidden = true; return; }
   try {
     const response = await fetch(`/api/research/intake/paper-okf/${key}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('This saved paper is unavailable.');
     renderPaper(await response.json(), key);
   } catch (error) { paperEl('paper-subtitle').textContent = error.message; }
+  finally { paperEl('paper-load-progress').hidden = true; }
 });

@@ -42,6 +42,7 @@ async function loadLibraryPipeline() {
   } catch (_error) {
     document.getElementById('library-topic-list').textContent = 'Topics temporarily unavailable.';
     document.getElementById('library-recent-papers').textContent = 'Papers temporarily unavailable.';
+    status.textContent = 'Live research activity is temporarily unavailable.';
   }
   try {
     await window.archipelagoAuthReady;
@@ -53,5 +54,5 @@ async function loadLibraryPipeline() {
     document.getElementById('pipeline-research-link').hidden = true;
   }
 }
-window.addEventListener('load', loadLibraryPipeline);
+window.addEventListener('DOMContentLoaded', loadLibraryPipeline);
 window.setInterval(loadLibraryPipeline, 60000);

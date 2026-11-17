@@ -9,16 +9,15 @@ from __future__ import annotations
 import importlib.util
 import os
 
-from flask import Flask, jsonify, redirect, request, send_from_directory
+from flask import Flask, jsonify, redirect, send_from_directory
 
 from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
 from ..context import AppContext
 from ..page_fragments import assembled_page
-from ..research_pages import PAGE_DETAILS
+from ..research_pages import PAGE_DETAILS, render_research_page
 from .ingest import _worker_available
 
 GRAPH_PAGE_FILE = "graph.html"
-RESEARCH_ORIGIN = "https://archipelago-librarian.vercel.app"
 
 #: Concept count below which the deployment is provably running the tracked
 #: fixture rather than the library's full corpus.  The fixture is ~59 concepts;
@@ -57,18 +56,18 @@ def register(app: Flask, ctx: AppContext) -> None:
                 return redirect("/login?next=/graph")
             if principal.get("role") not in ELEVATED_ROLES:
                 return redirect("/chat")
-        return redirect(f"{RESEARCH_ORIGIN}/academic/graph")
+        return redirect("/academic/graph")
 
     @app.get("/research")
     @app.get("/research/")
     def research_page():
-        return redirect(f"{RESEARCH_ORIGIN}{request.full_path.rstrip('?')}")
+        return render_research_page("papers")
 
     @app.get("/research/<page>")
     def research_subpage(page: str):
         if page not in PAGE_DETAILS:
             return jsonify({"error": "not_found"}), 404
-        return redirect(f"{RESEARCH_ORIGIN}{request.full_path.rstrip('?')}")
+        return render_research_page(page)
 
     @app.get("/library")
     @app.get("/library/")

@@ -42,7 +42,7 @@ function renderKoha() {
 async function loadKoha() {
   const status = document.querySelector("#koha-status");
   try {
-    const response = await fetch("https://archipelago-librarian.vercel.app/api/library/koha", { cache: "no-store" });
+    const response = await fetch("/api/library/koha", { cache: "no-store" });
     if (response.status === 404) {
       status.textContent = "No authorized Koha export has been published yet.";
       return;

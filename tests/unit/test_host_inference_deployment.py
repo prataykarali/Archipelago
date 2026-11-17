@@ -142,8 +142,8 @@ def test_graph_page_and_bounded_graph_api_work(hosted_app):
     response = client.get("/api/graph/subgraph?q=graph+retrieval&max_nodes=10")
 
     assert page.status_code == 302
-    assert page.headers["Location"] == "https://archipelago-librarian.vercel.app/academic/graph"
-    assert "https://archipelago-librarian.vercel.app" in page.headers["Content-Security-Policy"]
+    assert page.headers["Location"] == "/academic/graph"
+    assert client.get("/academic/graph").status_code == 200
     assert client.get("/academic_koha.js").status_code == 200
     assert response.status_code == 200
     data = response.get_json()
@@ -152,9 +152,7 @@ def test_graph_page_and_bounded_graph_api_work(hosted_app):
     assert all("data" in edge for edge in data["edges"])
 
 
-def test_research_page_redirects_to_librarian_and_keeps_staff_graph_private(
-    hosted_app, monkeypatch
-):
+def test_research_page_stays_on_blond_and_keeps_staff_graph_private(hosted_app, monkeypatch):
     context = hosted_app.app.extensions["archipelago"]
     client = hosted_app.app.test_client()
     role = {"value": "student"}
@@ -165,21 +163,17 @@ def test_research_page_redirects_to_librarian_and_keeps_staff_graph_private(
     )
 
     page = client.get("/research")
-    assert page.status_code == 302
-    assert page.headers["Location"] == "https://archipelago-librarian.vercel.app/research"
+    assert page.status_code == 200
+    assert b"Research papers" in page.data
     linked_run = client.get("/research/?run=a9989dd5-5346-4ce2-82cd-2dec9fd6db04")
-    assert linked_run.headers["Location"] == (
-        "https://archipelago-librarian.vercel.app/research/"
-        "?run=a9989dd5-5346-4ce2-82cd-2dec9fd6db04"
-    )
+    assert linked_run.status_code == 200
+    assert b"Previous research topics" in linked_run.data
     assert client.get("/research.html").status_code == 404
     assert client.get("/api/research/graph/subgraph?q=graph").status_code == 403
     role["value"] = "faculty"
     page = client.get("/research/progress")
-    assert page.status_code == 302
-    assert page.headers["Location"] == (
-        "https://archipelago-librarian.vercel.app/research/progress"
-    )
+    assert page.status_code == 200
+    assert b"Ingestion progress" in page.data
     assert client.get("/api/research/graph/subgraph?q=graph").status_code == 200
 
 
@@ -219,6 +213,7 @@ def test_s5_run_export_graph_and_monitor_are_owner_scoped(hosted_app, monkeypatc
         "user-a",
         {
             "schema": "archipelago.research_intelligence.v1",
+            "export_format_version": "rich30.v1",
             "options": {"topic": "graphs"},
             "retrieved_at": "2026-11-12T00:00:00+00:00",
             "sources": [],
@@ -232,7 +227,9 @@ def test_s5_run_export_graph_and_monitor_are_owner_scoped(hosted_app, monkeypatc
     ).json["monitor_id"]
     assert client.get(f"/api/research/intelligence/runs/{run_id}").status_code == 200
     assert client.get(f"/api/research/intelligence/runs/{run_id}/graph").status_code == 200
-    assert client.get(f"/api/research/intelligence/runs/{run_id}/xlsx").status_code == 200
+    export = client.get(f"/api/research/intelligence/runs/{run_id}/xlsx")
+    assert export.status_code == 200
+    assert export.headers["X-Archipelago-Export-Schema"] == "paper-venue-v2"
     owner["id"] = "user-b"
     assert client.get(f"/api/research/intelligence/runs/{run_id}").status_code == 404
     assert client.get(f"/api/research/intelligence/runs/{run_id}/graph").status_code == 404

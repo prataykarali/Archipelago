@@ -168,12 +168,15 @@ def register(app: Flask, _ctx: AppContext) -> None:
         topic = str((run.get("options") or {}).get("topic") or "research")
         slug = re.sub(r"[^a-z0-9]+", "-", topic.casefold()).strip("-")[:48] or "research"
         date_str = str(run.get("retrieved_at") or "")[:10] or "export"
-        return send_file(
+        response = send_file(
             build_workbook(run, mode=mode),
             mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             as_attachment=True,
             download_name=f"archipelago-{slug}-{date_str}-{mode}.xlsx",
         )
+        if mode == "standard":
+            response.headers["X-Archipelago-Export-Schema"] = "paper-venue-v2"
+        return response
 
     @app.get("/api/research/intelligence/runs/<uuid:run_id>/preview")  # type: ignore[misc]
     def intelligence_preview(run_id: uuid.UUID) -> ResponseReturnValue:

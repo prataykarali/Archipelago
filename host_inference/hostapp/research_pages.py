@@ -16,15 +16,15 @@ PAGE_DETAILS = {
     "topic": ("Topic dossier", "Source-backed overview of all saved papers for one topic."),
 }
 PAGE_SCRIPTS = {
-    "papers": ("research_intelligence.js",),
+    "papers": ("research_download.js", "research_intelligence.js"),
     "progress": ("research_progress.js",),
     "topics": ("research_topics.js",),
-    "paper": ("research_paper.js",),
-    "topic": ("research_topic.js",),
+    "paper": ("research_run_dossier.js", "research_paper.js"),
+    "topic": ("research_download.js", "research_run_dossier.js", "research_topic.js"),
 }
 SHELL = UI / "research_shell.html"
 FRAGMENTS = UI / "research_pages"
-ASSET_VERSION = "20261117nullids"
+ASSET_VERSION = "20261117blondunified"
 
 
 def render_research_page(page: str) -> Response:
@@ -49,4 +49,7 @@ def render_research_page(page: str) -> Response:
         .replace("__SCRIPTS__", "\n  ".join(scripts))
         .replace("__CONTENT__", fragment)
     )
-    return Response(html, mimetype="text/html")
+    response = Response(html, mimetype="text/html")
+    if page in {"papers", "topic"}:
+        response.cache_control.no_store = True
+    return response
