@@ -1,59 +1,64 @@
-# Archipelago CIKM Pilot — Manual Instructions for Reviewer B
+# Archipelago CIKM Pilot — Two-Stage Instructions for Reviewer B
 
 **Study:** Archipelago CIKM 2027 QA Pilot Evaluation  
-**Worksheet:** `artifacts/validation/local_only/s4b_reviewer_b_worksheet.md`  
-**Template (JSON submission):** `artifacts/validation/local_only/s4b_reviewer_b_template.json`  
+**Stage 1 Worksheet:** `artifacts/validation/local_only/s4b_reviewer_b_worksheet.md`  
+**Stage 1 Template (JSON):** `artifacts/validation/local_only/s4b_reviewer_b_template.json`  
+**Stage 2 Verification Map:** `artifacts/validation/local_only/s4b_stage2_verification_map.json`  
 
 ---
 
-## 1. Overview and Guidelines
+## 1. Study Protocol & Blinding
 
-You are acting as an **independent annotator (Reviewer B)** for a 6-question scientific QA pilot study.
-- Your judgments must be formed independently.
-- You do not have access to Reviewer A's judgments, retrieval system names, retrieval ranks, or system scores.
-- Question category labels have been removed from your worksheet to avoid confirmation or indexing bias.
-- **Do not assume that passages not in this candidate pool are irrelevant.** If necessary, verify claims against the original paper PDFs.
+To maintain scientific integrity for our CIKM pilot, you are evaluating candidate passages under strict blinding:
+- **No System Identifiers:** Retrieval systems (`bm25`, `dense`, `hybrid_rrf`), ranks, and retrieval scores are completely removed.
+- **No Category Labels:** Question classifications (such as single-hop, multi-hop, or unanswerable) have been eliminated.
+- **No Source Hints:** Expected source document lists and unanswerability clues are omitted.
+- **No Peer Judgments:** Reviewer A's scores and notes are completely hidden.
+- **Full Text Provided:** Passages are shown in their full, untruncated form (matching exactly what Reviewer A evaluated).
 
----
-
-## 2. Graded Relevance Judgments (`0 / 1 / 2`)
-
-For each candidate passage listed under a question, assign a relevance grade:
-
-| Grade | Label | Operational Definition |
-| :--- | :--- | :--- |
-| **`0`** | **Not Relevant** | The passage does not answer or provide meaningful context for the question. Includes passages that are off-topic or merely share keywords without addressing the query. |
-| **`1`** | **Partially Relevant / Context** | The passage provides relevant domain context, prerequisites, or partial information, but does not provide a complete answer by itself. |
-| **`2`** | **Directly Answers / Supports** | The passage directly answers the question or provides core evidence/reasoning required to resolve it. |
+> **Important Disclosure:** Reviewer A's relevance judgments exist in prior repository commit history. To preserve the validity of this double-blind experiment, do **not** inspect repository Git history or external branches during your annotation work.
 
 ---
 
-## 3. Query-Level Annotations
+## 2. Stage 1: Independent Relevance & Answerability Judgments
 
-For each of the 6 questions, record the following fields:
+Open `s4b_reviewer_b_worksheet.md`. For each of the 6 questions:
 
-1. **Answerability Assessment:**
-   - `ANSWERABLE`: The question can be answered from documents in the scholarly literature/corpus.
-   - `UNANSWERABLE_OUT_OF_CORPUS`: The information requested is not present in the corpus or represents unreleased/future information.
-   - `CANNOT_DETERMINE`: Information is ambiguous or contradictory.
+### A. Assign Relevance Scores (`0 / 1 / 2`)
+For each candidate passage, assign an integer grade:
+- **`0` (Not Relevant):** The passage does not answer or provide context for the question.
+- **`1` (Partially Relevant / Context):** The passage contains useful background, definitions, or partial steps, but is insufficient on its own.
+- **`2` (Directly Answers / Supports):** The passage directly answers the query or provides indispensable supporting evidence.
 
-2. **Requires Multiple Supporting Passages:**
-   - `YES` (`true`): Answering the question fundamentally requires synthesizing information across two or more distinct passages/chunks (e.g. multi-step reasoning, cross-paper comparison).
-   - `NO` (`false`): A single passage contains a self-contained answer.
+For any passage scored `1` or `2`, copy the exact **Supporting Quote Span** into the designated field.
 
-3. **Quote and Page Verification:**
-   - For every passage you score `1` or `2`, record the exact quote span and verify that the page number in the candidate matches the source PDF.
-   - If a quote cannot be verified or page is inconsistent, note this in the reviewer notes.
+### B. Query-Level Answerability Assessment
+Judge whether the question is:
+- `ANSWERABLE`: Can be answered from valid scholarly literature/concepts.
+- `UNANSWERABLE_OUT_OF_CORPUS`: The requested information is not present or represents non-existent/future knowledge.
+- `CANNOT_DETERMINE`: Question is ambiguous or contradictory.
+
+### C. Multi-Passage Requirement
+Record `YES` if answering fundamentally requires synthesizing two or more passages, or `NO` if a single passage provides a self-contained answer.
+
+Submit your completed Stage 1 worksheet to the coordinator before proceeding to Stage 2.
 
 ---
 
-## 4. How to Submit
+## 3. Stage 2: Source & Page Verification
 
-1. Open `artifacts/validation/local_only/s4b_reviewer_b_worksheet.md` in your text editor.
-2. Fill in the blank fields:
-   - Relevance: replace `___` with `0`, `1`, or `2`.
-   - Quote span: fill in direct quotation for relevant passages.
-   - Answerability and multi-passage lines.
-3. Alternatively (or additionally), fill in `artifacts/validation/local_only/s4b_reviewer_b_template.json` directly under `passage_relevance_judgments` and the query verification fields.
-4. Verify all 113 candidate passages have been judged. Do not leave any candidate blank.
-5. Notify the study coordinator upon completion. Do not share your worksheet with Reviewer A.
+Once Stage 1 is submitted:
+1. Open the local candidate-to-source map: `artifacts/validation/local_only/s4b_stage2_verification_map.json`.
+2. Inspect the linked PDF/document for passages you marked relevant (score `1` or `2`).
+3. Verify that the quote span is authentic and that the printed page number in the original PDF corresponds to the candidate metadata.
+4. Record any discrepancies or mismatches in `reviewer_notes`.
+
+---
+
+## 4. Submission Checklist
+
+- [ ] All 113 candidate passages scored (0, 1, or 2) in Stage 1.
+- [ ] No candidate left blank or unjudged.
+- [ ] Answerability assessed for all 6 questions.
+- [ ] Multi-passage requirement recorded for all 6 questions.
+- [ ] Stage 1 submitted prior to inspecting Stage 2 source maps.

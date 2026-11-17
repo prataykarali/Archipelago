@@ -32,5 +32,10 @@
     "Do NOT compare systems using pools where GraphRAG candidates were not judged",
     "Do NOT mark any record ADJUDICATED_GOLD until both reviewers have annotated GraphRAG passages"
   ],
-  "compatibility_note": "The current blinded pool format supports extension. New passages are appended as CAND-NN items with new sequential IDs. The pool_item_to_passage_id mapping in reviewer templates must be updated before distributing extended worksheets."
+  "compatibility_note": "The current blinded pool format supports extension. New passages are appended as CAND-NN items with new sequential IDs. The pool_item_to_passage_id mapping in reviewer templates must be updated before distributing extended worksheets.",
+  "graphrag_pool_status": {
+    "available_in_repo": false,
+    "reason": "GraphRAG retrieval pipeline has not been executed or integrated into the fixed corpus retrieval harness. Therefore, GraphRAG candidates CANNOT be added to the common pool before Reviewer B begins without delaying the study. Fairness guarantee: GraphRAG will be benchmarked only after candidate pool expansion and dual human annotation. Unjudged passages will NEVER be defaulted to relevance 0.",
+    "action": "Proceed with Reviewer B pilot on current common candidate pool. Expand pool later if GraphRAG is benchmarked."
+  }
 }

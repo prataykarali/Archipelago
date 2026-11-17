@@ -19,11 +19,13 @@
     {
       "path": "artifacts/validation/s4a_reviewer_a_template.json",
       "sha256": "TEMPLATE_BLANK",
-      "role": "Blank Reviewer A template — passage_relevance_judgments all null, never pre-filled"
+      "role": "Blank Reviewer A template \u2014 passage_relevance_judgments all null, never pre-filled"
     }
   ],
   "leakage_disclosure": {
-    "exposed_fields": ["question_category"],
+    "exposed_fields": [
+      "question_category"
+    ],
     "leakage_values_seen_by_reviewer_a": [
       "multi_hop_prerequisite",
       "unanswerable_out_of_corpus",
@@ -50,8 +52,12 @@
     },
     "total_candidate_passages": 113,
     "scores_found_in_md_worksheet": true,
-    "score_audit_result": "SEE reviewer_a_score_audit.json — all 113 relevance labels extracted and validated",
+    "score_audit_result": "SEE reviewer_a_score_audit.json \u2014 all 113 relevance labels extracted and validated",
     "scores_fabricated": false,
     "adjudicated_gold_records": 0
+  },
+  "git_history_disclosure": {
+    "scores_in_public_commits": true,
+    "disclosure_statement": "Reviewer A's relevance judgments were previously included in Git commits on research branches. We explicitly disclose that these labels were visible in Git history and do NOT claim they were secret from anyone with repository access. Reviewer B must be instructed not to inspect Git history."
   }
 }

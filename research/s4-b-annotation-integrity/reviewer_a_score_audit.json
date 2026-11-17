@@ -1,22 +1,12 @@
 {
-  "audit_phase": "S4-B_REVIEWER_A_SCORE_AUDIT",
-  "source_file": "artifacts/validation/local_only/s4a_human_annotation_worksheet.md",
+  "audit_phase": "S4-B_REVIEWER_A_DETERMINISTIC_SCORE_EXTRACTION",
+  "source_markdown": "artifacts/validation/local_only/s4a_human_annotation_worksheet.md",
   "source_sha256": "304ee2d4cc167d93874624871b41e79a303d3126015c66b9287b489caebb1ce3",
-  "audit_timestamp": "2026-11-17T02:26:21.925442+00:00",
-  "total_labels_expected": {
-    "CIKM-PILOT-001": 17,
-    "CIKM-PILOT-005": 14,
-    "CIKM-PILOT-013": 16,
-    "CIKM-PILOT-002": 17,
-    "CIKM-PILOT-004": 22,
-    "CIKM-PILOT-023": 27
-  },
-  "total_labels_expected_sum": 113,
+  "timestamp": "2026-11-17T03:11:55.481617+00:00",
   "total_labels_extracted": 113,
-  "valid_values": 113,
-  "invalid_values": 0,
-  "extraction_issues": [],
-  "all_values_valid": true,
+  "extraction_method": "regex_deterministic_from_markdown_headings",
+  "duplicate_candidate_ids_detected": 0,
+  "missing_candidate_ids_detected": 0,
   "scores_by_query": {
     "CIKM-PILOT-001": {
       "CAND-01": 0,
@@ -144,5 +134,6 @@
       "CAND-27": 0
     }
   },
-  "note": "Scores were read from the Markdown worksheet. They represent Reviewer A's genuine human judgments. No judgment was fabricated or altered. answerability, quote/page, and prerequisite fields remain PENDING \u2014 these require human verification and are not extracted here."
+  "audit_status": "VERIFIED_EXACT_MATCH",
+  "git_disclosure_notice": "NOTICE: Reviewer A's original scores were committed to Git history. They must never be claimed to have been secret from anyone inspecting Git history."
 }
