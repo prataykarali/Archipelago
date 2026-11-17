@@ -1,0 +1,6 @@
+spec_concept_a,spec_concept_b,doc_id,chunk_id,reason
+encoder,decoder,papers/Vaswani2017_Attention_Is_All_You_Need.pdf,chunk_008,Could not find both 'encoder' and 'decoder' within window in chunk 'chunk_008'
+full fine-tuning,downstream task,papers/Hu2021_LoRA.pdf,chunk_007,Could not find both 'full fine-tuning' and 'downstream task' within window in chunk 'chunk_007'
+encoder,fixed-length vector,papers/Bahdanau2014_Attention.pdf,chunk_005,Could not find both 'encoder' and 'fixed-length vector' within window in chunk 'chunk_005'
+real-time NIDS,latency,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_005,Could not find both 'real-time NIDS' and 'latency' within window in chunk 'chunk_005'
+Physical Layer,Data Link Layer,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,Could not find both 'Physical Layer' and 'Data Link Layer' within window in chunk 'doc_computer_networks_6_e_p42_1'

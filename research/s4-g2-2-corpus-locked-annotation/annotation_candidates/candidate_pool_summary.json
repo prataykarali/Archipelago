@@ -1,0 +1,142 @@
+{
+  "total_candidates": 24,
+  "total_rejected_specs": 0,
+  "candidate_categories": {
+    "POSSIBLE_RELATION": 23,
+    "AMBIGUOUS": 1,
+    "LIKELY_UNRELATED": 0
+  },
+  "domain_summary": {
+    "OS": {
+      "domain_name": "Operating Systems",
+      "eligibility": "ELIGIBLE",
+      "partition": "development",
+      "item_count": 5,
+      "docs": [
+        "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
+        "archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf"
+      ]
+    },
+    "AIML": {
+      "domain_name": "AI & Machine Learning",
+      "eligibility": "ELIGIBLE",
+      "partition": "development",
+      "item_count": 11,
+      "docs": [
+        "papers/Bahdanau2014_Attention.pdf",
+        "papers/Dettmers2023_QLoRA.pdf",
+        "papers/Hu2021_LoRA.pdf",
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf"
+      ]
+    },
+    "NETS": {
+      "domain_name": "Computer Networks",
+      "eligibility": "ELIGIBLE",
+      "partition": "evaluation",
+      "item_count": 3,
+      "docs": [
+        "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf"
+      ]
+    },
+    "NETS_DEV": {
+      "domain_name": "Computer Networks (development partition)",
+      "eligibility": "ELIGIBLE",
+      "partition": "development",
+      "item_count": 1,
+      "docs": [
+        "doc_computer_networks_6_e"
+      ]
+    },
+    "TOC": {
+      "domain_name": "Automata Theory & Computation",
+      "eligibility": "EXPLORATORY",
+      "partition": "exploratory",
+      "item_count": 2,
+      "docs": [
+        "papers/Willard2023_Outlines.pdf"
+      ]
+    },
+    "DBMS": {
+      "domain_name": "Database Management Systems",
+      "eligibility": "EXPLORATORY",
+      "partition": "exploratory",
+      "item_count": 1,
+      "docs": [
+        "doc_fundamentals_of_database_system_7e"
+      ]
+    },
+    "COMPILERS": {
+      "domain_name": "Compilers & Programming Languages",
+      "eligibility": "EXPLORATORY",
+      "partition": "exploratory",
+      "item_count": 1,
+      "docs": [
+        "doc_compilers_principles_techniques_and_tools"
+      ]
+    }
+  },
+  "all_verified_by_provenance_gate": true,
+  "domain_eligibility_matrix": {
+    "OS": {
+      "name": "Operating Systems",
+      "eligibility": "ELIGIBLE",
+      "split_type": "DOCUMENT_DISJOINT",
+      "note": "3 OSTEP chapters indexed with real prose. 06_Address_Spaces \u2192 development; 08_Paging \u2192 evaluation. CC BY-NC-ND 4.0 \u2014 do not publish verbatim text; publish only evidence hashes and offsets in public materials."
+    },
+    "AIML": {
+      "name": "AI & Machine Learning",
+      "eligibility": "ELIGIBLE",
+      "split_type": "DOCUMENT_DISJOINT",
+      "note": "Multiple arXiv papers with full text. Development: Vaswani2017, Hu2021_LoRA. Evaluation: Dettmers2023_QLoRA, Bahdanau2014_Attention. Held-out: Devlin2018_BERT (not used for tuning). arXiv preprints \u2014 check per-paper redistribution terms."
+    },
+    "NETS": {
+      "name": "Computer Networks",
+      "eligibility": "ELIGIBLE",
+      "split_type": "DOCUMENT_DISJOINT",
+      "note": "Real-time network security paper (57 chunks, Elsevier 2024) for evaluation. Tanenbaum 6e excerpts (2 chunks) for development. Elsevier paper: check publisher licensing before redistributing passages."
+    },
+    "TOC": {
+      "name": "Automata Theory & Computation",
+      "eligibility": "EXPLORATORY",
+      "split_type": "WITHIN_DOCUMENT_CHUNK_SPLIT",
+      "note": "Willard2023_Outlines.pdf is an LLM-constrained-decoding paper, NOT a classical automata theory text. Single document only \u2192 chunk split only. Use for exploratory analysis; exclude from held-out evaluation denominators."
+    },
+    "DBMS": {
+      "name": "Database Management Systems",
+      "eligibility": "EXPLORATORY",
+      "split_type": "DOCUMENT_DISJOINT",
+      "note": "Only 2 real chunks in DB (Silberschatz 3NF card + Elmasri p145). Too sparse for a multi-item evaluation pool. Can contribute 1 exploratory candidate only."
+    },
+    "COMPILERS": {
+      "name": "Compilers & Programming Languages",
+      "eligibility": "EXPLORATORY",
+      "split_type": "SINGLE_CHUNK_ONLY",
+      "note": "Only 1 chunk (Dragon Book p192 \u2014 syntax analysis). Insufficient for multi-item pool. 1 exploratory candidate."
+    },
+    "NETS_DEV": {
+      "name": "Computer Networks (development partition)",
+      "eligibility": "ELIGIBLE",
+      "split_type": "DOCUMENT_DISJOINT",
+      "note": "Tanenbaum 6e excerpts for development partition."
+    },
+    "STAT": {
+      "name": "Probability & Statistics",
+      "eligibility": "EXCLUDED",
+      "split_type": "N/A",
+      "note": "Pattern recognition appendix chunks too sparse (1\u20132 chunks). Data Science 2019 is a book index \u2014 excluded from prose extraction."
+    },
+    "DSA": {
+      "name": "Data Structures & Algorithms",
+      "eligibility": "EXCLUDED",
+      "split_type": "N/A",
+      "note": "No dedicated DSA documents with indexed prose found."
+    }
+  },
+  "excluded_doc_patterns": {
+    "data_science_2019/Index_2019_Data-Science.pdf": "BOOK_INDEX",
+    "predictive_analytics_and_data_mining_2015/Index_2015_Predictive-Analytics-and-Data-Mining.pdf": "BOOK_INDEX",
+    "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf": "BOOK_INDEX"
+  },
+  "human_labels_generated": false,
+  "note": "All candidates are CANDIDATE_UNLABELED. candidate_category is an annotation task category, NOT a verified semantic label. Human annotation is NOT yet performed. Do not use candidate_relation_hint as a ground-truth label."
+}

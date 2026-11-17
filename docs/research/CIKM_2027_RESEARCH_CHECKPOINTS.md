@@ -251,3 +251,24 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
 - **Scientific Constraints Verified:** `okf_graph.db` unmodified (read-only); gold fixtures (`gold_lora.json`, `gold_attention.json`) unmodified; original annotation pool preserved alongside corrected version; all human judgment fields remain blank; no synthetic passages inserted.
 - **STOP Confirmed:** S4-G2.1 is complete. The main retrieval experiment (S4-H) may not proceed until (a) the annotation pool is rebuilt from verified verbatim corpus text, (b) concept extraction denoising is applied, (c) multi-hop cycle prevention is upgraded, and (d) TOC domain acquires a second independent document.
 
+
+### S4-G2.2 — Corpus-Locked Annotation Reconstruction
+- **Branch:** `research/s4-g2-2-corpus-locked-annotation`
+- **Base Branch:** `research/s4-g2-1-integrity-gate`
+- **Base Commit:** `2147ececc3f7c09b4717381c23d5979548af97b7`
+- **Scientific Objective:** Construct the first mechanically verified, source-grounded annotation candidate pool directly from the frozen Kùzu corpus without synthetic text or general-knowledge fabrication.
+- **Implemented Changes:**
+  - `okf/eval/integrity_validators.py` — Hardened 5-layer provenance validator (`validate_provenance_record`): L0 input sanity, L1 doc existence, L2 chunk linked to document with strict null-substitution invariant (never substitutes claimed chunk ID), L3 advisory page number verification, L4 exact/whitespace-normalized evidence match rejection of empty/punctuation-only/approximate text, L5 explicit separation of source pointer validity from human semantic support (`NOT_MEASURED`). Added backward-compatibility adapter for `validate_edge_provenance`. Clarified cycle detection methodology note (DFS back-edge representative cycles vs elementary cycles).
+  - `research/s4-g2-2-corpus-locked-annotation/scripts/build_corpus_locked_candidates.py` — Mechanical candidate generator extracting verbatim text spans from verified chunks with byte offsets and 16-hex SHA-256 chunk fingerprints.
+  - `research/s4-g2-2-corpus-locked-annotation/annotation_candidates/annotation_candidates_verified.csv` — 24-item corpus-locked annotation candidate pool spanning OS, AIML, NETS, TOC, DBMS, and COMPILERS. All 24 items verified with EXACT evidence match.
+  - `research/s4-g2-2-corpus-locked-annotation/annotation_candidates/candidate_pool_summary.json` — Structured audit metadata, candidate categories (`POSSIBLE_RELATION: 23`, `AMBIGUOUS: 1`), domain stats, and eligibility matrix.
+  - `research/s4-g2-2-corpus-locked-annotation/domain_audit/domain_eligibility_and_split_report.md` — Domain eligibility classification and evaluation split documentation (OS, AIML, NETS eligible with document-disjoint splits; TOC exploratory with within-document chunk split; book indices excluded).
+  - `research/s4-g2-2-corpus-locked-annotation/S4G2_2_CORPUS_LOCKED_EVIDENCE_REPORT.md` — Full scientific report detailing validator hardening, cycle detection terminology correction, candidate generation, and split integrity.
+  - `tests/unit/test_s4g2_2_corpus_locked_annotation.py` — 40 adversarial and regression tests covering wrong chunks, wrong pages, approximate match rejection, punctuation-only rejection, empty text rejection, cycle fixtures, and candidate pool integrity.
+- **Test Results:** **168/168** tests passing (40 new S4-G2.2 tests + 128 regression tests across S1–S4-G2.1).
+- **Key Findings:**
+  - Hardened provenance validator completely eliminates false positives by requiring exact document and linked chunk identity, setting `actual_chunk_id=None` when missing.
+  - 24-item candidate pool generated entirely from frozen database passages (`okf_graph.db`).
+  - Zero human judgments fabricated: all candidates remain `CANDIDATE_UNLABELED`.
+  - TOC domain maintained as exploratory (`WITHIN_DOCUMENT_CHUNK_SPLIT`) until independent document is acquired.
+- **Scientific Constraints Verified:** No modifications to `okf_graph.db` or gold fixtures; no AI-generated or synthetic text; human annotation columns blank; original 36 invalid S4-G2 items preserved unchanged; STOP maintained before human labeling or retrieval experiments.
