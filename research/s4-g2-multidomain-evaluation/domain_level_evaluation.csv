@@ -1,17 +1,17 @@
-Domain,Partition,Doc ID,Chunks,Baseline Concepts,Proto Concepts,Proto Edges Total,Explicit Prereq,Inferred Prereq,Part-Of,Uses,Contrasts,Abstentions,Abstention Rate,Unsupported Rate,Provenance Coverage,Cycles,Runtime (s)
-Operating Systems,development,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,5,2,44,94,72,0,0,22,0,1291,93.21%,0.00%,100.00%,0,0.34
-Operating Systems,evaluation,archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf,2,1,12,0,0,0,0,0,0,83,100.00%,0.00%,100.00%,0,0.02
-Operating Systems,evaluation,archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf,3,1,25,33,0,0,19,14,0,237,87.78%,0.00%,100.00%,0,0.08
-Database Management Systems,development,pilot/silberschatz_3nf_card.txt,1,1,3,0,0,0,0,0,0,3,100.00%,0.00%,100.00%,0,0.00
-Database Management Systems,evaluation,doc_fundamentals_of_database_system_7e,1,1,8,0,0,0,0,0,0,28,100.00%,0.00%,100.00%,0,0.01
-Computer Networks,development,doc_computer_networks_6_e,2,4,18,0,0,0,0,0,0,93,100.00%,0.00%,100.00%,0,0.01
-Computer Networks,evaluation,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,20,60,233,1258,52,0,59,1042,64,10537,89.33%,0.00%,100.00%,0,3.32
-Automata Theory & Computation,development,papers/Willard2023_Outlines.pdf,10,29,105,34,0,0,2,31,0,1568,97.88%,0.00%,100.00%,0,0.47
-Automata Theory & Computation,evaluation,papers/Willard2023_Outlines.pdf,10,29,82,156,10,0,36,94,0,1391,89.92%,0.00%,100.00%,0,0.51
-Probability & Statistics,development,pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf,1,2,64,0,0,0,0,0,0,2016,100.00%,0.00%,100.00%,0,1.45
-Probability & Statistics,development,pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf,2,4,172,0,0,0,0,0,0,9298,100.00%,0.00%,100.00%,0,6.34
-Probability & Statistics,evaluation,data_science_2019/Index_2019_Data-Science.pdf,10,33,622,14894,0,0,0,14894,0,83238,84.82%,0.00%,100.00%,0,45.93
-Artificial Intelligence & Machine Learning,development,papers/Hu2021_LoRA.pdf,29,22,646,2427,192,0,118,690,961,84974,97.22%,0.00%,100.00%,0,22.32
-Artificial Intelligence & Machine Learning,development,papers/Vaswani2017_Attention_Is_All_You_Need.pdf,28,30,219,826,45,0,167,316,249,10593,92.77%,0.00%,100.00%,0,2.28
-Artificial Intelligence & Machine Learning,evaluation,papers/Bahdanau2014_Attention.pdf,29,22,453,1413,75,0,513,471,270,50886,97.30%,0.00%,100.00%,0,11.31
-Artificial Intelligence & Machine Learning,evaluation,papers/Devlin2018_BERT.pdf,29,22,342,1761,0,0,176,1240,258,25299,93.49%,0.00%,100.00%,0,6.88
+Domain,Partition,Doc ID,Chunks,Baseline Concepts,Proto Concepts,Proto Edges Total,Explicit Prereq,Inferred Prereq,Part-Of,Uses,Contrasts,Abstentions,Abstention Rate,Unsupported Rate,Provenance Coverage,Provenance Valid / Total,Cycles,Runtime (s)
+Operating Systems,development,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,5,2,44,94,72,0,0,22,0,1291,93.21%,NOT_MEASURED,100.00%,94/94,0,0.35
+Operating Systems,evaluation,archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf,2,1,12,0,0,0,0,0,0,83,100.00%,NOT_MEASURED,N/A,0/0,0,0.02
+Operating Systems,evaluation,archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf,3,1,25,33,0,0,19,14,0,237,87.78%,NOT_MEASURED,100.00%,33/33,0,0.08
+Database Management Systems,development,pilot/silberschatz_3nf_card.txt,1,1,3,0,0,0,0,0,0,3,100.00%,NOT_MEASURED,N/A,0/0,0,0.00
+Database Management Systems,evaluation,doc_fundamentals_of_database_system_7e,1,1,8,0,0,0,0,0,0,28,100.00%,NOT_MEASURED,N/A,0/0,0,0.01
+Computer Networks,development,doc_computer_networks_6_e,2,4,18,0,0,0,0,0,0,93,100.00%,NOT_MEASURED,N/A,0/0,0,0.02
+Computer Networks,evaluation,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,20,60,233,1258,52,0,59,1042,64,10537,89.33%,NOT_MEASURED,100.00%,1258/1258,8,3.07
+Automata Theory & Computation,development,papers/Willard2023_Outlines.pdf,10,29,105,34,0,0,2,31,0,1568,97.88%,NOT_MEASURED,100.00%,34/34,0,0.49
+Automata Theory & Computation,evaluation,papers/Willard2023_Outlines.pdf,10,29,82,156,10,0,36,94,0,1391,89.92%,NOT_MEASURED,100.00%,156/156,0,0.48
+Probability & Statistics,development,pattern_recognition_2009/Appendix-A---Hints-from-Probability-and-Statistics_2009_Pattern-Recognition.pdf,1,2,64,0,0,0,0,0,0,2016,100.00%,NOT_MEASURED,N/A,0/0,0,1.43
+Probability & Statistics,development,pattern_recognition_2009/No-title-available_2009_Pattern-Recognition.pdf,2,4,172,0,0,0,0,0,0,9298,100.00%,NOT_MEASURED,N/A,0/0,0,5.92
+Probability & Statistics,evaluation,data_science_2019/Index_2019_Data-Science.pdf,10,33,622,14894,0,0,0,14894,0,83238,84.82%,NOT_MEASURED,100.00%,14894/14894,0,48.45
+Artificial Intelligence & Machine Learning,development,papers/Hu2021_LoRA.pdf,29,22,646,2427,192,0,118,690,961,84974,97.22%,NOT_MEASURED,100.00%,2427/2427,24,23.98
+Artificial Intelligence & Machine Learning,development,papers/Vaswani2017_Attention_Is_All_You_Need.pdf,28,30,219,826,45,0,167,316,249,10593,92.77%,NOT_MEASURED,100.00%,826/826,0,2.55
+Artificial Intelligence & Machine Learning,evaluation,papers/Bahdanau2014_Attention.pdf,29,22,453,1413,75,0,513,471,270,50886,97.30%,NOT_MEASURED,100.00%,1413/1413,18,12.03
+Artificial Intelligence & Machine Learning,evaluation,papers/Devlin2018_BERT.pdf,29,22,342,1761,0,0,176,1240,258,25299,93.49%,NOT_MEASURED,100.00%,1761/1761,0,6.87

@@ -267,8 +267,10 @@ def test_zero_unsupported_rate_across_all_domains(eval_results) -> None:
         for part_name, doc_list in dom_data["partitions"].items():
             for doc in doc_list:
                 proto = doc["prototype"]
-                assert proto["unsupported_relation_rate"] == 0.0
-                assert proto["valid_provenance_coverage"] == 1.0
+                # S4-G2.1 integrity gate: unsupported relation rate is NOT_MEASURED in absence of gold labels
+                assert proto["unsupported_relation_rate"] in ("NOT_MEASURED", 0.0)
+                # Provenance coverage is 1.0 where edges exist, or None where total=0
+                assert proto["valid_provenance_coverage"] in (1.0, None)
 
 
 def test_zero_cycles_across_all_domains(eval_results) -> None:

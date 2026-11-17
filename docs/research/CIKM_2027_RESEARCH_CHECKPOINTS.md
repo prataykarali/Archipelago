@@ -225,3 +225,29 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
 - **Scientific Constraints Verified:** Zero modifications to `okf_graph.db` or gold fixtures; no hardcoded domain heuristics; no fabricated gold answers; blinded human evaluation package generated without synthetic labels.
 
 
+### S4-G2.1 — Multi-Domain Scientific Integrity Gate
+- **Branch:** `research/s4-g2-1-integrity-gate`
+- **Base Branch:** `research/s4-g2-multidomain-evaluation`
+- **Base Commit:** `abad203d64069bf5efcfb5c4e08b9fd82f67fb2a`
+- **Scientific Objective:** Verify the scientific validity of the S4-G2 results and 36-item human annotation package before proceeding to independent human evaluation or the main graph-based retrieval experiment.
+- **Implemented Changes:**
+  - `okf/eval/integrity_validators.py` (new) — Full 3-colour DFS directed cycle detection (k ≥ 2), provenance record validation against `okf_graph.db`, and semantic argument direction auditing.
+  - `research/s4-g2-1-integrity-gate/scripts/verify_36_annotation_items.py` (new) — Verifies all 36 items against the live corpus: chunk existence, page match, verbatim evidence occurrence, concept presence, licensing.
+  - `research/s4-g2-1-integrity-gate/scripts/audit_overgeneration_and_splits.py` (new) — Diagnoses edge density, noisy concept rate, failure patterns, and evaluation split type per document.
+  - `research/s4-g2-1-integrity-gate/source_verification_36_items.csv` (new) — 36-item audit CSV; all 36 classified as MISMATCH.
+  - `research/s4-g2-1-integrity-gate/overgeneration_and_cycle_analysis.csv` (new) — Per-document overgeneration breakdown with real cycle counts.
+  - `research/s4-g2-1-integrity-gate/evaluation_split_audit.csv` (new) — TOC domain correctly classified as WITHIN_DOCUMENT_CHUNK_SPLIT.
+  - `research/s4-g2-1-integrity-gate/CHANGELOG.md` (new) — Itemised record of all 36 annotation audit findings.
+  - `research/s4-g2-1-integrity-gate/human_annotation_package/multidomain_human_annotation_pool_corrected.csv` (new) — Corrected pool with audit status; all human judgment fields blank.
+  - `research/s4-g2-1-integrity-gate/S4G2_1_INTEGRITY_AUDIT.md` (new) — Full scientific integrity audit report.
+  - `tests/unit/test_s4g2_1_integrity_gate.py` (new) — 11 targeted unit tests for all integrity gate components.
+  - `research/s4-g2-multidomain-evaluation/scripts/run_s4g2_experiment.py` (modified) — Hardcoded metrics replaced: `unsupported_relation_rate → NOT_MEASURED`, `valid_provenance_coverage → calculate_provenance_coverage()`, `cycles → detect_directed_cycles()`.
+  - `tests/unit/test_s4g2_multidomain_evaluation.py` (modified) — `test_zero_unsupported_rate_across_all_domains` updated to accept `NOT_MEASURED` or `0.0`.
+- **Test Results:** **128/128** tests passing (11 new S4-G2.1 tests + 117 regression tests across S1–S4-G2).
+- **Key Finding (Issue 1 — Hardcoded Metrics):** `unsupported_relation_rate = 0.0`, `valid_provenance_coverage = 1.0`, and `cycles = 0` were literals, not measurements. Real cycle counts: LoRA=24, Bahdanau=18, Network Security=8. Unsupported rate now reported as `NOT_MEASURED` pending human gold labels.
+- **Key Finding (Issue 2 — Annotation Pool):** **36/36 items MISMATCH.** Five failure categories: PARAPHRASED_SYNTHESIS (18), UNINDEXED_TOPIC_SYNTHESIS (7), EXTERNAL_THEORY_SYNTHESIS (6), INDEX_LISTING_ATTRIBUTION_ERROR (5). Special case: `doc_fundamentals_of_database_system_7e::chunk_001` claimed for three different page numbers (24, 42, 15) across DBMS-03/04/05; the document has exactly one indexed chunk at page 145. No items were silently replaced.
+- **Key Finding (Issue 3 — Overgeneration):** Book-index cross-product: `data_science_2019/Index_2019_Data-Science.pdf` generated 14,894 USES edges from 622 headword entries — fundamentally wrong document type. Broad trigger patterns (`uses`, `requires`) match across unrelated concept pairs. Noisy concept rate 17–58% across documents.
+- **Key Finding (Issue 4 — Split Honesty):** TOC domain uses a within-document chunk split (chunks 0–9 dev, 10–19 eval from same `Willard2023_Outlines.pdf`). Re-classified from implied DOCUMENT_DISJOINT to WITHIN_DOCUMENT_CHUNK_SPLIT. Five other domains are genuinely document-disjoint.
+- **Scientific Constraints Verified:** `okf_graph.db` unmodified (read-only); gold fixtures (`gold_lora.json`, `gold_attention.json`) unmodified; original annotation pool preserved alongside corrected version; all human judgment fields remain blank; no synthetic passages inserted.
+- **STOP Confirmed:** S4-G2.1 is complete. The main retrieval experiment (S4-H) may not proceed until (a) the annotation pool is rebuilt from verified verbatim corpus text, (b) concept extraction denoising is applied, (c) multi-hop cycle prevention is upgraded, and (d) TOC domain acquires a second independent document.
+

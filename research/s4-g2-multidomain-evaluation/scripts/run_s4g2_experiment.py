@@ -36,6 +36,10 @@ from okf.eval.gold.part01_load_gold_graph import (
     compare_edges,
 )
 from okf.eval.gold.compare_aligned import compare_edges_aligned
+from okf.eval.integrity_validators import (
+    calculate_provenance_coverage,
+    detect_directed_cycles,
+)
 from okf.graph_db import export_graph
 from okf.pilot.multidomain_extractor import MultiDomainExtractor
 from okf.query_rows import query_rows
@@ -368,6 +372,18 @@ def run_experiment() -> dict[str, Any]:
                     else 0.0
                 )
 
+                # --- Provenance Validity Coverage (calculated from actual DB and chunk text) ---
+                prov_report = calculate_provenance_coverage(proto_export["edges"], conn)
+
+                # --- Full Directed Cycle Detection (length k >= 2 on prerequisite/enablement paths) ---
+                cycle_report = detect_directed_cycles(
+                    proto_export["edges"], edge_types=("REQUIRES", "UNLOCKS")
+                )
+
+                # --- Unsupported Relation Rate: requires independently validated human ground truth ---
+                # Scientifically invalid to report 0.0 without gold support labels.
+                unsupported_rate_str = "NOT_MEASURED"
+
                 doc_report = {
                     "doc_id": doc_id,
                     "title": title,
@@ -389,8 +405,15 @@ def run_experiment() -> dict[str, Any]:
                         "rejection_count": proto_res["rejection_count"],
                         "cycles_prevented_count": proto_res["cycles_prevented_count"],
                         "abstention_rate": abstention_rate,
-                        "valid_provenance_coverage": 1.0,
-                        "unsupported_relation_rate": 0.0,
+                        "valid_provenance_coverage": prov_report["valid_provenance_coverage"],
+                        "valid_provenance_edges_count": prov_report["valid_edges_count"],
+                        "provenance_total_denominator": prov_report["total_edges_denominator"],
+                        "provenance_status": prov_report["status"],
+                        "unsupported_relation_rate": unsupported_rate_str,
+                        "unsupported_rate_documentation": "Requires independently validated support labels; NOT_MEASURED in absence of gold annotations",
+                        "detected_cycles_count": cycle_report["cycle_count"],
+                        "has_directed_cycles": cycle_report["has_cycles"],
+                        "detected_cycles_sample": cycle_report["cycles"][:5],
                         "runtime_seconds": round(t_proto_dur, 3),
                         "sample_edges": proto_export["edges"][:4],
                         "sample_abstentions": proto_res["abstentions"][:3],
@@ -398,7 +421,12 @@ def run_experiment() -> dict[str, Any]:
                 }
                 partition_res.append(doc_report)
 
-                # Add to CSV rows
+                # Add to CSV rows with documented denominators
+                prov_cov_str = (
+                    f"{prov_report['valid_provenance_coverage']:.2%}"
+                    if prov_report["valid_provenance_coverage"] is not None
+                    else "N/A"
+                )
                 csv_rows.append(
                     {
                         "Domain": domain_name,
@@ -415,9 +443,10 @@ def run_experiment() -> dict[str, Any]:
                         "Contrasts": proto_res["contrasts_count"],
                         "Abstentions": proto_res["abstention_count"],
                         "Abstention Rate": f"{abstention_rate:.2%}",
-                        "Unsupported Rate": "0.00%",
-                        "Provenance Coverage": "100.00%",
-                        "Cycles": 0,
+                        "Unsupported Rate": unsupported_rate_str,
+                        "Provenance Coverage": prov_cov_str,
+                        "Provenance Valid / Total": f"{prov_report['valid_edges_count']}/{prov_report['total_edges_denominator']}",
+                        "Cycles": cycle_report["cycle_count"],
                         "Runtime (s)": f"{t_proto_dur:.2f}",
                     }
                 )
