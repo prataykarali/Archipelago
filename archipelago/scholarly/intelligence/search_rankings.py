@@ -39,17 +39,29 @@ VENUE_FIELDS = (
 COMPLETENESS_FIELDS = 9
 PERCENT = 100
 STOPWORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
+ORGANIZATION_TERMS = frozenset(
+    {"association", "conference", "journal", "proceedings", "publisher", "university"}
+)
+YEAR_IN_NAME = re.compile(r"\b(?:19|20)\d{2}\b")
 
 
 def _key(value: Any) -> str:
     return " ".join(str(value or "").casefold().split())
 
 
+def _valid_author(author: Any) -> bool:
+    if not isinstance(author, dict):
+        return False
+    name = str(author.get("name") or "").strip()
+    words = set(re.findall(r"[a-z]+", name.casefold()))
+    return bool(name) and not (YEAR_IN_NAME.search(name) and words & ORGANIZATION_TERMS)
+
+
 def _authors(paper: dict[str, Any]) -> list[str]:
     return [
         str(author.get("name") or "").strip()
         for author in paper.get("authors") or []
-        if isinstance(author, dict) and str(author.get("name") or "").strip()
+        if _valid_author(author)
     ]
 
 
@@ -83,7 +95,7 @@ def ordered_author_keys(papers: list[dict[str, Any]]) -> list[str]:
             author_identity_key(paper, index)
             for paper in papers
             for index, author in enumerate(paper.get("authors") or [])
-            if isinstance(author, dict) and str(author.get("name") or "").strip()
+            if _valid_author(author)
         )
     )
 
@@ -151,8 +163,7 @@ def author_values(
         return [
             index
             for index, author in enumerate(paper.get("authors") or [])
-            if isinstance(author, dict)
-            and str(author.get("name") or "").strip()
+            if _valid_author(author)
             and (
                 author_identity_key(paper, index) == identity_key
                 if identity_key
@@ -167,14 +178,28 @@ def author_values(
         _key(author.get("name"))
         for paper in matching
         for index, author in enumerate(paper.get("authors") or [])
-        if isinstance(author, dict)
-        and index not in positions(paper)
-        and str(author.get("name") or "").strip()
+        if _valid_author(author) and index not in positions(paper)
     }
     values = (
         len(matching),
-        sum(0 in positions(paper) for paper in matching),
-        sum(len(paper.get("authors") or []) - 1 in positions(paper) for paper in matching),
+        sum(
+            next(
+                index
+                for index, author in enumerate(paper.get("authors") or [])
+                if _valid_author(author)
+            )
+            in positions(paper)
+            for paper in matching
+        ),
+        sum(
+            next(
+                index
+                for index in range(len(paper.get("authors") or []) - 1, -1, -1)
+                if _valid_author(paper["authors"][index])
+            )
+            in positions(paper)
+            for paper in matching
+        ),
         round(sum(title_match(paper.get("title"), topic) for paper in matching) / len(matching), 1)
         if matching
         else 0.0,

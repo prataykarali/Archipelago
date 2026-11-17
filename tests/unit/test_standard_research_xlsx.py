@@ -529,3 +529,7 @@ def test_venue_name_with_year_is_not_exported_as_an_author() -> None:
     )
     paper_authors = preview["sheets"]["Papers"]["rows"][0]["values"][1]
     assert "Association for Computational Linguistics" not in paper_authors
+    paper_headers = preview["sheets"]["Papers"]["headers"]
+    paper_values = preview["sheets"]["Papers"]["rows"][0]["values"]
+    assert paper_values[paper_headers.index("Author Count")] == 2
+    assert authors["rows"][0]["values"][authors["headers"].index("Papers in This Search")] == 1
