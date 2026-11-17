@@ -183,3 +183,23 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
 - **Key Finding (Task D):** 9 unique prerequisite-only cycles (8 length-2 symmetric, 1 length-6). RELATED edges excluded from cycle detection by design.
 - **Breaking change:** direction_accuracy field changed from float to float|None. Callers testing == 1.0 must update.
 - **Branch / Remote:** research/s4-f-evaluator-repair
+
+### S4-G1 — Evidence-Grounded Graph Extraction Pilot
+- **Branch:** `research/s4-g1-extraction-pilot`
+- **Base Commit:** `6bf2ab69daa5f4e74ff1ba83f1b805517c35b3e9`
+- **Scientific Objective:** Investigate and prototype improvements to concept extraction and prerequisite relation direction without modifying the frozen baseline, existing gold fixtures, or production graph.
+- **Implemented Changes:**
+  - `okf/pilot/heuristics_audit.py` (new) — automated audit tool inspecting 7 problematic baseline heuristics on `okf_graph.db` (reciprocal conflicts, unscopable edges, missing intermediate concepts, alphabetical correlation).
+  - `okf/pilot/evidence_extractor.py` (new) — evidence-grounded prototype featuring multi-concept chunk extraction, explicit 6-way relation typing (REQUIRES, UNLOCKS, PART_OF, USAGE, CONTRAST, ABSTAIN), strict abstention without heuristic fallbacks, verbatim evidence quotes, and cycle prevention at insertion.
+  - `research/s4-g1-extraction-pilot/scripts/run_s4g1_experiment.py` (new) — reproducible controlled experiment comparing baseline vs. prototype on LoRA, Attention, and held-out Bahdanau.
+  - `research/s4-g1-extraction-pilot/s4g1_eval_results.json` (new) — structured before/after evaluation artifact.
+  - `tests/unit/test_s4g1_extraction_pilot.py` (new) — 16 unit tests covering heuristics audit, relation typing, provenance, cycle prevention, and safety invariants.
+  - `research/s4-g1-extraction-pilot/S4G1_EXTRACTION_PILOT_REPORT.md` (new) — comprehensive pilot diagnosis and experimental report.
+- **Test Results:** **115/115** tests passing (16 new S4-G1 tests + 99 regression tests across S1–S4-F).
+- **Key Findings:**
+  - Audited 8 reciprocal REQUIRES/UNLOCKS conflict pairs causing 8 of 9 baseline cycles.
+  - Confirmed 101 unscopable edges (15.44%) and 80%/64% missing intermediate concepts in LoRA/Attention.
+  - Prototype reduced unsupported edge rate from 15.44% to 0.00%, increased valid provenance coverage from 84.56% to 100.00%, and achieved 0 cycles.
+  - Confirmed that primary research papers naturally express usage, contrast, and architecture rather than pedagogical prerequisites, validating the need for cross-document curriculum synthesis in S4-G2.
+- **Scientific Constraints Verified:** Zero modifications to `okf_graph.db` or gold fixtures; no hardcoding of LoRA/Transformer rules; pristine held-out source (`Bahdanau2014_Attention.pdf`) un-tuned.
+

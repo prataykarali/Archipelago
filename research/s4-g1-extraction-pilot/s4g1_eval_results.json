@@ -1,0 +1,589 @@
+{
+  "heuristics_audit": {
+    "reciprocal_conflicts": {
+      "count": 8,
+      "examples": [
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "Language Model",
+          "concept_b": "Summarization",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        },
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "Direct Preference Optimization",
+          "concept_b": "Bradley Terry Preference Model",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        },
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "Long-Context Transformer",
+          "concept_b": "Self-Attention",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        },
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "Token Dropping",
+          "concept_b": "Transformer",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        },
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "Sparse Routing",
+          "concept_b": "Sparse Mixture of Experts",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        },
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "Binary Cross Entropy",
+          "concept_b": "Reinforcement Learning",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        },
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "KL-Divergence",
+          "concept_b": "Direct Preference Optimization",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        },
+        {
+          "type": "simultaneous_REQUIRES_and_UNLOCKS",
+          "concept_a": "GAE",
+          "concept_b": "Direct Preference Optimization",
+          "req_source": "librarian_upload",
+          "unl_source": "librarian_upload"
+        }
+      ]
+    },
+    "relation_type_distribution": {
+      "REQUIRES": 267,
+      "UNLOCKS": 387,
+      "RELATED": 1334
+    },
+    "related_subtypes": {
+      "uses": 144,
+      "part_of": 156,
+      "contrasts_with": 96,
+      "co_mention": 891,
+      "variant_of": 1,
+      "evaluated_by": 2,
+      "None": 44
+    },
+    "directed_edge_provenance": {
+      "total_directed_edges": 654,
+      "invalid_provenance_count": 101,
+      "unscopable_rate": 0.154434250764526,
+      "top_sources": [
+        [
+          "papers/Lewis2020_RAG.pdf",
+          58
+        ],
+        [
+          "None",
+          54
+        ],
+        [
+          "papers/Devlin2018_BERT.pdf",
+          39
+        ],
+        [
+          "papers/Rafailov2023_DPO.pdf",
+          36
+        ],
+        [
+          "pearson_batch1",
+          30
+        ]
+      ]
+    },
+    "missing_intermediate_concepts": {
+      "LoRA": {
+        "total_gold_concepts": 20,
+        "missing_count": 16,
+        "present_count": 4,
+        "missing_rate": 0.8,
+        "missing_sample": [
+          "Prefix Tuning",
+          "Weight Matrix Reparameterization",
+          "Intrinsic Rank",
+          "Rank Decomposition Matrices",
+          "Low-Rank Matrix",
+          "Query and Value Projection Matrices",
+          "Frozen Pre-trained Weights",
+          "Scaling Factor Alpha"
+        ],
+        "present_sample": [
+          "Fine-Tuning",
+          "Parameter-Efficient Fine-Tuning",
+          "Adapter Layers",
+          "Low-Rank Adaptation"
+        ]
+      },
+      "Attention": {
+        "total_gold_concepts": 25,
+        "missing_count": 16,
+        "present_count": 9,
+        "missing_rate": 0.64,
+        "missing_sample": [
+          "Sequence-to-Sequence Models",
+          "Convolutional Neural Networks",
+          "Scaled Dot-Product Attention",
+          "Query, Key, and Value Vectors",
+          "Softmax Function",
+          "Scale Factor",
+          "Masked Self-Attention",
+          "Encoder-Decoder Attention"
+        ],
+        "present_sample": [
+          "Recurrent Neural Networks",
+          "Attention Mechanism",
+          "Self-Attention",
+          "Multi-Head Attention",
+          "Attention Heads",
+          "Transformer Encoder",
+          "Layer Normalization",
+          "Linear Transformation",
+          "Beam Search"
+        ]
+      }
+    },
+    "alphabetical_ordering_correlation": {
+      "total_directed_edges_evaluated": 654,
+      "alphabetically_ordered": 327,
+      "ratio": 0.5,
+      "interpretation": "Ratio significantly above 50% indicates alphabetical bias from fallback heuristic"
+    }
+  },
+  "experiments": {
+    "LoRA": {
+      "doc_id": "papers/Hu2021_LoRA.pdf",
+      "chunks_count": 29,
+      "baseline": {
+        "concept_precision": 0.011513157894736841,
+        "concept_recall": 0.35,
+        "concept_f1": 0.022292993630573247,
+        "concept_tp": 7,
+        "concept_fp": 601,
+        "concept_fn": 13,
+        "directed_edge_f1_exact": 0.0,
+        "directed_edge_f1_aligned": 0.0,
+        "undirected_edge_f1": 0.0,
+        "direction_accuracy": null,
+        "direction_accuracy_status": "undefined",
+        "unscopable_edge_count": 101,
+        "unsupported_edge_rate": 0.1544,
+        "valid_provenance_coverage": 0.8456,
+        "abstention_rate": 0.0,
+        "cycles_count": 8,
+        "edges_count": 55,
+        "directed_edges_count": 17
+      },
+      "prototype": {
+        "concept_precision": 0.038011695906432746,
+        "concept_recall": 0.65,
+        "concept_f1": 0.0718232044198895,
+        "concept_tp": 13,
+        "concept_fp": 329,
+        "concept_fn": 7,
+        "directed_edge_f1_exact": 0.0,
+        "directed_edge_f1_aligned": 0.0,
+        "undirected_edge_f1": 0.019047619047619046,
+        "direction_accuracy": 0.0,
+        "direction_accuracy_status": "computed",
+        "unscopable_edge_count": 0,
+        "unsupported_edge_rate": 0.0,
+        "valid_provenance_coverage": 1.0,
+        "abstention_rate": 0.9807306652716017,
+        "cycles_count": 0,
+        "edges_count": 442,
+        "directed_edges_count": 84,
+        "related_edges_count": 358,
+        "abstentions_count": 22496,
+        "rejections_count": 0,
+        "cycles_prevented_count": 0,
+        "sample_extracted_edges": [
+          {
+            "from_name": "The",
+            "to_name": "Full",
+            "edge_type": "RELATED",
+            "relation": "contrast",
+            "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "chunk_id": "chunk_005",
+            "evidence_text": "\u2022 Our simple linear design allows us to merge the trainable matrices with the frozen weights when deployed, introducing no inference latency compared to a fully \ufb01ne-tuned model, by",
+            "confidence": 0.85
+          },
+          {
+            "from_name": "Our",
+            "to_name": "The",
+            "edge_type": "UNLOCKS",
+            "relation": "enables",
+            "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "chunk_id": "chunk_005",
+            "evidence_text": "\u2022 Our simple linear design allows us to merge the trainable matrices with the frozen weights when deployed, introducing no inference latency compared to a fully \ufb01ne-tuned model, by",
+            "confidence": 0.85
+          },
+          {
+            "from_name": "The",
+            "to_name": "For",
+            "edge_type": "RELATED",
+            "relation": "usage",
+            "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "chunk_id": "chunk_005",
+            "evidence_text": "\u2022 LoRA makes training more ef\ufb01cient and lowers the hardware barrier to entry by up to 3 times when using adaptive optimizers since we do not need to calculate the gradients or main",
+            "confidence": 0.75
+          },
+          {
+            "from_name": "Lin",
+            "to_name": "The",
+            "edge_type": "UNLOCKS",
+            "relation": "enables",
+            "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "chunk_id": "chunk_005",
+            "evidence_text": "\u2022 Our simple linear design allows us to merge the trainable matrices with the frozen weights when deployed, introducing no inference latency compared to a fully \ufb01ne-tuned model, by",
+            "confidence": 0.85
+          },
+          {
+            "from_name": "The",
+            "to_name": "Since",
+            "edge_type": "RELATED",
+            "relation": "usage",
+            "source": "papers/Hu2021_LoRA.pdf:chunk_005",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "chunk_id": "chunk_005",
+            "evidence_text": "\u2022 LoRA makes training more ef\ufb01cient and lowers the hardware barrier to entry by up to 3 times when using adaptive optimizers since we do not need to calculate the gradients or main",
+            "confidence": 0.75
+          }
+        ],
+        "sample_abstentions": [
+          {
+            "concept_a": "Anastasia Shimorina",
+            "concept_b": "Association",
+            "chunk_id": "chunk_036",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "reason": "Concepts do not co-occur in any single sentence",
+            "evidence": ""
+          },
+          {
+            "concept_a": "Anastasia Shimorina",
+            "concept_b": "Aurelio Ranzato",
+            "chunk_id": "chunk_036",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "reason": "Concepts do not co-occur in any single sentence",
+            "evidence": ""
+          },
+          {
+            "concept_a": "Anastasia Shimorina",
+            "concept_b": "Automatically",
+            "chunk_id": "chunk_036",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "reason": "Concepts do not co-occur in any single sentence",
+            "evidence": ""
+          },
+          {
+            "concept_a": "Anastasia Shimorina",
+            "concept_b": "BERT",
+            "chunk_id": "chunk_036",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "reason": "Concepts do not co-occur in any single sentence",
+            "evidence": ""
+          },
+          {
+            "concept_a": "Anastasia Shimorina",
+            "concept_b": "Babak Shakibi",
+            "chunk_id": "chunk_036",
+            "doc_id": "papers/Hu2021_LoRA.pdf",
+            "reason": "Concepts do not co-occur in any single sentence",
+            "evidence": ""
+          }
+        ]
+      }
+    },
+    "Attention": {
+      "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "chunks_count": 28,
+      "baseline": {
+        "concept_precision": 0.029605263157894735,
+        "concept_recall": 0.72,
+        "concept_f1": 0.05687203791469194,
+        "concept_tp": 18,
+        "concept_fp": 590,
+        "concept_fn": 7,
+        "directed_edge_f1_exact": 0.0,
+        "directed_edge_f1_aligned": 0.0,
+        "undirected_edge_f1": 0.0,
+        "direction_accuracy": null,
+        "direction_accuracy_status": "undefined",
+        "unscopable_edge_count": 101,
+        "unsupported_edge_rate": 0.1544,
+        "valid_provenance_coverage": 0.8456,
+        "abstention_rate": 0.0,
+        "cycles_count": 8,
+        "edges_count": 60,
+        "directed_edges_count": 29
+      },
+      "prototype": {
+        "concept_precision": 0.07462686567164178,
+        "concept_recall": 0.4,
+        "concept_f1": 0.12578616352201258,
+        "concept_tp": 10,
+        "concept_fp": 124,
+        "concept_fn": 15,
+        "directed_edge_f1_exact": 0.0,
+        "directed_edge_f1_aligned": 0.0,
+        "undirected_edge_f1": 0.0,
+        "direction_accuracy": null,
+        "direction_accuracy_status": "undefined",
+        "unscopable_edge_count": 0,
+        "unsupported_edge_rate": 0.0,
+        "valid_provenance_coverage": 1.0,
+        "abstention_rate": 0.9604452865940313,
+        "cycles_count": 0,
+        "edges_count": 167,
+        "directed_edges_count": 41,
+        "related_edges_count": 126,
+        "abstentions_count": 4055,
+        "rejections_count": 0,
+        "cycles_prevented_count": 0,
+        "sample_extracted_edges": [
+          {
+            "from_name": "The",
+            "to_name": "Work",
+            "edge_type": "REQUIRES",
+            "relation": "requires",
+            "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "chunk_id": "chunk_002",
+            "evidence_text": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder.",
+            "confidence": 0.85
+          },
+          {
+            "from_name": "The",
+            "to_name": "Two",
+            "edge_type": "REQUIRES",
+            "relation": "requires",
+            "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "chunk_id": "chunk_002",
+            "evidence_text": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder.",
+            "confidence": 0.85
+          },
+          {
+            "from_name": "The",
+            "to_name": "Recurrent",
+            "edge_type": "REQUIRES",
+            "relation": "requires",
+            "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "chunk_id": "chunk_002",
+            "evidence_text": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder.",
+            "confidence": 0.85
+          },
+          {
+            "from_name": "The",
+            "to_name": "Decoder",
+            "edge_type": "REQUIRES",
+            "relation": "requires",
+            "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "chunk_id": "chunk_002",
+            "evidence_text": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder.",
+            "confidence": 0.85
+          },
+          {
+            "from_name": "The",
+            "to_name": "Encoder",
+            "edge_type": "REQUIRES",
+            "relation": "requires",
+            "source": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "chunk_id": "chunk_002",
+            "evidence_text": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder.",
+            "confidence": 0.85
+          }
+        ],
+        "sample_abstentions": [
+          {
+            "concept_a": "BLEU",
+            "concept_b": "English",
+            "chunk_id": "chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "Our model achieves 28.4 BLEU on the WMT 2014 English- to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU."
+          },
+          {
+            "concept_a": "BLEU",
+            "concept_b": "English-to-French",
+            "chunk_id": "chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small "
+          },
+          {
+            "concept_a": "BLEU",
+            "concept_b": "GPUs",
+            "chunk_id": "chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small "
+          },
+          {
+            "concept_a": "BLEU",
+            "concept_b": "German",
+            "chunk_id": "chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "Our model achieves 28.4 BLEU on the WMT 2014 English- to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU."
+          },
+          {
+            "concept_a": "BLEU",
+            "concept_b": "Our",
+            "chunk_id": "chunk_002",
+            "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "Our model achieves 28.4 BLEU on the WMT 2014 English- to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU."
+          }
+        ]
+      }
+    },
+    "Bahdanau_Held_Out": {
+      "doc_id": "papers/Bahdanau2014_Attention.pdf",
+      "chunks_count": 29,
+      "baseline": {
+        "note": "Held-out source: no gold labels evaluated in baseline"
+      },
+      "prototype": {
+        "concept_count": 314,
+        "edges_count": 430,
+        "directed_edges_count": 133,
+        "related_edges_count": 297,
+        "abstentions_count": 23799,
+        "rejections_count": 0,
+        "cycles_count": 0,
+        "valid_provenance_coverage": 1.0,
+        "unsupported_edge_rate": 0.0,
+        "abstention_rate": 0.9822526724173511,
+        "sample_extracted_concepts": [
+          "Blunsom",
+          "Cho",
+          "For",
+          "Forcada",
+          "From",
+          "Kalchbrenner",
+          "Neco",
+          "Once",
+          "RNN",
+          "Recently"
+        ],
+        "sample_extracted_edges": [
+          {
+            "from_name": "The",
+            "to_name": "NEURAL",
+            "edge_type": "RELATED",
+            "relation": "part_of",
+            "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "chunk_id": "chunk_006",
+            "evidence_text": "This neural machine translation approach typ- ically consists of two components, the \ufb01rst of which encodes a source sentence x and the second decodes to a target sentence y.",
+            "confidence": 0.8
+          },
+          {
+            "from_name": "The",
+            "to_name": "Mach",
+            "edge_type": "RELATED",
+            "relation": "part_of",
+            "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "chunk_id": "chunk_006",
+            "evidence_text": "This neural machine translation approach typ- ically consists of two components, the \ufb01rst of which encodes a source sentence x and the second decodes to a target sentence y.",
+            "confidence": 0.8
+          },
+          {
+            "from_name": "The",
+            "to_name": "NEURAL MACHINE TRANSLATION",
+            "edge_type": "RELATED",
+            "relation": "part_of",
+            "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "chunk_id": "chunk_006",
+            "evidence_text": "This neural machine translation approach typ- ically consists of two components, the \ufb01rst of which encodes a source sentence x and the second decodes to a target sentence y.",
+            "confidence": 0.8
+          },
+          {
+            "from_name": "NEURAL",
+            "to_name": "Our",
+            "edge_type": "RELATED",
+            "relation": "part_of",
+            "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "chunk_id": "chunk_006",
+            "evidence_text": "This neural machine translation approach typ- ically consists of two components, the \ufb01rst of which encodes a source sentence x and the second decodes to a target sentence y.",
+            "confidence": 0.8
+          },
+          {
+            "from_name": "NEURAL",
+            "to_name": "AND",
+            "edge_type": "RELATED",
+            "relation": "part_of",
+            "source": "papers/Bahdanau2014_Attention.pdf:chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "chunk_id": "chunk_006",
+            "evidence_text": "This neural machine translation approach typ- ically consists of two components, the \ufb01rst of which encodes a source sentence x and the second decodes to a target sentence y.",
+            "confidence": 0.8
+          }
+        ],
+        "sample_abstentions": [
+          {
+            "concept_a": "Blunsom",
+            "concept_b": "Cho",
+            "chunk_id": "chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014"
+          },
+          {
+            "concept_a": "Blunsom",
+            "concept_b": "For",
+            "chunk_id": "chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014"
+          },
+          {
+            "concept_a": "Blunsom",
+            "concept_b": "Forcada",
+            "chunk_id": "chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014"
+          },
+          {
+            "concept_a": "Blunsom",
+            "concept_b": "From",
+            "chunk_id": "chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "reason": "Concepts do not co-occur in any single sentence",
+            "evidence": ""
+          },
+          {
+            "concept_a": "Blunsom",
+            "concept_b": "Kalchbrenner",
+            "chunk_id": "chunk_006",
+            "doc_id": "papers/Bahdanau2014_Attention.pdf",
+            "reason": "Co-occurrence without explicit directional dependency evidence (abstained to prevent hallucinated dependency)",
+            "evidence": "Recently, a number of papers have proposed the use of neural networks to directly learn this condi- tional distribution (see, e.g., Kalchbrenner and Blunsom, 2013; Cho et al., 2014"
+          }
+        ]
+      }
+    }
+  }
+}
