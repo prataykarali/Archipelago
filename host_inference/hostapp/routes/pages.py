@@ -14,7 +14,7 @@ from flask import Flask, jsonify, redirect, request, send_from_directory
 from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
 from ..context import AppContext
 from ..page_fragments import assembled_page
-from ..research_pages import PAGE_DETAILS, render_research_page
+from ..research_pages import PAGE_DETAILS
 from .ingest import _worker_available
 
 GRAPH_PAGE_FILE = "graph.html"
@@ -62,7 +62,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/research")
     @app.get("/research/")
     def research_page():
-        return render_research_page("papers")
+        return redirect(f"{RESEARCH_ORIGIN}{request.full_path.rstrip('?')}")
 
     @app.get("/research/<page>")
     def research_subpage(page: str):

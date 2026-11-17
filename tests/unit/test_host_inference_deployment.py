@@ -152,7 +152,9 @@ def test_graph_page_and_bounded_graph_api_work(hosted_app):
     assert all("data" in edge for edge in data["edges"])
 
 
-def test_research_page_replaces_redirect_and_keeps_staff_graph_private(hosted_app, monkeypatch):
+def test_research_page_redirects_to_librarian_and_keeps_staff_graph_private(
+    hosted_app, monkeypatch
+):
     context = hosted_app.app.extensions["archipelago"]
     client = hosted_app.app.test_client()
     role = {"value": "student"}
@@ -163,8 +165,13 @@ def test_research_page_replaces_redirect_and_keeps_staff_graph_private(hosted_ap
     )
 
     page = client.get("/research")
-    assert page.status_code == 200
-    assert b"Research intelligence" in page.data
+    assert page.status_code == 302
+    assert page.headers["Location"] == "https://archipelago-librarian.vercel.app/research"
+    linked_run = client.get("/research/?run=a9989dd5-5346-4ce2-82cd-2dec9fd6db04")
+    assert linked_run.headers["Location"] == (
+        "https://archipelago-librarian.vercel.app/research/"
+        "?run=a9989dd5-5346-4ce2-82cd-2dec9fd6db04"
+    )
     assert client.get("/research.html").status_code == 404
     assert client.get("/api/research/graph/subgraph?q=graph").status_code == 403
     role["value"] = "faculty"
