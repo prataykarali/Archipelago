@@ -1,0 +1,1259 @@
+{
+  "stats": {
+    "total_concepts": 610,
+    "total_edges": 1988,
+    "requires_edges": 267,
+    "unlocks_edges": 387,
+    "related_edges": 1334
+  },
+  "structural_summary": {
+    "concept_count": 610,
+    "edge_count": 1988,
+    "cycles_count": 9,
+    "edge_provenance_issues_count": 157,
+    "unscopable_directed_edges": 101,
+    "skipped_related_edges": 1334
+  },
+  "provenance_breakdown": {
+    "by_source_tag": {
+      "pearson_batch1": 30,
+      "librarian_upload": 29,
+      "None": 98
+    },
+    "by_edge_type": {
+      "REQUIRES": 71,
+      "UNLOCKS": 30,
+      "RELATED": 56
+    }
+  },
+  "cycle_details": [
+    {
+      "length": 2,
+      "nodes": [
+        "self_attention",
+        "long_context_transformer",
+        "self_attention"
+      ],
+      "hops": [
+        {
+          "from_id": "long_context_transformer",
+          "to_id": "self_attention",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "long_context_transformer",
+          "to_id": "self_attention",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "long_context_transformer",
+          "to_id": "self_attention",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    },
+    {
+      "length": 2,
+      "nodes": [
+        "transformer",
+        "token_dropping",
+        "transformer"
+      ],
+      "hops": [
+        {
+          "from_id": "token_dropping",
+          "to_id": "transformer",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "token_dropping",
+          "to_id": "transformer",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "token_dropping",
+          "to_id": "transformer",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    },
+    {
+      "length": 6,
+      "nodes": [
+        "reward_model",
+        "inception_score",
+        "graph_convolutional_network",
+        "neural_network",
+        "probability_distribution",
+        "maximum_likelihood_estimation",
+        "reward_model"
+      ],
+      "hops": [
+        {
+          "from_id": "reward_model",
+          "to_id": "inception_score",
+          "edge_type": "UNLOCKS",
+          "relation": "enables",
+          "source": "papers/Ouyang2022_InstructGPT.pdf:chunk_027"
+        },
+        {
+          "from_id": "inception_score",
+          "to_id": "graph_convolutional_network",
+          "edge_type": "UNLOCKS",
+          "relation": "enables",
+          "source": "papers/Kipf2016_GCN.pdf:chunk_024"
+        },
+        {
+          "from_id": "graph_convolutional_network",
+          "to_id": "neural_network",
+          "edge_type": "UNLOCKS",
+          "relation": "enables",
+          "source": "papers/Kipf2016_GCN.pdf:chunk_030"
+        },
+        {
+          "from_id": "graph_convolutional_network",
+          "to_id": "neural_network",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "papers/Kipf2016_GCN.pdf:chunk_030"
+        },
+        {
+          "from_id": "neural_network",
+          "to_id": "probability_distribution",
+          "edge_type": "UNLOCKS",
+          "relation": "enables",
+          "source": "papers/Willard2023_Outlines.pdf:chunk_005"
+        },
+        {
+          "from_id": "maximum_likelihood_estimation",
+          "to_id": "reward_model",
+          "edge_type": "RELATED",
+          "relation": "contrasts_with",
+          "source": "papers/Goodfellow2014_GAN.pdf:chunk_003"
+        }
+      ],
+      "is_symmetric_dual_insertion": false
+    },
+    {
+      "length": 2,
+      "nodes": [
+        "language_model",
+        "summarization",
+        "language_model"
+      ],
+      "hops": [
+        {
+          "from_id": "language_model",
+          "to_id": "summarization",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "language_model",
+          "to_id": "summarization",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "language_model",
+          "to_id": "summarization",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    },
+    {
+      "length": 2,
+      "nodes": [
+        "reinforcement_learning",
+        "binary_cross_entropy",
+        "reinforcement_learning"
+      ],
+      "hops": [
+        {
+          "from_id": "binary_cross_entropy",
+          "to_id": "reinforcement_learning",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "binary_cross_entropy",
+          "to_id": "reinforcement_learning",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "binary_cross_entropy",
+          "to_id": "reinforcement_learning",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    },
+    {
+      "length": 2,
+      "nodes": [
+        "direct_preference_optimization",
+        "kl_divergence",
+        "direct_preference_optimization"
+      ],
+      "hops": [
+        {
+          "from_id": "kl_divergence",
+          "to_id": "direct_preference_optimization",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "kl_divergence",
+          "to_id": "direct_preference_optimization",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    },
+    {
+      "length": 2,
+      "nodes": [
+        "direct_preference_optimization",
+        "gae",
+        "direct_preference_optimization"
+      ],
+      "hops": [
+        {
+          "from_id": "gae",
+          "to_id": "direct_preference_optimization",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "gae",
+          "to_id": "direct_preference_optimization",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "gae",
+          "to_id": "direct_preference_optimization",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    },
+    {
+      "length": 2,
+      "nodes": [
+        "bradley_terry_preference_model",
+        "direct_preference_optimization",
+        "bradley_terry_preference_model"
+      ],
+      "hops": [
+        {
+          "from_id": "direct_preference_optimization",
+          "to_id": "bradley_terry_preference_model",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "direct_preference_optimization",
+          "to_id": "bradley_terry_preference_model",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "direct_preference_optimization",
+          "to_id": "bradley_terry_preference_model",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    },
+    {
+      "length": 2,
+      "nodes": [
+        "sparse_mixture_of_experts",
+        "sparse_routing",
+        "sparse_mixture_of_experts"
+      ],
+      "hops": [
+        {
+          "from_id": "sparse_routing",
+          "to_id": "sparse_mixture_of_experts",
+          "edge_type": "REQUIRES",
+          "relation": "prerequisite",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "sparse_routing",
+          "to_id": "sparse_mixture_of_experts",
+          "edge_type": "UNLOCKS",
+          "relation": "unlocks",
+          "source": "librarian_upload"
+        },
+        {
+          "from_id": "sparse_routing",
+          "to_id": "sparse_mixture_of_experts",
+          "edge_type": "RELATED",
+          "relation": "uses",
+          "source": "librarian_upload"
+        }
+      ],
+      "is_symmetric_dual_insertion": true
+    }
+  ],
+  "evaluations": {
+    "gold_lora": {
+      "gold_path": "pilot_corpus/gold/gold_lora.json",
+      "doc_id": "papers/Hu2021_LoRA.pdf",
+      "whole_graph": {
+        "concept": {
+          "precision": 0.011513157894736841,
+          "recall": 0.35,
+          "f1": 0.022292993630573247,
+          "true_positives": 7,
+          "false_positives": 601,
+          "false_negatives": 13,
+          "matched_pairs": [
+            [
+              "adapter layers",
+              "adapter layers"
+            ],
+            [
+              "fine-tuning",
+              "fine-tuning"
+            ],
+            [
+              "low-rank adaptation",
+              "low-rank adaptation"
+            ],
+            [
+              "parameter-efficient fine-tuning",
+              "parameter-efficient fine-tuning"
+            ],
+            [
+              "reparameterization",
+              "weight matrix reparameterization"
+            ],
+            [
+              "gradient",
+              "gradient update"
+            ],
+            [
+              "optimizer",
+              "adam optimizer"
+            ]
+          ],
+          "doc_id": null,
+          "predicted_count": 610,
+          "gold_count": 20,
+          "unscopable_concepts": 0,
+          "normalization": "canonical_v2"
+        },
+        "edge": {
+          "directed": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 535,
+            "false_negatives": 21
+          },
+          "undirected": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 527,
+            "false_negatives": 21
+          },
+          "direction_accuracy": 1.0,
+          "doc_id": null,
+          "predicted_edge_count": 535,
+          "gold_edge_count": 21,
+          "unscopable_edges": 0,
+          "skipped_related_edges": 1334,
+          "matched_directed_edges": []
+        }
+      },
+      "document_scoped": {
+        "concept": {
+          "precision": 0.18181818181818182,
+          "recall": 0.2,
+          "f1": 0.1904761904761905,
+          "true_positives": 4,
+          "false_positives": 18,
+          "false_negatives": 16,
+          "matched_pairs": [
+            [
+              "fine-tuning",
+              "fine-tuning"
+            ],
+            [
+              "low-rank adaptation",
+              "low-rank adaptation"
+            ],
+            [
+              "parameter-efficient fine-tuning",
+              "parameter-efficient fine-tuning"
+            ],
+            [
+              "adapter",
+              "adapter layers"
+            ]
+          ],
+          "doc_id": "papers/Hu2021_LoRA.pdf",
+          "predicted_count": 23,
+          "gold_count": 20,
+          "unscopable_concepts": 103,
+          "normalization": "canonical_v2"
+        },
+        "edge": {
+          "directed": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 13,
+            "false_negatives": 21
+          },
+          "undirected": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 13,
+            "false_negatives": 21
+          },
+          "direction_accuracy": 1.0,
+          "doc_id": "papers/Hu2021_LoRA.pdf",
+          "predicted_edge_count": 13,
+          "gold_edge_count": 21,
+          "unscopable_edges": 101,
+          "skipped_related_edges": 1334,
+          "matched_directed_edges": []
+        }
+      }
+    },
+    "gold_attention": {
+      "gold_path": "pilot_corpus/gold/gold_attention.json",
+      "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "whole_graph": {
+        "concept": {
+          "precision": 0.029605263157894735,
+          "recall": 0.72,
+          "f1": 0.05687203791469194,
+          "true_positives": 18,
+          "false_positives": 590,
+          "false_negatives": 7,
+          "matched_pairs": [
+            [
+              "attention head",
+              "attention heads"
+            ],
+            [
+              "attention mechanism",
+              "attention mechanism"
+            ],
+            [
+              "beam search",
+              "beam search"
+            ],
+            [
+              "layer normalization",
+              "layer normalization"
+            ],
+            [
+              "linear transformation",
+              "linear transformation"
+            ],
+            [
+              "multi-head attention",
+              "multi-head attention"
+            ],
+            [
+              "recurrent neural network",
+              "recurrent neural networks"
+            ],
+            [
+              "self-attention",
+              "self-attention"
+            ],
+            [
+              "transformer encoder",
+              "transformer encoder"
+            ],
+            [
+              "transformer",
+              "transformer decoder"
+            ],
+            [
+              "embeddings",
+              "sinusoidal embeddings"
+            ],
+            [
+              "sequence",
+              "sequence-to-sequence models"
+            ],
+            [
+              "residual skip connection",
+              "residual connections"
+            ],
+            [
+              "vector",
+              "query, key, and value vectors"
+            ],
+            [
+              "fully connected feed-forward network",
+              "feed-forward networks"
+            ],
+            [
+              "decoder",
+              "encoder-decoder attention"
+            ],
+            [
+              "neural network",
+              "convolutional neural networks"
+            ],
+            [
+              "optimizer",
+              "adam optimizer"
+            ]
+          ],
+          "doc_id": null,
+          "predicted_count": 610,
+          "gold_count": 25,
+          "unscopable_concepts": 0,
+          "normalization": "canonical_v2"
+        },
+        "edge": {
+          "directed": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 535,
+            "false_negatives": 26
+          },
+          "undirected": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 527,
+            "false_negatives": 26
+          },
+          "direction_accuracy": 1.0,
+          "doc_id": null,
+          "predicted_edge_count": 535,
+          "gold_edge_count": 26,
+          "unscopable_edges": 0,
+          "skipped_related_edges": 1334,
+          "matched_directed_edges": []
+        }
+      },
+      "document_scoped": {
+        "concept": {
+          "precision": 0.36666666666666664,
+          "recall": 0.44,
+          "f1": 0.4,
+          "true_positives": 11,
+          "false_positives": 19,
+          "false_negatives": 14,
+          "matched_pairs": [
+            [
+              "attention head",
+              "attention heads"
+            ],
+            [
+              "attention mechanism",
+              "attention mechanism"
+            ],
+            [
+              "multi-head attention",
+              "multi-head attention"
+            ],
+            [
+              "recurrent neural network",
+              "recurrent neural networks"
+            ],
+            [
+              "self-attention",
+              "self-attention"
+            ],
+            [
+              "transformer encoder",
+              "transformer encoder"
+            ],
+            [
+              "transformer",
+              "transformer decoder"
+            ],
+            [
+              "embeddings",
+              "sinusoidal embeddings"
+            ],
+            [
+              "sequence",
+              "sequence-to-sequence models"
+            ],
+            [
+              "fully connected feed-forward network",
+              "feed-forward networks"
+            ],
+            [
+              "optimizer",
+              "adam optimizer"
+            ]
+          ],
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "predicted_count": 30,
+          "gold_count": 25,
+          "unscopable_concepts": 103,
+          "normalization": "canonical_v2"
+        },
+        "edge": {
+          "directed": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 21,
+            "false_negatives": 26
+          },
+          "undirected": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 21,
+            "false_negatives": 26
+          },
+          "direction_accuracy": 1.0,
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "predicted_edge_count": 21,
+          "gold_edge_count": 26,
+          "unscopable_edges": 101,
+          "skipped_related_edges": 1334,
+          "matched_directed_edges": []
+        }
+      }
+    },
+    "gold_curriculum": {
+      "gold_path": "pilot_corpus/gold/gold_curriculum.json",
+      "doc_id": null,
+      "whole_graph": {
+        "concept": {
+          "precision": 0.02138157894736842,
+          "recall": 0.9285714285714286,
+          "f1": 0.04180064308681672,
+          "true_positives": 13,
+          "false_positives": 595,
+          "false_negatives": 1,
+          "matched_pairs": [
+            [
+              "attention mechanism",
+              "attention mechanism"
+            ],
+            [
+              "bert",
+              "bert"
+            ],
+            [
+              "fine-tuning",
+              "fine-tuning"
+            ],
+            [
+              "graph rag",
+              "graph rag"
+            ],
+            [
+              "knowledge graph",
+              "knowledge graph"
+            ],
+            [
+              "low-rank adaptation",
+              "low-rank adaptation"
+            ],
+            [
+              "masked language modeling",
+              "masked language modeling"
+            ],
+            [
+              "multi-head attention",
+              "multi-head attention"
+            ],
+            [
+              "parameter-efficient fine-tuning",
+              "parameter-efficient fine-tuning"
+            ],
+            [
+              "retrieval-augmented generation",
+              "retrieval-augmented generation"
+            ],
+            [
+              "self-attention",
+              "self-attention"
+            ],
+            [
+              "transformer encoder",
+              "transformer encoder"
+            ],
+            [
+              "retrieval",
+              "dense retrieval"
+            ]
+          ],
+          "doc_id": null,
+          "predicted_count": 610,
+          "gold_count": 14,
+          "unscopable_concepts": 0,
+          "normalization": "canonical_v2"
+        },
+        "edge": {
+          "directed": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 535,
+            "false_negatives": 8
+          },
+          "undirected": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "true_positives": 0,
+            "false_positives": 527,
+            "false_negatives": 8
+          },
+          "direction_accuracy": 1.0,
+          "doc_id": null,
+          "predicted_edge_count": 535,
+          "gold_edge_count": 8,
+          "unscopable_edges": 0,
+          "skipped_related_edges": 1334,
+          "matched_directed_edges": []
+        }
+      },
+      "document_scoped": null
+    }
+  },
+  "edge_failures": {
+    "gold_lora": {
+      "doc_id": "papers/Hu2021_LoRA.pdf",
+      "predicted_edge_count": 13,
+      "gold_edge_count": 21,
+      "gold_edges": [
+        {
+          "source": "adam optimizer",
+          "target": "vram optimization",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "adapter layer",
+          "target": "inference latency",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "fine tuning",
+          "target": "parameter efficient fine tuning",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "frozen pre trained weight",
+          "target": "weight matrix reparameterization",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "gradient update",
+          "target": "rank decomposition matrice",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "inference latency",
+          "target": "weight merging",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "intrinsic rank",
+          "target": "low rank adaptation",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "low rank adaptation",
+          "target": "weight matrix reparameterization",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "low rank matrix",
+          "target": "rank decomposition matrice",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "parameter efficient fine tuning",
+          "target": "adapter layer",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "parameter efficient fine tuning",
+          "target": "low rank adaptation",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "parameter efficient fine tuning",
+          "target": "prefix tuning",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "prefix tuning",
+          "target": "inference latency",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "query and value projection matrice",
+          "target": "weight matrix reparameterization",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "rank decomposition matrice",
+          "target": "singular value decomposition",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "rank decomposition matrice",
+          "target": "weight matrix reparameterization",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "scaling factor alpha",
+          "target": "weight matrix reparameterization",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "singular value decomposition",
+          "target": "subspace similarity",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "vram optimization",
+          "target": "low rank adaptation",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "weight matrix reparameterization",
+          "target": "weight merging",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "weight merging",
+          "target": "task switching cost",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        }
+      ],
+      "predicted_edges": [
+        [
+          "fine tuning",
+          "adapter"
+        ],
+        [
+          "fine tuning",
+          "gpt 2"
+        ],
+        [
+          "fine tuning",
+          "gpt 3"
+        ],
+        [
+          "fine tuning",
+          "low rank adaptation"
+        ],
+        [
+          "gpt",
+          "adapter"
+        ],
+        [
+          "gpt",
+          "low rank adaptation"
+        ],
+        [
+          "gpt",
+          "prelayer"
+        ],
+        [
+          "gpt 2",
+          "gpt 3"
+        ],
+        [
+          "low rank adaptation",
+          "feature adaptation"
+        ],
+        [
+          "matrix decomposition",
+          "low rank adaptation"
+        ],
+        [
+          "transformer",
+          "adaptive optimizer"
+        ],
+        [
+          "transformer",
+          "layernorm"
+        ],
+        [
+          "transformer",
+          "low rank adaptation"
+        ]
+      ]
+    },
+    "gold_attention": {
+      "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "predicted_edge_count": 21,
+      "gold_edge_count": 26,
+      "gold_edges": [
+        {
+          "source": "attention head",
+          "target": "multi head attention",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "attention mechanism",
+          "target": "self attention",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "convolutional neural network",
+          "target": "self attention",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "encoder decoder attention",
+          "target": "transformer decoder",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "feed forward network",
+          "target": "transformer encoder",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "label smoothing",
+          "target": "adam optimizer",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "layer normalization",
+          "target": "transformer encoder",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "linear transformation",
+          "target": "multi head attention",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "masked self attention",
+          "target": "transformer decoder",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "multi head attention",
+          "target": "transformer encoder",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "positional encoding",
+          "target": "sinusoidal embedding",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "positional encoding",
+          "target": "transformer decoder",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "positional encoding",
+          "target": "transformer encoder",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "query key and value vector",
+          "target": "scaled dot product attention",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "recurrent neural network",
+          "target": "self attention",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": true
+        },
+        {
+          "source": "residual connection",
+          "target": "transformer encoder",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "scale factor",
+          "target": "scaled dot product attention",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "scaled dot product attention",
+          "target": "encoder decoder attention",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "scaled dot product attention",
+          "target": "masked self attention",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "scaled dot product attention",
+          "target": "multi head attention",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "self attention",
+          "target": "scaled dot product attention",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "sequence to sequence model",
+          "target": "attention mechanism",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "softmax function",
+          "target": "scaled dot product attention",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "teacher forcing",
+          "target": "transformer decoder",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "transformer decoder",
+          "target": "beam search",
+          "source_in_predicted_concepts": false,
+          "target_in_predicted_concepts": true,
+          "both_endpoints_exist": false
+        },
+        {
+          "source": "transformer encoder",
+          "target": "transformer decoder",
+          "source_in_predicted_concepts": true,
+          "target_in_predicted_concepts": false,
+          "both_endpoints_exist": false
+        }
+      ],
+      "predicted_edges": [
+        [
+          "attention head",
+          "transformer layer"
+        ],
+        [
+          "attention mechanism",
+          "transformer encoder"
+        ],
+        [
+          "fully connected feed forward network",
+          "multi head attention"
+        ],
+        [
+          "multi head attention",
+          "intra attention"
+        ],
+        [
+          "multi head attention",
+          "multihead"
+        ],
+        [
+          "multi head attention",
+          "transformer"
+        ],
+        [
+          "neural network",
+          "big model"
+        ],
+        [
+          "self attention",
+          "attention head"
+        ],
+        [
+          "self attention",
+          "wordpiece"
+        ],
+        [
+          "sequence",
+          "self attention"
+        ],
+        [
+          "transformer",
+          "anomaly score"
+        ],
+        [
+          "transformer",
+          "auto regressive"
+        ],
+        [
+          "transformer",
+          "autonomou system"
+        ],
+        [
+          "transformer",
+          "deep att"
+        ],
+        [
+          "transformer",
+          "english constituency parsing"
+        ],
+        [
+          "transformer",
+          "ensemble learning"
+        ],
+        [
+          "transformer",
+          "neural machine translation"
+        ],
+        [
+          "transformer",
+          "posunk"
+        ],
+        [
+          "transformer",
+          "self attention"
+        ],
+        [
+          "transformer",
+          "translation"
+        ],
+        [
+          "transformer",
+          "translation quality"
+        ]
+      ]
+    }
+  }
+}

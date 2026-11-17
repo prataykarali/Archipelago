@@ -85,3 +85,63 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
 - **Dataset & Benchmark Status:** Source PDFs for all 5 answerable pilot questions are verified on local disk (`pdfs/papers/`), while `okf_graph.db` `Document` nodes lack `doc_hash`/`pdf_url` metadata. Dual-reviewer templates (`reviewer_a`, `reviewer_b`) and the local blinded worksheet (`artifacts/validation/local_only/s4a_human_annotation_worksheet.md`, gitignored) are ready for independent human annotation (`human_annotations_filled: 0`, `adjudicated_gold_count: 0`).
 - **Known Limitations:** No human annotations have been filled yet (`CIKM retrieval performance is NOT YET MEASURABLE.`). Copyrighted/extracted passage text is kept local-only and excluded from Git.
 - **Branch / Remote:** `research/s4-a-human-gold-pilot` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s4-a-human-gold-pilot)
+
+### S4-B — Annotation Integrity, Blinded Reviewer Handoff & Corpus Verification
+- **Scientific Objective:** Audit and preserve the AI-prepared Reviewer A annotations, prepare a fully blinded Reviewer B annotation package, verify all 764 corpus passages, run a near-duplicate/shingling audit, document GraphRAG fairness protocol, and enforce deterministic score extraction.
+- **Implemented Changes:**
+  - `archipelago/eval/annotation_integrity.py`
+  - `scripts/run_s4b_annotation_integrity.py`
+  - `tests/unit/test_annotation_integrity_s4b.py`
+  - `research/s4-b-annotation-integrity/` (all handoff and audit artifacts)
+  - `.gitignore` updated
+- **Test Results:** **`54/54` combined S1–S4-B regression tests passing** (`19` new S4-B tests + prior 35).
+- **Dataset & Benchmark Status:** Reviewer A annotations preserved and manifested. Reviewer B blinded package staged for independent annotation. Corpus verified at 764 passages. `0` adjudicated gold entries — CIKM retrieval performance remains NOT YET MEASURABLE.
+- **Known Limitations:** Reviewer B human annotations not yet filled. GraphRAG fairness cannot be verified until graph-scoped retrieval is production-ready.
+- **Provenance Note:** `human_annotation` filename in Reviewer A artifacts refers to AI-prepared annotations — not independent human judgments. Clearly distinguished in manifest and test assertions.
+- **Branch / Remote:** `research/s4-b-annotation-integrity` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s4-b-annotation-integrity)
+- **Remote HEAD:** `e3af789678b4b769d13b0af0f088dad0d4f572cb`
+
+### S4-D — 24-Item Human Evidence Audit vs AI Annotations (Quality Control)
+- **Scientific Objective:** Compare 24 human passage-relevance judgments against AI Reviewer A labels to assess annotation quality. Classified as internal quality control — NOT independent double-human gold data.
+- **Implemented Changes:**
+  - `research/s4-b-annotation-integrity/S4D_HUMAN_AUDIT_COMPARISON_REPORT.md`
+  - `research/s4-b-annotation-integrity/human_audit_original.md` (sanitized; full text preserved locally)
+  - `research/s4-b-annotation-integrity/human_audit_comparison.csv`
+  - `research/s4-b-annotation-integrity/human_audit_disagreements.csv`
+  - `scripts/run_s4d_human_comparison.py`
+  - `tests/unit/test_s4d_human_audit_comparison.py`
+- **Test Results:** **`54/54` regression + `9/9` new S4-D tests = `63` total PASS** (run on `research/s4-b-annotation-integrity`).
+- **Agreement Metrics:** Overall agreement = `75.0%` (18/24); Cohen's κ = `0.584` (moderate). AI Reviewer A is consistently more lenient (+1 point) on ambiguous passages.
+- **Known Limitations:** Reviewer B labels unavailable for comparison. Human QC sample (n=24) is insufficient for significance testing.
+- **Source Redistribution:** `human_audit_original.md` committed to `e3af789` contained 24 verbatim blockquotes from 7 copyrighted papers (28,703 chars). These were sanitized in-place (provenance pointers substituted). Full text preserved at `artifacts/validation/local_only/human_audit_original_full.md` (SHA-256: `655c498ad75a998f0659ee59d4f6e05581ee3615e54c09de11562837fda8c051`). No Git history rewriting (requires explicit authorization).
+- **Branch / Remote:** `research/s4-b-annotation-integrity` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s4-b-annotation-integrity)
+- **Remote HEAD:** `e3af789678b4b769d13b0af0f088dad0d4f572cb`
+
+### S4-E — Research Integrity Audit & Graph Evaluation Diagnosis
+- **Scientific Objective:** (1) Source redistribution audit of committed scholarly passages; (2) Full diagnosis of 0% Edge F1, 9 graph cycles, 157 provenance issues, and 101 unscopable edges in the gold-graph evaluator. No fixes implemented — diagnosis only.
+- **Implemented Changes:**
+  - `research/s4-e-graph-diagnosis/SOURCE_REDISTRIBUTION_AUDIT.md`
+  - `research/s4-e-graph-diagnosis/GRAPH_EVALUATION_DIAGNOSTIC_REPORT.md`
+  - `research/s4-e-graph-diagnosis/scripts/run_graph_diagnosis.py`
+  - `research/s4-e-graph-diagnosis/graph_diagnosis_summary.json`
+  - `research/s4-b-annotation-integrity/human_audit_original.md` (copyright sanitization carried over from S4-D)
+  - `tests/unit/test_s4e_graph_diagnosis.py`
+- **Test Results:** **`60/60` combined S1–S4-E regression tests passing** (`6` new S4-E + prior `54`).
+- **Phase 1 — Source Redistribution Findings:**
+  - Only `human_audit_original.md` had copyrighted text exposure (committed in `e3af789`).
+  - Full original preserved locally with SHA-256 checksum. Tracked file sanitized (passages → provenance pointers). No history rewriting.
+- **Phase 2 — Graph Diagnosis Root Causes:**
+  1. **0% Edge F1 (Primary):** Endpoint resolution disparity — `compare_concepts()` uses fuzzy matching (token_set_ratio ≥ 90) but `compare_edges()` uses exact canonical key comparison, so fuzzy concept matches do not propagate to edge matching.
+  2. **0% Edge F1 (Secondary):** 80% of LoRA gold concepts, 56% of Attention gold concepts were never extracted into `okf_graph.db`.
+  3. **101 Unscopable Directed Edges:** Exactly 71 `REQUIRES` + 30 `UNLOCKS` edges carry invalid provenance tags (`pearson_batch1`, `librarian_upload`), making them unscopable to any evaluation document.
+  4. **9 Unique Graph Cycles (raw DFS count: 9–10, non-deterministic):** 8 are length-2 symmetric dual insertions from `librarian_upload`; 1 is a length-6 cross-paper semantic cycle. Deduplication by minimum rotation yields stable count of 9.
+  5. **1,334 RELATED Edges Skipped:** Evaluator unconditionally excludes `RELATED` edges; they are never evaluated regardless of gold graph content.
+  6. **Vacuous Direction Accuracy:** Returns `1.0` when `matched_undirected == 0` — a measurement defect, not a success.
+- **Proposed Repair Plan (NOT YET IMPLEMENTED — requires S4-F authorization):**
+  - Fix `compare_edges()` to use the concept equivalence map built by `compare_concepts()`.
+  - Re-extract missing gold concepts via targeted ingestion.
+  - Fix `direction_accuracy` denominator guard (`max(1, matched_undirected)`).
+  - Add `--include-related` flag to evaluator (do not remove RELATED by default).
+  - Repair or remove the 101 directed edges with invalid provenance tags (requires human review).
+- **Known Limitations:** 0% Edge F1 is genuine — not an evaluator-only artifact. Even with evaluator fixes, low concept recall will keep Edge F1 near 0%. No new Archipelago features introduced.
+- **Branch / Remote:** `research/s4-e-graph-diagnosis` — [GitHub Branch](https://github.com/prataykarali/Archipelago/tree/research/s4-e-graph-diagnosis)
