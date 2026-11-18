@@ -1,0 +1,181 @@
+{
+  "audit_name": "S5-C2 Human Annotation Validation & Descriptive Agreement Audit",
+  "date": "2026-11-19",
+  "pool_version": "s5b2_1_proposed_pooled_v2.1_pending_approval",
+  "total_pairs": 254,
+  "preserved_originals": {
+    "reviewer_a": {
+      "path": "data/annotation_local/s5c2/originals/reviewer_a_s5b2_1_workbook.md",
+      "sha256": "70049fa849985cfb38aadef2dd499dbf8e665f55f5796a122302d501f17fa09c",
+      "reviewer_id": "REV_A",
+      "ai_assisted_notes_count": 0
+    },
+    "reviewer_b": {
+      "path": "data/annotation_local/s5c2/originals/reviewer_b_s5b2_1_workbook.md",
+      "sha256": "ca3e6af86c72c20bf6dbd66d71f3c5c79ef7795de5d149d23c0b918304ae80f4",
+      "reviewer_id": "REV_B",
+      "ai_assisted_notes_count": 254
+    }
+  },
+  "validation": {
+    "REV_A": {
+      "expected_pair_count": 254,
+      "parsed_pair_count": 254,
+      "missing_pairs": [],
+      "extra_pairs": [],
+      "duplicate_pairs": [],
+      "wrong_reviewer_ids": [],
+      "invalid_grades": [],
+      "invalid_confidences": [],
+      "passage_id_mismatches": [],
+      "sha_mismatches": [],
+      "source_text_discrepancies_count": 2,
+      "source_text_discrepancies_sample": [
+        [
+          "S5B21-PAIR-189",
+          "CONTENT_DIFF"
+        ],
+        [
+          "S5B21-PAIR-232",
+          "CONTENT_DIFF"
+        ]
+      ],
+      "missing_quotes_for_grades_1_2": [],
+      "nonempty_quotes_for_grade_0": [],
+      "quote_exact_matches": 70,
+      "quote_ws_normalized_matches": 0,
+      "quote_mismatches": [],
+      "ai_assisted_notes_count": 0,
+      "grade_distribution": {
+        "0": 184,
+        "1": 44,
+        "2": 26
+      },
+      "confidence_distribution": {
+        "HIGH": 188,
+        "LOW": 10,
+        "MEDIUM": 56
+      }
+    },
+    "REV_B": {
+      "expected_pair_count": 254,
+      "parsed_pair_count": 254,
+      "missing_pairs": [],
+      "extra_pairs": [],
+      "duplicate_pairs": [],
+      "wrong_reviewer_ids": [],
+      "invalid_grades": [],
+      "invalid_confidences": [],
+      "passage_id_mismatches": [],
+      "sha_mismatches": [],
+      "source_text_discrepancies_count": 3,
+      "source_text_discrepancies_sample": [
+        [
+          "S5B21-PAIR-091",
+          "CONTENT_DIFF"
+        ],
+        [
+          "S5B21-PAIR-119",
+          "CONTENT_DIFF"
+        ],
+        [
+          "S5B21-PAIR-134",
+          "CONTENT_DIFF"
+        ]
+      ],
+      "missing_quotes_for_grades_1_2": [],
+      "nonempty_quotes_for_grade_0": [],
+      "quote_exact_matches": 100,
+      "quote_ws_normalized_matches": 0,
+      "quote_mismatches": [],
+      "ai_assisted_notes_count": 254,
+      "grade_distribution": {
+        "0": 154,
+        "1": 79,
+        "2": 21
+      },
+      "confidence_distribution": {
+        "HIGH": 175,
+        "MEDIUM": 79
+      }
+    }
+  },
+  "descriptive_agreement_pre_adjudication": {
+    "independence_status": "UNVERIFIED_AI_ASSISTED_SUBMISSION_IN_REV_B",
+    "agreement_count": 203,
+    "disagreement_count": 51,
+    "raw_agreement_pct": 79.92,
+    "cohens_weighted_kappa_quadratic": 0.7677,
+    "cohens_kappa_unweighted": 0.5972,
+    "confusion_matrix_rows_rev_a_cols_rev_b": [
+      [
+        150,
+        34,
+        0
+      ],
+      [
+        4,
+        36,
+        4
+      ],
+      [
+        0,
+        9,
+        17
+      ]
+    ],
+    "per_query": {
+      "Q-S5B2-01": {
+        "total": 13,
+        "agree": 9,
+        "disagree": 4
+      },
+      "Q-S5B2-02": {
+        "total": 22,
+        "agree": 15,
+        "disagree": 7
+      },
+      "Q-S5B2-03": {
+        "total": 25,
+        "agree": 25,
+        "disagree": 0
+      },
+      "Q-S5B2-04": {
+        "total": 31,
+        "agree": 22,
+        "disagree": 9
+      },
+      "Q-S5B2-05": {
+        "total": 29,
+        "agree": 19,
+        "disagree": 10
+      },
+      "Q-S5B2-06": {
+        "total": 31,
+        "agree": 26,
+        "disagree": 5
+      },
+      "Q-S5B2-07": {
+        "total": 28,
+        "agree": 20,
+        "disagree": 8
+      },
+      "Q-S5B2-08": {
+        "total": 27,
+        "agree": 27,
+        "disagree": 0
+      },
+      "Q-S5B2-10": {
+        "total": 25,
+        "agree": 17,
+        "disagree": 8
+      },
+      "Q-S5B2-11": {
+        "total": 23,
+        "agree": 23,
+        "disagree": 0
+      }
+    }
+  },
+  "readiness_decision": "HOLD_FOR_DISAGREEMENT_ADJUDICATION_AND_REV_B_INDEPENDENCE_CHECK"
+}
