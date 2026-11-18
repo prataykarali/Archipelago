@@ -1,5 +1,5 @@
 {
-  "audit_name": "S5-B1 Graph Construction Information-Access Audit",
+  "audit_name": "S5-B1.1 Complete Graph Information-Access Audit",
   "date": "2026-11-18",
   "database_total_documents": 79,
   "corpus_eligible_documents": 53,
@@ -26,6 +26,75 @@
       "chunk_id": "upload_cb7badb2_p4_4"
     }
   ],
+  "baseline_kuzu_graph_audit": {
+    "total_concept_nodes": 610,
+    "mentioned_concept_nodes": 507,
+    "orphan_concept_nodes_without_chunks": 103,
+    "concepts_in_eligible_713_corpus": 451,
+    "concepts_only_in_external_chunks": 56,
+    "concepts_shared_across_eligible_and_external": 28,
+    "total_concept_edges_in_kuzu": 1988,
+    "eligible_corpus_verified_edges": 1526,
+    "non_eligible_or_unscoped_edges_excluded": 462,
+    "non_eligible_edge_percentage": 23.24,
+    "per_table_breakdown": {
+      "REQUIRES": {
+        "total": 267,
+        "in_eligible_713_corpus": 179,
+        "outside_eligible_713_corpus": 17,
+        "unscoped_label_pearson_batch1": 30,
+        "unscoped_label_librarian_upload": 9,
+        "null_source": 32
+      },
+      "RELATED": {
+        "total": 1334,
+        "in_eligible_713_corpus": 1019,
+        "outside_eligible_713_corpus": 259,
+        "unscoped_label_librarian_upload": 12,
+        "null_source": 44
+      },
+      "UNLOCKS": {
+        "total": 387,
+        "in_eligible_713_corpus": 328,
+        "outside_eligible_713_corpus": 29,
+        "unscoped_label_librarian_upload": 8,
+        "null_source": 22
+      }
+    },
+    "excluded_edge_sources": {
+      "data_science_2019/index_2019_data-science.pdf": 46,
+      "pearson_batch1": 30,
+      "librarian_upload": 29,
+      "NULL_SOURCE": 98,
+      "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf": 27,
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf": 118,
+      "papers/brown2020_gpt3.pdf": 5,
+      "papers/karpukhin2020_dpr.pdf": 4,
+      "papers/velickovic2017_gat.pdf": 6,
+      "papers/kipf2016_gcn.pdf": 18,
+      "papers/hochreiter1997_lstm.pdf": 7,
+      "papers/bai2022_constitutionalai.pdf": 5,
+      "papers/edge2024_graphrag.pdf": 3,
+      "papers/bahdanau2014_attention.pdf": 16,
+      "papers/kwon2023_vllm.pdf": 7,
+      "papers/hu2021_lora.pdf": 1,
+      "papers/yao2022_react.pdf": 3,
+      "papers/ho2020_ddpm.pdf": 4,
+      "papers/goodfellow2014_gan.pdf": 6,
+      "papers/kingma2013_vae.pdf": 2,
+      "papers/krizhevsky2012_alexnet.pdf": 5,
+      "papers/ouyang2022_instructgpt.pdf": 1,
+      "papers/vaswani2017_attention_is_all_you_need.pdf": 1,
+      "papers/rafailov2023_dpo.pdf": 1,
+      "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf": 5,
+      "papers/willard2023_outlines.pdf": 2,
+      "pattern_recognition_2009/no-title-available_2009_pattern-recognition.pdf": 3,
+      "papers/devlin2018_bert.pdf": 5,
+      "papers/dettmers2023_qlora.pdf": 2,
+      "papers/lewis2020_rag.pdf": 2
+    },
+    "baseline_remediation_applied": "RepairedBaselineGraphRetriever strictly filters K\u00f9zu REQUIRES/RELATED/UNLOCKS edges by verifying r.source maps to a canonical {doc_id}::{chunk_id} in the 713-passage corpus and both endpoint concepts occur in eligible passages, with deterministic alphabetical neighbor tie-breaking."
+  },
   "information_access_verdict": "DISCREPANCY_DETECTED_AND_CORRECTED",
-  "remediation_applied": "Graph construction in S5-B1 strictly filters chunks to eligible_chunk_keys before calling extractor. Edges and adjacency lists contain zero information from outside the 713-passage evaluation corpus."
+  "remediation_applied": "Both RepairedHeterogeneousGraphRetriever (146 corpus-scoped edges vs 148 unconstrained) and RepairedBaselineGraphRetriever (1,686 corpus-verified K\u00f9zu edges vs 1,988 unconstrained) are strictly restricted to chunks and edge provenance within the 713-passage evaluation corpus."
 }

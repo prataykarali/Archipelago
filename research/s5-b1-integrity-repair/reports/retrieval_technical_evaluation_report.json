@@ -1,14 +1,28 @@
 {
-  "evaluation_name": "S5-B1 Multi-Hop Retrieval Technical Evaluation Gate",
+  "evaluation_name": "S5-B1.1 Multi-Hop Retrieval Technical Evaluation Gate",
   "date": "2026-11-18",
   "corpus_version": "s5a_eval_corpus_v1",
   "corpus_passage_count": 713,
+  "runtime_fingerprint_verification": {
+    "verified_at_startup": true,
+    "fingerprints": {
+      "passage_count": 713,
+      "corpus_pids_sha256": "f7fe70031781b005d712a7a9a4aa2452a8b17d7353531305b39b09d88eeecd98",
+      "corpus_text_sha256": "8464acaea13cbfae0f345ea29ce1cf707dc39e76832c7729fca33fbd763bc68c",
+      "corpus_sha256": "6435bf449702edf826d69dc8e1ed0525ee611e0c7504d43d2023c32cef8bdba7",
+      "embedding_matrix_sha256": "ffb94053fa66471d14758771253c8c5404bb4adf2e7b14d2c9e4c30b2cbd4ee2",
+      "embedding_matrix_shape": [
+        713,
+        768
+      ]
+    }
+  },
   "application_cold_start_ms": {
-    "corpus_load_ms": 462.368,
-    "dense_model_load_ms": 9612.086,
-    "dense_embedding_cache_load_ms": 0.948,
-    "bm25_index_build_ms": 160.495,
-    "corpus_scoped_graph_build_ms": 2757.84
+    "corpus_load_ms": 400.246,
+    "dense_embedding_cache_load_ms": 21.353,
+    "dense_model_load_ms": 7630.455,
+    "bm25_index_build_ms": 407.279,
+    "corpus_scoped_graph_build_ms": 2458.478
   },
   "systems": {
     "bm25": {
@@ -19,25 +33,24 @@
       "observed_average_hop_depth": "N/A",
       "total_paths_traversed": 0,
       "timing": {
-        "first_query_mean_ms": 5.234,
-        "first_query_max_ms": 7.283,
-        "first_query_min_ms": 3.001,
-        "warm_mean_ms": 4.717,
-        "warm_median_ms": 4.846,
-        "warm_std_ms": 0.966,
-        "warm_min_ms": 2.546,
-        "warm_max_ms": 7.088,
-        "warm_p95_ms": 6.225
+        "first_query_mean_ms": 4.798,
+        "first_query_max_ms": 6.383,
+        "first_query_min_ms": 3.37,
+        "warm_mean_ms": 4.344,
+        "warm_median_ms": 4.353,
+        "warm_std_ms": 0.888,
+        "warm_min_ms": 2.445,
+        "warm_max_ms": 6.23,
+        "warm_p95_ms": 5.979
       },
       "effectiveness_verdict": "NOT_EVALUATED_PENDING_HUMAN_GOLD",
       "query_results": [
         {
           "query_id": "Q-S5A-01",
           "domain": "Operating Systems",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is an address space and why does the operating system provide it to running programs?",
-          "first_query_latency_ms": 7.174,
-          "warm_latency_mean_ms": 4.934,
+          "first_query_latency_ms": 5.759,
+          "warm_latency_mean_ms": 4.799,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -88,10 +101,9 @@
         {
           "query_id": "Q-S5A-02",
           "domain": "Operating Systems",
-          "category": "TWO_HOP",
           "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
-          "first_query_latency_ms": 4.731,
-          "warm_latency_mean_ms": 4.511,
+          "first_query_latency_ms": 4.665,
+          "warm_latency_mean_ms": 4.197,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -142,10 +154,9 @@
         {
           "query_id": "Q-S5A-03",
           "domain": "Operating Systems",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
-          "first_query_latency_ms": 4.786,
-          "warm_latency_mean_ms": 5.272,
+          "first_query_latency_ms": 5.2,
+          "warm_latency_mean_ms": 4.842,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -196,10 +207,9 @@
         {
           "query_id": "Q-S5A-04",
           "domain": "AI & Machine Learning",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
-          "first_query_latency_ms": 4.522,
-          "warm_latency_mean_ms": 4.046,
+          "first_query_latency_ms": 4.374,
+          "warm_latency_mean_ms": 4.202,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -250,10 +260,9 @@
         {
           "query_id": "Q-S5A-05",
           "domain": "AI & Machine Learning",
-          "category": "TWO_HOP",
           "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
-          "first_query_latency_ms": 3.798,
-          "warm_latency_mean_ms": 4.441,
+          "first_query_latency_ms": 4.009,
+          "warm_latency_mean_ms": 3.398,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -304,10 +313,9 @@
         {
           "query_id": "Q-S5A-06",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
-          "first_query_latency_ms": 4.107,
-          "warm_latency_mean_ms": 3.859,
+          "first_query_latency_ms": 3.9,
+          "warm_latency_mean_ms": 3.482,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -358,10 +366,9 @@
         {
           "query_id": "Q-S5A-07",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
-          "first_query_latency_ms": 5.727,
-          "warm_latency_mean_ms": 4.86,
+          "first_query_latency_ms": 4.121,
+          "warm_latency_mean_ms": 4.147,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -412,10 +419,9 @@
         {
           "query_id": "Q-S5A-08",
           "domain": "AI & Machine Learning",
-          "category": "UNANSWERABLE",
           "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
-          "first_query_latency_ms": 6.42,
-          "warm_latency_mean_ms": 6.24,
+          "first_query_latency_ms": 6.383,
+          "warm_latency_mean_ms": 5.794,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -466,10 +472,9 @@
         {
           "query_id": "Q-S5A-09",
           "domain": "Computer Networks",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
-          "first_query_latency_ms": 7.283,
-          "warm_latency_mean_ms": 5.278,
+          "first_query_latency_ms": 5.173,
+          "warm_latency_mean_ms": 4.665,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -520,10 +525,9 @@
         {
           "query_id": "Q-S5A-10",
           "domain": "Computer Networks",
-          "category": "TWO_HOP",
           "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
-          "first_query_latency_ms": 5.725,
-          "warm_latency_mean_ms": 4.683,
+          "first_query_latency_ms": 5.371,
+          "warm_latency_mean_ms": 4.814,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -574,10 +578,9 @@
         {
           "query_id": "Q-S5A-11",
           "domain": "Computer Networks",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
-          "first_query_latency_ms": 5.533,
-          "warm_latency_mean_ms": 5.304,
+          "first_query_latency_ms": 5.254,
+          "warm_latency_mean_ms": 4.967,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -628,10 +631,9 @@
         {
           "query_id": "Q-S5A-12",
           "domain": "Database Management Systems",
-          "category": "TWO_HOP",
           "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
-          "first_query_latency_ms": 3.001,
-          "warm_latency_mean_ms": 3.179,
+          "first_query_latency_ms": 3.37,
+          "warm_latency_mean_ms": 2.819,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -689,25 +691,24 @@
       "observed_average_hop_depth": "N/A",
       "total_paths_traversed": 0,
       "timing": {
-        "first_query_mean_ms": 183.542,
-        "first_query_max_ms": 398.582,
-        "first_query_min_ms": 136.275,
-        "warm_mean_ms": 170.776,
-        "warm_median_ms": 158.398,
-        "warm_std_ms": 30.776,
-        "warm_min_ms": 137.808,
-        "warm_max_ms": 293.306,
-        "warm_p95_ms": 230.81
+        "first_query_mean_ms": 164.95,
+        "first_query_max_ms": 361.618,
+        "first_query_min_ms": 128.562,
+        "warm_mean_ms": 148.281,
+        "warm_median_ms": 142.261,
+        "warm_std_ms": 17.325,
+        "warm_min_ms": 125.764,
+        "warm_max_ms": 205.963,
+        "warm_p95_ms": 178.982
       },
       "effectiveness_verdict": "NOT_EVALUATED_PENDING_HUMAN_GOLD",
       "query_results": [
         {
           "query_id": "Q-S5A-01",
           "domain": "Operating Systems",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is an address space and why does the operating system provide it to running programs?",
-          "first_query_latency_ms": 398.582,
-          "warm_latency_mean_ms": 208.142,
+          "first_query_latency_ms": 361.618,
+          "warm_latency_mean_ms": 139.883,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -758,10 +759,9 @@
         {
           "query_id": "Q-S5A-02",
           "domain": "Operating Systems",
-          "category": "TWO_HOP",
           "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
-          "first_query_latency_ms": 136.275,
-          "warm_latency_mean_ms": 148.816,
+          "first_query_latency_ms": 128.562,
+          "warm_latency_mean_ms": 133.024,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -812,10 +812,9 @@
         {
           "query_id": "Q-S5A-03",
           "domain": "Operating Systems",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
-          "first_query_latency_ms": 184.444,
-          "warm_latency_mean_ms": 194.948,
+          "first_query_latency_ms": 175.281,
+          "warm_latency_mean_ms": 177.675,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -866,10 +865,9 @@
         {
           "query_id": "Q-S5A-04",
           "domain": "AI & Machine Learning",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
-          "first_query_latency_ms": 138.507,
-          "warm_latency_mean_ms": 179.321,
+          "first_query_latency_ms": 131.39,
+          "warm_latency_mean_ms": 131.342,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -920,10 +918,9 @@
         {
           "query_id": "Q-S5A-05",
           "domain": "AI & Machine Learning",
-          "category": "TWO_HOP",
           "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
-          "first_query_latency_ms": 139.956,
-          "warm_latency_mean_ms": 143.797,
+          "first_query_latency_ms": 130.191,
+          "warm_latency_mean_ms": 130.512,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -974,10 +971,9 @@
         {
           "query_id": "Q-S5A-06",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
-          "first_query_latency_ms": 168.03,
-          "warm_latency_mean_ms": 154.292,
+          "first_query_latency_ms": 142.299,
+          "warm_latency_mean_ms": 147.129,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1028,10 +1024,9 @@
         {
           "query_id": "Q-S5A-07",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
-          "first_query_latency_ms": 178.6,
-          "warm_latency_mean_ms": 180.278,
+          "first_query_latency_ms": 159.602,
+          "warm_latency_mean_ms": 170.778,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1082,10 +1077,9 @@
         {
           "query_id": "Q-S5A-08",
           "domain": "AI & Machine Learning",
-          "category": "UNANSWERABLE",
           "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
-          "first_query_latency_ms": 180.718,
-          "warm_latency_mean_ms": 177.637,
+          "first_query_latency_ms": 158.38,
+          "warm_latency_mean_ms": 165.56,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1136,10 +1130,9 @@
         {
           "query_id": "Q-S5A-09",
           "domain": "Computer Networks",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
-          "first_query_latency_ms": 150.495,
-          "warm_latency_mean_ms": 149.998,
+          "first_query_latency_ms": 136.31,
+          "warm_latency_mean_ms": 137.907,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1190,10 +1183,9 @@
         {
           "query_id": "Q-S5A-10",
           "domain": "Computer Networks",
-          "category": "TWO_HOP",
           "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
-          "first_query_latency_ms": 154.625,
-          "warm_latency_mean_ms": 152.596,
+          "first_query_latency_ms": 148.71,
+          "warm_latency_mean_ms": 141.285,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1244,10 +1236,9 @@
         {
           "query_id": "Q-S5A-11",
           "domain": "Computer Networks",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
-          "first_query_latency_ms": 168.977,
-          "warm_latency_mean_ms": 207.344,
+          "first_query_latency_ms": 160.893,
+          "warm_latency_mean_ms": 163.584,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1298,10 +1289,9 @@
         {
           "query_id": "Q-S5A-12",
           "domain": "Database Management Systems",
-          "category": "TWO_HOP",
           "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
-          "first_query_latency_ms": 203.296,
-          "warm_latency_mean_ms": 152.146,
+          "first_query_latency_ms": 146.163,
+          "warm_latency_mean_ms": 140.698,
           "meta": {
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1359,31 +1349,30 @@
       "observed_average_hop_depth": "N/A",
       "total_paths_traversed": 0,
       "timing": {
-        "first_query_mean_ms": 163.034,
-        "first_query_max_ms": 201.711,
-        "first_query_min_ms": 140.157,
-        "warm_mean_ms": 165.403,
-        "warm_median_ms": 160.95,
-        "warm_std_ms": 25.232,
-        "warm_min_ms": 138.465,
-        "warm_max_ms": 250.983,
-        "warm_p95_ms": 215.287
+        "first_query_mean_ms": 156.402,
+        "first_query_max_ms": 196.444,
+        "first_query_min_ms": 134.929,
+        "warm_mean_ms": 153.233,
+        "warm_median_ms": 149.064,
+        "warm_std_ms": 15.487,
+        "warm_min_ms": 132.627,
+        "warm_max_ms": 194.791,
+        "warm_p95_ms": 183.876
       },
       "effectiveness_verdict": "NOT_EVALUATED_PENDING_HUMAN_GOLD",
       "query_results": [
         {
           "query_id": "Q-S5A-01",
           "domain": "Operating Systems",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is an address space and why does the operating system provide it to running programs?",
-          "first_query_latency_ms": 161.953,
-          "warm_latency_mean_ms": 180.408,
+          "first_query_latency_ms": 139.984,
+          "warm_latency_mean_ms": 140.424,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 5.363,
-              "dense_ms": 156.412,
-              "fusion_ms": 0.134,
-              "total_e2e_ms": 161.908
+              "bm25_ms": 4.985,
+              "dense_ms": 134.804,
+              "fusion_ms": 0.146,
+              "total_e2e_ms": 139.936
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1434,16 +1423,15 @@
         {
           "query_id": "Q-S5A-02",
           "domain": "Operating Systems",
-          "category": "TWO_HOP",
           "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
-          "first_query_latency_ms": 166.893,
-          "warm_latency_mean_ms": 152.785,
+          "first_query_latency_ms": 139.06,
+          "warm_latency_mean_ms": 137.089,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 6.734,
-              "dense_ms": 159.993,
-              "fusion_ms": 0.116,
-              "total_e2e_ms": 166.843
+              "bm25_ms": 4.652,
+              "dense_ms": 134.251,
+              "fusion_ms": 0.122,
+              "total_e2e_ms": 139.025
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1494,16 +1482,15 @@
         {
           "query_id": "Q-S5A-03",
           "domain": "Operating Systems",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
-          "first_query_latency_ms": 201.711,
-          "warm_latency_mean_ms": 215.019,
+          "first_query_latency_ms": 196.444,
+          "warm_latency_mean_ms": 179.549,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 5.896,
-              "dense_ms": 195.645,
-              "fusion_ms": 0.126,
-              "total_e2e_ms": 201.668
+              "bm25_ms": 5.391,
+              "dense_ms": 190.858,
+              "fusion_ms": 0.158,
+              "total_e2e_ms": 196.407
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1554,16 +1541,15 @@
         {
           "query_id": "Q-S5A-04",
           "domain": "AI & Machine Learning",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
-          "first_query_latency_ms": 141.332,
-          "warm_latency_mean_ms": 144.697,
+          "first_query_latency_ms": 136.13,
+          "warm_latency_mean_ms": 137.356,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 4.393,
-              "dense_ms": 136.787,
+              "bm25_ms": 4.525,
+              "dense_ms": 131.459,
               "fusion_ms": 0.115,
-              "total_e2e_ms": 141.294
+              "total_e2e_ms": 136.099
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1614,16 +1600,15 @@
         {
           "query_id": "Q-S5A-05",
           "domain": "AI & Machine Learning",
-          "category": "TWO_HOP",
           "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
-          "first_query_latency_ms": 170.18,
-          "warm_latency_mean_ms": 161.384,
+          "first_query_latency_ms": 134.929,
+          "warm_latency_mean_ms": 135.239,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 4.806,
-              "dense_ms": 165.23,
-              "fusion_ms": 0.111,
-              "total_e2e_ms": 170.148
+              "bm25_ms": 4.22,
+              "dense_ms": 130.556,
+              "fusion_ms": 0.123,
+              "total_e2e_ms": 134.898
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1674,16 +1659,15 @@
         {
           "query_id": "Q-S5A-06",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
-          "first_query_latency_ms": 173.844,
-          "warm_latency_mean_ms": 161.328,
+          "first_query_latency_ms": 152.693,
+          "warm_latency_mean_ms": 150.676,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 4.912,
-              "dense_ms": 168.799,
-              "fusion_ms": 0.102,
-              "total_e2e_ms": 173.813
+              "bm25_ms": 4.299,
+              "dense_ms": 148.243,
+              "fusion_ms": 0.111,
+              "total_e2e_ms": 152.653
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1734,16 +1718,15 @@
         {
           "query_id": "Q-S5A-07",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
-          "first_query_latency_ms": 172.319,
-          "warm_latency_mean_ms": 187.668,
+          "first_query_latency_ms": 170.284,
+          "warm_latency_mean_ms": 167.05,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 5.137,
-              "dense_ms": 166.959,
-              "fusion_ms": 0.181,
-              "total_e2e_ms": 172.278
+              "bm25_ms": 5.209,
+              "dense_ms": 164.927,
+              "fusion_ms": 0.117,
+              "total_e2e_ms": 170.253
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1794,16 +1777,15 @@
         {
           "query_id": "Q-S5A-08",
           "domain": "AI & Machine Learning",
-          "category": "UNANSWERABLE",
           "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
-          "first_query_latency_ms": 176.768,
-          "warm_latency_mean_ms": 166.722,
+          "first_query_latency_ms": 171.395,
+          "warm_latency_mean_ms": 172.672,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 6.742,
-              "dense_ms": 169.892,
-              "fusion_ms": 0.105,
-              "total_e2e_ms": 176.738
+              "bm25_ms": 6.09,
+              "dense_ms": 165.159,
+              "fusion_ms": 0.114,
+              "total_e2e_ms": 171.363
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1854,16 +1836,15 @@
         {
           "query_id": "Q-S5A-09",
           "domain": "Computer Networks",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
-          "first_query_latency_ms": 141.215,
-          "warm_latency_mean_ms": 158.261,
+          "first_query_latency_ms": 155.015,
+          "warm_latency_mean_ms": 145.509,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 5.517,
-              "dense_ms": 135.564,
-              "fusion_ms": 0.103,
-              "total_e2e_ms": 141.184
+              "bm25_ms": 5.843,
+              "dense_ms": 149.008,
+              "fusion_ms": 0.128,
+              "total_e2e_ms": 154.978
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1914,16 +1895,15 @@
         {
           "query_id": "Q-S5A-10",
           "domain": "Computer Networks",
-          "category": "TWO_HOP",
           "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
-          "first_query_latency_ms": 142.716,
-          "warm_latency_mean_ms": 145.981,
+          "first_query_latency_ms": 169.189,
+          "warm_latency_mean_ms": 151.786,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 5.331,
-              "dense_ms": 137.26,
-              "fusion_ms": 0.092,
-              "total_e2e_ms": 142.684
+              "bm25_ms": 4.879,
+              "dense_ms": 164.169,
+              "fusion_ms": 0.101,
+              "total_e2e_ms": 169.149
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -1974,16 +1954,15 @@
         {
           "query_id": "Q-S5A-11",
           "domain": "Computer Networks",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
-          "first_query_latency_ms": 167.315,
-          "warm_latency_mean_ms": 168.805,
+          "first_query_latency_ms": 163.61,
+          "warm_latency_mean_ms": 166.684,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 5.904,
-              "dense_ms": 161.257,
-              "fusion_ms": 0.122,
-              "total_e2e_ms": 167.283
+              "bm25_ms": 5.754,
+              "dense_ms": 157.701,
+              "fusion_ms": 0.126,
+              "total_e2e_ms": 163.581
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -2034,16 +2013,15 @@
         {
           "query_id": "Q-S5A-12",
           "domain": "Database Management Systems",
-          "category": "TWO_HOP",
           "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
-          "first_query_latency_ms": 140.157,
-          "warm_latency_mean_ms": 141.784,
+          "first_query_latency_ms": 148.095,
+          "warm_latency_mean_ms": 154.761,
           "meta": {
             "timing_breakdown": {
-              "bm25_ms": 3.599,
-              "dense_ms": 136.413,
-              "fusion_ms": 0.11,
-              "total_e2e_ms": 140.122
+              "bm25_ms": 4.315,
+              "dense_ms": 143.625,
+              "fusion_ms": 0.126,
+              "total_e2e_ms": 148.066
             },
             "is_fallback": false,
             "actual_hop_count": "N/A"
@@ -2099,27 +2077,26 @@
       "fallback_count": 2,
       "fallback_rate": 0.167,
       "observed_average_hop_depth": 0.5,
-      "total_paths_traversed": 49,
+      "total_paths_traversed": 46,
       "timing": {
-        "first_query_mean_ms": 9.776,
-        "first_query_max_ms": 22.484,
-        "first_query_min_ms": 3.724,
-        "warm_mean_ms": 8.467,
-        "warm_median_ms": 5.739,
-        "warm_std_ms": 5.672,
-        "warm_min_ms": 2.839,
-        "warm_max_ms": 22.311,
-        "warm_p95_ms": 21.462
+        "first_query_mean_ms": 21.953,
+        "first_query_max_ms": 61.523,
+        "first_query_min_ms": 5.527,
+        "warm_mean_ms": 20.077,
+        "warm_median_ms": 8.261,
+        "warm_std_ms": 20.864,
+        "warm_min_ms": 4.439,
+        "warm_max_ms": 70.009,
+        "warm_p95_ms": 60.184
       },
       "effectiveness_verdict": "NOT_EVALUATED_PENDING_HUMAN_GOLD",
       "query_results": [
         {
           "query_id": "Q-S5A-01",
           "domain": "Operating Systems",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is an address space and why does the operating system provide it to running programs?",
-          "first_query_latency_ms": 4.978,
-          "warm_latency_mean_ms": 4.498,
+          "first_query_latency_ms": 5.527,
+          "warm_latency_mean_ms": 4.848,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -2127,6 +2104,7 @@
             "actual_hop_count": 0,
             "is_fallback": true,
             "fallback_strategy": "corpus_bm25",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [],
             "traversal_errors": []
           },
@@ -2176,10 +2154,9 @@
         {
           "query_id": "Q-S5A-02",
           "domain": "Operating Systems",
-          "category": "TWO_HOP",
           "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
-          "first_query_latency_ms": 22.267,
-          "warm_latency_mean_ms": 5.541,
+          "first_query_latency_ms": 24.46,
+          "warm_latency_mean_ms": 7.513,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -2189,17 +2166,18 @@
             "actual_hop_count": 1,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [
               {
                 "source": "translation",
-                "relation": "KUZU_EDGE",
-                "target": "linear regression",
+                "relation": "RELATED",
+                "target": "alignment",
                 "hop": 1
               },
               {
                 "source": "translation",
-                "relation": "KUZU_EDGE",
-                "target": "alignment",
+                "relation": "RELATED",
+                "target": "linear regression",
                 "hop": 1
               }
             ],
@@ -2235,10 +2213,9 @@
         {
           "query_id": "Q-S5A-03",
           "domain": "Operating Systems",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
-          "first_query_latency_ms": 5.896,
-          "warm_latency_mean_ms": 6.149,
+          "first_query_latency_ms": 8.129,
+          "warm_latency_mean_ms": 7.651,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -2248,6 +2225,7 @@
             "actual_hop_count": 0,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [],
             "traversal_errors": []
           },
@@ -2261,10 +2239,9 @@
         {
           "query_id": "Q-S5A-04",
           "domain": "AI & Machine Learning",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
-          "first_query_latency_ms": 5.728,
-          "warm_latency_mean_ms": 7.412,
+          "first_query_latency_ms": 20.554,
+          "warm_latency_mean_ms": 16.73,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -2274,35 +2251,36 @@
             "actual_hop_count": 1,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [
               {
                 "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "neural network",
+                "relation": "RELATED",
+                "target": "adapter",
                 "hop": 1
               },
               {
                 "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "neural network",
+                "relation": "RELATED",
+                "target": "adaptive optimizers",
                 "hop": 1
               },
               {
                 "source": "transformer",
-                "relation": "KUZU_EDGE",
+                "relation": "UNLOCKS",
+                "target": "adaptive optimizers",
+                "hop": 1
+              },
+              {
+                "source": "transformer",
+                "relation": "UNLOCKS",
                 "target": "anomaly score",
                 "hop": 1
               },
               {
                 "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "neural machine translation",
-                "hop": 1
-              },
-              {
-                "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "attention mechanism",
+                "relation": "RELATED",
+                "target": "auto-regressive",
                 "hop": 1
               }
             ],
@@ -2310,27 +2288,11 @@
           },
           "retrieved_top10": [
             {
-              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_008",
+              "passage_id": "papers/hu2021_lora.pdf::chunk_005",
               "score": 3.0
             },
             {
-              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_009",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_026",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/kwon2023_vllm.pdf::chunk_001",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_005",
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
               "score": 3.0
             },
             {
@@ -2338,7 +2300,15 @@
               "score": 2.0
             },
             {
-              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_006",
+              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_008",
+              "score": 2.0
+            },
+            {
+              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_009",
+              "score": 2.0
+            },
+            {
+              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_026",
               "score": 2.0
             },
             {
@@ -2348,16 +2318,23 @@
             {
               "passage_id": "papers/brown2020_gpt3.pdf::chunk_005",
               "score": 2.0
+            },
+            {
+              "passage_id": "papers/brown2020_gpt3.pdf::chunk_020",
+              "score": 2.0
+            },
+            {
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_010",
+              "score": 2.0
             }
           ]
         },
         {
           "query_id": "Q-S5A-05",
           "domain": "AI & Machine Learning",
-          "category": "TWO_HOP",
           "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
-          "first_query_latency_ms": 6.676,
-          "warm_latency_mean_ms": 5.823,
+          "first_query_latency_ms": 10.024,
+          "warm_latency_mean_ms": 8.204,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -2367,35 +2344,36 @@
             "actual_hop_count": 1,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [
               {
                 "source": "multi-head attention",
-                "relation": "KUZU_EDGE",
+                "relation": "RELATED",
+                "target": "fully connected feed-forward network",
+                "hop": 1
+              },
+              {
+                "source": "multi-head attention",
+                "relation": "RELATED",
+                "target": "graph attention layer",
+                "hop": 1
+              },
+              {
+                "source": "multi-head attention",
+                "relation": "UNLOCKS",
+                "target": "graph attention layer",
+                "hop": 1
+              },
+              {
+                "source": "multi-head attention",
+                "relation": "UNLOCKS",
                 "target": "graph convolutional network",
                 "hop": 1
               },
               {
                 "source": "multi-head attention",
-                "relation": "KUZU_EDGE",
-                "target": "transformer",
-                "hop": 1
-              },
-              {
-                "source": "multi-head attention",
-                "relation": "KUZU_EDGE",
-                "target": "weight decay",
-                "hop": 1
-              },
-              {
-                "source": "multi-head attention",
-                "relation": "KUZU_EDGE",
-                "target": "multihead",
-                "hop": 1
-              },
-              {
-                "source": "multi-head attention",
-                "relation": "KUZU_EDGE",
-                "target": "multihead",
+                "relation": "RELATED",
+                "target": "masking",
                 "hop": 1
               }
             ],
@@ -2403,11 +2381,11 @@
           },
           "retrieved_top10": [
             {
-              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
               "score": 3.0
             },
             {
-              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "passage_id": "papers/velickovic2017_gat.pdf::chunk_013",
               "score": 3.0
             },
             {
@@ -2420,6 +2398,10 @@
             },
             {
               "passage_id": "papers/kwon2023_vllm.pdf::chunk_026",
+              "score": 2.0
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
               "score": 2.0
             },
             {
@@ -2437,89 +2419,79 @@
             {
               "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
               "score": 2.0
-            },
-            {
-              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
-              "score": 2.0
             }
           ]
         },
         {
           "query_id": "Q-S5A-06",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
-          "first_query_latency_ms": 12.698,
-          "warm_latency_mean_ms": 13.273,
+          "first_query_latency_ms": 54.303,
+          "warm_latency_mean_ms": 51.431,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "transformer",
-              "low-rank adaptation"
+              "low-rank adaptation",
+              "transformer"
             ],
             "traversed_concepts_count": 9,
             "actual_hop_count": 1,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [
               {
-                "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "neural network",
+                "source": "low-rank adaptation",
+                "relation": "RELATED",
+                "target": "bert",
+                "hop": 1
+              },
+              {
+                "source": "low-rank adaptation",
+                "relation": "RELATED",
+                "target": "roberta",
+                "hop": 1
+              },
+              {
+                "source": "low-rank adaptation",
+                "relation": "RELATED",
+                "target": "transformer",
+                "hop": 1
+              },
+              {
+                "source": "low-rank adaptation",
+                "relation": "UNLOCKS",
+                "target": "word embeddings",
                 "hop": 1
               },
               {
                 "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "neural network",
+                "relation": "RELATED",
+                "target": "adapter",
                 "hop": 1
               },
               {
                 "source": "transformer",
-                "relation": "KUZU_EDGE",
+                "relation": "RELATED",
+                "target": "adaptive optimizers",
+                "hop": 1
+              },
+              {
+                "source": "transformer",
+                "relation": "UNLOCKS",
+                "target": "adaptive optimizers",
+                "hop": 1
+              },
+              {
+                "source": "transformer",
+                "relation": "UNLOCKS",
                 "target": "anomaly score",
                 "hop": 1
               },
               {
                 "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "neural machine translation",
-                "hop": 1
-              },
-              {
-                "source": "transformer",
-                "relation": "KUZU_EDGE",
-                "target": "attention mechanism",
-                "hop": 1
-              },
-              {
-                "source": "low-rank adaptation",
-                "relation": "KUZU_EDGE",
-                "target": "graph rag",
-                "hop": 1
-              },
-              {
-                "source": "low-rank adaptation",
-                "relation": "KUZU_EDGE",
-                "target": "transformer",
-                "hop": 1
-              },
-              {
-                "source": "low-rank adaptation",
-                "relation": "KUZU_EDGE",
-                "target": "transformer",
-                "hop": 1
-              },
-              {
-                "source": "low-rank adaptation",
-                "relation": "KUZU_EDGE",
-                "target": "word embeddings",
-                "hop": 1
-              },
-              {
-                "source": "low-rank adaptation",
-                "relation": "KUZU_EDGE",
-                "target": "fine-tuning",
+                "relation": "RELATED",
+                "target": "auto-regressive",
                 "hop": 1
               }
             ],
@@ -2531,145 +2503,133 @@
               "score": 4.0
             },
             {
-              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_008",
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_010",
               "score": 3.0
+            },
+            {
+              "passage_id": "papers/hu2021_lora.pdf::chunk_005",
+              "score": 3.0
+            },
+            {
+              "passage_id": "papers/hu2021_lora.pdf::chunk_020",
+              "score": 3.0
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "score": 3.0
+            },
+            {
+              "passage_id": "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "score": 2.0
+            },
+            {
+              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_008",
+              "score": 2.0
             },
             {
               "passage_id": "papers/bahdanau2014_attention.pdf::chunk_009",
-              "score": 3.0
+              "score": 2.0
             },
             {
               "passage_id": "papers/bahdanau2014_attention.pdf::chunk_026",
-              "score": 3.0
+              "score": 2.0
             },
             {
-              "passage_id": "papers/brown2020_gpt3.pdf::chunk_005",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_016",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/hu2021_lora.pdf::chunk_023",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/hu2021_lora.pdf::chunk_034",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/kwon2023_vllm.pdf::chunk_001",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
-              "score": 3.0
+              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_029",
+              "score": 2.0
             }
           ]
         },
         {
           "query_id": "Q-S5A-07",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
-          "first_query_latency_ms": 22.484,
-          "warm_latency_mean_ms": 21.374,
+          "first_query_latency_ms": 50.672,
+          "warm_latency_mean_ms": 52.379,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "fine-tuning",
-              "quantization",
               "adapter",
-              "qlora"
+              "fine-tuning",
+              "qlora",
+              "quantization"
             ],
-            "traversed_concepts_count": 14,
+            "traversed_concepts_count": 12,
             "actual_hop_count": 1,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [
               {
-                "source": "fine-tuning",
-                "relation": "KUZU_EDGE",
-                "target": "neural network",
+                "source": "adapter",
+                "relation": "RELATED",
+                "target": "feature learning",
+                "hop": 1
+              },
+              {
+                "source": "adapter",
+                "relation": "RELATED",
+                "target": "gpt",
                 "hop": 1
               },
               {
                 "source": "fine-tuning",
-                "relation": "KUZU_EDGE",
-                "target": "zero-shot learning",
+                "relation": "RELATED",
+                "target": "adapter",
                 "hop": 1
               },
               {
                 "source": "fine-tuning",
-                "relation": "KUZU_EDGE",
-                "target": "zero-shot learning",
+                "relation": "RELATED",
+                "target": "bert",
                 "hop": 1
               },
               {
                 "source": "fine-tuning",
-                "relation": "KUZU_EDGE",
-                "target": "deep learning",
+                "relation": "UNLOCKS",
+                "target": "bert",
                 "hop": 1
               },
               {
                 "source": "fine-tuning",
-                "relation": "KUZU_EDGE",
-                "target": "language model",
+                "relation": "RELATED",
+                "target": "cot-sc",
+                "hop": 1
+              },
+              {
+                "source": "fine-tuning",
+                "relation": "RELATED",
+                "target": "dpr",
                 "hop": 1
               },
               {
                 "source": "quantization",
-                "relation": "KUZU_EDGE",
+                "relation": "RELATED",
                 "target": "adapter",
                 "hop": 1
               },
               {
                 "source": "quantization",
-                "relation": "KUZU_EDGE",
+                "relation": "RELATED",
                 "target": "feature learning",
                 "hop": 1
               },
               {
                 "source": "quantization",
-                "relation": "KUZU_EDGE",
-                "target": "llama",
-                "hop": 1
-              },
-              {
-                "source": "quantization",
-                "relation": "KUZU_EDGE",
+                "relation": "UNLOCKS",
                 "target": "large language model serving",
                 "hop": 1
               },
               {
                 "source": "quantization",
-                "relation": "KUZU_EDGE",
+                "relation": "RELATED",
+                "target": "llama",
+                "hop": 1
+              },
+              {
+                "source": "quantization",
+                "relation": "RELATED",
                 "target": "optimizer",
-                "hop": 1
-              },
-              {
-                "source": "adapter",
-                "relation": "KUZU_EDGE",
-                "target": "transformer",
-                "hop": 1
-              },
-              {
-                "source": "adapter",
-                "relation": "KUZU_EDGE",
-                "target": "gpt",
-                "hop": 1
-              },
-              {
-                "source": "adapter",
-                "relation": "KUZU_EDGE",
-                "target": "fine-tuning",
-                "hop": 1
-              },
-              {
-                "source": "adapter",
-                "relation": "KUZU_EDGE",
-                "target": "feature learning",
                 "hop": 1
               }
             ],
@@ -2677,35 +2637,35 @@
           },
           "retrieved_top10": [
             {
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_020",
+              "score": 4.0
+            },
+            {
               "passage_id": "papers/hu2021_lora.pdf::chunk_012",
               "score": 4.0
             },
             {
-              "passage_id": "papers/brown2020_gpt3.pdf::chunk_005",
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_007",
               "score": 3.0
             },
             {
-              "passage_id": "papers/brown2020_gpt3.pdf::chunk_006",
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_022",
               "score": 3.0
             },
             {
-              "passage_id": "papers/brown2020_gpt3.pdf::chunk_026",
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_024",
               "score": 3.0
             },
             {
-              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_008",
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_028",
               "score": 3.0
             },
             {
-              "passage_id": "papers/devlin2018_bert.pdf::chunk_020",
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_031",
               "score": 3.0
             },
             {
               "passage_id": "papers/hu2021_lora.pdf::chunk_019",
-              "score": 3.0
-            },
-            {
-              "passage_id": "papers/hu2021_lora.pdf::chunk_023",
               "score": 3.0
             },
             {
@@ -2721,10 +2681,9 @@
         {
           "query_id": "Q-S5A-08",
           "domain": "AI & Machine Learning",
-          "category": "UNANSWERABLE",
           "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
-          "first_query_latency_ms": 5.371,
-          "warm_latency_mean_ms": 5.304,
+          "first_query_latency_ms": 7.462,
+          "warm_latency_mean_ms": 7.749,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -2734,6 +2693,7 @@
             "actual_hop_count": 0,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [],
             "traversal_errors": []
           },
@@ -2747,10 +2707,9 @@
         {
           "query_id": "Q-S5A-09",
           "domain": "Computer Networks",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
-          "first_query_latency_ms": 5.051,
-          "warm_latency_mean_ms": 4.826,
+          "first_query_latency_ms": 5.8,
+          "warm_latency_mean_ms": 5.268,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -2758,6 +2717,7 @@
             "actual_hop_count": 0,
             "is_fallback": true,
             "fallback_strategy": "corpus_bm25",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [],
             "traversal_errors": []
           },
@@ -2807,98 +2767,98 @@
         {
           "query_id": "Q-S5A-10",
           "domain": "Computer Networks",
-          "category": "TWO_HOP",
           "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
-          "first_query_latency_ms": 16.476,
-          "warm_latency_mean_ms": 18.036,
+          "first_query_latency_ms": 61.523,
+          "warm_latency_mean_ms": 61.989,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
+              "dynamic graph",
               "graph neural network",
-              "neural network",
-              "dynamic graph"
+              "neural network"
             ],
-            "traversed_concepts_count": 11,
+            "traversed_concepts_count": 15,
             "actual_hop_count": 1,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [
               {
-                "source": "graph neural network",
-                "relation": "KUZU_EDGE",
-                "target": "dynamic clustering",
-                "hop": 1
-              },
-              {
-                "source": "graph neural network",
-                "relation": "KUZU_EDGE",
-                "target": "dynamic clustering",
-                "hop": 1
-              },
-              {
-                "source": "graph neural network",
-                "relation": "KUZU_EDGE",
-                "target": "neural network",
-                "hop": 1
-              },
-              {
-                "source": "graph neural network",
-                "relation": "KUZU_EDGE",
-                "target": "neural network",
-                "hop": 1
-              },
-              {
-                "source": "graph neural network",
-                "relation": "KUZU_EDGE",
-                "target": "deep learning",
-                "hop": 1
-              },
-              {
-                "source": "neural network",
-                "relation": "KUZU_EDGE",
-                "target": "anomaly detection",
-                "hop": 1
-              },
-              {
-                "source": "neural network",
-                "relation": "KUZU_EDGE",
-                "target": "graph neural network",
-                "hop": 1
-              },
-              {
-                "source": "neural network",
-                "relation": "KUZU_EDGE",
-                "target": "graph neural network",
-                "hop": 1
-              },
-              {
-                "source": "neural network",
-                "relation": "KUZU_EDGE",
-                "target": "graph representation",
-                "hop": 1
-              },
-              {
-                "source": "neural network",
-                "relation": "KUZU_EDGE",
-                "target": "clustering",
-                "hop": 1
-              },
-              {
                 "source": "dynamic graph",
-                "relation": "KUZU_EDGE",
+                "relation": "RELATED",
                 "target": "adversarial neural network",
                 "hop": 1
               },
               {
                 "source": "dynamic graph",
-                "relation": "KUZU_EDGE",
-                "target": "second order nets",
+                "relation": "RELATED",
+                "target": "equation only",
                 "hop": 1
               },
               {
                 "source": "dynamic graph",
-                "relation": "KUZU_EDGE",
-                "target": "equation only",
+                "relation": "RELATED",
+                "target": "second order nets",
+                "hop": 1
+              },
+              {
+                "source": "graph neural network",
+                "relation": "RELATED",
+                "target": "actor-critic method",
+                "hop": 1
+              },
+              {
+                "source": "graph neural network",
+                "relation": "RELATED",
+                "target": "deep learning",
+                "hop": 1
+              },
+              {
+                "source": "graph neural network",
+                "relation": "RELATED",
+                "target": "deepwalk",
+                "hop": 1
+              },
+              {
+                "source": "graph neural network",
+                "relation": "RELATED",
+                "target": "dynamic clustering",
+                "hop": 1
+              },
+              {
+                "source": "graph neural network",
+                "relation": "RELATED",
+                "target": "graph convolutional network",
+                "hop": 1
+              },
+              {
+                "source": "neural network",
+                "relation": "RELATED",
+                "target": "anomaly score",
+                "hop": 1
+              },
+              {
+                "source": "neural network",
+                "relation": "UNLOCKS",
+                "target": "anomaly score",
+                "hop": 1
+              },
+              {
+                "source": "neural network",
+                "relation": "RELATED",
+                "target": "attention mechanism",
+                "hop": 1
+              },
+              {
+                "source": "neural network",
+                "relation": "RELATED",
+                "target": "clustering",
+                "hop": 1
+              },
+              {
+                "source": "neural network",
+                "relation": "UNLOCKS",
+                "target": "d-magic",
                 "hop": 1
               }
             ],
@@ -2922,10 +2882,6 @@
               "score": 4.0
             },
             {
-              "passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_058",
-              "score": 4.0
-            },
-            {
               "passage_id": "papers/velickovic2017_gat.pdf::chunk_003",
               "score": 4.0
             },
@@ -2938,11 +2894,15 @@
               "score": 4.0
             },
             {
-              "passage_id": "papers/kipf2016_gcn.pdf::chunk_025",
+              "passage_id": "papers/kipf2016_gcn.pdf::chunk_005",
               "score": 3.0
             },
             {
-              "passage_id": "papers/kipf2016_gcn.pdf::chunk_029",
+              "passage_id": "papers/kipf2016_gcn.pdf::chunk_009",
+              "score": 3.0
+            },
+            {
+              "passage_id": "papers/kipf2016_gcn.pdf::chunk_025",
               "score": 3.0
             }
           ]
@@ -2950,10 +2910,9 @@
         {
           "query_id": "Q-S5A-11",
           "domain": "Computer Networks",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
-          "first_query_latency_ms": 5.957,
-          "warm_latency_mean_ms": 5.854,
+          "first_query_latency_ms": 6.982,
+          "warm_latency_mean_ms": 8.792,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -2963,6 +2922,7 @@
             "actual_hop_count": 0,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [],
             "traversal_errors": []
           },
@@ -2976,10 +2936,9 @@
         {
           "query_id": "Q-S5A-12",
           "domain": "Database Management Systems",
-          "category": "TWO_HOP",
           "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
-          "first_query_latency_ms": 3.724,
-          "warm_latency_mean_ms": 3.516,
+          "first_query_latency_ms": 7.998,
+          "warm_latency_mean_ms": 8.366,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -2989,6 +2948,7 @@
             "actual_hop_count": 0,
             "is_fallback": false,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": true,
             "paths_traversed": [],
             "traversal_errors": []
           },
@@ -3009,25 +2969,24 @@
       "observed_average_hop_depth": 0.5,
       "total_paths_traversed": 45,
       "timing": {
-        "first_query_mean_ms": 2.521,
-        "first_query_max_ms": 5.483,
-        "first_query_min_ms": 0.23,
-        "warm_mean_ms": 2.346,
-        "warm_median_ms": 1.629,
-        "warm_std_ms": 2.182,
-        "warm_min_ms": 0.151,
-        "warm_max_ms": 6.82,
-        "warm_p95_ms": 5.439
+        "first_query_mean_ms": 2.561,
+        "first_query_max_ms": 5.564,
+        "first_query_min_ms": 0.236,
+        "warm_mean_ms": 2.317,
+        "warm_median_ms": 1.53,
+        "warm_std_ms": 2.127,
+        "warm_min_ms": 0.132,
+        "warm_max_ms": 5.576,
+        "warm_p95_ms": 5.312
       },
       "effectiveness_verdict": "NOT_EVALUATED_PENDING_HUMAN_GOLD",
       "query_results": [
         {
           "query_id": "Q-S5A-01",
           "domain": "Operating Systems",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is an address space and why does the operating system provide it to running programs?",
-          "first_query_latency_ms": 5.483,
-          "warm_latency_mean_ms": 4.447,
+          "first_query_latency_ms": 4.715,
+          "warm_latency_mean_ms": 4.914,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -3084,10 +3043,9 @@
         {
           "query_id": "Q-S5A-02",
           "domain": "Operating Systems",
-          "category": "TWO_HOP",
           "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
-          "first_query_latency_ms": 3.897,
-          "warm_latency_mean_ms": 3.76,
+          "first_query_latency_ms": 4.619,
+          "warm_latency_mean_ms": 3.959,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -3144,10 +3102,9 @@
         {
           "query_id": "Q-S5A-03",
           "domain": "Operating Systems",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
-          "first_query_latency_ms": 5.331,
-          "warm_latency_mean_ms": 4.621,
+          "first_query_latency_ms": 5.361,
+          "warm_latency_mean_ms": 5.019,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -3204,16 +3161,15 @@
         {
           "query_id": "Q-S5A-04",
           "domain": "AI & Machine Learning",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
-          "first_query_latency_ms": 0.578,
-          "warm_latency_mean_ms": 0.56,
+          "first_query_latency_ms": 0.644,
+          "warm_latency_mean_ms": 0.45,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "transformer",
+              "attention",
               "the transformer",
-              "attention"
+              "transformer"
             ],
             "traversed_concepts_count": 13,
             "actual_hop_count": 1,
@@ -3221,6 +3177,66 @@
             "fallback_strategy": "none",
             "max_hops_configured": 1,
             "paths_traversed": [
+              {
+                "source": "attention",
+                "relation": "PART_OF",
+                "target": "encoder",
+                "hop": 1
+              },
+              {
+                "source": "attention",
+                "relation": "REQUIRES",
+                "target": "hbm",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "attention",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "multi-head attention",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "decoder",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "encoder",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "transformer",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "wsj",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "berkeley- parser",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "parser",
+                "hop": 1
+              },
               {
                 "source": "transformer",
                 "relation": "USES",
@@ -3286,66 +3302,6 @@
                 "relation": "CONTRASTS_WITH",
                 "target": "parser",
                 "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "attention",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "multi-head attention",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "decoder",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "encoder",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "transformer",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "wsj",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "berkeley- parser",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "parser",
-                "hop": 1
-              },
-              {
-                "source": "attention",
-                "relation": "PART_OF",
-                "target": "encoder",
-                "hop": 1
-              },
-              {
-                "source": "attention",
-                "relation": "REQUIRES",
-                "target": "hbm",
-                "hop": 1
               }
             ]
           },
@@ -3395,9 +3351,8 @@
         {
           "query_id": "Q-S5A-05",
           "domain": "AI & Machine Learning",
-          "category": "TWO_HOP",
           "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
-          "first_query_latency_ms": 0.231,
+          "first_query_latency_ms": 0.236,
           "warm_latency_mean_ms": 0.189,
           "meta": {
             "anchor_found": true,
@@ -3470,15 +3425,14 @@
         {
           "query_id": "Q-S5A-06",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
-          "first_query_latency_ms": 0.545,
-          "warm_latency_mean_ms": 0.461,
+          "first_query_latency_ms": 0.552,
+          "warm_latency_mean_ms": 0.437,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "transformer",
-              "low-rank adaptation"
+              "low-rank adaptation",
+              "transformer"
             ],
             "traversed_concepts_count": 13,
             "actual_hop_count": 1,
@@ -3486,6 +3440,12 @@
             "fallback_strategy": "none",
             "max_hops_configured": 1,
             "paths_traversed": [
+              {
+                "source": "low-rank adaptation",
+                "relation": "PART_OF",
+                "target": "transformer",
+                "hop": 1
+              },
               {
                 "source": "transformer",
                 "relation": "USES",
@@ -3551,12 +3511,6 @@
                 "relation": "CONTRASTS_WITH",
                 "target": "parser",
                 "hop": 1
-              },
-              {
-                "source": "low-rank adaptation",
-                "relation": "PART_OF",
-                "target": "transformer",
-                "hop": 1
               }
             ]
           },
@@ -3606,15 +3560,14 @@
         {
           "query_id": "Q-S5A-07",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
-          "first_query_latency_ms": 0.301,
-          "warm_latency_mean_ms": 0.207,
+          "first_query_latency_ms": 0.314,
+          "warm_latency_mean_ms": 0.233,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "qlora",
-              "gpu"
+              "gpu",
+              "qlora"
             ],
             "traversed_concepts_count": 6,
             "actual_hop_count": 1,
@@ -3622,12 +3575,6 @@
             "fallback_strategy": "none",
             "max_hops_configured": 1,
             "paths_traversed": [
-              {
-                "source": "qlora",
-                "relation": "USES",
-                "target": "low-rank adapter",
-                "hop": 1
-              },
               {
                 "source": "gpu",
                 "relation": "CONTRASTS_WITH",
@@ -3644,6 +3591,12 @@
                 "source": "gpu",
                 "relation": "CONTRASTS_WITH",
                 "target": "one gpu",
+                "hop": 1
+              },
+              {
+                "source": "qlora",
+                "relation": "USES",
+                "target": "low-rank adapter",
                 "hop": 1
               }
             ]
@@ -3694,10 +3647,9 @@
         {
           "query_id": "Q-S5A-08",
           "domain": "AI & Machine Learning",
-          "category": "UNANSWERABLE",
           "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
-          "first_query_latency_ms": 0.23,
-          "warm_latency_mean_ms": 0.19,
+          "first_query_latency_ms": 0.265,
+          "warm_latency_mean_ms": 0.187,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -3775,10 +3727,9 @@
         {
           "query_id": "Q-S5A-09",
           "domain": "Computer Networks",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
-          "first_query_latency_ms": 4.464,
-          "warm_latency_mean_ms": 5.556,
+          "first_query_latency_ms": 5.564,
+          "warm_latency_mean_ms": 4.563,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -3835,10 +3786,9 @@
         {
           "query_id": "Q-S5A-10",
           "domain": "Computer Networks",
-          "category": "TWO_HOP",
           "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
-          "first_query_latency_ms": 0.277,
-          "warm_latency_mean_ms": 0.176,
+          "first_query_latency_ms": 0.244,
+          "warm_latency_mean_ms": 0.153,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -3916,10 +3866,9 @@
         {
           "query_id": "Q-S5A-11",
           "domain": "Computer Networks",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
-          "first_query_latency_ms": 5.163,
-          "warm_latency_mean_ms": 5.026,
+          "first_query_latency_ms": 5.256,
+          "warm_latency_mean_ms": 4.646,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -3976,10 +3925,9 @@
         {
           "query_id": "Q-S5A-12",
           "domain": "Database Management Systems",
-          "category": "TWO_HOP",
           "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
-          "first_query_latency_ms": 3.753,
-          "warm_latency_mean_ms": 2.956,
+          "first_query_latency_ms": 2.96,
+          "warm_latency_mean_ms": 3.049,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -4043,25 +3991,24 @@
       "observed_average_hop_depth": 1,
       "total_paths_traversed": 215,
       "timing": {
-        "first_query_mean_ms": 2.365,
-        "first_query_max_ms": 4.789,
+        "first_query_mean_ms": 2.452,
+        "first_query_max_ms": 5.24,
         "first_query_min_ms": 0.244,
-        "warm_mean_ms": 2.219,
-        "warm_median_ms": 1.633,
-        "warm_std_ms": 1.946,
-        "warm_min_ms": 0.126,
-        "warm_max_ms": 4.983,
-        "warm_p95_ms": 4.976
+        "warm_mean_ms": 2.188,
+        "warm_median_ms": 1.673,
+        "warm_std_ms": 1.937,
+        "warm_min_ms": 0.13,
+        "warm_max_ms": 5.007,
+        "warm_p95_ms": 4.933
       },
       "effectiveness_verdict": "NOT_EVALUATED_PENDING_HUMAN_GOLD",
       "query_results": [
         {
           "query_id": "Q-S5A-01",
           "domain": "Operating Systems",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is an address space and why does the operating system provide it to running programs?",
-          "first_query_latency_ms": 4.03,
-          "warm_latency_mean_ms": 4.183,
+          "first_query_latency_ms": 4.568,
+          "warm_latency_mean_ms": 4.371,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -4118,10 +4065,9 @@
         {
           "query_id": "Q-S5A-02",
           "domain": "Operating Systems",
-          "category": "TWO_HOP",
           "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
-          "first_query_latency_ms": 4.395,
-          "warm_latency_mean_ms": 3.852,
+          "first_query_latency_ms": 3.995,
+          "warm_latency_mean_ms": 3.548,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -4178,10 +4124,9 @@
         {
           "query_id": "Q-S5A-03",
           "domain": "Operating Systems",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
-          "first_query_latency_ms": 4.531,
-          "warm_latency_mean_ms": 4.418,
+          "first_query_latency_ms": 4.139,
+          "warm_latency_mean_ms": 4.532,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -4238,16 +4183,15 @@
         {
           "query_id": "Q-S5A-04",
           "domain": "AI & Machine Learning",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
-          "first_query_latency_ms": 0.804,
-          "warm_latency_mean_ms": 0.645,
+          "first_query_latency_ms": 0.838,
+          "warm_latency_mean_ms": 0.656,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "transformer",
+              "attention",
               "the transformer",
-              "attention"
+              "transformer"
             ],
             "traversed_concepts_count": 33,
             "actual_hop_count": 2,
@@ -4255,6 +4199,246 @@
             "fallback_strategy": "none",
             "max_hops_configured": 2,
             "paths_traversed": [
+              {
+                "source": "attention",
+                "relation": "PART_OF",
+                "target": "encoder",
+                "hop": 1
+              },
+              {
+                "source": "encoder",
+                "relation": "CONTRASTS_WITH",
+                "target": "decoder",
+                "hop": 2
+              },
+              {
+                "source": "encoder",
+                "relation": "REQUIRES",
+                "target": "document index",
+                "hop": 2
+              },
+              {
+                "source": "attention",
+                "relation": "REQUIRES",
+                "target": "hbm",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "attention",
+                "hop": 1
+              },
+              {
+                "source": "attention",
+                "relation": "PART_OF",
+                "target": "encoder",
+                "hop": 2
+              },
+              {
+                "source": "attention",
+                "relation": "REQUIRES",
+                "target": "hbm",
+                "hop": 2
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "multi-head attention",
+                "hop": 1
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "decoder",
+                "hop": 1
+              },
+              {
+                "source": "decoder",
+                "relation": "CONTRASTS_WITH",
+                "target": "encoder",
+                "hop": 2
+              },
+              {
+                "source": "the transformer",
+                "relation": "USES",
+                "target": "encoder",
+                "hop": 1
+              },
+              {
+                "source": "encoder",
+                "relation": "CONTRASTS_WITH",
+                "target": "decoder",
+                "hop": 2
+              },
+              {
+                "source": "encoder",
+                "relation": "REQUIRES",
+                "target": "document index",
+                "hop": 2
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "transformer",
+                "hop": 1
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "gpt",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "gpt trans",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "llm",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "attention",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "multi-head attention",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "decoder",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "encoder",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "the transformer",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "wsj",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "berkeley- parser",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "parser",
+                "hop": 2
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "wsj",
+                "hop": 1
+              },
+              {
+                "source": "wsj",
+                "relation": "CONTRASTS_WITH",
+                "target": "transformer",
+                "hop": 2
+              },
+              {
+                "source": "wsj",
+                "relation": "CONTRASTS_WITH",
+                "target": "the transformer",
+                "hop": 2
+              },
+              {
+                "source": "wsj",
+                "relation": "CONTRASTS_WITH",
+                "target": "berkeley- parser",
+                "hop": 2
+              },
+              {
+                "source": "wsj",
+                "relation": "CONTRASTS_WITH",
+                "target": "parser",
+                "hop": 2
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "berkeley- parser",
+                "hop": 1
+              },
+              {
+                "source": "berkeley- parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "transformer",
+                "hop": 2
+              },
+              {
+                "source": "berkeley- parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "the transformer",
+                "hop": 2
+              },
+              {
+                "source": "berkeley- parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "wsj",
+                "hop": 2
+              },
+              {
+                "source": "berkeley- parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "parser",
+                "hop": 2
+              },
+              {
+                "source": "the transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "parser",
+                "hop": 1
+              },
+              {
+                "source": "parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "transformer",
+                "hop": 2
+              },
+              {
+                "source": "parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "the transformer",
+                "hop": 2
+              },
+              {
+                "source": "parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "wsj",
+                "hop": 2
+              },
+              {
+                "source": "parser",
+                "relation": "CONTRASTS_WITH",
+                "target": "berkeley- parser",
+                "hop": 2
+              },
               {
                 "source": "transformer",
                 "relation": "USES",
@@ -4590,246 +4774,6 @@
                 "relation": "CONTRASTS_WITH",
                 "target": "berkeley- parser",
                 "hop": 2
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "attention",
-                "hop": 1
-              },
-              {
-                "source": "attention",
-                "relation": "PART_OF",
-                "target": "encoder",
-                "hop": 2
-              },
-              {
-                "source": "attention",
-                "relation": "REQUIRES",
-                "target": "hbm",
-                "hop": 2
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "multi-head attention",
-                "hop": 1
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "decoder",
-                "hop": 1
-              },
-              {
-                "source": "decoder",
-                "relation": "CONTRASTS_WITH",
-                "target": "encoder",
-                "hop": 2
-              },
-              {
-                "source": "the transformer",
-                "relation": "USES",
-                "target": "encoder",
-                "hop": 1
-              },
-              {
-                "source": "encoder",
-                "relation": "CONTRASTS_WITH",
-                "target": "decoder",
-                "hop": 2
-              },
-              {
-                "source": "encoder",
-                "relation": "REQUIRES",
-                "target": "document index",
-                "hop": 2
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "transformer",
-                "hop": 1
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "gpt",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "gpt trans",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "llm",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "attention",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "multi-head attention",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "decoder",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "encoder",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "the transformer",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "wsj",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "berkeley- parser",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "parser",
-                "hop": 2
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "wsj",
-                "hop": 1
-              },
-              {
-                "source": "wsj",
-                "relation": "CONTRASTS_WITH",
-                "target": "transformer",
-                "hop": 2
-              },
-              {
-                "source": "wsj",
-                "relation": "CONTRASTS_WITH",
-                "target": "the transformer",
-                "hop": 2
-              },
-              {
-                "source": "wsj",
-                "relation": "CONTRASTS_WITH",
-                "target": "berkeley- parser",
-                "hop": 2
-              },
-              {
-                "source": "wsj",
-                "relation": "CONTRASTS_WITH",
-                "target": "parser",
-                "hop": 2
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "berkeley- parser",
-                "hop": 1
-              },
-              {
-                "source": "berkeley- parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "transformer",
-                "hop": 2
-              },
-              {
-                "source": "berkeley- parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "the transformer",
-                "hop": 2
-              },
-              {
-                "source": "berkeley- parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "wsj",
-                "hop": 2
-              },
-              {
-                "source": "berkeley- parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "parser",
-                "hop": 2
-              },
-              {
-                "source": "the transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "parser",
-                "hop": 1
-              },
-              {
-                "source": "parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "transformer",
-                "hop": 2
-              },
-              {
-                "source": "parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "the transformer",
-                "hop": 2
-              },
-              {
-                "source": "parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "wsj",
-                "hop": 2
-              },
-              {
-                "source": "parser",
-                "relation": "CONTRASTS_WITH",
-                "target": "berkeley- parser",
-                "hop": 2
-              },
-              {
-                "source": "attention",
-                "relation": "PART_OF",
-                "target": "encoder",
-                "hop": 1
-              },
-              {
-                "source": "encoder",
-                "relation": "CONTRASTS_WITH",
-                "target": "decoder",
-                "hop": 2
-              },
-              {
-                "source": "encoder",
-                "relation": "REQUIRES",
-                "target": "document index",
-                "hop": 2
-              },
-              {
-                "source": "attention",
-                "relation": "REQUIRES",
-                "target": "hbm",
-                "hop": 1
               }
             ]
           },
@@ -4879,10 +4823,9 @@
         {
           "query_id": "Q-S5A-05",
           "domain": "AI & Machine Learning",
-          "category": "TWO_HOP",
           "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
-          "first_query_latency_ms": 0.244,
-          "warm_latency_mean_ms": 0.215,
+          "first_query_latency_ms": 0.258,
+          "warm_latency_mean_ms": 0.181,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -4966,15 +4909,14 @@
         {
           "query_id": "Q-S5A-06",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
-          "first_query_latency_ms": 0.726,
-          "warm_latency_mean_ms": 0.616,
+          "first_query_latency_ms": 0.626,
+          "warm_latency_mean_ms": 0.531,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "transformer",
-              "low-rank adaptation"
+              "low-rank adaptation",
+              "transformer"
             ],
             "traversed_concepts_count": 34,
             "actual_hop_count": 2,
@@ -4982,6 +4924,78 @@
             "fallback_strategy": "none",
             "max_hops_configured": 2,
             "paths_traversed": [
+              {
+                "source": "low-rank adaptation",
+                "relation": "PART_OF",
+                "target": "transformer",
+                "hop": 1
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "gpt",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "gpt trans",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "llm",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "attention",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "multi-head attention",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "decoder",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "USES",
+                "target": "encoder",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "the transformer",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "wsj",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "berkeley- parser",
+                "hop": 2
+              },
+              {
+                "source": "transformer",
+                "relation": "CONTRASTS_WITH",
+                "target": "parser",
+                "hop": 2
+              },
               {
                 "source": "transformer",
                 "relation": "USES",
@@ -5317,78 +5331,6 @@
                 "relation": "CONTRASTS_WITH",
                 "target": "berkeley- parser",
                 "hop": 2
-              },
-              {
-                "source": "low-rank adaptation",
-                "relation": "PART_OF",
-                "target": "transformer",
-                "hop": 1
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "gpt",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "gpt trans",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "llm",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "attention",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "multi-head attention",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "decoder",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "USES",
-                "target": "encoder",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "the transformer",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "wsj",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "berkeley- parser",
-                "hop": 2
-              },
-              {
-                "source": "transformer",
-                "relation": "CONTRASTS_WITH",
-                "target": "parser",
-                "hop": 2
               }
             ]
           },
@@ -5438,15 +5380,14 @@
         {
           "query_id": "Q-S5A-07",
           "domain": "AI & Machine Learning",
-          "category": "CROSS_DOCUMENT",
           "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
-          "first_query_latency_ms": 0.35,
-          "warm_latency_mean_ms": 0.275,
+          "first_query_latency_ms": 0.319,
+          "warm_latency_mean_ms": 0.241,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
-              "qlora",
-              "gpu"
+              "gpu",
+              "qlora"
             ],
             "traversed_concepts_count": 17,
             "actual_hop_count": 2,
@@ -5454,12 +5395,6 @@
             "fallback_strategy": "none",
             "max_hops_configured": 2,
             "paths_traversed": [
-              {
-                "source": "qlora",
-                "relation": "USES",
-                "target": "low-rank adapter",
-                "hop": 1
-              },
               {
                 "source": "gpu",
                 "relation": "CONTRASTS_WITH",
@@ -5579,6 +5514,12 @@
                 "relation": "CONTRASTS_WITH",
                 "target": "gpu",
                 "hop": 2
+              },
+              {
+                "source": "qlora",
+                "relation": "USES",
+                "target": "low-rank adapter",
+                "hop": 1
               }
             ]
           },
@@ -5628,10 +5569,9 @@
         {
           "query_id": "Q-S5A-08",
           "domain": "AI & Machine Learning",
-          "category": "UNANSWERABLE",
           "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
-          "first_query_latency_ms": 0.307,
-          "warm_latency_mean_ms": 0.251,
+          "first_query_latency_ms": 0.259,
+          "warm_latency_mean_ms": 0.254,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -5811,10 +5751,9 @@
         {
           "query_id": "Q-S5A-09",
           "domain": "Computer Networks",
-          "category": "SINGLE_HOP_CONTROL",
           "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
-          "first_query_latency_ms": 4.789,
-          "warm_latency_mean_ms": 4.643,
+          "first_query_latency_ms": 5.24,
+          "warm_latency_mean_ms": 4.349,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -5871,10 +5810,9 @@
         {
           "query_id": "Q-S5A-10",
           "domain": "Computer Networks",
-          "category": "TWO_HOP",
           "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
-          "first_query_latency_ms": 0.251,
-          "warm_latency_mean_ms": 0.155,
+          "first_query_latency_ms": 0.244,
+          "warm_latency_mean_ms": 0.149,
           "meta": {
             "anchor_found": true,
             "matched_anchors": [
@@ -5970,10 +5908,9 @@
         {
           "query_id": "Q-S5A-11",
           "domain": "Computer Networks",
-          "category": "UNANSWERABLE",
           "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
-          "first_query_latency_ms": 4.23,
-          "warm_latency_mean_ms": 4.355,
+          "first_query_latency_ms": 4.965,
+          "warm_latency_mean_ms": 4.437,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -6030,10 +5967,9 @@
         {
           "query_id": "Q-S5A-12",
           "domain": "Database Management Systems",
-          "category": "TWO_HOP",
           "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
-          "first_query_latency_ms": 3.722,
-          "warm_latency_mean_ms": 3.021,
+          "first_query_latency_ms": 3.972,
+          "warm_latency_mean_ms": 3.009,
           "meta": {
             "anchor_found": false,
             "matched_anchors": [],
@@ -6095,6 +6031,7 @@
     "superiority_asserted": false,
     "human_gold_status": "PENDING_INDEPENDENT_ANNOTATION",
     "corpus_scope_strictly_identical": true,
+    "baseline_kuzu_graph_corpus_scoped": true,
     "bm25_fallback_active": true,
     "graph_paths_recorded": true
   }

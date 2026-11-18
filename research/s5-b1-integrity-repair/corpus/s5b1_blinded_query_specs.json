@@ -1,0 +1,123 @@
+{
+  "version": "s5b1_1_blinded_query_specs_v1.0",
+  "description": "Blinded query and candidate passage specification without categories, roles, or rationales. Candidate passage IDs are stored in neutral lexicographical order prior to deterministic PRNG shuffling (seed=20261118).",
+  "queries_count": 12,
+  "total_candidate_pairs": 31,
+  "queries": [
+    {
+      "query_id": "Q-S5A-01",
+      "domain": "Operating Systems",
+      "query_text": "What is an address space and why does the operating system provide it to running programs?",
+      "candidate_passage_ids": [
+        "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+        "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+        "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-02",
+      "domain": "Operating Systems",
+      "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
+      "candidate_passage_ids": [
+        "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+        "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+        "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-03",
+      "domain": "Operating Systems",
+      "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
+      "candidate_passage_ids": [
+        "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+        "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-04",
+      "domain": "AI & Machine Learning",
+      "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
+      "candidate_passage_ids": [
+        "papers/bahdanau2014_attention.pdf::chunk_005",
+        "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-05",
+      "domain": "AI & Machine Learning",
+      "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
+      "candidate_passage_ids": [
+        "papers/devlin2018_bert.pdf::chunk_003",
+        "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+        "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-06",
+      "domain": "AI & Machine Learning",
+      "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
+      "candidate_passage_ids": [
+        "papers/dettmers2023_qlora.pdf::chunk_005",
+        "papers/hu2021_lora.pdf::chunk_005",
+        "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_007"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-07",
+      "domain": "AI & Machine Learning",
+      "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
+      "candidate_passage_ids": [
+        "papers/dettmers2023_qlora.pdf::chunk_005",
+        "papers/hu2021_lora.pdf::chunk_005",
+        "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-08",
+      "domain": "AI & Machine Learning",
+      "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
+      "candidate_passage_ids": [
+        "papers/brown2020_gpt3.pdf::chunk_029",
+        "papers/dettmers2023_qlora.pdf::chunk_006"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-09",
+      "domain": "Computer Networks",
+      "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
+      "candidate_passage_ids": [
+        "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_002"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-10",
+      "domain": "Computer Networks",
+      "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
+      "candidate_passage_ids": [
+        "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-11",
+      "domain": "Computer Networks",
+      "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
+      "candidate_passage_ids": [
+        "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006"
+      ]
+    },
+    {
+      "query_id": "Q-S5A-12",
+      "domain": "Database Management Systems",
+      "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
+      "candidate_passage_ids": [
+        "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+        "papers/willard2023_outlines.pdf::chunk_005",
+        "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001"
+      ]
+    }
+  ]
+}

@@ -135,7 +135,7 @@ artifacts/validation/local_only/
 artifacts/validation/s3_retrieval_candidates_export.json
 artifacts/validation/s3_retrieval_candidates_export.csv
 
-# Local-only annotation materials containing proprietary or verbatim text (S4-G4, S5-A, S5-B1)
+# Local-only annotation materials containing proprietary or verbatim text (S4-G4, S5-A, S5-B1, S5-B1.1)
 data/annotation_local/
 /data/annotation_local/
 data/artifacts/
@@ -143,6 +143,10 @@ data/artifacts/
 research/s4-g4-validation-readiness/annotation_local/
 research/s5-a-retrieval-integrity/annotation_local/
 research/s5-b1-integrity-repair/annotation_local/
+research/s5-b1-integrity-repair/admin_package/
+research/**/admin_package/
+**/*admin_retrieval_manifest*.json
+**/*admin_query_specs*.json
 
 
 

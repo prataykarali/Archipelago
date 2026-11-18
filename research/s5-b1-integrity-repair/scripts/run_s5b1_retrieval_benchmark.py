@@ -1,22 +1,25 @@
-"""S5-B1 — Multi-Hop Retrieval Benchmark & Research Integrity Execution Harness.
+"""S5-B1.1 — Multi-Hop Retrieval Benchmark & Research Integrity Execution Harness.
 
 Implements and benchmarks:
 1. BM25 (Robertson/Sparck Jones BM25Okapi, k1=1.5, b=0.75)
 2. Genuine Dense Retrieval (Snowflake/snowflake-arctic-embed-m-v1.5, 768-dim)
 3. Hybrid RRF (BM25 + Dense, k=60, true end-to-end timing accounting)
-4. Repaired Baseline Graph Retrieval (Global passage ID mapping, 1-hop traversal)
+4. Repaired Baseline Graph Retrieval (Global passage ID mapping, corpus-scoped 1-hop Kùzu traversal)
 5. Repaired Heterogeneous Graph Retrieval (1-hop ablation and 2-hop full traversal)
 
-Integrity Guarantees & S5-B1 Repairs:
+Integrity Guarantees & S5-B1.1 Repairs:
 - Strict Corpus Scope: Exactly 713 passages across 53 documents from s5a_eval_corpus_v1.
-- Corpus-Scoped Graph Extraction: Graph edges constructed strictly from the 713 eligible passages,
-  preventing unfair information access from external chunks/documents.
+- Runtime Cryptographic Verification: Explicitly verifies embedding cache SHA-256,
+  corpus passage-ID ordering SHA-256, corpus text SHA-256, and corpus manifest SHA-256
+  against the frozen model manifest at runtime; raises ValueError on any mismatch.
+- Corpus-Scoped Graph Extraction & Baseline Kùzu Parity: Both RepairedHeterogeneousGraphRetriever
+  (146 edges) and RepairedBaselineGraphRetriever (1,526 corpus-verified Kùzu edges out of 1,988)
+  are strictly constrained to edges and concepts with verified provenance inside the 713-passage corpus.
 - Reproducible Fallback: Graph retrievers fall back to deterministic corpus BM25 when no anchors match.
 - Traversal Instrumentation: Reports actual observed hop depth (0 for fallback, 1 for 1-hop, 2 for 2-hop)
   and records real graph paths traversed [(source, relation, target)].
-- Exception Transparency: Removes silently swallowed Kùzu runtime exceptions.
-- Cold-Start vs. Per-Query Timing: Measures true application cold-start (model import + weights load + index build)
-  separately from first-query cold latency and warm query distributions (5 repetitions, mean, median, min, max, p95).
+- Exception Transparency: Logs and records Kùzu runtime exceptions without silent swallowing.
+- Cold-Start vs. Per-Query Timing: Separates application cold-start from first-query and warm distributions.
 - Strict Scientific Boundary: Retrieval effectiveness marked strictly NOT_EVALUATED pending human gold labels.
 """
 
@@ -59,32 +62,103 @@ MODEL_MANIFEST_PATH = BASE_DIR / "models" / "s5b1_model_manifest.json"
 
 
 # ---------------------------------------------------------------------------
-# 1. Corpus Loader & Cryptographic Verification
+# 1. Corpus Loader & Runtime Cryptographic Verification
 # ---------------------------------------------------------------------------
 
-def load_s5b1_corpus() -> tuple[list[Passage], dict[str, str]]:
+def compute_corpus_fingerprints(passages: list[Passage]) -> dict[str, Any]:
+    pid_hasher = hashlib.sha256()
+    for p in passages:
+        pid_hasher.update(p.passage_id.encode("utf-8"))
+    pids_sha = pid_hasher.hexdigest()
+
+    text_hasher = hashlib.sha256()
+    for p in passages:
+        text_hasher.update(p.text.encode("utf-8"))
+    text_sha = text_hasher.hexdigest()
+
+    corpus_sha = hashlib.sha256(
+        json.dumps([p.to_dict() for p in passages], sort_keys=True).encode("utf-8")
+    ).hexdigest()
+
+    return {
+        "passage_count": len(passages),
+        "corpus_pids_sha256": pids_sha,
+        "corpus_text_sha256": text_sha,
+        "corpus_sha256": corpus_sha,
+    }
+
+
+def verify_dense_cache_and_corpus_fingerprints(
+    passages: list[Passage],
+    emb_cache_path: Path = EMB_CACHE,
+    manifest_path: Path = MODEL_MANIFEST_PATH,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Verify corpus passage-ID ordering, corpus text, and dense embedding cache against frozen manifest.
+
+    Raises ValueError or FileNotFoundError explicitly on any mismatch.
+    """
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"Model manifest not found at {manifest_path}")
+    if not emb_cache_path.exists():
+        raise FileNotFoundError(f"Dense embedding cache not found at {emb_cache_path}")
+
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    expected_fp = manifest["primary_dense_model"]["cryptographic_fingerprints"]
+    expected_shape = tuple(expected_fp["embedding_matrix_shape"])
+
+    actual_fp = compute_corpus_fingerprints(passages)
+
+    if len(passages) != expected_shape[0]:
+        raise ValueError(
+            f"Corpus passage count mismatch: expected {expected_shape[0]}, got {len(passages)}"
+        )
+
+    if actual_fp["corpus_pids_sha256"] != expected_fp["corpus_passage_id_sha256"]:
+        raise ValueError(
+            f"Corpus passage-ID ordering SHA-256 mismatch: "
+            f"expected {expected_fp['corpus_passage_id_sha256']}, got {actual_fp['corpus_pids_sha256']}"
+        )
+
+    if actual_fp["corpus_text_sha256"] != expected_fp["corpus_text_sha256"]:
+        raise ValueError(
+            f"Corpus text SHA-256 mismatch: "
+            f"expected {expected_fp['corpus_text_sha256']}, got {actual_fp['corpus_text_sha256']}"
+        )
+
+    if actual_fp["corpus_sha256"] != expected_fp["corpus_sha256"]:
+        raise ValueError(
+            f"Corpus manifest SHA-256 mismatch: "
+            f"expected {expected_fp['corpus_sha256']}, got {actual_fp['corpus_sha256']}"
+        )
+
+    actual_emb_sha = hashlib.sha256(emb_cache_path.read_bytes()).hexdigest()
+    if actual_emb_sha != expected_fp["embedding_matrix_sha256"]:
+        raise ValueError(
+            f"Dense embedding cache SHA-256 mismatch: "
+            f"expected {expected_fp['embedding_matrix_sha256']}, got {actual_emb_sha}"
+        )
+
+    doc_embeddings = np.load(str(emb_cache_path))
+    if doc_embeddings.shape != expected_shape:
+        raise ValueError(
+            f"Dense embedding matrix shape mismatch: expected {expected_shape}, got {doc_embeddings.shape}"
+        )
+
+    actual_fp["embedding_matrix_sha256"] = actual_emb_sha
+    actual_fp["embedding_matrix_shape"] = list(doc_embeddings.shape)
+    return doc_embeddings, actual_fp
+
+
+def load_s5b1_corpus() -> tuple[list[Passage], dict[str, Any]]:
     passages, _ = build_fixed_corpus_from_kuzu(str(DB_PATH))
     eligible = [
         p for p in passages
         if not _is_index_only_passage(p.doc_id, p.section_title, p.text)
         and p.passage_id != "doc_data_and_computer_communications::doc_data_and_computer_communications_p612_4"
     ]
-    # Cryptographic verification
-    pid_hasher = hashlib.sha256()
-    for p in eligible:
-        pid_hasher.update(p.passage_id.encode("utf-8"))
-    pids_sha = pid_hasher.hexdigest()
-
-    text_hasher = hashlib.sha256()
-    for p in eligible:
-        text_hasher.update(p.text.encode("utf-8"))
-    text_sha = text_hasher.hexdigest()
-
-    hashes = {
-        "passage_count": len(eligible),
-        "corpus_pids_sha256": pids_sha,
-        "corpus_text_sha256": text_sha,
-    }
+    hashes = compute_corpus_fingerprints(eligible)
     return eligible, hashes
 
 
@@ -103,7 +177,6 @@ class GenuineDenseRetriever:
     def search(self, query: str, top_k: int = 10) -> list[tuple[str, float]]:
         q_text = f"{self.query_prefix}{query}"
         q_emb = self.model.encode([q_text], normalize_embeddings=True, show_progress_bar=False)[0]
-        # Inner product with L2-normalized embeddings equals cosine similarity
         sims = self.doc_embeddings @ q_emb
         ranked = [(pid, float(score)) for pid, score in zip(self.passage_ids, sims.tolist())]
         ranked.sort(key=lambda item: (-item[1], item[0]))
@@ -111,11 +184,11 @@ class GenuineDenseRetriever:
 
 
 # ---------------------------------------------------------------------------
-# 3. Repaired Baseline Graph Retriever (Global ID Scoped + BM25 Fallback)
+# 3. Repaired Baseline Graph Retriever (Corpus-Scoped Kùzu + BM25 Fallback)
 # ---------------------------------------------------------------------------
 
 class RepairedBaselineGraphRetriever:
-    """Baseline graph retriever with global passage ID mapping, BM25 fallback, and exception logging."""
+    """Baseline Kùzu graph retriever with strict 713-passage provenance filtering and BM25 fallback."""
 
     def __init__(self, passages: list[Passage], kuzu_conn: Any, bm25_fallback: BM25Retriever) -> None:
         self.passages = passages
@@ -127,7 +200,7 @@ class RepairedBaselineGraphRetriever:
 
     def _build_concept_index(self) -> None:
         self.concept_to_pids: dict[str, set[str]] = collections.defaultdict(set)
-        # Query full path: (Document)->(Chunk)->(Concept) to guarantee canonical {doc_id}::{chunk_id}
+        # Map Concept nodes in Kùzu strictly to eligible 713 passages
         query = "MATCH (d:Document)-[:HAS_CHUNK]->(c:Chunk)-[:MENTIONS]->(cn:Concept) RETURN d.id, c.chunk_id, cn.name"
         res = self.conn.execute(query)
         while res.has_next():
@@ -138,12 +211,20 @@ class RepairedBaselineGraphRetriever:
             if pid in self.passage_ids_set:
                 self.concept_to_pids[cname].add(pid)
 
+    def _is_corpus_verified_kuzu_edge(self, target_concept_low: str, r_source: Any) -> bool:
+        if target_concept_low not in self.concept_to_pids:
+            return False
+        if not r_source or ":" not in str(r_source):
+            return False
+        raw_doc, cid = str(r_source).rsplit(":", 1)
+        edge_pid = f"{normalize_doc_id(raw_doc)}::{cid}"
+        return edge_pid in self.passage_ids_set
+
     def search(self, query: str, top_k: int = 10) -> tuple[list[tuple[str, float]], dict[str, Any]]:
         q_low = query.lower()
-        matched_anchors = [c for c in self.concept_to_pids if c in q_low]
+        matched_anchors = sorted([c for c in self.concept_to_pids if c in q_low])
 
         if not matched_anchors:
-            # S5-B1 Repair: Deterministic BM25 fallback over eligible corpus
             fallback_res = self.bm25_fallback.search(query, top_k=top_k)
             meta = {
                 "anchor_found": False,
@@ -152,28 +233,40 @@ class RepairedBaselineGraphRetriever:
                 "actual_hop_count": 0,
                 "is_fallback": True,
                 "fallback_strategy": "corpus_bm25",
+                "corpus_scoped_edges_only": True,
                 "paths_traversed": [],
                 "traversal_errors": list(self.traversal_errors),
             }
             return fallback_res, meta
 
-        # 1-hop traversal in Kuzu with explicit error handling
         traversed: set[str] = set(matched_anchors)
         paths_traversed: list[dict[str, Any]] = []
 
         for anchor in matched_anchors:
             try:
                 res = self.conn.execute(
-                    "MATCH (c1:Concept {name: $name})-[r]->(c2:Concept) RETURN c2.name LIMIT 5",
-                    {"name": anchor.title()},
+                    "MATCH (c1:Concept)-[r]->(c2:Concept) "
+                    "WHERE lower(c1.name) = $name "
+                    "RETURN c2.name, label(r), r.source "
+                    "ORDER BY c2.name ASC, label(r) ASC",
+                    {"name": anchor},
                 )
+                admitted_for_anchor = 0
                 while res.has_next():
-                    c2_name = res.get_next()[0].lower()
-                    if c2_name in self.concept_to_pids:
+                    c2_raw, rel_label, r_source = res.get_next()
+                    c2_name = str(c2_raw).lower()
+                    if self._is_corpus_verified_kuzu_edge(c2_name, r_source):
                         traversed.add(c2_name)
-                        paths_traversed.append({"source": anchor, "relation": "KUZU_EDGE", "target": c2_name, "hop": 1})
+                        paths_traversed.append({
+                            "source": anchor,
+                            "relation": str(rel_label),
+                            "target": c2_name,
+                            "hop": 1,
+                        })
+                        admitted_for_anchor += 1
+                        if admitted_for_anchor >= 5:
+                            break
             except Exception as e:
-                # S5-B1 Repair: Explicitly record exception without silent swallowing
                 err_msg = f"Kuzu query error on concept '{anchor}': {type(e).__name__}: {str(e)}"
                 logger.warning(err_msg)
                 self.traversal_errors.append(err_msg)
@@ -193,6 +286,7 @@ class RepairedBaselineGraphRetriever:
             "actual_hop_count": observed_hop,
             "is_fallback": False,
             "fallback_strategy": "none",
+            "corpus_scoped_edges_only": True,
             "paths_traversed": paths_traversed,
             "traversal_errors": list(self.traversal_errors),
         }
@@ -241,13 +335,11 @@ class RepairedHeterogeneousGraphRetriever:
             if etype in {"CONTRASTS_WITH", "RELATED"}:
                 self.adj[v].append((u, etype, w))
 
-            # Associate edge source passage if in eligible corpus
             edge_pid = f"{normalize_doc_id(edge.doc_id)}::{edge.chunk_id}"
             if edge_pid in self.passage_ids_set:
                 self.concept_to_pids[u].add(edge_pid)
                 self.concept_to_pids[v].add(edge_pid)
 
-        # Index passages where concept explicitly occurs in text
         for p in self.passages:
             p_low = p.text.lower()
             for c in self.adj:
@@ -256,10 +348,9 @@ class RepairedHeterogeneousGraphRetriever:
 
     def search(self, query: str, top_k: int = 10) -> tuple[list[tuple[str, float]], dict[str, Any]]:
         q_low = query.lower()
-        matched_anchors = [c for c in self.adj if c in q_low]
+        matched_anchors = sorted([c for c in self.adj if c in q_low])
 
         if not matched_anchors:
-            # S5-B1 Repair: Deterministic BM25 fallback instead of unsorted substring slice
             fallback_res = self.bm25_fallback.search(query, top_k=top_k)
             meta = {
                 "anchor_found": False,
@@ -280,14 +371,12 @@ class RepairedHeterogeneousGraphRetriever:
 
         for anchor in matched_anchors:
             visited[anchor] = max(visited.get(anchor, 0.0), 1.0)
-            # 1-hop traversal
             for nxt, etype, w in self.adj.get(anchor, []):
                 score1 = 1.0 * w
                 visited[nxt] = max(visited.get(nxt, 0.0), score1)
                 hop1_visited.add(nxt)
                 paths_traversed.append({"source": anchor, "relation": etype, "target": nxt, "hop": 1})
 
-                # 2-hop traversal (if configured)
                 if self.max_hops >= 2:
                     for nxt2, etype2, w2 in self.adj.get(nxt, []):
                         score2 = score1 * w2 * 0.5
@@ -295,7 +384,6 @@ class RepairedHeterogeneousGraphRetriever:
                         hop2_visited.add(nxt2)
                         paths_traversed.append({"source": nxt, "relation": etype2, "target": nxt2, "hop": 2})
 
-        # S5-B1 Repair: Real observed hop depth calculation
         new_hop2_concepts = hop2_visited - set(matched_anchors) - hop1_visited
         if self.max_hops >= 2 and len(new_hop2_concepts) > 0:
             observed_hop_depth = 2
@@ -304,7 +392,6 @@ class RepairedHeterogeneousGraphRetriever:
         else:
             observed_hop_depth = 0
 
-        # Score passages
         pid_scores: dict[str, float] = collections.defaultdict(float)
         for c, c_weight in visited.items():
             for pid in self.concept_to_pids.get(c, []):
@@ -363,46 +450,42 @@ class HybridRRFRetriever:
 # 6. Main Benchmark Execution & Latency Profiler
 # ---------------------------------------------------------------------------
 
-def run_benchmark():
+def run_benchmark() -> None:
     print("=" * 75)
-    print("S5-B1 — Research Integrity & Multi-Hop Retrieval Benchmark")
+    print("S5-B1.1 — Research Integrity & Multi-Hop Retrieval Benchmark")
     print("=" * 75)
 
     cold_start_timings: dict[str, float] = {}
 
-    # 1. Corpus Loading & Cryptographic Fingerprinting
+    # 1. Corpus Loading & Explicit Runtime Cryptographic Fingerprint Check (Repair 4)
     t_start = time.perf_counter()
-    passages, hashes = load_s5b1_corpus()
+    passages, _ = load_s5b1_corpus()
     cold_start_timings["corpus_load_ms"] = round((time.perf_counter() - t_start) * 1000.0, 3)
 
-    print(f"Loaded {len(passages)} passages across the frozen evaluation universe.")
-    print(f"Corpus PIDs SHA-256: {hashes['corpus_pids_sha256']}")
-    print(f"Corpus Text SHA-256: {hashes['corpus_text_sha256']}")
+    t_emb_load = time.perf_counter()
+    doc_embeddings, verified_fp = verify_dense_cache_and_corpus_fingerprints(
+        passages, EMB_CACHE, MODEL_MANIFEST_PATH
+    )
+    cold_start_timings["dense_embedding_cache_load_ms"] = round((time.perf_counter() - t_emb_load) * 1000.0, 3)
 
-    # 2. Dense Model Initialization & Cache Verification
+    print(f"Loaded and cryptographically verified {len(passages)} passages.")
+    print(f"Verified Corpus PIDs SHA-256: {verified_fp['corpus_pids_sha256']}")
+    print(f"Verified Corpus Text SHA-256: {verified_fp['corpus_text_sha256']}")
+    print(f"Verified Dense Cache SHA-256: {verified_fp['embedding_matrix_sha256']}")
+
+    # 2. Dense Model Initialization
     print("\n[1/4] Loading Dense Retrieval Engine (Snowflake/snowflake-arctic-embed-m-v1.5)...")
     t_mload = time.perf_counter()
     model = SentenceTransformer("Snowflake/snowflake-arctic-embed-m-v1.5", device="cpu")
     cold_start_timings["dense_model_load_ms"] = round((time.perf_counter() - t_mload) * 1000.0, 3)
-
-    if not EMB_CACHE.exists():
-        raise FileNotFoundError(f"Missing dense embedding cache at {EMB_CACHE}")
-
-    t_emb_load = time.perf_counter()
-    doc_embeddings = np.load(str(EMB_CACHE))
-    cold_start_timings["dense_embedding_cache_load_ms"] = round((time.perf_counter() - t_emb_load) * 1000.0, 3)
-
-    assert doc_embeddings.shape == (len(passages), 768), f"Shape mismatch: {doc_embeddings.shape}"
-    cache_sha = hashlib.sha256(open(EMB_CACHE, "rb").read()).hexdigest()
-    print(f"Dense embeddings verified: shape {doc_embeddings.shape}, cache SHA256: {cache_sha}")
 
     # 3. BM25 Index Construction
     t_bm25_build = time.perf_counter()
     bm25 = BM25Retriever(passages, k1=1.5, b=0.75)
     cold_start_timings["bm25_index_build_ms"] = round((time.perf_counter() - t_bm25_build) * 1000.0, 3)
 
-    # 4. Strict Corpus-Scoped Graph Extraction (Repair 7)
-    print("\n[2/4] Auditing and constructing corpus-scoped graph index...")
+    # 4. Strict Corpus-Scoped Graph Extraction (Repair 5 & 7)
+    print("\n[2/4] Auditing and constructing corpus-scoped graph indices...")
     import kuzu
     db = kuzu.Database(str(DB_PATH), read_only=True)
     kuzu_conn = kuzu.Connection(db)
@@ -437,7 +520,7 @@ def run_benchmark():
                 corpus_scoped_edges.extend(g.get("edges", []))
 
     cold_start_timings["corpus_scoped_graph_build_ms"] = round((time.perf_counter() - t_graph_build) * 1000.0, 3)
-    print(f"Corpus-scoped graph contains {len(corpus_scoped_edges)} edges across the 713-passage universe.")
+    print(f"Corpus-scoped heterogeneous graph contains {len(corpus_scoped_edges)} edges across the 713-passage universe.")
 
     # 5. Instantiate Retrievers
     dense = GenuineDenseRetriever(passages, model, doc_embeddings)
@@ -464,9 +547,8 @@ def run_benchmark():
     with open(blinded_pool_path, encoding="utf-8") as f:
         blinded_data = json.load(f)
 
-    queries = [q["query_text"] for q in blinded_data["queries"]]
     query_objs = blinded_data["queries"]
-    print(f"\n[3/4] Loaded {len(queries)} blinded evaluation queries.")
+    print(f"\n[3/4] Loaded {len(query_objs)} blinded evaluation queries.")
 
     # 7. Benchmarking Latency & Hop Traversal
     print("\n[4/4] Executing multi-hop retrieval benchmark (Cold query + 5 warm repetitions)...")
@@ -481,7 +563,7 @@ def run_benchmark():
         fallback_count = 0
         all_paths_recorded: list[dict[str, Any]] = []
 
-        for q_idx, q_item in enumerate(query_objs):
+        for q_item in query_objs:
             query = q_item["query_text"]
             qid = q_item["query_id"]
 
@@ -499,7 +581,6 @@ def run_benchmark():
             t_cold = (time.perf_counter() - t0) * 1000.0
             cold_latencies.append(t_cold)
 
-            # Record hops and fallback
             actual_hop = meta.get("actual_hop_count", "N/A")
             if actual_hop != "N/A":
                 hop_counts.append(actual_hop)
@@ -526,7 +607,6 @@ def run_benchmark():
             query_outputs.append({
                 "query_id": qid,
                 "domain": q_item["domain"],
-                "category": q_item["category"],
                 "query_text": query,
                 "first_query_latency_ms": round(t_cold, 3),
                 "warm_latency_mean_ms": round(statistics.mean(rep_times), 3),
@@ -534,7 +614,6 @@ def run_benchmark():
                 "retrieved_top10": [{"passage_id": pid, "score": round(sc, 5)} for pid, sc in res[:10]],
             })
 
-        # Calculate timing statistics
         warm_sorted = sorted(warm_latencies)
         p95_idx = int(0.95 * len(warm_sorted))
 
@@ -564,9 +643,8 @@ def run_benchmark():
             "query_results": query_outputs,
         }
 
-    # Save reports
     timing_report = {
-        "report_name": "S5-B1 Retrieval Timing & Latency Profiling Report",
+        "report_name": "S5-B1.1 Retrieval Timing & Latency Profiling Report",
         "benchmark_date": "2026-11-18",
         "num_queries": len(query_objs),
         "num_warm_repetitions": 5,
@@ -578,10 +656,14 @@ def run_benchmark():
         json.dump(timing_report, f, indent=2)
 
     tech_eval_report = {
-        "evaluation_name": "S5-B1 Multi-Hop Retrieval Technical Evaluation Gate",
+        "evaluation_name": "S5-B1.1 Multi-Hop Retrieval Technical Evaluation Gate",
         "date": "2026-11-18",
         "corpus_version": "s5a_eval_corpus_v1",
         "corpus_passage_count": len(passages),
+        "runtime_fingerprint_verification": {
+            "verified_at_startup": True,
+            "fingerprints": verified_fp,
+        },
         "application_cold_start_ms": cold_start_timings,
         "systems": system_results,
         "scientific_integrity_guarantees": {
@@ -589,6 +671,7 @@ def run_benchmark():
             "superiority_asserted": False,
             "human_gold_status": "PENDING_INDEPENDENT_ANNOTATION",
             "corpus_scope_strictly_identical": True,
+            "baseline_kuzu_graph_corpus_scoped": True,
             "bm25_fallback_active": True,
             "graph_paths_recorded": True,
         }
@@ -600,15 +683,6 @@ def run_benchmark():
     print("\nBenchmark completed successfully.")
     print(f"Timing Report saved to: {TIMING_PATH}")
     print(f"Technical Report saved to: {REPORT_PATH}")
-
-    # Print summary table
-    print("\n" + "=" * 80)
-    print(f"{'System':<30} | {'App Cold (ms)':<12} | {'1st Q (ms)':<10} | {'Warm Mean':<10} | {'Warm P95':<10}")
-    print("-" * 80)
-    for name, t in timing_summary.items():
-        app_cold = cold_start_timings.get(f"{name}_build_ms", "N/A")
-        print(f"{name:<30} | {str(app_cold):<12} | {t['first_query_mean_ms']:<10} | {t['warm_mean_ms']:<10} | {t['warm_p95_ms']:<10}")
-    print("=" * 80)
 
 
 if __name__ == "__main__":

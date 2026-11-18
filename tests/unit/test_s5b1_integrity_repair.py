@@ -1,21 +1,28 @@
-"""S5-B1 Integrity Repair Tests.
+"""S5-B1 & S5-B1.1 Integrity Repair and Final Annotation Readiness Gate Tests.
 
-Covers all 7 required repairs for the S5-B1 research integrity milestone:
-
-1. .gitignore fix: model manifests in research subdirectories no longer blocked
-2. Blinded reviewer package: zero candidate_role, rationale, or admin hint exposure
-3. Graph traversal instrumentation: actual observed hop depths, real paths, exception logging
-4. Latency accounting: application cold-start reported separately from first-query latency
-5. BM25-based fallback: graph retrievers use deterministic corpus BM25 when no anchors match
-6. Dense embedding fingerprint: cryptographic alignment of cache with corpus ordering
-7. Graph construction information access: edges strictly scoped to 713-passage eval corpus
+Covers all required repairs and verification gates:
+1. .gitignore fix: model manifests in research subdirectories tracked; root /models/ and admin/local packages ignored.
+2. Blinded reviewer package: zero candidate_role, rationale, category, or answerability (UNANSWERABLE) hints;
+   deterministic PRNG candidate ordering (seed = 20261118) breaking positive-then-negative ordering.
+3. Admin manifest isolation: untracked in Git, stored in Git-ignored local storage only.
+4. Separate Reviewer A and Reviewer B workbooks: contain actual verified passage text, neutral IDs, empty judgment fields.
+5. Graph traversal instrumentation: actual observed hop depths, real paths, exception logging, BM25 fallback.
+6. Latency accounting: application cold-start reported separately from first-query and warm distributions.
+7. Runtime cryptographic fingerprint verification: checks embedding cache, passage-ID ordering, and corpus text at runtime
+   and rejects mismatches explicitly with ValueError.
+8. Complete Graph Information-Access Audit: both RepairedHeterogeneousGraphRetriever and RepairedBaselineGraphRetriever
+   (Kùzu REQUIRES/RELATED/UNLOCKS edges) audited and restricted to the 713-passage evaluation corpus.
 """
 
 from __future__ import annotations
 
+import copy
 import csv
-import json
 import hashlib
+import importlib.util
+import json
+import random
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -24,374 +31,351 @@ ROOT = Path(__file__).resolve().parents[2]
 S5B1_DIR = ROOT / "research" / "s5-b1-integrity-repair"
 S5A_DIR = ROOT / "research" / "s5-a-retrieval-integrity"
 PKG_DIR = S5B1_DIR / "human_evaluation_package"
-ADMIN_DIR = S5B1_DIR / "admin_package"
+LOCAL_DIR = S5B1_DIR / "annotation_local"
 REPORT_DIR = S5B1_DIR / "reports"
 MODELS_DIR = S5B1_DIR / "models"
+CORPUS_DIR = S5B1_DIR / "corpus"
+
 TIMING_PATH = REPORT_DIR / "retrieval_timing_report.json"
 TECH_EVAL_PATH = REPORT_DIR / "retrieval_technical_evaluation_report.json"
 MODEL_MANIFEST = MODELS_DIR / "s5b1_model_manifest.json"
 S5A_MODEL_MANIFEST = S5A_DIR / "models" / "s5a_model_manifest.json"
 GITIGNORE = ROOT / ".gitignore"
+
 BLINDED_CSV = PKG_DIR / "retrieval_query_candidate_pool_blinded.csv"
 BLINDED_JSON = PKG_DIR / "retrieval_query_pool_blinded.json"
-ADMIN_MANIFEST = ADMIN_DIR / "admin_retrieval_manifest.json"
+PROTOCOL_MD = PKG_DIR / "RETRIEVAL_ANNOTATION_PROTOCOL.md"
+BLINDED_SPECS = CORPUS_DIR / "s5b1_blinded_query_specs.json"
+
+LOCAL_ADMIN_MANIFEST = LOCAL_DIR / "admin_retrieval_manifest.json"
+REVIEWER_A_WB = LOCAL_DIR / "reviewer_a_retrieval_workbook.md"
+REVIEWER_B_WB = LOCAL_DIR / "reviewer_b_retrieval_workbook.md"
+
 GRAPH_AUDIT = REPORT_DIR / "graph_information_access_audit.json"
 EMB_CACHE = ROOT / "data" / "artifacts" / "s5a_dense_embeddings_713.npy"
+BENCHMARK_SCRIPT = S5B1_DIR / "scripts" / "run_s5b1_retrieval_benchmark.py"
+
+
+def _load_benchmark_module():
+    spec = importlib.util.spec_from_file_location("s5b1_bench", str(BENCHMARK_SCRIPT))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 # ---------------------------------------------------------------------------
-# Repair 1: .gitignore Fix — model manifests now trackable
+# Repair 1: .gitignore Fix — model manifests tracked, admin/local packages ignored
 # ---------------------------------------------------------------------------
 
-class TestGitignoreModelManifestFix:
+class TestGitignoreAndAdminIsolation:
     def test_gitignore_uses_anchored_root_models_pattern(self):
-        """Root models/ directory is ignored with /models/ (anchored), not models/ (all subdirs)."""
-        content = GITIGNORE.read_text()
+        content = GITIGNORE.read_text(encoding="utf-8")
         lines = [l.strip() for l in content.splitlines()]
-        assert "/models/" in lines, "Expected anchored '/models/' in .gitignore to protect only root models/"
-        assert "models/" not in lines or lines.index("models/") != lines.index("/models/"), (
-            "Bare 'models/' must be replaced by '/models/' to allow research/*/models/ to be tracked"
-        )
+        assert "/models/" in lines, "Expected anchored '/models/' in .gitignore"
+        assert "models/" not in lines, "Bare 'models/' must not be present in .gitignore"
 
-    def test_s5a_model_manifest_is_no_longer_gitignored(self):
-        """s5a_model_manifest.json in research subdir should NOT be gitignored after the fix."""
-        import subprocess
-        result = subprocess.run(
-            ["git", "check-ignore", "-v", str(S5A_MODEL_MANIFEST)],
-            capture_output=True, text=True, cwd=str(ROOT)
-        )
-        # Exit code 1 = file is NOT gitignored; exit code 0 = gitignored
-        assert result.returncode == 1, (
-            f"S5-A model manifest is still gitignored: {result.stdout.strip()}"
-        )
+    def test_s5a_and_s5b1_model_manifests_are_not_gitignored(self):
+        for manifest in [S5A_MODEL_MANIFEST, MODEL_MANIFEST]:
+            assert manifest.exists()
+            res = subprocess.run(
+                ["git", "check-ignore", "-v", str(manifest)],
+                capture_output=True, text=True, cwd=str(ROOT),
+            )
+            assert res.returncode == 1, f"Model manifest should not be gitignored: {manifest}"
 
-    def test_s5b1_model_manifest_exists_and_has_git_policy(self):
-        """S5-B1 model manifest exists and documents the .gitignore policy."""
-        assert MODEL_MANIFEST.exists(), f"Missing S5-B1 model manifest at {MODEL_MANIFEST}"
-        with open(MODEL_MANIFEST) as f:
+    def test_s5b1_model_manifest_has_git_policy(self):
+        with open(MODEL_MANIFEST, encoding="utf-8") as f:
             m = json.load(f)
-        assert m.get("git_policy", {}).get("root_model_weights_ignored") is True
+        assert m["git_policy"]["root_model_weights_ignored"] is True
         assert m["git_policy"]["root_ignore_pattern"] == "/models/"
         assert m["git_policy"]["manifest_version_controlled"] is True
 
-    def test_s5b1_annotation_local_still_gitignored(self):
-        """annotation_local/ inside S5-B1 research dir should remain gitignored."""
-        content = GITIGNORE.read_text()
-        assert "research/s5-b1-integrity-repair/annotation_local/" in content
+    def test_admin_manifest_is_untracked_and_gitignored(self):
+        """Admin manifest containing expected roles/rationales must NOT be tracked in Git."""
+        old_public_admin = S5B1_DIR / "admin_package" / "admin_retrieval_manifest.json"
+        assert not old_public_admin.exists(), "admin_package/admin_retrieval_manifest.json must not exist in tracked tree"
+
+        tracked = subprocess.run(
+            ["git", "ls-files", "*admin_retrieval_manifest*"],
+            capture_output=True, text=True, cwd=str(ROOT),
+        )
+        assert tracked.stdout.strip() == "", f"Admin manifest must not be tracked in git: {tracked.stdout}"
+
+        ignore_check = subprocess.run(
+            ["git", "check-ignore", "-v", str(LOCAL_ADMIN_MANIFEST)],
+            capture_output=True, text=True, cwd=str(ROOT),
+        )
+        assert ignore_check.returncode == 0, "Local admin manifest path must be covered by .gitignore"
 
 
 # ---------------------------------------------------------------------------
-# Repair 2: Blinded Reviewer Package — Zero role/rationale exposure
+# Repair 2 & S5-B1.1 Gates 1, 2, 6: Blinded Package, Zero Categories, Randomized Order, Dual Workbooks
 # ---------------------------------------------------------------------------
 
-class TestBlindedReviewerPackage:
+class TestBlindedReviewerPackageAndRandomization:
     FORBIDDEN_COLS = {
-        "candidate_role", "admin_rationale", "rationale", "role", "expected_label"
+        "candidate_role", "admin_rationale", "rationale", "role", "expected_label", "category"
     }
     FORBIDDEN_KEYWORDS = {
         "PREMISE_DIRECT", "PREMISE_HOP_1", "PREMISE_HOP_2",
         "PREMISE_CROSS_DOC_A", "PREMISE_CROSS_DOC_B",
         "HARD_NEGATIVE", "CORPUS_CONTROL", "BACKGROUND_CONTEXT",
+        "UNANSWERABLE", "SINGLE_HOP_CONTROL", "TWO_HOP", "CROSS_DOCUMENT",
+        "admin_rationale", "candidate_role", "category_distribution",
     }
 
-    def test_blinded_csv_exists(self):
-        assert BLINDED_CSV.exists(), f"Blinded CSV not found: {BLINDED_CSV}"
-
-    def test_blinded_csv_has_no_role_columns(self):
+    def test_blinded_csv_has_no_role_or_category_columns(self):
+        assert BLINDED_CSV.exists()
         with open(BLINDED_CSV, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             cols = set(reader.fieldnames or [])
         for forbidden in self.FORBIDDEN_COLS:
             assert forbidden not in cols, f"Forbidden column '{forbidden}' found in blinded CSV"
 
-    def test_blinded_csv_has_no_role_values(self):
-        with open(BLINDED_CSV, encoding="utf-8") as f:
-            content = f.read()
-        for kw in self.FORBIDDEN_KEYWORDS:
-            assert kw not in content, f"Leaked role keyword '{kw}' found in blinded reviewer CSV"
+    def test_all_reviewer_facing_files_contain_zero_leaked_keywords(self):
+        files_to_check = [BLINDED_CSV, BLINDED_JSON, PROTOCOL_MD, BLINDED_SPECS]
+        if REVIEWER_A_WB.exists():
+            files_to_check.append(REVIEWER_A_WB)
+        if REVIEWER_B_WB.exists():
+            files_to_check.append(REVIEWER_B_WB)
 
-    def test_blinded_csv_has_neutral_pair_ids(self):
-        with open(BLINDED_CSV, encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-        assert len(rows) == 31, f"Expected 31 candidate pairs, got {len(rows)}"
-        for i, row in enumerate(rows, start=1):
-            expected = f"PAIR-{i:03d}"
-            assert row["pair_id"] == expected, f"Row {i}: expected pair_id={expected}, got {row['pair_id']}"
+        for fpath in files_to_check:
+            content = fpath.read_text(encoding="utf-8")
+            for kw in self.FORBIDDEN_KEYWORDS:
+                assert kw not in content, f"Leaked keyword '{kw}' found in reviewer-facing file {fpath.name}"
 
-    def test_blinded_csv_human_fields_all_empty(self):
+    def test_blinded_csv_has_neutral_pair_ids_and_empty_human_fields(self):
         human_fields = ["human_relevance_grade", "human_evidence_quote", "human_confidence", "human_notes"]
         with open(BLINDED_CSV, encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                for field in human_fields:
-                    assert row.get(field, "") == "", (
-                        f"Human field '{field}' is non-empty in blinded CSV for pair {row.get('pair_id')}"
-                    )
+            rows = list(csv.DictReader(f))
+        assert len(rows) == 31
+        for i, row in enumerate(rows, start=1):
+            assert row["pair_id"] == f"PAIR-{i:03d}"
+            for hf in human_fields:
+                assert row[hf] == "", f"Human field {hf} must be empty in {row['pair_id']}"
 
-    def test_blinded_json_has_no_role_fields(self):
-        with open(BLINDED_JSON) as f:
-            data = json.load(f)
-        content = json.dumps(data)
-        for kw in self.FORBIDDEN_KEYWORDS:
-            assert kw not in content, f"Leaked keyword '{kw}' found in blinded JSON"
-        for q in data["queries"]:
-            for c in q["candidates"]:
-                assert "candidate_role" not in c, f"candidate_role field found in blinded JSON candidate"
-                assert "admin_rationale" not in c, f"admin_rationale field found in blinded JSON candidate"
+    def test_candidate_ordering_is_deterministically_randomized_with_recorded_seed(self):
+        with open(BLINDED_JSON, encoding="utf-8") as f:
+            blinded = json.load(f)
+        with open(BLINDED_SPECS, encoding="utf-8") as f:
+            specs = json.load(f)
 
-    def test_admin_manifest_separate_from_public_package(self):
-        """Admin manifest exists in admin_package/, not in human_evaluation_package/."""
-        assert ADMIN_MANIFEST.exists(), f"Admin manifest missing at {ADMIN_MANIFEST}"
-        # Ensure admin manifest is NOT inside the PKG_DIR (human_evaluation_package)
-        admin_in_pkg = PKG_DIR / "admin_retrieval_manifest.json"
-        assert not admin_in_pkg.exists(), (
-            "Admin manifest must NOT be in human_evaluation_package/; must be in admin_package/"
-        )
+        seed = blinded["randomization_seed"]
+        assert seed == 20261118
+        rng = random.Random(seed)
 
-    def test_admin_manifest_has_all_role_assignments(self):
-        with open(ADMIN_MANIFEST) as f:
+        for q_spec, q_blind in zip(specs["queries"], blinded["queries"]):
+            expected_pids = sorted(q_spec["candidate_passage_ids"])
+            rng.shuffle(expected_pids)
+            actual_pids = [c["candidate_passage_id"] for c in q_blind["candidates"]]
+            assert actual_pids == expected_pids, f"Candidate order mismatch for {q_spec['query_id']}"
+
+    def test_randomized_order_breaks_positive_then_negative_pattern(self):
+        if not LOCAL_ADMIN_MANIFEST.exists():
+            pytest.skip("Local gitignored admin manifest not present in isolated environment")
+        with open(LOCAL_ADMIN_MANIFEST, encoding="utf-8") as f:
             admin = json.load(f)
-        pairs = admin.get("candidate_pairs", [])
-        assert len(pairs) == 31, f"Expected 31 admin pairs, got {len(pairs)}"
-        for pair in pairs:
-            assert "candidate_role" in pair, f"Missing candidate_role in admin pair {pair.get('pair_id')}"
-            assert "admin_rationale" in pair, f"Missing admin_rationale in admin pair {pair.get('pair_id')}"
-            assert pair["candidate_role"] != "", f"Empty candidate_role in pair {pair.get('pair_id')}"
+
+        by_query: dict[str, list[str]] = {}
+        for p in admin["candidate_pairs"]:
+            by_query.setdefault(p["query_id"], []).append(p["candidate_role"])
+
+        first_position_hard_negatives = sum(1 for roles in by_query.values() if roles[0] == "HARD_NEGATIVE")
+        last_position_positives = sum(
+            1 for roles in by_query.values()
+            if roles[-1] in {"PREMISE_DIRECT", "PREMISE_HOP_1", "PREMISE_HOP_2", "PREMISE_CROSS_DOC_A", "PREMISE_CROSS_DOC_B", "CORPUS_CONTROL"}
+        )
+        assert first_position_hard_negatives >= 3, "Randomization must place HARD_NEGATIVE first in multiple queries"
+        assert last_position_positives >= 3, "Randomization must place non-negative candidates last in multiple queries"
+
+    def test_separate_reviewer_a_and_b_workbooks_contain_verified_text(self):
+        db_path = ROOT / "okf_graph.db"
+        if not db_path.exists():
+            pytest.skip("okf_graph.db not present in isolated environment")
+        if not REVIEWER_A_WB.exists() or not REVIEWER_B_WB.exists():
+            from subprocess import run
+            run(["python3", str(S5B1_DIR / "scripts" / "build_s5b1_human_eval_package.py")], check=True, cwd=str(ROOT))
+
+        assert REVIEWER_A_WB.exists()
+        assert REVIEWER_B_WB.exists()
+
+        wb_a = REVIEWER_A_WB.read_text(encoding="utf-8")
+        wb_b = REVIEWER_B_WB.read_text(encoding="utf-8")
+        assert "Reviewer ID:** `REV_A`" in wb_a
+        assert "Reviewer ID:** `REV_B`" in wb_b
+
+        for i in range(1, 32):
+            pair_tag = f"Candidate Pair `PAIR-{i:03d}`"
+            assert pair_tag in wb_a
+            assert pair_tag in wb_b
 
 
 # ---------------------------------------------------------------------------
-# Repair 3: Graph Traversal Instrumentation
+# Repair 3 & 5: Graph Traversal Instrumentation & BM25 Fallback
 # ---------------------------------------------------------------------------
 
-class TestGraphTraversalInstrumentation:
-    def test_tech_eval_report_exists(self):
-        assert TECH_EVAL_PATH.exists(), f"Technical evaluation report missing: {TECH_EVAL_PATH}"
-
-    def test_graph_systems_report_fallback_rate(self):
-        with open(TECH_EVAL_PATH) as f:
+class TestGraphTraversalAndBM25Fallback:
+    def test_graph_systems_report_fallback_hop_depth_and_paths(self):
+        assert TECH_EVAL_PATH.exists()
+        with open(TECH_EVAL_PATH, encoding="utf-8") as f:
             report = json.load(f)
-        graph_systems = ["baseline_graph_1hop", "repaired_graph_1hop_ablation", "repaired_graph_2hop_full"]
-        for sys_name in graph_systems:
-            sys = report["systems"][sys_name]
-            assert "fallback_rate" in sys, f"{sys_name} missing fallback_rate"
-            assert 0.0 <= sys["fallback_rate"] <= 1.0, f"{sys_name} fallback_rate out of range"
-
-    def test_graph_systems_report_actual_hop_count(self):
-        with open(TECH_EVAL_PATH) as f:
-            report = json.load(f)
-        graph_systems = ["baseline_graph_1hop", "repaired_graph_1hop_ablation", "repaired_graph_2hop_full"]
-        for sys_name in graph_systems:
-            sys = report["systems"][sys_name]
-            assert "observed_average_hop_depth" in sys, f"{sys_name} missing observed_average_hop_depth"
-
-    def test_graph_systems_report_total_paths_traversed(self):
-        with open(TECH_EVAL_PATH) as f:
-            report = json.load(f)
-        for sys_name in ["repaired_graph_1hop_ablation", "repaired_graph_2hop_full"]:
-            sys = report["systems"][sys_name]
-            assert "total_paths_traversed" in sys, f"{sys_name} missing total_paths_traversed"
-            assert isinstance(sys["total_paths_traversed"], int)
+        for sys_name in ["baseline_graph_1hop", "repaired_graph_1hop_ablation", "repaired_graph_2hop_full"]:
+            sys_data = report["systems"][sys_name]
+            assert 0.0 <= sys_data["fallback_rate"] <= 1.0
+            assert "observed_average_hop_depth" in sys_data
+            assert isinstance(sys_data["total_paths_traversed"], int)
+            for qr in sys_data["query_results"]:
+                meta = qr["meta"]
+                if meta["is_fallback"]:
+                    assert meta["fallback_strategy"] == "corpus_bm25"
+                    assert meta["actual_hop_count"] == 0
+                else:
+                    assert meta["actual_hop_count"] in {0, 1, 2}
 
     def test_2hop_traverses_more_paths_than_1hop(self):
-        with open(TECH_EVAL_PATH) as f:
+        with open(TECH_EVAL_PATH, encoding="utf-8") as f:
             report = json.load(f)
-        paths_1hop = report["systems"]["repaired_graph_1hop_ablation"]["total_paths_traversed"]
-        paths_2hop = report["systems"]["repaired_graph_2hop_full"]["total_paths_traversed"]
-        assert paths_2hop >= paths_1hop, (
-            f"2-hop ({paths_2hop}) should traverse >= paths as 1-hop ({paths_1hop})"
-        )
+        p1 = report["systems"]["repaired_graph_1hop_ablation"]["total_paths_traversed"]
+        p2 = report["systems"]["repaired_graph_2hop_full"]["total_paths_traversed"]
+        assert p2 > p1
 
-    def test_no_silently_swallowed_exceptions(self):
-        """Benchmark script source must not contain bare except: pass blocks."""
-        script_path = S5B1_DIR / "scripts" / "run_s5b1_retrieval_benchmark.py"
-        content = script_path.read_text()
+    def test_no_silently_swallowed_exceptions_in_benchmark_script(self):
         import re
-        # Check for the bad pattern: except Exception:\n        pass  or except:\n        pass
+        content = BENCHMARK_SCRIPT.read_text(encoding="utf-8")
         bad_pattern = re.compile(r"except\s*(?:Exception)?\s*:\s*\n\s*pass\b")
-        assert not bad_pattern.search(content), (
-            "Found silently swallowed 'except: pass' in S5-B1 benchmark script — must log exceptions"
-        )
+        assert not bad_pattern.search(content)
+        assert "(p.passage_id, 0.05)" not in content
 
 
 # ---------------------------------------------------------------------------
-# Repair 4: Latency Accounting — cold-start vs per-query
+# Repair 4: Latency Accounting — Cold-Start vs Per-Query
 # ---------------------------------------------------------------------------
 
 class TestLatencyAccounting:
-    def test_timing_report_has_application_cold_start(self):
-        with open(TIMING_PATH) as f:
+    def test_timing_report_has_application_cold_start_and_warm_stats(self):
+        assert TIMING_PATH.exists()
+        with open(TIMING_PATH, encoding="utf-8") as f:
             timing = json.load(f)
-        cold = timing.get("application_cold_start_ms", {})
-        assert "corpus_load_ms" in cold, "Missing corpus_load_ms in cold start"
-        assert "dense_model_load_ms" in cold, "Missing dense_model_load_ms in cold start"
-        assert "bm25_index_build_ms" in cold, "Missing bm25_index_build_ms in cold start"
-        assert "corpus_scoped_graph_build_ms" in cold, "Missing corpus_scoped_graph_build_ms in cold start"
+        cold = timing["application_cold_start_ms"]
+        for key in ["corpus_load_ms", "dense_model_load_ms", "bm25_index_build_ms", "corpus_scoped_graph_build_ms"]:
+            assert key in cold and cold[key] > 0
 
-    def test_timing_report_has_first_query_separate_from_warm(self):
-        with open(TIMING_PATH) as f:
-            timing = json.load(f)
-        for name, sys in timing["systems"].items():
-            assert "first_query_mean_ms" in sys, f"{name} missing first_query_mean_ms"
-            assert "warm_mean_ms" in sys, f"{name} missing warm_mean_ms"
-            assert "warm_p95_ms" in sys, f"{name} missing warm_p95_ms"
-            assert "warm_std_ms" in sys, f"{name} missing warm_std_ms"
-
-    def test_model_load_time_is_nonzero(self):
-        with open(TIMING_PATH) as f:
-            timing = json.load(f)
-        model_load = timing["application_cold_start_ms"]["dense_model_load_ms"]
-        assert model_load > 0, "dense_model_load_ms must be nonzero (genuine cold start)"
-
-    def test_warm_distribution_has_min_max_std(self):
-        with open(TIMING_PATH) as f:
-            timing = json.load(f)
-        for name, sys in timing["systems"].items():
-            assert "warm_min_ms" in sys, f"{name} missing warm_min_ms"
-            assert "warm_max_ms" in sys, f"{name} missing warm_max_ms"
-            assert sys["warm_min_ms"] <= sys["warm_mean_ms"] <= sys["warm_max_ms"], (
-                f"{name}: warm stats inconsistent: min={sys['warm_min_ms']} mean={sys['warm_mean_ms']} max={sys['warm_max_ms']}"
-            )
+        for name, sys_t in timing["systems"].items():
+            assert "first_query_mean_ms" in sys_t
+            assert sys_t["warm_min_ms"] <= sys_t["warm_mean_ms"] <= sys_t["warm_max_ms"]
+            assert sys_t["warm_p95_ms"] >= sys_t["warm_median_ms"]
 
 
 # ---------------------------------------------------------------------------
-# Repair 5: BM25-Based Fallback
+# Repair 6 & S5-B1.1 Gate 4: Runtime Cryptographic Fingerprint Verification
 # ---------------------------------------------------------------------------
 
-class TestBM25BasedFallback:
-    def test_benchmark_script_uses_bm25_fallback_not_substring(self):
-        """Graph retrievers must use BM25 fallback, not unsorted substring slice."""
-        script_path = S5B1_DIR / "scripts" / "run_s5b1_retrieval_benchmark.py"
-        content = script_path.read_text()
-        # S5-A bad pattern: (p.passage_id, 0.05) for p in self.passages if any(w ...)
-        old_pattern = '(p.passage_id, 0.05)'
-        assert old_pattern not in content, (
-            "Found old unsorted substring fallback '(p.passage_id, 0.05)' in S5-B1 script"
-        )
-        # Confirm BM25 fallback present
-        assert "bm25_fallback" in content, "BM25 fallback not referenced in S5-B1 benchmark script"
+class TestRuntimeDenseEmbeddingFingerprintVerification:
+    def test_runtime_verification_succeeds_on_authentic_corpus_and_cache(self):
+        db_path = ROOT / "okf_graph.db"
+        if not db_path.exists() or not EMB_CACHE.exists():
+            pytest.skip("Local DB or dense cache not present")
+        mod = _load_benchmark_module()
+        passages, _ = mod.load_s5b1_corpus()
+        emb, fp = mod.verify_dense_cache_and_corpus_fingerprints(passages, EMB_CACHE, MODEL_MANIFEST)
+        assert emb.shape == (713, 768)
+        assert fp["passage_count"] == 713
 
-    def test_tech_eval_reports_fallback_strategy(self):
-        with open(TECH_EVAL_PATH) as f:
-            report = json.load(f)
-        for sys_name in ["repaired_graph_1hop_ablation", "repaired_graph_2hop_full"]:
-            for q_result in report["systems"][sys_name]["query_results"]:
-                meta = q_result.get("meta", {})
-                if meta.get("is_fallback"):
-                    assert meta.get("fallback_strategy") == "corpus_bm25", (
-                        f"{sys_name} fallback strategy is '{meta.get('fallback_strategy')}', expected 'corpus_bm25'"
-                    )
+    def test_runtime_verification_rejects_perturbed_passage_id_ordering(self):
+        db_path = ROOT / "okf_graph.db"
+        if not db_path.exists() or not EMB_CACHE.exists():
+            pytest.skip("Local DB or dense cache not present")
+        mod = _load_benchmark_module()
+        passages, _ = mod.load_s5b1_corpus()
+        swapped = list(passages)
+        swapped[0], swapped[1] = swapped[1], swapped[0]
+        with pytest.raises(ValueError, match="passage-ID ordering SHA-256 mismatch"):
+            mod.verify_dense_cache_and_corpus_fingerprints(swapped, EMB_CACHE, MODEL_MANIFEST)
 
-    def test_scientific_integrity_bm25_fallback_active(self):
-        with open(TECH_EVAL_PATH) as f:
-            report = json.load(f)
-        assert report["scientific_integrity_guarantees"]["bm25_fallback_active"] is True
+    def test_runtime_verification_rejects_corrupted_passage_text(self):
+        db_path = ROOT / "okf_graph.db"
+        if not db_path.exists() or not EMB_CACHE.exists():
+            pytest.skip("Local DB or dense cache not present")
+        mod = _load_benchmark_module()
+        passages, _ = mod.load_s5b1_corpus()
+        corrupted = list(passages)
+        p0 = copy.copy(corrupted[0])
+        object.__setattr__(p0, "text", p0.text + " CORRUPTED")
+        corrupted[0] = p0
+        with pytest.raises(ValueError, match="Corpus text SHA-256 mismatch"):
+            mod.verify_dense_cache_and_corpus_fingerprints(corrupted, EMB_CACHE, MODEL_MANIFEST)
+
+    def test_runtime_verification_rejects_corrupted_embedding_cache(self, tmp_path):
+        db_path = ROOT / "okf_graph.db"
+        if not db_path.exists() or not EMB_CACHE.exists():
+            pytest.skip("Local DB or dense cache not present")
+        mod = _load_benchmark_module()
+        passages, _ = mod.load_s5b1_corpus()
+        bad_cache = tmp_path / "bad_embeddings.npy"
+        bad_cache.write_bytes(b"corrupted_bytes")
+        with pytest.raises(ValueError, match="Dense embedding cache SHA-256 mismatch"):
+            mod.verify_dense_cache_and_corpus_fingerprints(passages, bad_cache, MODEL_MANIFEST)
 
 
 # ---------------------------------------------------------------------------
-# Repair 6: Dense Embedding Fingerprint Verification
+# Repair 7 & S5-B1.1 Gate 5: Complete Graph Information-Access Audit (Heterogeneous & Baseline Kùzu)
 # ---------------------------------------------------------------------------
 
-class TestDenseEmbeddingFingerprint:
-    def test_model_manifest_has_cryptographic_fingerprints(self):
-        with open(MODEL_MANIFEST) as f:
-            m = json.load(f)
-        fp = m["primary_dense_model"]["cryptographic_fingerprints"]
-        assert "embedding_matrix_sha256" in fp
-        assert "corpus_passage_id_sha256" in fp
-        assert "corpus_text_sha256" in fp
+class TestCompleteGraphInformationAccessAudit:
+    def test_graph_audit_covers_both_heterogeneous_and_baseline_kuzu_graphs(self):
+        assert GRAPH_AUDIT.exists()
+        with open(GRAPH_AUDIT, encoding="utf-8") as f:
+            audit = json.load(f)
 
-    def test_embedding_cache_sha256_matches_manifest(self):
-        """Embedding cache file SHA-256 must match what the manifest declares."""
-        if not EMB_CACHE.exists():
-            pytest.skip("Dense embedding cache not present on this machine")
-        with open(MODEL_MANIFEST) as f:
-            m = json.load(f)
-        declared_sha = m["primary_dense_model"]["cryptographic_fingerprints"]["embedding_matrix_sha256"]
-        actual_sha = hashlib.sha256(EMB_CACHE.read_bytes()).hexdigest()
-        assert actual_sha == declared_sha, (
-            f"Embedding cache SHA-256 mismatch: declared={declared_sha}, actual={actual_sha}"
-        )
+        assert audit["unconstrained_edges_count"] == 148
+        assert audit["constrained_edges_count"] == 146
+        assert audit["leaked_external_edges_count"] == 2
 
-    def test_embedding_shape_is_713x768(self):
-        if not EMB_CACHE.exists():
-            pytest.skip("Dense embedding cache not present")
-        import numpy as np
-        emb = np.load(str(EMB_CACHE))
-        assert emb.shape == (713, 768), f"Expected shape (713, 768), got {emb.shape}"
+        kuzu_audit = audit["baseline_kuzu_graph_audit"]
+        assert kuzu_audit["total_concept_nodes"] == 610
+        assert kuzu_audit["concepts_in_eligible_713_corpus"] == 451
+        assert kuzu_audit["concepts_only_in_external_chunks"] == 56
+        assert kuzu_audit["total_concept_edges_in_kuzu"] == 1988
+        assert kuzu_audit["eligible_corpus_verified_edges"] == 1526
+        assert kuzu_audit["non_eligible_or_unscoped_edges_excluded"] == 462
 
-    def test_corpus_pids_sha256_matches_manifest(self):
-        """Corpus passage-ID ordering SHA must match manifest declaration."""
-        with open(MODEL_MANIFEST) as f:
-            m = json.load(f)
-        declared_pids_sha = m["primary_dense_model"]["cryptographic_fingerprints"]["corpus_passage_id_sha256"]
-
-        from archipelago.eval.retrieval_baselines import build_fixed_corpus_from_kuzu, _is_index_only_passage
+    def test_baseline_kuzu_edge_filter_rejects_external_and_unscoped_sources(self):
         db_path = ROOT / "okf_graph.db"
         if not db_path.exists():
-            pytest.skip("Database not present on this machine")
+            pytest.skip("okf_graph.db not present")
+        import kuzu
+        from archipelago.eval.retrieval_baselines import BM25Retriever
+        mod = _load_benchmark_module()
+        passages, _ = mod.load_s5b1_corpus()
+        bm25 = BM25Retriever(passages)
+        conn = kuzu.Connection(kuzu.Database(str(db_path), read_only=True))
+        retriever = mod.RepairedBaselineGraphRetriever(passages, conn, bm25)
 
-        passages, _ = build_fixed_corpus_from_kuzu(str(db_path))
-        eligible = [
-            p for p in passages
-            if not _is_index_only_passage(p.doc_id, p.section_title, p.text)
-            and p.passage_id != "doc_data_and_computer_communications::doc_data_and_computer_communications_p612_4"
-        ]
-        hasher = hashlib.sha256()
-        for p in eligible:
-            hasher.update(p.passage_id.encode("utf-8"))
-        actual_pids_sha = hasher.hexdigest()
-        assert actual_pids_sha == declared_pids_sha, (
-            f"Corpus PID SHA mismatch: declared={declared_pids_sha}, actual={actual_pids_sha}"
+        assert not retriever._is_corpus_verified_kuzu_edge("graph neural network", None)
+        assert not retriever._is_corpus_verified_kuzu_edge("graph neural network", "pearson_batch1")
+        assert not retriever._is_corpus_verified_kuzu_edge("graph neural network", "librarian_upload")
+        assert not retriever._is_corpus_verified_kuzu_edge(
+            "graph neural network", "data_science_2019/Index_2019_Data-Science.pdf:chunk_007"
+        )
+        assert retriever._is_corpus_verified_kuzu_edge(
+            "graph neural network", "papers/Vaswani2017_Attention_Is_All_You_Need.pdf:chunk_004"
         )
 
 
 # ---------------------------------------------------------------------------
-# Repair 7: Graph Construction Information Access
-# ---------------------------------------------------------------------------
-
-class TestGraphInformationAccessAudit:
-    def test_graph_audit_report_exists(self):
-        assert GRAPH_AUDIT.exists(), f"Graph information access audit report missing: {GRAPH_AUDIT}"
-
-    def test_graph_audit_identifies_external_chunks(self):
-        with open(GRAPH_AUDIT) as f:
-            audit = json.load(f)
-        assert audit["external_chunks_count"] > 0, (
-            "Expected to find external chunks (documents outside eval corpus) in the database"
-        )
-
-    def test_graph_audit_remediation_applied(self):
-        with open(GRAPH_AUDIT) as f:
-            audit = json.load(f)
-        assert audit["information_access_verdict"] in {
-            "FAIR_RESTRICTED", "DISCREPANCY_DETECTED_AND_CORRECTED"
-        }, f"Unexpected verdict: {audit['information_access_verdict']}"
-        assert "remediation_applied" in audit and len(audit["remediation_applied"]) > 0
-
-    def test_tech_eval_reports_corpus_scope_as_identical(self):
-        with open(TECH_EVAL_PATH) as f:
-            report = json.load(f)
-        assert report["scientific_integrity_guarantees"]["corpus_scope_strictly_identical"] is True
-
-
-# ---------------------------------------------------------------------------
-# Retrieval Effectiveness Boundary
+# Retrieval Effectiveness Scientific Boundary
 # ---------------------------------------------------------------------------
 
 class TestRetrievalEffectivenessBoundary:
-    def test_no_superiority_claims_in_reports(self):
-        """Technical report must not assert retrieval superiority."""
-        with open(TECH_EVAL_PATH) as f:
+    def test_no_superiority_claims_or_category_leakage_in_technical_report(self):
+        with open(TECH_EVAL_PATH, encoding="utf-8") as f:
             report = json.load(f)
-        assert not report["scientific_integrity_guarantees"]["superiority_asserted"]
-        assert not report["scientific_integrity_guarantees"]["effectiveness_claimed"]
-        assert report["scientific_integrity_guarantees"]["human_gold_status"] == "PENDING_INDEPENDENT_ANNOTATION"
+        assert report["scientific_integrity_guarantees"]["superiority_asserted"] is False
+        assert report["scientific_integrity_guarantees"]["effectiveness_claimed"] is False
+        assert report["scientific_integrity_guarantees"]["baseline_kuzu_graph_corpus_scoped"] is True
+        assert report["runtime_fingerprint_verification"]["verified_at_startup"] is True
 
-    def test_all_systems_marked_not_evaluated(self):
-        with open(TECH_EVAL_PATH) as f:
-            report = json.load(f)
-        for name, sys in report["systems"].items():
-            assert sys.get("effectiveness_verdict") == "NOT_EVALUATED_PENDING_HUMAN_GOLD", (
-                f"{name} has unexpected effectiveness_verdict: {sys.get('effectiveness_verdict')}"
-            )
+        raw_text = TECH_EVAL_PATH.read_text(encoding="utf-8")
+        assert "UNANSWERABLE" not in raw_text
+        for name, sys_data in report["systems"].items():
+            assert sys_data["effectiveness_verdict"] == "NOT_EVALUATED_PENDING_HUMAN_GOLD"

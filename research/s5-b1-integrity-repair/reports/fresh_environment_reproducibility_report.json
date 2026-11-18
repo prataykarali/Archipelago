@@ -1,0 +1,56 @@
+{
+  "report_name": "S5-B1.1 Fresh-Environment Reproducibility & Test Inventory Report",
+  "date": "2026-11-18",
+  "python_version": "3.12.3",
+  "pytest_version": "9.1.1",
+  "platform": "Linux-x86_64",
+  "randomization_seed": 20261118,
+  "fresh_clone_modes": {
+    "mode_1_pure_git_tracked_clone": {
+      "description": "Isolated temporary directory containing ONLY git-tracked files (no okf_graph.db, no dense cache, no local admin manifest).",
+      "command": "pytest tests/unit/test_s5b1_integrity_repair.py -v",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 7,
+      "skipped_reason": "7 tests require local gitignored okf_graph.db, dense embedding cache, or local admin manifest and skip cleanly via pytest.skip().",
+      "status": "PASS"
+    },
+    "mode_2_public_researcher_fresh_clone_with_frozen_db_and_cache": {
+      "description": "Isolated temporary directory containing git-tracked files plus read-only okf_graph.db and s5a_dense_embeddings_713.npy, WITHOUT local admin secrets.",
+      "package_rebuild_command": "python3 research/s5-b1-integrity-repair/scripts/build_s5b1_human_eval_package.py",
+      "regenerated_artifacts_byte_identical": true,
+      "regenerated_artifact_sha256": {
+        "retrieval_query_candidate_pool_blinded.csv": "54c14515da7d04fe735533ec94b5a0833ddb85c5939ff51341b3984aa39e10a2",
+        "retrieval_query_pool_blinded.json": "ec59b6c661e0668080fedf5aa7392d9c3b41302594f8f97e7ae5b8847f55e963",
+        "RETRIEVAL_ANNOTATION_PROTOCOL.md": "e3452586dfec08b466509ac9356a3834f7fd00b07861d4935165c8c964deede1",
+        "reviewer_a_retrieval_workbook.md": "a807eebc0a758ec0f8a32817d14502dbf8c1886c3be393dedbc2fe49a6d1b2b7",
+        "reviewer_b_retrieval_workbook.md": "9c5a75345bba2df72052f14351a33abf2bf662584ab6affefda570bbf9e1f35a"
+      },
+      "test_command": "pytest tests/unit/test_s5b1_integrity_repair.py tests/unit/test_s5a_retrieval_integrity.py -v",
+      "passed": 34,
+      "failed": 0,
+      "skipped": 1,
+      "skipped_reason": "1 test (test_randomized_order_breaks_positive_then_negative_pattern) requires local gitignored admin_retrieval_manifest.json and skips cleanly in public-only clones.",
+      "status": "PASS"
+    },
+    "mode_3_full_research_regression_suite_with_local_admin_storage": {
+      "description": "Complete S4 + S5-A + S5-B1.1 research integrity regression suite with local corpus DB, dense cache, and local gitignored admin manifest.",
+      "command": "pytest tests/unit/test_s4* tests/unit/test_s5a* tests/unit/test_s5b1* -v",
+      "s5b1_1_tests_passed": 21,
+      "s5b1_1_tests_failed": 0,
+      "s5b1_1_tests_skipped": 0,
+      "total_research_tests_passed": 310,
+      "total_research_tests_failed": 0,
+      "total_research_tests_skipped": 0,
+      "status": "PASS"
+    },
+    "mode_4_whole_repository_unit_suite_inventory": {
+      "description": "Full repository unit test execution across all product, UI, hosted-runtime, and research test modules.",
+      "command": "pytest tests/unit/",
+      "passed": 2084,
+      "failed": 41,
+      "skipped": 8,
+      "pre_existing_failures_note": "All 41 failures occur in legacy product/UI/hosted-sync modules (e.g. test_50_cases_library.py, test_answer_cache.py, test_s5_enrichment.py) and are identical on base commit 78d3f2f. Zero failures in any S4, S5-A, or S5-B1.1 research integrity module."
+    }
+  }
+}
