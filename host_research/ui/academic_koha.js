@@ -6,6 +6,10 @@ const kinds = {
 };
 let snapshot = null;
 
+function isSafeHttpUrl(url) {
+  return typeof url === "string" && /^https?:\/\//i.test(url.trim());
+}
+
 function renderKoha() {
   if (!snapshot) return;
   const kind = document.querySelector("#koha-kind").value;
@@ -31,7 +35,7 @@ function renderKoha() {
     for (const name of headers) {
       const cell = document.createElement("td");
       cell.className = "p-3 text-white/75";
-      if (name === "opac_url" && row[name]) {
+      if (name === "opac_url" && isSafeHttpUrl(row[name])) {
         const link = document.createElement("a");
         link.href = row[name];
         link.target = "_blank";
@@ -78,7 +82,7 @@ async function loadKoha() {
         summary.textContent = section.summary;
         card.append(heading, summary);
         const source = document.createElement("a");
-        source.href = section.source_url;
+        source.href = isSafeHttpUrl(section.source_url) ? section.source_url : "#";
         source.target = "_blank";
         source.rel = "noopener noreferrer";
         source.className = "mt-2 inline-block text-xs text-violet-200 underline";
@@ -89,7 +93,7 @@ async function loadKoha() {
       for (const arrival of daily.new_arrivals || []) {
         const item = document.createElement("li");
         const link = document.createElement("a");
-        link.href = arrival.source_url;
+        link.href = isSafeHttpUrl(arrival.source_url) ? arrival.source_url : "#";
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         link.className = "text-violet-200 underline";
@@ -119,7 +123,7 @@ async function loadKoha() {
     for (const candidate of candidates) {
       const item = document.createElement("li");
       const link = document.createElement("a");
-      link.href = candidate.source_url;
+      link.href = isSafeHttpUrl(candidate.source_url) ? candidate.source_url : "#";
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       link.className = "text-violet-200 underline";

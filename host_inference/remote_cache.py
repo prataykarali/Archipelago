@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import threading
+import time
 
 import requests
 
@@ -13,6 +15,11 @@ PACKAGED_CACHE = ROOT / "cache"
 CACHE = Path("/tmp/archipelago/cache") if os.environ.get("VERCEL") else PACKAGED_CACHE
 BUCKET = "archipelago-cache"
 FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
+HYDRATE_TIMEOUT_SECONDS = 10
+HYDRATE_COOLDOWN_SECONDS = 30.0
+_CACHE_LOCK = threading.Lock()
+_LAST_HYDRATE_ATTEMPT: float = 0.0
+_MEM_CACHE: dict[str, tuple[float, object]] = {}
 
 
 def _production_mode() -> bool:
@@ -65,7 +72,7 @@ def hydrate() -> dict[str, str]:
                 response = requests.get(
                     f"{base}/storage/v1/object/{BUCKET}/{name}",
                     headers=auth,
-                    timeout=60,
+                    timeout=HYDRATE_TIMEOUT_SECONDS,
                 )
                 if response.status_code == 200 and len(response.content) > 200:
                     if name == "okf_graph.json" and target.is_file():
@@ -143,25 +150,56 @@ def public_book(book: dict) -> dict:
     }
 
 
+def _hydrate_if_needed() -> None:
+    global _LAST_HYDRATE_ATTEMPT
+    now = time.monotonic()
+    with _CACHE_LOCK:
+        if _LAST_HYDRATE_ATTEMPT and (now - _LAST_HYDRATE_ATTEMPT) < HYDRATE_COOLDOWN_SECONDS:
+            return
+        _LAST_HYDRATE_ATTEMPT = now
+    hydrate()
+
+
 def load_books() -> list[dict]:
     path = CACHE / "pearson_bookshelf.json"
     if not path.is_file():
-        hydrate()
+        _hydrate_if_needed()
     if not path.is_file():
         return []
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    return list(payload.get("books") or [])
+    try:
+        mtime = path.stat().st_mtime
+        key = f"books:{path}"
+        with _CACHE_LOCK:
+            cached = _MEM_CACHE.get(key)
+            if cached and cached[0] == mtime and isinstance(cached[1], list):
+                return list(cached[1])
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        books = list(payload.get("books") or [])
+        with _CACHE_LOCK:
+            _MEM_CACHE[key] = (mtime, books)
+        return list(books)
+    except (OSError, json.JSONDecodeError):
+        return []
 
 
 def load_library_manifest() -> dict:
     """Return the browser-safe library shelf exported to private Supabase storage."""
     path = CACHE / "library_manifest.json"
     if not path.is_file():
-        hydrate()
+        _hydrate_if_needed()
     if not path.is_file():
         return {}
     try:
+        mtime = path.stat().st_mtime
+        key = f"manifest:{path}"
+        with _CACHE_LOCK:
+            cached = _MEM_CACHE.get(key)
+            if cached and cached[0] == mtime and isinstance(cached[1], dict):
+                return dict(cached[1])
         payload = json.loads(path.read_text(encoding="utf-8"))
+        manifest = payload if isinstance(payload, dict) else {}
+        with _CACHE_LOCK:
+            _MEM_CACHE[key] = (mtime, manifest)
+        return dict(manifest)
     except (OSError, json.JSONDecodeError):
         return {}
-    return payload if isinstance(payload, dict) else {}

@@ -98,16 +98,44 @@ async function loadConceptIndex() {
 }
 loadConceptIndex();
 
-async function loadResearchTopics() {
+let topicsController = null;
+let topicsTimer = null;
+
+async function loadResearchTopics(isBackground = false) {
   if (!await window.archipelagoResearchReady) return;
+  if (isBackground && document.hidden) return;
+  if (topicsController) return;
+  const controller = new AbortController();
+  topicsController = controller;
   try {
-    const response = await fetch('/api/research/intake/topics', { cache: 'no-store' });
+    const response = await fetch('/api/research/intake/topics', {
+      cache: 'no-store',
+      headers: isBackground ? { 'X-Background-Poll': '1' } : undefined,
+      signal: controller.signal,
+    });
     if (!response.ok) throw new Error('Research topics unavailable.');
     researchTopics = (await response.json()).topics || [];
     renderTopicCards();
   } catch (error) {
+    if (error?.name === 'AbortError') return;
     document.getElementById('topic-cards').textContent = error.message || 'Research topics unavailable.';
+  } finally {
+    if (topicsController === controller) topicsController = null;
   }
 }
-loadResearchTopics();
-window.setInterval(loadResearchTopics, 60000);
+
+function stopTopicsPolling() {
+  if (topicsTimer) {
+    clearInterval(topicsTimer);
+    topicsTimer = null;
+  }
+  if (topicsController) {
+    try { topicsController.abort(); } catch (_) {}
+    topicsController = null;
+  }
+}
+
+loadResearchTopics(false);
+topicsTimer = window.setInterval(() => loadResearchTopics(true), 60000);
+window.addEventListener('pagehide', stopTopicsPolling);
+window.addEventListener('beforeunload', stopTopicsPolling);

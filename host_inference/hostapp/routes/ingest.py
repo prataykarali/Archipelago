@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import re
 
 from flask import Flask, jsonify, request
 from werkzeug.utils import secure_filename
 
-from ..config import MAX_CONTENT_LENGTH_BYTES
+from ..config import LIBRARIAN_ROLES, MAX_CONTENT_LENGTH_BYTES
 from ..context import AppContext
 
 try:
@@ -24,6 +25,8 @@ except ImportError:
     get_worker = None
 
 BYTES_PER_MIB = 1024 * 1024
+JOB_ID_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
+MAX_INGEST_JOBS_LIST = 100
 
 
 def _worker_available() -> bool:
@@ -83,8 +86,8 @@ def register(app: Flask, ctx: AppContext) -> None:
         try:
             upload_path.write_bytes(file_bytes)
             get_worker().enqueue(job.job_id)
-        except (OSError, RuntimeError) as exc:
-            job_store.update_status(job.job_id, JobStatus.FAILED, error=str(exc))
+        except (OSError, RuntimeError):
+            job_store.update_status(job.job_id, JobStatus.FAILED, error="Upload queueing failed.")
             return jsonify(
                 {"error": "ingestion_failed", "detail": "The upload could not be queued."}
             ), 503
@@ -98,16 +101,19 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.get("/api/ingest/<job_id>")
     def ingest_status(job_id: str):
+        if not JOB_ID_RE.fullmatch(job_id or ""):
+            return jsonify({"error": "bad_request", "detail": "Invalid job ID."}), 400
         if job_store:
             record = job_store.get_job(job_id)
             if record is not None:
+                safe_error = "Ingestion job failed." if record.error else None
                 return jsonify(
                     {
                         "job_id": record.job_id,
                         "status": getattr(record.status, "value", str(record.status)).lower(),
                         "source_filename": record.source_filename,
                         "progress": record.progress,
-                        "error": record.error,
+                        "error": safe_error,
                         "result": record.result,
                     }
                 ), 200
@@ -117,7 +123,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     def ingest_list():
         if job_store:
             try:
-                jobs = job_store.list_jobs()
+                jobs = list(job_store.list_jobs())[:MAX_INGEST_JOBS_LIST]
                 return jsonify({"jobs": jobs}), 200
             except OSError:
                 return jsonify({"error": "storage_unavailable"}), 503

@@ -234,7 +234,7 @@
         for (const [column, value] of values.entries()) {
           const cell = document.createElement('td');
           cell.className = column === 4 ? 'p-3.5 text-right font-bold text-emerald-400' : 'p-3.5 text-white/70';
-          if (column === 0 && holding.opac_url) {
+          if (column === 0 && typeof holding.opac_url === 'string' && /^https?:\/\//i.test(holding.opac_url)) {
             const link = document.createElement('a');
             link.href = holding.opac_url;
             link.target = '_blank';
@@ -281,15 +281,24 @@
       });
     }
 
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function renderJournals(items) {
       const tbody = document.getElementById('journals-table-body');
       tbody.innerHTML = items.slice(0, 200).map(j => `
         <tr class="hover:bg-white/5 transition-colors">
-          <td class="p-3 text-white font-medium">${j.title}</td>
-          <td class="p-3 text-white/70">${j.vol}</td>
-          <td class="p-3 text-white/50">${j.date || '—'}</td>
+          <td class="p-3 text-white font-medium">${escapeHtml(j.title)}</td>
+          <td class="p-3 text-white/70">${escapeHtml(j.vol)}</td>
+          <td class="p-3 text-white/50">${escapeHtml(j.date || '—')}</td>
           <td class="p-3 text-right">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono ${j.status === 'Arrived' ? 'bg-emerald-500/20 text-emerald-300' : j.status === 'Late' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">${j.status || 'Expected'}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono ${j.status === 'Arrived' ? 'bg-emerald-500/20 text-emerald-300' : j.status === 'Late' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}">${escapeHtml(j.status || 'Expected')}</span>
           </td>
         </tr>
       `).join('');
@@ -305,8 +314,8 @@
       const container = document.getElementById('subj-summary-cards');
       container.innerHTML = items.slice(0, 120).map(sc => `
         <div class="p-3 rounded-lg bg-black/40 border border-white/10">
-          <div class="text-xs text-white/80 font-medium truncate">${sc.subject}</div>
-          <div class="text-lg font-black text-purple-400 mt-1">${sc.total_titles}</div>
+          <div class="text-xs text-white/80 font-medium truncate">${escapeHtml(sc.subject)}</div>
+          <div class="text-lg font-black text-purple-400 mt-1">${escapeHtml(sc.total_titles)}</div>
         </div>
       `).join('');
     }
@@ -320,10 +329,10 @@
       const tbody = document.getElementById('subj-detail-table-body');
       tbody.innerHTML = items.slice(0, 200).map(st => `
         <tr class="hover:bg-white/5 transition-colors">
-          <td class="p-3 text-amber-300/80 font-mono text-[11px]">${st.subject}</td>
-          <td class="p-3 text-white font-medium">${st.title}</td>
-          <td class="p-3 text-white/60">${st.author || '—'}</td>
-          <td class="p-3 text-right text-white/50">${st.year || '—'}</td>
+          <td class="p-3 text-amber-300/80 font-mono text-[11px]">${escapeHtml(st.subject)}</td>
+          <td class="p-3 text-white font-medium">${escapeHtml(st.title)}</td>
+          <td class="p-3 text-white/60">${escapeHtml(st.author || '—')}</td>
+          <td class="p-3 text-right text-white/50">${escapeHtml(st.year || '—')}</td>
         </tr>
       `).join('');
     }
@@ -354,7 +363,7 @@
         summary.className = 'mt-2 text-xs text-white/70';
         summary.textContent = section.summary;
         const source = document.createElement('a');
-        source.href = section.source_url;
+        source.href = (typeof section.source_url === 'string' && /^https?:\/\//i.test(section.source_url)) ? section.source_url : '#';
         source.target = '_blank';
         source.rel = 'noopener noreferrer';
         source.className = 'mt-2 inline-block text-xs text-blue-300 underline';
@@ -365,7 +374,7 @@
       for (const record of daily.new_arrivals || []) {
         const item = document.createElement('li');
         const link = document.createElement('a');
-        link.href = record.source_url;
+        link.href = (typeof record.source_url === 'string' && /^https?:\/\//i.test(record.source_url)) ? record.source_url : '#';
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.className = 'text-blue-300 underline';

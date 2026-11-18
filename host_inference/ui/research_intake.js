@@ -3,10 +3,18 @@ const byId = id => document.getElementById(id);
 let recentRecords = [];
 let activeJobId = null;
 let jobPollTimer = null;
+let jobPollController = null;
+let recordRefreshTimer = null;
+let recordRefreshController = null;
+let intakeStopped = false;
 let inspectedJobId = null;
 let fullSessionData = null;
 const JOB_POLL_MS = 5000;
 const RECORD_REFRESH_MS = 60000;
+
+function isSafeHttpUrl(url) {
+  return typeof url === 'string' && /^https?:\/\//i.test(url.trim());
+}
 
 function coverageText(okfs) {
   const counts = { observed: 0, inferred: 0, derived: 0, unknown: 0, not_reported: 0, not_applicable: 0 };
@@ -93,9 +101,13 @@ async function renderJobPapers(jobId) {
       paper.method && `Method ${paper.method}`
     ].filter(Boolean).join(' · ') || 'Source supplied no additional numeric metrics.';
     const link = document.createElement('a');
-    link.href = paper.source_url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
+    if (isSafeHttpUrl(paper.source_url)) {
+      link.href = paper.source_url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    } else {
+      link.href = '#';
+    }
     link.textContent = 'Open source ↗';
     const abstract = document.createElement('p');
     abstract.textContent = paper.abstract || paper.content || 'Abstract not supplied by this source.';
@@ -161,18 +173,34 @@ function renderJobReply(job) {
   target.append(intro);
   (job.result_summary.sources || []).forEach(source => {
     const link = document.createElement('a');
-    link.href = source.url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
+    if (isSafeHttpUrl(source.url)) {
+      link.href = source.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    } else {
+      link.href = '#';
+    }
     link.textContent = source.title;
     target.append(link);
   });
 }
 
 async function pollJob(jobId) {
-  if (jobId !== activeJobId) return;
+  if (intakeStopped || jobId !== activeJobId) return;
+  if (document.hidden) {
+    clearTimeout(jobPollTimer);
+    jobPollTimer = setTimeout(() => pollJob(jobId), JOB_POLL_MS);
+    return;
+  }
+  if (jobPollController) return;
+  const controller = new AbortController();
+  jobPollController = controller;
   try {
-    const response = await fetch(`/api/research/jobs/${encodeURIComponent(jobId)}`, { cache: 'no-store' });
+    const response = await fetch(`/api/research/jobs/${encodeURIComponent(jobId)}`, {
+      cache: 'no-store',
+      headers: { 'X-Background-Poll': '1' },
+      signal: controller.signal,
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Research status unavailable.');
     renderWorkerState(data.worker);
@@ -185,7 +213,13 @@ async function pollJob(jobId) {
       renderJobReply(data.job);
       return;
     }
-  } catch (error) { jobTarget().textContent = error.message || 'Research status unavailable.'; }
+  } catch (error) {
+    if (error?.name === 'AbortError') return;
+    jobTarget().textContent = error.message || 'Research status unavailable.';
+  } finally {
+    if (jobPollController === controller) jobPollController = null;
+  }
+  clearTimeout(jobPollTimer);
   jobPollTimer = setTimeout(() => pollJob(jobId), JOB_POLL_MS);
 }
 
@@ -262,9 +296,13 @@ function renderRecords() {
     const content = document.createElement('p');
     content.textContent = record.content || 'No abstract provided by this source.';
     const link = document.createElement('a');
-    link.href = record.source_url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
+    if (isSafeHttpUrl(record.source_url)) {
+      link.href = record.source_url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    } else {
+      link.href = '#';
+    }
     link.textContent = 'Open original source ↗';
     card.append(title, meta, content, link);
     if (kind === 'paper') {
@@ -290,19 +328,30 @@ function renderRecords() {
   });
 }
 
-async function refreshRecords() {
+async function refreshRecords(isBackground = false) {
+  if (intakeStopped || (isBackground && document.hidden)) return;
+  if (recordRefreshController) return;
+  const controller = new AbortController();
+  recordRefreshController = controller;
   const kind = researchPage === 'papers' ? 'paper' : 'institutional_page';
   const topic = researchPage === 'papers' ? new URLSearchParams(window.location.search).get('topic') : null;
   try {
     const suffix = topic ? `&topic=${encodeURIComponent(topic)}` : '';
-    const response = await fetch(`/api/research/intake/records?kind=${kind}${suffix}`, { cache: 'no-store' });
+    const response = await fetch(`/api/research/intake/records?kind=${kind}${suffix}`, {
+      cache: 'no-store',
+      headers: isBackground ? { 'X-Background-Poll': '1' } : undefined,
+      signal: controller.signal,
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Could not load saved sources.');
     recentRecords = data.records || [];
     renderRecords();
   } catch (error) {
+    if (error?.name === 'AbortError') return;
     byId('intake-count').textContent = 'Sources unavailable';
     byId('intake-records').textContent = error.message || 'Could not load saved sources.';
+  } finally {
+    if (recordRefreshController === controller) recordRefreshController = null;
   }
 }
 
@@ -371,6 +420,27 @@ document.querySelectorAll('.college-presets button').forEach(button => button.ad
   byId('college-url').value = button.dataset.url;
 }));
 
+function stopIntakePolling() {
+  intakeStopped = true;
+  clearTimeout(jobPollTimer);
+  jobPollTimer = null;
+  if (recordRefreshTimer) {
+    clearInterval(recordRefreshTimer);
+    recordRefreshTimer = null;
+  }
+  if (jobPollController) {
+    try { jobPollController.abort(); } catch (_) {}
+    jobPollController = null;
+  }
+  if (recordRefreshController) {
+    try { recordRefreshController.abort(); } catch (_) {}
+    recordRefreshController = null;
+  }
+}
+
+window.addEventListener('pagehide', stopIntakePolling);
+window.addEventListener('beforeunload', stopIntakePolling);
+
 window.addEventListener('load', async () => {
   const principal = await window.archipelagoResearchReady;
   if (!principal) return;
@@ -379,11 +449,13 @@ window.addEventListener('load', async () => {
     byId('college-form').hidden = !manager;
     if (!manager) byId('college-readonly').hidden = false;
   }
-  if (researchPage === 'college') await refreshRecords();
+  if (researchPage === 'college') await refreshRecords(false);
   if (researchPage === 'papers') {
     const topic = new URLSearchParams(window.location.search).get('topic');
     if (topic) byId('paper-topic').value = topic;
   }
   if (researchPage === 'papers' || researchPage === 'evidence') await resumeLatestJob();
-  if (researchPage === 'college') setInterval(refreshRecords, RECORD_REFRESH_MS);
+  if (researchPage === 'college') {
+    recordRefreshTimer = setInterval(() => refreshRecords(true), RECORD_REFRESH_MS);
+  }
 });

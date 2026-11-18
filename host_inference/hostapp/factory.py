@@ -23,6 +23,7 @@ from .inventory_store import InventoryStore
 from .log_redaction import install_log_redaction
 from .middleware import register_middleware
 from .routes import register_routes
+from .runtime_state import install_shutdown_handlers
 from .security import AuthGuard, RateLimiter
 
 CONTEXT_KEY = "archipelago"
@@ -66,14 +67,19 @@ def create_app(ctx: AppContext | None = None) -> Flask:
     load_env()
     # Scrub tokens/credentials from access logs before any record is emitted.
     install_log_redaction()
+    install_shutdown_handlers()
     # Vercel's application directory is read-only. Its packaged graph and the
     # writable cache populated by Engine.hydrate replace boot-time provisioning.
     if not os.environ.get("VERCEL"):
         provision()
     context = ctx or build_context()
     app = Flask(__name__)
+    app.debug = False
+    app.config["DEBUG"] = False
+    app.config["PROPAGATE_EXCEPTIONS"] = False
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH_BYTES
     app.extensions[CONTEXT_KEY] = context
+    install_log_redaction(app.import_name, "hostapp", "host_inference.hostapp", "flask.app")
     register_middleware(app, context)
     register_routes(app, context)
     return app

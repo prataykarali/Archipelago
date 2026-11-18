@@ -41,7 +41,7 @@ function makePaperItem(paper, showAbstract = false) {
     abstract.textContent = paper.abstract;
     article.append(abstract);
   }
-  if (paper.source_url) {
+  if (typeof paper.source_url === 'string' && /^https?:\/\//i.test(paper.source_url)) {
     const link = document.createElement('a');
     link.href = paper.source_url;
     link.target = '_blank';

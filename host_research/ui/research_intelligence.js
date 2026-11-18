@@ -10,6 +10,23 @@ const SEARCH_PROGRESS_TICK_MS = 1000;
 const SEARCH_SLOW_NOTICE_MS = 30000;
 const SEARCH_LONG_NOTICE_MS = 90000;
 let progressTimer = null;
+let recoveryTimer = null;
+let isUnloading = false;
+
+function stopResearchPolling() {
+  isUnloading = true;
+  if (progressTimer) {
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
+  if (recoveryTimer) {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = null;
+  }
+}
+
+window.addEventListener('pagehide', stopResearchPolling);
+window.addEventListener('beforeunload', stopResearchPolling);
 
 function pendingSearch() {
   try { return JSON.parse(sessionStorage.getItem(S5_PENDING_KEY) || 'null'); }
@@ -49,6 +66,11 @@ function startSearchProgress() {
 }
 
 async function recoverPendingSearch() {
+  if (isUnloading) return;
+  if (typeof document !== 'undefined' && document.hidden) {
+    recoveryTimer = setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+    return;
+  }
   const pending = pendingSearch();
   if (!pending?.request_id) return;
   const status = s5('intelligence-status');
@@ -62,7 +84,9 @@ async function recoverPendingSearch() {
   startSearchProgress();
   if (status) status.textContent = `Researching "${pending.topic}". You can visit other pages and return here.`;
   try {
-    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
+    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`, {
+      headers: { 'X-Background-Poll': '1' },
+    });
     if (job.status === 'completed') {
       const run = await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
       activeRunId = job.run_id;
@@ -82,7 +106,9 @@ async function recoverPendingSearch() {
     }
     if (status) status.textContent = `Checking search progress: ${error.message}`;
   }
-  setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+  if (!isUnloading) {
+    recoveryTimer = setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+  }
 }
 
 function saveResearchState() {

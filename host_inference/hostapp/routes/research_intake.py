@@ -34,8 +34,27 @@ REPLY_ANSWER_EXCERPT_CHARS = 220
 REPLY_ANSWER_SOURCE_LIMIT = 3
 QUERY_WORD = re.compile(r"[a-z0-9]{3,}", re.IGNORECASE)
 SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+")
+STAFF_ROLES = frozenset({"faculty", "librarian", "administrator"})
 MANAGER_ROLES = frozenset({"librarian", "administrator"})
+PUBLIC_INTAKE_PATHS = frozenset(
+    {
+        "/api/research/intake/metrics",
+        "/api/research/intake/activity",
+        "/api/research/intake/scheduled",
+    }
+)
 LOGGER = logging.getLogger(__name__)
+
+
+def _resolve_principal(ctx: AppContext | None = None) -> dict[str, str] | None:
+    principal = getattr(request, "archipelago_principal", None)
+    if principal is None and ctx is not None and getattr(ctx, "auth", None) is not None:
+        principal, _err = ctx.auth.principal()
+        if isinstance(principal, dict) and principal.get("id"):
+            request.archipelago_principal = principal  # type: ignore[attr-defined]
+    if not isinstance(principal, dict) or not str(principal.get("id") or "").strip():
+        return None
+    return principal
 
 
 def _relevant_excerpt(content: str, terms: set[str]) -> str:
@@ -47,6 +66,31 @@ def _relevant_excerpt(content: str, terms: set[str]) -> str:
 
 def register(app: Flask, ctx: AppContext) -> None:
     """Register read, scholarly discovery and college intake endpoints."""
+
+    @app.before_request  # type: ignore[misc]
+    def intake_auth_guard() -> ResponseReturnValue | None:
+        path = request.path
+        if not (path.startswith("/api/research/intake/") or path == "/api/research/discover"):
+            return None
+        if path in PUBLIC_INTAKE_PATHS:
+            return None
+        principal = _resolve_principal(ctx)
+        if principal is None:
+            return jsonify({"error": "unauthorized"}), 401
+        if str(principal.get("role") or "") not in STAFF_ROLES:
+            return jsonify({"error": "forbidden"}), 403
+        return None
+
+    @app.after_request  # type: ignore[misc]
+    def intake_private_cache_headers(response):
+        path = request.path
+        if (
+            path.startswith("/api/research/intake/") or path == "/api/research/discover"
+        ) and path not in PUBLIC_INTAKE_PATHS:
+            response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Vary"] = "Authorization, Cookie"
+        return response
 
     @app.get("/api/research/intake/metrics")  # type: ignore[misc]
     def intake_metrics() -> ResponseReturnValue:

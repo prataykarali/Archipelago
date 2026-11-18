@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from urllib.parse import urlsplit
 
 import requests
 
@@ -65,8 +66,14 @@ def save_record(record_type: str, data: object, actor: str) -> dict[str, object]
         if not isinstance(value, str) or len(value) > MAX_TEXT_LENGTH:
             raise ValueError(f"invalid_{field}")
         row[field] = value.strip()
-    if row["source_url"] and not str(row["source_url"]).startswith("https://"):
-        raise ValueError("source_url_must_be_https")
+    if row["source_url"]:
+        parsed_url = urlsplit(str(row["source_url"]))
+        if (
+            parsed_url.scheme != "https"
+            or not parsed_url.hostname
+            or any(ch.isspace() for ch in str(row["source_url"]))
+        ):
+            raise ValueError("source_url_must_be_https")
     for field, limit in (("quantity", MAX_QUANTITY), ("amount", MAX_AMOUNT)):
         value = data.get(field)
         if value in (None, ""):

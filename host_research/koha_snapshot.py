@@ -8,6 +8,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import threading
+import time
 import zipfile
 
 from defusedxml import ElementTree as ET
@@ -19,6 +21,10 @@ SNAPSHOT_SCHEMA_VERSION = 2
 STALE_AFTER_DAYS = 2
 REQUEST_TIMEOUT_SECONDS = 30
 MAX_REPEATED_CELLS = 32
+MAX_ODS_XML_BYTES = 25_000_000
+SNAPSHOT_CACHE_TTL_SECONDS = 60.0
+_SNAPSHOT_CACHE_LOCK = threading.Lock()
+_SNAPSHOT_CACHE: tuple[float, dict[str, object]] | None = None
 TABLE_NS = "{urn:oasis:names:tc:opendocument:xmlns:table:1.0}"
 TEXT_NS = "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
 FILES = {
@@ -50,6 +56,9 @@ HEADERS = {
 def read_ods(path: Path) -> list[list[str]]:
     """Read the first ODS table with bounded repeats and hardened XML parsing."""
     with zipfile.ZipFile(path) as archive:
+        info = archive.getinfo("content.xml")
+        if info.file_size > MAX_ODS_XML_BYTES:
+            raise ValueError(f"ODS content.xml exceeds size limit in {path.name}")
         content = archive.read("content.xml")
     root = ET.fromstring(content)
     table = root.find(f".//{TABLE_NS}table")
@@ -206,6 +215,12 @@ def _storage_config() -> tuple[str, str]:
 
 def load_snapshot() -> dict[str, object] | None:
     """Read the latest published Koha metadata from private Supabase Storage."""
+    global _SNAPSHOT_CACHE
+    now = time.monotonic()
+    if not os.getenv("PYTEST_CURRENT_TEST"):
+        with _SNAPSHOT_CACHE_LOCK:
+            if _SNAPSHOT_CACHE and _SNAPSHOT_CACHE[0] > now:
+                return dict(_SNAPSHOT_CACHE[1])
     url, key = _storage_config()
     response = requests.get(
         f"{url}/storage/v1/object/{BUCKET}/{OBJECT}",
@@ -223,11 +238,15 @@ def load_snapshot() -> dict[str, object] | None:
         data["stale"] = datetime.now(UTC) - datetime.fromisoformat(oldest) > timedelta(
             days=STALE_AFTER_DAYS
         )
+    if not os.getenv("PYTEST_CURRENT_TEST"):
+        with _SNAPSHOT_CACHE_LOCK:
+            _SNAPSHOT_CACHE = (now + SNAPSHOT_CACHE_TTL_SECONDS, dict(data))
     return data
 
 
 def save_snapshot(snapshot: dict[str, object]) -> bool:
     """Upsert changed metadata only; never upload a source document or PDF."""
+    global _SNAPSHOT_CACHE
     existing = load_snapshot()
     if (
         existing
@@ -248,4 +267,6 @@ def save_snapshot(snapshot: dict[str, object]) -> bool:
         timeout=REQUEST_TIMEOUT_SECONDS,
     )
     response.raise_for_status()
+    with _SNAPSHOT_CACHE_LOCK:
+        _SNAPSHOT_CACHE = None
     return True

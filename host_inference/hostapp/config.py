@@ -33,6 +33,8 @@ PUBLIC_API = frozenset(
     {
         "/api/auth/config",
         "/api/auth/session",
+        "/api/auth/logout",
+        "/api/auth/handoff-redeem",
         "/api/ingest/capabilities",
         "/api/health",
         "/api/readiness",
@@ -49,11 +51,13 @@ PUBLIC_API_PREFIXES: tuple[str, ...] = ()
 # Ingestion only ever runs on the local library workstation.
 INGESTION_PREFIXES = ("/api/ingest", "/api/documents", "/api/manual")
 
-# Rate limiting: chat is stricter than general API traffic.
+# Rate limiting: chat and auth mutations are stricter than general API traffic.
 CHAT_RATE_MAX_PER_MIN = 20
 CHAT_RATE_MIN_GAP_SEC = 1.0
 API_RATE_MAX_PER_MIN = 120
 API_RATE_MIN_GAP_SEC = 0.05
+AUTH_RATE_MAX_PER_MIN = 20
+AUTH_RATE_MIN_GAP_SEC = 0.25
 RATE_WINDOW_SEC = 60.0
 
 ALLOWED_ORIGINS = frozenset(
@@ -61,6 +65,8 @@ ALLOWED_ORIGINS = frozenset(
         "https://archipelago.antideploy.com",
         "https://archipelago-2.antideploy.com",
         "https://archipelago3.antideploy.com",
+        "https://archipelago-librarian.vercel.app",
+        "https://archipelago-blond.vercel.app",
         "http://localhost:5152",
         "http://127.0.0.1:5152",
         "http://localhost:8080",
@@ -89,7 +95,11 @@ PAGE_FILES = {
 AUTH_GATED_PAGES = frozenset({"chat"})
 
 SESSION_COOKIE_NAME = "archipelago_token"
+CSRF_COOKIE_NAME = "archipelago_csrf"
 SESSION_COOKIE_MAX_AGE = 3600
+IDLE_TIMEOUT_SECONDS = 300
+ABSOLUTE_SESSION_LIFETIME_SECONDS = 3600
+HANDOFF_TICKET_TTL_SECONDS = 60
 
 DEFAULT_PORT = "8080"
 

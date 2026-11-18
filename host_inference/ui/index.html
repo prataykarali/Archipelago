@@ -223,6 +223,12 @@
                     </div>
                 </div>
 
+                <!-- Privacy & Data Management Footer -->
+                <div class="px-3 py-2 border-t border-white/10 text-[10px] text-gray-400 flex items-center justify-between gap-2">
+                    <span title="Queries processed via Supabase Auth &amp; Archipelago AI Gateway. No ad trackers.">Privacy &amp; Terms</span>
+                    <button type="button" onclick="if (confirm('Clear all local chat history and saved browser state?')) { window.archipelagoClearClientStorage && window.archipelagoClearClientStorage({ includeHistory: true }); if (typeof clearAllHistory === 'function') clearAllHistory(); }" class="text-rose-300 hover:text-rose-200 underline cursor-pointer bg-transparent border-0">Clear My Data</button>
+                </div>
+
             </div>
             </aside>
 

@@ -1,7 +1,22 @@
-async function loadLibraryPipeline() {
+let pipelineTimer = null;
+let pipelineController = null;
+let pipelineAuthChecked = false;
+
+async function loadLibraryPipeline(isBackgroundPoll = false) {
+  if (isBackgroundPoll && document.hidden) return;
+  if (pipelineController) {
+    try { pipelineController.abort(); } catch (_) {}
+  }
+  const controller = new AbortController();
+  pipelineController = controller;
   const status = document.getElementById('library-pipeline-status');
   try {
-    const response = await fetch('/api/research/intake/activity', { cache: 'no-store' });
+    const headers = isBackgroundPoll ? { 'X-Background-Poll': '1' } : {};
+    const response = await fetch('/api/research/intake/activity', {
+      cache: 'no-store',
+      headers,
+      signal: controller.signal,
+    });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'activity_unavailable');
     const topicList = document.getElementById('library-topic-list');
@@ -39,20 +54,40 @@ async function loadLibraryPipeline() {
     });
     if (!paperList.childElementCount) paperList.textContent = 'No saved papers yet.';
     status.textContent = `${topics.length} indexed topics · updated from the live research store.`;
-  } catch (_error) {
+  } catch (error) {
+    if (error?.name === 'AbortError') return;
     document.getElementById('library-topic-list').textContent = 'Topics temporarily unavailable.';
     document.getElementById('library-recent-papers').textContent = 'Papers temporarily unavailable.';
     status.textContent = 'Live research activity is temporarily unavailable.';
+  } finally {
+    if (pipelineController === controller) pipelineController = null;
   }
-  try {
-    await window.archipelagoAuthReady;
-    const response = await fetch('/api/auth/me', { cache: 'no-store' });
-    const data = await response.json();
-    document.getElementById('pipeline-research-link').hidden = !response.ok ||
-      !data.authenticated || !['student', 'faculty', 'librarian', 'administrator'].includes(data.role);
-  } catch (_error) {
-    document.getElementById('pipeline-research-link').hidden = true;
+  if (!pipelineAuthChecked) {
+    pipelineAuthChecked = true;
+    try {
+      await window.archipelagoAuthReady;
+      const response = await fetch('/api/auth/me', { cache: 'no-store' });
+      const data = await response.json();
+      document.getElementById('pipeline-research-link').hidden = !response.ok ||
+        !data.authenticated || !['student', 'faculty', 'librarian', 'administrator'].includes(data.role);
+    } catch (_error) {
+      document.getElementById('pipeline-research-link').hidden = true;
+    }
   }
 }
-window.addEventListener('DOMContentLoaded', loadLibraryPipeline);
-window.setInterval(loadLibraryPipeline, 60000);
+
+function stopLibraryPipelinePolling() {
+  if (pipelineTimer) {
+    clearInterval(pipelineTimer);
+    pipelineTimer = null;
+  }
+  if (pipelineController) {
+    try { pipelineController.abort(); } catch (_) {}
+    pipelineController = null;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => loadLibraryPipeline(false));
+pipelineTimer = window.setInterval(() => loadLibraryPipeline(true), 60000);
+window.addEventListener('pagehide', stopLibraryPipelinePolling);
+window.addEventListener('beforeunload', stopLibraryPipelinePolling);

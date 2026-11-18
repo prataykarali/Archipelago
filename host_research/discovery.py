@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import requests
 
@@ -50,7 +50,13 @@ def discover(topic: str) -> dict[str, object]:
             continue
         title = str(item.get("display_name") or "").strip()
         source_url = str(item.get("doi") or item.get("id") or "").strip()
-        if not title or not source_url.startswith("https://"):
+        parsed_source = urlsplit(source_url)
+        if (
+            not title
+            or parsed_source.scheme != "https"
+            or not parsed_source.hostname
+            or any(ch.isspace() for ch in source_url)
+        ):
             continue
         candidates.append(
             {

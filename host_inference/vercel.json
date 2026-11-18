@@ -3,7 +3,7 @@
   "functions": {
     "app.py": {
       "maxDuration": 300,
-      "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,**/__pycache__/**,**/*.pyc}"
+      "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,.git/**,AUDIT.md,**/AUDIT.md,**/*.sqlite3,**/*.bak,**/*stripped_backup*,**/__pycache__/**,**/*.pyc}"
     }
   },
   "crons": [

@@ -18,6 +18,26 @@ function validRunId(value) {
 }
 
 let progressTimer = null;
+let recoveryTimer = null;
+let isUnloading = false;
+let recentRunsInFlight = null;
+let lastRecentRunsAt = 0;
+let restoreInFlight = null;
+
+function stopResearchPolling(event) {
+  if (!event?.persisted) isUnloading = true;
+  if (progressTimer) {
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
+  if (recoveryTimer) {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = null;
+  }
+}
+
+window.addEventListener('pagehide', stopResearchPolling);
+window.addEventListener('beforeunload', stopResearchPolling);
 
 function pendingSearch() {
   try { return JSON.parse(sessionStorage.getItem(S5_PENDING_KEY) || 'null'); }
@@ -57,6 +77,11 @@ function startSearchProgress() {
 }
 
 async function recoverPendingSearch() {
+  if (isUnloading) return;
+  if (typeof document !== 'undefined' && document.hidden) {
+    recoveryTimer = setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+    return;
+  }
   const pending = pendingSearch();
   if (!pending?.request_id) return;
   const status = s5('intelligence-status');
@@ -70,7 +95,9 @@ async function recoverPendingSearch() {
   startSearchProgress();
   if (status) status.textContent = `Researching "${pending.topic}". You can visit other pages and return here.`;
   try {
-    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
+    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`, {
+      headers: { 'X-Background-Poll': '1' },
+    });
     if (job.status === 'completed') {
       if (!validRunId(job.run_id)) {
         clearPendingSearch();
@@ -93,7 +120,9 @@ async function recoverPendingSearch() {
     }
     if (status) status.textContent = `Checking search progress: ${error.message}`;
   }
-  setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+  if (!isUnloading) {
+    recoveryTimer = setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+  }
 }
 
 function saveResearchState() {
@@ -192,12 +221,20 @@ function renderRun(run, dossier = null, dossierError = null, prepareExport = fal
     return typeof aScore === 'number' && typeof bScore === 'number' ? bScore - aScore : a.originalIndex - b.originalIndex;
   });
   s5('intelligence-results').hidden = false;
-  if (document.body.classList.contains('research-browse-mode')) {
+  const effectiveRunId = validRunId(activeRunId) ? activeRunId : (validRunId(run?.run_id) ? run.run_id : '');
+  const browsingMode = document.body.classList.contains('research-browse-mode');
+  if (browsingMode) {
     s5('results-heading').textContent = `${paperRows.length} papers · ${run.options?.topic || 'Saved research'}`;
   }
-  s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(activeRunId)}`;
-  s5('paper-list-link').textContent = `Browse ${paperRows.length} papers ↗`;
-  s5('paper-list-link').href = `/research/papers?run=${encodeURIComponent(activeRunId)}`;
+  if (effectiveRunId) {
+    activeRunId = effectiveRunId;
+    s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(effectiveRunId)}`;
+    s5('paper-list-link').textContent = browsingMode ? '← Find papers' : `Browse ${paperRows.length} papers ↗`;
+    s5('paper-list-link').href = browsingMode ? '/research#topic-form' : `/research/papers?run=${encodeURIComponent(effectiveRunId)}`;
+  } else {
+    s5('paper-list-link').textContent = '← Find papers';
+    s5('paper-list-link').href = '/research#topic-form';
+  }
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${paperRows.length} source-linked papers · Discovery rank compares query match, recency and source corroboration within this search; it is not scientific quality.`;
   s5('provider-status').textContent = (run.sources || []).map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ') + (dossierError ? ' · Detailed rankings are temporarily unavailable; saved paper records are shown.' : '');
   const excelLink = s5('excel-link');
@@ -334,45 +371,64 @@ function showRun(run) {
     });
 }
 
-async function loadRecentRuns() {
+async function loadRecentRuns(force = false) {
   const status = s5('recent-research-status');
   const list = s5('recent-research-list');
-  try {
-    const data = await s5Json('/api/research/intelligence/runs');
-    list.replaceChildren();
-    const runs = Array.isArray(data.runs) ? data.runs : [];
-    const seen = new Set();
-    const recent = runs.filter(run => {
-      const key = String(run.topic || '').trim().toLocaleLowerCase();
-      if (!run.run_id || !key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, RECENT_TOPIC_LIMIT);
-    status.textContent = recent.length ? `Showing ${recent.length} latest topics — select one to reopen its papers.` : 'No saved topics yet.';
-    for (const run of recent) {
-      if (!run.run_id) continue;
-      const link = document.createElement('a');
-      link.href = `/research/topic?run=${encodeURIComponent(run.run_id)}`;
-      link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
-      list.append(link);
-    }
-  } catch (error) { status.textContent = `Could not load saved topics: ${error.message}`; }
+  if (!status || !list) return;
+  if (recentRunsInFlight) return recentRunsInFlight;
+  if (!force && Date.now() - lastRecentRunsAt < 15000) return;
+  recentRunsInFlight = (async () => {
+    try {
+      const data = await s5Json('/api/research/intelligence/runs');
+      lastRecentRunsAt = Date.now();
+      list.replaceChildren();
+      const runs = Array.isArray(data.runs) ? data.runs : [];
+      const seen = new Set();
+      const recent = runs.filter(run => {
+        const key = String(run.topic || '').trim().toLocaleLowerCase();
+        if (!run.run_id || !key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, RECENT_TOPIC_LIMIT);
+      status.textContent = recent.length ? `Showing ${recent.length} latest topics — select one to reopen its papers.` : 'No saved topics yet.';
+      for (const run of recent) {
+        if (!run.run_id) continue;
+        const link = document.createElement('a');
+        link.href = `/research/topic?run=${encodeURIComponent(run.run_id)}`;
+        link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
+        list.append(link);
+      }
+    } catch (error) { status.textContent = `Could not load saved topics: ${error.message}`; }
+    finally { recentRunsInFlight = null; }
+  })();
+  return recentRunsInFlight;
 }
 
 async function restoreRun(runId) {
+  if (!validRunId(runId)) return;
+  if (restoreInFlight) return restoreInFlight;
   const status = s5('intelligence-status');
   status.textContent = 'Loading saved papers…';
-  try {
-    const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(runId)}`);
-    activeRunId = runId;
-    if (run.options?.topic) s5('topic-input').value = run.options.topic;
-    await showRun(run);
-    status.textContent = `Restored ${s5('paper-results').children.length} source-linked papers.`;
-  } catch (error) {
-    status.textContent = error.httpStatus === 410
-      ? 'This older search cannot use the current paper format. Search the topic again to create updated paper pages.'
-      : `Could not restore this saved search: ${error.message}. Choose another saved topic or retry.`;
-  }
+  restoreInFlight = (async () => {
+    try {
+      const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(runId)}`);
+      activeRunId = runId;
+      if (run.options?.topic && s5('topic-input')) s5('topic-input').value = run.options.topic;
+      await showRun(run);
+      status.textContent = `Restored ${s5('paper-results').children.length} source-linked papers.`;
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        status.textContent = 'Paper loading was paused while switching pages. Returning to view will retry…';
+        return;
+      }
+      status.textContent = error.httpStatus === 410
+        ? 'This older search cannot use the current paper format. Search the topic again to create updated paper pages.'
+        : `Could not restore this saved search: ${error.message}. Choose another saved topic or retry.`;
+    } finally {
+      restoreInFlight = null;
+    }
+  })();
+  return restoreInFlight;
 }
 
 window.addEventListener('load', async () => {
@@ -429,5 +485,22 @@ window.addEventListener('load', async () => {
   else if (savedRunId && browsing) void restoreRun(savedRunId);
 });
 
-window.addEventListener('pageshow', event => { if (event.persisted) void loadRecentRuns(); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) void loadRecentRuns(); });
+function resumePapersIfNeeded() {
+  isUnloading = false;
+  const browsing = location.pathname.replace(/\/$/, '') === '/research/papers';
+  const linkedRun = new URLSearchParams(location.search).get('run');
+  if (browsing && validRunId(linkedRun) && s5('intelligence-results')?.hidden && !restoreInFlight) {
+    void restoreRun(linkedRun);
+  }
+}
+
+window.addEventListener('pageshow', event => {
+  resumePapersIfNeeded();
+  if (event.persisted) void loadRecentRuns();
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    resumePapersIfNeeded();
+    void loadRecentRuns();
+  }
+});

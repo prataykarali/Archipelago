@@ -1,7 +1,16 @@
 const progressEl = id => document.getElementById(id);
 const PROGRESS_POLL_MS = 4000;
-async function progressJson(url) {
-  const response = await fetch(url, { cache: 'no-store' });
+let progressTimer = null;
+let progressController = null;
+let activeProgressJobId = null;
+let progressStopped = false;
+
+async function progressJson(url, signal) {
+  const response = await fetch(url, {
+    cache: 'no-store',
+    headers: { 'X-Background-Poll': '1' },
+    signal,
+  });
   if (response.status === 401) {
     const next = encodeURIComponent(window.location.pathname + window.location.search);
     window.location.replace(`/login?timeout=1&next=${next}`);
@@ -12,9 +21,23 @@ async function progressJson(url) {
   return data;
 }
 
+function scheduleProgressPoll(jobId) {
+  clearTimeout(progressTimer);
+  if (progressStopped || !jobId) return;
+  progressTimer = window.setTimeout(() => pollProgress(jobId), PROGRESS_POLL_MS);
+}
+
 async function pollProgress(jobId) {
+  if (progressStopped || !jobId) return;
+  if (document.hidden) {
+    scheduleProgressPoll(jobId);
+    return;
+  }
+  if (progressController) return;
+  const controller = new AbortController();
+  progressController = controller;
   try {
-    const data = await progressJson(`/api/research/jobs/${encodeURIComponent(jobId)}`);
+    const data = await progressJson(`/api/research/jobs/${encodeURIComponent(jobId)}`, controller.signal);
     const job = data.job;
     const done = Number(job.processed_count || 0);
     const total = Number(job.paper_limit || 25);
@@ -37,15 +60,39 @@ async function pollProgress(jobId) {
     } else {
       progressEl('progress-summary').textContent = `Current stage: ${state}. Source access and OCR results will appear here when complete.`;
     }
-    if (['completed', 'partial', 'failed'].includes(job.status)) return;
-    window.archipelagoTouchSession?.();
+    if (['completed', 'partial', 'failed'].includes(job.status)) {
+      progressStopped = true;
+      return;
+    }
   } catch (error) {
+    if (error?.name === 'AbortError') return;
     progressEl('progress-status').textContent = error.message === 'unauthorized'
       ? 'Sign in again to follow this job. Local ingestion continues.'
       : error.message;
+  } finally {
+    if (progressController === controller) progressController = null;
   }
-  window.setTimeout(() => pollProgress(jobId), PROGRESS_POLL_MS);
+  scheduleProgressPoll(jobId);
 }
+
+function stopProgressPolling() {
+  progressStopped = true;
+  clearTimeout(progressTimer);
+  progressTimer = null;
+  if (progressController) {
+    try { progressController.abort(); } catch (_) {}
+    progressController = null;
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !progressStopped && activeProgressJobId && !progressController) {
+    clearTimeout(progressTimer);
+    pollProgress(activeProgressJobId);
+  }
+});
+window.addEventListener('pagehide', stopProgressPolling);
+window.addEventListener('beforeunload', stopProgressPolling);
 
 window.addEventListener('load', async () => {
   if (!await window.archipelagoResearchReady) return;
@@ -54,5 +101,6 @@ window.addEventListener('load', async () => {
     progressEl('progress-status').textContent = 'No research job selected. Start from the research graph.';
     return;
   }
+  activeProgressJobId = jobId;
   pollProgress(jobId);
 });

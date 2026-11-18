@@ -39,6 +39,10 @@
       <p>__SUBTITLE__</p>
     </header>
     __CONTENT__
+    <footer class="research-privacy-footer" style="margin-top:32px;padding-top:16px;border-top:1px solid rgba(148,163,184,0.2);font-size:12px;color:#64748b;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
+      <span>Privacy &amp; Terms: Institutional research queries &amp; saved runs are processed via Supabase, OpenAlex, Crossref, Semantic Scholar &amp; arXiv. No third-party ad trackers.</span>
+      <button type="button" onclick="window.archipelagoClearClientStorage && window.archipelagoClearClientStorage({ includeHistory: true }); alert('Cleared saved local research and browser history.');" style="background:transparent;border:1px solid rgba(148,163,184,0.4);border-radius:6px;padding:4px 10px;font-size:11px;color:inherit;cursor:pointer;">Clear local research state</button>
+    </footer>
   </main>
 </body>
 </html>

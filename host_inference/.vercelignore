@@ -1,6 +1,17 @@
 .env
 .env.*
+.git
 .vercel
+.pytest_cache
 __pycache__
 *.pyc
 *.sqlite3
+*.sqlite
+*.db
+*.bak
+*.old
+*.orig
+*.swp
+*.stripped_backup*
+AUDIT.md
+tests

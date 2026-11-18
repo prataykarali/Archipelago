@@ -16,14 +16,15 @@ FOLLOW_UP = re.compile(
 CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
 MAX_PRIOR_QUESTIONS = 2
 MAX_PRIOR_CHARS = 120
+MAX_HISTORY_SCAN = 50
 
 
 def contextual_query(query: str, history: object) -> str:
     """Add bounded previous user questions only for an obvious follow-up."""
-    if not FOLLOW_UP.search(query) or not isinstance(history, list):
-        return query
+    if not isinstance(query, str) or not FOLLOW_UP.search(query) or not isinstance(history, list):
+        return query if isinstance(query, str) else ""
     prior: list[str] = []
-    for item in reversed(history):
+    for item in reversed(history[-MAX_HISTORY_SCAN:]):
         if not isinstance(item, dict) or item.get("role") != "user":
             continue
         text = CONTROL_CHARS.sub(" ", str(item.get("content") or "")).strip()

@@ -3,3 +3,8 @@
 .vercel
 __pycache__
 *.pyc
+AUDIT.md
+**/AUDIT.md
+*.bak*
+*.stripped_backup*
+

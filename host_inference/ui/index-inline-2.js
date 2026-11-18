@@ -43,9 +43,14 @@
         }
 
         window.signOutSupabase = async function() {
+            if (typeof window.archipelagoLogout === "function") {
+                await window.archipelagoLogout({ redirectUrl: "/login" });
+                return;
+            }
             try {
                 sessionStorage.removeItem("archipelago_local_user");
                 localStorage.removeItem("archipelago_local_user");
+                await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
                 await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
                 const { supabase } = await window.archipelagoAuthReady;
                 if (supabase) await supabase.auth.signOut();

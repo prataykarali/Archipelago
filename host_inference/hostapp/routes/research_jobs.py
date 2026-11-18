@@ -25,6 +25,7 @@ DEFAULT_PAPERS = 25
 MIN_PAPERS = 20
 MAX_PAPERS = 30
 MAX_TOPIC_CHARS = 200
+STAFF_ROLES = frozenset({"faculty", "librarian", "administrator"})
 MANAGER_ROLES = frozenset({"librarian", "administrator"})
 LOGGER = logging.getLogger(__name__)
 RATE_ERRORS = {
@@ -35,8 +36,22 @@ RATE_ERRORS = {
 }
 
 
+def _resolve_principal(ctx: AppContext | None = None) -> dict[str, str] | None:
+    principal = getattr(request, "archipelago_principal", None)
+    if principal is None and ctx is not None and getattr(ctx, "auth", None) is not None:
+        principal, _err = ctx.auth.principal()
+        if isinstance(principal, dict) and principal.get("id"):
+            request.archipelago_principal = principal  # type: ignore[attr-defined]
+    if not isinstance(principal, dict) or not str(principal.get("id") or "").strip():
+        return None
+    return principal
+
+
 def _principal() -> dict[str, str]:
-    return vars(request)["archipelago_principal"]
+    resolved = _resolve_principal()
+    if resolved is None:
+        raise PermissionError("unauthorized")
+    return resolved
 
 
 def _authorized_job(job_id: str) -> dict | None:
@@ -49,6 +64,25 @@ def _authorized_job(job_id: str) -> dict | None:
 
 def register(app: Flask, _ctx: AppContext) -> None:
     """Expose enqueue, progress, worker health, and completed paper results."""
+
+    @app.before_request  # type: ignore[misc]
+    def jobs_auth_guard() -> ResponseReturnValue | None:
+        if not request.path.startswith("/api/research/jobs"):
+            return None
+        principal = _resolve_principal(_ctx)
+        if principal is None:
+            return jsonify({"error": "unauthorized"}), 401
+        if str(principal.get("role") or "") not in STAFF_ROLES:
+            return jsonify({"error": "forbidden"}), 403
+        return None
+
+    @app.after_request  # type: ignore[misc]
+    def jobs_private_cache_headers(response):
+        if request.path.startswith("/api/research/jobs"):
+            response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Vary"] = "Authorization, Cookie"
+        return response
 
     @app.post("/api/research/jobs")  # type: ignore[misc]
     def create_research_job() -> ResponseReturnValue:
