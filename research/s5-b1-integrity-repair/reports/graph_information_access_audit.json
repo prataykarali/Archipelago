@@ -1,0 +1,31 @@
+{
+  "audit_name": "S5-B1 Graph Construction Information-Access Audit",
+  "date": "2026-11-18",
+  "database_total_documents": 79,
+  "corpus_eligible_documents": 53,
+  "external_documents_count": 26,
+  "corpus_eligible_passages": 713,
+  "total_chunks_in_database": 786,
+  "external_chunks_count": 73,
+  "unconstrained_edges_count": 148,
+  "constrained_edges_count": 146,
+  "leaked_external_edges_count": 2,
+  "leaked_edges_sample": [
+    {
+      "from": "attention",
+      "edge_type": "REQUIRES",
+      "to": "hbm",
+      "doc_id": "upload_bdedc151",
+      "chunk_id": "upload_bdedc151_p4_4"
+    },
+    {
+      "from": "attention",
+      "edge_type": "REQUIRES",
+      "to": "hbm",
+      "doc_id": "upload_cb7badb2",
+      "chunk_id": "upload_cb7badb2_p4_4"
+    }
+  ],
+  "information_access_verdict": "DISCREPANCY_DETECTED_AND_CORRECTED",
+  "remediation_applied": "Graph construction in S5-B1 strictly filters chunks to eligible_chunk_keys before calling extractor. Edges and adjacency lists contain zero information from outside the 713-passage evaluation corpus."
+}

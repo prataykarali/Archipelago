@@ -1,0 +1,389 @@
+{
+  "corpus_name": "Archipelago Multi-Domain Evaluation Corpus",
+  "corpus_version": "s5a_eval_corpus_v1",
+  "creation_date": "2026-11-18",
+  "db_source": "okf_graph.db",
+  "historical_baseline_corpus": {
+    "version": "s3_fixed_corpus_v1",
+    "passage_count": 764,
+    "document_count": 59,
+    "corpus_sha256": "fc0d0c7e7faddf9d4755ce29f056bfa824dba592ac8fe07aa1c510b3cb745e40"
+  },
+  "audit_and_exclusions": {
+    "total_s3_passages": 764,
+    "index_only_passages_excluded": 50,
+    "invalid_page_passages_excluded": 1,
+    "total_exclusions": 51,
+    "eligible_passages_count": 713,
+    "unique_documents_count": 53,
+    "corpus_sha256": "6435bf449702edf826d69dc8e1ed0525ee611e0c7504d43d2023c32cef8bdba7",
+    "exclusion_records": {
+      "index_only": [
+        {
+          "passage_id": "data_science_2019/about-the-authors_2019_data-science.pdf::About-the-Authors_2019_Data-Science__structure",
+          "doc_id": "data_science_2019/about-the-authors_2019_data-science.pdf",
+          "chunk_id": "About-the-Authors_2019_Data-Science__structure",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_001",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_001",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_002",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_002",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_003",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_003",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_004",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_004",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_005",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_005",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_006",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_006",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_007",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_007",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_008",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_008",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_009",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_009",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_010",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_010",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_011",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_011",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_012",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_012",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_013",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_013",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_014",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_014",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_015",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_015",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_016",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_016",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_017",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_017",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_018",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_018",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_019",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_019",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_020",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_020",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_021",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_021",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_022",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_022",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "data_science_2019/index_2019_data-science.pdf::chunk_023",
+          "doc_id": "data_science_2019/index_2019_data-science.pdf",
+          "chunk_id": "chunk_023",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_002",
+          "doc_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf",
+          "chunk_id": "chunk_002",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_003",
+          "doc_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf",
+          "chunk_id": "chunk_003",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_004",
+          "doc_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf",
+          "chunk_id": "chunk_004",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_005",
+          "doc_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf",
+          "chunk_id": "chunk_005",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_006",
+          "doc_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf",
+          "chunk_id": "chunk_006",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf::chunk_008",
+          "doc_id": "knowledge_representation_and_reasoning_2004/index_2004_knowledge-representation-and-reasoning.pdf",
+          "chunk_id": "chunk_008",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "pattern_recognition_2009/no-title-available_2009_pattern-recognition.pdf::chunk_001",
+          "doc_id": "pattern_recognition_2009/no-title-available_2009_pattern-recognition.pdf",
+          "chunk_id": "chunk_001",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "pattern_recognition_2009/no-title-available_2009_pattern-recognition.pdf::chunk_002",
+          "doc_id": "pattern_recognition_2009/no-title-available_2009_pattern-recognition.pdf",
+          "chunk_id": "chunk_002",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_001",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_001",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_002",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_002",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_003",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_003",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_004",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_004",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_005",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_005",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_006",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_006",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_007",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_007",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_008",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_008",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_009",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_009",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_010",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_010",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_011",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_011",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_012",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_012",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_013",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_013",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_014",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_014",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_015",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_015",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_016",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_016",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_017",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_017",
+          "reason": "index_or_author_listing"
+        },
+        {
+          "passage_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf::chunk_018",
+          "doc_id": "predictive_analytics_and_data_mining_2015/index_2015_predictive-analytics-and-data-mining.pdf",
+          "chunk_id": "chunk_018",
+          "reason": "index_or_author_listing"
+        }
+      ],
+      "invalid_page": [
+        {
+          "passage_id": "doc_data_and_computer_communications::doc_data_and_computer_communications_p612_4",
+          "doc_id": "doc_data_and_computer_communications",
+          "chunk_id": "doc_data_and_computer_communications_p612_4",
+          "page_number": 612,
+          "reason": "page_number_612_exceeds_book_length_500"
+        }
+      ]
+    }
+  },
+  "documents": {
+    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf": 3,
+    "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf": 2,
+    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf": 3,
+    "artificial_intelligence_a_new_synthesis_1998/1---introduction_1998_artificial-intelligence--a-new-synthesis.pdf": 1,
+    "doc_8051_microcontroller_and_embedded_systems": 1,
+    "doc_attention_is_all_you_need": 1,
+    "doc_bert_pre_training_of_deep_bidirectional": 1,
+    "doc_compilers_principles_techniques_and_tools": 1,
+    "doc_computer_networks_6_e": 2,
+    "doc_computer_system_architecture_revised_3_e": 1,
+    "doc_concepts_of_modern_physics": 1,
+    "doc_cryptography_and_network_security_principles": 1,
+    "doc_digital_signal_processing_4e": 1,
+    "doc_direct_preference_optimization_your_language": 1,
+    "doc_electronic_devices_and_circuit_theory": 1,
+    "doc_engineering_chemistry": 1,
+    "doc_fundamentals_of_database_system_7e": 1,
+    "doc_introduction_to_the_design_and": 1,
+    "doc_lehninger_principles_of_biochemistry": 1,
+    "doc_lora_low_rank_adaptation_of_large": 1,
+    "doc_mathematics_for_machine_learning": 1,
+    "doc_operating_systems_internals_and_design": 1,
+    "doc_retrieval_augmented_generation_for_knowledge_intensive_nlp": 1,
+    "doc_vllm_efficient_memory_management_for": 1,
+    "papers/bahdanau2014_attention.pdf": 29,
+    "papers/bai2022_constitutionalai.pdf": 24,
+    "papers/brown2020_gpt3.pdf": 28,
+    "papers/dettmers2023_qlora.pdf": 31,
+    "papers/devlin2018_bert.pdf": 29,
+    "papers/edge2024_graphrag.pdf": 24,
+    "papers/goodfellow2014_gan.pdf": 22,
+    "papers/ho2020_ddpm.pdf": 24,
+    "papers/hochreiter1997_lstm.pdf": 26,
+    "papers/hu2021_lora.pdf": 29,
+    "papers/karpukhin2020_dpr.pdf": 26,
+    "papers/kingma2013_vae.pdf": 26,
+    "papers/kipf2016_gcn.pdf": 29,
+    "papers/krizhevsky2012_alexnet.pdf": 27,
+    "papers/kwon2023_vllm.pdf": 33,
+    "papers/lewis2020_rag.pdf": 25,
+    "papers/ouyang2022_instructgpt.pdf": 27,
+    "papers/rafailov2023_dpo.pdf": 27,
+    "papers/real-time network security: integrating ann and dynamic graph-based.pdf": 57,
+    "papers/vaswani2017_attention_is_all_you_need.pdf": 28,
+    "papers/velickovic2017_gat.pdf": 29,
+    "papers/wei2022_chainofthought.pdf": 24,
+    "papers/willard2023_outlines.pdf": 20,
+    "papers/yao2022_react.pdf": 21,
+    "pattern_recognition_2009/appendix-a---hints-from-probability-and-statistics_2009_pattern-recognition.pdf": 1,
+    "pilot/silberschatz_3nf_card.txt": 1,
+    "upload_17869808": 6,
+    "upload_863f97ee": 5,
+    "upload_e02d0e4e": 5
+  }
+}

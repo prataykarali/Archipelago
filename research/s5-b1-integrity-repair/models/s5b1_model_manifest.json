@@ -1,0 +1,70 @@
+{
+  "manifest_name": "Archipelago S5-B1 Embedding Model & Dense Retrieval Manifest",
+  "version": "s5b1_model_v1.0",
+  "date": "2026-11-18",
+  "git_policy": {
+    "root_model_weights_ignored": true,
+    "root_ignore_pattern": "/models/",
+    "manifest_version_controlled": true,
+    "cache_binary_committed": false
+  },
+  "primary_dense_model": {
+    "model_identifier": "Snowflake/snowflake-arctic-embed-m-v1.5",
+    "architecture": "BERT-based dense transformer encoder with mean pooling",
+    "revision": "f22f7b88939ba6d01306a445d48729fb5a2ff3f3 (local snapshot)",
+    "local_cache_location": "~/.cache/huggingface/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5",
+    "embedding_dimension": 768,
+    "max_sequence_length": 512,
+    "query_prefix": "Represent this sentence for searching relevant passages: ",
+    "document_prefix": "",
+    "preprocessing": "Whitespace normalization (collapse whitespace) via normalize_passage_text()",
+    "normalization": "L2 unit sphere normalization (norm = 1.0), enabling dot-product cosine similarity",
+    "hardware_and_runtime": {
+      "framework": "PyTorch / sentence-transformers",
+      "device": "CPU (Intel Xeon / multi-core)",
+      "batch_size": 32,
+      "torch_dtype": "float32"
+    },
+    "computational_cost": {
+      "model_load_time_seconds": 0.87,
+      "corpus_encoding_time_seconds": 57.85,
+      "throughput_passages_per_second": 12.33,
+      "index_memory_megabytes": 2.09,
+      "precomputed_cache_file": "data/artifacts/s5a_dense_embeddings_713.npy"
+    },
+    "cryptographic_fingerprints": {
+      "embedding_matrix_sha256": "ffb94053fa66471d14758771253c8c5404bb4adf2e7b14d2c9e4c30b2cbd4ee2",
+      "embedding_matrix_shape": [713, 768],
+      "corpus_passage_id_sha256": "f7fe70031781b005d712a7a9a4aa2452a8b17d7353531305b39b09d88eeecd98",
+      "corpus_text_sha256": "8464acaea13cbfae0f345ea29ce1cf707dc39e76832c7729fca33fbd763bc68c",
+      "corpus_sha256": "6435bf449702edf826d69dc8e1ed0525ee611e0c7504d43d2023c32cef8bdba7"
+    }
+  },
+  "debugging_baseline": {
+    "model_identifier": "deterministic_token_hashing_64d",
+    "architecture": "Murmur/SHA256 token hashing with signed unit projection",
+    "embedding_dimension": 64,
+    "normalization": "L2 unit normalization",
+    "usage_role": "DEBUGGING_ONLY (Fast offline non-semantic baseline for CI pipelines and sanity tests)",
+    "latency_per_query_ms": 1.02
+  },
+  "hybrid_rrf_configuration": {
+    "fusion_algorithm": "Reciprocal Rank Fusion (Cormack et al., 2009)",
+    "formula": "RRF_score(d) = sum_r 1 / (k + rank_r(d))",
+    "k_constant": 60,
+    "constituent_systems": [
+      "BM25Okapi (k1=1.5, b=0.75)",
+      "Snowflake/snowflake-arctic-embed-m-v1.5 (768-dim)"
+    ],
+    "timing_accounting_policy": "Full end-to-end latency = T_BM25 + T_Dense + T_Fusion (measuring true retrieval pipeline cost rather than post-hoc rank fusion step alone)"
+  },
+  "graph_retriever_configuration": {
+    "corpus_scope": "STRICT_EVAL_CORPUS_ONLY (Chunks constrained to s5a_eval_corpus_v1)",
+    "fallback_strategy": "corpus_bm25 (Deterministic BM25 ranking when no graph anchors match)",
+    "error_handling": "Explicit exception logging without silently swallowed runtime errors",
+    "traversal_instrumentation": {
+      "path_reporting": "Full edge trajectory [(u, edge_type, v)]",
+      "actual_hop_reporting": "Observed traversal depth (0 for fallback, 1 for single-hop, 2 for verified two-hop)"
+    }
+  }
+}
