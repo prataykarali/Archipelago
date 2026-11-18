@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import atexit
+from collections import deque
+from collections.abc import Callable
 from datetime import UTC, datetime
 import json
 import os
 from secrets import compare_digest
+import signal
+import sys
+import threading
+import time
 from urllib.parse import urlsplit
 
 from discovery import discover
@@ -16,7 +23,8 @@ from opac_live import lookup_book, search_books
 from ranking_overlay import EXPORT_SCHEMA, merge_dossier, merge_preview, merge_workbook
 import requests
 from research_pages import PAGE_DETAILS, UI, render_research_page
-from storage import topic_inventory, verify_user
+from storage import close_storage_resources, revoke_token, topic_inventory, verify_user
+from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 
 app = Flask(__name__, static_folder=None)
 DAILY_TOPICS = (
@@ -29,10 +37,178 @@ DAILY_TOPICS = (
 )
 TOPICS_PER_RUN = 1
 MAX_REQUEST_BYTES = 2_097_152
-PROXY_TIMEOUT_SECONDS = 180
+PROXY_TIMEOUT_SECONDS = 120
 REDIRECT_MIN_STATUS = 300
 REDIRECT_MAX_STATUS = 400
 ORIGINAL_RESEARCH_ORIGIN = "https://archipelago-blond.vercel.app"
+RATE_LIMIT_WINDOW_SECONDS = 60.0
+RATE_LIMIT_MAX_READS = 120
+RATE_LIMIT_MAX_MUTATIONS = 30
+_RATE_LOCK = threading.Lock()
+_RATE_BUCKETS: dict[str, deque[float]] = {}
+_SHUTDOWN_COND = threading.Condition()
+_SHUTTING_DOWN = False
+_IN_FLIGHT_REQUESTS = 0
+_SHUTDOWN_CALLBACKS: list[Callable[[], object]] = []
+_CALLBACKS_EXECUTED = False
+
+
+def is_shutting_down() -> bool:
+    """Return True once graceful shutdown has been initiated."""
+    with _SHUTDOWN_COND:
+        return _SHUTTING_DOWN
+
+
+def in_flight_requests() -> int:
+    """Return the number of currently active requests."""
+    with _SHUTDOWN_COND:
+        return _IN_FLIGHT_REQUESTS
+
+
+def register_shutdown_callback(callback: Callable[[], object]) -> None:
+    """Register a cleanup hook to run after in-flight requests drain."""
+    with _SHUTDOWN_COND:
+        if callback not in _SHUTDOWN_CALLBACKS:
+            _SHUTDOWN_CALLBACKS.append(callback)
+
+
+def initiate_shutdown(drain_timeout: float = 5.0) -> dict[str, object]:
+    """Enter draining state, wait for active requests, and run cleanup callbacks."""
+    global _SHUTTING_DOWN, _CALLBACKS_EXECUTED
+    deadline = time.monotonic() + max(0.0, drain_timeout)
+    with _SHUTDOWN_COND:
+        _SHUTTING_DOWN = True
+        while _IN_FLIGHT_REQUESTS > 0:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            _SHUTDOWN_COND.wait(timeout=remaining)
+        remaining_in_flight = _IN_FLIGHT_REQUESTS
+        if not _CALLBACKS_EXECUTED:
+            _CALLBACKS_EXECUTED = True
+            callbacks = list(_SHUTDOWN_CALLBACKS)
+        else:
+            callbacks = []
+    for cb in callbacks:
+        try:
+            cb()
+        except Exception:
+            app.logger.warning("Shutdown callback failed: %s", getattr(cb, "__name__", "callback"))
+    return {"status": "shutting_down", "in_flight": remaining_in_flight}
+
+
+def reset_shutdown_state() -> None:
+    """Reset shutdown state (used by test suites)."""
+    global _SHUTTING_DOWN, _IN_FLIGHT_REQUESTS, _CALLBACKS_EXECUTED
+    with _SHUTDOWN_COND:
+        _SHUTTING_DOWN = False
+        _IN_FLIGHT_REQUESTS = 0
+        _CALLBACKS_EXECUTED = False
+
+
+def install_signal_handlers(force: bool = False) -> bool:
+    """Install safe SIGTERM/SIGINT handlers when running on the main thread."""
+    if threading.current_thread() is not threading.main_thread():
+        return False
+    if not force and ("pytest" in sys.modules or os.getenv("PYTEST_CURRENT_TEST")):
+        return False
+
+    prev_handlers: dict[int, object] = {}
+
+    def _handle_signal(signum: int, frame: object) -> None:
+        initiate_shutdown(drain_timeout=2.0)
+        prev = prev_handlers.get(signum)
+        if callable(prev):
+            prev(signum, frame)
+        elif prev in (signal.SIG_DFL, None):
+            signal.signal(signum, signal.SIG_DFL)
+            os.kill(os.getpid(), signum)
+
+    try:
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            prev_handlers[sig] = signal.getsignal(sig)
+            signal.signal(sig, _handle_signal)
+        return True
+    except (ValueError, OSError):
+        return False
+
+
+register_shutdown_callback(close_storage_resources)
+atexit.register(initiate_shutdown, 1.0)
+install_signal_handlers()
+_SAFE_VALIDATION_ERRORS = frozenset(
+    {
+        "invalid_record",
+        "invalid_record_key",
+        "invalid_record_type",
+        "invalid_title",
+        "invalid_status",
+        "invalid_shelf",
+        "invalid_note",
+        "invalid_source_url",
+        "source_url_must_be_https",
+        "invalid_quantity",
+        "invalid_amount",
+        "Invalid Koha book ID",
+        "Search query must be 2-100 characters",
+        "Invalid OPAC search offset",
+        "Unexpected OPAC redirect",
+        "Too many OPAC redirects",
+        "OPAC page exceeds size limit",
+        "OPAC record has no title",
+        "OPAC returned another book ID",
+    }
+)
+
+
+def _client_ip() -> str:
+    """Extract client IP from Vercel-trusted headers rather than spoofable first XFF hop."""
+    vercel_xff = request.headers.get("x-vercel-forwarded-for", "").strip()
+    if vercel_xff:
+        return vercel_xff.split(",")[-1].strip()[:64]
+    real_ip = request.headers.get("x-real-ip", "").strip()
+    if real_ip:
+        return real_ip[:64]
+    xff = request.headers.get("x-forwarded-for", "").strip()
+    if xff:
+        return xff.split(",")[-1].strip()[:64]
+    return (request.remote_addr or "unknown")[:64]
+
+
+def _rate_limited(bucket_scope: str, limit: int) -> bool:
+    """Enforce per-IP sliding-window rate limits without external bottlenecks."""
+    if app.config.get("TESTING"):
+        return False
+    now = time.monotonic()
+    cutoff = now - RATE_LIMIT_WINDOW_SECONDS
+    key = f"{bucket_scope}:{_client_ip()}"
+    with _RATE_LOCK:
+        if len(_RATE_BUCKETS) > 2048:
+            stale_keys = [k for k, q in _RATE_BUCKETS.items() if not q or q[-1] <= cutoff]
+            for k in stale_keys:
+                _RATE_BUCKETS.pop(k, None)
+        q = _RATE_BUCKETS.setdefault(key, deque())
+        while q and q[0] <= cutoff:
+            q.popleft()
+        if len(q) >= limit:
+            return True
+        q.append(now)
+        return False
+
+
+def _allowed_origins() -> set[str]:
+    """Return explicit allowlisted HTTPS browser origins."""
+    origins = {
+        ORIGINAL_RESEARCH_ORIGIN,
+        "https://archipelago-librarian.vercel.app",
+    }
+    configured = os.getenv("ARCHIPELAGO_FRONTEND_ORIGIN", "").strip().rstrip("/")
+    if configured and configured != "*" and configured.startswith("https://"):
+        origins.add(configured)
+    host_origin = request.host_url.rstrip("/")
+    if host_origin:
+        origins.add(host_origin)
+    return origins
 
 
 def research_backend_origin() -> str:
@@ -94,8 +270,12 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_REQUEST_BYTES
 
 
 @app.get("/api/readiness")
-def readiness() -> tuple[object, int]:
+def readiness() -> Response | tuple[object, int]:
     """Report whether shared read access is configured without leaking keys."""
+    if is_shutting_down():
+        resp = jsonify({"ready": False, "status": "shutting_down", "service": "research_transport"})
+        resp.headers["Retry-After"] = "5"
+        return resp, 503
     configured = all(
         os.getenv(key, "").strip() for key in ("SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY")
     ) and bool(os.getenv("SUPABASE_SECRET_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY"))
@@ -104,15 +284,33 @@ def readiness() -> tuple[object, int]:
     )
 
 
+@app.teardown_request
+def _finish_in_flight(_exc: BaseException | None = None) -> None:
+    """Decrement active in-flight counter and notify any waiting shutdown drain."""
+    global _IN_FLIGHT_REQUESTS
+    if getattr(g, "_tracked_in_flight", False):
+        g._tracked_in_flight = False
+        with _SHUTDOWN_COND:
+            _IN_FLIGHT_REQUESTS = max(0, _IN_FLIGHT_REQUESTS - 1)
+            if _IN_FLIGHT_REQUESTS == 0:
+                _SHUTDOWN_COND.notify_all()
+
+
 @app.after_request
 def browser_origin(response: Response) -> Response:
     """Allow the original Archipelago app to call this service with a session."""
+    if is_shutting_down() and response.status_code == 503:
+        response.headers.setdefault("Retry-After", "5")
     origin = os.getenv("ARCHIPELAGO_FRONTEND_ORIGIN", "").strip().rstrip("/")
-    if origin and request.headers.get("Origin") == origin:
+    req_origin = request.headers.get("Origin", "").strip().rstrip("/")
+    if origin and origin != "*" and origin.startswith("https://") and req_origin == origin:
         response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = (
+            "Authorization, Content-Type, X-CSRF-Token, X-Background-Poll"
+        )
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
         response.headers["Vary"] = "Origin"
+    response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -126,22 +324,53 @@ def browser_origin(response: Response) -> Response:
         "connect-src 'self' https://spllaastejfwclllfndp.supabase.co wss://spllaastejfwclllfndp.supabase.co https://archipelago-blond.vercel.app https://archipelago-librarian.vercel.app https://huggingface.co https://*.hf.space; "
         "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
     )
-    response.headers["Cache-Control"] = "private, no-store"
+    response.headers.setdefault("Cache-Control", "private, no-store")
     return response
 
 
 @app.before_request
-def require_auth() -> tuple[object, int] | None:
+def require_auth() -> Response | tuple[object, int] | None:
     """Protect research records and discovery with the shared user session."""
+    global _IN_FLIGHT_REQUESTS
     if request.method == "OPTIONS":
         return "", 204
+    with _SHUTDOWN_COND:
+        if _SHUTTING_DOWN:
+            if request.path == "/api/readiness":
+                return None
+            resp = jsonify(
+                {
+                    "error": "service_shutting_down",
+                    "status": "shutting_down",
+                    "retry_after": 5,
+                }
+            )
+            resp.headers["Retry-After"] = "5"
+            return resp, 503
+        _IN_FLIGHT_REQUESTS += 1
+        g._tracked_in_flight = True
+    segments = [seg for seg in request.path.split("/") if seg]
+    if any(seg.startswith(".") or seg == ".." for seg in segments) or request.path.lower().endswith(
+        "audit.md"
+    ):
+        return jsonify({"error": "not_found"}), 404
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+        req_origin = request.headers.get("Origin", "").strip().rstrip("/")
+        if req_origin and req_origin not in _allowed_origins():
+            return jsonify({"error": "csrf_origin_mismatch"}), 403
+        if _rate_limited("mutation", RATE_LIMIT_MAX_MUTATIONS):
+            return jsonify({"error": "rate_limited"}), 429
+    elif request.path.startswith("/api/") and _rate_limited("read", RATE_LIMIT_MAX_READS):
+        return jsonify({"error": "rate_limited"}), 429
     if request.path in {
         "/api/readiness",
         "/api/research/intake/scheduled",
         "/api/auth/config",
+        "/api/auth/logout",
+        "/api/auth/handoff-redeem",
         "/api/library/koha",
         "/api/library/koha/scheduled",
-    }:
+    } or (request.path == "/api/auth/session" and request.method == "DELETE"):
         return None
     if request.path in {"/", "/login"} or request.path.lstrip("/") in ASSETS:
         return None
@@ -159,6 +388,8 @@ def require_auth() -> tuple[object, int] | None:
         or request.path
         in {
             "/api/auth/me",
+            "/api/auth/session",
+            "/api/auth/handoff-ticket",
             "/api/graph/hubs",
             "/api/graph/page",
             "/api/graph/subgraph",
@@ -169,7 +400,13 @@ def require_auth() -> tuple[object, int] | None:
         return jsonify({"error": "not_found"}), 404
     authorization = request.headers.get("Authorization", "")
     token = (
-        authorization.removeprefix("Bearer ").strip() if authorization.startswith("Bearer ") else ""
+        authorization.removeprefix("Bearer ").strip()
+        if authorization.startswith("Bearer ")
+        else (
+            request.cookies.get("archipelago_token", "").strip()
+            or request.cookies.get("archipelago_access_token", "").strip()
+            or request.cookies.get("sb-access-token", "").strip()
+        )
     )
     try:
         principal = verify_user(token)
@@ -178,6 +415,7 @@ def require_auth() -> tuple[object, int] | None:
     if not principal:
         return jsonify({"error": "unauthorized"}), 401
     g.principal = principal
+    g.token = token
     return None
 
 
@@ -250,7 +488,8 @@ def librarian_records(record_type: str) -> tuple[object, int]:
             ), 200
         saved = save_record(record_type, request.get_json(silent=True), g.principal["id"])
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        msg = str(exc) if str(exc) in _SAFE_VALIDATION_ERRORS else "invalid_record"
+        return jsonify({"error": msg}), 400
     except (requests.RequestException, RuntimeError, KeyError, IndexError):
         return jsonify({"error": "storage_unavailable"}), 503
     return jsonify({"record": saved, "source": "archipelago_staff"}), 200
@@ -294,7 +533,8 @@ def library_opac_live() -> tuple[object, int]:
     try:
         result = lookup_book(biblionumber) if biblionumber else search_books(query)
     except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        msg = str(exc) if str(exc) in _SAFE_VALIDATION_ERRORS else "invalid_opac_query"
+        return jsonify({"error": msg}), 400
     except requests.RequestException:
         try:
             snapshot = load_snapshot()
@@ -342,7 +582,7 @@ def library_opac_live() -> tuple[object, int]:
                     }
                 ), 200
         except (requests.RequestException, RuntimeError, ValueError, TypeError):
-            app.logger.exception("OPAC fallback unavailable")
+            app.logger.warning("OPAC fallback unavailable")
         return jsonify({"error": "opac_unavailable"}), 503
     return jsonify(result), 200
 
@@ -383,7 +623,48 @@ def auth_config() -> tuple[object, int]:
 @app.get("/api/auth/me")
 def auth_me() -> tuple[object, int]:
     """Identify the active staff account without exposing its token."""
-    return jsonify({"authenticated": True, **g.principal}), 200
+    principal = g.principal if isinstance(g.principal, dict) else {}
+    return jsonify({"authenticated": True, **principal}), 200
+
+
+@app.route("/api/auth/session", methods=["POST", "DELETE"])
+@app.post("/api/auth/logout")
+def auth_session() -> Response | tuple[object, int]:
+    """Manage or terminate the HttpOnly staff session cookie on this origin."""
+    if request.method == "DELETE" or request.path == "/api/auth/logout":
+        authorization = request.headers.get("Authorization", "")
+        token = (
+            authorization.removeprefix("Bearer ").strip()
+            if authorization.startswith("Bearer ")
+            else request.cookies.get("archipelago_token", "").strip()
+        )
+        revoke_token(token)
+        resp = jsonify({"authenticated": False})
+        for cookie_name in ("archipelago_token", "archipelago_access_token", "sb-access-token"):
+            resp.delete_cookie(cookie_name, path="/", samesite="Lax")
+        resp.headers["Clear-Site-Data"] = '"cookies", "storage"'
+        return resp, 200
+    principal = g.principal if isinstance(g.principal, dict) else {}
+    resp = jsonify({"authenticated": True, "role": principal.get("role", "")})
+    token = getattr(g, "token", "")
+    if token:
+        resp.set_cookie(
+            "archipelago_token",
+            token,
+            max_age=3600,
+            httponly=True,
+            secure=os.getenv("ARCHIPELAGO_ENV", "production").lower() in {"production", "prod"},
+            samesite="Lax",
+            path="/",
+        )
+    return resp, 200
+
+
+@app.post("/api/auth/handoff-ticket")
+@app.post("/api/auth/handoff-redeem")
+def auth_handoff_proxy() -> Response | tuple[object, int]:
+    """Forward server-mediated session handoff exchange to the primary backend."""
+    return _forward(request.path)
 
 
 @app.get("/api/research/topics")
@@ -427,6 +708,10 @@ def _forward(path: str) -> Response | tuple[object, int]:
         "Authorization": request.headers.get("Authorization", ""),
         "Accept": "application/json",
     }
+    for passthrough in ("Cookie", "Origin", "Referer", "X-CSRF-Token", "X-Background-Poll"):
+        val = request.headers.get(passthrough, "").strip()
+        if val:
+            headers[passthrough] = val
     bypass_secret = os.getenv("ARCHIPELAGO_RESEARCH_BYPASS_SECRET", "").strip()
     if bypass_secret:
         headers["x-vercel-protection-bypass"] = bypass_secret
@@ -447,7 +732,8 @@ def _forward(path: str) -> Response | tuple[object, int]:
     if REDIRECT_MIN_STATUS <= upstream.status_code < REDIRECT_MAX_STATUS:
         return jsonify({"error": "research_backend_redirected"}), 502
     payload = upstream.content
-    if upstream.ok and path.startswith("/api/research/intelligence/runs/"):
+    upstream_ok = getattr(upstream, "ok", 200 <= getattr(upstream, "status_code", 500) < 400)
+    if upstream_ok and path.startswith("/api/research/intelligence/runs/"):
         try:
             run = None
             if path.endswith(("/preview", "/dossier", "/xlsx")):
@@ -477,10 +763,36 @@ def _forward(path: str) -> Response | tuple[object, int]:
             return jsonify({"error": "ranking_transform_failed"}), 502
     response = Response(payload, status=upstream.status_code)
     response.headers["Content-Type"] = upstream.headers.get("Content-Type", "application/json")
-    if upstream.ok and path.endswith("/xlsx") and standard_export:
+    if upstream_ok and path.endswith("/xlsx") and standard_export:
         response.cache_control.no_store = True
         response.headers["X-Archipelago-Export-Schema"] = EXPORT_SCHEMA
+    disposition = upstream.headers.get("Content-Disposition", "").strip()
+    if disposition.startswith("attachment;"):
+        response.headers["Content-Disposition"] = disposition
+    raw_headers = getattr(getattr(upstream, "raw", None), "headers", None)
+    if raw_headers is not None and callable(getattr(raw_headers, "getlist", None)):
+        cookie_vals = raw_headers.getlist("Set-Cookie")
+        if isinstance(cookie_vals, (list, tuple)):
+            for cookie_val in cookie_vals:
+                response.headers.add("Set-Cookie", cookie_val)
+    elif isinstance(upstream.headers.get("Set-Cookie"), str):
+        response.headers.add("Set-Cookie", upstream.headers["Set-Cookie"])
     return response
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_payload_too_large(_exc: RequestEntityTooLarge) -> tuple[object, int]:
+    """Return a clean JSON error when request payload exceeds MAX_CONTENT_LENGTH."""
+    return jsonify({"error": "payload_too_large"}), 413
+
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(exc: Exception) -> Response | tuple[object, int]:
+    """Return generic JSON on unexpected errors without leaking stack traces."""
+    if isinstance(exc, HTTPException):
+        return jsonify({"error": exc.name.lower().replace(" ", "_")}), exc.code or 500
+    app.logger.error("Unhandled error in research transport: %s", type(exc).__name__)
+    return jsonify({"error": "internal_error"}), 500
 
 
 @app.get("/api/research/intake/scheduled")

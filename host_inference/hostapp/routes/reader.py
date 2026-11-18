@@ -25,12 +25,14 @@ READER_PAGE_FILE = "reader.html"
 HF_REPO_NAME = os.environ.get("HF_LIBRARY_REPO", "Prataykarali/Library_books")
 HF_DATASET_RESOLVE_BASE = f"https://huggingface.co/datasets/{HF_REPO_NAME}/resolve/main"
 HF_STREAM_CHUNK_BYTES = 65536
-HF_STREAM_TIMEOUT_SEC = 30
+HF_STREAM_TIMEOUT_SEC = 12
 MIN_PAGE = 1
 MAX_BOOK_ID_LEN = 128
+MAX_DOC_ID_LEN = 256
 
 BOOK_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\. ]+$")
 SAFE_DOC_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\./]+$")
+SAFE_FILENAME_PATTERN = re.compile(r"[^a-zA-Z0-9_.\-]")
 
 DATASET_PREFIXES = ("papers/", "textbooks/", "archipelago-books-cs/")
 JSON_MIME = "application/json"
@@ -61,8 +63,9 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.route("/api/page-view", methods=["GET", "POST"])
     def page_view():
-        data = request.get_json(silent=True) or {}
-        doc_id = (
+        raw_data = request.get_json(silent=True)
+        data = raw_data if isinstance(raw_data, dict) else {}
+        doc_id = str(
             request.args.get("doc_id")
             or request.args.get("doc")
             or request.args.get("id")
@@ -71,6 +74,8 @@ def register(app: Flask, ctx: AppContext) -> None:
             or data.get("id")
             or ""
         ).strip()
+        if len(doc_id) > MAX_DOC_ID_LEN or "\x00" in doc_id or ".." in doc_id or "\\" in doc_id:
+            return jsonify({"error": "bad_request", "detail": "Invalid document identifier."}), 400
         try:
             page = max(MIN_PAGE, int(request.args.get("page") or data.get("page") or 1))
         except (ValueError, TypeError):
@@ -119,7 +124,9 @@ def register(app: Flask, ctx: AppContext) -> None:
     def reader_info_api(resource_id: str = ""):
         """Metadata inspection endpoint for reader.html."""
         raw_id = resource_id or request.args.get("doc") or request.args.get("id") or request.args.get("doc_id") or ""
-        clean_id = unquote(raw_id).removeprefix("book/").strip()
+        clean_id = unquote(str(raw_id)).removeprefix("book/").strip()
+        if len(clean_id) > MAX_DOC_ID_LEN or "\x00" in clean_id or ".." in clean_id or "\\" in clean_id:
+            return jsonify({"error": "bad_request", "detail": "Invalid resource identifier."}), 400
         if clean_id:
             record_user_action("reader_open", clean_id)
         try:
@@ -201,10 +208,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             candidates.append(f"textbooks/{base_name}")
 
         upstream = None
+        seen_verified: set[str] = set()
         for candidate in candidates:
             verified = resolve_hf_path(candidate)
-            if not verified:
+            if not verified or verified in seen_verified:
                 continue
+            seen_verified.add(verified)
             try:
                 response = requests.get(
                     f"{HF_DATASET_RESOLVE_BASE}/{verified}",
@@ -234,7 +243,8 @@ def register(app: Flask, ctx: AppContext) -> None:
                 upstream.close()
 
         response = current_app.response_class(generate(), mimetype=PDF_MIME)
-        filename = doc_path.split("/")[-1] or "paper.pdf"
+        raw_filename = doc_path.split("/")[-1] or "paper.pdf"
+        filename = SAFE_FILENAME_PATTERN.sub("_", raw_filename) or "paper.pdf"
         response.headers["Content-Disposition"] = f'inline; filename="{filename}"'
         return response
 

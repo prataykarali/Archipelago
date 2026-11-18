@@ -9,12 +9,85 @@ from __future__ import annotations
 
 import os
 
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 
-from ..config import SESSION_COOKIE_MAX_AGE, SESSION_COOKIE_NAME
+from ..config import (
+    CSRF_COOKIE_NAME,
+    ELEVATED_ROLES,
+    SESSION_COOKIE_MAX_AGE,
+    SESSION_COOKIE_NAME,
+)
 from ..context import AppContext
+from ..security import is_safe_redirect_target
 
 PRODUCTION_ENVS = {"production", "prod"}
+ALLOWLISTED_REDIRECT_ORIGINS = ("https://archipelago-librarian.vercel.app",)
+
+
+def _is_secure_cookie() -> bool:
+    if os.getenv("ARCHIPELAGO_ENV", "production").lower() in PRODUCTION_ENVS:
+        return True
+    if os.getenv("VERCEL"):
+        return True
+    if request.is_secure:
+        return True
+    forwarded_proto = request.headers.get("X-Forwarded-Proto", "").split(",")[0].strip().lower()
+    return forwarded_proto == "https"
+
+
+def _set_private_no_store(response: Response) -> Response:
+    response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+    return response
+
+
+def _set_session_cookies(response: Response, token: str, csrf_token: str) -> None:
+    is_secure = _is_secure_cookie()
+    response.set_cookie(
+        SESSION_COOKIE_NAME,
+        token,
+        max_age=SESSION_COOKIE_MAX_AGE,
+        httponly=True,
+        secure=is_secure,
+        samesite="Lax",
+        path="/",
+    )
+    if csrf_token:
+        response.set_cookie(
+            CSRF_COOKIE_NAME,
+            csrf_token,
+            max_age=SESSION_COOKIE_MAX_AGE,
+            httponly=False,
+            secure=is_secure,
+            samesite="Lax",
+            path="/",
+        )
+
+
+def _logout_response(ctx: AppContext) -> Response:
+    header = request.headers.get("Authorization", "")
+    bearer = header.removeprefix("Bearer ").strip() if header.startswith("Bearer ") else ""
+    cookie_token = request.cookies.get(SESSION_COOKIE_NAME, "").strip()
+    for tok in {bearer, cookie_token}:
+        if tok:
+            ctx.auth.end_session(tok)
+    is_secure = _is_secure_cookie()
+    response = jsonify({"authenticated": False, "logged_out": True})
+    response.delete_cookie(
+        SESSION_COOKIE_NAME,
+        path="/",
+        httponly=True,
+        secure=is_secure,
+        samesite="Lax",
+    )
+    response.delete_cookie(
+        CSRF_COOKIE_NAME,
+        path="/",
+        httponly=False,
+        secure=is_secure,
+        samesite="Lax",
+    )
+    response.headers["Clear-Site-Data"] = '"cookies", "storage"'
+    return _set_private_no_store(response)
 
 
 def register(app: Flask, ctx: AppContext) -> None:
@@ -24,52 +97,156 @@ def register(app: Flask, ctx: AppContext) -> None:
     def auth_config():
         url, key = ctx.auth.supabase()
         configured = bool(url and key)
-        return jsonify(
-            {
-                "configured": configured,
-                "required": ctx.auth.required(),
-                "url": url if configured else None,
-                "publishableKey": key if configured else None,
-                "chatUrl": None,
-                "graphUrl": None,
-            }
+        return _set_private_no_store(
+            jsonify(
+                {
+                    "configured": configured,
+                    "required": ctx.auth.required(),
+                    "url": url if configured else None,
+                    "publishableKey": key if configured else None,
+                    "chatUrl": None,
+                    "graphUrl": None,
+                }
+            )
         )
 
     @app.route("/api/auth/session", methods=["POST", "DELETE", "OPTIONS"])
     def auth_session():
         if request.method == "DELETE":
-            token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
-            ctx.auth.end_session(token or request.cookies.get(SESSION_COOKIE_NAME, ""))
-            response = jsonify({"authenticated": False})
-            response.delete_cookie(SESSION_COOKIE_NAME, path="/")
-            return response
-        principal, error = ctx.auth.principal()
-        if principal is None:
-            return jsonify({"error": "unauthorized", "detail": error}), 401
-        response = jsonify({"authenticated": True, "role": principal["role"]})
-        response.set_cookie(
-            SESSION_COOKIE_NAME,
-            principal["token"],
-            max_age=SESSION_COOKIE_MAX_AGE,
-            httponly=True,
-            secure=os.getenv("ARCHIPELAGO_ENV", "production").lower() in PRODUCTION_ENVS,
-            samesite="Lax",
-            path="/",
+            return _logout_response(ctx)
+        body = request.get_json(silent=True)
+        body_dict = body if isinstance(body, dict) else {}
+        requested_redirect = (
+            request.args.get("next")
+            or request.args.get("redirect")
+            or body_dict.get("next")
+            or body_dict.get("redirect")
         )
-        return response
-
-    @app.get("/api/auth/me")
-    def auth_me():
-        if not ctx.auth.required():
-            return jsonify({"authenticated": False, "role": "student", "open": True})
+        if requested_redirect is not None and not is_safe_redirect_target(
+            str(requested_redirect), allowlisted_origins=ALLOWLISTED_REDIRECT_ORIGINS
+        ):
+            return _set_private_no_store(
+                jsonify({"error": "bad_request", "detail": "Invalid redirect target."})
+            ), 400
         principal, error = ctx.auth.principal()
         if principal is None:
-            return jsonify({"authenticated": False, "detail": error}), 401
-        return jsonify(
+            return _set_private_no_store(
+                jsonify({"error": "unauthorized", "detail": error})
+            ), 401
+        existing_cookie = request.cookies.get(SESSION_COOKIE_NAME, "").strip()
+        rotate = getattr(ctx.auth, "rotate_session", None)
+        csrf_token = (
+            rotate(principal.get("token", ""), previous_token=existing_cookie)
+            if callable(rotate)
+            else ""
+        )
+        payload = {
+            "authenticated": True,
+            "role": principal["role"],
+            "csrf_token": csrf_token,
+        }
+        if requested_redirect is not None:
+            payload["redirect"] = str(requested_redirect)
+        response = jsonify(payload)
+        _set_session_cookies(response, principal.get("token", ""), csrf_token)
+        return _set_private_no_store(response)
+
+    @app.route("/api/auth/logout", methods=["POST", "DELETE", "OPTIONS"])
+    def auth_logout():
+        return _logout_response(ctx)
+
+    @app.post("/api/auth/handoff-ticket")
+    def auth_handoff_ticket():
+        principal, error = ctx.auth.principal()
+        if principal is None or not principal.get("id"):
+            return _set_private_no_store(
+                jsonify({"error": "unauthorized", "detail": error or "Session required."})
+            ), 401
+        if principal.get("role") not in ELEVATED_ROLES:
+            return _set_private_no_store(
+                jsonify({"error": "forbidden", "detail": "A staff account is required."})
+            ), 403
+        body = request.get_json(silent=True)
+        body_dict = body if isinstance(body, dict) else {}
+        target_origin = str(
+            body_dict.get("target_origin") or body_dict.get("target") or ""
+        ).strip()
+        nonce = str(body_dict.get("nonce") or body_dict.get("state") or "").strip()
+        issue = getattr(ctx.auth, "issue_handoff_ticket", None)
+        if not callable(issue):
+            return _set_private_no_store(
+                jsonify({"error": "unavailable", "detail": "Session handoff is unavailable."})
+            ), 503
+        ticket_payload, ticket_error = issue(principal, target_origin, nonce=nonce)
+        if ticket_payload is None:
+            return _set_private_no_store(
+                jsonify({"error": "bad_request", "detail": ticket_error})
+            ), 400
+        ticket_payload["state"] = ticket_payload.get("nonce", "")
+        return _set_private_no_store(jsonify(ticket_payload))
+
+    @app.post("/api/auth/handoff-redeem")
+    def auth_handoff_redeem():
+        body = request.get_json(silent=True)
+        body_dict = body if isinstance(body, dict) else {}
+        ticket = str(body_dict.get("ticket") or "").strip()
+        nonce = str(body_dict.get("nonce") or body_dict.get("state") or "").strip()
+        caller_origin = (
+            request.headers.get("Origin", "").strip()
+            or str(body_dict.get("target_origin") or body_dict.get("origin") or "").strip()
+        )
+        redeem = getattr(ctx.auth, "redeem_handoff_ticket", None)
+        if not callable(redeem):
+            return _set_private_no_store(
+                jsonify({"error": "unavailable", "detail": "Session handoff is unavailable."})
+            ), 503
+        principal, error = redeem(ticket, origin=caller_origin, nonce=nonce)
+        if principal is None:
+            return _set_private_no_store(
+                jsonify({"error": "unauthorized", "detail": error})
+            ), 401
+        existing_cookie = request.cookies.get(SESSION_COOKIE_NAME, "").strip()
+        rotate = getattr(ctx.auth, "rotate_session", None)
+        csrf_token = (
+            rotate(principal.get("token", ""), previous_token=existing_cookie)
+            if callable(rotate)
+            else ""
+        )
+        response = jsonify(
             {
                 "authenticated": True,
                 "id": principal["id"],
                 "role": principal["role"],
                 "username": principal["username"],
+                "csrf_token": csrf_token,
+                "nonce": principal.get("nonce", ""),
+                "state": principal.get("nonce", ""),
             }
+        )
+        _set_session_cookies(response, principal.get("token", ""), csrf_token)
+        return _set_private_no_store(response)
+
+    @app.get("/api/auth/me")
+    def auth_me():
+        if not ctx.auth.required():
+            return _set_private_no_store(
+                jsonify({"authenticated": False, "role": "student", "open": True})
+            )
+        principal, error = ctx.auth.principal()
+        if principal is None:
+            return _set_private_no_store(
+                jsonify({"authenticated": False, "detail": error})
+            ), 401
+        csrf_for = getattr(ctx.auth, "csrf_token_for", None)
+        csrf_token = csrf_for(principal.get("token", "")) if callable(csrf_for) else ""
+        return _set_private_no_store(
+            jsonify(
+                {
+                    "authenticated": True,
+                    "id": principal["id"],
+                    "role": principal["role"],
+                    "username": principal["username"],
+                    "csrf_token": csrf_token,
+                }
+            )
         )

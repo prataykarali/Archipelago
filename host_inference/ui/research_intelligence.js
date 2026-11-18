@@ -18,6 +18,25 @@ function validRunId(value) {
 }
 
 let progressTimer = null;
+let recoveryTimer = null;
+let isUnloading = false;
+let recentRunsInFlight = null;
+let lastRecentRunsAt = 0;
+
+function stopResearchPolling() {
+  isUnloading = true;
+  if (progressTimer) {
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
+  if (recoveryTimer) {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = null;
+  }
+}
+
+window.addEventListener('pagehide', stopResearchPolling);
+window.addEventListener('beforeunload', stopResearchPolling);
 
 function pendingSearch() {
   try { return JSON.parse(sessionStorage.getItem(S5_PENDING_KEY) || 'null'); }
@@ -57,6 +76,11 @@ function startSearchProgress() {
 }
 
 async function recoverPendingSearch() {
+  if (isUnloading) return;
+  if (typeof document !== 'undefined' && document.hidden) {
+    recoveryTimer = setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+    return;
+  }
   const pending = pendingSearch();
   if (!pending?.request_id) return;
   const status = s5('intelligence-status');
@@ -70,7 +94,9 @@ async function recoverPendingSearch() {
   startSearchProgress();
   if (status) status.textContent = `Researching "${pending.topic}". You can visit other pages and return here.`;
   try {
-    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
+    const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`, {
+      headers: { 'X-Background-Poll': '1' },
+    });
     if (job.status === 'completed') {
       if (!validRunId(job.run_id)) {
         clearPendingSearch();
@@ -93,7 +119,9 @@ async function recoverPendingSearch() {
     }
     if (status) status.textContent = `Checking search progress: ${error.message}`;
   }
-  setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+  if (!isUnloading) {
+    recoveryTimer = setTimeout(recoverPendingSearch, SEARCH_RECOVERY_INTERVAL_MS);
+  }
 }
 
 function saveResearchState() {
@@ -334,29 +362,37 @@ function showRun(run) {
     });
 }
 
-async function loadRecentRuns() {
+async function loadRecentRuns(force = false) {
   const status = s5('recent-research-status');
   const list = s5('recent-research-list');
-  try {
-    const data = await s5Json('/api/research/intelligence/runs');
-    list.replaceChildren();
-    const runs = Array.isArray(data.runs) ? data.runs : [];
-    const seen = new Set();
-    const recent = runs.filter(run => {
-      const key = String(run.topic || '').trim().toLocaleLowerCase();
-      if (!run.run_id || !key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, RECENT_TOPIC_LIMIT);
-    status.textContent = recent.length ? `Showing ${recent.length} latest topics — select one to reopen its papers.` : 'No saved topics yet.';
-    for (const run of recent) {
-      if (!run.run_id) continue;
-      const link = document.createElement('a');
-      link.href = `/research/topic?run=${encodeURIComponent(run.run_id)}`;
-      link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
-      list.append(link);
-    }
-  } catch (error) { status.textContent = `Could not load saved topics: ${error.message}`; }
+  if (!status || !list) return;
+  if (recentRunsInFlight) return recentRunsInFlight;
+  if (!force && Date.now() - lastRecentRunsAt < 15000) return;
+  recentRunsInFlight = (async () => {
+    try {
+      const data = await s5Json('/api/research/intelligence/runs');
+      lastRecentRunsAt = Date.now();
+      list.replaceChildren();
+      const runs = Array.isArray(data.runs) ? data.runs : [];
+      const seen = new Set();
+      const recent = runs.filter(run => {
+        const key = String(run.topic || '').trim().toLocaleLowerCase();
+        if (!run.run_id || !key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, RECENT_TOPIC_LIMIT);
+      status.textContent = recent.length ? `Showing ${recent.length} latest topics — select one to reopen its papers.` : 'No saved topics yet.';
+      for (const run of recent) {
+        if (!run.run_id) continue;
+        const link = document.createElement('a');
+        link.href = `/research/topic?run=${encodeURIComponent(run.run_id)}`;
+        link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
+        list.append(link);
+      }
+    } catch (error) { status.textContent = `Could not load saved topics: ${error.message}`; }
+    finally { recentRunsInFlight = null; }
+  })();
+  return recentRunsInFlight;
 }
 
 async function restoreRun(runId) {

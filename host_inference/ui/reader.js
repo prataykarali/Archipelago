@@ -73,10 +73,17 @@
           docInfo = await infoResp.json();
         }
 
-        // If backend indicated this is Pearson, redirect to Pearson reader
-        if (docInfo.provider === 'pearson' && docInfo.reader_url) {
-          window.location.replace(docInfo.reader_url);
-          return;
+        // If backend indicated this is Pearson, redirect to Pearson reader (validate allowed target)
+        if (docInfo.provider === 'pearson' && typeof docInfo.reader_url === 'string') {
+          try {
+            const parsedReader = new URL(docInfo.reader_url, window.location.origin);
+            const isAllowedPearson = parsedReader.protocol === 'https:' && (parsedReader.hostname === 'pearson.com' || parsedReader.hostname.endsWith('.pearson.com'));
+            const isSameOrigin = parsedReader.origin === window.location.origin;
+            if (isAllowedPearson || isSameOrigin) {
+              window.location.replace(parsedReader.href);
+              return;
+            }
+          } catch (_) {}
         }
 
         const title = docInfo.title || resourceId.split('/').pop().replace(/\.pdf$/i, '').replace(/_/g, ' ');

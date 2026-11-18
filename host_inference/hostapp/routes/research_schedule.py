@@ -49,10 +49,12 @@ def register(app: Flask, _ctx: AppContext) -> None:
     @app.get("/api/research/intake/scheduled")  # type: ignore[misc]
     def scheduled_intake() -> ResponseReturnValue:
         secret = os.getenv("CRON_SECRET", "").strip()
-        supplied = request.headers.get("Authorization", "").removeprefix("Bearer ")
+        auth_header = request.headers.get("Authorization", "")
         if not secret:
             return jsonify({"error": "schedule_unconfigured"}), 503
-        if not supplied or not compare_digest(supplied, secret):
+        if not auth_header.startswith("Bearer ") or not compare_digest(
+            auth_header, f"Bearer {secret}"
+        ):
             return jsonify({"error": "unauthorized"}), 401
         day = datetime.now(UTC).date().toordinal()
         index = request.args.get("topic_index", type=int)

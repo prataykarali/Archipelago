@@ -306,20 +306,30 @@ def _answer(
     return _list(run, run_id)
 
 
+MAX_HISTORY_TURNS = 20
+MAX_HISTORY_TURN_CHARS = 1000
+MAX_CANDIDATE_SCAN = 10
+
+
 def research_chat_reply(
     query: str, history: list[dict[str, Any]] | None, owner: str, store: Any, run_id: str | None
 ) -> dict[str, Any] | None:
     """Return a chat reply dict, or None to leave the message to normal chat."""
+    if not owner or not str(owner).strip():
+        return None
     runs = store.list_runs(owner)
+    bounded_history = (history or [])[-MAX_HISTORY_TURNS:] if isinstance(history, list) else []
     history_text = "\n".join(
-        str(m.get("content", "")) for m in history or [] if isinstance(m, dict)
+        str(m.get("content", ""))[:MAX_HISTORY_TURN_CHARS]
+        for m in bounded_history
+        if isinstance(m, dict)
     )
     run = store.get_run(run_id, owner) if run_id else None
     if run is None and runs:
         hist_matches = re.findall(r"This collection for “([^”]+)” has (\d+) papers", history_text)
         if hist_matches:
             target_topic, target_count = hist_matches[-1][0].casefold(), int(hist_matches[-1][1])
-            for candidate in runs:
+            for candidate in runs[:MAX_CANDIDATE_SCAN]:
                 if candidate["topic"].casefold() == target_topic:
                     loaded = store.get_run(candidate["run_id"], owner)
                     if loaded and len(loaded.get("papers", [])) == target_count:
@@ -340,7 +350,7 @@ def research_chat_reply(
             else 30
         )
         norm = topic.casefold().rstrip("s")
-        for candidate in runs:
+        for candidate in runs[:MAX_CANDIDATE_SCAN]:
             if norm in candidate["topic"].casefold().rstrip("s"):
                 loaded = store.get_run(candidate["run_id"], owner)
                 if (

@@ -1,5 +1,14 @@
 "use strict";
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ── Interactive User Management Modal for Librarian and Administrator ────────
 window.archipelagoOpenUserManagementModal = async (principal) => {
   let modal = document.querySelector("#archipelago-user-mgmt-modal");
@@ -19,7 +28,7 @@ window.archipelagoOpenUserManagementModal = async (principal) => {
     <div>
       <h2 style="margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;">
         <span>User & Login Account Management</span>
-        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:rgba(139,92,246,0.2);color:#c4b5fd;border:1px solid rgba(139,92,246,0.3);text-transform:uppercase;">${principal.role}</span>
+        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:rgba(139,92,246,0.2);color:#c4b5fd;border:1px solid rgba(139,92,246,0.3);text-transform:uppercase;">${escapeHtml(principal.role)}</span>
       </h2>
       <p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,0.6);">
         ${principal.role === 'administrator' ? 'Full administrator permissions: add, update username/password, and delete any account.' : 'Librarian permissions: add/delete students, update student usernames, and update your own username.'}
@@ -137,19 +146,19 @@ window.archipelagoOpenUserManagementModal = async (principal) => {
 
       tr.innerHTML = `
         <td style="padding:14px 16px;font-weight:600;color:#fff;">
-          ${u.username}
+          ${escapeHtml(u.username)}
           ${isSelf ? '<span style="margin-left:6px;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.1);color:#fff;">YOU</span>' : ''}
         </td>
         <td style="padding:14px 16px;">
           <span style="padding:3px 8px;border-radius:999px;background:${roleBadgeBg};color:${roleBadgeColor};font-size:11px;font-weight:600;text-transform:uppercase;">
-            ${u.role}
+            ${escapeHtml(u.role)}
           </span>
         </td>
-        <td style="padding:14px 16px;color:rgba(255,255,255,0.7);">${u.display_name || u.username}</td>
+        <td style="padding:14px 16px;color:rgba(255,255,255,0.7);">${escapeHtml(u.display_name || u.username)}</td>
         <td style="padding:14px 16px;text-align:right;">
           <div style="display:inline-flex;gap:8px;">
-            ${canEdit ? `<button class="edit-user-btn" data-id="${u.id}" style="padding:6px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:12px;cursor:pointer;font-weight:500;">Edit Username</button>` : ''}
-            ${canDelete ? `<button class="del-user-btn" data-id="${u.id}" data-username="${u.username}" style="padding:6px 12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#fca5a5;font-size:12px;cursor:pointer;font-weight:500;">Delete</button>` : ''}
+            ${canEdit ? `<button class="edit-user-btn" data-id="${escapeHtml(u.id)}" style="padding:6px 12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:12px;cursor:pointer;font-weight:500;">Edit Username</button>` : ''}
+            ${canDelete ? `<button class="del-user-btn" data-id="${escapeHtml(u.id)}" data-username="${escapeHtml(u.username)}" style="padding:6px 12px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#fca5a5;font-size:12px;cursor:pointer;font-weight:500;">Delete</button>` : ''}
           </div>
         </td>
       `;
@@ -260,16 +269,16 @@ window.archipelagoOpenUserManagementModal = async (principal) => {
     subModal.style.cssText = "position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:16px;";
     subModal.innerHTML = `
       <div style="background:#171126;border:1px solid rgba(255,255,255,0.2);border-radius:16px;max-width:420px;width:100%;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,0.8);color:#fff;">
-        <h3 style="margin:0 0 4px;font-size:18px;font-weight:700;">Update ${isSelf ? 'Your Account' : `Student '${user.username}'`}</h3>
+        <h3 style="margin:0 0 4px;font-size:18px;font-weight:700;">Update ${isSelf ? 'Your Account' : `Student '${escapeHtml(user.username)}'`}</h3>
         <p style="margin:0 0 16px;font-size:12px;color:rgba(255,255,255,0.6);">Update login username, display name, or password.</p>
         <form id="edit-user-form" style="display:flex;flex-direction:column;gap:12px;">
           <div>
             <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Username</label>
-            <input name="username" required value="${user.username}" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
+            <input name="username" required value="${escapeHtml(user.username)}" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
           </div>
           <div>
             <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">Display Name</label>
-            <input name="display_name" value="${user.display_name || ''}" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
+            <input name="display_name" value="${escapeHtml(user.display_name || '')}" style="width:100%;box-sizing:border-box;background:#0d0a16;border:1px solid #67518b;border-radius:8px;padding:10px;color:#fff;font-size:13px;outline:none;" />
           </div>
           <div>
             <label style="display:block;font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:4px;">New Password (leave blank to keep existing)</label>

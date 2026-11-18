@@ -21,3 +21,6 @@ __pycache__
 /tests
 /logs
 /okf_graph.json
+AUDIT.md
+**/AUDIT.md
+

@@ -36,9 +36,13 @@ _JWT_RE = re.compile(r"eyJ[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]{6,}\.[A-Za-z0-9_\-]
 _SECRET_ASSIGN_RE = re.compile(
     r"(?i)\b("
     r"token|access_token|refresh_token|id_token|apikey|api_key|api-key|"
-    r"password|passwd|pwd|secret|client_secret|session|authorization"
+    r"password|passwd|pwd|secret|client_secret|session|authorization|"
+    r"archipelago_token|handoff_ticket|service_role_key|secret_key|csrf_token"
     r")(\s*[:=]\s*|\s+)([^\s&\"'<>]+)"
 )
+
+# ``Cookie: …`` / ``Set-Cookie: …`` headers.
+_COOKIE_HEADER_RE = re.compile(r"(?i)\b((?:set-)?cookie\s*:\s*)([^\r\n]+)")
 
 # ``Bearer <token>``.
 _BEARER_RE = re.compile(r"(?i)(bearer\s+)([A-Za-z0-9._\-]+)")
@@ -46,10 +50,21 @@ _BEARER_RE = re.compile(r"(?i)(bearer\s+)([A-Za-z0-9._\-]+)")
 _LOGGER_NAMES = ("", "werkzeug", "gunicorn.access", "gunicorn.error")
 
 
+def mask_secret(value: str) -> str:
+    """Return a masked preview showing at most the first 4 characters (``xxxx••••``)."""
+    cleaned = (value or "").strip()
+    if not cleaned:
+        return ""
+    if len(cleaned) <= 4:
+        return "••••"
+    return f"{cleaned[:4]}••••"
+
+
 def redact(text: str) -> str:
-    """Return ``text`` with JWTs, bearer tokens, and secret assignments masked."""
+    """Return ``text`` with JWTs, bearer tokens, cookies, and secret assignments masked."""
     text = _JWT_RE.sub(REDACTED, text)
     text = _BEARER_RE.sub(lambda m: m.group(1) + REDACTED, text)
+    text = _COOKIE_HEADER_RE.sub(lambda m: m.group(1) + REDACTED, text)
     text = _SECRET_ASSIGN_RE.sub(lambda m: m.group(1) + m.group(2) + REDACTED, text)
     return text
 
@@ -63,7 +78,7 @@ class RedactingFilter(logging.Filter):
     so numeric and other opaque args are passed through untouched.
     """
 
-    def filter(self, record: logging.LoggingRecord) -> bool:
+    def filter(self, record: logging.LogRecord) -> bool:
         record.msg = redact(str(record.msg))
         if record.args:
             if isinstance(record.args, dict):
@@ -72,6 +87,8 @@ class RedactingFilter(logging.Filter):
                 }
             else:
                 record.args = tuple(redact(a) if isinstance(a, str) else a for a in record.args)
+        if getattr(record, "exc_text", None) and isinstance(record.exc_text, str):
+            record.exc_text = redact(record.exc_text)
         return True
 
 
@@ -91,5 +108,6 @@ __all__ = [
     "REDACTED",
     "RedactingFilter",
     "install_log_redaction",
+    "mask_secret",
     "redact",
 ]

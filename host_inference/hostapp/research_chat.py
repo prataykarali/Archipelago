@@ -303,7 +303,7 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
             continue
         index = len(sources) + 1
         title = str(row.get("title") or "Untitled source").replace("[", "").replace("]", "")
-        title = title.replace("(", "").replace(")", "")
+        title = title.replace("(", "").replace(")", "").replace("[STREAM_START]", "").replace("[STREAM_DONE]", "")
         artifact = library_paper_evidence(row)
         facts = artifact.get("verified_facts") if artifact else None
         if isinstance(facts, list) and facts:
@@ -314,7 +314,8 @@ def enrich_with_research(prepared: dict, query: str) -> dict:
             )[:MAX_ABSTRACT_EXCERPT]
         else:
             content = " ".join(str(row.get("content") or "").split())[:MAX_ABSTRACT_EXCERPT]
-        topic = str(row.get("topic") or "Institutional pages")
+        content = content.replace("[STREAM_START]", "").replace("[STREAM_DONE]", "")
+        topic = str(row.get("topic") or "Institutional pages").replace("[STREAM_START]", "").replace("[STREAM_DONE]", "")
         paper_id = f"research:{row.get('record_key')}"
         topic_id = f"research-topic:{topic.casefold()}"
         library_link = (

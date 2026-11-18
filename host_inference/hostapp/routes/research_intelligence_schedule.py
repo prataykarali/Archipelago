@@ -21,7 +21,7 @@ def register(app: Flask, _ctx: AppContext) -> None:
 
     @app.get("/api/internal/s5-monitor-tick")
     def s5_monitor_tick() -> ResponseReturnValue:
-        secret = os.getenv("CRON_SECRET", "")
+        secret = os.getenv("CRON_SECRET", "").strip()
         if not secret:
             return jsonify({"error": "scheduler_not_configured"}), 503
         if not compare_digest(request.headers.get("Authorization", ""), f"Bearer {secret}"):

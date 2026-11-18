@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flask import Flask, jsonify, make_response
+from flask import Flask, jsonify, make_response, request
 from flask.typing import ResponseReturnValue
 import requests
 
@@ -10,9 +10,42 @@ from ..context import AppContext
 from ..research_intake_store import list_graph_records
 from ..research_projection import project_research_graph
 
+STAFF_ROLES = frozenset({"faculty", "librarian", "administrator"})
+
 
 def register(app: Flask, ctx: AppContext) -> None:
     """Expose the projected research graph without granting browser DB access."""
+
+    @app.before_request  # type: ignore[misc]
+    def projection_auth_guard() -> ResponseReturnValue | None:
+        if request.path not in {
+            "/api/research/graph/ingested",
+            "/api/research/graph/papers",
+            "/api/research/graph/export",
+        }:
+            return None
+        principal = getattr(request, "archipelago_principal", None)
+        if principal is None and getattr(ctx, "auth", None) is not None:
+            principal, _err = ctx.auth.principal()
+            if isinstance(principal, dict) and principal.get("id"):
+                request.archipelago_principal = principal  # type: ignore[attr-defined]
+        if principal is not None and principal.get("role") not in STAFF_ROLES:
+            return jsonify({"error": "forbidden"}), 403
+        if principal is None and getattr(ctx, "auth", None) is not None and ctx.auth.required():
+            return jsonify({"error": "unauthorized"}), 401
+        return None
+
+    @app.after_request  # type: ignore[misc]
+    def projection_private_cache_headers(response):
+        if request.path in {
+            "/api/research/graph/ingested",
+            "/api/research/graph/papers",
+            "/api/research/graph/export",
+        }:
+            response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Vary"] = "Authorization, Cookie"
+        return response
 
     def payload() -> dict[str, object]:
         records, truncated = list_graph_records()

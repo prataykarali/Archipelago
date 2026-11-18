@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import ipaddress
 import os
 import time
 from typing import Any
+from urllib.parse import urlparse
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask.typing import ResponseReturnValue
@@ -94,8 +96,19 @@ def _save_staff_record(record_type: str, data: object, actor: str) -> dict[str, 
         if not isinstance(value, str) or len(value) > MAX_TEXT_LENGTH:
             raise ValueError(f"invalid_{field}")
         row[field] = value.strip()
-    if row["source_url"] and not str(row["source_url"]).startswith("https://"):
-        raise ValueError("source_url_must_be_https")
+    if row["source_url"]:
+        raw_url = str(row["source_url"])
+        parsed = urlparse(raw_url)
+        host = (parsed.hostname or "").strip().lower()
+        if parsed.scheme != "https" or not host or host in {"localhost", "127.0.0.1", "::1"}:
+            raise ValueError("source_url_must_be_https")
+        try:
+            ip = ipaddress.ip_address(host)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                raise ValueError("source_url_must_be_https")
+        except ValueError as exc:
+            if str(exc) == "source_url_must_be_https":
+                raise
     for field, limit in (("quantity", MAX_QUANTITY), ("amount", MAX_AMOUNT)):
         value = data.get(field)
         if value in (None, ""):
@@ -170,6 +183,14 @@ def register(app: Flask, ctx: AppContext) -> None:
         if principal.get("role") not in roles:
             return None, (jsonify({"error": "forbidden"}), HTTP_FORBIDDEN)
         return principal, None
+
+    @app.after_request
+    def _analytics_private_cache_headers(response):
+        if request.path.startswith(("/api/librarian/", "/api/analytics/", "/api/academic-automation/")):
+            response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Vary"] = "Authorization, Cookie"
+        return response
 
     @app.get("/analytics")
     @app.get("/librarian/analytics")

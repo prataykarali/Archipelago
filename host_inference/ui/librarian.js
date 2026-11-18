@@ -255,10 +255,20 @@ function renderUserTrafficPanel(ut) {
   }
 }
 
-async function loadPeopleTraffic() {
+let trafficController = null;
+
+async function loadPeopleTraffic(isBackground = false) {
+  if (isBackground && document.hidden) return;
+  if (trafficController) return;
+  const controller = new AbortController();
+  trafficController = controller;
   const tStatus = document.getElementById('traffic-status');
   try {
-    const resp = await fetch('/api/analytics/summary', { cache: 'no-store' });
+    const resp = await fetch('/api/analytics/summary', {
+      cache: 'no-store',
+      headers: isBackground ? { 'X-Background-Poll': '1' } : undefined,
+      signal: controller.signal,
+    });
     if (!resp.ok) throw new Error(`Analytics summary unavailable (${resp.status}).`);
     const data = await resp.json();
     renderUserTrafficPanel(data.user_traffic);
@@ -274,13 +284,29 @@ async function loadPeopleTraffic() {
       ? `Peak: ${foot.peak_period || 'recorded'} · Updated ${new Date().toLocaleTimeString()}`
       : 'Not connected — no live gate or QR check-in events recorded yet.';
   } catch (err) {
+    if (err?.name === 'AbortError') return;
     renderTrafficChart([]);
     if (tStatus) tStatus.textContent = err.message;
+  } finally {
+    if (trafficController === controller) trafficController = null;
   }
 }
 
-document.getElementById('traffic-refresh')?.addEventListener('click', () => loadPeopleTraffic());
+function stopTrafficPolling() {
+  if (trafficTimer) {
+    clearInterval(trafficTimer);
+    trafficTimer = null;
+  }
+  if (trafficController) {
+    try { trafficController.abort(); } catch (_) {}
+    trafficController = null;
+  }
+}
+
+document.getElementById('traffic-refresh')?.addEventListener('click', () => loadPeopleTraffic(false));
 document.getElementById('traffic-autorefresh')?.addEventListener('change', e => {
   clearInterval(trafficTimer);
-  trafficTimer = e.target.checked ? setInterval(loadPeopleTraffic, 15000) : null;
+  trafficTimer = e.target.checked ? setInterval(() => loadPeopleTraffic(true), 15000) : null;
 });
+window.addEventListener('pagehide', stopTrafficPolling);
+window.addEventListener('beforeunload', stopTrafficPolling);

@@ -6,7 +6,9 @@ than ever shipping the whole graph to the browser.
 
 from __future__ import annotations
 
+from collections import deque
 from pathlib import PurePosixPath
+import threading
 from typing import Any
 
 from flask import Flask, jsonify, request
@@ -26,6 +28,9 @@ GRAPH_HUB_EDGE_LIMIT = 24
 MAX_SOURCE_DOCUMENT_NODES = 3
 GLOBAL_PAGE_SIZE = 60
 GLOBAL_PAGE_CEILING = 100
+MAX_QUERY_PARAM_CHARS = 200
+_GRAPH_CACHE_LOCK = threading.Lock()
+_GRAPH_CACHE: dict[tuple[int, str, int], dict[str, Any]] = {}
 
 
 _DOMAIN_RULES = (
@@ -146,6 +151,15 @@ def _edge_payload(graph: Any, source: str, target: str, relation: str) -> dict[s
 
 def _full_graph_payload(graph: Any) -> dict[str, Any]:
     """Project the complete institutional graph without source passage text."""
+    cache_key = (
+        id(graph),
+        str(getattr(graph, "graph_version", "unknown")),
+        len(getattr(graph, "nodes", {})),
+    )
+    with _GRAPH_CACHE_LOCK:
+        cached = _GRAPH_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
     documents: dict[str, dict[str, Any]] = {}
     nodes = [
         _node_payload(graph, node_id, MAX_PUBLIC_SUMMARY_CHARS, documents=documents)
@@ -160,7 +174,7 @@ def _full_graph_payload(graph: Any) -> dict[str, Any]:
                 continue
             seen.add(key)
             edges.append(_edge_payload(graph, source, target, relation))
-    return {
+    result = {
         "nodes": nodes,
         "edges": edges,
         "documents": sorted(documents.values(), key=lambda row: str(row["title"]).casefold()),
@@ -173,6 +187,11 @@ def _full_graph_payload(graph: Any) -> dict[str, Any]:
         "graph_version": getattr(graph, "graph_version", "unknown"),
         "last_sync": getattr(graph, "last_sync", None),
     }
+    with _GRAPH_CACHE_LOCK:
+        if len(_GRAPH_CACHE) >= 4:
+            _GRAPH_CACHE.clear()
+        _GRAPH_CACHE[cache_key] = result
+    return result
 
 
 def register(app: Flask, ctx: AppContext) -> None:
