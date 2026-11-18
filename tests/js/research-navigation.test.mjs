@@ -12,6 +12,7 @@ function harness(search, pathname = '/research/papers') {
   const listeners = {};
   const navigations = [];
   const sandbox = {
+    URLSearchParams,
     window: {
       archipelagoResearchReady: Promise.resolve(false),
       addEventListener(name, listener) { listeners[name] = listener; },
