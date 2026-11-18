@@ -18,18 +18,22 @@ const inFlightPageControllers = new Set();
 let isHandlingLogout = false;
 let isPageUnloading = false;
 
-function handleGracefulPageShutdown() {
-  if (isPageUnloading) return;
-  isPageUnloading = true;
+function handleGracefulPageShutdown(event) {
+  const persisted = Boolean(event?.persisted);
+  if (isPageUnloading && !persisted) return;
+  if (!persisted) isPageUnloading = true;
   for (const controller of Array.from(inFlightPageControllers)) {
     try { controller.abort(); } catch (_) {}
   }
   inFlightPageControllers.clear();
-  try { authChannel?.close(); } catch (_) {}
+  if (!persisted) {
+    try { authChannel?.close(); } catch (_) {}
+  }
 }
 
 window.addEventListener("pagehide", handleGracefulPageShutdown);
 window.addEventListener("beforeunload", handleGracefulPageShutdown);
+window.addEventListener("pageshow", () => { isPageUnloading = false; });
 
 function readCookie(name) {
   const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)"));
