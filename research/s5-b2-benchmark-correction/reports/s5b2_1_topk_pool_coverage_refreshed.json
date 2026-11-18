@@ -1,0 +1,121 @@
+{
+  "audit_name": "S5-B2.1 Refreshed Top-K Pool Coverage & Complete Union Summary",
+  "date": "2026-11-18",
+  "active_queries_count": 10,
+  "investigator_selected_pairs": 25,
+  "total_unique_pooled_pairs_requiring_judgment": 265,
+  "per_query_pooled_counts": {
+    "Q-S5B2-01": 13,
+    "Q-S5B2-02": 22,
+    "Q-S5B2-03": 25,
+    "Q-S5B2-04": 31,
+    "Q-S5B2-05": 29,
+    "Q-S5B2-06": 31,
+    "Q-S5B2-07": 28,
+    "Q-S5B2-08": 27,
+    "Q-S5B2-10": 36,
+    "Q-S5B2-11": 23
+  },
+  "runtime_fingerprints_verified": {
+    "passage_count": 713,
+    "corpus_pids_sha256": "f7fe70031781b005d712a7a9a4aa2452a8b17d7353531305b39b09d88eeecd98",
+    "corpus_text_sha256": "8464acaea13cbfae0f345ea29ce1cf707dc39e76832c7729fca33fbd763bc68c",
+    "corpus_sha256": "6435bf449702edf826d69dc8e1ed0525ee611e0c7504d43d2023c32cef8bdba7",
+    "embedding_matrix_sha256": "ffb94053fa66471d14758771253c8c5404bb4adf2e7b14d2c9e4c30b2cbd4ee2",
+    "embedding_matrix_shape": [
+      713,
+      768
+    ]
+  },
+  "coverage_comparison": {
+    "top_5": {
+      "bm25": {
+        "investigator_25_coverage": 10,
+        "total_retrieved_slots": 50,
+        "investigator_25_coverage_pct": 20.0,
+        "pooled_v2_1_coverage": 50,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "dense_snowflake_arctic_768d": {
+        "investigator_25_coverage": 12,
+        "total_retrieved_slots": 50,
+        "investigator_25_coverage_pct": 24.0,
+        "pooled_v2_1_coverage": 50,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "hybrid_rrf_e2e": {
+        "investigator_25_coverage": 12,
+        "total_retrieved_slots": 50,
+        "investigator_25_coverage_pct": 24.0,
+        "pooled_v2_1_coverage": 50,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "baseline_graph_1hop": {
+        "investigator_25_coverage": 2,
+        "total_retrieved_slots": 38,
+        "investigator_25_coverage_pct": 5.26,
+        "pooled_v2_1_coverage": 38,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "repaired_graph_1hop_ablation": {
+        "investigator_25_coverage": 5,
+        "total_retrieved_slots": 50,
+        "investigator_25_coverage_pct": 10.0,
+        "pooled_v2_1_coverage": 50,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "repaired_graph_2hop_full": {
+        "investigator_25_coverage": 4,
+        "total_retrieved_slots": 50,
+        "investigator_25_coverage_pct": 8.0,
+        "pooled_v2_1_coverage": 50,
+        "pooled_v2_1_coverage_pct": 100.0
+      }
+    },
+    "top_10": {
+      "bm25": {
+        "investigator_25_coverage": 14,
+        "total_retrieved_slots": 100,
+        "investigator_25_coverage_pct": 14.0,
+        "pooled_v2_1_coverage": 100,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "dense_snowflake_arctic_768d": {
+        "investigator_25_coverage": 13,
+        "total_retrieved_slots": 100,
+        "investigator_25_coverage_pct": 13.0,
+        "pooled_v2_1_coverage": 100,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "hybrid_rrf_e2e": {
+        "investigator_25_coverage": 14,
+        "total_retrieved_slots": 100,
+        "investigator_25_coverage_pct": 14.0,
+        "pooled_v2_1_coverage": 100,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "baseline_graph_1hop": {
+        "investigator_25_coverage": 5,
+        "total_retrieved_slots": 69,
+        "investigator_25_coverage_pct": 7.25,
+        "pooled_v2_1_coverage": 69,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "repaired_graph_1hop_ablation": {
+        "investigator_25_coverage": 7,
+        "total_retrieved_slots": 100,
+        "investigator_25_coverage_pct": 7.0,
+        "pooled_v2_1_coverage": 100,
+        "pooled_v2_1_coverage_pct": 100.0
+      },
+      "repaired_graph_2hop_full": {
+        "investigator_25_coverage": 6,
+        "total_retrieved_slots": 100,
+        "investigator_25_coverage_pct": 6.0,
+        "pooled_v2_1_coverage": 100,
+        "pooled_v2_1_coverage_pct": 100.0
+      }
+    }
+  },
+  "policy": "Unjudged passages are NEVER treated as irrelevant; no Recall@k, MRR, or nDCG computed prior to complete human annotation."
+}

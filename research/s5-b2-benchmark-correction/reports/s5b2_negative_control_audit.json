@@ -1,18 +1,18 @@
 {
-  "audit_name": "S5-B2 Corpus-Wide Negative-Control Audit",
+  "audit_name": "S5-B2.1 Corrected Negative-Control Audit",
   "date": "2026-11-18",
   "corpus_version": "s5a_eval_corpus_v1",
   "corpus_passage_count": 713,
+  "unconditional_unanswerable_flag_removed": true,
   "queries": [
     {
-      "query_id": "Q-S5A-03",
+      "query_id": "Q-S5B2-03",
+      "legacy_query_id": "Q-S5A-03",
       "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
-      "premise_classification": "OUT_OF_CORPUS_SPECIFIC_HARDWARE_METRIC",
-      "corpus_passages_searched": 713,
-      "term_hits": {
+      "exact_keyword_hits": {
         "arm": {
           "hit_count": 5,
-          "matched_passage_ids": [
+          "passage_ids": [
             "papers/bahdanau2014_attention.pdf::chunk_015",
             "papers/hu2021_lora.pdf::chunk_034",
             "papers/lewis2020_rag.pdf::chunk_024",
@@ -22,107 +22,425 @@
         },
         "cortex": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "a78": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "nanosecond": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "walk latency": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "multi-level page": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         }
       },
-      "verified_corpus_unanswerable": true
+      "alternate_terminology_hits": {
+        "page table walk": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "page walk": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "tlb miss": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "hardware walk": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "cycle": {
+          "hit_count": 2,
+          "passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "papers/krizhevsky2012_alexnet.pdf::chunk_022"
+          ]
+        },
+        "latency": {
+          "hit_count": 14,
+          "passage_ids": [
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/hu2021_lora.pdf::chunk_003",
+            "papers/hu2021_lora.pdf::chunk_004",
+            "papers/hu2021_lora.pdf::chunk_005",
+            "papers/hu2021_lora.pdf::chunk_010",
+            "papers/hu2021_lora.pdf::chunk_012",
+            "papers/hu2021_lora.pdf::chunk_014",
+            "papers/hu2021_lora.pdf::chunk_034",
+            "papers/kwon2023_vllm.pdf::chunk_001",
+            "papers/kwon2023_vllm.pdf::chunk_011"
+          ]
+        },
+        "arm64": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "aarch64": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "cortex-a": {
+          "hit_count": 0,
+          "passage_ids": []
+        }
+      },
+      "semantic_search_findings_top5": [
+        {
+          "rank": 1,
+          "passage_id": "papers/dettmers2023_qlora.pdf::chunk_017",
+          "cosine_score": 0.3665,
+          "doc_id": "papers/dettmers2023_qlora.pdf",
+          "page_number": 6
+        },
+        {
+          "rank": 2,
+          "passage_id": "papers/kwon2023_vllm.pdf::chunk_023",
+          "cosine_score": 0.328,
+          "doc_id": "papers/kwon2023_vllm.pdf",
+          "page_number": 6
+        },
+        {
+          "rank": 3,
+          "passage_id": "papers/kwon2023_vllm.pdf::chunk_013",
+          "cosine_score": 0.3249,
+          "doc_id": "papers/kwon2023_vllm.pdf",
+          "page_number": 3
+        },
+        {
+          "rank": 4,
+          "passage_id": "papers/kipf2016_gcn.pdf::chunk_019",
+          "cosine_score": 0.3205,
+          "doc_id": "papers/kipf2016_gcn.pdf",
+          "page_number": 7
+        },
+        {
+          "rank": 5,
+          "passage_id": "papers/edge2024_graphrag.pdf::chunk_031",
+          "cosine_score": 0.3202,
+          "doc_id": "papers/edge2024_graphrag.pdf",
+          "page_number": 8
+        }
+      ],
+      "manually_inspected_passage_ids": [
+        "papers/dettmers2023_qlora.pdf::chunk_017",
+        "papers/kwon2023_vllm.pdf::chunk_023",
+        "papers/kwon2023_vllm.pdf::chunk_013",
+        "papers/kipf2016_gcn.pdf::chunk_019",
+        "papers/edge2024_graphrag.pdf::chunk_031",
+        "papers/bahdanau2014_attention.pdf::chunk_015",
+        "papers/hu2021_lora.pdf::chunk_034",
+        "papers/lewis2020_rag.pdf::chunk_024"
+      ],
+      "factual_premise_status": "UNVERIFIED_EXTERNAL_PREMISE_PENDING_INDEPENDENT_CHECK",
+      "adjudication_status": "PROVISIONAL_NEGATIVE_PENDING_INDEPENDENT_CHECK",
+      "notes": "Zero exact hits for target hardware/model/CVE entities; alternate terminology and top-5 dense semantic neighbors inspected and do not answer the query. Treated as provisional negative until independent human review confirms corpus-unanswerability."
     },
     {
-      "query_id": "Q-S5A-08",
+      "query_id": "Q-S5B2-08",
+      "legacy_query_id": "Q-S5A-08",
       "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
-      "premise_classification": "UNSUPPORTED_FACTUAL_PREMISE_AND_OUT_OF_CORPUS",
-      "corpus_passages_searched": 713,
-      "term_hits": {
+      "exact_keyword_hits": {
         "llama-3": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "llama 3": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "405b": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "h100": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "16,000": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
+        },
+        "dollar": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "electricity": {
+          "hit_count": 0,
+          "passage_ids": []
         },
         "utility": {
           "hit_count": 4,
-          "matched_passage_ids": [
+          "passage_ids": [
             "papers/edge2024_graphrag.pdf::chunk_020",
             "papers/ho2020_ddpm.pdf::chunk_029",
             "papers/wei2022_chainofthought.pdf::chunk_011",
             "papers/wei2022_chainofthought.pdf::chunk_023"
           ]
-        },
-        "dollar": {
-          "hit_count": 0,
-          "matched_passage_ids": []
-        },
-        "electricity": {
-          "hit_count": 0,
-          "matched_passage_ids": []
         }
       },
-      "verified_corpus_unanswerable": true
+      "alternate_terminology_hits": {
+        "llama": {
+          "hit_count": 11,
+          "passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_003",
+            "papers/dettmers2023_qlora.pdf::chunk_016",
+            "papers/dettmers2023_qlora.pdf::chunk_017",
+            "papers/dettmers2023_qlora.pdf::chunk_018",
+            "papers/dettmers2023_qlora.pdf::chunk_020",
+            "papers/dettmers2023_qlora.pdf::chunk_023",
+            "papers/dettmers2023_qlora.pdf::chunk_025",
+            "papers/dettmers2023_qlora.pdf::chunk_032",
+            "papers/edge2024_graphrag.pdf::chunk_006"
+          ]
+        },
+        "training cost": {
+          "hit_count": 5,
+          "passage_ids": [
+            "papers/hu2021_lora.pdf::chunk_022",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_023",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_025",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_026"
+          ]
+        },
+        "compute cost": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "usd": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "$": {
+          "hit_count": 2,
+          "passage_ids": [
+            "papers/yao2022_react.pdf::chunk_008",
+            "papers/yao2022_react.pdf::chunk_028"
+          ]
+        },
+        "megawatt": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "kwh": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "power consumption": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "energy": {
+          "hit_count": 8,
+          "passage_ids": [
+            "doc_engineering_chemistry::doc_engineering_chemistry_p215_1",
+            "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+            "papers/bahdanau2014_attention.pdf::chunk_010",
+            "papers/ho2020_ddpm.pdf::chunk_003",
+            "papers/ho2020_ddpm.pdf::chunk_005",
+            "papers/ho2020_ddpm.pdf::chunk_021",
+            "papers/ho2020_ddpm.pdf::chunk_029",
+            "papers/wei2022_chainofthought.pdf::chunk_017"
+          ]
+        }
+      },
+      "semantic_search_findings_top5": [
+        {
+          "rank": 1,
+          "passage_id": "papers/dettmers2023_qlora.pdf::chunk_017",
+          "cosine_score": 0.4066,
+          "doc_id": "papers/dettmers2023_qlora.pdf",
+          "page_number": 6
+        },
+        {
+          "rank": 2,
+          "passage_id": "papers/dettmers2023_qlora.pdf::chunk_004",
+          "cosine_score": 0.4001,
+          "doc_id": "papers/dettmers2023_qlora.pdf",
+          "page_number": 2
+        },
+        {
+          "rank": 3,
+          "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+          "cosine_score": 0.3991,
+          "doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "page_number": 7
+        },
+        {
+          "rank": 4,
+          "passage_id": "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+          "cosine_score": 0.3781,
+          "doc_id": "papers/dettmers2023_qlora.pdf",
+          "page_number": 2
+        },
+        {
+          "rank": 5,
+          "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_026",
+          "cosine_score": 0.3773,
+          "doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "page_number": 8
+        }
+      ],
+      "manually_inspected_passage_ids": [
+        "papers/dettmers2023_qlora.pdf::chunk_017",
+        "papers/dettmers2023_qlora.pdf::chunk_004",
+        "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+        "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+        "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_026",
+        "papers/edge2024_graphrag.pdf::chunk_020",
+        "papers/ho2020_ddpm.pdf::chunk_029",
+        "papers/wei2022_chainofthought.pdf::chunk_011"
+      ],
+      "factual_premise_status": "UNVERIFIED_EXTERNAL_PREMISE_PENDING_INDEPENDENT_CHECK",
+      "adjudication_status": "PROVISIONAL_NEGATIVE_PENDING_INDEPENDENT_CHECK",
+      "notes": "Zero exact hits for target hardware/model/CVE entities; alternate terminology and top-5 dense semantic neighbors inspected and do not answer the query. Treated as provisional negative until independent human review confirms corpus-unanswerability."
     },
     {
-      "query_id": "Q-S5A-11",
+      "query_id": "Q-S5B2-11",
+      "legacy_query_id": "Q-S5A-11",
       "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
-      "premise_classification": "UNSUPPORTED_FACTUAL_PREMISE_AND_OUT_OF_CORPUS",
-      "corpus_passages_searched": 713,
-      "term_hits": {
+      "exact_keyword_hits": {
         "cisco": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "catalyst": {
           "hit_count": 1,
-          "matched_passage_ids": [
+          "passage_ids": [
             "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1"
           ]
         },
         "9300": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "cve-": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "buffer overflow": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         },
         "firmware": {
           "hit_count": 0,
-          "matched_passage_ids": []
+          "passage_ids": []
         }
       },
-      "verified_corpus_unanswerable": true
+      "alternate_terminology_hits": {
+        "cve": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "vulnerability": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "switch": {
+          "hit_count": 9,
+          "passage_ids": [
+            "papers/brown2020_gpt3.pdf::chunk_008",
+            "papers/hochreiter1997_lstm.pdf::chunk_015",
+            "papers/hochreiter1997_lstm.pdf::chunk_016",
+            "papers/hu2021_lora.pdf::chunk_004",
+            "papers/hu2021_lora.pdf::chunk_012",
+            "papers/hu2021_lora.pdf::chunk_014",
+            "papers/hu2021_lora.pdf::chunk_034",
+            "papers/karpukhin2020_dpr.pdf::chunk_027",
+            "papers/yao2022_react.pdf::chunk_021"
+          ]
+        },
+        "ios xe": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "exploit": {
+          "hit_count": 9,
+          "passage_ids": [
+            "papers/brown2020_gpt3.pdf::chunk_006",
+            "papers/brown2020_gpt3.pdf::chunk_015",
+            "papers/dettmers2023_qlora.pdf::chunk_034",
+            "papers/kwon2023_vllm.pdf::chunk_006",
+            "papers/rafailov2023_dpo.pdf::chunk_028",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_014",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051"
+          ]
+        },
+        "advisory": {
+          "hit_count": 0,
+          "passage_ids": []
+        },
+        "2025": {
+          "hit_count": 1,
+          "passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005"
+          ]
+        },
+        "overflow": {
+          "hit_count": 0,
+          "passage_ids": []
+        }
+      },
+      "semantic_search_findings_top5": [
+        {
+          "rank": 1,
+          "passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+          "cosine_score": 0.3573,
+          "doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "page_number": 5
+        },
+        {
+          "rank": 2,
+          "passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
+          "cosine_score": 0.351,
+          "doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "page_number": 9
+        },
+        {
+          "rank": 3,
+          "passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+          "cosine_score": 0.3436,
+          "doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "page_number": 3
+        },
+        {
+          "rank": 4,
+          "passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+          "cosine_score": 0.3305,
+          "doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "page_number": 1
+        },
+        {
+          "rank": 5,
+          "passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025",
+          "cosine_score": 0.3276,
+          "doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "page_number": 4
+        }
+      ],
+      "manually_inspected_passage_ids": [
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+        "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025",
+        "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1"
+      ],
+      "factual_premise_status": "UNVERIFIED_EXTERNAL_PREMISE_PENDING_INDEPENDENT_CHECK",
+      "adjudication_status": "PROVISIONAL_NEGATIVE_PENDING_INDEPENDENT_CHECK",
+      "notes": "Zero exact hits for target hardware/model/CVE entities; alternate terminology and top-5 dense semantic neighbors inspected and do not answer the query. Treated as provisional negative until independent human review confirms corpus-unanswerability."
     }
   ]
 }

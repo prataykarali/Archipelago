@@ -1,0 +1,64 @@
+{
+  "registry_name": "S5-B2.1 Frozen Corpus Provenance Registry",
+  "date": "2026-11-18",
+  "frozen_corpus_version": "s5a_eval_corpus_v1",
+  "total_passages": 713,
+  "corpus_unaltered": true,
+  "counts_by_provenance_class": {
+    "CONSTRUCTED_PILOT_ANSWER_CARD": 1,
+    "PDF_EXTRACTED_SEED_CHUNK": 16,
+    "TRUNCATED_TEXTBOOK_STUB": 21,
+    "PDF_EXTRACTED_PAPER_OR_UPLOAD": 675
+  },
+  "constructed_pilot_cards": [
+    "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001"
+  ],
+  "pdf_extracted_seed_chunks": [
+    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+    "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+    "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+    "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+    "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+    "papers/dettmers2023_qlora.pdf::qlora_seed_003",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_001",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_002",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_003",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_004",
+    "papers/kwon2023_vllm.pdf::vllm_seed_004"
+  ],
+  "truncated_textbook_stubs": [
+    "doc_8051_microcontroller_and_embedded_systems::doc_8051_microcontroller_and_embedded_systems_p165_2",
+    "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+    "doc_bert_pre_training_of_deep_bidirectional::doc_bert_pre_training_of_deep_bidirectional_p4_2",
+    "doc_compilers_principles_techniques_and_tools::doc_compilers_principles_techniques_and_tools_p192_1",
+    "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+    "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+    "doc_computer_system_architecture_revised_3_e::doc_computer_system_architecture_revised_3_e_p298_2",
+    "doc_concepts_of_modern_physics::doc_concepts_of_modern_physics_p140_1",
+    "doc_cryptography_and_network_security_principles::doc_cryptography_and_network_security_principles_p268_3",
+    "doc_digital_signal_processing_4e::doc_digital_signal_processing_4e_p448_1",
+    "doc_direct_preference_optimization_your_language::doc_direct_preference_optimization_your_language_p4_2",
+    "doc_electronic_devices_and_circuit_theory::doc_electronic_devices_and_circuit_theory_p240_1",
+    "doc_engineering_chemistry::doc_engineering_chemistry_p215_1",
+    "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+    "doc_introduction_to_the_design_and::doc_introduction_to_the_design_and_p283_2",
+    "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+    "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+    "doc_mathematics_for_machine_learning::doc_mathematics_for_machine_learning_p95_1",
+    "doc_operating_systems_internals_and_design::doc_operating_systems_internals_and_design_p315_1",
+    "doc_retrieval_augmented_generation_for_knowledge_intensive_nlp::doc_retrieval_augmented_generation_for_knowledge_intensive_nlp_p3_1",
+    "doc_vllm_efficient_memory_management_for::doc_vllm_efficient_memory_management_for_p4_2"
+  ],
+  "evaluation_treatment_policy": {
+    "s5a_eval_corpus_v1_preservation": "Frozen 713-passage corpus is never silently modified or re-identified after changing eligibility.",
+    "constructed_pilot_answer_cards": "Flagged as CONSTRUCTED_PILOT_ANSWER_CARD (pilot/silberschatz_3nf_card.txt). Queries whose sole premise depends on a constructed card (Q-S5A-12) are placed on HOLD and excluded from primary source-derived effectiveness evaluation.",
+    "truncated_textbook_stubs": "Flagged as TRUNCATED_TEXTBOOK_STUB (~277-301 chars). Queries whose answer is cut off by stub truncation (Q-S5A-09 OSI Layers 3-7) are placed on HOLD.",
+    "pdf_extracted_seed_chunks": "Flagged as PDF_EXTRACTED_SEED_CHUNK (899-900 char excerpts from OSTEP/QLoRA/vLLM PDFs). Admissible only when verbatim passage text supports the query without unextracted-page assumptions.",
+    "future_corpus_changes": "Any future exclusion or addition of passages MUST mint a new corpus version identifier (e.g. s5c_eval_corpus_v2) with a fresh SHA-256 manifest."
+  }
+}

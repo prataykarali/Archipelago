@@ -1,0 +1,52 @@
+{
+  "matrix_name": "S5-B2.1 Two-Passage Evidence Necessity Matrix",
+  "date": "2026-11-18",
+  "reclassification_rule": "If either Passage A or Passage B alone is sufficient, reclassify as SINGLE_HOP; never force TWO_HOP for dataset balance.",
+  "queries": [
+    {
+      "query_id": "Q-S5B2-02",
+      "legacy_query_id": "Q-S5A-02",
+      "query_text": "How does hardware-based address translation extend limited direct execution to virtualize memory while preserving OS control and efficiency?",
+      "passage_a_id": "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+      "passage_b_id": "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+      "passage_a_alone_sufficient": false,
+      "passage_a_assessment": "Explains Limited Direct Execution (LDE) and the dual OS goals of efficiency and control for CPU virtualization, stating memory virtualization will pursue a similar strategy, but does not define hardware-based address translation.",
+      "passage_b_alone_sufficient": false,
+      "passage_b_assessment": "Defines hardware-based address translation (transforming virtual to physical addresses on each memory reference) and OS setup, referring back to 'our general approach of limited direct execution' without explaining LDE's efficiency/control mechanism.",
+      "a_plus_b_jointly_sufficient": true,
+      "second_passage_indispensable": true,
+      "classification": "TWO_HOP",
+      "classification_basis": "Both passages are required: Passage A establishes LDE (efficiency + control) and Passage B specifies how hardware-based address translation extends LDE for memory references."
+    },
+    {
+      "query_id": "Q-S5B2-05",
+      "legacy_query_id": "Q-S5A-05",
+      "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
+      "passage_a_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+      "passage_b_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+      "passage_a_alone_sufficient": false,
+      "passage_a_assessment": "Defines Scaled Dot-Product Attention Attention(Q,K,V) = softmax(QK^T / sqrt(d_k))V, but does not mention Multi-Head Attention, linear projections, or concatenation.",
+      "passage_b_alone_sufficient": true,
+      "passage_b_assessment": "Chunk_012 alone explains linear projections of Q, K, V h times (W_i^Q, W_i^K, W_i^V), parallel attention heads head_i = Attention(Q W_i^Q, K W_i^K, V W_i^V), concatenation, and output projection W^O (MultiHead(Q,K,V) = Concat(head_1..head_h)W^O).",
+      "a_plus_b_jointly_sufficient": true,
+      "second_passage_indispensable": false,
+      "classification": "SINGLE_HOP",
+      "classification_basis": "Because Passage B (chunk_012) alone fully answers how Multi-Head Attention combines projections with parameter matrices (while chunk_011 only supplies the inner Attention definition), forcing TWO_HOP is unwarranted; reclassified to SINGLE_HOP (with chunk_011 retained as supporting context in the candidate pool)."
+    },
+    {
+      "query_id": "Q-S5B2-10",
+      "legacy_query_id": "Q-S5A-10",
+      "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
+      "passage_a_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+      "passage_b_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+      "passage_a_alone_sufficient": false,
+      "passage_a_assessment": "Explains traditional NIDS latency (whole-network traffic processing at predefined intervals) and signature-based inability to detect zero-day exploits, but does not mention GNNs or dynamic graph modeling.",
+      "passage_b_alone_sufficient": false,
+      "passage_b_assessment": "Explains D-MAGIC/SAGA using GNN node embeddings, zero-shot learning for unseen attacks, and packet-by-packet real-time detection, but does not state the batch whole-traffic latency limitations of traditional signature-based NIDS.",
+      "a_plus_b_jointly_sufficient": true,
+      "second_passage_indispensable": true,
+      "classification": "TWO_HOP",
+      "classification_basis": "Both passages are indispensable: Passage A establishes the traditional batch/signature-based NIDS latency problem, and Passage B supplies the GNN + packet-by-packet resolution."
+    }
+  ]
+}
