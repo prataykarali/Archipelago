@@ -10,6 +10,13 @@ const SEARCH_PROGRESS_TICK_MS = 1000;
 const SEARCH_SLOW_NOTICE_MS = 30000;
 const SEARCH_LONG_NOTICE_MS = 90000;
 const RECENT_TOPIC_LIMIT = 10;
+
+// Route safety only: a missing identifier must not become a "run=undefined" URL.
+function validRunId(value) {
+  return typeof value === 'string' && Boolean(value.trim()) &&
+    !/^(?:undefined|null|nan)$/i.test(value.trim());
+}
+
 let progressTimer = null;
 
 function pendingSearch() {
@@ -65,6 +72,12 @@ async function recoverPendingSearch() {
   try {
     const job = await s5Json(`/api/research/intelligence/search-status/${pending.request_id}`);
     if (job.status === 'completed') {
+      if (!validRunId(job.run_id)) {
+        clearPendingSearch();
+        if (status) status.textContent = 'Search completed without a valid run ID. Please retry.';
+        if (submit) submit.disabled = false;
+        return;
+      }
       await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
       activeRunId = job.run_id;
       saveResearchState();
@@ -87,8 +100,8 @@ function saveResearchState() {
   try {
     const form = s5('intelligence-form');
     const data = form ? Object.fromEntries(new FormData(form)) : {};
-    sessionStorage.setItem(S5_STATE_KEY, JSON.stringify({ run_id: activeRunId, form: data }));
-    if (activeRunId) {
+    sessionStorage.setItem(S5_STATE_KEY, JSON.stringify({ run_id: validRunId(activeRunId) ? activeRunId : null, form: data }));
+    if (validRunId(activeRunId)) {
       const sp = new URLSearchParams(location.search);
       sp.set('run', activeRunId);
       history.replaceState(null, '', `${location.pathname}?${sp.toString()}${location.hash}`);
@@ -111,7 +124,7 @@ function restoreResearchForm() {
     const urlTopic = query.get('topic');
     if (form && urlTopic && urlTopic.length >= 3) form.elements.namedItem('topic').value = urlTopic;
     const urlRun = query.get('run');
-    return urlRun || saved.run_id || null;
+    return validRunId(urlRun) ? urlRun : validRunId(saved.run_id) ? saved.run_id : null;
   } catch (_) {
     return null;
   }
@@ -365,8 +378,8 @@ async function restoreRun(runId) {
 window.addEventListener('load', async () => {
   const browsing = location.pathname.replace(/\/$/, '') === '/research/papers';
   const linkedRun = new URLSearchParams(location.search).get('run');
-  if (browsing && !linkedRun) { location.replace('/research'); return; }
-  if (!browsing && linkedRun) { location.replace(`/research/papers?run=${encodeURIComponent(linkedRun)}`); return; }
+  if (browsing && !validRunId(linkedRun)) { location.replace('/research'); return; }
+  if (!browsing && validRunId(linkedRun)) { location.replace(`/research/papers?run=${encodeURIComponent(linkedRun)}`); return; }
   if (browsing) document.body.classList.add('research-browse-mode');
   if (!await window.archipelagoResearchReady) return;
   const savedRunId = restoreResearchForm();
@@ -388,6 +401,11 @@ window.addEventListener('load', async () => {
     form.querySelector('button[type="submit"]').disabled = true;
     try {
       const run = await s5Json('/api/research/intelligence/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true });
+      if (!validRunId(run?.run_id)) {
+        clearPendingSearch();
+        s5('intelligence-status').textContent = 'Search returned no valid run ID. Please retry.';
+        return;
+      }
       clearPendingSearch();
       activeRunId = run.run_id;
       saveResearchState();
