@@ -230,10 +230,10 @@ function renderRun(run, dossier = null, dossierError = null, prepareExport = fal
     activeRunId = effectiveRunId;
     s5('topic-dossier-link').href = `/research/topic?run=${encodeURIComponent(effectiveRunId)}`;
     s5('paper-list-link').textContent = browsingMode ? '← Find papers' : `Browse ${paperRows.length} papers ↗`;
-    s5('paper-list-link').href = browsingMode ? '/research' : `/research/papers?run=${encodeURIComponent(effectiveRunId)}`;
+    s5('paper-list-link').href = browsingMode ? '/research#topic-form' : `/research/papers?run=${encodeURIComponent(effectiveRunId)}`;
   } else {
     s5('paper-list-link').textContent = '← Find papers';
-    s5('paper-list-link').href = '/research';
+    s5('paper-list-link').href = '/research#topic-form';
   }
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${paperRows.length} source-linked papers · Discovery rank compares query match, recency and source corroboration within this search; it is not scientific quality.`;
   s5('provider-status').textContent = (run.sources || []).map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ') + (dossierError ? ' · Detailed rankings are temporarily unavailable; saved paper records are shown.' : '');
