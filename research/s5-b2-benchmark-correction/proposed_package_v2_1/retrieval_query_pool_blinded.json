@@ -4,7 +4,7 @@
   "randomization_seed": 20261119,
   "candidate_ordering_policy": "deterministic_prng_shuffle_from_lexicographical",
   "queries_count": 10,
-  "total_candidate_pairs": 265,
+  "total_candidate_pairs": 254,
   "domains": [
     "AI & Machine Learning",
     "Computer Networks",
@@ -1932,48 +1932,21 @@
     {
       "query_id": "Q-S5B2-10",
       "domain": "Computer Networks",
-      "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
-      "candidate_count": 36,
+      "query_text": "How do the proposed D-MAGIC and SAGA models combine Graph Neural Network node embeddings, zero-shot learning, and packet-by-packet traffic analysis to address the interval-based processing delays and unseen-attack limitations of traditional signature-based NIDS?",
+      "candidate_count": 25,
       "candidates": [
         {
           "pair_id": "S5B21-PAIR-207",
           "presentation_order": 1,
-          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_035",
-          "candidate_doc_id": "papers/velickovic2017_gat.pdf",
-          "candidate_chunk_id": "chunk_035",
-          "candidate_page_number": 11,
-          "passage_sha256": "abf49a1eaa041fca1c5ad9e44faa549f58ce86f8a4bed34907fa21b0949924ba"
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_006",
+          "candidate_page_number": 2,
+          "passage_sha256": "405706259f867fce441d9432e76f1cd940261b2016767e164f2dfd196f4fdcb1"
         },
         {
           "pair_id": "S5B21-PAIR-208",
           "presentation_order": 2,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_032",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_032",
-          "candidate_page_number": 6,
-          "passage_sha256": "9fe2415449594544a233dc976cdf266c6fd48716526100eaac2c83b739c7c23e"
-        },
-        {
-          "pair_id": "S5B21-PAIR-209",
-          "presentation_order": 3,
-          "candidate_passage_id": "papers/bahdanau2014_attention.pdf::chunk_023",
-          "candidate_doc_id": "papers/bahdanau2014_attention.pdf",
-          "candidate_chunk_id": "chunk_023",
-          "candidate_page_number": 9,
-          "passage_sha256": "8d4606af7ed9b2242d59d5bf0227dd7b554b84ef9c5421376ba766e445a468b8"
-        },
-        {
-          "pair_id": "S5B21-PAIR-210",
-          "presentation_order": 4,
-          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_005",
-          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
-          "candidate_chunk_id": "chunk_005",
-          "candidate_page_number": 2,
-          "passage_sha256": "710d81425c9aabad07f5c0b78c5106da98312ce307e57933ae040edb0f79514b"
-        },
-        {
-          "pair_id": "S5B21-PAIR-211",
-          "presentation_order": 5,
           "candidate_passage_id": "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
           "candidate_doc_id": "doc_computer_networks_6_e",
           "candidate_chunk_id": "doc_computer_networks_6_e_p198_2",
@@ -1981,134 +1954,8 @@
           "passage_sha256": "5d495a43cbd6e33b6b0670278745a3c155c59a17d98244f77fa6d42b783d5ffd"
         },
         {
-          "pair_id": "S5B21-PAIR-212",
-          "presentation_order": 6,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_022",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_022",
-          "candidate_page_number": 4,
-          "passage_sha256": "557e6a4bd0328994950f06f345d0cb3b737d677c1a6140c6d6a97a6c23ec0ad0"
-        },
-        {
-          "pair_id": "S5B21-PAIR-213",
-          "presentation_order": 7,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_024",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_024",
-          "candidate_page_number": 4,
-          "passage_sha256": "c103843ce85f4218c72e67ee05e34630adbefb527af28e25dc8d20a4822cb1ac"
-        },
-        {
-          "pair_id": "S5B21-PAIR-214",
-          "presentation_order": 8,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_017",
-          "candidate_page_number": 3,
-          "passage_sha256": "24c378dc5a5ecec79eb6c6a1ee0da2c9ba77bc2ae94c8a76b172c41389785e59"
-        },
-        {
-          "pair_id": "S5B21-PAIR-215",
-          "presentation_order": 9,
-          "candidate_passage_id": "papers/kingma2013_vae.pdf::chunk_023",
-          "candidate_doc_id": "papers/kingma2013_vae.pdf",
-          "candidate_chunk_id": "chunk_023",
-          "candidate_page_number": 7,
-          "passage_sha256": "4c7be6454d966059f5a4d2f5721209f87038898cd9ce8616045cabfb9cddd3f5"
-        },
-        {
-          "pair_id": "S5B21-PAIR-216",
-          "presentation_order": 10,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_019",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_019",
-          "candidate_page_number": 3,
-          "passage_sha256": "040698cbafe399fd4078fc922fcaf2d2c22fcc7b77bca3405422f4285fab5dda"
-        },
-        {
-          "pair_id": "S5B21-PAIR-217",
-          "presentation_order": 11,
-          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_026",
-          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
-          "candidate_chunk_id": "chunk_026",
-          "candidate_page_number": 10,
-          "passage_sha256": "a651c59b0f76efea5a19cc492e496aca939caf1224af6e1c749732a8c3bc276d"
-        },
-        {
-          "pair_id": "S5B21-PAIR-218",
-          "presentation_order": 12,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_016",
-          "candidate_page_number": 3,
-          "passage_sha256": "21b2092d74ff1bd5fb02737cfda8bf889b561c51fca0c6668dc014797025eebe"
-        },
-        {
-          "pair_id": "S5B21-PAIR-219",
-          "presentation_order": 13,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_005",
-          "candidate_page_number": 1,
-          "passage_sha256": "b452afd1d20658f74b3b7ee9de965a6b172ae2717cb615769371a58b6b450153"
-        },
-        {
-          "pair_id": "S5B21-PAIR-220",
-          "presentation_order": 14,
-          "candidate_passage_id": "papers/bahdanau2014_attention.pdf::chunk_026",
-          "candidate_doc_id": "papers/bahdanau2014_attention.pdf",
-          "candidate_chunk_id": "chunk_026",
-          "candidate_page_number": 10,
-          "passage_sha256": "61ce678b98b55b011f3977e21f152e730943a2816497d9296582ccb12b34f04e"
-        },
-        {
-          "pair_id": "S5B21-PAIR-221",
-          "presentation_order": 15,
-          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_009",
-          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
-          "candidate_chunk_id": "chunk_009",
-          "candidate_page_number": 3,
-          "passage_sha256": "85016c802ea9bfed7e2fcaff747d7dd3bb289d960c378910f1dc72014e9b973f"
-        },
-        {
-          "pair_id": "S5B21-PAIR-222",
-          "presentation_order": 16,
-          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_008",
-          "candidate_doc_id": "papers/velickovic2017_gat.pdf",
-          "candidate_chunk_id": "chunk_008",
-          "candidate_page_number": 2,
-          "passage_sha256": "cf84d2c39f8ead309fd1116727dc85a1897c1811a863d7998588ad0f9842e576"
-        },
-        {
-          "pair_id": "S5B21-PAIR-223",
-          "presentation_order": 17,
-          "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
-          "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
-          "candidate_chunk_id": "chunk_002",
-          "candidate_page_number": 1,
-          "passage_sha256": "bfcd91c5476445be82474921ecbac95d5219e1488d5885566de38aabb0dcbc64"
-        },
-        {
-          "pair_id": "S5B21-PAIR-224",
-          "presentation_order": 18,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_033",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_033",
-          "candidate_page_number": 6,
-          "passage_sha256": "672346a7d093860c116ae45dba6bb72bcc7eb264ddfe68b341953d81d7fe47ab"
-        },
-        {
-          "pair_id": "S5B21-PAIR-225",
-          "presentation_order": 19,
-          "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004",
-          "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
-          "candidate_chunk_id": "chunk_004",
-          "candidate_page_number": 2,
-          "passage_sha256": "a0e2742a7f64aa88be3de37c7f9fae77d24210d3e830afff01bc3e6c1ac93be8"
-        },
-        {
-          "pair_id": "S5B21-PAIR-226",
-          "presentation_order": 20,
+          "pair_id": "S5B21-PAIR-209",
+          "presentation_order": 3,
           "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
           "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
           "candidate_chunk_id": "chunk_008",
@@ -2116,98 +1963,8 @@
           "passage_sha256": "ad7be9759e3cbc2918a10fbbb6e245de26f5dd21158d34d2dc5e8e0debbb9a64"
         },
         {
-          "pair_id": "S5B21-PAIR-227",
-          "presentation_order": 21,
-          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_003",
-          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
-          "candidate_chunk_id": "chunk_003",
-          "candidate_page_number": 1,
-          "passage_sha256": "78150694c0badda77e581cbad8b2a8fa6a1d74154adcf8df1b471bf111788b42"
-        },
-        {
-          "pair_id": "S5B21-PAIR-228",
-          "presentation_order": 22,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_007",
-          "candidate_page_number": 2,
-          "passage_sha256": "a40da880e9b577d8daf9d18b4b23f43c8b0fab34286981659ef8413c97a2fc26"
-        },
-        {
-          "pair_id": "S5B21-PAIR-229",
-          "presentation_order": 23,
-          "candidate_passage_id": "papers/kingma2013_vae.pdf::chunk_025",
-          "candidate_doc_id": "papers/kingma2013_vae.pdf",
-          "candidate_chunk_id": "chunk_025",
-          "candidate_page_number": 7,
-          "passage_sha256": "38b8f68d16945d6fe50c10f7c4be2d1ff91a6d6d84553a10bac493a18fafbacb"
-        },
-        {
-          "pair_id": "S5B21-PAIR-230",
-          "presentation_order": 24,
-          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_034",
-          "candidate_doc_id": "papers/velickovic2017_gat.pdf",
-          "candidate_chunk_id": "chunk_034",
-          "candidate_page_number": 10,
-          "passage_sha256": "227ae6e245345aaa0d80b8a4eb9e3edb9db77dbfb5e1ee218691420a0ac584f8"
-        },
-        {
-          "pair_id": "S5B21-PAIR-231",
-          "presentation_order": 25,
-          "candidate_passage_id": "papers/kingma2013_vae.pdf::chunk_033",
-          "candidate_doc_id": "papers/kingma2013_vae.pdf",
-          "candidate_chunk_id": "chunk_033",
-          "candidate_page_number": 11,
-          "passage_sha256": "db02f4b5c52a8566710abf284542b6588aabe431aa74beea03750fc3d255b98a"
-        },
-        {
-          "pair_id": "S5B21-PAIR-232",
-          "presentation_order": 26,
-          "candidate_passage_id": "papers/bahdanau2014_attention.pdf::chunk_013",
-          "candidate_doc_id": "papers/bahdanau2014_attention.pdf",
-          "candidate_chunk_id": "chunk_013",
-          "candidate_page_number": 5,
-          "passage_sha256": "582f8d59de5ce2ea13a273da2b8619ce7d144cd3f9c369fbcc0cb9f776a05212"
-        },
-        {
-          "pair_id": "S5B21-PAIR-233",
-          "presentation_order": 27,
-          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_027",
-          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
-          "candidate_chunk_id": "chunk_027",
-          "candidate_page_number": 10,
-          "passage_sha256": "d458965ff9ac0d1ffe96073968da757a7add0500658e85f180357ca87036eb14"
-        },
-        {
-          "pair_id": "S5B21-PAIR-234",
-          "presentation_order": 28,
-          "candidate_passage_id": "papers/kingma2013_vae.pdf::chunk_028",
-          "candidate_doc_id": "papers/kingma2013_vae.pdf",
-          "candidate_chunk_id": "chunk_028",
-          "candidate_page_number": 8,
-          "passage_sha256": "def50f4b72f0a760137fce57c57bcf7419ef836d791446a935e75d62c729bcc0"
-        },
-        {
-          "pair_id": "S5B21-PAIR-235",
-          "presentation_order": 29,
-          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_025",
-          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
-          "candidate_chunk_id": "chunk_025",
-          "candidate_page_number": 9,
-          "passage_sha256": "7832144cd2da40416297dc2a42b0057b5cf1bbb8a7172e021541cebc4be3df0e"
-        },
-        {
-          "pair_id": "S5B21-PAIR-236",
-          "presentation_order": 30,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_023",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_023",
-          "candidate_page_number": 4,
-          "passage_sha256": "55698249ccc142879fdb0103da055cf7a380f7eab81b2c48eb380eeb9b70ed8e"
-        },
-        {
-          "pair_id": "S5B21-PAIR-237",
-          "presentation_order": 31,
+          "pair_id": "S5B21-PAIR-210",
+          "presentation_order": 4,
           "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_015",
           "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
           "candidate_chunk_id": "chunk_015",
@@ -2215,35 +1972,71 @@
           "passage_sha256": "b571069e6c2bf489d737656ca6ee1c6907b4ac9653d53bb6946209f5c873c9e7"
         },
         {
-          "pair_id": "S5B21-PAIR-238",
-          "presentation_order": 32,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_044",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_044",
-          "candidate_page_number": 8,
-          "passage_sha256": "82bd8300e9cd26ee01a20224dad120290e5b6cf1f480acf890f2886ae1c92d7d"
-        },
-        {
-          "pair_id": "S5B21-PAIR-239",
-          "presentation_order": 33,
-          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_032",
+          "pair_id": "S5B21-PAIR-211",
+          "presentation_order": 5,
+          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_035",
           "candidate_doc_id": "papers/velickovic2017_gat.pdf",
-          "candidate_chunk_id": "chunk_032",
-          "candidate_page_number": 9,
-          "passage_sha256": "c212b8e61d12341b3a9c72c5640be1bc340d7a4d818a43611fdee7924864f66d"
+          "candidate_chunk_id": "chunk_035",
+          "candidate_page_number": 11,
+          "passage_sha256": "abf49a1eaa041fca1c5ad9e44faa549f58ce86f8a4bed34907fa21b0949924ba"
         },
         {
-          "pair_id": "S5B21-PAIR-240",
-          "presentation_order": 34,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003",
+          "pair_id": "S5B21-PAIR-212",
+          "presentation_order": 6,
+          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_027",
+          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
+          "candidate_chunk_id": "chunk_027",
+          "candidate_page_number": 10,
+          "passage_sha256": "d458965ff9ac0d1ffe96073968da757a7add0500658e85f180357ca87036eb14"
+        },
+        {
+          "pair_id": "S5B21-PAIR-213",
+          "presentation_order": 7,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025",
           "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_003",
-          "candidate_page_number": 1,
-          "passage_sha256": "5b9e633098fa59a853dde8ef49700412758ba07a7fa9c2d5fe0fbf7a107e1855"
+          "candidate_chunk_id": "chunk_025",
+          "candidate_page_number": 4,
+          "passage_sha256": "c567b7891ddbe954113dc2830284027a412827f8b24d8316acceabc2e8b61362"
         },
         {
-          "pair_id": "S5B21-PAIR-241",
-          "presentation_order": 35,
+          "pair_id": "S5B21-PAIR-214",
+          "presentation_order": 8,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_007",
+          "candidate_page_number": 2,
+          "passage_sha256": "a40da880e9b577d8daf9d18b4b23f43c8b0fab34286981659ef8413c97a2fc26"
+        },
+        {
+          "pair_id": "S5B21-PAIR-215",
+          "presentation_order": 9,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_024",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_024",
+          "candidate_page_number": 4,
+          "passage_sha256": "c103843ce85f4218c72e67ee05e34630adbefb527af28e25dc8d20a4822cb1ac"
+        },
+        {
+          "pair_id": "S5B21-PAIR-216",
+          "presentation_order": 10,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_017",
+          "candidate_page_number": 3,
+          "passage_sha256": "24c378dc5a5ecec79eb6c6a1ee0da2c9ba77bc2ae94c8a76b172c41389785e59"
+        },
+        {
+          "pair_id": "S5B21-PAIR-217",
+          "presentation_order": 11,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_005",
+          "candidate_page_number": 1,
+          "passage_sha256": "b452afd1d20658f74b3b7ee9de965a6b172ae2717cb615769371a58b6b450153"
+        },
+        {
+          "pair_id": "S5B21-PAIR-218",
+          "presentation_order": 12,
           "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_002",
           "candidate_doc_id": "papers/kipf2016_gcn.pdf",
           "candidate_chunk_id": "chunk_002",
@@ -2251,13 +2044,121 @@
           "passage_sha256": "bc4391d49713b2d2aafb4a09dd63529e3d982187e309c2653fc2b482f74624fb"
         },
         {
-          "pair_id": "S5B21-PAIR-242",
-          "presentation_order": 36,
+          "pair_id": "S5B21-PAIR-219",
+          "presentation_order": 13,
+          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_008",
+          "candidate_doc_id": "papers/velickovic2017_gat.pdf",
+          "candidate_chunk_id": "chunk_008",
+          "candidate_page_number": 2,
+          "passage_sha256": "cf84d2c39f8ead309fd1116727dc85a1897c1811a863d7998588ad0f9842e576"
+        },
+        {
+          "pair_id": "S5B21-PAIR-220",
+          "presentation_order": 14,
+          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_003",
+          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
+          "candidate_chunk_id": "chunk_003",
+          "candidate_page_number": 1,
+          "passage_sha256": "78150694c0badda77e581cbad8b2a8fa6a1d74154adcf8df1b471bf111788b42"
+        },
+        {
+          "pair_id": "S5B21-PAIR-221",
+          "presentation_order": 15,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_010",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_010",
+          "candidate_page_number": 2,
+          "passage_sha256": "bdfdc677fdc80d84fbdc40f9d10a37b0d5cc7d72435573e7c6edcd4fc5021c81"
+        },
+        {
+          "pair_id": "S5B21-PAIR-222",
+          "presentation_order": 16,
+          "candidate_passage_id": "papers/brown2020_gpt3.pdf::chunk_006",
+          "candidate_doc_id": "papers/brown2020_gpt3.pdf",
+          "candidate_chunk_id": "chunk_006",
+          "candidate_page_number": 3,
+          "passage_sha256": "127ebb14766a1ce27498ab2c1d94ad67a2b62f1bf5562d50a170d1946a46b275"
+        },
+        {
+          "pair_id": "S5B21-PAIR-223",
+          "presentation_order": 17,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_020",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_020",
+          "candidate_page_number": 4,
+          "passage_sha256": "4b272a13257aad6c7c4546f4fe21ff9712fb21161a45626b8dba03ac204cfc46"
+        },
+        {
+          "pair_id": "S5B21-PAIR-224",
+          "presentation_order": 18,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_003",
+          "candidate_page_number": 1,
+          "passage_sha256": "5b9e633098fa59a853dde8ef49700412758ba07a7fa9c2d5fe0fbf7a107e1855"
+        },
+        {
+          "pair_id": "S5B21-PAIR-225",
+          "presentation_order": 19,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_009",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_009",
+          "candidate_page_number": 2,
+          "passage_sha256": "73a295632c71a3488b69997580f4a3b1ed6d4cc8cb215bee588bf919b1a2a660"
+        },
+        {
+          "pair_id": "S5B21-PAIR-226",
+          "presentation_order": 20,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_011",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_011",
+          "candidate_page_number": 2,
+          "passage_sha256": "bc43b160f4b0420ac6a32c182789db9a218083663f3f07aa203834ec8f2fc0fa"
+        },
+        {
+          "pair_id": "S5B21-PAIR-227",
+          "presentation_order": 21,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_014",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_014",
+          "candidate_page_number": 3,
+          "passage_sha256": "eca77daff3188a5d8b5dc686456606398746abe82f4c4650440c5e5907a95c41"
+        },
+        {
+          "pair_id": "S5B21-PAIR-228",
+          "presentation_order": 22,
           "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_003",
           "candidate_doc_id": "papers/velickovic2017_gat.pdf",
           "candidate_chunk_id": "chunk_003",
           "candidate_page_number": 1,
           "passage_sha256": "02ddb2c0a76a98b3654d5eab639cace12912e5e35a19a3d6c8ffaf741786ca9e"
+        },
+        {
+          "pair_id": "S5B21-PAIR-229",
+          "presentation_order": 23,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_004",
+          "candidate_page_number": 1,
+          "passage_sha256": "f1c4656b42cd701757c363bdf4a580e9e8e29be96124f121bea53624d1dc0f2b"
+        },
+        {
+          "pair_id": "S5B21-PAIR-230",
+          "presentation_order": 24,
+          "candidate_passage_id": "papers/kipf2016_gcn.pdf::chunk_026",
+          "candidate_doc_id": "papers/kipf2016_gcn.pdf",
+          "candidate_chunk_id": "chunk_026",
+          "candidate_page_number": 10,
+          "passage_sha256": "a651c59b0f76efea5a19cc492e496aca939caf1224af6e1c749732a8c3bc276d"
+        },
+        {
+          "pair_id": "S5B21-PAIR-231",
+          "presentation_order": 25,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_013",
+          "candidate_page_number": 3,
+          "passage_sha256": "6f0190f46e188de2bfa191d4472ff25730d29896313d9cddebacfd43fbf1aada"
         }
       ]
     },
@@ -2268,8 +2169,107 @@
       "candidate_count": 23,
       "candidates": [
         {
-          "pair_id": "S5B21-PAIR-243",
+          "pair_id": "S5B21-PAIR-232",
           "presentation_order": 1,
+          "candidate_passage_id": "papers/willard2023_outlines.pdf::chunk_011",
+          "candidate_doc_id": "papers/willard2023_outlines.pdf",
+          "candidate_chunk_id": "chunk_011",
+          "candidate_page_number": 9,
+          "passage_sha256": "96e43e2ccc279a1967098edea403f8ff2599236c80c9785e7859dff4b14e8222"
+        },
+        {
+          "pair_id": "S5B21-PAIR-233",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_033",
+          "candidate_doc_id": "papers/velickovic2017_gat.pdf",
+          "candidate_chunk_id": "chunk_033",
+          "candidate_page_number": 10,
+          "passage_sha256": "431cfa010943a973d5da2386906707138f06b32bdc8b7a0a99a0a6723d6739d2"
+        },
+        {
+          "pair_id": "S5B21-PAIR-234",
+          "presentation_order": 3,
+          "candidate_passage_id": "papers/hochreiter1997_lstm.pdf::chunk_027",
+          "candidate_doc_id": "papers/hochreiter1997_lstm.pdf",
+          "candidate_chunk_id": "chunk_027",
+          "candidate_page_number": 14,
+          "passage_sha256": "fee31300c3f201196617246244273586707852f9a9ec1b811da10c7a26c22b92"
+        },
+        {
+          "pair_id": "S5B21-PAIR-235",
+          "presentation_order": 4,
+          "candidate_passage_id": "upload_17869808::upload_17869808_p1_0",
+          "candidate_doc_id": "upload_17869808",
+          "candidate_chunk_id": "upload_17869808_p1_0",
+          "candidate_page_number": 1,
+          "passage_sha256": "580309bcf2c68b5c8abd236af61f6c6d8d858627999158ff16c2361e5d18d40f"
+        },
+        {
+          "pair_id": "S5B21-PAIR-236",
+          "presentation_order": 5,
+          "candidate_passage_id": "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+          "candidate_doc_id": "doc_computer_networks_6_e",
+          "candidate_chunk_id": "doc_computer_networks_6_e_p198_2",
+          "candidate_page_number": 198,
+          "passage_sha256": "5d495a43cbd6e33b6b0670278745a3c155c59a17d98244f77fa6d42b783d5ffd"
+        },
+        {
+          "pair_id": "S5B21-PAIR-237",
+          "presentation_order": 6,
+          "candidate_passage_id": "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+          "candidate_doc_id": "papers/krizhevsky2012_alexnet.pdf",
+          "candidate_chunk_id": "chunk_007",
+          "candidate_page_number": 2,
+          "passage_sha256": "54b84b67e12c6445f78a13ba327ba963c8430f3b2aa74655031e73292fc95f00"
+        },
+        {
+          "pair_id": "S5B21-PAIR-238",
+          "presentation_order": 7,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_051",
+          "candidate_page_number": 9,
+          "passage_sha256": "5e4c755cb31459d2a0df2b4023683f87b25b914e852ccf53c86b6d5ab149be52"
+        },
+        {
+          "pair_id": "S5B21-PAIR-239",
+          "presentation_order": 8,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_027",
+          "candidate_page_number": 5,
+          "passage_sha256": "226b209c2d355051569871f31b40beb24ecbc139ccc34936daa5e1fa8410e135"
+        },
+        {
+          "pair_id": "S5B21-PAIR-240",
+          "presentation_order": 9,
+          "candidate_passage_id": "papers/brown2020_gpt3.pdf::chunk_027",
+          "candidate_doc_id": "papers/brown2020_gpt3.pdf",
+          "candidate_chunk_id": "chunk_027",
+          "candidate_page_number": 10,
+          "passage_sha256": "9e64c365b7c7d41f1fb07d66184ab52fdc5a2348bbc8da6ece33d99c40ab8b8e"
+        },
+        {
+          "pair_id": "S5B21-PAIR-241",
+          "presentation_order": 10,
+          "candidate_passage_id": "papers/yao2022_react.pdf::chunk_031",
+          "candidate_doc_id": "papers/yao2022_react.pdf",
+          "candidate_chunk_id": "chunk_031",
+          "candidate_page_number": 8,
+          "passage_sha256": "2f78eab58ca4f96231ac9449f19e083292e4afd184e6aee27fc7ea199450fa38"
+        },
+        {
+          "pair_id": "S5B21-PAIR-242",
+          "presentation_order": 11,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_006",
+          "candidate_page_number": 2,
+          "passage_sha256": "405706259f867fce441d9432e76f1cd940261b2016767e164f2dfd196f4fdcb1"
+        },
+        {
+          "pair_id": "S5B21-PAIR-243",
+          "presentation_order": 12,
           "candidate_passage_id": "papers/bai2022_constitutionalai.pdf::chunk_027",
           "candidate_doc_id": "papers/bai2022_constitutionalai.pdf",
           "candidate_chunk_id": "chunk_027",
@@ -2278,25 +2278,7 @@
         },
         {
           "pair_id": "S5B21-PAIR-244",
-          "presentation_order": 2,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_051",
-          "candidate_page_number": 9,
-          "passage_sha256": "5e4c755cb31459d2a0df2b4023683f87b25b914e852ccf53c86b6d5ab149be52"
-        },
-        {
-          "pair_id": "S5B21-PAIR-245",
-          "presentation_order": 3,
-          "candidate_passage_id": "papers/willard2023_outlines.pdf::chunk_011",
-          "candidate_doc_id": "papers/willard2023_outlines.pdf",
-          "candidate_chunk_id": "chunk_011",
-          "candidate_page_number": 9,
-          "passage_sha256": "96e43e2ccc279a1967098edea403f8ff2599236c80c9785e7859dff4b14e8222"
-        },
-        {
-          "pair_id": "S5B21-PAIR-246",
-          "presentation_order": 4,
+          "presentation_order": 13,
           "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025",
           "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
           "candidate_chunk_id": "chunk_025",
@@ -2304,8 +2286,17 @@
           "passage_sha256": "c567b7891ddbe954113dc2830284027a412827f8b24d8316acceabc2e8b61362"
         },
         {
-          "pair_id": "S5B21-PAIR-247",
-          "presentation_order": 5,
+          "pair_id": "S5B21-PAIR-245",
+          "presentation_order": 14,
+          "candidate_passage_id": "papers/hu2021_lora.pdf::chunk_023",
+          "candidate_doc_id": "papers/hu2021_lora.pdf",
+          "candidate_chunk_id": "chunk_023",
+          "candidate_page_number": 8,
+          "passage_sha256": "263aee23ce7c0c3c3538cb180cb73a53c6bde3276db42cae057500df51490079"
+        },
+        {
+          "pair_id": "S5B21-PAIR-246",
+          "presentation_order": 15,
           "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_038",
           "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
           "candidate_chunk_id": "chunk_038",
@@ -2313,17 +2304,26 @@
           "passage_sha256": "b9caff14e436438a9ab043b8e12d98e55d55399c2ee50df004312d2bcef82876"
         },
         {
+          "pair_id": "S5B21-PAIR-247",
+          "presentation_order": 16,
+          "candidate_passage_id": "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+          "candidate_doc_id": "doc_lehninger_principles_of_biochemistry",
+          "candidate_chunk_id": "doc_lehninger_principles_of_biochemistry_p190_1",
+          "candidate_page_number": 190,
+          "passage_sha256": "8178b7289b6dfb2259d2df7f0861fbe5d1e9a9ecfa479d2c0ccba9af7c08d740"
+        },
+        {
           "pair_id": "S5B21-PAIR-248",
-          "presentation_order": 6,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006",
+          "presentation_order": 17,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_038",
           "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_006",
-          "candidate_page_number": 2,
-          "passage_sha256": "405706259f867fce441d9432e76f1cd940261b2016767e164f2dfd196f4fdcb1"
+          "candidate_chunk_id": "chunk_038",
+          "candidate_page_number": 7,
+          "passage_sha256": "226cbd6d47299ed60349440f080bcd51c9039f4825b3fa2793f4dab2df36a98b"
         },
         {
           "pair_id": "S5B21-PAIR-249",
-          "presentation_order": 7,
+          "presentation_order": 18,
           "candidate_passage_id": "papers/brown2020_gpt3.pdf::chunk_008",
           "candidate_doc_id": "papers/brown2020_gpt3.pdf",
           "candidate_chunk_id": "chunk_008",
@@ -2332,70 +2332,7 @@
         },
         {
           "pair_id": "S5B21-PAIR-250",
-          "presentation_order": 8,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_004",
-          "candidate_page_number": 1,
-          "passage_sha256": "f1c4656b42cd701757c363bdf4a580e9e8e29be96124f121bea53624d1dc0f2b"
-        },
-        {
-          "pair_id": "S5B21-PAIR-251",
-          "presentation_order": 9,
-          "candidate_passage_id": "papers/krizhevsky2012_alexnet.pdf::chunk_007",
-          "candidate_doc_id": "papers/krizhevsky2012_alexnet.pdf",
-          "candidate_chunk_id": "chunk_007",
-          "candidate_page_number": 2,
-          "passage_sha256": "54b84b67e12c6445f78a13ba327ba963c8430f3b2aa74655031e73292fc95f00"
-        },
-        {
-          "pair_id": "S5B21-PAIR-252",
-          "presentation_order": 10,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_038",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_038",
-          "candidate_page_number": 7,
-          "passage_sha256": "226cbd6d47299ed60349440f080bcd51c9039f4825b3fa2793f4dab2df36a98b"
-        },
-        {
-          "pair_id": "S5B21-PAIR-253",
-          "presentation_order": 11,
-          "candidate_passage_id": "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
-          "candidate_doc_id": "doc_computer_networks_6_e",
-          "candidate_chunk_id": "doc_computer_networks_6_e_p198_2",
-          "candidate_page_number": 198,
-          "passage_sha256": "5d495a43cbd6e33b6b0670278745a3c155c59a17d98244f77fa6d42b783d5ffd"
-        },
-        {
-          "pair_id": "S5B21-PAIR-254",
-          "presentation_order": 12,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_013",
-          "candidate_page_number": 3,
-          "passage_sha256": "6f0190f46e188de2bfa191d4472ff25730d29896313d9cddebacfd43fbf1aada"
-        },
-        {
-          "pair_id": "S5B21-PAIR-255",
-          "presentation_order": 13,
-          "candidate_passage_id": "papers/velickovic2017_gat.pdf::chunk_033",
-          "candidate_doc_id": "papers/velickovic2017_gat.pdf",
-          "candidate_chunk_id": "chunk_033",
-          "candidate_page_number": 10,
-          "passage_sha256": "431cfa010943a973d5da2386906707138f06b32bdc8b7a0a99a0a6723d6739d2"
-        },
-        {
-          "pair_id": "S5B21-PAIR-256",
-          "presentation_order": 14,
-          "candidate_passage_id": "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
-          "candidate_doc_id": "doc_lehninger_principles_of_biochemistry",
-          "candidate_chunk_id": "doc_lehninger_principles_of_biochemistry_p190_1",
-          "candidate_page_number": 190,
-          "passage_sha256": "8178b7289b6dfb2259d2df7f0861fbe5d1e9a9ecfa479d2c0ccba9af7c08d740"
-        },
-        {
-          "pair_id": "S5B21-PAIR-257",
-          "presentation_order": 15,
+          "presentation_order": 19,
           "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_037",
           "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
           "candidate_chunk_id": "chunk_037",
@@ -2403,43 +2340,7 @@
           "passage_sha256": "9ad999c47c068beaedd4f0eccd11b64797d9ea0a60d01e7878baeb52f1668ac8"
         },
         {
-          "pair_id": "S5B21-PAIR-258",
-          "presentation_order": 16,
-          "candidate_passage_id": "upload_17869808::upload_17869808_p1_0",
-          "candidate_doc_id": "upload_17869808",
-          "candidate_chunk_id": "upload_17869808_p1_0",
-          "candidate_page_number": 1,
-          "passage_sha256": "580309bcf2c68b5c8abd236af61f6c6d8d858627999158ff16c2361e5d18d40f"
-        },
-        {
-          "pair_id": "S5B21-PAIR-259",
-          "presentation_order": 17,
-          "candidate_passage_id": "papers/hochreiter1997_lstm.pdf::chunk_027",
-          "candidate_doc_id": "papers/hochreiter1997_lstm.pdf",
-          "candidate_chunk_id": "chunk_027",
-          "candidate_page_number": 14,
-          "passage_sha256": "fee31300c3f201196617246244273586707852f9a9ec1b811da10c7a26c22b92"
-        },
-        {
-          "pair_id": "S5B21-PAIR-260",
-          "presentation_order": 18,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
-          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_005",
-          "candidate_page_number": 1,
-          "passage_sha256": "b452afd1d20658f74b3b7ee9de965a6b172ae2717cb615769371a58b6b450153"
-        },
-        {
-          "pair_id": "S5B21-PAIR-261",
-          "presentation_order": 19,
-          "candidate_passage_id": "papers/brown2020_gpt3.pdf::chunk_027",
-          "candidate_doc_id": "papers/brown2020_gpt3.pdf",
-          "candidate_chunk_id": "chunk_027",
-          "candidate_page_number": 10,
-          "passage_sha256": "9e64c365b7c7d41f1fb07d66184ab52fdc5a2348bbc8da6ece33d99c40ab8b8e"
-        },
-        {
-          "pair_id": "S5B21-PAIR-262",
+          "pair_id": "S5B21-PAIR-251",
           "presentation_order": 20,
           "candidate_passage_id": "papers/brown2020_gpt3.pdf::chunk_018",
           "candidate_doc_id": "papers/brown2020_gpt3.pdf",
@@ -2448,31 +2349,31 @@
           "passage_sha256": "caefdf2edebb8cc712f65c02aab09a8d8ab08a9c6bec84b44f9ddf24b1e2a5f1"
         },
         {
-          "pair_id": "S5B21-PAIR-263",
+          "pair_id": "S5B21-PAIR-252",
           "presentation_order": 21,
-          "candidate_passage_id": "papers/yao2022_react.pdf::chunk_031",
-          "candidate_doc_id": "papers/yao2022_react.pdf",
-          "candidate_chunk_id": "chunk_031",
-          "candidate_page_number": 8,
-          "passage_sha256": "2f78eab58ca4f96231ac9449f19e083292e4afd184e6aee27fc7ea199450fa38"
-        },
-        {
-          "pair_id": "S5B21-PAIR-264",
-          "presentation_order": 22,
-          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
           "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
-          "candidate_chunk_id": "chunk_027",
-          "candidate_page_number": 5,
-          "passage_sha256": "226b209c2d355051569871f31b40beb24ecbc139ccc34936daa5e1fa8410e135"
+          "candidate_chunk_id": "chunk_013",
+          "candidate_page_number": 3,
+          "passage_sha256": "6f0190f46e188de2bfa191d4472ff25730d29896313d9cddebacfd43fbf1aada"
         },
         {
-          "pair_id": "S5B21-PAIR-265",
+          "pair_id": "S5B21-PAIR-253",
+          "presentation_order": 22,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_004",
+          "candidate_page_number": 1,
+          "passage_sha256": "f1c4656b42cd701757c363bdf4a580e9e8e29be96124f121bea53624d1dc0f2b"
+        },
+        {
+          "pair_id": "S5B21-PAIR-254",
           "presentation_order": 23,
-          "candidate_passage_id": "papers/hu2021_lora.pdf::chunk_023",
-          "candidate_doc_id": "papers/hu2021_lora.pdf",
-          "candidate_chunk_id": "chunk_023",
-          "candidate_page_number": 8,
-          "passage_sha256": "263aee23ce7c0c3c3538cb180cb73a53c6bde3276db42cae057500df51490079"
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_005",
+          "candidate_page_number": 1,
+          "passage_sha256": "b452afd1d20658f74b3b7ee9de965a6b172ae2717cb615769371a58b6b450153"
         }
       ]
     }

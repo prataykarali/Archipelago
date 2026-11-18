@@ -3,7 +3,7 @@
   "date": "2026-11-18",
   "active_queries_count": 10,
   "investigator_selected_pairs": 25,
-  "total_unique_pooled_pairs_requiring_judgment": 265,
+  "total_unique_pooled_pairs_requiring_judgment": 254,
   "per_query_pooled_counts": {
     "Q-S5B2-01": 13,
     "Q-S5B2-02": 22,
@@ -13,7 +13,7 @@
     "Q-S5B2-06": 31,
     "Q-S5B2-07": 28,
     "Q-S5B2-08": 27,
-    "Q-S5B2-10": 36,
+    "Q-S5B2-10": 25,
     "Q-S5B2-11": 23
   },
   "runtime_fingerprints_verified": {
@@ -37,46 +37,46 @@
         "pooled_v2_1_coverage_pct": 100.0
       },
       "dense_snowflake_arctic_768d": {
-        "investigator_25_coverage": 12,
+        "investigator_25_coverage": 11,
         "total_retrieved_slots": 50,
-        "investigator_25_coverage_pct": 24.0,
+        "investigator_25_coverage_pct": 22.0,
         "pooled_v2_1_coverage": 50,
         "pooled_v2_1_coverage_pct": 100.0
       },
       "hybrid_rrf_e2e": {
-        "investigator_25_coverage": 12,
+        "investigator_25_coverage": 11,
         "total_retrieved_slots": 50,
-        "investigator_25_coverage_pct": 24.0,
+        "investigator_25_coverage_pct": 22.0,
         "pooled_v2_1_coverage": 50,
         "pooled_v2_1_coverage_pct": 100.0
       },
       "baseline_graph_1hop": {
-        "investigator_25_coverage": 2,
+        "investigator_25_coverage": 3,
         "total_retrieved_slots": 38,
-        "investigator_25_coverage_pct": 5.26,
+        "investigator_25_coverage_pct": 7.89,
         "pooled_v2_1_coverage": 38,
         "pooled_v2_1_coverage_pct": 100.0
       },
       "repaired_graph_1hop_ablation": {
-        "investigator_25_coverage": 5,
+        "investigator_25_coverage": 6,
         "total_retrieved_slots": 50,
-        "investigator_25_coverage_pct": 10.0,
+        "investigator_25_coverage_pct": 12.0,
         "pooled_v2_1_coverage": 50,
         "pooled_v2_1_coverage_pct": 100.0
       },
       "repaired_graph_2hop_full": {
-        "investigator_25_coverage": 4,
+        "investigator_25_coverage": 5,
         "total_retrieved_slots": 50,
-        "investigator_25_coverage_pct": 8.0,
+        "investigator_25_coverage_pct": 10.0,
         "pooled_v2_1_coverage": 50,
         "pooled_v2_1_coverage_pct": 100.0
       }
     },
     "top_10": {
       "bm25": {
-        "investigator_25_coverage": 14,
+        "investigator_25_coverage": 13,
         "total_retrieved_slots": 100,
-        "investigator_25_coverage_pct": 14.0,
+        "investigator_25_coverage_pct": 13.0,
         "pooled_v2_1_coverage": 100,
         "pooled_v2_1_coverage_pct": 100.0
       },
@@ -95,23 +95,23 @@
         "pooled_v2_1_coverage_pct": 100.0
       },
       "baseline_graph_1hop": {
-        "investigator_25_coverage": 5,
+        "investigator_25_coverage": 6,
         "total_retrieved_slots": 69,
-        "investigator_25_coverage_pct": 7.25,
+        "investigator_25_coverage_pct": 8.7,
         "pooled_v2_1_coverage": 69,
         "pooled_v2_1_coverage_pct": 100.0
       },
       "repaired_graph_1hop_ablation": {
-        "investigator_25_coverage": 7,
+        "investigator_25_coverage": 8,
         "total_retrieved_slots": 100,
-        "investigator_25_coverage_pct": 7.0,
+        "investigator_25_coverage_pct": 8.0,
         "pooled_v2_1_coverage": 100,
         "pooled_v2_1_coverage_pct": 100.0
       },
       "repaired_graph_2hop_full": {
-        "investigator_25_coverage": 6,
+        "investigator_25_coverage": 7,
         "total_retrieved_slots": 100,
-        "investigator_25_coverage_pct": 6.0,
+        "investigator_25_coverage_pct": 7.0,
         "pooled_v2_1_coverage": 100,
         "pooled_v2_1_coverage_pct": 100.0
       }

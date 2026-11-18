@@ -31,22 +31,22 @@
       "a_plus_b_jointly_sufficient": true,
       "second_passage_indispensable": false,
       "classification": "SINGLE_HOP",
-      "classification_basis": "Because Passage B (chunk_012) alone fully answers how Multi-Head Attention combines projections with parameter matrices (while chunk_011 only supplies the inner Attention definition), forcing TWO_HOP is unwarranted; reclassified to SINGLE_HOP (with chunk_011 retained as supporting context in the candidate pool)."
+      "classification_basis": "Because Passage B (chunk_012) alone fully answers how Multi-Head Attention combines projections with parameter matrices, forcing TWO_HOP is unwarranted; reclassified to SINGLE_HOP (with chunk_011 retained as supporting context in the candidate pool)."
     },
     {
       "query_id": "Q-S5B2-10",
       "legacy_query_id": "Q-S5A-10",
-      "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
+      "query_text": "How do the proposed D-MAGIC and SAGA models combine Graph Neural Network node embeddings, zero-shot learning, and packet-by-packet traffic analysis to address the interval-based processing delays and unseen-attack limitations of traditional signature-based NIDS?",
       "passage_a_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
       "passage_b_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
       "passage_a_alone_sufficient": false,
-      "passage_a_assessment": "Explains traditional NIDS latency (whole-network traffic processing at predefined intervals) and signature-based inability to detect zero-day exploits, but does not mention GNNs or dynamic graph modeling.",
+      "passage_a_assessment": "Explains interval-based whole-traffic processing latency in traditional NIDS and signature-based inability to detect zero-day exploits, without mentioning GNNs, D-MAGIC, or SAGA.",
       "passage_b_alone_sufficient": false,
-      "passage_b_assessment": "Explains D-MAGIC/SAGA using GNN node embeddings, zero-shot learning for unseen attacks, and packet-by-packet real-time detection, but does not state the batch whole-traffic latency limitations of traditional signature-based NIDS.",
+      "passage_b_assessment": "Describes the proposed D-MAGIC and SAGA models using GNN node embeddings, zero-shot learning for unseen attacks, and packet-by-packet processing, without stating the interval-based batch latency or signature-based zero-day limitations of traditional NIDS.",
       "a_plus_b_jointly_sufficient": true,
       "second_passage_indispensable": true,
       "classification": "TWO_HOP",
-      "classification_basis": "Both passages are indispensable: Passage A establishes the traditional batch/signature-based NIDS latency problem, and Passage B supplies the GNN + packet-by-packet resolution."
+      "classification_basis": "Both passages are indispensable: Passage A establishes interval-based traffic-processing latency and signature-based unseen-attack limitations, while Passage B supplies the proposed D-MAGIC/SAGA GNN, zero-shot, and packet-by-packet mechanisms."
     }
   ]
 }

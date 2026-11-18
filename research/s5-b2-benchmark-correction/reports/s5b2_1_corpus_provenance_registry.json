@@ -4,34 +4,20 @@
   "frozen_corpus_version": "s5a_eval_corpus_v1",
   "total_passages": 713,
   "corpus_unaltered": true,
-  "counts_by_provenance_class": {
-    "CONSTRUCTED_PILOT_ANSWER_CARD": 1,
-    "PDF_EXTRACTED_SEED_CHUNK": 16,
-    "TRUNCATED_TEXTBOOK_STUB": 21,
-    "PDF_EXTRACTED_PAPER_OR_UPLOAD": 675
+  "provenance_methodology": {
+    "source_verified_provenance": "Directly verified against repository source definitions (scripts/ops/seed_soference_catalog.py `hand_chunks` with `pdfs: []`) or K\u00f9zu DB passage length/text inspection (<=305-char truncated stubs).",
+    "convention_inferred_classification": "Inferred from filename or chunk-ID naming conventions (`*_seed_*`, `papers/*.pdf`, `upload_*`) without re-extracting or diffing raw PDF source files during this gate."
   },
-  "constructed_pilot_cards": [
+  "counts_by_verification_tier": {
+    "source_verified_constructed_pilot_card": 1,
+    "source_verified_truncated_textbook_stub": 21,
+    "convention_inferred_seed_chunk": 16,
+    "convention_inferred_paper_or_upload_chunk": 675
+  },
+  "source_verified_constructed_pilot_cards": [
     "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001"
   ],
-  "pdf_extracted_seed_chunks": [
-    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
-    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
-    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
-    "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
-    "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
-    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
-    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
-    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
-    "papers/dettmers2023_qlora.pdf::qlora_seed_001",
-    "papers/dettmers2023_qlora.pdf::qlora_seed_002",
-    "papers/dettmers2023_qlora.pdf::qlora_seed_003",
-    "papers/kwon2023_vllm.pdf::paged_attention_seed_001",
-    "papers/kwon2023_vllm.pdf::paged_attention_seed_002",
-    "papers/kwon2023_vllm.pdf::paged_attention_seed_003",
-    "papers/kwon2023_vllm.pdf::paged_attention_seed_004",
-    "papers/kwon2023_vllm.pdf::vllm_seed_004"
-  ],
-  "truncated_textbook_stubs": [
+  "source_verified_truncated_textbook_stubs": [
     "doc_8051_microcontroller_and_embedded_systems::doc_8051_microcontroller_and_embedded_systems_p165_2",
     "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
     "doc_bert_pre_training_of_deep_bidirectional::doc_bert_pre_training_of_deep_bidirectional_p4_2",
@@ -54,11 +40,29 @@
     "doc_retrieval_augmented_generation_for_knowledge_intensive_nlp::doc_retrieval_augmented_generation_for_knowledge_intensive_nlp_p3_1",
     "doc_vllm_efficient_memory_management_for::doc_vllm_efficient_memory_management_for_p4_2"
   ],
+  "convention_inferred_seed_chunks": [
+    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+    "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+    "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+    "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+    "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+    "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+    "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+    "papers/dettmers2023_qlora.pdf::qlora_seed_003",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_001",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_002",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_003",
+    "papers/kwon2023_vllm.pdf::paged_attention_seed_004",
+    "papers/kwon2023_vllm.pdf::vllm_seed_004"
+  ],
   "evaluation_treatment_policy": {
     "s5a_eval_corpus_v1_preservation": "Frozen 713-passage corpus is never silently modified or re-identified after changing eligibility.",
-    "constructed_pilot_answer_cards": "Flagged as CONSTRUCTED_PILOT_ANSWER_CARD (pilot/silberschatz_3nf_card.txt). Queries whose sole premise depends on a constructed card (Q-S5A-12) are placed on HOLD and excluded from primary source-derived effectiveness evaluation.",
-    "truncated_textbook_stubs": "Flagged as TRUNCATED_TEXTBOOK_STUB (~277-301 chars). Queries whose answer is cut off by stub truncation (Q-S5A-09 OSI Layers 3-7) are placed on HOLD.",
-    "pdf_extracted_seed_chunks": "Flagged as PDF_EXTRACTED_SEED_CHUNK (899-900 char excerpts from OSTEP/QLoRA/vLLM PDFs). Admissible only when verbatim passage text supports the query without unextracted-page assumptions.",
-    "future_corpus_changes": "Any future exclusion or addition of passages MUST mint a new corpus version identifier (e.g. s5c_eval_corpus_v2) with a fresh SHA-256 manifest."
+    "constructed_pilot_answer_cards": "Queries whose sole premise depends on a source-verified constructed card (Q-S5A-12) are placed on HOLD.",
+    "truncated_textbook_stubs": "Queries whose answer is cut off by source-verified stub truncation (Q-S5A-09 OSI Layers 3-7) are placed on HOLD.",
+    "convention_inferred_seed_chunks": "Treated as candidate corpus passages subject to verbatim text sufficiency; raw PDF page alignment is not independently re-verified in this gate.",
+    "future_corpus_changes": "Any future exclusion or addition of passages MUST mint a new corpus version identifier with a fresh SHA-256 manifest."
   }
 }

@@ -47,8 +47,11 @@ class TestS5B2Audits:
         by_q = {q["query_id"]: q for q in neg["queries"]}
         for qid in ["Q-S5B2-03", "Q-S5B2-08", "Q-S5B2-11"]:
             assert by_q[qid]["adjudication_status"] == "PROVISIONAL_NEGATIVE_PENDING_INDEPENDENT_CHECK"
+            assert by_q[qid]["human_inspection_status"] == "NOT_YET_PERFORMED"
+            assert by_q[qid]["human_inspection_records"] == []
+            assert "manually_inspected_passage_ids" not in by_q[qid]
             assert len(by_q[qid]["semantic_search_findings_top5"]) == 5
-            assert len(by_q[qid]["manually_inspected_passage_ids"]) >= 5
+            assert len(by_q[qid]["search_selected_candidate_passage_ids"]) >= 5
         assert by_q["Q-S5B2-03"]["exact_keyword_hits"]["cortex"]["hit_count"] == 0
         assert by_q["Q-S5B2-03"]["exact_keyword_hits"]["nanosecond"]["hit_count"] == 0
         assert by_q["Q-S5B2-08"]["exact_keyword_hits"]["llama-3"]["hit_count"] == 0
@@ -179,23 +182,43 @@ class TestS5B2_1ApprovalBlockerResolution:
         assert prov["frozen_corpus_version"] == "s5a_eval_corpus_v1"
         assert prov["total_passages"] == 713
         assert prov["corpus_unaltered"] is True
-        counts = prov["counts_by_provenance_class"]
+        counts = prov["counts_by_verification_tier"]
         assert sum(counts.values()) == 713
-        assert counts["CONSTRUCTED_PILOT_ANSWER_CARD"] == 1
-        assert counts["PDF_EXTRACTED_SEED_CHUNK"] == 16
-        assert counts["TRUNCATED_TEXTBOOK_STUB"] == 21
-        assert counts["PDF_EXTRACTED_PAPER_OR_UPLOAD"] == 675
+        assert counts["source_verified_constructed_pilot_card"] == 1
+        assert counts["source_verified_truncated_textbook_stub"] == 21
+        assert counts["convention_inferred_seed_chunk"] == 16
+        assert counts["convention_inferred_paper_or_upload_chunk"] == 675
 
-    def test_refreshed_topk_pool_coverage_is_100pct_and_no_metrics(self):
+    def test_refreshed_topk_pool_coverage_and_persisted_ranked_results_reproduce_pool(self):
         with open(REPORTS_DIR / "s5b2_1_topk_pool_coverage_refreshed.json", encoding="utf-8") as f:
             cov = json.load(f)
         assert cov["active_queries_count"] == 10
-        assert cov["total_unique_pooled_pairs_requiring_judgment"] == 265
+        assert cov["total_unique_pooled_pairs_requiring_judgment"] == 254
         for k_key in ["top_5", "top_10"]:
             for sys_name, sys_cov in cov["coverage_comparison"][k_key].items():
                 assert sys_cov["pooled_v2_1_coverage_pct"] == 100.0
         raw = (REPORTS_DIR / "s5b2_1_topk_pool_coverage_refreshed.json").read_text(encoding="utf-8")
         assert "MRR" not in raw or "no Recall@k, MRR, or nDCG" in raw
+
+        # Verify persisted ranked results reproduce exact pooled set
+        with open(REPORTS_DIR / "s5b2_1_frozen_ranked_results.json", encoding="utf-8") as f:
+            ranked = json.load(f)
+        with open(SPECS_PATH, encoding="utf-8") as f:
+            specs = json.load(f)
+        union_pairs: set[tuple[str, str]] = set()
+        for q in specs["queries"]:
+            for pid in q["candidate_passage_ids"]:
+                union_pairs.add((q["query_id"], pid))
+        for sys_name, sys_data in ranked["systems"].items():
+            assert len(sys_data["queries"]) == 10
+            for q_res in sys_data["queries"]:
+                for item in q_res["ranked_top10"]:
+                    union_pairs.add((q_res["query_id"], item["passage_id"]))
+
+        with open(S5B2_DIR / "proposed_package_v2_1" / "retrieval_query_candidate_pool_blinded.csv", encoding="utf-8") as f:
+            csv_pairs = {(r["query_id"], r["candidate_passage_id"]) for r in csv.DictReader(f)}
+        assert union_pairs == csv_pairs
+        assert len(csv_pairs) == 254
 
     def test_proposed_v21_pooled_package_and_workbooks_are_blinded(self):
         v21_dir = S5B2_DIR / "proposed_package_v2_1"
@@ -205,7 +228,7 @@ class TestS5B2_1ApprovalBlockerResolution:
 
         with open(csv_path, encoding="utf-8") as f:
             rows = list(csv.DictReader(f))
-        assert len(rows) == 265
+        assert len(rows) == 254
         for i, row in enumerate(rows, start=1):
             assert row["pair_id"] == f"S5B21-PAIR-{i:03d}"
             assert row["human_relevance_grade"] == ""
@@ -228,4 +251,13 @@ class TestS5B2_1ApprovalBlockerResolution:
             assert f"Reviewer ID:** `{rev_id}`" in wb
             for kw in self.FORBIDDEN_REVIEWER_LEAKS:
                 assert kw not in wb, f"Leaked {kw} in {wb_name}"
-            assert "S5B21-PAIR-001" in wb and "S5B21-PAIR-265" in wb
+            assert "S5B21-PAIR-001" in wb and "S5B21-PAIR-254" in wb
+
+    def test_final_release_check_hashes_match_disk(self):
+        import hashlib, re
+        chk_txt = (S5B2_DIR / "S5B2_1_FINAL_RELEASE_CHECK.md").read_text(encoding="utf-8")
+        matches = re.findall(r"\|\s*`([^`]+)`\s*\|\s*`([0-9a-f]{64})`\s*\|", chk_txt)
+        assert len(matches) == 10
+        for rel_path, expected_sha in matches:
+            actual_sha = hashlib.sha256((ROOT / rel_path).read_bytes()).hexdigest()
+            assert actual_sha == expected_sha, f"Hash mismatch for {rel_path}"

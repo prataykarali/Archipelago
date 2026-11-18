@@ -101,7 +101,7 @@
       "query_id": "Q-S5B2-10",
       "legacy_query_id": "Q-S5A-10",
       "domain": "Computer Networks",
-      "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
+      "query_text": "How do the proposed D-MAGIC and SAGA models combine Graph Neural Network node embeddings, zero-shot learning, and packet-by-packet traffic analysis to address the interval-based processing delays and unseen-attack limitations of traditional signature-based NIDS?",
       "candidate_passage_ids": [
         "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
         "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",

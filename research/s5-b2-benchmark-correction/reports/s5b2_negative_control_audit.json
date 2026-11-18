@@ -130,7 +130,7 @@
           "page_number": 8
         }
       ],
-      "manually_inspected_passage_ids": [
+      "search_selected_candidate_passage_ids": [
         "papers/dettmers2023_qlora.pdf::chunk_017",
         "papers/kwon2023_vllm.pdf::chunk_023",
         "papers/kwon2023_vllm.pdf::chunk_013",
@@ -140,9 +140,18 @@
         "papers/hu2021_lora.pdf::chunk_034",
         "papers/lewis2020_rag.pdf::chunk_024"
       ],
+      "human_inspection_status": "NOT_YET_PERFORMED",
+      "human_inspection_records": [],
+      "human_inspection_record_schema": [
+        "passage_id",
+        "decision",
+        "supporting_evidence",
+        "reviewer_id",
+        "inspected_at_utc"
+      ],
       "factual_premise_status": "UNVERIFIED_EXTERNAL_PREMISE_PENDING_INDEPENDENT_CHECK",
       "adjudication_status": "PROVISIONAL_NEGATIVE_PENDING_INDEPENDENT_CHECK",
-      "notes": "Zero exact hits for target hardware/model/CVE entities; alternate terminology and top-5 dense semantic neighbors inspected and do not answer the query. Treated as provisional negative until independent human review confirms corpus-unanswerability."
+      "notes": "Automated exact-keyword, alternate-terminology, and top-5 dense semantic search completed. Human inspection has NOT yet been performed; treated as provisional negative until independent human review."
     },
     {
       "query_id": "Q-S5B2-08",
@@ -291,7 +300,7 @@
           "page_number": 8
         }
       ],
-      "manually_inspected_passage_ids": [
+      "search_selected_candidate_passage_ids": [
         "papers/dettmers2023_qlora.pdf::chunk_017",
         "papers/dettmers2023_qlora.pdf::chunk_004",
         "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
@@ -301,9 +310,18 @@
         "papers/ho2020_ddpm.pdf::chunk_029",
         "papers/wei2022_chainofthought.pdf::chunk_011"
       ],
+      "human_inspection_status": "NOT_YET_PERFORMED",
+      "human_inspection_records": [],
+      "human_inspection_record_schema": [
+        "passage_id",
+        "decision",
+        "supporting_evidence",
+        "reviewer_id",
+        "inspected_at_utc"
+      ],
       "factual_premise_status": "UNVERIFIED_EXTERNAL_PREMISE_PENDING_INDEPENDENT_CHECK",
       "adjudication_status": "PROVISIONAL_NEGATIVE_PENDING_INDEPENDENT_CHECK",
-      "notes": "Zero exact hits for target hardware/model/CVE entities; alternate terminology and top-5 dense semantic neighbors inspected and do not answer the query. Treated as provisional negative until independent human review confirms corpus-unanswerability."
+      "notes": "Automated exact-keyword, alternate-terminology, and top-5 dense semantic search completed. Human inspection has NOT yet been performed; treated as provisional negative until independent human review."
     },
     {
       "query_id": "Q-S5B2-11",
@@ -430,7 +448,7 @@
           "page_number": 4
         }
       ],
-      "manually_inspected_passage_ids": [
+      "search_selected_candidate_passage_ids": [
         "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
         "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
         "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
@@ -438,9 +456,18 @@
         "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025",
         "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1"
       ],
+      "human_inspection_status": "NOT_YET_PERFORMED",
+      "human_inspection_records": [],
+      "human_inspection_record_schema": [
+        "passage_id",
+        "decision",
+        "supporting_evidence",
+        "reviewer_id",
+        "inspected_at_utc"
+      ],
       "factual_premise_status": "UNVERIFIED_EXTERNAL_PREMISE_PENDING_INDEPENDENT_CHECK",
       "adjudication_status": "PROVISIONAL_NEGATIVE_PENDING_INDEPENDENT_CHECK",
-      "notes": "Zero exact hits for target hardware/model/CVE entities; alternate terminology and top-5 dense semantic neighbors inspected and do not answer the query. Treated as provisional negative until independent human review confirms corpus-unanswerability."
+      "notes": "Automated exact-keyword, alternate-terminology, and top-5 dense semantic search completed. Human inspection has NOT yet been performed; treated as provisional negative until independent human review."
     }
   ]
 }
