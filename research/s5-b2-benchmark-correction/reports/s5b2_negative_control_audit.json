@@ -1,0 +1,128 @@
+{
+  "audit_name": "S5-B2 Corpus-Wide Negative-Control Audit",
+  "date": "2026-11-18",
+  "corpus_version": "s5a_eval_corpus_v1",
+  "corpus_passage_count": 713,
+  "queries": [
+    {
+      "query_id": "Q-S5A-03",
+      "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
+      "premise_classification": "OUT_OF_CORPUS_SPECIFIC_HARDWARE_METRIC",
+      "corpus_passages_searched": 713,
+      "term_hits": {
+        "arm": {
+          "hit_count": 5,
+          "matched_passage_ids": [
+            "papers/bahdanau2014_attention.pdf::chunk_015",
+            "papers/hu2021_lora.pdf::chunk_034",
+            "papers/lewis2020_rag.pdf::chunk_024",
+            "papers/lewis2020_rag.pdf::chunk_025",
+            "papers/lewis2020_rag.pdf::chunk_026"
+          ]
+        },
+        "cortex": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "a78": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "nanosecond": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "walk latency": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "multi-level page": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        }
+      },
+      "verified_corpus_unanswerable": true
+    },
+    {
+      "query_id": "Q-S5A-08",
+      "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
+      "premise_classification": "UNSUPPORTED_FACTUAL_PREMISE_AND_OUT_OF_CORPUS",
+      "corpus_passages_searched": 713,
+      "term_hits": {
+        "llama-3": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "llama 3": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "405b": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "h100": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "16,000": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "utility": {
+          "hit_count": 4,
+          "matched_passage_ids": [
+            "papers/edge2024_graphrag.pdf::chunk_020",
+            "papers/ho2020_ddpm.pdf::chunk_029",
+            "papers/wei2022_chainofthought.pdf::chunk_011",
+            "papers/wei2022_chainofthought.pdf::chunk_023"
+          ]
+        },
+        "dollar": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "electricity": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        }
+      },
+      "verified_corpus_unanswerable": true
+    },
+    {
+      "query_id": "Q-S5A-11",
+      "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
+      "premise_classification": "UNSUPPORTED_FACTUAL_PREMISE_AND_OUT_OF_CORPUS",
+      "corpus_passages_searched": 713,
+      "term_hits": {
+        "cisco": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "catalyst": {
+          "hit_count": 1,
+          "matched_passage_ids": [
+            "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1"
+          ]
+        },
+        "9300": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "cve-": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "buffer overflow": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        },
+        "firmware": {
+          "hit_count": 0,
+          "matched_passage_ids": []
+        }
+      },
+      "verified_corpus_unanswerable": true
+    }
+  ]
+}

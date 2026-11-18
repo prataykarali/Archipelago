@@ -1,0 +1,16 @@
+{
+  "audit_name": "S5-B2 Provenance Audit of pilot/silberschatz_3nf_card.txt",
+  "date": "2026-11-18",
+  "passage_id": "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001",
+  "doc_id": "pilot/silberschatz_3nf_card.txt",
+  "chunk_id": "third_normal_form_seed_001",
+  "page_number": 1,
+  "content_sha256": "e379cc01fc710dbb49265eae6748e9ac51cd382b2fa0dcfe1d32aacf974aa1cd",
+  "text_length_chars": 363,
+  "source_script": "scripts/ops/seed_soference_catalog.py",
+  "defined_in_hand_chunks": true,
+  "source_pdfs_list_empty": true,
+  "classification": "CONSTRUCTED_PILOT_ANSWER_CARD",
+  "finding": "pilot/silberschatz_3nf_card.txt is NOT extracted from a Silberschatz PDF. It is a hand-authored 363-character pilot shelf card defined in scripts/ops/seed_soference_catalog.py under `hand_chunks` with `pdfs: []` and status `available (pilot shelf seed)`. It is also the sole passage in the 713-passage corpus mentioning 3NF or transitive dependencies.",
+  "recommendation": "HOLD / EXCLUDE from primary source-derived retrieval evaluation unless explicitly separated as a synthetic seed control."
+}

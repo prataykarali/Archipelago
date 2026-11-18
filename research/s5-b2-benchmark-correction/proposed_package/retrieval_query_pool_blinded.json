@@ -1,0 +1,320 @@
+{
+  "version": "s5b2_proposed_v2.0_pending_approval",
+  "status": "PROPOSED_PENDING_INVESTIGATOR_APPROVAL",
+  "randomization_seed": 20261119,
+  "candidate_ordering_policy": "deterministic_prng_shuffle_from_lexicographical",
+  "queries_count": 10,
+  "total_candidate_pairs": 25,
+  "domains": [
+    "AI & Machine Learning",
+    "Computer Networks",
+    "Operating Systems"
+  ],
+  "queries": [
+    {
+      "query_id": "Q-S5B2-01",
+      "domain": "Operating Systems",
+      "query_text": "What is an address space and why does the operating system provide it to running programs?",
+      "candidate_count": 3,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-001",
+          "presentation_order": 1,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf",
+          "candidate_chunk_id": "paging_seed_002",
+          "candidate_page_number": 2,
+          "passage_sha256": "b07aec8e9352b0f9b4ad89493f779826e9b6486d9b23b57cd0af0c3777075889"
+        },
+        {
+          "pair_id": "S5B2-PAIR-002",
+          "presentation_order": 2,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf",
+          "candidate_chunk_id": "paging_seed_005",
+          "candidate_page_number": 2,
+          "passage_sha256": "8be2a7aa50650d2cb6f6d9299ba64f367245e65d9ef62d476605d8679f541eb5"
+        },
+        {
+          "pair_id": "S5B2-PAIR-003",
+          "presentation_order": 3,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf",
+          "candidate_chunk_id": "virtual_memory_seed_003",
+          "candidate_page_number": 3,
+          "passage_sha256": "a464ab0746e77e77284272ced733efb0386753c44da2c179155882a3a80518e7"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-02",
+      "domain": "Operating Systems",
+      "query_text": "How does hardware-based address translation extend limited direct execution to virtualize memory while preserving OS control and efficiency?",
+      "candidate_count": 3,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-004",
+          "presentation_order": 1,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf",
+          "candidate_chunk_id": "paging_seed_001",
+          "candidate_page_number": 1,
+          "passage_sha256": "2f4070151cd40feecb386cb9ea240a09c4edd19c4439e338484035d8569703f4"
+        },
+        {
+          "pair_id": "S5B2-PAIR-005",
+          "presentation_order": 2,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf",
+          "candidate_chunk_id": "virtual_memory_seed_005",
+          "candidate_page_number": 2,
+          "passage_sha256": "4cd80efc612767863794d81be9bba1ca4791e5cc19a274ff46c587d3b98c7c13"
+        },
+        {
+          "pair_id": "S5B2-PAIR-006",
+          "presentation_order": 3,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf",
+          "candidate_chunk_id": "virtual_memory_seed_004",
+          "candidate_page_number": 1,
+          "passage_sha256": "84e767aa8a1607c29764d2cd96a62835e10ac058e4c697d6fcb75e42313ef7d9"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-03",
+      "domain": "Operating Systems",
+      "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-007",
+          "presentation_order": 1,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf",
+          "candidate_chunk_id": "paging_seed_001",
+          "candidate_page_number": 1,
+          "passage_sha256": "2f4070151cd40feecb386cb9ea240a09c4edd19c4439e338484035d8569703f4"
+        },
+        {
+          "pair_id": "S5B2-PAIR-008",
+          "presentation_order": 2,
+          "candidate_passage_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+          "candidate_doc_id": "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf",
+          "candidate_chunk_id": "paging_seed_003",
+          "candidate_page_number": 3,
+          "passage_sha256": "2acb7546a5c9fc69762f2dc53a440bad6802ee2ba5653d86bbda3216dcddf192"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-04",
+      "domain": "AI & Machine Learning",
+      "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
+      "candidate_count": 3,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-009",
+          "presentation_order": 1,
+          "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+          "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "candidate_chunk_id": "chunk_011",
+          "candidate_page_number": 4,
+          "passage_sha256": "cd4fa6142de3e5d7a81c976ee418b3f30112a251dc7778295efb2c7f224ea7a8"
+        },
+        {
+          "pair_id": "S5B2-PAIR-010",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/bahdanau2014_attention.pdf::chunk_005",
+          "candidate_doc_id": "papers/bahdanau2014_attention.pdf",
+          "candidate_chunk_id": "chunk_005",
+          "candidate_page_number": 2,
+          "passage_sha256": "a82d1311f3ef3c9310a241baa686e0fc1c9db8301ca620b0fb35448e47ab4cee"
+        },
+        {
+          "pair_id": "S5B2-PAIR-011",
+          "presentation_order": 3,
+          "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+          "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "candidate_chunk_id": "chunk_010",
+          "candidate_page_number": 4,
+          "passage_sha256": "b6e3eaf9452ccdb8ded015f9ee2e9d70d9a2b1e328c56ef6b61ebf4f4dc717a9"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-05",
+      "domain": "AI & Machine Learning",
+      "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
+      "candidate_count": 3,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-012",
+          "presentation_order": 1,
+          "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+          "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "candidate_chunk_id": "chunk_012",
+          "candidate_page_number": 5,
+          "passage_sha256": "d4551e47ac4d0bc5090787104a909e4d0f8ba351a5755767c449049581d8ab7c"
+        },
+        {
+          "pair_id": "S5B2-PAIR-013",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/devlin2018_bert.pdf::chunk_003",
+          "candidate_doc_id": "papers/devlin2018_bert.pdf",
+          "candidate_chunk_id": "chunk_003",
+          "candidate_page_number": 1,
+          "passage_sha256": "cf0c5ae9101fa42e590f69d04ab2b248939750a43873251903359505c9c75ed6"
+        },
+        {
+          "pair_id": "S5B2-PAIR-014",
+          "presentation_order": 3,
+          "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+          "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "candidate_chunk_id": "chunk_011",
+          "candidate_page_number": 4,
+          "passage_sha256": "cd4fa6142de3e5d7a81c976ee418b3f30112a251dc7778295efb2c7f224ea7a8"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-06",
+      "domain": "AI & Machine Learning",
+      "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-015",
+          "presentation_order": 1,
+          "candidate_passage_id": "papers/hu2021_lora.pdf::chunk_005",
+          "candidate_doc_id": "papers/hu2021_lora.pdf",
+          "candidate_chunk_id": "chunk_005",
+          "candidate_page_number": 2,
+          "passage_sha256": "3136d35683ac695eb528ae258cc3fa6d3c39172350265a4a5be1f2fa93e7cc70"
+        },
+        {
+          "pair_id": "S5B2-PAIR-016",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/dettmers2023_qlora.pdf::chunk_005",
+          "candidate_doc_id": "papers/dettmers2023_qlora.pdf",
+          "candidate_chunk_id": "chunk_005",
+          "candidate_page_number": 2,
+          "passage_sha256": "844ca813add935011b8ec440ea23e4faf49d0ac58d6d380771b9329235523353"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-07",
+      "domain": "AI & Machine Learning",
+      "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-017",
+          "presentation_order": 1,
+          "candidate_passage_id": "papers/dettmers2023_qlora.pdf::chunk_005",
+          "candidate_doc_id": "papers/dettmers2023_qlora.pdf",
+          "candidate_chunk_id": "chunk_005",
+          "candidate_page_number": 2,
+          "passage_sha256": "844ca813add935011b8ec440ea23e4faf49d0ac58d6d380771b9329235523353"
+        },
+        {
+          "pair_id": "S5B2-PAIR-018",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+          "candidate_doc_id": "papers/vaswani2017_attention_is_all_you_need.pdf",
+          "candidate_chunk_id": "chunk_008",
+          "candidate_page_number": 2,
+          "passage_sha256": "dd9299568d68fc09d6c5124c14933f80eaec05a7a8a8f8fffcac344bfb06e134"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-08",
+      "domain": "AI & Machine Learning",
+      "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-019",
+          "presentation_order": 1,
+          "candidate_passage_id": "papers/dettmers2023_qlora.pdf::chunk_006",
+          "candidate_doc_id": "papers/dettmers2023_qlora.pdf",
+          "candidate_chunk_id": "chunk_006",
+          "candidate_page_number": 2,
+          "passage_sha256": "6a5786a522cb7331356730b780a19aa45bf6c90883f7696163cf68b70927ab82"
+        },
+        {
+          "pair_id": "S5B2-PAIR-020",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/brown2020_gpt3.pdf::chunk_029",
+          "candidate_doc_id": "papers/brown2020_gpt3.pdf",
+          "candidate_chunk_id": "chunk_029",
+          "candidate_page_number": 10,
+          "passage_sha256": "7c63901168b6d0b368041d4b5d2e27eee4b717479c8957b12068c4a8e40bfb4a"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-10",
+      "domain": "Computer Networks",
+      "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
+      "candidate_count": 3,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-021",
+          "presentation_order": 1,
+          "candidate_passage_id": "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+          "candidate_doc_id": "doc_computer_networks_6_e",
+          "candidate_chunk_id": "doc_computer_networks_6_e_p198_2",
+          "candidate_page_number": 198,
+          "passage_sha256": "5d495a43cbd6e33b6b0670278745a3c155c59a17d98244f77fa6d42b783d5ffd"
+        },
+        {
+          "pair_id": "S5B2-PAIR-022",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_005",
+          "candidate_page_number": 1,
+          "passage_sha256": "b452afd1d20658f74b3b7ee9de965a6b172ae2717cb615769371a58b6b450153"
+        },
+        {
+          "pair_id": "S5B2-PAIR-023",
+          "presentation_order": 3,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_008",
+          "candidate_page_number": 2,
+          "passage_sha256": "ad7be9759e3cbc2918a10fbbb6e245de26f5dd21158d34d2dc5e8e0debbb9a64"
+        }
+      ]
+    },
+    {
+      "query_id": "Q-S5B2-11",
+      "domain": "Computer Networks",
+      "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "pair_id": "S5B2-PAIR-024",
+          "presentation_order": 1,
+          "candidate_passage_id": "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+          "candidate_doc_id": "doc_computer_networks_6_e",
+          "candidate_chunk_id": "doc_computer_networks_6_e_p198_2",
+          "candidate_page_number": 198,
+          "passage_sha256": "5d495a43cbd6e33b6b0670278745a3c155c59a17d98244f77fa6d42b783d5ffd"
+        },
+        {
+          "pair_id": "S5B2-PAIR-025",
+          "presentation_order": 2,
+          "candidate_passage_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006",
+          "candidate_doc_id": "papers/real-time network security: integrating ann and dynamic graph-based.pdf",
+          "candidate_chunk_id": "chunk_006",
+          "candidate_page_number": 2,
+          "passage_sha256": "405706259f867fce441d9432e76f1cd940261b2016767e164f2dfd196f4fdcb1"
+        }
+      ]
+    }
+  ]
+}

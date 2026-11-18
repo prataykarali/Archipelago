@@ -1,0 +1,232 @@
+[
+  {
+    "query_id": "Q-S5A-01",
+    "domain": "Operating Systems",
+    "original_question": "What is an address space and why does the operating system provide it to running programs?",
+    "s5b1_candidate_passage_ids": [
+      "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+      "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+    ],
+    "proposed_candidate_passage_ids": [
+      "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+      "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+    ],
+    "evidence_sufficiency": "SUFFICIENT (with minor truncation of Section 13.3 bottom; virtual_memory_seed_003 defines address space and paging_seed_005 explains time-sharing motivation)",
+    "hop_requirement": "SINGLE_HOP (or two-passage within 06_address_spaces.pdf)",
+    "complete_answer_elsewhere_in_713_corpus": false,
+    "decision": "KEEP",
+    "justification": "Investigator audit confirmed Q01 is retained unchanged."
+  },
+  {
+    "query_id": "Q-S5A-02",
+    "domain": "Operating Systems",
+    "original_question": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
+    "s5b1_candidate_passage_ids": [
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+      "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+      "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004"
+    ],
+    "proposed_candidate_passage_ids": [
+      "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+      "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001"
+    ],
+    "evidence_sufficiency": "INSUFFICIENT FOR ORIGINAL WORDING (0 occurrences of 'base and bounds', 'bounds register', or 'dynamic relocation' in 713-passage corpus); SUFFICIENT FOR REVISED WORDING via virtual_memory_seed_004 + virtual_memory_seed_005.",
+    "hop_requirement": "TWO_HOP (two passages in 07_address_translation.pdf: LDE goals -> hardware-based address translation mechanism)",
+    "complete_answer_elsewhere_in_713_corpus": false,
+    "decision": "REVISE",
+    "revised_question": "How does hardware-based address translation extend limited direct execution to virtualize memory while preserving OS control and efficiency?",
+    "justification": "Exhaustive search of all 713 passages shows base-and-bounds registers are absent from the extracted OSTEP Chapter 15 chunks (only pp. 1-2 were extracted). Adding virtual_memory_seed_005 (p.2) and revising the question to match the extracted LDE + address translation text makes it genuinely answerable."
+  },
+  {
+    "query_id": "Q-S5A-03",
+    "domain": "Operating Systems",
+    "original_question": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
+    "s5b1_candidate_passage_ids": [
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001"
+    ],
+    "proposed_candidate_passage_ids": [
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+      "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001"
+    ],
+    "evidence_sufficiency": "UNANSWERABLE_IN_CORPUS (0 hits for Cortex, A78, nanosecond, walk latency, multi-level page)",
+    "hop_requirement": "NEGATIVE_CONTROL (unanswerable)",
+    "complete_answer_elsewhere_in_713_corpus": false,
+    "decision": "KEEP",
+    "justification": "Verified corpus-unanswerable negative control: ARM Cortex-A78 is a real microarchitecture, but zero hardware walk-latency data exists anywhere in the 713-passage corpus."
+  },
+  {
+    "query_id": "Q-S5A-04",
+    "domain": "AI & Machine Learning",
+    "original_question": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
+    "s5b1_candidate_passage_ids": [
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+      "papers/bahdanau2014_attention.pdf::chunk_005"
+    ],
+    "proposed_candidate_passage_ids": [
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+      "papers/bahdanau2014_attention.pdf::chunk_005"
+    ],
+    "evidence_sufficiency": "MISSING IN S5-B1 POOL (chunk_010 only has section heading); COMPLETE IN CORPUS via papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011.",
+    "hop_requirement": "SINGLE_HOP",
+    "complete_answer_elsewhere_in_713_corpus": true,
+    "decision": "REVISE",
+    "justification": "Corpus search located the exact Scaled Dot-Product Attention formula Attention(Q, K, V) = softmax(Q K^T / sqrt(d_k)) V in vaswani2017::chunk_011 (p.4). Adding chunk_011 fixes the off-by-one chunk error."
+  },
+  {
+    "query_id": "Q-S5A-05",
+    "domain": "AI & Machine Learning",
+    "original_question": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
+    "s5b1_candidate_passage_ids": [
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+      "papers/devlin2018_bert.pdf::chunk_003"
+    ],
+    "proposed_candidate_passage_ids": [
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+      "papers/devlin2018_bert.pdf::chunk_003"
+    ],
+    "evidence_sufficiency": "MISSING IN S5-B1 POOL (chunk_010/011 lack MultiHead equation); COMPLETE IN CORPUS via vaswani2017::chunk_011 + chunk_012.",
+    "hop_requirement": "TWO_HOP (chunk_011 defines Scaled Dot-Product Attention; chunk_012 defines MultiHead(Q,K,V)=Concat(head_1..head_h)W^O and projection matrices)",
+    "complete_answer_elsewhere_in_713_corpus": true,
+    "decision": "REVISE",
+    "justification": "Corpus search located Multi-Head Attention projection matrices and Concat formula in vaswani2017::chunk_012 (p.5). Replacing chunk_010 with chunk_012 yields a complete two-passage pair."
+  },
+  {
+    "query_id": "Q-S5A-06",
+    "domain": "AI & Machine Learning",
+    "original_question": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
+    "s5b1_candidate_passage_ids": [
+      "papers/dettmers2023_qlora.pdf::chunk_005",
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_007",
+      "papers/hu2021_lora.pdf::chunk_005"
+    ],
+    "proposed_candidate_passage_ids": [
+      "papers/hu2021_lora.pdf::chunk_005",
+      "papers/dettmers2023_qlora.pdf::chunk_005"
+    ],
+    "evidence_sufficiency": "SUFFICIENT IN hu2021_lora.pdf::chunk_005 (vaswani2017::chunk_007 is unnecessary and does not define W_q, W_k, W_v).",
+    "hop_requirement": "SINGLE_HOP (reclassified from artificially forced CROSS_DOCUMENT)",
+    "complete_answer_elsewhere_in_713_corpus": true,
+    "decision": "REVISE",
+    "justification": "Reclassify from CROSS_DOCUMENT to SINGLE_HOP. hu2021_lora::chunk_005 already defines frozen W_0, rank r, Delta W, and W_q/W_k/W_v/W_o; vaswani2017::chunk_007 only introduces Transformer motivation without weight matrices."
+  },
+  {
+    "query_id": "Q-S5A-07",
+    "domain": "AI & Machine Learning",
+    "original_question": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
+    "s5b1_candidate_passage_ids": [
+      "papers/dettmers2023_qlora.pdf::chunk_005",
+      "papers/hu2021_lora.pdf::chunk_005",
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008"
+    ],
+    "proposed_candidate_passage_ids": [
+      "papers/dettmers2023_qlora.pdf::chunk_005",
+      "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008"
+    ],
+    "evidence_sufficiency": "SUFFICIENT IN SINGLE PASSAGE (dettmers2023_qlora.pdf::chunk_005 explains NF4, Double Quantization, Paged Optimizers, and LoRA adapters).",
+    "hop_requirement": "SINGLE_HOP (reclassified from artificially forced CROSS_DOCUMENT)",
+    "complete_answer_elsewhere_in_713_corpus": true,
+    "decision": "REVISE",
+    "justification": "Reclassify from CROSS_DOCUMENT to SINGLE_HOP. dettmers2023_qlora::chunk_005 is self-contained and answers the full question without requiring hu2021_lora::chunk_005."
+  },
+  {
+    "query_id": "Q-S5A-08",
+    "domain": "AI & Machine Learning",
+    "original_question": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
+    "s5b1_candidate_passage_ids": [
+      "papers/dettmers2023_qlora.pdf::chunk_006",
+      "papers/brown2020_gpt3.pdf::chunk_029"
+    ],
+    "proposed_candidate_passage_ids": [
+      "papers/dettmers2023_qlora.pdf::chunk_006",
+      "papers/brown2020_gpt3.pdf::chunk_029"
+    ],
+    "evidence_sufficiency": "UNANSWERABLE_IN_CORPUS (0 hits for LLaMA-3, 405B, H100, 16,000, dollar, electricity)",
+    "hop_requirement": "NEGATIVE_CONTROL (unanswerable + unsupported factual premise)",
+    "complete_answer_elsewhere_in_713_corpus": false,
+    "decision": "KEEP",
+    "justification": "Verified corpus-unanswerable negative control; also carries an unsupported factual premise (exact electric utility bills are not reported in corpus or model literature)."
+  },
+  {
+    "query_id": "Q-S5A-09",
+    "domain": "Computer Networks",
+    "original_question": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
+    "s5b1_candidate_passage_ids": [
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_002",
+      "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1"
+    ],
+    "proposed_candidate_passage_ids": [
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_002",
+      "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1"
+    ],
+    "evidence_sufficiency": "TRUNCATED_SOURCE_INCOMPLETE (doc_computer_networks_6_e_p42_1 is 285 chars, cuts off mid-word at Layer 2 'facility in'; Layers 3-7 are completely absent from corpus).",
+    "hop_requirement": "HOLD_INGESTION_DEFECT",
+    "complete_answer_elsewhere_in_713_corpus": false,
+    "decision": "HOLD",
+    "justification": "Source extraction truncated the textbook stub at 285 characters after Layer 2 (Data Link). Layers 3-7 (Network, Transport, Session, Presentation, Application) do not exist anywhere in okf_graph.db. Hold/exclude from answerable scoring."
+  },
+  {
+    "query_id": "Q-S5A-10",
+    "domain": "Computer Networks",
+    "original_question": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
+    "s5b1_candidate_passage_ids": [
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+      "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008"
+    ],
+    "proposed_candidate_passage_ids": [
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+      "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2"
+    ],
+    "evidence_sufficiency": "SUFFICIENT (chunk_005 states traditional whole-traffic latency + signature-based zero-day gap; chunk_008 states D-MAGIC/SAGA GNN embeddings + packet-by-packet real-time detection).",
+    "hop_requirement": "TWO_HOP (same-document multi-passage synthesis: chunk_005 + chunk_008)",
+    "complete_answer_elsewhere_in_713_corpus": true,
+    "decision": "KEEP",
+    "justification": "Legitimate same-document two-passage (two-hop) synthesis within Simhon et al. (2026); retain with explicit note that both premises reside in one paper."
+  },
+  {
+    "query_id": "Q-S5A-11",
+    "domain": "Computer Networks",
+    "original_question": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
+    "s5b1_candidate_passage_ids": [
+      "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006"
+    ],
+    "proposed_candidate_passage_ids": [
+      "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+      "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006"
+    ],
+    "evidence_sufficiency": "UNANSWERABLE_IN_CORPUS (0 hits for Cisco, 9300, CVE, buffer overflow, firmware; 1 unrelated biochemistry hit for 'catalyst')",
+    "hop_requirement": "NEGATIVE_CONTROL (unanswerable + unsupported factual premise)",
+    "complete_answer_elsewhere_in_713_corpus": false,
+    "decision": "KEEP",
+    "justification": "Verified corpus-unanswerable negative control with an unverified/synthetic 2025 Cisco CVE premise."
+  },
+  {
+    "query_id": "Q-S5A-12",
+    "domain": "Database Management Systems",
+    "original_question": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
+    "s5b1_candidate_passage_ids": [
+      "papers/willard2023_outlines.pdf::chunk_005",
+      "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+      "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001"
+    ],
+    "proposed_candidate_passage_ids": [
+      "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001",
+      "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+      "papers/willard2023_outlines.pdf::chunk_005"
+    ],
+    "evidence_sufficiency": "CONSTRUCTED_PILOT_CARD_ONLY (pilot/silberschatz_3nf_card.txt is a hand-authored seed card in seed_soference_catalog.py, not PDF-extracted; doc_fundamentals_of_database_system_7e_p145_1 does not mention 3NF or functional dependencies).",
+    "hop_requirement": "HOLD_PROVENANCE_DEFECT (was artificially forced TWO_HOP; only 1 constructed card mentions 3NF)",
+    "complete_answer_elsewhere_in_713_corpus": false,
+    "decision": "HOLD",
+    "justification": "Provenance audit shows pilot/silberschatz_3nf_card.txt is a constructed pilot shelf card (`hand_chunks`, `pdfs: []`) and no extracted DBMS textbook chunk in the 713-passage corpus covers 3NF. Hold/exclude from primary source-grounded evaluation."
+  }
+]

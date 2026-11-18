@@ -1,0 +1,1290 @@
+{
+  "audit_name": "S5-B2 Evaluation-Pool Coverage Audit Against Frozen Top-K Outputs",
+  "date": "2026-11-18",
+  "source_report": "research/s5-b1-integrity-repair/reports/retrieval_technical_evaluation_report.json",
+  "policy": "Unjudged retrieved passages MUST NOT be treated as irrelevant; Recall@k, MRR, and nDCG MUST NOT be computed from incomplete judgments.",
+  "coverage": {
+    "top_5": {
+      "unique_unjudged_query_passage_pairs_across_all_6_systems": 138,
+      "systems": {
+        "bm25": {
+          "in_pool_slots": 12,
+          "total_retrieved_slots": 60,
+          "coverage_pct": 20.0,
+          "unjudged_slots": 48,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+            ],
+            "Q-S5A-03": [
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/edge2024_graphrag.pdf::chunk_038",
+              "papers/yao2022_react.pdf::chunk_018"
+            ],
+            "Q-S5A-04": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1"
+            ],
+            "Q-S5A-06": [
+              "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+              "papers/hu2021_lora.pdf::chunk_004",
+              "papers/hu2021_lora.pdf::chunk_027",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/hu2021_lora.pdf::chunk_012"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::chunk_011",
+              "papers/dettmers2023_qlora.pdf::chunk_015"
+            ],
+            "Q-S5A-08": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_023",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_025",
+              "papers/dettmers2023_qlora.pdf::chunk_020"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004"
+            ],
+            "Q-S5A-10": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007"
+            ],
+            "Q-S5A-11": [
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/brown2020_gpt3.pdf::chunk_008",
+              "papers/brown2020_gpt3.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "papers/brown2020_gpt3.pdf::chunk_018"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+              "papers/kipf2016_gcn.pdf::chunk_018",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017"
+            ]
+          }
+        },
+        "dense_snowflake_arctic_768d": {
+          "in_pool_slots": 13,
+          "total_retrieved_slots": 60,
+          "coverage_pct": 21.67,
+          "unjudged_slots": 47,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003"
+            ],
+            "Q-S5A-03": [
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/kwon2023_vllm.pdf::chunk_023",
+              "papers/kwon2023_vllm.pdf::chunk_013",
+              "papers/kipf2016_gcn.pdf::chunk_019",
+              "papers/edge2024_graphrag.pdf::chunk_031"
+            ],
+            "Q-S5A-04": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1"
+            ],
+            "Q-S5A-06": [
+              "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/hu2021_lora.pdf::chunk_027",
+              "papers/hu2021_lora.pdf::chunk_019"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_016",
+              "papers/dettmers2023_qlora.pdf::chunk_011",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_003"
+            ],
+            "Q-S5A-08": [
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_026"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_015",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014"
+            ],
+            "Q-S5A-10": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003"
+            ],
+            "Q-S5A-11": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_029",
+              "papers/edge2024_graphrag.pdf::chunk_031",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_037"
+            ]
+          }
+        },
+        "hybrid_rrf_e2e": {
+          "in_pool_slots": 14,
+          "total_retrieved_slots": 60,
+          "coverage_pct": 23.33,
+          "unjudged_slots": 46,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+            ],
+            "Q-S5A-03": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/edge2024_graphrag.pdf::chunk_031"
+            ],
+            "Q-S5A-04": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1"
+            ],
+            "Q-S5A-06": [
+              "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/hu2021_lora.pdf::chunk_027",
+              "papers/hu2021_lora.pdf::chunk_004"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_011",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::chunk_015"
+            ],
+            "Q-S5A-08": [
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/dettmers2023_qlora.pdf::chunk_002"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_015",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014"
+            ],
+            "Q-S5A-10": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003"
+            ],
+            "Q-S5A-11": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "upload_17869808::upload_17869808_p1_0",
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+              "papers/brown2020_gpt3.pdf::chunk_008"
+            ],
+            "Q-S5A-12": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/hochreiter1997_lstm.pdf::chunk_017",
+              "papers/willard2023_outlines.pdf::chunk_012"
+            ]
+          }
+        },
+        "baseline_graph_1hop": {
+          "in_pool_slots": 4,
+          "total_retrieved_slots": 44,
+          "coverage_pct": 9.09,
+          "unjudged_slots": 40,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004"
+            ],
+            "Q-S5A-02": [
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/hochreiter1997_lstm.pdf::chunk_014",
+              "papers/hochreiter1997_lstm.pdf::chunk_015",
+              "papers/hochreiter1997_lstm.pdf::chunk_018",
+              "papers/ouyang2022_instructgpt.pdf::chunk_012"
+            ],
+            "Q-S5A-03": [
+              "papers/yao2022_react.pdf::chunk_031"
+            ],
+            "Q-S5A-04": [
+              "papers/hu2021_lora.pdf::chunk_005",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/bahdanau2014_attention.pdf::chunk_008",
+              "papers/bahdanau2014_attention.pdf::chunk_009"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
+              "papers/velickovic2017_gat.pdf::chunk_013",
+              "papers/velickovic2017_gat.pdf::chunk_014",
+              "papers/hochreiter1997_lstm.pdf::chunk_018",
+              "papers/kwon2023_vllm.pdf::chunk_026"
+            ],
+            "Q-S5A-06": [
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/devlin2018_bert.pdf::chunk_010",
+              "papers/hu2021_lora.pdf::chunk_020",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008"
+            ],
+            "Q-S5A-07": [
+              "papers/devlin2018_bert.pdf::chunk_020",
+              "papers/hu2021_lora.pdf::chunk_012",
+              "papers/devlin2018_bert.pdf::chunk_007",
+              "papers/devlin2018_bert.pdf::chunk_022",
+              "papers/devlin2018_bert.pdf::chunk_024"
+            ],
+            "Q-S5A-08": [
+              "papers/kwon2023_vllm.pdf::chunk_008"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004"
+            ],
+            "Q-S5A-10": [
+              "papers/kipf2016_gcn.pdf::chunk_002",
+              "papers/kipf2016_gcn.pdf::chunk_003",
+              "papers/kipf2016_gcn.pdf::chunk_026",
+              "papers/kipf2016_gcn.pdf::chunk_027",
+              "papers/velickovic2017_gat.pdf::chunk_003"
+            ],
+            "Q-S5A-11": [
+              "papers/yao2022_react.pdf::chunk_031"
+            ]
+          }
+        },
+        "repaired_graph_1hop_ablation": {
+          "in_pool_slots": 8,
+          "total_retrieved_slots": 60,
+          "coverage_pct": 13.33,
+          "unjudged_slots": 52,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+            ],
+            "Q-S5A-03": [
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/edge2024_graphrag.pdf::chunk_038",
+              "papers/yao2022_react.pdf::chunk_018"
+            ],
+            "Q-S5A-04": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031"
+            ],
+            "Q-S5A-05": [
+              "upload_17869808::upload_17869808_p4_4",
+              "papers/bahdanau2014_attention.pdf::chunk_010",
+              "papers/dettmers2023_qlora.pdf::chunk_016",
+              "papers/devlin2018_bert.pdf::chunk_031"
+            ],
+            "Q-S5A-06": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_003",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001"
+            ],
+            "Q-S5A-08": [
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004"
+            ],
+            "Q-S5A-10": [
+              "papers/bahdanau2014_attention.pdf::chunk_013",
+              "papers/bahdanau2014_attention.pdf::chunk_023",
+              "papers/bahdanau2014_attention.pdf::chunk_026",
+              "papers/kingma2013_vae.pdf::chunk_023",
+              "papers/kingma2013_vae.pdf::chunk_025"
+            ],
+            "Q-S5A-11": [
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/brown2020_gpt3.pdf::chunk_008",
+              "papers/brown2020_gpt3.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "papers/brown2020_gpt3.pdf::chunk_018"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+              "papers/kipf2016_gcn.pdf::chunk_018",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017"
+            ]
+          }
+        },
+        "repaired_graph_2hop_full": {
+          "in_pool_slots": 7,
+          "total_retrieved_slots": 60,
+          "coverage_pct": 11.67,
+          "unjudged_slots": 53,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+            ],
+            "Q-S5A-03": [
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/edge2024_graphrag.pdf::chunk_038",
+              "papers/yao2022_react.pdf::chunk_018"
+            ],
+            "Q-S5A-04": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031"
+            ],
+            "Q-S5A-05": [
+              "papers/bahdanau2014_attention.pdf::chunk_010",
+              "papers/dettmers2023_qlora.pdf::chunk_016",
+              "papers/lewis2020_rag.pdf::chunk_033",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004"
+            ],
+            "Q-S5A-06": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_002"
+            ],
+            "Q-S5A-08": [
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004"
+            ],
+            "Q-S5A-10": [
+              "papers/bahdanau2014_attention.pdf::chunk_013",
+              "papers/bahdanau2014_attention.pdf::chunk_023",
+              "papers/bahdanau2014_attention.pdf::chunk_026",
+              "papers/kingma2013_vae.pdf::chunk_023",
+              "papers/kingma2013_vae.pdf::chunk_025"
+            ],
+            "Q-S5A-11": [
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/brown2020_gpt3.pdf::chunk_008",
+              "papers/brown2020_gpt3.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "papers/brown2020_gpt3.pdf::chunk_018"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+              "papers/kipf2016_gcn.pdf::chunk_018",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017"
+            ]
+          }
+        }
+      }
+    },
+    "top_10": {
+      "unique_unjudged_query_passage_pairs_across_all_6_systems": 277,
+      "systems": {
+        "bm25": {
+          "in_pool_slots": 16,
+          "total_retrieved_slots": 120,
+          "coverage_pct": 13.33,
+          "unjudged_slots": 104,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "papers/kwon2023_vllm.pdf::chunk_020",
+              "papers/kwon2023_vllm.pdf::chunk_007",
+              "papers/kwon2023_vllm.pdf::paged_attention_seed_001"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_022",
+              "doc_operating_systems_internals_and_design::doc_operating_systems_internals_and_design_p315_1",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+              "papers/kwon2023_vllm.pdf::chunk_023"
+            ],
+            "Q-S5A-03": [
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/edge2024_graphrag.pdf::chunk_038",
+              "papers/yao2022_react.pdf::chunk_018",
+              "papers/karpukhin2020_dpr.pdf::chunk_032",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_012",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/yao2022_react.pdf::chunk_033"
+            ],
+            "Q-S5A-04": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/bahdanau2014_attention.pdf::chunk_031",
+              "papers/kwon2023_vllm.pdf::paged_attention_seed_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_005",
+              "papers/hu2021_lora.pdf::chunk_013"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/velickovic2017_gat.pdf::chunk_012",
+              "papers/velickovic2017_gat.pdf::chunk_014",
+              "papers/hu2021_lora.pdf::chunk_013",
+              "papers/hu2021_lora.pdf::chunk_028"
+            ],
+            "Q-S5A-06": [
+              "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+              "papers/hu2021_lora.pdf::chunk_004",
+              "papers/hu2021_lora.pdf::chunk_027",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/hu2021_lora.pdf::chunk_012",
+              "papers/hu2021_lora.pdf::chunk_030",
+              "papers/hu2021_lora.pdf::chunk_011",
+              "papers/hu2021_lora.pdf::chunk_034",
+              "papers/dettmers2023_qlora.pdf::chunk_009"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::chunk_011",
+              "papers/dettmers2023_qlora.pdf::chunk_015",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/dettmers2023_qlora.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/dettmers2023_qlora.pdf::chunk_003",
+              "papers/dettmers2023_qlora.pdf::chunk_013"
+            ],
+            "Q-S5A-08": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_023",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_025",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/dettmers2023_qlora.pdf::chunk_018",
+              "papers/willard2023_outlines.pdf::chunk_011",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_016"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_027",
+              "papers/willard2023_outlines.pdf::chunk_006",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_017",
+              "papers/willard2023_outlines.pdf::chunk_003",
+              "papers/bahdanau2014_attention.pdf::chunk_029"
+            ],
+            "Q-S5A-10": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_019",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_024",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_022",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_044"
+            ],
+            "Q-S5A-11": [
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/brown2020_gpt3.pdf::chunk_008",
+              "papers/brown2020_gpt3.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/hochreiter1997_lstm.pdf::chunk_027",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_038",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_037",
+              "papers/willard2023_outlines.pdf::chunk_011",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_038"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+              "papers/kipf2016_gcn.pdf::chunk_018",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007",
+              "papers/kipf2016_gcn.pdf::chunk_004",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_056",
+              "papers/rafailov2023_dpo.pdf::chunk_035",
+              "papers/willard2023_outlines.pdf::chunk_012"
+            ]
+          }
+        },
+        "dense_snowflake_arctic_768d": {
+          "in_pool_slots": 15,
+          "total_retrieved_slots": 120,
+          "coverage_pct": 12.5,
+          "unjudged_slots": 105,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "doc_operating_systems_internals_and_design::doc_operating_systems_internals_and_design_p315_1",
+              "papers/willard2023_outlines.pdf::chunk_012"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "doc_operating_systems_internals_and_design::doc_operating_systems_internals_and_design_p315_1",
+              "papers/kwon2023_vllm.pdf::chunk_026",
+              "papers/kwon2023_vllm.pdf::chunk_024"
+            ],
+            "Q-S5A-03": [
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/kwon2023_vllm.pdf::chunk_023",
+              "papers/kwon2023_vllm.pdf::chunk_013",
+              "papers/kipf2016_gcn.pdf::chunk_019",
+              "papers/edge2024_graphrag.pdf::chunk_031",
+              "papers/velickovic2017_gat.pdf::chunk_011",
+              "upload_17869808::upload_17869808_p4_4",
+              "papers/kwon2023_vllm.pdf::chunk_020",
+              "papers/kwon2023_vllm.pdf::chunk_019",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002"
+            ],
+            "Q-S5A-04": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "upload_17869808::upload_17869808_p1_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_005",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_007",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/kwon2023_vllm.pdf::paged_attention_seed_003"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/velickovic2017_gat.pdf::chunk_014",
+              "papers/velickovic2017_gat.pdf::chunk_012",
+              "papers/velickovic2017_gat.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "papers/velickovic2017_gat.pdf::chunk_011"
+            ],
+            "Q-S5A-06": [
+              "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/hu2021_lora.pdf::chunk_027",
+              "papers/hu2021_lora.pdf::chunk_019",
+              "papers/hu2021_lora.pdf::chunk_013",
+              "papers/hu2021_lora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_009",
+              "papers/hu2021_lora.pdf::chunk_012",
+              "papers/hu2021_lora.pdf::chunk_030"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_016",
+              "papers/dettmers2023_qlora.pdf::chunk_011",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_003",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_015",
+              "papers/dettmers2023_qlora.pdf::chunk_003"
+            ],
+            "Q-S5A-08": [
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_026",
+              "upload_17869808::upload_17869808_p2_2",
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/kwon2023_vllm.pdf::chunk_002"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_015",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_029",
+              "papers/hochreiter1997_lstm.pdf::chunk_022",
+              "papers/hu2021_lora.pdf::chunk_018",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+              "papers/hochreiter1997_lstm.pdf::chunk_019"
+            ],
+            "Q-S5A-10": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_023",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_032",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_033",
+              "papers/velickovic2017_gat.pdf::chunk_032",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_015"
+            ],
+            "Q-S5A-11": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025",
+              "papers/velickovic2017_gat.pdf::chunk_033",
+              "papers/bai2022_constitutionalai.pdf::chunk_027",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "papers/hu2021_lora.pdf::chunk_023"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_029",
+              "papers/edge2024_graphrag.pdf::chunk_031",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_037",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_028",
+              "papers/velickovic2017_gat.pdf::chunk_003",
+              "papers/bahdanau2014_attention.pdf::chunk_026",
+              "papers/kipf2016_gcn.pdf::chunk_027"
+            ]
+          }
+        },
+        "hybrid_rrf_e2e": {
+          "in_pool_slots": 16,
+          "total_retrieved_slots": 120,
+          "coverage_pct": 13.33,
+          "unjudged_slots": 104,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "papers/kwon2023_vllm.pdf::chunk_020",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "papers/willard2023_outlines.pdf::chunk_012"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+              "doc_operating_systems_internals_and_design::doc_operating_systems_internals_and_design_p315_1",
+              "papers/kwon2023_vllm.pdf::chunk_024",
+              "papers/kwon2023_vllm.pdf::chunk_026"
+            ],
+            "Q-S5A-03": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/edge2024_graphrag.pdf::chunk_031",
+              "upload_17869808::upload_17869808_p2_2",
+              "papers/ouyang2022_instructgpt.pdf::chunk_012",
+              "upload_17869808::upload_17869808_p1_0",
+              "papers/kwon2023_vllm.pdf::vllm_seed_004",
+              "papers/dettmers2023_qlora.pdf::chunk_017"
+            ],
+            "Q-S5A-04": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_005",
+              "papers/kwon2023_vllm.pdf::paged_attention_seed_003",
+              "papers/kwon2023_vllm.pdf::chunk_009",
+              "papers/hu2021_lora.pdf::chunk_013"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "papers/velickovic2017_gat.pdf::chunk_014",
+              "papers/velickovic2017_gat.pdf::chunk_012",
+              "papers/hu2021_lora.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_009"
+            ],
+            "Q-S5A-06": [
+              "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/hu2021_lora.pdf::chunk_027",
+              "papers/hu2021_lora.pdf::chunk_004",
+              "papers/hu2021_lora.pdf::chunk_012",
+              "papers/hu2021_lora.pdf::chunk_019",
+              "papers/hu2021_lora.pdf::chunk_030",
+              "papers/hu2021_lora.pdf::chunk_013",
+              "papers/dettmers2023_qlora.pdf::chunk_009"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_011",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::chunk_015",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/dettmers2023_qlora.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_016",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_003",
+              "papers/dettmers2023_qlora.pdf::chunk_003"
+            ],
+            "Q-S5A-08": [
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_018",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_023",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_025",
+              "papers/dettmers2023_qlora.pdf::chunk_003",
+              "papers/kwon2023_vllm.pdf::chunk_003"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_015",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_009",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_016",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_017",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_027",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017"
+            ],
+            "Q-S5A-10": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_033",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_015",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_044",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_024"
+            ],
+            "Q-S5A-11": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "upload_17869808::upload_17869808_p1_0",
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+              "papers/brown2020_gpt3.pdf::chunk_008",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
+              "papers/brown2020_gpt3.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+              "papers/brown2020_gpt3.pdf::chunk_018"
+            ],
+            "Q-S5A-12": [
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/hochreiter1997_lstm.pdf::chunk_017",
+              "papers/willard2023_outlines.pdf::chunk_012",
+              "papers/bai2022_constitutionalai.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_034",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_029"
+            ]
+          }
+        },
+        "baseline_graph_1hop": {
+          "in_pool_slots": 8,
+          "total_retrieved_slots": 80,
+          "coverage_pct": 10.0,
+          "unjudged_slots": 72,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "papers/kwon2023_vllm.pdf::chunk_020",
+              "papers/kwon2023_vllm.pdf::chunk_007",
+              "papers/kwon2023_vllm.pdf::paged_attention_seed_001"
+            ],
+            "Q-S5A-02": [
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/hochreiter1997_lstm.pdf::chunk_014",
+              "papers/hochreiter1997_lstm.pdf::chunk_015",
+              "papers/hochreiter1997_lstm.pdf::chunk_018",
+              "papers/ouyang2022_instructgpt.pdf::chunk_012",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_022"
+            ],
+            "Q-S5A-03": [
+              "papers/yao2022_react.pdf::chunk_031"
+            ],
+            "Q-S5A-04": [
+              "papers/hu2021_lora.pdf::chunk_005",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/bahdanau2014_attention.pdf::chunk_008",
+              "papers/bahdanau2014_attention.pdf::chunk_009",
+              "papers/bahdanau2014_attention.pdf::chunk_026",
+              "papers/bahdanau2014_attention.pdf::chunk_029",
+              "papers/brown2020_gpt3.pdf::chunk_005",
+              "papers/brown2020_gpt3.pdf::chunk_020",
+              "papers/devlin2018_bert.pdf::chunk_010"
+            ],
+            "Q-S5A-05": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
+              "papers/velickovic2017_gat.pdf::chunk_013",
+              "papers/velickovic2017_gat.pdf::chunk_014",
+              "papers/hochreiter1997_lstm.pdf::chunk_018",
+              "papers/kwon2023_vllm.pdf::chunk_026",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_006",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_009"
+            ],
+            "Q-S5A-06": [
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/devlin2018_bert.pdf::chunk_010",
+              "papers/hu2021_lora.pdf::chunk_020",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+              "papers/bahdanau2014_attention.pdf::chunk_008",
+              "papers/bahdanau2014_attention.pdf::chunk_009",
+              "papers/bahdanau2014_attention.pdf::chunk_026",
+              "papers/bahdanau2014_attention.pdf::chunk_029"
+            ],
+            "Q-S5A-07": [
+              "papers/devlin2018_bert.pdf::chunk_020",
+              "papers/hu2021_lora.pdf::chunk_012",
+              "papers/devlin2018_bert.pdf::chunk_007",
+              "papers/devlin2018_bert.pdf::chunk_022",
+              "papers/devlin2018_bert.pdf::chunk_024",
+              "papers/devlin2018_bert.pdf::chunk_028",
+              "papers/devlin2018_bert.pdf::chunk_031",
+              "papers/hu2021_lora.pdf::chunk_019",
+              "papers/ouyang2022_instructgpt.pdf::chunk_009",
+              "papers/ouyang2022_instructgpt.pdf::chunk_011"
+            ],
+            "Q-S5A-08": [
+              "papers/kwon2023_vllm.pdf::chunk_008"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_027",
+              "papers/willard2023_outlines.pdf::chunk_006",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_017",
+              "papers/willard2023_outlines.pdf::chunk_003",
+              "papers/bahdanau2014_attention.pdf::chunk_029"
+            ],
+            "Q-S5A-10": [
+              "papers/kipf2016_gcn.pdf::chunk_002",
+              "papers/kipf2016_gcn.pdf::chunk_003",
+              "papers/kipf2016_gcn.pdf::chunk_026",
+              "papers/kipf2016_gcn.pdf::chunk_027",
+              "papers/velickovic2017_gat.pdf::chunk_003",
+              "papers/velickovic2017_gat.pdf::chunk_008",
+              "papers/velickovic2017_gat.pdf::chunk_035",
+              "papers/kipf2016_gcn.pdf::chunk_005",
+              "papers/kipf2016_gcn.pdf::chunk_009",
+              "papers/kipf2016_gcn.pdf::chunk_025"
+            ],
+            "Q-S5A-11": [
+              "papers/yao2022_react.pdf::chunk_031"
+            ]
+          }
+        },
+        "repaired_graph_1hop_ablation": {
+          "in_pool_slots": 10,
+          "total_retrieved_slots": 120,
+          "coverage_pct": 8.33,
+          "unjudged_slots": 110,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "papers/kwon2023_vllm.pdf::chunk_020",
+              "papers/kwon2023_vllm.pdf::chunk_007",
+              "papers/kwon2023_vllm.pdf::paged_attention_seed_001"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_022",
+              "doc_operating_systems_internals_and_design::doc_operating_systems_internals_and_design_p315_1",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+              "papers/kwon2023_vllm.pdf::chunk_023"
+            ],
+            "Q-S5A-03": [
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/edge2024_graphrag.pdf::chunk_038",
+              "papers/yao2022_react.pdf::chunk_018",
+              "papers/karpukhin2020_dpr.pdf::chunk_032",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_012",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/yao2022_react.pdf::chunk_033"
+            ],
+            "Q-S5A-04": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_029",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_030",
+              "papers/brown2020_gpt3.pdf::chunk_020",
+              "papers/kwon2023_vllm.pdf::chunk_009",
+              "papers/devlin2018_bert.pdf::chunk_011"
+            ],
+            "Q-S5A-05": [
+              "upload_17869808::upload_17869808_p4_4",
+              "papers/bahdanau2014_attention.pdf::chunk_010",
+              "papers/dettmers2023_qlora.pdf::chunk_016",
+              "papers/devlin2018_bert.pdf::chunk_031",
+              "papers/karpukhin2020_dpr.pdf::chunk_012",
+              "papers/karpukhin2020_dpr.pdf::chunk_031",
+              "papers/lewis2020_rag.pdf::chunk_033",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004"
+            ],
+            "Q-S5A-06": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_029",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_030",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/devlin2018_bert.pdf::chunk_011",
+              "papers/hu2021_lora.pdf::chunk_023"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_003",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/dettmers2023_qlora.pdf::chunk_017",
+              "papers/dettmers2023_qlora.pdf::chunk_020"
+            ],
+            "Q-S5A-08": [
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_010",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_016"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_027",
+              "papers/willard2023_outlines.pdf::chunk_006",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_017",
+              "papers/willard2023_outlines.pdf::chunk_003",
+              "papers/bahdanau2014_attention.pdf::chunk_029"
+            ],
+            "Q-S5A-10": [
+              "papers/bahdanau2014_attention.pdf::chunk_013",
+              "papers/bahdanau2014_attention.pdf::chunk_023",
+              "papers/bahdanau2014_attention.pdf::chunk_026",
+              "papers/kingma2013_vae.pdf::chunk_023",
+              "papers/kingma2013_vae.pdf::chunk_025",
+              "papers/kingma2013_vae.pdf::chunk_028",
+              "papers/kingma2013_vae.pdf::chunk_033",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004",
+              "papers/velickovic2017_gat.pdf::chunk_034"
+            ],
+            "Q-S5A-11": [
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/brown2020_gpt3.pdf::chunk_008",
+              "papers/brown2020_gpt3.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/hochreiter1997_lstm.pdf::chunk_027",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_038",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_037",
+              "papers/willard2023_outlines.pdf::chunk_011",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_038"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+              "papers/kipf2016_gcn.pdf::chunk_018",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007",
+              "papers/kipf2016_gcn.pdf::chunk_004",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_056",
+              "papers/rafailov2023_dpo.pdf::chunk_035",
+              "papers/willard2023_outlines.pdf::chunk_012"
+            ]
+          }
+        },
+        "repaired_graph_2hop_full": {
+          "in_pool_slots": 9,
+          "total_retrieved_slots": 120,
+          "coverage_pct": 7.5,
+          "unjudged_slots": 111,
+          "unjudged_by_query": {
+            "Q-S5A-01": [
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+              "papers/kwon2023_vllm.pdf::chunk_020",
+              "papers/kwon2023_vllm.pdf::chunk_007",
+              "papers/kwon2023_vllm.pdf::paged_attention_seed_001"
+            ],
+            "Q-S5A-02": [
+              "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_022",
+              "doc_operating_systems_internals_and_design::doc_operating_systems_internals_and_design_p315_1",
+              "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+              "papers/kwon2023_vllm.pdf::chunk_023"
+            ],
+            "Q-S5A-03": [
+              "papers/kipf2016_gcn.pdf::chunk_012",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/edge2024_graphrag.pdf::chunk_038",
+              "papers/yao2022_react.pdf::chunk_018",
+              "papers/karpukhin2020_dpr.pdf::chunk_032",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_012",
+              "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/yao2022_react.pdf::chunk_033"
+            ],
+            "Q-S5A-04": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_029",
+              "papers/kwon2023_vllm.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_030",
+              "papers/devlin2018_bert.pdf::chunk_011",
+              "papers/hu2021_lora.pdf::chunk_023"
+            ],
+            "Q-S5A-05": [
+              "papers/bahdanau2014_attention.pdf::chunk_010",
+              "papers/dettmers2023_qlora.pdf::chunk_016",
+              "papers/lewis2020_rag.pdf::chunk_033",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_009",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017"
+            ],
+            "Q-S5A-06": [
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/devlin2018_bert.pdf::chunk_003",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031",
+              "papers/kwon2023_vllm.pdf::chunk_008",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_029",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_030",
+              "papers/devlin2018_bert.pdf::chunk_011"
+            ],
+            "Q-S5A-07": [
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "papers/dettmers2023_qlora.pdf::chunk_003",
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_020",
+              "papers/dettmers2023_qlora.pdf::chunk_014",
+              "papers/dettmers2023_qlora.pdf::chunk_017"
+            ],
+            "Q-S5A-08": [
+              "papers/hu2021_lora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_002",
+              "papers/dettmers2023_qlora.pdf::chunk_004",
+              "papers/dettmers2023_qlora.pdf::chunk_033",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "upload_17869808::upload_17869808_p5_5",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/hu2021_lora.pdf::chunk_014",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_010"
+            ],
+            "Q-S5A-09": [
+              "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+              "papers/brown2020_gpt3.pdf::chunk_021",
+              "papers/edge2024_graphrag.pdf::chunk_006",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_027",
+              "papers/willard2023_outlines.pdf::chunk_006",
+              "papers/krizhevsky2012_alexnet.pdf::chunk_017",
+              "papers/willard2023_outlines.pdf::chunk_003",
+              "papers/bahdanau2014_attention.pdf::chunk_029"
+            ],
+            "Q-S5A-10": [
+              "papers/bahdanau2014_attention.pdf::chunk_013",
+              "papers/bahdanau2014_attention.pdf::chunk_023",
+              "papers/bahdanau2014_attention.pdf::chunk_026",
+              "papers/kingma2013_vae.pdf::chunk_023",
+              "papers/kingma2013_vae.pdf::chunk_025",
+              "papers/kingma2013_vae.pdf::chunk_028",
+              "papers/kingma2013_vae.pdf::chunk_033",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004",
+              "papers/velickovic2017_gat.pdf::chunk_034"
+            ],
+            "Q-S5A-11": [
+              "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+              "papers/brown2020_gpt3.pdf::chunk_008",
+              "papers/brown2020_gpt3.pdf::chunk_027",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+              "papers/brown2020_gpt3.pdf::chunk_018",
+              "papers/hochreiter1997_lstm.pdf::chunk_027",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_038",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_037",
+              "papers/willard2023_outlines.pdf::chunk_011",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_038"
+            ],
+            "Q-S5A-12": [
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+              "papers/kipf2016_gcn.pdf::chunk_018",
+              "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007",
+              "papers/kipf2016_gcn.pdf::chunk_004",
+              "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_056",
+              "papers/rafailov2023_dpo.pdf::chunk_035",
+              "papers/willard2023_outlines.pdf::chunk_012"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
