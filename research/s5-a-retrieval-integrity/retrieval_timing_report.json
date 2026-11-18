@@ -1,0 +1,67 @@
+{
+  "timing_policy": "Full end-to-end accounting including constituent retriever latencies",
+  "benchmark_date": "2026-11-18",
+  "num_warm_repetitions": 5,
+  "systems": {
+    "bm25": {
+      "cold_mean_ms": 5.087,
+      "cold_max_ms": 8.969,
+      "warm_mean_ms": 4.56,
+      "warm_median_ms": 4.408,
+      "warm_std_ms": 1.417,
+      "warm_min_ms": 2.187,
+      "warm_max_ms": 8.901,
+      "warm_p95_ms": 7.328
+    },
+    "dense_snowflake_arctic_768d": {
+      "cold_mean_ms": 42.106,
+      "cold_max_ms": 314.883,
+      "warm_mean_ms": 17.202,
+      "warm_median_ms": 16.083,
+      "warm_std_ms": 3.358,
+      "warm_min_ms": 14.474,
+      "warm_max_ms": 28.523,
+      "warm_p95_ms": 26.48
+    },
+    "hybrid_rrf_e2e": {
+      "cold_mean_ms": 23.819,
+      "cold_max_ms": 35.868,
+      "warm_mean_ms": 23.352,
+      "warm_median_ms": 21.944,
+      "warm_std_ms": 5.733,
+      "warm_min_ms": 18.452,
+      "warm_max_ms": 43.8,
+      "warm_p95_ms": 38.519
+    },
+    "baseline_graph_1hop": {
+      "cold_mean_ms": 18.896,
+      "cold_max_ms": 64.814,
+      "warm_mean_ms": 17.262,
+      "warm_median_ms": 6.809,
+      "warm_std_ms": 19.244,
+      "warm_min_ms": 2.729,
+      "warm_max_ms": 67.815,
+      "warm_p95_ms": 65.605
+    },
+    "repaired_graph_1hop_ablation": {
+      "cold_mean_ms": 34.301,
+      "cold_max_ms": 96.335,
+      "warm_mean_ms": 33.687,
+      "warm_median_ms": 24.045,
+      "warm_std_ms": 35.13,
+      "warm_min_ms": 0.131,
+      "warm_max_ms": 95.335,
+      "warm_p95_ms": 87.402
+    },
+    "repaired_graph_2hop_full": {
+      "cold_mean_ms": 33.944,
+      "cold_max_ms": 92.12,
+      "warm_mean_ms": 33.665,
+      "warm_median_ms": 24.514,
+      "warm_std_ms": 35.392,
+      "warm_min_ms": 0.15,
+      "warm_max_ms": 98.472,
+      "warm_p95_ms": 88.198
+    }
+  }
+}

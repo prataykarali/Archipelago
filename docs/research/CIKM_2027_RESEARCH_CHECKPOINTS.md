@@ -325,3 +325,29 @@ For all research-repair milestones (`S4`, `S5`, and beyond):
 - **Test Reconciliation:** Resolved the 270 vs 264 discrepancy by identifying an erroneous entry in the S4-G3 report table where `test_s4e_graph_diagnosis.py` was listed as 12 items while actually containing exactly 6 ($270 - 6 = 264$).
 - **STOP Confirmed:** S4-G4 is complete. All research objectives achieved. No further autonomous milestones initiated.
 
+### S5-A — Retrieval Baseline Integrity & Human-Gold Preparation
+- **Branch:** `research/s5-a-retrieval-integrity`
+- **Base Branch:** `research/s4-g4-validation-readiness`
+- **Base Commit:** `d20c16df6f9bcff473ef68ef1c36ec04a43cf3fa`
+- **Scientific Objective:** Prepare a scientifically fair multi-hop academic retrieval experiment. Freeze extraction work and fix retrieval evaluation methodology: sanitize tracked source text, replace hashing proxy with genuine pretrained transformer embeddings, repair global passage-ID mapping, fix hybrid latency accounting, freeze a clean evaluation corpus, and prepare an independent human evaluation package with 100% mechanical verification.
+- **Implemented Changes:**
+  - `SOURCE_EXPOSURE_STATUS_REPORT.md` — Complete inventory of current-tree vs historical Git exposure. Purged `context_snippet` from `concept_validity_audit_pool_public.csv` (replacing with offsets/hashes). Untracked redundant legacy annotation pools in `s4-g3/annotation_package/blinded/`. Enforced `.gitignore` on all `data/annotation_local/` and research local dirs.
+  - `s5a_corpus_manifest.json` — Audited S3 corpus (764 passages) and excluded 50 index-only/author-list passages and 1 invalid-page passage. Froze `s5a_eval_corpus_v1` to 713 verified academic prose passages across 53 documents. Historical baseline retained separately.
+  - `s5a_model_manifest.json` — Configured `Snowflake/snowflake-arctic-embed-m-v1.5` (768-dim, normalized, query prefix `"Represent this sentence..."`, CPU batch size 32). Precomputed and cached 2.09 MB embedding matrix (`data/artifacts/s5a_dense_embeddings_713.npy`). Documented token hashing as a debugging baseline only.
+  - `run_s5a_retrieval_benchmark.py` — Corrected offline retrieval harness:
+    1. Global passage-ID scoping via full Cypher path: `MATCH (Document)->(Chunk)->(Concept)`. Cross-document ID collisions: **strictly 0**.
+    2. Transparent graph fallback tracking (`anchor_found`, `actual_hop_count`, `is_fallback`).
+    3. Matched 1-hop ablation and 2-hop full heterogeneous graph evaluation.
+    4. True end-to-end Hybrid RRF timing ($T_{\text{BM25}} + T_{\text{Dense}} + T_{\text{Fusion}}$) measured over cold and warm runs with full statistical distributions (mean, median, std, min, max, p95).
+  - `human_evaluation_package/` — Full double-blinded human relevance review suite:
+    1. `retrieval_query_candidate_pool.csv`: 12 queries and 31 candidate passages across OS, AIML, Networks, and DBMS. All candidate passage IDs mechanically verified in `s5a_eval_corpus_v1`.
+    2. Includes 3 single-hop controls, 4 two-hop questions, 2 cross-document questions, 3 unanswerable questions, and 11 matched hard negatives.
+    3. `RETRIEVAL_ANNOTATION_PROTOCOL.md`: CIKM 3-point relevance scale (0, 1, 2) and adjudication protocol.
+    4. `retrieval_query_manifest.json`: Master admin linkage.
+    5. All human judgment fields strictly empty; zero AI gold labels.
+  - `tests/unit/test_s5a_retrieval_integrity.py` — 14 regression and integrity tests.
+  - `S5A_RETRIEVAL_INTEGRITY_REPORT.md` — Full scientific report.
+- **Test Results:** **288/288** tests passing across 14 test suites (14 new S5-A tests + 274 regression tests).
+- **STOP Confirmed:** S5-A is complete. Extraction frozen; production graph untouched; zero human labels fabricated; zero superiority claims made prior to independent annotation.
+
+

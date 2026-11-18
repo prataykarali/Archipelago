@@ -202,7 +202,11 @@ class TestPrerequisiteCyclePrevention:
 class TestBlindedAnnotationPackage:
     @pytest.fixture(scope="class")
     def blind_csv(self):
-        return PKG_DIR / "blinded" / "blinded_human_annotation_pool.csv"
+        local_target = ROOT / "data" / "annotation_local" / "blinded_human_annotation_pool.csv"
+        pkg_target = PKG_DIR / "blinded" / "blinded_human_annotation_pool.csv"
+        if local_target.exists():
+            return local_target
+        return pkg_target
 
     @pytest.fixture(scope="class")
     def public_csv(self):

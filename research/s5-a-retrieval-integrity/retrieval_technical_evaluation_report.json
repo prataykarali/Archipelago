@@ -1,0 +1,2043 @@
+{
+  "benchmark_name": "Archipelago S5-A Multi-Hop Retrieval Benchmark & Technical Gate",
+  "benchmark_date": "2026-11-18",
+  "corpus_version": "s5a_eval_corpus_v1",
+  "eligible_passages_count": 713,
+  "unique_documents_count": 53,
+  "retrieval_systems_evaluated": [
+    "bm25",
+    "dense_snowflake_arctic_768d",
+    "hybrid_rrf_e2e",
+    "baseline_graph_1hop",
+    "repaired_graph_1hop_ablation",
+    "repaired_graph_2hop_full"
+  ],
+  "queries_evaluated_count": 12,
+  "technical_sanity_verdict": "ALL_SYSTEMS_FUNCTIONAL",
+  "schema_errors_detected": 0,
+  "crashes_detected": 0,
+  "cross_document_passage_id_collisions": 0,
+  "graph_anchor_coverage_and_fallback": {
+    "baseline_graph_1hop": {
+      "total_queries": 12,
+      "queries_with_anchors": 10,
+      "anchor_coverage_rate": 0.8333,
+      "fallback_count": 2,
+      "fallback_rate": 0.1667
+    },
+    "repaired_graph_1hop_ablation": {
+      "total_queries": 12,
+      "queries_with_anchors": 6,
+      "anchor_coverage_rate": 0.5,
+      "fallback_count": 6,
+      "fallback_rate": 0.5
+    },
+    "repaired_graph_2hop_full": {
+      "total_queries": 12,
+      "queries_with_anchors": 6,
+      "anchor_coverage_rate": 0.5,
+      "fallback_count": 6,
+      "fallback_rate": 0.5
+    }
+  },
+  "timing_distribution_summary": {
+    "bm25": {
+      "cold_mean_ms": 5.087,
+      "cold_max_ms": 8.969,
+      "warm_mean_ms": 4.56,
+      "warm_median_ms": 4.408,
+      "warm_std_ms": 1.417,
+      "warm_min_ms": 2.187,
+      "warm_max_ms": 8.901,
+      "warm_p95_ms": 7.328
+    },
+    "dense_snowflake_arctic_768d": {
+      "cold_mean_ms": 42.106,
+      "cold_max_ms": 314.883,
+      "warm_mean_ms": 17.202,
+      "warm_median_ms": 16.083,
+      "warm_std_ms": 3.358,
+      "warm_min_ms": 14.474,
+      "warm_max_ms": 28.523,
+      "warm_p95_ms": 26.48
+    },
+    "hybrid_rrf_e2e": {
+      "cold_mean_ms": 23.819,
+      "cold_max_ms": 35.868,
+      "warm_mean_ms": 23.352,
+      "warm_median_ms": 21.944,
+      "warm_std_ms": 5.733,
+      "warm_min_ms": 18.452,
+      "warm_max_ms": 43.8,
+      "warm_p95_ms": 38.519
+    },
+    "baseline_graph_1hop": {
+      "cold_mean_ms": 18.896,
+      "cold_max_ms": 64.814,
+      "warm_mean_ms": 17.262,
+      "warm_median_ms": 6.809,
+      "warm_std_ms": 19.244,
+      "warm_min_ms": 2.729,
+      "warm_max_ms": 67.815,
+      "warm_p95_ms": 65.605
+    },
+    "repaired_graph_1hop_ablation": {
+      "cold_mean_ms": 34.301,
+      "cold_max_ms": 96.335,
+      "warm_mean_ms": 33.687,
+      "warm_median_ms": 24.045,
+      "warm_std_ms": 35.13,
+      "warm_min_ms": 0.131,
+      "warm_max_ms": 95.335,
+      "warm_p95_ms": 87.402
+    },
+    "repaired_graph_2hop_full": {
+      "cold_mean_ms": 33.944,
+      "cold_max_ms": 92.12,
+      "warm_mean_ms": 33.665,
+      "warm_median_ms": 24.514,
+      "warm_std_ms": 35.392,
+      "warm_min_ms": 0.15,
+      "warm_max_ms": 98.472,
+      "warm_p95_ms": 88.198
+    }
+  },
+  "retrieval_effectiveness": "NOT_EVALUATED",
+  "effectiveness_boundary_statement": "Retrieval ranking effectiveness (Recall@k, MRR, nDCG@k) is strictly NOT_EVALUATED because independent human gold relevance judgments do not yet exist. No claims of retrieval superiority or statistical significance are made.",
+  "queries": [
+    {
+      "query_id": "Q-S5A-01",
+      "domain": "Operating Systems",
+      "category": "SINGLE_HOP_CONTROL",
+      "query_text": "What is an address space and why does the operating system provide it to running programs?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004"
+          ],
+          "top_5_scores": [
+            28.4539,
+            20.1429,
+            19.7211,
+            18.5801,
+            18.549
+          ],
+          "cold_latency_ms": 4.652,
+          "warm_mean_latency_ms": 5.041,
+          "warm_median_latency_ms": 5.135,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003"
+          ],
+          "top_5_scores": [
+            0.6584,
+            0.6278,
+            0.5959,
+            0.5185,
+            0.5085
+          ],
+          "cold_latency_ms": 314.883,
+          "warm_mean_latency_ms": 15.318,
+          "warm_median_latency_ms": 15.065,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.0318,
+            0.0315,
+            0.0313,
+            0.0306
+          ],
+          "cold_latency_ms": 20.89,
+          "warm_mean_latency_ms": 19.775,
+          "warm_median_latency_ms": 19.781,
+          "meta": {
+            "bm25_ms": 5.675,
+            "dense_ms": 15.083,
+            "fusion_ms": 0.133,
+            "total_e2e_ms": 20.89
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 49.189,
+          "warm_mean_latency_ms": 48.093,
+          "warm_median_latency_ms": 48.01,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 47.429,
+          "warm_mean_latency_ms": 48.538,
+          "warm_median_latency_ms": 48.484,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 48.873,
+          "warm_mean_latency_ms": 49.115,
+          "warm_median_latency_ms": 48.573,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-02",
+      "domain": "Operating Systems",
+      "category": "TWO_HOP",
+      "query_text": "How does hardware-based address translation use base and bounds registers to isolate process physical memory?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004"
+          ],
+          "top_5_scores": [
+            31.0851,
+            21.3937,
+            20.6153,
+            19.3514,
+            17.985
+          ],
+          "cold_latency_ms": 3.814,
+          "warm_mean_latency_ms": 3.817,
+          "warm_median_latency_ms": 3.853,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003"
+          ],
+          "top_5_scores": [
+            0.5746,
+            0.5281,
+            0.4307,
+            0.4167,
+            0.4104
+          ],
+          "cold_latency_ms": 16.365,
+          "warm_mean_latency_ms": 15.106,
+          "warm_median_latency_ms": 15.005,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.032,
+            0.0315,
+            0.0308,
+            0.0308
+          ],
+          "cold_latency_ms": 19.912,
+          "warm_mean_latency_ms": 19.611,
+          "warm_median_latency_ms": 19.582,
+          "meta": {
+            "bm25_ms": 4.568,
+            "dense_ms": 15.244,
+            "fusion_ms": 0.1,
+            "total_e2e_ms": 19.912
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/brown2020_gpt3.pdf::chunk_018",
+            "papers/hochreiter1997_lstm.pdf::chunk_014",
+            "papers/hochreiter1997_lstm.pdf::chunk_015",
+            "papers/hochreiter1997_lstm.pdf::chunk_018",
+            "papers/ouyang2022_instructgpt.pdf::chunk_012"
+          ],
+          "top_5_scores": [
+            2.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "cold_latency_ms": 25.073,
+          "warm_mean_latency_ms": 5.919,
+          "warm_median_latency_ms": 6.081,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "translation"
+            ],
+            "traversed_concepts_count": 3,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 72.007,
+          "warm_mean_latency_ms": 73.806,
+          "warm_median_latency_ms": 74.532,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::paging_seed_005",
+            "archipelago-books-cs/ostep_three_easy_pieces/06_address_spaces.pdf::virtual_memory_seed_003",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_004",
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 79.659,
+          "warm_mean_latency_ms": 77.259,
+          "warm_median_latency_ms": 77.539,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-03",
+      "domain": "Operating Systems",
+      "category": "UNANSWERABLE",
+      "query_text": "What is the exact multi-level page table walk latency in nanoseconds for the ARM Cortex-A78 microarchitecture?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+            "papers/kipf2016_gcn.pdf::chunk_012",
+            "papers/brown2020_gpt3.pdf::chunk_018",
+            "papers/edge2024_graphrag.pdf::chunk_038",
+            "papers/yao2022_react.pdf::chunk_018"
+          ],
+          "top_5_scores": [
+            12.4616,
+            12.3624,
+            9.1892,
+            9.1664,
+            9.0963
+          ],
+          "cold_latency_ms": 5.357,
+          "warm_mean_latency_ms": 5.244,
+          "warm_median_latency_ms": 5.045,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_017",
+            "papers/kwon2023_vllm.pdf::chunk_023",
+            "papers/kwon2023_vllm.pdf::chunk_013",
+            "papers/kipf2016_gcn.pdf::chunk_019",
+            "papers/edge2024_graphrag.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            0.3665,
+            0.328,
+            0.3249,
+            0.3205,
+            0.3202
+          ],
+          "cold_latency_ms": 17.647,
+          "warm_mean_latency_ms": 17.026,
+          "warm_median_latency_ms": 16.931,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_002",
+            "papers/kipf2016_gcn.pdf::chunk_012",
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+            "papers/dettmers2023_qlora.pdf::chunk_014",
+            "papers/edge2024_graphrag.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            0.029,
+            0.0286,
+            0.027,
+            0.0268,
+            0.025
+          ],
+          "cold_latency_ms": 23.515,
+          "warm_mean_latency_ms": 22.628,
+          "warm_median_latency_ms": 22.816,
+          "meta": {
+            "bm25_ms": 5.181,
+            "dense_ms": 18.208,
+            "fusion_ms": 0.125,
+            "total_e2e_ms": 23.515
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/yao2022_react.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            2.0
+          ],
+          "cold_latency_ms": 7.334,
+          "warm_mean_latency_ms": 5.758,
+          "warm_median_latency_ms": 5.482,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "act"
+            ],
+            "traversed_concepts_count": 1,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+            "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+            "doc_introduction_to_the_design_and::doc_introduction_to_the_design_and_p283_2",
+            "papers/bahdanau2014_attention.pdf::chunk_007",
+            "papers/bahdanau2014_attention.pdf::chunk_014"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 55.373,
+          "warm_mean_latency_ms": 53.846,
+          "warm_median_latency_ms": 53.682,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_003",
+            "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+            "doc_introduction_to_the_design_and::doc_introduction_to_the_design_and_p283_2",
+            "papers/bahdanau2014_attention.pdf::chunk_007",
+            "papers/bahdanau2014_attention.pdf::chunk_014"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 50.13,
+          "warm_mean_latency_ms": 50.472,
+          "warm_median_latency_ms": 50.542,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-04",
+      "domain": "AI & Machine Learning",
+      "category": "SINGLE_HOP_CONTROL",
+      "query_text": "What is the computational formula for Scaled Dot-Product Attention in the Transformer architecture?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013"
+          ],
+          "top_5_scores": [
+            31.65,
+            25.6694,
+            24.1431,
+            20.4048,
+            18.9983
+          ],
+          "cold_latency_ms": 3.947,
+          "warm_mean_latency_ms": 3.91,
+          "warm_median_latency_ms": 4.28,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010"
+          ],
+          "top_5_scores": [
+            0.6095,
+            0.5845,
+            0.4807,
+            0.4685,
+            0.4482
+          ],
+          "cold_latency_ms": 15.773,
+          "warm_mean_latency_ms": 15.738,
+          "warm_median_latency_ms": 15.195,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.032,
+            0.0315,
+            0.0313,
+            0.0312
+          ],
+          "cold_latency_ms": 19.711,
+          "warm_mean_latency_ms": 24.453,
+          "warm_median_latency_ms": 22.849,
+          "meta": {
+            "bm25_ms": 3.99,
+            "dense_ms": 15.627,
+            "fusion_ms": 0.094,
+            "total_e2e_ms": 19.711
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/bahdanau2014_attention.pdf::chunk_008",
+            "papers/bahdanau2014_attention.pdf::chunk_009",
+            "papers/bahdanau2014_attention.pdf::chunk_026",
+            "papers/kwon2023_vllm.pdf::chunk_001",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002"
+          ],
+          "top_5_scores": [
+            3.0,
+            3.0,
+            3.0,
+            3.0,
+            3.0
+          ],
+          "cold_latency_ms": 8.869,
+          "warm_mean_latency_ms": 6.296,
+          "warm_median_latency_ms": 6.216,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "transformer"
+            ],
+            "traversed_concepts_count": 5,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/devlin2018_bert.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            5.077,
+            4.421,
+            4.421,
+            4.421,
+            4.421
+          ],
+          "cold_latency_ms": 0.582,
+          "warm_mean_latency_ms": 0.399,
+          "warm_median_latency_ms": 0.378,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "transformer",
+              "the transformer",
+              "attention"
+            ],
+            "traversed_concepts_count": 13,
+            "actual_hop_count": 1,
+            "is_fallback": false,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/devlin2018_bert.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            5.077,
+            4.8251,
+            4.623,
+            4.421,
+            4.421
+          ],
+          "cold_latency_ms": 0.594,
+          "warm_mean_latency_ms": 0.569,
+          "warm_median_latency_ms": 0.537,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "transformer",
+              "the transformer",
+              "attention"
+            ],
+            "traversed_concepts_count": 33,
+            "actual_hop_count": 2,
+            "is_fallback": false,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-05",
+      "domain": "AI & Machine Learning",
+      "category": "TWO_HOP",
+      "query_text": "How does Multi-Head Attention combine multiple Scaled Dot-Product Attention projections with parameter matrices?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1"
+          ],
+          "top_5_scores": [
+            41.2026,
+            39.1507,
+            33.5168,
+            31.0014,
+            27.0219
+          ],
+          "cold_latency_ms": 4.592,
+          "warm_mean_latency_ms": 4.059,
+          "warm_median_latency_ms": 4.086,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1"
+          ],
+          "top_5_scores": [
+            0.6138,
+            0.6129,
+            0.5786,
+            0.5101,
+            0.4918
+          ],
+          "cold_latency_ms": 22.939,
+          "warm_mean_latency_ms": 25.728,
+          "warm_median_latency_ms": 26.39,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_010",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_011",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1"
+          ],
+          "top_5_scores": [
+            0.0325,
+            0.0323,
+            0.032,
+            0.0308,
+            0.0308
+          ],
+          "cold_latency_ms": 32.391,
+          "warm_mean_latency_ms": 24.025,
+          "warm_median_latency_ms": 22.245,
+          "meta": {
+            "bm25_ms": 6.396,
+            "dense_ms": 25.884,
+            "fusion_ms": 0.111,
+            "total_e2e_ms": 32.391
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_012",
+            "papers/velickovic2017_gat.pdf::chunk_014",
+            "papers/hochreiter1997_lstm.pdf::chunk_018",
+            "papers/kwon2023_vllm.pdf::chunk_026"
+          ],
+          "top_5_scores": [
+            3.0,
+            3.0,
+            3.0,
+            2.0,
+            2.0
+          ],
+          "cold_latency_ms": 6.194,
+          "warm_mean_latency_ms": 5.837,
+          "warm_median_latency_ms": 5.576,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "multi-head attention"
+            ],
+            "traversed_concepts_count": 5,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "upload_17869808::upload_17869808_p4_4",
+            "papers/bahdanau2014_attention.pdf::chunk_010",
+            "papers/dettmers2023_qlora.pdf::chunk_016",
+            "papers/devlin2018_bert.pdf::chunk_003",
+            "papers/devlin2018_bert.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            1.92,
+            1.765,
+            1.765,
+            1.765,
+            1.765
+          ],
+          "cold_latency_ms": 0.32,
+          "warm_mean_latency_ms": 0.152,
+          "warm_median_latency_ms": 0.143,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "attention"
+            ],
+            "traversed_concepts_count": 3,
+            "actual_hop_count": 1,
+            "is_fallback": false,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "papers/bahdanau2014_attention.pdf::chunk_010",
+            "papers/dettmers2023_qlora.pdf::chunk_016",
+            "papers/lewis2020_rag.pdf::chunk_033",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004"
+          ],
+          "top_5_scores": [
+            2.0006,
+            2.0006,
+            2.0006,
+            2.0006,
+            2.0006
+          ],
+          "cold_latency_ms": 0.198,
+          "warm_mean_latency_ms": 0.157,
+          "warm_median_latency_ms": 0.155,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "attention"
+            ],
+            "traversed_concepts_count": 5,
+            "actual_hop_count": 2,
+            "is_fallback": false,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-06",
+      "domain": "AI & Machine Learning",
+      "category": "CROSS_DOCUMENT",
+      "query_text": "How does Low-Rank Adaptation (LoRA) freeze pre-trained Transformer weights while training rank decomposition matrices?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+            "papers/hu2021_lora.pdf::chunk_004",
+            "papers/hu2021_lora.pdf::chunk_027",
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/hu2021_lora.pdf::chunk_012"
+          ],
+          "top_5_scores": [
+            51.3382,
+            48.5361,
+            46.8016,
+            41.804,
+            39.245
+          ],
+          "cold_latency_ms": 4.249,
+          "warm_mean_latency_ms": 3.259,
+          "warm_median_latency_ms": 2.865,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/hu2021_lora.pdf::chunk_005",
+            "papers/hu2021_lora.pdf::chunk_027",
+            "papers/hu2021_lora.pdf::chunk_019"
+          ],
+          "top_5_scores": [
+            0.7932,
+            0.6787,
+            0.6751,
+            0.6269,
+            0.6205
+          ],
+          "cold_latency_ms": 17.344,
+          "warm_mean_latency_ms": 16.702,
+          "warm_median_latency_ms": 16.729,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1",
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/hu2021_lora.pdf::chunk_027",
+            "papers/hu2021_lora.pdf::chunk_004",
+            "papers/hu2021_lora.pdf::chunk_005"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.0318,
+            0.0315,
+            0.0311,
+            0.031
+          ],
+          "cold_latency_ms": 28.923,
+          "warm_mean_latency_ms": 23.273,
+          "warm_median_latency_ms": 22.043,
+          "meta": {
+            "bm25_ms": 4.572,
+            "dense_ms": 24.248,
+            "fusion_ms": 0.103,
+            "total_e2e_ms": 28.923
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/hu2021_lora.pdf::chunk_014",
+            "papers/bahdanau2014_attention.pdf::chunk_008",
+            "papers/bahdanau2014_attention.pdf::chunk_009",
+            "papers/bahdanau2014_attention.pdf::chunk_026",
+            "papers/brown2020_gpt3.pdf::chunk_005"
+          ],
+          "top_5_scores": [
+            4.0,
+            3.0,
+            3.0,
+            3.0,
+            3.0
+          ],
+          "cold_latency_ms": 11.674,
+          "warm_mean_latency_ms": 12.444,
+          "warm_median_latency_ms": 12.599,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "transformer",
+              "low-rank adaptation"
+            ],
+            "traversed_concepts_count": 9,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/devlin2018_bert.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            4.24,
+            3.584,
+            3.584,
+            3.584,
+            3.584
+          ],
+          "cold_latency_ms": 0.557,
+          "warm_mean_latency_ms": 0.414,
+          "warm_median_latency_ms": 0.422,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "transformer",
+              "low-rank adaptation"
+            ],
+            "traversed_concepts_count": 13,
+            "actual_hop_count": 1,
+            "is_fallback": false,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/devlin2018_bert.pdf::chunk_003",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008"
+          ],
+          "top_5_scores": [
+            4.24,
+            4.0802,
+            3.9881,
+            3.786,
+            3.584
+          ],
+          "cold_latency_ms": 0.651,
+          "warm_mean_latency_ms": 0.527,
+          "warm_median_latency_ms": 0.529,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "transformer",
+              "low-rank adaptation"
+            ],
+            "traversed_concepts_count": 34,
+            "actual_hop_count": 2,
+            "is_fallback": false,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-07",
+      "domain": "AI & Machine Learning",
+      "category": "CROSS_DOCUMENT",
+      "query_text": "How does QLoRA combine 4-bit NormalFloat quantization with LoRA adapters to reduce GPU memory during fine-tuning?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_005",
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+            "papers/dettmers2023_qlora.pdf::chunk_011",
+            "papers/dettmers2023_qlora.pdf::chunk_015"
+          ],
+          "top_5_scores": [
+            44.8767,
+            37.5676,
+            34.5977,
+            33.6718,
+            31.5807
+          ],
+          "cold_latency_ms": 6.255,
+          "warm_mean_latency_ms": 4.081,
+          "warm_median_latency_ms": 4.035,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_005",
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_016",
+            "papers/dettmers2023_qlora.pdf::chunk_011",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_003"
+          ],
+          "top_5_scores": [
+            0.7211,
+            0.7037,
+            0.7001,
+            0.6801,
+            0.6656
+          ],
+          "cold_latency_ms": 16.791,
+          "warm_mean_latency_ms": 16.244,
+          "warm_median_latency_ms": 16.351,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_005",
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_011",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+            "papers/dettmers2023_qlora.pdf::chunk_015"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.0323,
+            0.0312,
+            0.0308,
+            0.0299
+          ],
+          "cold_latency_ms": 20.866,
+          "warm_mean_latency_ms": 21.941,
+          "warm_median_latency_ms": 21.808,
+          "meta": {
+            "bm25_ms": 4.46,
+            "dense_ms": 16.311,
+            "fusion_ms": 0.095,
+            "total_e2e_ms": 20.866
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/hu2021_lora.pdf::chunk_012",
+            "papers/brown2020_gpt3.pdf::chunk_005",
+            "papers/brown2020_gpt3.pdf::chunk_006",
+            "papers/brown2020_gpt3.pdf::chunk_026",
+            "papers/dettmers2023_qlora.pdf::chunk_008"
+          ],
+          "top_5_scores": [
+            4.0,
+            3.0,
+            3.0,
+            3.0,
+            3.0
+          ],
+          "cold_latency_ms": 20.629,
+          "warm_mean_latency_ms": 22.919,
+          "warm_median_latency_ms": 22.767,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "fine-tuning",
+              "quantization",
+              "adapter",
+              "qlora"
+            ],
+            "traversed_concepts_count": 14,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_003",
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_004",
+            "papers/dettmers2023_qlora.pdf::chunk_033",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_001"
+          ],
+          "top_5_scores": [
+            2.656,
+            2.616,
+            2.616,
+            2.616,
+            2.616
+          ],
+          "cold_latency_ms": 0.373,
+          "warm_mean_latency_ms": 0.228,
+          "warm_median_latency_ms": 0.214,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "qlora",
+              "gpu"
+            ],
+            "traversed_concepts_count": 6,
+            "actual_hop_count": 1,
+            "is_fallback": false,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_004",
+            "papers/dettmers2023_qlora.pdf::chunk_033",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_002"
+          ],
+          "top_5_scores": [
+            2.8057,
+            2.8057,
+            2.8057,
+            2.8057,
+            2.8057
+          ],
+          "cold_latency_ms": 0.375,
+          "warm_mean_latency_ms": 0.303,
+          "warm_median_latency_ms": 0.296,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "qlora",
+              "gpu"
+            ],
+            "traversed_concepts_count": 17,
+            "actual_hop_count": 2,
+            "is_fallback": false,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-08",
+      "domain": "AI & Machine Learning",
+      "category": "UNANSWERABLE",
+      "query_text": "What was the total dollar cost in electric utility bills for training the LLaMA-3 405B base model on 16,000 H100 GPUs?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+            "papers/dettmers2023_qlora.pdf::chunk_017",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_023",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_025",
+            "papers/dettmers2023_qlora.pdf::chunk_020"
+          ],
+          "top_5_scores": [
+            28.8818,
+            24.4758,
+            19.0823,
+            18.6317,
+            14.265
+          ],
+          "cold_latency_ms": 8.969,
+          "warm_mean_latency_ms": 7.499,
+          "warm_median_latency_ms": 7.308,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_017",
+            "papers/dettmers2023_qlora.pdf::chunk_004",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_026"
+          ],
+          "top_5_scores": [
+            0.4066,
+            0.4001,
+            0.3991,
+            0.3781,
+            0.3773
+          ],
+          "cold_latency_ms": 18.061,
+          "warm_mean_latency_ms": 20.784,
+          "warm_median_latency_ms": 18.762,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "papers/dettmers2023_qlora.pdf::chunk_017",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_021",
+            "papers/dettmers2023_qlora.pdf::chunk_020",
+            "papers/hu2021_lora.pdf::chunk_014",
+            "papers/dettmers2023_qlora.pdf::chunk_002"
+          ],
+          "top_5_scores": [
+            0.0325,
+            0.0323,
+            0.0301,
+            0.0301,
+            0.029
+          ],
+          "cold_latency_ms": 35.868,
+          "warm_mean_latency_ms": 23.631,
+          "warm_median_latency_ms": 23.582,
+          "meta": {
+            "bm25_ms": 7.364,
+            "dense_ms": 28.374,
+            "fusion_ms": 0.13,
+            "total_e2e_ms": 35.868
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/kwon2023_vllm.pdf::chunk_008"
+          ],
+          "top_5_scores": [
+            2.0
+          ],
+          "cold_latency_ms": 7.654,
+          "warm_mean_latency_ms": 6.475,
+          "warm_median_latency_ms": 6.207,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "llama"
+            ],
+            "traversed_concepts_count": 1,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/brown2020_gpt3.pdf::chunk_021",
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_004",
+            "papers/dettmers2023_qlora.pdf::chunk_033"
+          ],
+          "top_5_scores": [
+            2.232,
+            1.616,
+            1.616,
+            1.616,
+            1.616
+          ],
+          "cold_latency_ms": 0.346,
+          "warm_mean_latency_ms": 0.201,
+          "warm_median_latency_ms": 0.188,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "gpu"
+            ],
+            "traversed_concepts_count": 4,
+            "actual_hop_count": 1,
+            "is_fallback": false,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "papers/hu2021_lora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_002",
+            "papers/dettmers2023_qlora.pdf::chunk_004",
+            "papers/dettmers2023_qlora.pdf::chunk_033",
+            "papers/dettmers2023_qlora.pdf::qlora_seed_001"
+          ],
+          "top_5_scores": [
+            2.6115,
+            1.8057,
+            1.8057,
+            1.8057,
+            1.8057
+          ],
+          "cold_latency_ms": 0.358,
+          "warm_mean_latency_ms": 0.271,
+          "warm_median_latency_ms": 0.273,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "gpu"
+            ],
+            "traversed_concepts_count": 15,
+            "actual_hop_count": 2,
+            "is_fallback": false,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-09",
+      "domain": "Computer Networks",
+      "category": "SINGLE_HOP_CONTROL",
+      "query_text": "What are the primary architectural layers defined in the OSI Reference Model according to network software standards?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+            "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+            "papers/brown2020_gpt3.pdf::chunk_021",
+            "papers/edge2024_graphrag.pdf::chunk_006",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004"
+          ],
+          "top_5_scores": [
+            29.3033,
+            12.9538,
+            11.2834,
+            10.8564,
+            10.7175
+          ],
+          "cold_latency_ms": 5.098,
+          "warm_mean_latency_ms": 5.513,
+          "warm_median_latency_ms": 5.014,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+            "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+            "papers/brown2020_gpt3.pdf::chunk_021",
+            "papers/krizhevsky2012_alexnet.pdf::chunk_015",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014"
+          ],
+          "top_5_scores": [
+            0.6674,
+            0.3827,
+            0.375,
+            0.3698,
+            0.3677
+          ],
+          "cold_latency_ms": 16.787,
+          "warm_mean_latency_ms": 15.462,
+          "warm_median_latency_ms": 15.444,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+            "papers/krizhevsky2012_alexnet.pdf::chunk_007",
+            "papers/brown2020_gpt3.pdf::chunk_021",
+            "papers/krizhevsky2012_alexnet.pdf::chunk_015",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.0323,
+            0.0317,
+            0.0288,
+            0.0277
+          ],
+          "cold_latency_ms": 21.454,
+          "warm_mean_latency_ms": 37.63,
+          "warm_median_latency_ms": 41.753,
+          "meta": {
+            "bm25_ms": 5.693,
+            "dense_ms": 15.648,
+            "fusion_ms": 0.113,
+            "total_e2e_ms": 21.454
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "doc_bert_pre_training_of_deep_bidirectional::doc_bert_pre_training_of_deep_bidirectional_p4_2",
+            "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+            "doc_direct_preference_optimization_your_language::doc_direct_preference_optimization_your_language_p4_2"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 64.814,
+          "warm_mean_latency_ms": 66.346,
+          "warm_median_latency_ms": 66.339,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "doc_bert_pre_training_of_deep_bidirectional::doc_bert_pre_training_of_deep_bidirectional_p4_2",
+            "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+            "doc_direct_preference_optimization_your_language::doc_direct_preference_optimization_your_language_p4_2"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 63.873,
+          "warm_mean_latency_ms": 64.637,
+          "warm_median_latency_ms": 63.709,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "archipelago-books-cs/ostep_three_easy_pieces/07_address_translation.pdf::virtual_memory_seed_005",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "doc_bert_pre_training_of_deep_bidirectional::doc_bert_pre_training_of_deep_bidirectional_p4_2",
+            "doc_computer_networks_6_e::doc_computer_networks_6_e_p42_1",
+            "doc_direct_preference_optimization_your_language::doc_direct_preference_optimization_your_language_p4_2"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 62.672,
+          "warm_mean_latency_ms": 59.593,
+          "warm_median_latency_ms": 60.465,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-10",
+      "domain": "Computer Networks",
+      "category": "TWO_HOP",
+      "query_text": "How does dynamic graph modeling with Graph Neural Networks address the latency limitations of traditional signature-based intrusion detection?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_007"
+          ],
+          "top_5_scores": [
+            32.3417,
+            27.8694,
+            26.2849,
+            26.1445,
+            25.3952
+          ],
+          "cold_latency_ms": 4.542,
+          "warm_mean_latency_ms": 4.933,
+          "warm_median_latency_ms": 5.04,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003"
+          ],
+          "top_5_scores": [
+            0.588,
+            0.5581,
+            0.527,
+            0.5048,
+            0.5035
+          ],
+          "cold_latency_ms": 15.252,
+          "warm_mean_latency_ms": 15.677,
+          "warm_median_latency_ms": 15.755,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_016",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_008",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_017",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_003"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.0323,
+            0.0315,
+            0.031,
+            0.031
+          ],
+          "cold_latency_ms": 21.945,
+          "warm_mean_latency_ms": 22.075,
+          "warm_median_latency_ms": 20.918,
+          "meta": {
+            "bm25_ms": 5.765,
+            "dense_ms": 16.072,
+            "fusion_ms": 0.107,
+            "total_e2e_ms": 21.945
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/kipf2016_gcn.pdf::chunk_002",
+            "papers/kipf2016_gcn.pdf::chunk_003",
+            "papers/kipf2016_gcn.pdf::chunk_026",
+            "papers/kipf2016_gcn.pdf::chunk_027",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_058"
+          ],
+          "top_5_scores": [
+            4.0,
+            4.0,
+            4.0,
+            4.0,
+            4.0
+          ],
+          "cold_latency_ms": 16.227,
+          "warm_mean_latency_ms": 17.554,
+          "warm_median_latency_ms": 16.736,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "graph neural network",
+              "neural network",
+              "dynamic graph"
+            ],
+            "traversed_concepts_count": 11,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "papers/bahdanau2014_attention.pdf::chunk_013",
+            "papers/bahdanau2014_attention.pdf::chunk_023",
+            "papers/bahdanau2014_attention.pdf::chunk_026",
+            "papers/kingma2013_vae.pdf::chunk_023",
+            "papers/kingma2013_vae.pdf::chunk_025"
+          ],
+          "top_5_scores": [
+            3.295,
+            2.53,
+            2.53,
+            2.53,
+            2.53
+          ],
+          "cold_latency_ms": 0.279,
+          "warm_mean_latency_ms": 0.197,
+          "warm_median_latency_ms": 0.197,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "neural networks"
+            ],
+            "traversed_concepts_count": 4,
+            "actual_hop_count": 1,
+            "is_fallback": false,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "papers/bahdanau2014_attention.pdf::chunk_013",
+            "papers/bahdanau2014_attention.pdf::chunk_023",
+            "papers/bahdanau2014_attention.pdf::chunk_026",
+            "papers/kingma2013_vae.pdf::chunk_023",
+            "papers/kingma2013_vae.pdf::chunk_025"
+          ],
+          "top_5_scores": [
+            3.295,
+            2.53,
+            2.53,
+            2.53,
+            2.53
+          ],
+          "cold_latency_ms": 0.241,
+          "warm_mean_latency_ms": 0.203,
+          "warm_median_latency_ms": 0.201,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "neural networks"
+            ],
+            "traversed_concepts_count": 5,
+            "actual_hop_count": 2,
+            "is_fallback": false,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-11",
+      "domain": "Computer Networks",
+      "category": "UNANSWERABLE",
+      "query_text": "What is the exact firmware vulnerability CVE identifier for the Cisco Catalyst 9300 switch buffer overflow discovered in 2025?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+            "papers/brown2020_gpt3.pdf::chunk_008",
+            "papers/brown2020_gpt3.pdf::chunk_027",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+            "papers/brown2020_gpt3.pdf::chunk_018"
+          ],
+          "top_5_scores": [
+            9.7906,
+            8.892,
+            8.2543,
+            6.9287,
+            6.7107
+          ],
+          "cold_latency_ms": 6.167,
+          "warm_mean_latency_ms": 4.683,
+          "warm_median_latency_ms": 4.542,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_051",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_013",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_004",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_025"
+          ],
+          "top_5_scores": [
+            0.3573,
+            0.351,
+            0.3436,
+            0.3305,
+            0.3276
+          ],
+          "cold_latency_ms": 17.63,
+          "warm_mean_latency_ms": 17.256,
+          "warm_median_latency_ms": 16.386,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_005",
+            "upload_17869808::upload_17869808_p1_0",
+            "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_027",
+            "papers/brown2020_gpt3.pdf::chunk_008"
+          ],
+          "top_5_scores": [
+            0.0301,
+            0.0276,
+            0.0164,
+            0.0164,
+            0.0161
+          ],
+          "cold_latency_ms": 21.403,
+          "warm_mean_latency_ms": 22.345,
+          "warm_median_latency_ms": 22.222,
+          "meta": {
+            "bm25_ms": 4.819,
+            "dense_ms": 16.47,
+            "fusion_ms": 0.114,
+            "total_e2e_ms": 21.403
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "papers/yao2022_react.pdf::chunk_031"
+          ],
+          "top_5_scores": [
+            2.0
+          ],
+          "cold_latency_ms": 4.996,
+          "warm_mean_latency_ms": 6.06,
+          "warm_median_latency_ms": 6.073,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "act"
+            ],
+            "traversed_concepts_count": 1,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+            "papers/bai2022_constitutionalai.pdf::chunk_031",
+            "papers/brown2020_gpt3.pdf::chunk_008",
+            "papers/brown2020_gpt3.pdf::chunk_017",
+            "papers/brown2020_gpt3.pdf::chunk_018"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 96.335,
+          "warm_mean_latency_ms": 89.944,
+          "warm_median_latency_ms": 89.739,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "doc_lehninger_principles_of_biochemistry::doc_lehninger_principles_of_biochemistry_p190_1",
+            "papers/bai2022_constitutionalai.pdf::chunk_031",
+            "papers/brown2020_gpt3.pdf::chunk_008",
+            "papers/brown2020_gpt3.pdf::chunk_017",
+            "papers/brown2020_gpt3.pdf::chunk_018"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 92.12,
+          "warm_mean_latency_ms": 91.782,
+          "warm_median_latency_ms": 91.332,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "query_id": "Q-S5A-12",
+      "domain": "Database Management Systems",
+      "category": "TWO_HOP",
+      "query_text": "How does Third Normal Form (3NF) eliminate transitive dependencies in relational database schemas?",
+      "systems": {
+        "bm25": {
+          "top_5_passage_ids": [
+            "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001",
+            "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_021",
+            "papers/kipf2016_gcn.pdf::chunk_018",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017"
+          ],
+          "top_5_scores": [
+            40.3544,
+            21.1354,
+            11.7561,
+            10.5175,
+            10.3295
+          ],
+          "cold_latency_ms": 3.398,
+          "warm_mean_latency_ms": 2.686,
+          "warm_median_latency_ms": 2.616,
+          "meta": {},
+          "status": "PASS"
+        },
+        "dense_snowflake_arctic_768d": {
+          "top_5_passage_ids": [
+            "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001",
+            "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+            "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_029",
+            "papers/edge2024_graphrag.pdf::chunk_031",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_037"
+          ],
+          "top_5_scores": [
+            0.7138,
+            0.4014,
+            0.3726,
+            0.3449,
+            0.3411
+          ],
+          "cold_latency_ms": 15.805,
+          "warm_mean_latency_ms": 15.376,
+          "warm_median_latency_ms": 15.361,
+          "meta": {},
+          "status": "PASS"
+        },
+        "hybrid_rrf_e2e": {
+          "top_5_passage_ids": [
+            "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001",
+            "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "papers/hochreiter1997_lstm.pdf::chunk_017",
+            "papers/willard2023_outlines.pdf::chunk_012"
+          ],
+          "top_5_scores": [
+            0.0328,
+            0.0323,
+            0.0287,
+            0.0262,
+            0.0241
+          ],
+          "cold_latency_ms": 18.945,
+          "warm_mean_latency_ms": 18.84,
+          "warm_median_latency_ms": 18.541,
+          "meta": {
+            "bm25_ms": 3.759,
+            "dense_ms": 15.063,
+            "fusion_ms": 0.123,
+            "total_e2e_ms": 18.945
+          },
+          "status": "PASS"
+        },
+        "baseline_graph_1hop": {
+          "top_5_passage_ids": [
+            "pilot/silberschatz_3nf_card.txt::third_normal_form_seed_001"
+          ],
+          "top_5_scores": [
+            2.0
+          ],
+          "cold_latency_ms": 4.097,
+          "warm_mean_latency_ms": 3.449,
+          "warm_median_latency_ms": 3.282,
+          "meta": {
+            "anchor_found": true,
+            "matched_anchors": [
+              "third normal form (3nf)"
+            ],
+            "traversed_concepts_count": 1,
+            "actual_hop_count": 1,
+            "is_fallback": false
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_1hop_ablation": {
+          "top_5_passage_ids": [
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+            "papers/bahdanau2014_attention.pdf::chunk_016",
+            "papers/bahdanau2014_attention.pdf::chunk_026",
+            "papers/bahdanau2014_attention.pdf::chunk_030"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 74.14,
+          "warm_mean_latency_ms": 71.884,
+          "warm_median_latency_ms": 70.839,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 1
+          },
+          "status": "PASS"
+        },
+        "repaired_graph_2hop_full": {
+          "top_5_passage_ids": [
+            "doc_attention_is_all_you_need::doc_attention_is_all_you_need_p3_1",
+            "doc_fundamentals_of_database_system_7e::doc_fundamentals_of_database_system_7e_p145_1",
+            "papers/bahdanau2014_attention.pdf::chunk_016",
+            "papers/bahdanau2014_attention.pdf::chunk_026",
+            "papers/bahdanau2014_attention.pdf::chunk_030"
+          ],
+          "top_5_scores": [
+            0.05,
+            0.05,
+            0.05,
+            0.05,
+            0.05
+          ],
+          "cold_latency_ms": 71.462,
+          "warm_mean_latency_ms": 73.734,
+          "warm_median_latency_ms": 73.866,
+          "meta": {
+            "anchor_found": false,
+            "matched_anchors": [],
+            "traversed_concepts_count": 0,
+            "actual_hop_count": 0,
+            "is_fallback": true,
+            "max_hops_configured": 2
+          },
+          "status": "PASS"
+        }
+      }
+    }
+  ]
+}

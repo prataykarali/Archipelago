@@ -20,6 +20,9 @@
       "candidate_concept": "Sliding Window Protocols",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p198_2",
+      "context_offset_start": 0,
+      "context_offset_end": 83,
+      "context_sha256": "57e6f89e1e126e6f6cb29a24d3794c76e06e00168e94547d02b6ed11ae4162ed",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -29,6 +32,9 @@
       "candidate_concept": "2026",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 698,
+      "context_offset_end": 819,
+      "context_sha256": "54c8ac3fe6448be8b83397fab6a92af96c212718c6e7cee7fd38e59e399c4e3d",
       "automated_status": "REJECTED",
       "filter_rationale": "numeric_start"
     },
@@ -38,6 +44,9 @@
       "candidate_concept": "Compared",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 643,
+      "context_offset_end": 711,
+      "context_sha256": "cc36c20640bf370744ca2d09bf200a7f5275ead9570dc3592cb9efb7684f2f05",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -47,6 +56,9 @@
       "candidate_concept": "Brown",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 1157,
+      "context_offset_end": 1222,
+      "context_sha256": "25013a9a08e63e2d0a2ea6d6bf9ebabcc0bcbac7cd735e32f7e9ec510e4f79e1",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -56,6 +68,9 @@
       "candidate_concept": "Network Software",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "context_offset_start": 0,
+      "context_offset_end": 75,
+      "context_sha256": "92aaca9cd8cef154f89fd37004d58773de5d563fe29f882213f36f50802b2a34",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -65,6 +80,9 @@
       "candidate_concept": "Figure",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 557,
+      "context_offset_end": 623,
+      "context_sha256": "4b2a6c3b07b7ee1b5d07fe7b3b6583cd4628328b85a13859e693e559a7fc38d4",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -74,6 +92,9 @@
       "candidate_concept": "Next",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 261,
+      "context_offset_end": 325,
+      "context_sha256": "ae694b15e4c187177d98e01c3e3ea318dafdcb5ef38734eb904fe186e3638d65",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -83,6 +104,9 @@
       "candidate_concept": "PC",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 855,
+      "context_offset_end": 900,
+      "context_sha256": "2ac1ce248756feec739cb406230d67a9270b02f83f34dced16be8c9e78a1310f",
       "automated_status": "RETAINED",
       "filter_rationale": "domain_acronym"
     },
@@ -92,6 +116,9 @@
       "candidate_concept": "The OS",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 579,
+      "context_offset_end": 645,
+      "context_sha256": "728d03763552f4933f9d59c72e1ca74b13b0d7b1d374b78ea377c9fd285adb3e",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -101,6 +128,9 @@
       "candidate_concept": "Appendix",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 593,
+      "context_offset_end": 661,
+      "context_sha256": "42db3a3a0fbd615b8c2f60c464e42eefe4d076807ac8e339f23d407da2980277",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -110,6 +140,9 @@
       "candidate_concept": "Transforms",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "context_offset_start": 279,
+      "context_offset_end": 349,
+      "context_sha256": "1b9bc3abb2beb15d59f45d458f14f55620fa8fb021e241144c24d6ca9a6c7b2d",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -119,6 +152,9 @@
       "candidate_concept": "AREN",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_007",
+      "context_offset_start": 868,
+      "context_offset_end": 932,
+      "context_sha256": "95050aba3fd29c7697dca0a052802f4f10699bfb5662f89dc9c4405f6b2aee31",
       "automated_status": "RETAINED",
       "filter_rationale": "domain_acronym"
     },
@@ -128,6 +164,9 @@
       "candidate_concept": "Transmission",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "context_offset_start": 178,
+      "context_offset_end": 250,
+      "context_sha256": "74c9fc6e60b44a1d1c5f2f4336aaa2a6c57a7890da8d30fa7a851a769a23772a",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -137,6 +176,9 @@
       "candidate_concept": "Adam",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 681,
+      "context_offset_end": 745,
+      "context_sha256": "ba8736ca6490caefc4f64090251e7770650fe18b86941108305187e86b5041dc",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -146,6 +188,9 @@
       "candidate_concept": "The Early Days",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 120,
+      "context_offset_end": 194,
+      "context_sha256": "8517d8b16671a6ab2c282ad9cfbfbf71f6a2b2c973e006355088d83887d90874",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -155,6 +200,9 @@
       "candidate_concept": "The OSI Reference Model",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "context_offset_start": 18,
+      "context_offset_end": 101,
+      "context_sha256": "bdb3bec4bddceb5984bb7249ef3e987b7d46c7acfcca5109c8c7e9f923b6d9df",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -164,6 +212,9 @@
       "candidate_concept": "Early Systems From",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 364,
+      "context_offset_end": 442,
+      "context_sha256": "bf81c07d7b40cfeb7fadc02e34086d6eb5859c7aadce9e6858b0947a7b5e6cb3",
       "automated_status": "REJECTED",
       "filter_rationale": "generic_participle_start"
     },
@@ -173,6 +224,9 @@
       "candidate_concept": "DeBERTa",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 874,
+      "context_offset_end": 941,
+      "context_sha256": "406d5d25a9aefd57687321eb2504d42e55642d24e26cb8881aef3b52a6186bb5",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -182,6 +236,9 @@
       "candidate_concept": "It",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 108,
+      "context_offset_end": 170,
+      "context_sha256": "ff94d09768247aa220a83584e6e7ecff2eba51c8dca2e6de9b89bf37534efc2c",
       "automated_status": "REJECTED",
       "filter_rationale": "generic_discourse_marker"
     },
@@ -191,6 +248,9 @@
       "candidate_concept": "The Abstraction",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 0,
+      "context_offset_end": 48,
+      "context_sha256": "171c0ddfc28ccecb0fdf8445e3810da0d743ca5358864843daec945b54cdc32d",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -200,6 +260,9 @@
       "candidate_concept": "Ariel Cyber Innovation Center",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 9,
+      "context_offset_end": 98,
+      "context_sha256": "194fbd1248dc711876cd6357a2abfce6c99b3f919feac2bbd4dd1a8701fd1465",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -209,6 +272,9 @@
       "candidate_concept": "Operating Systems",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 101,
+      "context_offset_end": 178,
+      "context_sha256": "c76e43bac0fd230e880cc972cefc50c71ba35c89e43408a2a73026efc2750d6d",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -218,6 +284,9 @@
       "candidate_concept": "Physical Layer",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "context_offset_start": 162,
+      "context_offset_end": 236,
+      "context_sha256": "da61df7be0065de0d2a9596bcf805ea6135dda75a19cfa9fed9be6679b9c4646",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -227,6 +296,9 @@
       "candidate_concept": "Current Program",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 17,
+      "context_offset_end": 92,
+      "context_sha256": "7bb3c234f54c39b1e186ee64fee2650d9476a25c632b93e4835c2128dbbaecac",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -236,6 +308,9 @@
       "candidate_concept": "Among",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_006",
+      "context_offset_start": 319,
+      "context_offset_end": 384,
+      "context_sha256": "9951e47442ad4f282ab12a78f5b9ebef588f08bfa60543196abf38beef287eb5",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -245,6 +320,9 @@
       "candidate_concept": "M+63",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 697,
+      "context_offset_end": 761,
+      "context_sha256": "4761faaf8de47cc36e212e2d1f1feb50c9495f7ad18fddb72a38ca203306136d",
       "automated_status": "RETAINED",
       "filter_rationale": "domain_acronym"
     },
@@ -254,6 +332,9 @@
       "candidate_concept": "Billion",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_007",
+      "context_offset_start": 196,
+      "context_offset_end": 263,
+      "context_sha256": "988d7feaaaa50636a72a3f0a49fe02fc347bf0407bba94c323cf01f3e564ad2b",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -263,6 +344,9 @@
       "candidate_concept": "Anomaly",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 413,
+      "context_offset_end": 480,
+      "context_sha256": "5fe5a494eee90f6139a52e4d6d6e913620650c413cc1f1376ab90fc1a2f2a5f8",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -272,6 +356,9 @@
       "candidate_concept": "One",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 353,
+      "context_offset_end": 416,
+      "context_sha256": "2a77ab099e690604e0b4df6a098486a045fbeeb16fcc3a59908d257041fca2f7",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -281,6 +368,9 @@
       "candidate_concept": "Additionally",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 331,
+      "context_offset_end": 403,
+      "context_sha256": "3a1864e5af1dd9a8a072091c8a1693e54646812d0a451edafaafd57341faac32",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -290,6 +380,9 @@
       "candidate_concept": "INTRODUCTION Pretrained Weights",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 1374,
+      "context_offset_end": 1465,
+      "context_sha256": "97bc13e6344a1ab975f5cba66de931b3fa515f1cc54831abc6c6bc77ef0d486e",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -299,6 +392,9 @@
       "candidate_concept": "Conventions We",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 623,
+      "context_offset_end": 697,
+      "context_sha256": "1cb2e20c4199d769c53b124cace111bb0c19f412fa0b7ffa712fff6fedc34d76",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -308,6 +404,9 @@
       "candidate_concept": "Accepted",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 697,
+      "context_offset_end": 765,
+      "context_sha256": "31ce8c1c5f23145306b1ef7dd681a132cd1110330f6c02d79d7b9e5473317b72",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -317,6 +416,9 @@
       "candidate_concept": "Sliding Window Protocol",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p198_2",
+      "context_offset_start": 43,
+      "context_offset_end": 126,
+      "context_sha256": "5c297f1e7ce7857e38d4821b9e3e228f4855427237c5cb10b0aef95876b3b0e2",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -326,6 +428,9 @@
       "candidate_concept": "Basically",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 473,
+      "context_offset_end": 542,
+      "context_sha256": "2d0462864c00c7469d77384fd4eefdac5fa89e328d3edfe42494e6d9eb7208a3",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -335,6 +440,9 @@
       "candidate_concept": "EXISTING SOLUTIONS GOOD ENOUGH",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_007",
+      "context_offset_start": 875,
+      "context_offset_end": 936,
+      "context_sha256": "f77011e57ef6b5a8ee35d5cf33b208c6d4bf53e5530cb2f56ff63219a4468e6e",
       "automated_status": "REJECTED",
       "filter_rationale": "allcaps_excessive_length"
     },
@@ -344,6 +452,9 @@
       "candidate_concept": "The",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 163,
+      "context_offset_end": 226,
+      "context_sha256": "911be3b71e5475bd24e7209a0be9df594282e1ec71973ac5ca1a10db4f40ecc8",
       "automated_status": "REJECTED",
       "filter_rationale": "generic_discourse_marker"
     },
@@ -353,6 +464,9 @@
       "candidate_concept": "ADDRESS SPACES",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 0,
+      "context_offset_end": 63,
+      "context_sha256": "bc696aad6b94a037fd0a2c0829bd061ea22135047aaa18b593467ee3df440d9c",
       "automated_status": "REJECTED",
       "filter_rationale": "allcaps_excessive_length"
     },
@@ -362,6 +476,9 @@
       "candidate_concept": "GPT-2",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 883,
+      "context_offset_end": 948,
+      "context_sha256": "736d3d32e9cab5f7d5bfa9732306ac1dfe36ea4b9c634a8db16f87a076ae9f53",
       "automated_status": "RETAINED",
       "filter_rationale": "domain_acronym"
     },
@@ -371,6 +488,9 @@
       "candidate_concept": "Ba",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 1227,
+      "context_offset_end": 1289,
+      "context_sha256": "768fb1e80627bc39578e22b5cb9e449dd2f7d78d4be6210d3d0ced79bf9af7d3",
       "automated_status": "REJECTED",
       "filter_rationale": "no_substantive_tokens"
     },
@@ -380,6 +500,9 @@
       "candidate_concept": "LoRA",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 417,
+      "context_offset_end": 481,
+      "context_sha256": "5cae0553d190686850334f5a6972ee7aca7590548699c31f00e8cf70103b02b3",
       "automated_status": "RETAINED",
       "filter_rationale": "canonical_technical_acronym"
     },
@@ -389,6 +512,9 @@
       "candidate_concept": "Because",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 74,
+      "context_offset_end": 141,
+      "context_sha256": "e4fcba96a9a0628d6e7d2ff0378c646eff8840fb01969d612c95662af66d7b68",
       "automated_status": "REJECTED",
       "filter_rationale": "generic_discourse_marker"
     },
@@ -398,6 +524,9 @@
       "candidate_concept": "ANN",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 504,
+      "context_offset_end": 594,
+      "context_sha256": "8839b88d3cde9d4ac62270a741ece9a87c408933587e35480025fbcccd5ca507",
       "automated_status": "RETAINED",
       "filter_rationale": "canonical_technical_acronym"
     },
@@ -407,6 +536,9 @@
       "candidate_concept": "Low-Rank Adaptation",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 393,
+      "context_offset_end": 472,
+      "context_sha256": "de6ff696ada1b9ea4edc4e1a2d863388dee70571d4eab033dd06d2a46c9fb597",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -416,6 +548,9 @@
       "candidate_concept": "Address Spaces In",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_004",
+      "context_offset_start": 0,
+      "context_offset_end": 67,
+      "context_sha256": "8084f968e8fdf490a991ac96a13e6963f00d57fbed7c96641248910531b47c5c",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -425,6 +560,9 @@
       "candidate_concept": "Transformer MLP",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_005",
+      "context_offset_start": 1270,
+      "context_offset_end": 1345,
+      "context_sha256": "8092a23363de3664588a1ae2da6d0740c70664adbf180760d1d8284d3de57688",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -434,6 +572,9 @@
       "candidate_concept": "Similarly",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p198_2",
+      "context_offset_start": 267,
+      "context_offset_end": 336,
+      "context_sha256": "8df0f72fbccc6ab7447179f198688dee4695dcb07c87ae356532b7074fd8e99e",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -443,6 +584,9 @@
       "candidate_concept": "Section",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "context_offset_start": 0,
+      "context_offset_end": 54,
+      "context_sha256": "57348d4b4d4e69906c8e9875a586fcb30d35eaccb9a3ccd71a2f2d703d33784a",
       "automated_status": "REJECTED",
       "filter_rationale": "unvetted_single_token"
     },
@@ -452,6 +596,9 @@
       "candidate_concept": "GPT-3",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 655,
+      "context_offset_end": 720,
+      "context_sha256": "4db276374a9834d9e2c16372d4ae4790ee6242ed0c6f4aff24f4f98b4cc00ad7",
       "automated_status": "RETAINED",
       "filter_rationale": "domain_acronym"
     },
@@ -461,6 +608,9 @@
       "candidate_concept": "Approximate nearest neighbor",
       "source_document": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 504,
+      "context_offset_end": 594,
+      "context_sha256": "8839b88d3cde9d4ac62270a741ece9a87c408933587e35480025fbcccd5ca507",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -470,6 +620,9 @@
       "candidate_concept": "GPU",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 762,
+      "context_offset_end": 825,
+      "context_sha256": "126c23d54622ede1041e24ed77e4526ed8ee7f0a42ed9e8d9b65d8f2ce101bd9",
       "automated_status": "RETAINED",
       "filter_rationale": "canonical_technical_acronym"
     },
@@ -479,6 +632,9 @@
       "candidate_concept": "As",
       "source_document": "papers/Hu2021_LoRA.pdf",
       "chunk_id": "chunk_002",
+      "context_offset_start": 131,
+      "context_offset_end": 193,
+      "context_sha256": "daf433a4029061434c710a6f7905f862091d282e441b42e335b188fcde365b04",
       "automated_status": "REJECTED",
       "filter_rationale": "no_substantive_tokens"
     },
@@ -488,6 +644,9 @@
       "candidate_concept": "Data Link Layer",
       "source_document": "doc_computer_networks_6_e",
       "chunk_id": "doc_computer_networks_6_e_p42_1",
+      "context_offset_start": 262,
+      "context_offset_end": 337,
+      "context_sha256": "8c34a9ef34bb2df6886f3272b6a2717df9249beaba9af55c5f149e01f08e0750",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     },
@@ -497,6 +656,9 @@
       "candidate_concept": "Operating System",
       "source_document": "archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf",
       "chunk_id": "paging_seed_005",
+      "context_offset_start": 52,
+      "context_offset_end": 128,
+      "context_sha256": "019574b6a452457fe333d9cfb6aacd31d3edd584e31698bbedc1a4b1829d7f1c",
       "automated_status": "RETAINED",
       "filter_rationale": "technical_noun_phrase"
     }

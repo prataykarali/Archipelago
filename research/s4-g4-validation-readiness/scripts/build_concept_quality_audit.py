@@ -163,12 +163,18 @@ def build_audit_sample() -> dict[str, Any]:
                     k = (domain, c_clean.lower())
                     if k not in seen_keys and len(c_clean) > 1:
                         seen_keys.add(k)
+                        snip_start = max(0, m.start() - 40)
+                        snip_end = min(len(text), m.end() + 40)
+                        snippet = text[snip_start:snip_end].strip()
                         all_raw_candidates.append({
                             "domain": domain,
                             "doc_id": doc_id,
                             "chunk_id": ch,
                             "candidate_concept": c_clean,
-                            "context_snippet": text[max(0, m.start() - 40):min(len(text), m.end() + 40)].strip(),
+                            "context_offset_start": snip_start,
+                            "context_offset_end": snip_end,
+                            "context_sha256": hashlib.sha256(snippet.encode("utf-8")).hexdigest(),
+                            "context_snippet": snippet,
                         })
 
             # Extract capitalized multi-word phrases and single capitalized words
@@ -177,12 +183,18 @@ def build_audit_sample() -> dict[str, Any]:
                 k = (domain, phrase.lower())
                 if k not in seen_keys and len(phrase) > 1:
                     seen_keys.add(k)
+                    snip_start = max(0, m.start() - 30)
+                    snip_end = min(len(text), m.end() + 30)
+                    snippet = text[snip_start:snip_end].strip()
                     all_raw_candidates.append({
                         "domain": domain,
                         "doc_id": doc_id,
                         "chunk_id": ch,
                         "candidate_concept": phrase,
-                        "context_snippet": text[max(0, m.start() - 30):min(len(text), m.end() + 30)].strip(),
+                        "context_offset_start": snip_start,
+                        "context_offset_end": snip_end,
+                        "context_sha256": hashlib.sha256(snippet.encode("utf-8")).hexdigest(),
+                        "context_snippet": snippet,
                     })
 
     # Classify each candidate deterministically
@@ -217,12 +229,27 @@ def build_audit_sample() -> dict[str, Any]:
     # Sort deterministically by candidate concept to prevent ordering bias
     sampled_items.sort(key=lambda x: hashlib.sha256(x["candidate_concept"].encode()).hexdigest())
 
-    blinded_rows = []
+    public_blinded_rows = []
+    local_blinded_rows = []
     admin_manifest_rows = []
 
     for idx, item in enumerate(sampled_items, start=1):
         audit_id = f"CVAL-{idx:02d}"
-        blinded_rows.append({
+        public_blinded_rows.append({
+            "item_id": audit_id,
+            "domain": item["domain"],
+            "candidate_concept": item["candidate_concept"],
+            "source_document": item["doc_id"],
+            "chunk_id": item["chunk_id"],
+            "context_offset_start": item["context_offset_start"],
+            "context_offset_end": item["context_offset_end"],
+            "context_sha256": item["context_sha256"],
+            "human_is_valid_concept": "",
+            "human_concept_type": "",
+            "human_confidence": "",
+            "human_notes": "",
+        })
+        local_blinded_rows.append({
             "item_id": audit_id,
             "domain": item["domain"],
             "candidate_concept": item["candidate_concept"],
@@ -240,21 +267,25 @@ def build_audit_sample() -> dict[str, Any]:
             "candidate_concept": item["candidate_concept"],
             "source_document": item["doc_id"],
             "chunk_id": item["chunk_id"],
+            "context_offset_start": item["context_offset_start"],
+            "context_offset_end": item["context_offset_end"],
+            "context_sha256": item["context_sha256"],
             "automated_status": item["automated_status"],
             "filter_rationale": item["filter_rationale"],
         })
 
-    # Save public blinded CSV
+    # Save public blinded CSV (metadata only — NO verbatim text)
     public_csv = AUDIT_DIR / "concept_validity_audit_pool_public.csv"
     with open(public_csv, "w", newline="", encoding="utf-8") as f:
         fieldnames = [
             "item_id", "domain", "candidate_concept", "source_document", "chunk_id",
-            "context_snippet", "human_is_valid_concept", "human_concept_type",
+            "context_offset_start", "context_offset_end", "context_sha256",
+            "human_is_valid_concept", "human_concept_type",
             "human_confidence", "human_notes"
         ]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(blinded_rows)
+        writer.writerows(public_blinded_rows)
 
     # Save admin manifest
     admin_json = AUDIT_DIR / "concept_filter_consistency_report.json"
@@ -277,12 +308,17 @@ def build_audit_sample() -> dict[str, Any]:
     with open(admin_json, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
 
-    # Save local workbook in data/annotation_local
+    # Save local workbook in data/annotation_local (local-only approved storage)
     local_csv = LOCAL_DIR / "concept_validity_audit_pool.csv"
     with open(local_csv, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        local_fieldnames = [
+            "item_id", "domain", "candidate_concept", "source_document", "chunk_id",
+            "context_snippet", "human_is_valid_concept", "human_concept_type",
+            "human_confidence", "human_notes"
+        ]
+        writer = csv.DictWriter(f, fieldnames=local_fieldnames)
         writer.writeheader()
-        writer.writerows(blinded_rows)
+        writer.writerows(local_blinded_rows)
 
     local_wb = LOCAL_DIR / "concept_validity_audit_workbook.md"
     with open(local_wb, "w", encoding="utf-8") as f:
@@ -290,7 +326,7 @@ def build_audit_sample() -> dict[str, Any]:
         f.write("> **INSTRUCTIONS FOR INDEPENDENT ANNOTATORS**\n")
         f.write("> For each item, evaluate whether the candidate concept represents a valid technical academic concept.\n")
         f.write("> Do not guess based on capitalization alone. Evaluate context and domain appropriateness.\n\n")
-        for b in blinded_rows:
+        for b in local_blinded_rows:
             f.write(f"## Item {b['item_id']} ({b['domain']})\n\n")
             f.write(f"- **Candidate Concept:** `{b['candidate_concept']}`\n")
             f.write(f"- **Source:** `{b['source_document']}` :: `{b['chunk_id']}`\n")

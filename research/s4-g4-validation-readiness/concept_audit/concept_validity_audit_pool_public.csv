@@ -1,80 +1,55 @@
-item_id,domain,candidate_concept,source_document,chunk_id,context_snippet,human_is_valid_concept,human_concept_type,human_confidence,human_notes
-CVAL-01,Computer Networks,Sliding Window Protocols,doc_computer_networks_6_e,doc_computer_networks_6_e_p198_2,"Section 3.3 Sliding Window Protocols.
-                A Sliding Wi",,,,
-CVAL-02,Computer Networks,2026,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_005,"revised form 8 January 2026; Accepted 9 January 2026
-Computer Networks 277 (2026) 112016
-Available online 17 January 2026",,,,
-CVAL-03,AI & Machine Learning,Compared,papers/Hu2021_LoRA.pdf,chunk_002,ameters for downstream tasks. Compared to GPT-3 175B ﬁne-tuned with,,,,
-CVAL-04,AI & Machine Learning,Brown,papers/Hu2021_LoRA.pdf,chunk_005,"out by (Vaswani et al., 2017; Brown et al., 2020) and use Adam (L",,,,
-CVAL-05,Computer Networks,Network Software,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,Section 1.4 Network Software & The OSI Reference Model.,,,,
-CVAL-06,Operating Systems,Figure,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,omething like what you see in Figure 13.1 (page 2). The OS was a s,,,,
-CVAL-07,Operating Systems,Next,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,e led to all these headaches. Next time you meet one of those co,,,,
-CVAL-08,Operating Systems,PC,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,"ing register-level state (the PC, general-pur",,,,
-CVAL-09,Operating Systems,The OS,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,see in Figure 13.1 (page 2). The OS was a set of routines (a libr,,,,
-CVAL-10,AI & Machine Learning,Appendix,papers/Hu2021_LoRA.pdf,chunk_005,"ing. We provide an example in Appendix E.
-Terminologies and Conventi",,,,
-CVAL-11,Computer Networks,Transforms,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,2. Data Link Layer: Transforms a raw transmission facility i,,,,
-CVAL-12,AI & Machine Learning,AREN,papers/Hu2021_LoRA.pdf,chunk_007,"as small as 0.01% of |Φ0|.
-3 AREN’T EXISTING SOLUTIONS GOOD ENO",,,,
-CVAL-13,Computer Networks,Transmission,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,1. Physical Layer: Transmission of raw bits over a physical c,,,,
-CVAL-14,AI & Machine Learning,Adam,papers/Hu2021_LoRA.pdf,chunk_002,"to GPT-3 175B ﬁne-tuned with Adam, LoRA can reduce the number o",,,,
-CVAL-15,Operating Systems,The Early Days,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,gure 13.1: Operating Systems: The Early Days tive) program-debug cycles. T,,,,
-CVAL-16,Computer Networks,The OSI Reference Model,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,"ection 1.4 Network Software & The OSI Reference Model.
-                The OSI Refe",,,,
-CVAL-17,Operating Systems,Early Systems From,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,"oblems they have caused. 13.1 Early Systems From the perspective of memory, ea",,,,
-CVAL-18,AI & Machine Learning,DeBERTa,papers/Hu2021_LoRA.pdf,chunk_002,"in model quality on RoBERTa, DeBERTa, GPT-2, and GPT-3, despite ha",,,,
-CVAL-19,Operating Systems,It,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,use users didn’t expect much. It is those darned users with th,,,,
-CVAL-20,Operating Systems,The Abstraction,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,13 The Abstraction: Address Spaces In the early,,,,
-CVAL-21,Computer Networks,Ariel Cyber Innovation Center,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,"partment of Computer Science, Ariel Cyber Innovation Center, Ariel University, Israel b S",,,,
-CVAL-22,Operating Systems,Operating Systems,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,"ode, data, etc.) Figure 13.1: Operating Systems: The Early Days tive) program",,,,
-CVAL-23,Computer Networks,Physical Layer,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,"nications:
-                1. Physical Layer: Transmission of raw bits ove",,,,
-CVAL-24,Operating Systems,Current Program,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,": ADDRESS SPACES max 64KB 0KB Current Program (code, data, etc.) Operating",,,,
-CVAL-25,Computer Networks,Among,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_006,"reviously unseen attacks [5]. Among these, zero-shot learning has",,,,
-CVAL-26,Operating Systems,M+63,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,"crude sharing of the machine [M+63]. Unfortunately, this approac",,,,
-CVAL-27,AI & Machine Learning,Billion,papers/Hu2021_LoRA.pdf,chunk_007,"(such as GPT-3 with |Φ0| ≈175 Billion), storing and deploying many",,,,
-CVAL-28,Computer Networks,Anomaly,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,"r t i c l e i n f o
-Keywords: Anomaly detection Graph neural networ",,,,
-CVAL-29,Operating Systems,One,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,ir currently-executing tasks. One way to implement time sharing,,,,
-CVAL-30,Computer Networks,Additionally,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_005,"sca- late within seconds [3]. Additionally, many conventional NIDS are s",,,,
-CVAL-31,AI & Machine Learning,INTRODUCTION Pretrained Weights,papers/Hu2021_LoRA.pdf,chunk_002,"/github.com/microsoft/LoRA.
-1 INTRODUCTION
-Pretrained
-Weights
-𝑊∈ℝ𝑑×𝑑
-x
-h
-𝐵= 0
-𝐴= 𝒩(0, 𝜎2)
-𝑑",,,,
-CVAL-32,AI & Machine Learning,Conventions We,papers/Hu2021_LoRA.pdf,chunk_005,"Appendix E.
-Terminologies and Conventions We make frequent references to t",,,,
-CVAL-33,Computer Networks,Accepted,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_005,"revised form 8 January 2026; Accepted 9 January 2026
-Computer Netwo",,,,
-CVAL-34,Computer Networks,Sliding Window Protocol,doc_computer_networks_6_e,doc_computer_networks_6_e_p198_2,"Protocols.
-                A Sliding Window Protocol is a bidirectional full-duple",,,,
-CVAL-35,Operating Systems,Basically,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,"h of an abstraction to users. Basically, the physical memory of the m",,,,
-CVAL-36,AI & Machine Learning,EXISTING SOLUTIONS GOOD ENOUGH,papers/Hu2021_LoRA.pdf,chunk_007,"ll as 0.01% of |Φ0|.
-3 AREN’T EXISTING SOLUTIONS GOOD ENOUGH?",,,,
-CVAL-37,Operating Systems,The,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,s tive) program-debug cycles. The notion of interactivity becam,,,,
-CVAL-38,Operating Systems,ADDRESS SPACES,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,2 THE ABSTRACTION: ADDRESS SPACES max 64KB 0KB Current Program,,,,
-CVAL-39,AI & Machine Learning,GPT-2,papers/Hu2021_LoRA.pdf,chunk_002,"quality on RoBERTa, DeBERTa, GPT-2, and GPT-3, despite hav- ing",,,,
-CVAL-40,AI & Machine Learning,Ba,papers/Hu2021_LoRA.pdf,chunk_005,"ilov & Hutter, 2019; Kingma & Ba, 2017) for model optimization",,,,
-CVAL-41,AI & Machine Learning,LoRA,papers/Hu2021_LoRA.pdf,chunk_002,"opose Low-Rank Adaptation, or LoRA, which freezes the pre- train",,,,
-CVAL-42,Operating Systems,Because,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,"stems was easy. Why, you ask? Because users didn’t expect much. It",,,,
-CVAL-43,Computer Networks,ANN,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,"time network intrusion detection system Approximate nearest neighbor (ANN)
-a b s t r a c t",,,,
-CVAL-44,AI & Machine Learning,Low-Rank Adaptation,papers/Hu2021_LoRA.pdf,chunk_002,"itively expensive. We propose Low-Rank Adaptation, or LoRA, which freezes the p",,,,
-CVAL-45,Operating Systems,Address Spaces In,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,"13 The Abstraction: Address Spaces In the early days, building comp",,,,
-CVAL-46,AI & Machine Learning,Transformer MLP,papers/Hu2021_LoRA.pdf,chunk_005,model optimization and use a Transformer MLP feedforward dimension dffn =,,,,
-CVAL-47,Computer Networks,Similarly,doc_computer_networks_6_e,doc_computer_networks_6_e_p198_2,"nding window.
-                Similarly, the receiver maintains a rec",,,,
-CVAL-48,Computer Networks,Section,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,Section 1.4 Network Software & The OS,,,,
-CVAL-49,AI & Machine Learning,GPT-3,papers/Hu2021_LoRA.pdf,chunk_002,"downstream tasks. Compared to GPT-3 175B ﬁne-tuned with Adam, LoR",,,,
-CVAL-50,Computer Networks,Approximate nearest neighbor,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,"time network intrusion detection system Approximate nearest neighbor (ANN)
-a b s t r a c t",,,,
-CVAL-51,AI & Machine Learning,GPU,papers/Hu2021_LoRA.pdf,chunk_002,"eters by 10,000 times and the GPU memory requirement by 3 times",,,,
-CVAL-52,AI & Machine Learning,As,papers/Hu2021_LoRA.pdf,chunk_002,"particular tasks or domains. As we pre-train larger models, f",,,,
-CVAL-53,Computer Networks,Data Link Layer,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,"s channel.
-                2. Data Link Layer: Transforms a raw transmissio",,,,
-CVAL-54,Operating Systems,Operating System,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,"nt Program (code, data, etc.) Operating System (code, data, etc.) Figure 13.",,,,
+item_id,domain,candidate_concept,source_document,chunk_id,context_offset_start,context_offset_end,context_sha256,human_is_valid_concept,human_concept_type,human_confidence,human_notes
+CVAL-01,Computer Networks,Sliding Window Protocols,doc_computer_networks_6_e,doc_computer_networks_6_e_p198_2,0,83,57e6f89e1e126e6f6cb29a24d3794c76e06e00168e94547d02b6ed11ae4162ed,,,,
+CVAL-02,Computer Networks,2026,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_005,698,819,54c8ac3fe6448be8b83397fab6a92af96c212718c6e7cee7fd38e59e399c4e3d,,,,
+CVAL-03,AI & Machine Learning,Compared,papers/Hu2021_LoRA.pdf,chunk_002,643,711,cc36c20640bf370744ca2d09bf200a7f5275ead9570dc3592cb9efb7684f2f05,,,,
+CVAL-04,AI & Machine Learning,Brown,papers/Hu2021_LoRA.pdf,chunk_005,1157,1222,25013a9a08e63e2d0a2ea6d6bf9ebabcc0bcbac7cd735e32f7e9ec510e4f79e1,,,,
+CVAL-05,Computer Networks,Network Software,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,0,75,92aaca9cd8cef154f89fd37004d58773de5d563fe29f882213f36f50802b2a34,,,,
+CVAL-06,Operating Systems,Figure,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,557,623,4b2a6c3b07b7ee1b5d07fe7b3b6583cd4628328b85a13859e693e559a7fc38d4,,,,
+CVAL-07,Operating Systems,Next,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,261,325,ae694b15e4c187177d98e01c3e3ea318dafdcb5ef38734eb904fe186e3638d65,,,,
+CVAL-08,Operating Systems,PC,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,855,900,2ac1ce248756feec739cb406230d67a9270b02f83f34dced16be8c9e78a1310f,,,,
+CVAL-09,Operating Systems,The OS,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,579,645,728d03763552f4933f9d59c72e1ca74b13b0d7b1d374b78ea377c9fd285adb3e,,,,
+CVAL-10,AI & Machine Learning,Appendix,papers/Hu2021_LoRA.pdf,chunk_005,593,661,42db3a3a0fbd615b8c2f60c464e42eefe4d076807ac8e339f23d407da2980277,,,,
+CVAL-11,Computer Networks,Transforms,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,279,349,1b9bc3abb2beb15d59f45d458f14f55620fa8fb021e241144c24d6ca9a6c7b2d,,,,
+CVAL-12,AI & Machine Learning,AREN,papers/Hu2021_LoRA.pdf,chunk_007,868,932,95050aba3fd29c7697dca0a052802f4f10699bfb5662f89dc9c4405f6b2aee31,,,,
+CVAL-13,Computer Networks,Transmission,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,178,250,74c9fc6e60b44a1d1c5f2f4336aaa2a6c57a7890da8d30fa7a851a769a23772a,,,,
+CVAL-14,AI & Machine Learning,Adam,papers/Hu2021_LoRA.pdf,chunk_002,681,745,ba8736ca6490caefc4f64090251e7770650fe18b86941108305187e86b5041dc,,,,
+CVAL-15,Operating Systems,The Early Days,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,120,194,8517d8b16671a6ab2c282ad9cfbfbf71f6a2b2c973e006355088d83887d90874,,,,
+CVAL-16,Computer Networks,The OSI Reference Model,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,18,101,bdb3bec4bddceb5984bb7249ef3e987b7d46c7acfcca5109c8c7e9f923b6d9df,,,,
+CVAL-17,Operating Systems,Early Systems From,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,364,442,bf81c07d7b40cfeb7fadc02e34086d6eb5859c7aadce9e6858b0947a7b5e6cb3,,,,
+CVAL-18,AI & Machine Learning,DeBERTa,papers/Hu2021_LoRA.pdf,chunk_002,874,941,406d5d25a9aefd57687321eb2504d42e55642d24e26cb8881aef3b52a6186bb5,,,,
+CVAL-19,Operating Systems,It,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,108,170,ff94d09768247aa220a83584e6e7ecff2eba51c8dca2e6de9b89bf37534efc2c,,,,
+CVAL-20,Operating Systems,The Abstraction,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,0,48,171c0ddfc28ccecb0fdf8445e3810da0d743ca5358864843daec945b54cdc32d,,,,
+CVAL-21,Computer Networks,Ariel Cyber Innovation Center,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,9,98,194fbd1248dc711876cd6357a2abfce6c99b3f919feac2bbd4dd1a8701fd1465,,,,
+CVAL-22,Operating Systems,Operating Systems,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,101,178,c76e43bac0fd230e880cc972cefc50c71ba35c89e43408a2a73026efc2750d6d,,,,
+CVAL-23,Computer Networks,Physical Layer,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,162,236,da61df7be0065de0d2a9596bcf805ea6135dda75a19cfa9fed9be6679b9c4646,,,,
+CVAL-24,Operating Systems,Current Program,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,17,92,7bb3c234f54c39b1e186ee64fee2650d9476a25c632b93e4835c2128dbbaecac,,,,
+CVAL-25,Computer Networks,Among,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_006,319,384,9951e47442ad4f282ab12a78f5b9ebef588f08bfa60543196abf38beef287eb5,,,,
+CVAL-26,Operating Systems,M+63,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,697,761,4761faaf8de47cc36e212e2d1f1feb50c9495f7ad18fddb72a38ca203306136d,,,,
+CVAL-27,AI & Machine Learning,Billion,papers/Hu2021_LoRA.pdf,chunk_007,196,263,988d7feaaaa50636a72a3f0a49fe02fc347bf0407bba94c323cf01f3e564ad2b,,,,
+CVAL-28,Computer Networks,Anomaly,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,413,480,5fe5a494eee90f6139a52e4d6d6e913620650c413cc1f1376ab90fc1a2f2a5f8,,,,
+CVAL-29,Operating Systems,One,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,353,416,2a77ab099e690604e0b4df6a098486a045fbeeb16fcc3a59908d257041fca2f7,,,,
+CVAL-30,Computer Networks,Additionally,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_005,331,403,3a1864e5af1dd9a8a072091c8a1693e54646812d0a451edafaafd57341faac32,,,,
+CVAL-31,AI & Machine Learning,INTRODUCTION Pretrained Weights,papers/Hu2021_LoRA.pdf,chunk_002,1374,1465,97bc13e6344a1ab975f5cba66de931b3fa515f1cc54831abc6c6bc77ef0d486e,,,,
+CVAL-32,AI & Machine Learning,Conventions We,papers/Hu2021_LoRA.pdf,chunk_005,623,697,1cb2e20c4199d769c53b124cace111bb0c19f412fa0b7ffa712fff6fedc34d76,,,,
+CVAL-33,Computer Networks,Accepted,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_005,697,765,31ce8c1c5f23145306b1ef7dd681a132cd1110330f6c02d79d7b9e5473317b72,,,,
+CVAL-34,Computer Networks,Sliding Window Protocol,doc_computer_networks_6_e,doc_computer_networks_6_e_p198_2,43,126,5c297f1e7ce7857e38d4821b9e3e228f4855427237c5cb10b0aef95876b3b0e2,,,,
+CVAL-35,Operating Systems,Basically,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,473,542,2d0462864c00c7469d77384fd4eefdac5fa89e328d3edfe42494e6d9eb7208a3,,,,
+CVAL-36,AI & Machine Learning,EXISTING SOLUTIONS GOOD ENOUGH,papers/Hu2021_LoRA.pdf,chunk_007,875,936,f77011e57ef6b5a8ee35d5cf33b208c6d4bf53e5530cb2f56ff63219a4468e6e,,,,
+CVAL-37,Operating Systems,The,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,163,226,911be3b71e5475bd24e7209a0be9df594282e1ec71973ac5ca1a10db4f40ecc8,,,,
+CVAL-38,Operating Systems,ADDRESS SPACES,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,0,63,bc696aad6b94a037fd0a2c0829bd061ea22135047aaa18b593467ee3df440d9c,,,,
+CVAL-39,AI & Machine Learning,GPT-2,papers/Hu2021_LoRA.pdf,chunk_002,883,948,736d3d32e9cab5f7d5bfa9732306ac1dfe36ea4b9c634a8db16f87a076ae9f53,,,,
+CVAL-40,AI & Machine Learning,Ba,papers/Hu2021_LoRA.pdf,chunk_005,1227,1289,768fb1e80627bc39578e22b5cb9e449dd2f7d78d4be6210d3d0ced79bf9af7d3,,,,
+CVAL-41,AI & Machine Learning,LoRA,papers/Hu2021_LoRA.pdf,chunk_002,417,481,5cae0553d190686850334f5a6972ee7aca7590548699c31f00e8cf70103b02b3,,,,
+CVAL-42,Operating Systems,Because,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,74,141,e4fcba96a9a0628d6e7d2ff0378c646eff8840fb01969d612c95662af66d7b68,,,,
+CVAL-43,Computer Networks,ANN,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,504,594,8839b88d3cde9d4ac62270a741ece9a87c408933587e35480025fbcccd5ca507,,,,
+CVAL-44,AI & Machine Learning,Low-Rank Adaptation,papers/Hu2021_LoRA.pdf,chunk_002,393,472,de6ff696ada1b9ea4edc4e1a2d863388dee70571d4eab033dd06d2a46c9fb597,,,,
+CVAL-45,Operating Systems,Address Spaces In,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_004,0,67,8084f968e8fdf490a991ac96a13e6963f00d57fbed7c96641248910531b47c5c,,,,
+CVAL-46,AI & Machine Learning,Transformer MLP,papers/Hu2021_LoRA.pdf,chunk_005,1270,1345,8092a23363de3664588a1ae2da6d0740c70664adbf180760d1d8284d3de57688,,,,
+CVAL-47,Computer Networks,Similarly,doc_computer_networks_6_e,doc_computer_networks_6_e_p198_2,267,336,8df0f72fbccc6ab7447179f198688dee4695dcb07c87ae356532b7074fd8e99e,,,,
+CVAL-48,Computer Networks,Section,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,0,54,57348d4b4d4e69906c8e9875a586fcb30d35eaccb9a3ccd71a2f2d703d33784a,,,,
+CVAL-49,AI & Machine Learning,GPT-3,papers/Hu2021_LoRA.pdf,chunk_002,655,720,4db276374a9834d9e2c16372d4ae4790ee6242ed0c6f4aff24f4f98b4cc00ad7,,,,
+CVAL-50,Computer Networks,Approximate nearest neighbor,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_002,504,594,8839b88d3cde9d4ac62270a741ece9a87c408933587e35480025fbcccd5ca507,,,,
+CVAL-51,AI & Machine Learning,GPU,papers/Hu2021_LoRA.pdf,chunk_002,762,825,126c23d54622ede1041e24ed77e4526ed8ee7f0a42ed9e8d9b65d8f2ce101bd9,,,,
+CVAL-52,AI & Machine Learning,As,papers/Hu2021_LoRA.pdf,chunk_002,131,193,daf433a4029061434c710a6f7905f862091d282e441b42e335b188fcde365b04,,,,
+CVAL-53,Computer Networks,Data Link Layer,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,262,337,8c34a9ef34bb2df6886f3272b6a2717df9249beaba9af55c5f149e01f08e0750,,,,
+CVAL-54,Operating Systems,Operating System,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,paging_seed_005,52,128,019574b6a452457fe333d9cfb6aacd31d3edd584e31698bbedc1a4b1829d7f1c,,,,
