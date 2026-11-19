@@ -1,0 +1,109 @@
+{
+  "schema_version": "s5v3_retrieval_run_manifest_v1",
+  "manifest_type": "REPRODUCIBLE_RUN_MANIFEST_TEMPLATE",
+  "status": "TEMPLATE_ONLY_NOT_AN_EXECUTED_GOLD_RUN",
+  "created_utc": "<ISO-8601 UTC timestamp, e.g. 2026-11-19T00:00:00Z>",
+  "git_provenance": {
+    "branch": "research/s5-v3-benchmark-expansion",
+    "commit_sha": "<40-char git commit SHA>",
+    "working_tree_clean": true
+  },
+  "corpus_provenance": {
+    "corpus_id": "s5v3_corpus_v1",
+    "corpus_manifest_path": "research/s5-v3-benchmark-expansion/manifests/s5v3_corpus_manifest.json",
+    "corpus_manifest_sha256": "776616220062667bce9d174bc40623e980b5bdb52723dfd4c713fbae9ecfc48b",
+    "corpus_jsonl_local_path": "data/annotation_local/s5v3/corpus_v3/s5v3_corpus_passages.jsonl",
+    "corpus_passage_id_sha256": "1e1c02a795342ef7c9dc44b85509f3dab17fbcafdd2498d3187f9c79748b839b",
+    "corpus_text_sha256": "<64-char SHA-256 of ordered passage text payload>",
+    "corpus_combined_sha256": "dd8e973b727a981aeb4b8d0109513616c4ea709afe3eed40bde5c8b14ebeaee4",
+    "passage_count": 858,
+    "usable_passage_count": 818,
+    "document_count": 4,
+    "frozen_v2_1_corpus_preserved": true
+  },
+  "query_split_provenance": {
+    "benchmark_id": "s5v3_query_benchmark_v1",
+    "query_manifest_path": "research/s5-v3-benchmark-expansion/manifests/s5v3_query_benchmark_proposed.json",
+    "query_manifest_sha256": "17914918ac1355a8e4768cf0fc57629c85d43630d244bbfee3f004a5c611c153",
+    "split_evaluated": "<dev | test>",
+    "query_split_sha256": "<64-char SHA-256 of canonical ordered query list for this split>",
+    "query_count": 48,
+    "answerable_candidate_count": 40,
+    "negative_control_candidate_count": 8,
+    "human_query_verification_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION",
+    "dev_test_leakage_checked": true,
+    "v2_1_query_overlap_count": 0
+  },
+  "system_provenance": {
+    "system_id": "<e.g., bm25 | dense_snowflake_arctic_768d | hybrid_rrf_e2e | v3_graph_1hop_anchored | v3_graph_2hop_coverage_routed | cross_encoder_rerank_bge_base>",
+    "system_family": "<lexical | dense | hybrid_rrf | graph_v2_1_control | graph_v3_variant | neural_reranker>",
+    "is_frozen_v2_1_control": false,
+    "system_config_sha256": "<64-char SHA-256 of canonical JSON system configuration>",
+    "top_k": 10,
+    "tie_breaking_rule": "(-score, passage_id)",
+    "information_access_disclosure": {
+      "eligible_passage_collection_identical": true,
+      "uses_pretrained_neural_weights": false,
+      "uses_external_or_derived_graph": false,
+      "graph_artifact_path": "<null | okf_graph.json | derived_corpus_graph>",
+      "graph_artifact_sha256": "<null | 64-char SHA-256>"
+    },
+    "hyperparameters": {
+      "note": "Record all frozen hyperparameters; tuning allowed strictly on dev split only.",
+      "tuned_on_split": "<none_zero_shot | dev_only>"
+    }
+  },
+  "model_provenance": {
+    "uses_neural_model": false,
+    "model_id": "<null | Snowflake/snowflake-arctic-embed-m-v1.5 | cross-encoder/ms-marco-MiniLM-L-6-v2 | BAAI/bge-reranker-base>",
+    "model_revision_sha": "<null | exact HuggingFace commit SHA>",
+    "model_weights_sha256": "<null | SHA-256 of local safetensors/bin checkpoint>",
+    "embedding_cache_path": "<null | data/annotation_local/s5v3/embeddings/<file>.npy>",
+    "embedding_cache_sha256": "<null | 64-char SHA-256 of precomputed embedding matrix>",
+    "tokenizer_max_seq_len": null,
+    "dtype": "<null | float32 | float16 | bfloat16>",
+    "device": "<cpu | cuda:0>"
+  },
+  "determinism_and_seed": {
+    "global_seed": 20261119,
+    "python_hash_seed": "20261119",
+    "torch_deterministic_algorithms": true,
+    "pool_shuffle_seed": 20261119,
+    "bootstrap_resample_seed": 20261119
+  },
+  "hardware_and_runtime_environment": {
+    "os_platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.39",
+    "cpu_model": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "cpu_physical_cores": 8,
+    "cpu_logical_threads": 12,
+    "ram_total_gib": 15.0,
+    "gpu_model": "NVIDIA GeForce RTX 2050",
+    "gpu_vram_mib": 4096,
+    "gpu_driver_version": "580.126.20",
+    "python_version": "3.12.3",
+    "torch_version": "2.5.1+cu121",
+    "cuda_available": true,
+    "sentence_transformers_version": "5.6.1",
+    "transformers_version": "5.13.1",
+    "numpy_version": "2.5.3",
+    "scipy_version": "1.18.1",
+    "kuzu_version": "0.11.3"
+  },
+  "execution_diagnostics_summary": {
+    "cold_start_ms": null,
+    "warm_repetitions_per_query": 5,
+    "mean_query_latency_ms": null,
+    "p95_query_latency_ms": null,
+    "peak_memory_kib": null,
+    "fallback_query_count": null,
+    "short_list_query_count": null,
+    "total_backfilled_slots": null
+  },
+  "governance_and_gold_label_gate": {
+    "contains_relevance_effectiveness_metrics": false,
+    "gold_label_artifact_path": null,
+    "gold_label_artifact_sha256": null,
+    "gold_label_status": "BLOCKED_PENDING_INDEPENDENT_HUMAN_ANNOTATION_AND_ADJUDICATION",
+    "superiority_claims_permitted": false
+  }
+}

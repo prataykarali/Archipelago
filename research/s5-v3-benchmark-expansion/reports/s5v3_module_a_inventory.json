@@ -1,0 +1,215 @@
+{
+  "report_name": "S5-v3 Module A — Foundational Recovery & Local Corpus Inventory",
+  "date": "2026-11-19",
+  "branch": "research/s5-v3-benchmark-expansion",
+  "head_commit": "4941f5d326a820d6ef5b4b7d5dd464b7472dd6e8",
+  "s5_v2_1_pilot_frozen_status": "UNMODIFIED_19_OF_19_TRACKED_EXACT_SHA256",
+  "recovery_status": {
+    "okf_graph_db_v1": {
+      "status": "BLOCKED",
+      "expected_path": "okf_graph.db",
+      "expected_s3_corpus_sha256": "fc0d0c7e7faddf9d4755ce29f056bfa824dba592ac8fe07aa1c510b3cb745e40",
+      "expected_s5a_corpus_sha256": "6435bf449702edf826d69dc8e1ed0525ee611e0c7504d43d2023c32cef8bdba7",
+      "search_locations": [
+        "/home/pratay-karali/Desktop/archipelago",
+        "/home/pratay-karali/Desktop",
+        "/home/pratay-karali/Downloads",
+        "/home/pratay-karali/Documents",
+        "/home/pratay-karali/.codex/worktrees",
+        "/home/pratay-karali/.local/share/Trash"
+      ],
+      "files_found": [
+        {
+          "path": "/home/pratay-karali/.codex/worktrees/archipelago-library-release/Archipelago/okf_graph.db",
+          "bytes": 16384,
+          "kuzu_tables": [],
+          "usable_for_v1_reproduction": false,
+          "reason": "Empty Kuzu database (0 tables, no Chunk table)"
+        }
+      ],
+      "restored": false
+    },
+    "dense_embedding_cache_and_model": {
+      "status": "BLOCKED",
+      "expected_cache_path": "data/artifacts/s5a_dense_embeddings_713.npy",
+      "cache_present": false,
+      "expected_hf_model_dir": "~/.cache/huggingface/hub/models--Snowflake--snowflake-arctic-embed-m-v1.5",
+      "hf_model_present": false
+    },
+    "original_reviewer_a_workbook": {
+      "status": "BLOCKED",
+      "expected_path": "data/annotation_local/s5c2/originals/reviewer_a_s5b2_1_workbook.md",
+      "expected_sha256": "70049fa849985cfb38aadef2dd499dbf8e665f55f5796a122302d501f17fa09c",
+      "present": false,
+      "synthesized_or_reconstructed": false
+    },
+    "original_reviewer_b_workbook": {
+      "status": "BLOCKED",
+      "expected_path": "data/annotation_local/s5c2/originals/reviewer_b_s5b2_1_workbook.md",
+      "expected_sha256": "ca3e6af86c72c20bf6dbd66d71f3c5c79ef7795de5d149d23c0b918304ae80f4",
+      "present": false
+    }
+  },
+  "verified_local_open_access_sources": [
+    {
+      "id": "local_oa_001",
+      "path": "data/academic_candidates/39990e2958ef5c3494918de03fd3d9ed594efa4572218cb644efc57194bb8fe5.md",
+      "title": "Dive into Deep Learning (D2L) — Chapter 3: Linear Regression",
+      "format": "markdown",
+      "bytes": 29363,
+      "sha256": "39990e2958ef5c3494918de03fd3d9ed594efa4572218cb644efc57194bb8fe5",
+      "domain": "Machine Learning",
+      "license": "CC-BY-SA-4.0",
+      "source_url": "https://d2l.ai/chapter_linear-regression/linear-regression.html",
+      "eligible_for_corpus_v3": true
+    },
+    {
+      "id": "local_oa_002",
+      "path": "data/academic_candidates/8888aa2043588e41d0f222b59ca6896e5211816eeca8896db215234ba209aa4f.pdf",
+      "title": "Efficient Guided Generation for Large Language Models (Willard & Louf, 2023)",
+      "format": "pdf",
+      "pages": 18,
+      "bytes": 375946,
+      "sha256": "8888aa2043588e41d0f222b59ca6896e5211816eeca8896db215234ba209aa4f",
+      "domain": "Natural Language Processing / LLMs",
+      "license": "arXiv-perpetual-nonexclusive",
+      "source_url": "https://arxiv.org/abs/2307.09702",
+      "eligible_for_corpus_v3": true
+    },
+    {
+      "id": "local_oa_003",
+      "path": "/home/pratay-karali/Downloads/mml-book.pdf",
+      "title": "Mathematics for Machine Learning (Deisenroth, Faisal, Ong)",
+      "format": "pdf",
+      "pages": 417,
+      "bytes": 17565898,
+      "sha256": "3f87b70c64a35d30ec4e565b4d5cfd18fe913002d3b3bed44691c7d0838911bc",
+      "domain": "Mathematics for Machine Learning",
+      "license": "Free online PDF edition (mml-book.github.io; Cambridge University Press)",
+      "source_url": "https://mml-book.github.io/",
+      "eligible_for_corpus_v3": true,
+      "notes": "Outside repo in ~/Downloads; must remain Git-ignored if ingested locally."
+    },
+    {
+      "id": "local_oa_004",
+      "path": "/home/pratay-karali/Downloads/metatron-paper.pdf",
+      "title": "METATRON: A Promptable Whole-Body Execution Layer for Humanoids (Tessler et al.)",
+      "format": "pdf",
+      "pages": 14,
+      "bytes": 27833656,
+      "sha256": "de2411a21822326b6afadd2724cbafa1b8b8850c8630197c2e706a41c2b6ecaa",
+      "domain": "Robotics / Control",
+      "license": "Preprint (verify arXiv license before redistribution; local extraction only)",
+      "eligible_for_corpus_v3": true,
+      "notes": "Outside repo in ~/Downloads; must remain Git-ignored if ingested locally."
+    }
+  ],
+  "local_graph_and_private_subsets": [
+    {
+      "path": "okf_graph.json",
+      "identical_copies": [
+        "host_inference/fixtures/okf_graph.json",
+        "host_inference/cache/okf_graph.json"
+      ],
+      "bytes": 6489729,
+      "sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+      "structure": {
+        "total_concepts": 610,
+        "concepts_with_sources": 507,
+        "concepts_with_non_stub_summary": 532,
+        "total_edges": 1988,
+        "requires_edges": 267,
+        "unlocks_edges": 387,
+        "related_edges": 1334
+      },
+      "contains_full_passages": false,
+      "notes": "Concept-level knowledge graph only; cannot substitute for missing okf_graph.db Chunk passages."
+    },
+    {
+      "path": "data/annotation_local/s5c3/independent_reviewer_c_s5c3_workbook.md",
+      "bytes": 433211,
+      "sha256": "acf6e86cb23e91a0febaf5181eec8ae3eadbe5ece66ec4d6f1907f74aa10f188",
+      "scope": "local_gitignored_private",
+      "hydrated_pairs": 254,
+      "unique_passages": 172,
+      "unique_documents": 29,
+      "notes": "Frozen v2.1 blinded subset of s5a_eval_corpus_v1 (172/713 passages). Do NOT modify or repurpose as v3 open corpus."
+    },
+    {
+      "path": "data/annotation_local/s5c3/s5c3_negative_control_verification_worksheets.md",
+      "bytes": 111424,
+      "sha256": "678cc2fcdd6bd5fa1ce0deec90c6ebdd1ece6e2bd3764c226c1318467e32662c",
+      "scope": "local_gitignored_private",
+      "candidate_entries": 74,
+      "unique_passages": 68,
+      "notes": "Frozen v2.1 negative-control worksheet subset. Do NOT modify."
+    }
+  ],
+  "excluded_local_files": {
+    "repo_root_stub_pdfs": {
+      "count": 4,
+      "bytes_range": "129-131",
+      "reason": "Synthetic test stub PDFs, not real academic sources."
+    },
+    "data_uploads_test_pdfs": {
+      "count": 23,
+      "bytes_range": "30-6050",
+      "reason": "Synthetic upload test fixtures (e.g., *_test_upload.pdf)."
+    },
+    "downloads_copyrighted_or_personal": {
+      "predictive_analytics_and_data_mining_dir": "22 Elsevier PDFs (46.1 MB) — copyrighted commercial textbook, excluded.",
+      "z_library_llms_in_production": "Commercial copyrighted book — excluded.",
+      "personal_cvs_credentials_transcripts_course_notes": "Personal/private documents (including data/private/ login credentials and Downloads CVs/os.pdf) — strictly excluded."
+    }
+  },
+  "remote_catalog_manifests_not_downloaded_locally": [
+    {
+      "path": "data/catalogs/live_scholarly_manifest.json",
+      "sha256": "5dadea24256511457c90e4a0c368854705e1bb4205b6d5a9f70e38c2b7bc1ef1",
+      "items": 40,
+      "providers": {
+        "arxiv": 20,
+        "openalex": 20
+      },
+      "notes": "Metadata manifest of 40 open-access arXiv/OpenAlex papers; PDFs are NOT currently downloaded on disk."
+    },
+    {
+      "path": "data/catalogs/hf_dataset_manifest.json",
+      "sha256": "ba284c6f861f998d",
+      "repo_id": "Prataykarali/Library_books",
+      "files": 51,
+      "notes": "Remote Hugging Face dataset manifest; PDFs are NOT currently downloaded on disk."
+    }
+  ],
+  "test_suite_results": {
+    "command": "pytest tests/unit/test_s5a_retrieval_integrity.py tests/unit/test_s5b1_integrity_repair.py tests/unit/test_s5b2_benchmark_correction.py tests/unit/test_s5c2_annotation_audit.py tests/unit/test_s5d0_analysis_prep.py tests/unit/test_s5_annotation_workbench.py tests/unit/test_s5_ac_adjudication.py tests/unit/test_s5_negative_control_verifier.py tests/unit/test_s5_d1_pipeline.py -q",
+    "total_collected": 95,
+    "passed": 85,
+    "skipped": 9,
+    "failed": 1,
+    "reproducible_without_missing_local_db": {
+      "passed": 85,
+      "failed": 0
+    },
+    "blocked_by_missing_local_data": {
+      "failed_tests": [
+        {
+          "test": "tests/unit/test_s5a_retrieval_integrity.py::TestEmbeddingModelManifest::test_precomputed_embeddings_cache_validity",
+          "error": "RuntimeError: Cannot create an empty database under READ ONLY mode",
+          "cause": "Missing okf_graph.db at repo root (and missing data/artifacts/s5a_dense_embeddings_713.npy)"
+        }
+      ],
+      "skipped_tests_count": 9,
+      "skipped_breakdown": {
+        "test_s5b1_integrity_repair.py": 6,
+        "test_s5b2_benchmark_correction.py": 2,
+        "test_s5c2_annotation_audit.py": 1
+      }
+    }
+  },
+  "corpus_v3_readiness_assessment": {
+    "local_only_verified_oa_docs": 4,
+    "sufficient_for_multidomain_corpus_v3_from_local_disk_alone": false,
+    "recommendation": "Only 4 verified open-access documents exist locally on disk (1 D2L markdown chapter, 1 arXiv PDF, 1 MML textbook PDF in ~/Downloads, 1 robotics preprint in ~/Downloads), which is insufficient for a large multi-domain Corpus v3 without either (a) streaming/downloading verified open-access PDFs (e.g., arXiv CC/perpetual-license papers, OSTEP, D2L, OpenStax, or live_scholarly_manifest.json arXiv items) into Git-ignored local storage with SHA-256 provenance, or (b) restoring a verified original corpus snapshot from external storage."
+  }
+}

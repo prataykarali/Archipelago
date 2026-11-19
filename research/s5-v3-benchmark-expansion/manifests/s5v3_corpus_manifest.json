@@ -1,0 +1,229 @@
+{
+  "contains_raw_passage_text": false,
+  "corpus_schema_version": "s5v3_corpus_v3.0",
+  "deduplication": {
+    "exact_duplicate_count": 3,
+    "exact_duplicate_pairs": [
+      {
+        "kind": "exact",
+        "matched_passage_id": "s5v3_local_oa_003_p0115_c0188",
+        "passage_id": "s5v3_local_oa_003_p0243_c0419",
+        "similarity": 1.0
+      },
+      {
+        "kind": "exact",
+        "matched_passage_id": "s5v3_local_oa_003_p0115_c0188",
+        "passage_id": "s5v3_local_oa_003_p0277_c0478",
+        "similarity": 1.0
+      },
+      {
+        "kind": "exact",
+        "matched_passage_id": "s5v3_local_oa_003_p0115_c0188",
+        "passage_id": "s5v3_local_oa_003_p0303_c0531",
+        "similarity": 1.0
+      }
+    ],
+    "near_duplicate_count": 1,
+    "near_duplicate_pairs": [
+      {
+        "kind": "near",
+        "matched_passage_id": "s5v3_local_oa_003_p0015_c0016",
+        "passage_id": "s5v3_local_oa_003_p0255_c0436",
+        "similarity": 0.8333
+      }
+    ],
+    "total_passages": 858,
+    "unique_normalized_hashes": 855
+  },
+  "deterministic": true,
+  "frozen_v2_1_corpus_status": "MISSING_NOT_REPAIRED_OR_FAKED",
+  "leakage_guard": {
+    "cross_split_doc_overlaps": 0,
+    "cross_split_exact_hash_overlaps": 0,
+    "cross_split_near_dup_overlaps": 0,
+    "forbidden_hash_overlaps": 0,
+    "passed": true,
+    "split_counts": {
+      "corpus_shared": 858
+    },
+    "violations": []
+  },
+  "multi_domain_coverage_gap": {
+    "covered_domains": [
+      "Machine Learning",
+      "Mathematics for Machine Learning",
+      "Natural Language Processing / LLMs",
+      "Robotics / Control"
+    ],
+    "missing_domains": [
+      {
+        "candidate_oa_source": "OSTEP (Remzi & Andrea Arpaci-Dusseau, free online textbook)",
+        "domain": "Operating Systems",
+        "status": "MISSING_LOCAL_OA_SOURCE"
+      },
+      {
+        "candidate_oa_source": "CMU 15-445 / Open-access database architecture surveys",
+        "domain": "Database Systems",
+        "status": "MISSING_LOCAL_OA_SOURCE"
+      },
+      {
+        "candidate_oa_source": "Computer Networks: A Systems Approach (Peterson & Davie, CC-BY)",
+        "domain": "Computer Networks",
+        "status": "MISSING_LOCAL_OA_SOURCE"
+      },
+      {
+        "candidate_oa_source": "arXiv cs.DC open-access papers / Maarten van Steen DS free PDF",
+        "domain": "Distributed Systems",
+        "status": "MISSING_LOCAL_OA_SOURCE"
+      }
+    ],
+    "sufficient_for_full_cs_multidomain_claims": false
+  },
+  "private_corpus_jsonl": {
+    "gitignored_required": true,
+    "passage_ids_sha256": "1e1c02a795342ef7c9dc44b85509f3dab17fbcafdd2498d3187f9c79748b839b",
+    "path": "data/annotation_local/s5v3/corpus_v3/s5v3_corpus_passages.jsonl",
+    "sha256": "dd8e973b727a981aeb4b8d0109513616c4ea709afe3eed40bde5c8b14ebeaee4"
+  },
+  "schema_version": "s5v3_corpus_manifest_v3.0",
+  "sources": [
+    {
+      "bytes": 29363,
+      "completeness": {
+        "doc_id": "local_oa_001",
+        "empty_pages": [],
+        "mean_chars_per_non_empty_page": 29251.0,
+        "non_empty_pages": 1,
+        "pages_with_encoding_artifacts": 0,
+        "pages_with_ligature_repairs": 0,
+        "source_format": "markdown",
+        "total_chars": 29251,
+        "total_pages": 1
+      },
+      "doc_id": "local_oa_001",
+      "domain": "Machine Learning",
+      "extracted_passage_count": 27,
+      "flagged_passage_count": 2,
+      "license_id": "CC-BY-SA-4.0",
+      "provenance_class": "markdown_oa_extracted",
+      "redistribution_permission": "share_alike_with_attribution",
+      "source_format": "markdown",
+      "source_sha256": "39990e2958ef5c3494918de03fd3d9ed594efa4572218cb644efc57194bb8fe5",
+      "source_url": "https://d2l.ai/chapter_linear-regression/linear-regression.html",
+      "title": "Dive into Deep Learning (D2L) — Chapter 3: Linear Regression",
+      "usable_passage_count": 26
+    },
+    {
+      "bytes": 375946,
+      "completeness": {
+        "doc_id": "local_oa_002",
+        "empty_pages": [],
+        "mean_chars_per_non_empty_page": 1576.39,
+        "non_empty_pages": 18,
+        "pages_with_encoding_artifacts": 0,
+        "pages_with_ligature_repairs": 0,
+        "source_format": "pdf",
+        "total_chars": 28375,
+        "total_pages": 18
+      },
+      "doc_id": "local_oa_002",
+      "domain": "Natural Language Processing / LLMs",
+      "extracted_passage_count": 24,
+      "flagged_passage_count": 17,
+      "license_id": "arXiv-perpetual-nonexclusive",
+      "provenance_class": "pdf_extracted",
+      "redistribution_permission": "local_research_only_no_republishing",
+      "source_format": "pdf",
+      "source_sha256": "8888aa2043588e41d0f222b59ca6896e5211816eeca8896db215234ba209aa4f",
+      "source_url": "https://arxiv.org/abs/2307.09702",
+      "title": "Efficient Guided Generation for Large Language Models (Willard & Louf, 2023; arXiv:2307.09702v2)",
+      "usable_passage_count": 23
+    },
+    {
+      "bytes": 17565898,
+      "completeness": {
+        "doc_id": "local_oa_003",
+        "empty_pages": [
+          2,
+          6,
+          14,
+          16,
+          256,
+          412
+        ],
+        "mean_chars_per_non_empty_page": 2164.84,
+        "non_empty_pages": 411,
+        "pages_with_encoding_artifacts": 0,
+        "pages_with_ligature_repairs": 1,
+        "source_format": "pdf",
+        "total_chars": 889748,
+        "total_pages": 417
+      },
+      "doc_id": "local_oa_003",
+      "domain": "Mathematics for Machine Learning",
+      "extracted_passage_count": 757,
+      "flagged_passage_count": 105,
+      "license_id": "Free online PDF edition (mml-book.github.io; Cambridge University Press)",
+      "provenance_class": "pdf_extracted",
+      "redistribution_permission": "local_research_only_no_republishing",
+      "source_format": "pdf",
+      "source_sha256": "3f87b70c64a35d30ec4e565b4d5cfd18fe913002d3b3bed44691c7d0838911bc",
+      "source_url": "https://mml-book.github.io/",
+      "title": "Mathematics for Machine Learning (Deisenroth, Faisal, Ong)",
+      "usable_passage_count": 719
+    },
+    {
+      "bytes": 27833656,
+      "completeness": {
+        "doc_id": "local_oa_004",
+        "empty_pages": [],
+        "mean_chars_per_non_empty_page": 4772.07,
+        "non_empty_pages": 14,
+        "pages_with_encoding_artifacts": 0,
+        "pages_with_ligature_repairs": 0,
+        "source_format": "pdf",
+        "total_chars": 66809,
+        "total_pages": 14
+      },
+      "doc_id": "local_oa_004",
+      "domain": "Robotics / Control",
+      "extracted_passage_count": 50,
+      "flagged_passage_count": 14,
+      "license_id": "Preprint (local extraction only; verify arXiv license before redistribution)",
+      "provenance_class": "pdf_extracted",
+      "redistribution_permission": "local_research_only_no_republishing",
+      "source_format": "pdf",
+      "source_sha256": "de2411a21822326b6afadd2724cbafa1b8b8850c8630197c2e706a41c2b6ecaa",
+      "source_url": "local_preprint_verified_module_a",
+      "title": "METATRON: A Promptable Whole-Body Execution Layer for Humanoids (Tessler et al.)",
+      "usable_passage_count": 50
+    }
+  ],
+  "summary": {
+    "domain_passage_counts": {
+      "Machine Learning": 27,
+      "Mathematics for Machine Learning": 757,
+      "Natural Language Processing / LLMs": 24,
+      "Robotics / Control": 50
+    },
+    "flagged_passages": 138,
+    "provenance_class_counts": {
+      "markdown_oa_extracted": 27,
+      "pdf_extracted": 831
+    },
+    "quality_flag_counts": {
+      "BROKEN_LIGATURES_OR_ENCODING": 22,
+      "EMPTY_OR_TOO_SHORT": 14,
+      "HEADER_FOOTER_ONLY": 5,
+      "MATH_EXTRACTION_NOISE": 32,
+      "MID_SENTENCE_TRUNCATION_END": 51,
+      "MID_SENTENCE_TRUNCATION_START": 26
+    },
+    "source_document_count": 4,
+    "total_chars": 1013758,
+    "total_passages": 858,
+    "total_tokens": 174820,
+    "unusable_passages": 40,
+    "usable_passages": 818
+  }
+}
