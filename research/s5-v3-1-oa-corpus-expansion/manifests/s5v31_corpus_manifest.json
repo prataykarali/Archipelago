@@ -1,0 +1,117 @@
+{
+  "contains_raw_passage_text": false,
+  "corpus_schema_version": "s5v31_corpus_v3.1",
+  "deduplication": {
+    "exact_duplicate_pairs": [],
+    "exact_duplicates_dropped": 0,
+    "near_duplicate_pairs": [
+      {
+        "kind": "near",
+        "matched_passage_id": "s5v31_oa_os_001_s0000_c0085",
+        "passage_id": "s5v31_oa_os_001_s0000_c0086",
+        "similarity": 0.8137
+      },
+      {
+        "kind": "near",
+        "matched_passage_id": "s5v3_local_oa_003_p0015_c0016",
+        "passage_id": "s5v3_local_oa_003_p0255_c0436",
+        "similarity": 0.8333
+      }
+    ],
+    "near_duplicates_detected": 2,
+    "near_duplicates_dropped_from_new_oa": 1
+  },
+  "deterministic": true,
+  "new_source_extraction_audit": [
+    {
+      "candidate_chunks": 251,
+      "doc_id": "oa_db_001",
+      "dropped_boilerplate_or_bib": 11,
+      "dropped_exact_duplicates": 0,
+      "dropped_malformed_or_short": 32,
+      "dropped_near_duplicates": 0,
+      "raw_units": 217,
+      "retained_passages": 208
+    },
+    {
+      "candidate_chunks": 227,
+      "doc_id": "oa_ds_001",
+      "dropped_boilerplate_or_bib": 0,
+      "dropped_exact_duplicates": 0,
+      "dropped_malformed_or_short": 7,
+      "dropped_near_duplicates": 0,
+      "raw_units": 32,
+      "retained_passages": 220
+    },
+    {
+      "candidate_chunks": 684,
+      "doc_id": "oa_net_001",
+      "dropped_boilerplate_or_bib": 40,
+      "dropped_exact_duplicates": 0,
+      "dropped_malformed_or_short": 44,
+      "dropped_near_duplicates": 0,
+      "raw_units": 281,
+      "retained_passages": 600
+    },
+    {
+      "candidate_chunks": 123,
+      "doc_id": "oa_os_001",
+      "dropped_boilerplate_or_bib": 0,
+      "dropped_exact_duplicates": 0,
+      "dropped_malformed_or_short": 10,
+      "dropped_near_duplicates": 1,
+      "raw_units": 53,
+      "retained_passages": 112
+    }
+  ],
+  "okf_graph_db_dependency": false,
+  "private_corpus_jsonl": {
+    "gitignored_required": true,
+    "passage_ids_sha256": "91a00119667f32edfaae99f70bb9a4b55df7d1b98fd211117b7b6fb97f6b6fa6",
+    "path": "data/annotation_local/s5v3_1/corpus_v31/s5v31_corpus_passages.jsonl",
+    "sha256": "6366477189b8058b3f523a9d6607abb4d2c249351927918d24979e17833937b9"
+  },
+  "schema_version": "s5v31_corpus_manifest_v3.1",
+  "summary": {
+    "domain_count": 8,
+    "domain_passage_counts": {
+      "Computer Networks": 600,
+      "Databases": 208,
+      "Distributed Systems": 220,
+      "Machine Learning": 26,
+      "Mathematics for Machine Learning": 719,
+      "Natural Language Processing / LLMs": 23,
+      "Operating Systems": 112,
+      "Robotics / Control": 50
+    },
+    "new_oa_passages": 1140,
+    "origin_tier_counts": {
+      "new_s5v31_oa_expansion": 1140,
+      "retained_s5v3_eligible": 818
+    },
+    "passages_with_page_numbers": 1418,
+    "passages_without_fixed_pages": 540,
+    "provenance_class_counts": {
+      "epub_oa_extracted": 112,
+      "html_oa_extracted": 208,
+      "latex_oa_extracted": 220,
+      "markdown_oa_extracted": 26,
+      "pdf_extracted": 1392
+    },
+    "retained_v3_passages": 818,
+    "source_doc_passage_counts": {
+      "local_oa_001": 26,
+      "local_oa_002": 23,
+      "local_oa_003": 719,
+      "local_oa_004": 50,
+      "oa_db_001": 208,
+      "oa_ds_001": 220,
+      "oa_net_001": 600,
+      "oa_os_001": 112
+    },
+    "source_document_count": 8,
+    "total_chars": 2279524,
+    "total_passages": 1958,
+    "total_tokens": 380796
+  }
+}

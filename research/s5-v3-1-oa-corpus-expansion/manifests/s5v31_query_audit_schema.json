@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "S5-v3.1 Blinded Human Query Audit Workbook",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "workbook_status",
+    "blinding_policy",
+    "proposed_manifest_sha256",
+    "corpus_v31_jsonl_sha256",
+    "reviewer_attestation",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "s5v31_human_query_audit_v1"
+    },
+    "workbook_status": {
+      "enum": [
+        "BLANK_AWAITING_INDEPENDENT_HUMAN_AUDIT",
+        "SUBMITTED_INDEPENDENT_HUMAN_AUDIT"
+      ]
+    },
+    "reviewer_attestation": {
+      "type": "object",
+      "required": [
+        "reviewer_id",
+        "assistance_declaration",
+        "reviewer_attestation_signed",
+        "attestation_signer",
+        "signed_timestamp_utc"
+      ],
+      "properties": {
+        "reviewer_id": {
+          "type": "string"
+        },
+        "assistance_declaration": {
+          "type": "string"
+        },
+        "reviewer_attestation_signed": {
+          "type": "boolean"
+        },
+        "attestation_signer": {
+          "type": "string"
+        },
+        "signed_timestamp_utc": {
+          "type": "string"
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "blinded_item_id",
+          "query_id",
+          "query_text",
+          "proposed_category",
+          "category_status",
+          "domain",
+          "evidence_references",
+          "claimed_passage_necessity",
+          "potential_single_passage_shortcut",
+          "source_provenance_concerns",
+          "human_decision",
+          "human_necessity_verified",
+          "human_shortcut_found",
+          "human_negative_control_classification",
+          "human_correction_or_rationale"
+        ],
+        "properties": {
+          "category_status": {
+            "const": "PROVISIONAL_PENDING_HUMAN_VERIFICATION"
+          },
+          "human_decision": {
+            "enum": [
+              "",
+              "ACCEPT",
+              "REVISE",
+              "REJECT"
+            ]
+          },
+          "human_necessity_verified": {
+            "enum": [
+              "",
+              "YES",
+              "NO",
+              "NA"
+            ]
+          },
+          "human_shortcut_found": {
+            "enum": [
+              "",
+              "YES",
+              "NO",
+              "NA"
+            ]
+          },
+          "human_negative_control_classification": {
+            "enum": [
+              "",
+              "ANSWERABLE_IN_CORPUS",
+              "CONFIRMED_UNANSWERABLE",
+              "NOT_APPLICABLE_POSITIVE_QUERY",
+              "PARTIALLY_ANSWERABLE_IN_CORPUS"
+            ]
+          },
+          "human_correction_or_rationale": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

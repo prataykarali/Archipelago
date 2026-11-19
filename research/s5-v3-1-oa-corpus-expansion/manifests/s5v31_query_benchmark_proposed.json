@@ -1,0 +1,3190 @@
+{
+  "schema_version": "s5v31_query_benchmark_proposed_v1",
+  "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION",
+  "category_and_necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+  "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+  "human_verification_notice": "Candidate generation is NOT human validation. All categories, necessity claims, and negative-control labels are PROVISIONAL_PENDING_HUMAN_VERIFICATION. Zero queries enter an evaluated benchmark without independent human verification.",
+  "prior_v3_proposed_manifest_sha256": "17914918ac1355a8e4768cf0fc57629c85d43630d244bbfee3f004a5c611c153",
+  "corpus_v31_jsonl_sha256": "6366477189b8058b3f523a9d6607abb4d2c249351927918d24979e17833937b9",
+  "corpus_v31_passage_count": 1958,
+  "graph_json_path": "okf_graph.json",
+  "graph_json_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+  "graph_concept_count": 594,
+  "summary": {
+    "total_queries": 72,
+    "retained_from_v3_count": 44,
+    "new_v31_queries_count": 28,
+    "split_counts": {
+      "dev": 24,
+      "test": 48
+    },
+    "category_counts": {
+      "cross_doc_multi_passage": 14,
+      "negative_control": 8,
+      "same_doc_multi_passage": 19,
+      "single_passage_fact_concept": 20,
+      "technical_terminology_paraphrase": 11
+    },
+    "domain_counts": {
+      "Computer Networks": 5,
+      "Cross-Domain (CS Systems)": 4,
+      "Cross-Domain (ML/Math/NLP/Robotics)": 10,
+      "Databases": 5,
+      "Distributed Systems": 5,
+      "Machine Learning": 4,
+      "Math for ML": 14,
+      "NLP / LLMs": 6,
+      "Negative Control (Absent)": 8,
+      "Operating Systems": 5,
+      "Robotics / Control": 6
+    },
+    "graph_anchor_regime_counts": {
+      "rich": 25,
+      "sparse": 47
+    },
+    "multi_document_necessary_count": 14,
+    "source_doc_query_coverage": {
+      "local_oa_001": 9,
+      "local_oa_002": 9,
+      "local_oa_003": 23,
+      "local_oa_004": 9,
+      "oa_db_001": 8,
+      "oa_ds_001": 8,
+      "oa_net_001": 6,
+      "oa_os_001": 6
+    },
+    "validation_error_count": 0
+  },
+  "queries": [
+    {
+      "query_id": "Q-S5V31-01",
+      "query_text": "In Dive into Deep Learning Chapter 3, under what matrix invertibility condition is the analytic solution for linear regression unique?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Machine Learning",
+      "domain_topic": "Machine Learning / Linear Regression",
+      "origin_v3_query_id": "Q-S5V3-01",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "deep_learning",
+        "linear_regression"
+      ],
+      "exact_information_need": "State that w* = (X^T X)^(-1) X^T y is unique only when X^T X is invertible, i.e., when the columns of design matrix X are linearly independent.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0008",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "f19aba365f5f150221b26e68aab400e3be1f869b038cf898232153422e030dcb"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0008"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query: c0008 states both the closed-form equation and the linear independence invertibility condition."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-02",
+      "query_text": "How does Willard and Louf's Algorithm 2 apply a boolean mask to LLM output logits before sampling from the categorical distribution?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "NLP / LLMs",
+      "domain_topic": "NLP / Guided Generation",
+      "origin_v3_query_id": "Q-S5V3-02",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "categorical_distribution"
+      ],
+      "exact_information_need": "Describe the per-step loop in Algorithm 2: compute logits alpha = LLM(s, theta), build mask m(s), apply elementwise product alpha_tilde = m * alpha, and sample from Categorical.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_002_p0005_c0007",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 5,
+          "page_end": 5,
+          "section_ref": "page_0005",
+          "passage_sha256": "33dd71d3db7b3724f0864cb2cfc5b6ea7f116bbeccee6d20fb554c548bcf76c4"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_002_p0005_c0007"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query: Algorithm 2 on p. 5 directly specifies the masking and Categorical sampling steps."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-03",
+      "query_text": "How does Mathematics for Machine Learning define a symmetric positive definite matrix from an inner product?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Analytic Geometry",
+      "origin_v3_query_id": "Q-S5V3-03",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "machine_learning"
+      ],
+      "exact_information_need": "State Definition 3.4: a symmetric matrix A in R^(n x n) satisfying x^T A x > 0 for all nonzero vectors x.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0080_c0124",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 80,
+          "page_end": 80,
+          "section_ref": "page_0080",
+          "passage_sha256": "7720408c73e5f777c89e7fe76e1a140d2892601d6f3b50aa0d1bf38a61b9a091"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0080_c0124"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query: p. 80 contains Definition 3.4 and inequality (3.11)."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-04",
+      "query_text": "What PPO discount factor and generalized advantage estimation parameter are used to train the METATRON expert trackers?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Robotics / Control",
+      "domain_topic": "Robotics / Humanoid Control",
+      "origin_v3_query_id": "Q-S5V3-04",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Report PPO discount factor 0.99 and GAE parameter 0.95 used for both METATRON expert trackers.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_004_p0010_c0034",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 10,
+          "page_end": 10,
+          "section_ref": "page_0010",
+          "passage_sha256": "34019fe80ca493b618dab3165f6562d362c5b9a5492c1188a0b2d957bce47e8e"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_004_p0010_c0034"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query: p. 10 Appendix I explicitly lists discount 0.99 and GAE 0.95."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-05",
+      "query_text": "In Mathematics for Machine Learning, how do the prior, marginal likelihood (evidence), and Bayes' theorem fit together to form a posterior distribution?",
+      "split": "dev",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Probability",
+      "origin_v3_query_id": "Q-S5V3-05",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "bayes_theorem",
+        "machine_learning"
+      ],
+      "exact_information_need": "Combine the definition of the prior p(x) in Bayes' theorem (p. 191) with the integral definition of marginal likelihood or evidence p(y) = integral p(y|x)p(x)dx (p. 192).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0191_c0321",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 191,
+          "page_end": 191,
+          "section_ref": "page_0191",
+          "passage_sha256": "fa93bb609a3ad37a24cfe18f6fce5152d6a74f71810d78c57dd960beecdf54d2"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0192_c0322",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 192,
+          "page_end": 192,
+          "section_ref": "page_0192",
+          "passage_sha256": "c19c3ba5485c5667e9da8ab2595dbe13391d83adf426b4845a26e3b8733be6b5"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0191_c0321",
+        "s5v3_local_oa_003_p0192_c0322"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 191 defines the prior role in Bayes' theorem without the evidence integral, while p. 192 defines marginal likelihood p(y) = E_X[p(y|x)]; both passages are needed."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-06",
+      "query_text": "How does Mathematics for Machine Learning connect the characteristic polynomial of a matrix to its determinant, trace, and eigenvalues?",
+      "split": "dev",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Matrix Decompositions",
+      "origin_v3_query_id": "Q-S5V3-06",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "determinant",
+        "machine_learning"
+      ],
+      "exact_information_need": "Connect the characteristic polynomial coefficients c_0 = det(A) and c_{n-1} = (-1)^(n-1) tr(A) (p. 111) with Theorem 4.8 stating lambda is an eigenvalue iff it is a root of p_A(lambda) (p. 112).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0111_c0180",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 111,
+          "page_end": 111,
+          "section_ref": "page_0111",
+          "passage_sha256": "d5361bad8bcb602d7ab7dae8efffe5591ce464297ea76dc44b4e83da1a63dcde"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0112_c0182",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 112,
+          "page_end": 112,
+          "section_ref": "page_0112",
+          "passage_sha256": "85d421e37ac60c686df571c11df1eafeab49d9d89836f9fa4b58ac10e6ca2bc7"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0111_c0180",
+        "s5v3_local_oa_003_p0112_c0182"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 111 gives the determinant/trace coefficients of the characteristic polynomial, whereas Theorem 4.8 linking roots to eigenvalues appears on p. 112."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-07",
+      "query_text": "In Willard and Louf's FSM-guided LLM generation, how does sub-sequence matching in Algorithm 3 enable constructing the state-to-vocabulary map in Algorithm 4?",
+      "split": "dev",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "NLP / LLMs",
+      "domain_topic": "NLP / Guided Generation",
+      "origin_v3_query_id": "Q-S5V3-07",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "sequence"
+      ],
+      "exact_information_need": "Explain that Algorithm 3 finds FSM state sub-sequences accepting a vocabulary string from any state, and Algorithm 4 iterates over all v in V calling Algorithm 3 to populate state-to-token sets sigma.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_002_p0007_c0009",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 7,
+          "page_end": 7,
+          "section_ref": "page_0007",
+          "passage_sha256": "ed6725a44cb99f712b42b1707f44dbdfffbc8251de53dbeb570c299d09dd89bf"
+        },
+        {
+          "passage_id": "s5v3_local_oa_002_p0008_c0010",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 8,
+          "page_end": 8,
+          "section_ref": "page_0008",
+          "passage_sha256": "17428f601e24c98ea9776373fda6c1681a7a5f689effff5dd17b849e0840c47b"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_002_p0007_c0009",
+        "s5v3_local_oa_002_p0008_c0010"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Algorithm 3 (p. 7) defines sub-sequence matching while Algorithm 4 (p. 8) defines the map construction loop calling it; neither passage alone covers both stages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-08",
+      "query_text": "Compare how Dive into Deep Learning Chapter 3 motivates squared loss via Gaussian noise with how Mathematics for Machine Learning Chapter 9 derives the maximum likelihood noise variance estimate sigma_ML^2.",
+      "split": "dev",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "Machine Learning / Linear Regression",
+      "origin_v3_query_id": "Q-S5V3-08",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "deep_learning",
+        "machine_learning",
+        "maximum_likelihood"
+      ],
+      "exact_information_need": "Contrast D2L's fixed-sigma negative log-likelihood motivation for squared loss under N(0, sigma^2) noise (local_oa_001) with MML's partial derivative of log-likelihood w.r.t. sigma^2 to obtain sigma_ML^2 (local_oa_003).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0018",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "057013e4705b26a3e4010eb864bf6952d9e4cac967814ccd2ae21e35eab99f71"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0304_c0532",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 304,
+          "page_end": 304,
+          "section_ref": "page_0304",
+          "passage_sha256": "94808284214d64d13ab82cb3dfd6c163c2596c61fe51f73296d011ebb4ab3193"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0018",
+        "s5v3_local_oa_003_p0304_c0532"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "D2L c0018 assumes sigma is fixed to drop constant terms, whereas MML p. 304 explicitly differentiates w.r.t. sigma^2 for sigma_ML^2; neither document contains the other's treatment."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-09",
+      "query_text": "How does the conditional distribution construction in Mathematics for Machine Learning Chapter 6 relate to forming an un-normalized conditional next-token distribution by masking logits in Willard and Louf?",
+      "split": "dev",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "NLP / Probabilistic Modeling",
+      "origin_v3_query_id": "Q-S5V3-09",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "machine_learning",
+        "masking",
+        "token"
+      ],
+      "exact_information_need": "Link MML's sum/product rule factorization into marginal and conditional distributions (local_oa_003 p. 191) with Willard & Louf's discrete logit-masking formulation of an un-normalized conditional distribution (local_oa_002 p. 4).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0191_c0320",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 191,
+          "page_end": 191,
+          "section_ref": "page_0191",
+          "passage_sha256": "301d518b1ceb273d299906abb7e72734218073b4cd3025a7f507850cdbb49591"
+        },
+        {
+          "passage_id": "s5v3_local_oa_002_p0004_c0005",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 4,
+          "page_end": 4,
+          "section_ref": "page_0004",
+          "passage_sha256": "d31b125f387c6833640499eb89bbd5a209a1c12b924e65ee3806a577e651e1ec"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0191_c0320",
+        "s5v3_local_oa_002_p0004_c0005"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "MML p. 191 provides general probabilistic factorization while Willard & Louf p. 4 applies boolean masks to discrete LLM logits; cross-document synthesis is strictly required."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-10",
+      "query_text": "How does METATRON's deployment architecture separate a training-only privileged posterior encoder from a prior encoder, and how does this compare to Bayesian inference over latent parameters in Mathematics for Machine Learning?",
+      "split": "dev",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "Robotics / Probabilistic Inference",
+      "origin_v3_query_id": "Q-S5V3-10",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "bayesian_inference",
+        "machine_learning"
+      ],
+      "exact_information_need": "Combine METATRON's training-only privileged posterior vs deployment-time prior path (local_oa_004 p. 3, p. 11) with MML's Bayesian inference over unknown parameters using a posterior distribution for prediction (local_oa_003 p. 309).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_004_p0003_c0010",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 3,
+          "page_end": 3,
+          "section_ref": "page_0003",
+          "passage_sha256": "ac92a06b487eef08c6cb286a109ba1114e9fbf6ba81e88b6c7646b5df516fd3c"
+        },
+        {
+          "passage_id": "s5v3_local_oa_004_p0011_c0038",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 11,
+          "page_end": 11,
+          "section_ref": "page_0011",
+          "passage_sha256": "5d3f3e37f4e6fe3f6938a3a220c14efadf93edf5118bbf365315209e1660c0c4"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0309_c0543",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 309,
+          "page_end": 309,
+          "section_ref": "page_0309",
+          "passage_sha256": "5b5575977b4ea0735dab06f19195799c88dd43ef54963f6234d1cb14722c0351"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_004_p0011_c0038",
+        "s5v3_local_oa_003_p0309_c0543"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "METATRON p. 11 specifies deployment using the prior path without the privileged posterior, while MML p. 309 explains using the posterior distribution for prediction; both docs are required."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-11",
+      "query_text": "Why are user-configured settings like batch cardinality and step size distinguished from learned weights in iterative minibatch optimization?",
+      "split": "dev",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Machine Learning",
+      "domain_topic": "Machine Learning / Optimization",
+      "origin_v3_query_id": "Q-S5V3-11",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Identify that minibatch size and learning rate are hyperparameters not updated inside the training loop, and that minibatch gradients are normalized by |B|.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0012",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "0a8469f02ab48c87794e353ec293e9594c39cb969164b94fa1eb89f67bb80d9c"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0012"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Paraphrase of hyperparameters/minibatch normalization directly answered by D2L c0012."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-12",
+      "query_text": "Why is reverse-mode automatic differentiation preferred for computing parameter sensitivities in multi-layer neural networks?",
+      "split": "dev",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Vector Calculus",
+      "origin_v3_query_id": "Q-S5V3-12",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Explain that reverse-mode automatic differentiation is backpropagation and is favored when input/parameter dimensionality is much larger than scalar loss output.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0168_c0279",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 168,
+          "page_end": 168,
+          "section_ref": "page_0168",
+          "passage_sha256": "f2e542422f96cd8e9a7dfaeff02a35128fe63fce0de3f04f6c103ced391e91d5"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0168_c0279"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Terminology paraphrase ('parameter sensitivities' = loss gradients) answered directly by MML p. 168."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-13",
+      "query_text": "At what control frequency and simulator physics sub-stepping ratio does the frozen METATRON controller emit joint targets?",
+      "split": "dev",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Robotics / Control",
+      "domain_topic": "Robotics / Humanoid Control",
+      "origin_v3_query_id": "Q-S5V3-13",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "State that the policy updates targets every 20 ms (50 Hz) with four simulator physics steps per action.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_004_p0014_c0049",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 14,
+          "page_end": 14,
+          "section_ref": "page_0014",
+          "passage_sha256": "98eb4daaae891a9560764ce83953bed4cf1626df545d396f7062c0f55cf7ed94"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_004_p0014_c0049"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage paraphrase answered directly by METATRON p. 14 c0049."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-14",
+      "query_text": "What is the exact NVMe PCIe Gen5 sequential read bandwidth limit reported for Samsung 990 Pro SSDs in Linux io_uring benchmarks?",
+      "split": "dev",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "Systems / Storage (Absent)",
+      "origin_v3_query_id": "Q-S5V3-15",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Negative control: NVMe/io_uring hardware benchmarks do not appear anywhere in Corpus v3.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Zero occurrences of NVMe, io_uring, or Samsung 990 in all 858 Corpus v3 passages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-15",
+      "query_text": "Why is the quadratic form of squared error loss described as a double-edged sword in Dive into Deep Learning Chapter 3?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Machine Learning",
+      "domain_topic": "Machine Learning / Loss Functions",
+      "origin_v3_query_id": "Q-S5V3-17",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "deep_learning"
+      ],
+      "exact_information_need": "Explain that large differences between estimates and targets produce disproportionately large loss contributions due to the quadratic form.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0006",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "5c273e0f220bce902519c5c22645526fcc9e0272bef9198e2394b9c188551f5b"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0006"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query directly answered by D2L c0006."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-16",
+      "query_text": "What tuple of components defines a pushdown automaton in Willard and Louf's CFG-guided generation formulation?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "NLP / LLMs",
+      "domain_topic": "NLP / Formal Grammars",
+      "origin_v3_query_id": "Q-S5V3-18",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "pushdown_automaton"
+      ],
+      "exact_information_need": "State the 6-tuple (Q, Sigma, Gamma, delta, q0, F) where Gamma is the finite stack alphabet and delta maps Q x Sigma_eps x Gamma_eps to subsets of Q x Gamma_eps.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_002_p0014_c0017",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 14,
+          "page_end": 14,
+          "section_ref": "page_0014",
+          "passage_sha256": "3d2d0c873b9149d2478f7b4268633f6ec9abafa4fc9dff9b3bcf6a75691c8515"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_002_p0014_c0017"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query: p. 14 c0017 gives the complete PDA formal definition."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-17",
+      "query_text": "In Willard and Louf's Python grammar experiments, roughly how large in megabytes are naively constructed parser and FSM state indices?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "NLP / LLMs",
+      "domain_topic": "NLP / Guided Generation",
+      "origin_v3_query_id": "Q-S5V3-19",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "python"
+      ],
+      "exact_information_need": "Report that even naively constructed indices containing unused and redundant parser/FSM state configurations are only around 50 MB.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_002_p0016_c0020",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 16,
+          "page_end": 16,
+          "section_ref": "page_0016",
+          "passage_sha256": "7919a4b82da8676e102ebf1588920b9a8f5fe54a8a85d671001eef13856c726c"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_002_p0016_c0020"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage factual query directly answered on p. 16 c0020."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-18",
+      "query_text": "What is the Cholesky factor L of a symmetric positive definite matrix in Mathematics for Machine Learning, and is it unique?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Matrix Decompositions",
+      "origin_v3_query_id": "Q-S5V3-20",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "machine_learning"
+      ],
+      "exact_information_need": "State that L is the lower-triangular Cholesky factor of an SPD matrix A = L L^T and that L is unique.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0120_c0198",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 120,
+          "page_end": 120,
+          "section_ref": "page_0120",
+          "passage_sha256": "d41f97f7de4ae4e03302534897169c7320d430b304926e82496f8a0148abdb53"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0120_c0198"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query answered directly by MML p. 120 c0198."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-19",
+      "query_text": "How does Mathematics for Machine Learning relate the singular value decomposition of a symmetric positive definite matrix to its eigendecomposition?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Matrix Decompositions",
+      "origin_v3_query_id": "Q-S5V3-21",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "machine_learning"
+      ],
+      "exact_information_need": "Explain that for an SPD matrix S = U Sigma V^T, setting U = P = V and D = Sigma shows that the SVD of an SPD matrix is its eigendecomposition.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0129_c0213",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 129,
+          "page_end": 129,
+          "section_ref": "page_0129",
+          "passage_sha256": "1c061aebdc4ded29ffe312830c11c2766eda1cd9b1cec9dd84148814a6d61e41"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0129_c0213"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query answered directly by MML p. 129 c0213."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-20",
+      "query_text": "Why is hinge loss used as a surrogate objective in soft margin support vector machines according to Mathematics for Machine Learning?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Support Vector Machines",
+      "origin_v3_query_id": "Q-S5V3-22",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "machine_learning",
+        "vector"
+      ],
+      "exact_information_need": "Explain that hinge loss max{0, 1 - t} is a convex upper bound of zero-one loss.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0388_c0694",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 388,
+          "page_end": 388,
+          "section_ref": "page_0388",
+          "passage_sha256": "bbd5949dafd3dfb46e31ed64c1761453fa016131572723631334c541201d034f"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0388_c0694"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query directly answered by MML p. 388 c0694."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-21",
+      "query_text": "How does the METATRON push robustness benchmark define success for horizontal torso pushes during XY waypoint reaching?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Robotics / Control",
+      "domain_topic": "Robotics / Evaluation",
+      "origin_v3_query_id": "Q-S5V3-23",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "State that pushes last 100 ms every 1-2 s during the first 5 s, and success requires reaching within 0.5 m of the goal within 10 s while keeping relative torso height >= 0.45.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_004_p0008_c0024",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 8,
+          "page_end": 8,
+          "section_ref": "page_0008",
+          "passage_sha256": "02fdb25177011c2633f0e293cd7ea3fc35528a0937fd8ee1ed6eb021aaac5882"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_004_p0008_c0024"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query directly answered by Table III caption on METATRON p. 8 c0024."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-22",
+      "query_text": "At what relative torso height thresholds does METATRON's automatic recovery state machine begin and end?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Robotics / Control",
+      "domain_topic": "Robotics / Humanoid Control",
+      "origin_v3_query_id": "Q-S5V3-24",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "state_machine"
+      ],
+      "exact_information_need": "State that torso height is computed by FK relative to the lowest reconstructed body point, and recovery begins below 0.65H.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_004_p0013_c0047",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 13,
+          "page_end": 13,
+          "section_ref": "page_0013",
+          "passage_sha256": "4807a91f4e14d75ca88073bb5e4bbb04a204e37d5deceddf312015208a4782a6"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_004_p0013_c0047"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single-passage query directly answered by METATRON p. 13 c0047."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-23",
+      "query_text": "In Dive into Deep Learning Chapter 3, how does minibatch stochastic gradient descent bridge single-example SGD and why does linear regression's global minimum differ from deep network loss surfaces?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Machine Learning",
+      "domain_topic": "Machine Learning / Optimization",
+      "origin_v3_query_id": "Q-S5V3-25",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "deep_learning",
+        "gradient",
+        "gradient_descent",
+        "linear_regression",
+        "stochastic_gradient_descent"
+      ],
+      "exact_information_need": "Combine the minibatch sampling and gradient averaging step (c0010-c0011) with the contrast between linear regression's global minimum (full-rank X) and deep network loss surfaces (c0013).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0010",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "1fa87491526f4b13af45280757dc1c6f94bdf2d9821cb0c5117d69b03d6bfd99"
+        },
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0011",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "58e6092866c698665d31e2442d5fc63ba155d9dce8423655aa0cf944c2e4614f"
+        },
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0013",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "00b7aaaecab31c84c2602bcc696d4a28f73ac57daa365560ab386ee67dd4def4"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0011",
+        "s5v3_local_oa_001_p0001_c0013"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0011 describes minibatch sampling/gradient averaging while c0013 contrasts linear regression's global minimum with deep network loss surfaces."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-24",
+      "query_text": "In Willard and Louf, why does naive per-step partial matching incur O(N) vocabulary cost, and how does extending FSM indexing to LALR(1) parser REDUCE configurations enable CFG-guided generation?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "NLP / LLMs",
+      "domain_topic": "NLP / Guided Generation",
+      "origin_v3_query_id": "Q-S5V3-26",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "lalr"
+      ],
+      "exact_information_need": "Combine the O(N) per-iteration vocabulary scaling problem (p. 4 c0006) with the LALR(1) sub-stack REDUCE parser configuration extension for CFGs (p. 15 c0019).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_002_p0004_c0006",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 4,
+          "page_end": 4,
+          "section_ref": "page_0004",
+          "passage_sha256": "bbfbc084f64021f91084f1bdef2b587e937fedf6abcaa105e419dc454cb53d60"
+        },
+        {
+          "passage_id": "s5v3_local_oa_002_p0015_c0019",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 15,
+          "page_end": 15,
+          "section_ref": "page_0015",
+          "passage_sha256": "de1e12779814fb7a7a1f3345660fb71bf81ec682f04f48196c8deae437b0efd0"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_002_p0004_c0006",
+        "s5v3_local_oa_002_p0015_c0019"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 4 states the O(N) scaling bottleneck of naive partial matching, while p. 15 details LALR(1) REDUCE sub-stack configurations; both are needed."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-25",
+      "query_text": "How does Mathematics for Machine Learning formulate principal component analysis both as a constrained maximum variance Lagrangian problem and as a low-rank reconstruction approximation?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Dimensionality Reduction",
+      "origin_v3_query_id": "Q-S5V3-27",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "machine_learning",
+        "principal_component_analysis"
+      ],
+      "exact_information_need": "Combine the maximum-variance Lagrangian L(b1, lambda) = b1^T S b1 + lambda1(1 - b1^T b1) (p. 328) with the low-rank matrix approximation / average squared reconstruction error equivalence (p. 340).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0328_c0579",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 328,
+          "page_end": 328,
+          "section_ref": "page_0328",
+          "passage_sha256": "c6949a80fc536e7324b29f6f658ed7d0a940ae6af658ae0264fc1c3fbd94b8d4"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0340_c0602",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 340,
+          "page_end": 340,
+          "section_ref": "page_0340",
+          "passage_sha256": "e8948dd3435fe889bb53b0550b98c463d854abd3946b0f11a3252910732346d3"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0328_c0579",
+        "s5v3_local_oa_003_p0340_c0602"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 328 derives the constrained variance Lagrangian while p. 340 connects PCA to low-rank reconstruction; both are needed for the dual formulation."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-26",
+      "query_text": "In Mathematics for Machine Learning Chapter 11, why is a Gaussian mixture model more expressive than a single Gaussian, and how does the EM algorithm iteratively learn its parameters?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Density Estimation",
+      "origin_v3_query_id": "Q-S5V3-28",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "machine_learning"
+      ],
+      "exact_information_need": "Combine the convex-combination expressiveness of GMMs over a single Gaussian (p. 356) with Dempster et al.'s iterative EM scheme for maximum likelihood/MAP parameter estimation (p. 367).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0356_c0636",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 356,
+          "page_end": 356,
+          "section_ref": "page_0356",
+          "passage_sha256": "d6372515da3d440b016eb093d494ed56c0a3eb156974a8425adb0dff2c6f1930"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0367_c0655",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 367,
+          "page_end": 367,
+          "section_ref": "page_0367",
+          "passage_sha256": "806fdaba6455df1f315648cb1583eecf3e1129d7a783670ab1f4608bc1b94c1f"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0356_c0636",
+        "s5v3_local_oa_003_p0367_c0655"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 356 introduces the GMM convex combination while p. 367 presents the EM algorithm; neither passage covers both."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-27",
+      "query_text": "How does Mathematics for Machine Learning transform the primal soft-margin support vector machine into its dual via Lagrange multipliers and then apply nonlinear kernels?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Support Vector Machines",
+      "origin_v3_query_id": "Q-S5V3-29",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "machine_learning",
+        "support_vector_machine",
+        "vector"
+      ],
+      "exact_information_need": "Combine the Lagrange-multiplier dual formulation D(xi, alpha, gamma) from primal variables w, b, xi (p. 389, 391) with replacing feature maps phi(x) by nonlinear kernels (p. 394).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0389_c0697",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 389,
+          "page_end": 389,
+          "section_ref": "page_0389",
+          "passage_sha256": "98e9fe139f08a41b27b490e94a520b5886648a3e964e804b821fb52febdf59f1"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0391_c0700",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 391,
+          "page_end": 391,
+          "section_ref": "page_0391",
+          "passage_sha256": "3a5fe5376176474a207150002b5e61f0298ba621e77027bbae0f28471277d691"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0394_c0707",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 394,
+          "page_end": 394,
+          "section_ref": "page_0394",
+          "passage_sha256": "dd56e8e21ec1103281417107409b34215f7129c57454469ad6721a35924b0a90"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0389_c0697",
+        "s5v3_local_oa_003_p0394_c0707"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 389/391 derive the dual Lagrangian while p. 394 explains how nonlinear kernels yield nonlinear boundaries within the linear SVM framework."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-28",
+      "query_text": "In Mathematics for Machine Learning Chapter 7, how are constrained optimization problems converted using Lagrange multipliers and how do Legendre-Fenchel conjugates connect to convex duality?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Continuous Optimization",
+      "origin_v3_query_id": "Q-S5V3-30",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "machine_learning"
+      ],
+      "exact_information_need": "Combine the min-max duality inequality with Lagrange multipliers (p. 241) and the Legendre-Fenchel conjugate connection to dual convex optimization problems (p. 251).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0241_c0414",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 241,
+          "page_end": 241,
+          "section_ref": "page_0241",
+          "passage_sha256": "003ca6ca9dc72408e55220af1c6839a42a16c339ead8a6e799f88b2029b1e9d1"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0251_c0429",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 251,
+          "page_end": 251,
+          "section_ref": "page_0251",
+          "passage_sha256": "c392425de54e3984eb85119359f0aed1b4d48ee567371fcebd6c50f88a836634"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0241_c0414",
+        "s5v3_local_oa_003_p0251_c0429"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 241 proves the min-max weak duality inequality while p. 251 links Legendre-Fenchel conjugates to the dual problem."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-29",
+      "query_text": "How does METATRON's three-stage pipeline separate PPO motion-tracking expert training from supervised student distillation and runtime prompt-constructing skills?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Robotics / Control",
+      "domain_topic": "Robotics / Humanoid Control",
+      "origin_v3_query_id": "Q-S5V3-31",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "prompt"
+      ],
+      "exact_information_need": "Combine the three-stage separation (PPO experts, supervised distillation, runtime skills on p. 10 c0032) with the distilled student architecture and action-smoothness/dynamics training setup (p. 5 c0017 and p. 11 c0039).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_004_p0010_c0032",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 10,
+          "page_end": 10,
+          "section_ref": "page_0010",
+          "passage_sha256": "eac5b849e90a6c4c81bc2ddeaca89e0b79b1876b4df7b92349371f551878e855"
+        },
+        {
+          "passage_id": "s5v3_local_oa_004_p0005_c0017",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 5,
+          "page_end": 5,
+          "section_ref": "page_0005",
+          "passage_sha256": "99cf233f38dc5a32fb08d527b3c8e9ae554b29f2cbf4d00484428bcdb6f36bf6"
+        },
+        {
+          "passage_id": "s5v3_local_oa_004_p0011_c0039",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 11,
+          "page_end": 11,
+          "section_ref": "page_0011",
+          "passage_sha256": "b23798b704f00d71f6cc8aca7d3a3490368b661e17db1ddee49b318a6aa4c837"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_004_p0010_c0032",
+        "s5v3_local_oa_004_p0005_c0017"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "p. 10 c0032 summarizes the three stages while p. 5 c0017 details the four-expert policy distillation and frozen skill execution without retraining."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-30",
+      "query_text": "Compare how Dive into Deep Learning Chapter 3 introduces linear regression with squared loss against how Mathematics for Machine Learning Chapter 9 prevents MLE overfitting using MAP estimation and regularized least squares.",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "Machine Learning / Linear Regression",
+      "origin_v3_query_id": "Q-S5V3-32",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "deep_learning",
+        "linear_regression",
+        "machine_learning"
+      ],
+      "exact_information_need": "Contrast D2L's squared-loss linear regression objective (local_oa_001 c0005) with MML's MAP log-posterior and regularized least squares ||y - Phi theta||^2 + lambda ||theta||_2^2 ensuring invertibility (local_oa_003 p. 308).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0005",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "56cdc6cfe1d28913202e13edb6abee7e1385fa4505a9ce64247f0d4fc214b4c5"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0308_c0540",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 308,
+          "page_end": 308,
+          "section_ref": "page_0308",
+          "passage_sha256": "b9520af9aedde18b0af19830760ce3eb3312d7192d3cd55722fb131dd2a1c975"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0308_c0541",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 308,
+          "page_end": 308,
+          "section_ref": "page_0308",
+          "passage_sha256": "4ae13c71e21d2564d36a6ddb09da4d54d9e5f9658ae23d415dd5e9421f4dc20d"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0005",
+        "s5v3_local_oa_003_p0308_c0541"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "D2L c0005 covers unregularized squared loss while MML p. 308 introduces MAP/regularized least squares; both docs required."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-31",
+      "query_text": "How does Dive into Deep Learning Chapter 3's treatment of minibatch stochastic gradient descent compare with the momentum-based gradient descent update rule presented in Mathematics for Machine Learning Chapter 7?",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "Machine Learning / Optimization",
+      "origin_v3_query_id": "Q-S5V3-33",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "deep_learning",
+        "gradient",
+        "gradient_descent",
+        "machine_learning",
+        "stochastic_gradient_descent"
+      ],
+      "exact_information_need": "Contrast D2L's minibatch SGD motivation (local_oa_001 c0009) with MML's momentum update rule combining current and previous gradients via Delta x_i (local_oa_003 p. 237).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0009",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "8cfb8fe69e7d64fa2290881c5de8f127a6f8c0dbf91789d23a93030031df48b5"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0237_c0407",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 237,
+          "page_end": 237,
+          "section_ref": "page_0237",
+          "passage_sha256": "fe78ec39235616e5f6692ed58ea3fb05eed608671d26cb0bde91f5566e5b8a4f"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0009",
+        "s5v3_local_oa_003_p0237_c0407"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "D2L c0009 motivates minibatch SGD without momentum, whereas MML p. 237 defines the momentum update equation; both docs are required."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-32",
+      "query_text": "How does Dive into Deep Learning Chapter 3 frame linear regression as a single-layer neural network, and how does Mathematics for Machine Learning Chapter 5 generalize gradient computation across multi-layer neural networks using backpropagation?",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "Machine Learning / Neural Networks",
+      "origin_v3_query_id": "Q-S5V3-34",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "deep_learning",
+        "gradient",
+        "linear_regression",
+        "machine_learning",
+        "neural_network"
+      ],
+      "exact_information_need": "Connect D2L's subsumption of linear regression inside neural network notation (local_oa_001 c0019) with MML's multi-layer backward pass computing loss gradients via the chain rule (local_oa_003 p. 167, p. 170).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0019",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "bfd6946c39707776947fafca72ce8cda9a24a6edb0d54348c4a3b70e3f8dbbbd"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0167_c0277",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 167,
+          "page_end": 167,
+          "section_ref": "page_0167",
+          "passage_sha256": "571d419dbdcd9e7a5a1fb97e86fd602de0d57dc817e269317d080470d0794fbc"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0170_c0282",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 170,
+          "page_end": 170,
+          "section_ref": "page_0170",
+          "passage_sha256": "f45c702b643b92ae7bb891a651f2f31048a4b5e68ce64afd30c29440f5235802"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0019",
+        "s5v3_local_oa_003_p0167_c0277"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "D2L c0019 frames linear regression as a neural network without multi-layer backprop, while MML p. 167 shows the multi-layer backward pass."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-33",
+      "query_text": "How does Mathematics for Machine Learning Chapter 3 define the Euclidean L2 norm, and how does METATRON use L2 normalization to project sampled latent vectors onto the unit sphere and regularize action diversity?",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "Robotics / Geometry",
+      "origin_v3_query_id": "Q-S5V3-35",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "action",
+        "machine_learning"
+      ],
+      "exact_information_need": "Combine MML's definition of the Euclidean L2 norm (local_oa_003 p. 77) with METATRON's unit-sphere latent projection z_t = z_tilde / ||z_tilde||_2 (local_oa_004 p. 3) and L2 diversity loss L_div (p. 12).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0077_c0118",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 77,
+          "page_end": 77,
+          "section_ref": "page_0077",
+          "passage_sha256": "53b216135d40874eb3444b95570b1437eec127f7819555bcba5a98d0520ed131"
+        },
+        {
+          "passage_id": "s5v3_local_oa_004_p0003_c0009",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 3,
+          "page_end": 3,
+          "section_ref": "page_0003",
+          "passage_sha256": "4c82fab42a523831d06d168c46de244715932d183d449728493045d5d0c9da77"
+        },
+        {
+          "passage_id": "s5v3_local_oa_004_p0012_c0040",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 12,
+          "page_end": 12,
+          "section_ref": "page_0012",
+          "passage_sha256": "e7b656c783ea5bcce5269815b3e444400a3b95ec14e2029aa02705e311de1e53"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0077_c0118",
+        "s5v3_local_oa_004_p0003_c0009"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "MML p. 77 defines Euclidean vs Manhattan norms while METATRON p. 3 applies L2 normalization onto the unit sphere; neither doc covers the other."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-34",
+      "query_text": "Compare how Willard and Louf guide an LLM to produce valid Python syntax using CFG/LALR(1) token masking with how METATRON uses an LLM coding agent to iteratively refine skill code via simulation feedback.",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "NLP & Robotics / LLM Code Generation",
+      "origin_v3_query_id": "Q-S5V3-36",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "lalr",
+        "masking",
+        "python",
+        "syntax",
+        "token"
+      ],
+      "exact_information_need": "Contrast Willard & Louf's syntax-constrained decoding for Python via CFG/LALR(1) parsers (local_oa_002 p. 2, p. 13) with METATRON's closed-loop LLM coding agent refining skill code from simulation evaluation feedback (local_oa_004 p. 4).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_002_p0002_c0003",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 2,
+          "page_end": 2,
+          "section_ref": "page_0002",
+          "passage_sha256": "aaf6f949cc2208bbd03c561a303fcacb1314f5d5a44f71d592ac1908405dcc92"
+        },
+        {
+          "passage_id": "s5v3_local_oa_002_p0013_c0014",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 13,
+          "page_end": 13,
+          "section_ref": "page_0013",
+          "passage_sha256": "75f53b02cfa66e04477fe7e792d859259df9c1783e529dd4ef53d10791a1755a"
+        },
+        {
+          "passage_id": "s5v3_local_oa_004_p0004_c0013",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 4,
+          "page_end": 4,
+          "section_ref": "page_0004",
+          "passage_sha256": "aca587766421518e592343a38554fe28c9bc9dcd572555d19c6dab1258e27a7a"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_002_p0002_c0003",
+        "s5v3_local_oa_004_p0004_c0013"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Willard & Louf p. 2 covers syntactic CFG/LALR(1) guidance while METATRON p. 4 covers iterative simulation-feedback skill refinement; cross-document comparison is necessary."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-35",
+      "query_text": "How does Mathematics for Machine Learning Chapter 9's maximum likelihood estimation over nonlinear basis features Phi(x) extend the vectorized linear model y_hat = Xw + b presented in Dive into Deep Learning Chapter 3?",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "Machine Learning / Linear Regression",
+      "origin_v3_query_id": "Q-S5V3-37",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "deep_learning",
+        "machine_learning",
+        "maximum_likelihood",
+        "maximum_likelihood_estimation"
+      ],
+      "exact_information_need": "Connect D2L's vectorized affine prediction y_hat = Xw + b (local_oa_001 c0004) with MML's polynomial/nonlinear feature mapping f(x) = phi^T(x) theta that remains linear in parameters theta (local_oa_003 p. 302).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_001_p0001_c0004",
+          "source_doc_id": "local_oa_001",
+          "domain": "Machine Learning",
+          "page_start": 1,
+          "page_end": 1,
+          "section_ref": "page_0001",
+          "passage_sha256": "981ef17299b47ba378819fb0b0811b4fbe0b081467b69b11a45066c07b485dcb"
+        },
+        {
+          "passage_id": "s5v3_local_oa_003_p0302_c0528",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 302,
+          "page_end": 302,
+          "section_ref": "page_0302",
+          "passage_sha256": "d25667271e00ae8c30873e4840adca09df49e6acdd30c779393a8d6f333aa029"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_001_p0001_c0004",
+        "s5v3_local_oa_003_p0302_c0528"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "D2L c0004 gives the raw-feature matrix equation Xw + b while MML p. 302 generalizes to nonlinear basis features phi(x)."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-36",
+      "query_text": "Contrast how Mathematics for Machine Learning Chapter 8 distinguishes non-probabilistic empirical risk minimization from Bayesian inference with how Willard and Louf treat an LLM as a function returning a discrete next-token probability distribution.",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (ML/Math/NLP/Robotics)",
+      "domain_topic": "ML Theory & NLP / Probabilistic Models",
+      "origin_v3_query_id": "Q-S5V3-38",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "bayesian_inference",
+        "machine_learning",
+        "probability",
+        "probability_distribution",
+        "token"
+      ],
+      "exact_information_need": "Combine MML's distinction between ERM point estimates and probabilistic models (local_oa_003 p. 263) with Willard & Louf's definition of LLM(s, theta) returning next-token logits alpha in R^N defining a discrete probability distribution (local_oa_002 p. 3).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0263_c0450",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 263,
+          "page_end": 263,
+          "section_ref": "page_0263",
+          "passage_sha256": "45a68aeb25402e449f8d64617625b4440da294a3bc6ee4f4241841100c89261d"
+        },
+        {
+          "passage_id": "s5v3_local_oa_002_p0003_c0004",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 3,
+          "page_end": 3,
+          "section_ref": "page_0003",
+          "passage_sha256": "82a16d385d3ee644fc5554b4e035ca98f52a323572a92b5dbafc144ccc47ee88"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0263_c0450",
+        "s5v3_local_oa_002_p0003_c0004"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "MML p. 263 contrasts ERM vs probabilistic predictors while Willard & Louf p. 3 formalizes LLM next-token distributions; both documents are required."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-37",
+      "query_text": "What alternative name is used in the signal processing literature for principal component analysis?",
+      "split": "test",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Terminology",
+      "origin_v3_query_id": "Q-S5V3-39",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "principal_component_analysis"
+      ],
+      "exact_information_need": "Identify that PCA is also known as the Karhunen-Loeve transform in the signal processing community.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0324_c0571",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 324,
+          "page_end": 324,
+          "section_ref": "page_0324",
+          "passage_sha256": "071c165223d036abc536f5ff9d5da7d00fc15b8af6191014e910cd667081751c"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0324_c0571"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Terminology lookup directly answered by MML p. 324 c0571."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-38",
+      "query_text": "Which sparse L1-norm penalty regularizer for linear regression was introduced by Tibshirani (1996) for variable selection?",
+      "split": "test",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Regularization",
+      "origin_v3_query_id": "Q-S5V3-40",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "linear_regression",
+        "variable"
+      ],
+      "exact_information_need": "Identify LASSO (least absolute shrinkage and selection operator) for p = 1 regularization.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0309_c0542",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 309,
+          "page_end": 309,
+          "section_ref": "page_0309",
+          "passage_sha256": "03166dd7c087226c0893c6f13a9fb17f88c4be760dfd03b5e8bd645b6721316d"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0309_c0542"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Terminology paraphrase directly answered by MML p. 309 c0542."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-39",
+      "query_text": "Why do contemporary machine learning systems avoid hand determinant computations when checking matrix invertibility?",
+      "split": "test",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Math for ML",
+      "domain_topic": "Math for ML / Numerical Linear Algebra",
+      "origin_v3_query_id": "Q-S5V3-41",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "determinant",
+        "machine_learning"
+      ],
+      "exact_information_need": "Explain that direct numerical methods have superseded explicit determinant calculation for analyzing matrix invertibility in modern machine learning.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_003_p0109_c0177",
+          "source_doc_id": "local_oa_003",
+          "domain": "Mathematics for Machine Learning",
+          "page_start": 109,
+          "page_end": 109,
+          "section_ref": "page_0109",
+          "passage_sha256": "a6fa017ec4f56566021e86bd1001153f1c0dd9f8b3efc2a802a0258879af6064"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_003_p0109_c0177"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Paraphrased conceptual question directly answered by MML p. 109 c0177."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-40",
+      "query_text": "In constrained text decoding, what architectural optimization do Willard and Louf suggest by lifting token masks higher up into the language model?",
+      "split": "test",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "NLP / LLMs",
+      "domain_topic": "NLP / Guided Generation",
+      "origin_v3_query_id": "Q-S5V3-42",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "language_model",
+        "token"
+      ],
+      "exact_information_need": "Explain that lifting masks higher into the model architecture could modulate which parameter slices are needed before performing unnecessary computations.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_002_p0016_c0021",
+          "source_doc_id": "local_oa_002",
+          "domain": "Natural Language Processing / LLMs",
+          "page_start": 16,
+          "page_end": 16,
+          "section_ref": "page_0016",
+          "passage_sha256": "8de52669a076a06af7d8b6b475288024791b274f5dcaa8c4a5d330fd7d47185e"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_002_p0016_c0021"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Paraphrase of 'guided generation' as 'constrained text decoding', directly answered by p. 16 c0021."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-41",
+      "query_text": "How does METATRON represent environmental furniture and obstacles offline so the humanoid controller can interact with scenes?",
+      "split": "test",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Robotics / Control",
+      "domain_topic": "Robotics / Scene Interaction",
+      "origin_v3_query_id": "Q-S5V3-43",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "State that each scene element is decomposed offline into geometric primitives / bounding boxes b_t specified by measured dimensions and poses.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v3_local_oa_004_p0002_c0003",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 2,
+          "page_end": 2,
+          "section_ref": "page_0002",
+          "passage_sha256": "1aeae1e3f85f40ba7e8ac49333487926105d4c0129cc9f937e32e3a7561445e0"
+        },
+        {
+          "passage_id": "s5v3_local_oa_004_p0003_c0008",
+          "source_doc_id": "local_oa_004",
+          "domain": "Robotics / Control",
+          "page_start": 3,
+          "page_end": 3,
+          "section_ref": "page_0003",
+          "passage_sha256": "e40b7b145fb12b0400cc968e7e39ec5c61bef513c0be6cc2fb0a20478dcf0eba"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v3_local_oa_004_p0003_c0008"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "METATRON p. 3 c0008 directly states offline decomposition into bounding boxes b_t; p. 2 c0003 adds supporting detail."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-42",
+      "query_text": "How does FlashAttention-2 tile query, key, and value blocks into GPU SRAM to reduce HBM memory reads during Transformer self-attention?",
+      "split": "test",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "ML Systems (Absent)",
+      "origin_v3_query_id": "Q-S5V3-45",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "flashattention",
+        "self_attention",
+        "transformer"
+      ],
+      "exact_information_need": "Negative control: FlashAttention-2 GPU SRAM/HBM tiling is absent from all four verified OA documents in Corpus v3.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Zero occurrences of FlashAttention, SRAM, or HBM in all 858 Corpus v3 passages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-43",
+      "query_text": "What is the exact knee actuator peak torque in Newton-meters for the Boston Dynamics electric Atlas humanoid robot?",
+      "split": "test",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "Robotics (Absent)",
+      "origin_v3_query_id": "Q-S5V3-46",
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Negative control: Boston Dynamics electric Atlas specs do not appear in METATRON or any other Corpus v3 document.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Zero occurrences of Boston Dynamics or Atlas across all 858 Corpus v3 passages (METATRON evaluates Unitree G1 and SOMA)."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-44",
+      "query_text": "What are the exact token-per-second throughput numbers for vLLM PagedAttention serving Mixtral-8x7B on an NVIDIA B200 GPU?",
+      "split": "test",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "LLM Serving (Absent)",
+      "origin_v3_query_id": "Q-S5V3-48",
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "paged_attention",
+        "token",
+        "vllm"
+      ],
+      "exact_information_need": "Negative control: vLLM PagedAttention and Mixtral-8x7B B200 benchmarks are absent from all four verified OA documents.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Zero occurrences of vLLM, PagedAttention, Mixtral, or B200 across all 858 Corpus v3 passages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-45",
+      "query_text": "What are the respective roles of the fork(), exit(), kill(), and nice() system calls in operating system process control?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Operating Systems",
+      "domain_topic": "OS / Process System Calls",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "State that fork() creates a child process, exit() terminates a process, kill() terminates a process abnormally, and nice() adjusts process priority.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0018",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_009",
+          "passage_sha256": "3478e0efbf07cc859975458d78588c04f8f719d111165de0a82c362c6e2e37a2"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_os_001_s0000_c0018"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage c0018 lists all four syscalls."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-46",
+      "query_text": "What four necessary conditions cause deadlock in an operating system, and what four general strategies exist to handle deadlocks?",
+      "split": "dev",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Operating Systems",
+      "domain_topic": "OS / Deadlocks",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "deadlock"
+      ],
+      "exact_information_need": "Combine the four deadlock characteristics (Mutual Exclusion, Hold and Wait, Non-Preemption, Circular Wait in c0069) with the four handling methods (Prevention, Avoidance, Detection and Recovery, Ignorance in c0071).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0069",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_034",
+          "passage_sha256": "10a33448f9b69fdf4170000a1a852789b6f6cef789720bf3e631142efb02784a"
+        },
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0071",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_035",
+          "passage_sha256": "6148d195abc5c6ff58d472d587c48751b4531440cdaa1287bc6db73f347325b8"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_os_001_s0000_c0069",
+        "s5v31_oa_os_001_s0000_c0071"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0069 lists the four conditions while c0071 lists the four handling strategies; both passages are required."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-47",
+      "query_text": "How is a primary key selected from candidate keys in relational database design, and what uniqueness and null constraints must it satisfy?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Databases",
+      "domain_topic": "Databases / Keys",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "relational_database"
+      ],
+      "exact_information_need": "Explain that a primary key is a candidate key chosen by the designer to uniquely identify tuples in a table and must never be null.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0092",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch08_sec_18",
+          "passage_sha256": "3edaad077d4ae6c0f0f9c34d1dbf99ee99fd3f7e4d012ea210fdee771f01deec"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_db_001_s0000_c0092"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage c0092 defines primary keys."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-48",
+      "query_text": "How do logical data independence and physical data independence differ across the external, logical, and internal database schemas?",
+      "split": "dev",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Databases",
+      "domain_topic": "Databases / Schema Architecture",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "data"
+      ],
+      "exact_information_need": "Contrast logical data independence (changing the logical schema without altering external user views in c0048) with physical data independence (internal/logical schema immunity to storage structure changes in c0049).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0048",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch05_sec_10",
+          "passage_sha256": "14fd1169dfc2b8c2895aca8315bf852045195f4e6094b60924f1719098d49fd6"
+        },
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0049",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch05_sec_11",
+          "passage_sha256": "503e78385ea9e882c0400c198485052a8e6f634b5f8891c5abc72399104b9e7e"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_db_001_s0000_c0048",
+        "s5v31_oa_db_001_s0000_c0049"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0048 defines logical schema/independence while c0049 defines physical data independence."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-49",
+      "query_text": "How does TCP establish a new transport connection using a three-way handshake?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Computer Networks",
+      "domain_topic": "Networks / TCP Connection Setup",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Describe the TCP three-way handshake connection establishment phase on p. 95.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_net_001_p0095_c0219",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 95,
+          "page_end": 95,
+          "section_ref": "page_0095",
+          "passage_sha256": "40f4e463729c311258ad8aaa4c9cf50c32cd1c83d25769296f36859b0b0df991"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_net_001_p0095_c0219"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage p. 95 c0219 covers TCP 3-way."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-50",
+      "query_text": "What routing-table aggregation challenge arises with variable-length prefix allocation under classless inter-domain routing?",
+      "split": "dev",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Computer Networks",
+      "domain_topic": "Networks / CIDR Subnetting",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "variable"
+      ],
+      "exact_information_need": "Explain the difficulty with aggregatable variable-length subnets in CIDR (paraphrasing 'CIDR' as classless inter-domain routing).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_net_001_p0149_c0357",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 149,
+          "page_end": 149,
+          "section_ref": "page_0149",
+          "passage_sha256": "a8f03c5431d91e7d222ee4616eed484c10b7ed6d1c31cff746b8a634be89256a"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_net_001_p0149_c0357"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Paraphrase directly answered by p. 149 c0357."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-51",
+      "query_text": "How does the Byzantine generals problem extend the setting of the two generals problem to three or more participants?",
+      "split": "dev",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Distributed Systems",
+      "domain_topic": "Distributed Systems / Fault Models",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Explain Lamport (1982) Byzantine generals problem setting with three or more armies communicating via messengers.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0037",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_008",
+          "passage_sha256": "ebfe1b7c1f8f7d5337063639d15a0576de8afd130de3359247c920de3fbe8896"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_ds_001_s0000_c0037"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage c0037 describes Byzantine setup."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-52",
+      "query_text": "How do Lamport timestamps construct a total order over events using (L(e), N(e)) pairs, and how do vector clocks generalize them to a per-node integer list?",
+      "split": "dev",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Distributed Systems",
+      "domain_topic": "Distributed Systems / Logical Time",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "vector"
+      ],
+      "exact_information_need": "Combine Lamport timestamp total ordering via (L(e), N(e)) (c0088) with vector timestamps storing one integer per node in a vector (c0091).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0088",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_015",
+          "passage_sha256": "31bbbf60c0060605c5627316f72bb7de55861544b63c11673459c20b3df13ec1"
+        },
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0091",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_015",
+          "passage_sha256": "0f77e307d4795262e7636189246f25d627e60c7009c56b06716f14457998549a"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_ds_001_s0000_c0088",
+        "s5v31_oa_ds_001_s0000_c0091"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0088 covers Lamport total order pairs while c0091 defines vector timestamps as per-node integer lists."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-53",
+      "query_text": "Compare how transport-layer pipelining protocols like Go-Back-N and Selective Repeat handle reliable delivery over unreliable links with how the Two Generals problem models unreliable network faults in distributed system models.",
+      "split": "dev",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (CS Systems)",
+      "domain_topic": "Networks & Distributed Systems / Reliability",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Connect CNP3's pipelined transport reliability (Go-Back-N / Selective Repeat over alternating bit in oa_net_001 p. 78) with Kleppmann's system-model abstraction of unreliable network faults in the Two Generals problem (oa_ds_001 c0042).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_net_001_p0078_c0185",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 78,
+          "page_end": 78,
+          "section_ref": "page_0078",
+          "passage_sha256": "c01e2cb6b2a62b5154a587e57dbbb1888054e5bdad1c8a13690eddf6b7fa071b"
+        },
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0042",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_009",
+          "passage_sha256": "ce2e2cfdfe167e9d308b17dcb467285bef5e6dd07d6b0d5928924ba95556bd86"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_net_001_p0078_c0185",
+        "s5v31_oa_ds_001_s0000_c0042"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "oa_net_001 p. 78 covers transport pipelining protocols while oa_ds_001 c0042 formalizes Two Generals system models; both documents are required."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-54",
+      "query_text": "What is the exact Linux kernel eBPF XDP packet-drop throughput in millions of packets per second measured on a Mellanox ConnectX-7 NIC?",
+      "split": "dev",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "OS & Networks Hardware (Absent)",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Negative control: eBPF XDP throughput benchmarks on Mellanox ConnectX-7 NICs are absent from all 1,958 Corpus v3.1 passages.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Verified absent across all 1,958 Corpus v3.1 passages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-55",
+      "query_text": "What are the three interprocess communication methods described for sharing memory and resources between processes?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Operating Systems",
+      "domain_topic": "OS / IPC",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "List Sockets, Remote Procedure Calls (RPC), and Pipelining from oa_os_001 c0043.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0043",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_020",
+          "passage_sha256": "77c0377bd624e962cae69b2b1695a336e5b08f7c9046b43a01bed10c5f551380"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_os_001_s0000_c0043"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage c0043 lists all three IPC methods."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-56",
+      "query_text": "How does time-slice CPU scheduling transition an unfinished process to the waiting state, and how does deferred thread cancellation differ from asynchronous cancellation?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Operating Systems",
+      "domain_topic": "OS / Scheduling & Threads",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "cpu_scheduling"
+      ],
+      "exact_information_need": "Combine time-slice expiration moving a process to the blocked/waiting queue (c0035) with deferred vs asynchronous thread termination (c0062).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0035",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_017",
+          "passage_sha256": "fe92c0ab115e5dd44bcfbe75e8abfc383436244348d42a0e386c4ec7cebb5b25"
+        },
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0062",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_030",
+          "passage_sha256": "514eb6aa2e3f51c4bca33ca387e8fb4f9cf71b32d0091093ecc5283e13232b23"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_os_001_s0000_c0035",
+        "s5v31_oa_os_001_s0000_c0062"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0035 covers time-slice scheduling transitions while c0062 covers thread cancellation modes."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-57",
+      "query_text": "How does non-contiguous memory allocation eliminate external fragmentation when placing program instructions in RAM?",
+      "split": "test",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Operating Systems",
+      "domain_topic": "OS / Memory Management",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Explain that N-CMA (implemented via paging and segmentation) avoids external fragmentation because program instructions need not be placed contiguously.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0098",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_046",
+          "passage_sha256": "46a526e9309bef08fea4aa047555460c4559f91404057588ce433179f55d1838"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_os_001_s0000_c0098"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Paraphrase directly answered by c0098."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-58",
+      "query_text": "How should a many-to-many relationship be transformed so it can be implemented in the relational database model?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Databases",
+      "domain_topic": "Databases / ER Modeling",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "relational_database",
+        "relationship"
+      ],
+      "exact_information_need": "State that an M:N relationship cannot be implemented directly and must be broken into two 1:M relationships.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0102",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch08_sec_28",
+          "passage_sha256": "9c1ba98ffdc73540a52acb2273966040db5e1f47519f596f7aff6eef34470b5e"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_db_001_s0000_c0102"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage c0102 explains M:N decomposition."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-59",
+      "query_text": "What conditions define Third Normal Form (3NF) in relational normalization, and what steps are required to eliminate transitive dependencies?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Databases",
+      "domain_topic": "Databases / Normalization",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "third_normal_form"
+      ],
+      "exact_information_need": "Combine the 3NF definition (in 2NF with no non-key attribute functionally dependent on another non-key attribute in c0165) with the decomposition steps creating new tables for removed transitive dependencies (c0166).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0165",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch12_sec_10",
+          "passage_sha256": "c19f67c744cc3f2647ba04e4c8712c49a5a610c3f2169c6e4880570265bcf18a"
+        },
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0166",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch12_sec_11",
+          "passage_sha256": "d0f98e79e281825773d2ae8333b3fcfc486342f399026347b6ab922e9537130b"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_db_001_s0000_c0165",
+        "s5v31_oa_db_001_s0000_c0166"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0165 states the 3NF rule while c0166 lists the table decomposition procedure."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-60",
+      "query_text": "Which SQL data definition commands construct or modify database schemas, and in what clause sequence is a SQL SELECT query processed?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Databases",
+      "domain_topic": "Databases / SQL DDL & DML",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "data",
+        "sequence"
+      ],
+      "exact_information_need": "Combine major SQL DDL statements (CREATE DATABASE, CREATE/DROP/ALTER TABLE in c0203) with the SELECT processing sequence (SELECT DISTINCT, FROM, WHERE, GROUP BY in c0223).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0203",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch15_sec_02",
+          "passage_sha256": "fb8d3b79e9dc0b3ff33dcb41779beef9576c6ccf38e37712777200353b58a2f1"
+        },
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0223",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch16_sec_02",
+          "passage_sha256": "d7e7780f58cd7733f4fb6577257eb9c1461ae055a4821e4e762db7ad9d3e06cc"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_db_001_s0000_c0203",
+        "s5v31_oa_db_001_s0000_c0223"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0203 covers DDL statements while c0223 specifies SELECT clause order."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-61",
+      "query_text": "How does the Go-Back-N sliding window recovery protocol keep receiver logic simple?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Computer Networks",
+      "domain_topic": "Networks / Transport Reliability",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Explain Go-Back-N receiver behavior and recovery operation on p. 80 c0188.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_net_001_p0080_c0188",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 80,
+          "page_end": 80,
+          "section_ref": "page_0080",
+          "passage_sha256": "0ef2891eccef0cabaf0398b795ba2ea256e0838da087784274238a7b16aacb87"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_net_001_p0080_c0188"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage p. 80 c0188 covers Go-Back-N."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-62",
+      "query_text": "What role does the Border Gateway Protocol play in interdomain routing, and how does the AS-Path attribute evolve as a prefix advertisement traverses autonomous systems?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Computer Networks",
+      "domain_topic": "Networks / BGP Interdomain Routing",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Combine BGP's role as the Internet's single interdomain routing protocol (p. 184 c0452) with how AS1 originates a prefix and AS4 prepends its AS number to the AS-Path when re-announcing to AS2 (p. 184 c0453).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_net_001_p0184_c0452",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 184,
+          "page_end": 184,
+          "section_ref": "page_0184",
+          "passage_sha256": "88f17135abb7273331d4cee5f20759e8df71d3cd32434b60e07d2147bde0266e"
+        },
+        {
+          "passage_id": "s5v31_oa_net_001_p0184_c0453",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 184,
+          "page_end": 184,
+          "section_ref": "page_0184",
+          "passage_sha256": "5368f9b9f96e3113e93dd410db9d8ce6577018c1789b93fd1c6d52681b6fd405"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_net_001_p0184_c0452",
+        "s5v31_oa_net_001_p0184_c0453"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0452 defines BGP's interdomain role while c0453 traces AS-Path propagation across AS1, AS4, and AS2."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-63",
+      "query_text": "Why do top-level domain lookups rely on synchronized root nameservers while local DNS resolvers cache answers for client hosts?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Computer Networks",
+      "domain_topic": "Networks / DNS Hierarchy",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Combine root nameservers maintaining synchronized TLD nameserver lists (p. 38 c0080) with caching resolvers sparing hosts from querying global nameservers (p. 38 c0081).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_net_001_p0038_c0080",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 38,
+          "page_end": 38,
+          "section_ref": "page_0038",
+          "passage_sha256": "b0278758ffae066e2863508cfb0fd31585c004e6ba8e577b9be8c19a8b216549"
+        },
+        {
+          "passage_id": "s5v31_oa_net_001_p0038_c0081",
+          "source_doc_id": "oa_net_001",
+          "domain": "Computer Networks",
+          "page_start": 38,
+          "page_end": 38,
+          "section_ref": "page_0038",
+          "passage_sha256": "abe2d735322f900246953ca39f4923932dd3557ed641fe59e85c663ad6506d51"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_net_001_p0038_c0080",
+        "s5v31_oa_net_001_p0038_c0081"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0080 covers root nameservers while c0081 explains resolver caching benefits."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-64",
+      "query_text": "How do FIFO broadcast and causal broadcast differ in the delivery ordering guarantees they impose on broadcast messages?",
+      "split": "test",
+      "category": "single_passage_fact_concept",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Distributed Systems",
+      "domain_topic": "Distributed Systems / Broadcast",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Contrast FIFO broadcast (same-sender order) with causal broadcast (happens-before broadcast order) in c0102.",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0102",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_017",
+          "passage_sha256": "206ea9e26ee82649afcf83134a9c1352757117ab7be41024fae65e0c155fcec2"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_ds_001_s0000_c0102"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Single passage c0102 defines both forms."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-65",
+      "query_text": "How do practical distributed consensus protocols circumvent the FLP impossibility result using timeouts, and what triggers a candidate node to initiate leader election?",
+      "split": "test",
+      "category": "same_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Distributed Systems",
+      "domain_topic": "Distributed Systems / Consensus & Elections",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Combine avoiding FLP non-termination via clocks/timeouts or randomization (c0173) with leader election triggered when followers suspect leader failure after missing messages (c0174).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0173",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_027",
+          "passage_sha256": "bd4b5a6ab27faa40a93919181d53a3e9259423c700e0952d4629f3159d0b20a6"
+        },
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0174",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_027",
+          "passage_sha256": "5d240d8187f0074e3ebd54374a780310ff9023553a912eea229922b51d9a7e55"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_ds_001_s0000_c0173",
+        "s5v31_oa_ds_001_s0000_c0174"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "c0173 explains circumventing FLP while c0174 details timeout-triggered candidate leader elections."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-66",
+      "query_text": "How does two-phase commit recover from a coordinator crash by persisting its commit or abort decision to stable storage?",
+      "split": "test",
+      "category": "technical_terminology_paraphrase",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Distributed Systems",
+      "domain_topic": "Distributed Systems / Atomic Commit",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Explain that the 2PC coordinator writes its decision to disk and upon recovery reads the decision from disk to send to replicas (or aborts if none was recorded).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0147",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_024",
+          "passage_sha256": "cc879de96e9c61bf7f4dbf020480888409fca56c0ed547ad13a78b7ba919ab2c"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_ds_001_s0000_c0147"
+      ],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": true,
+        "rationale": "Paraphrase ('stable storage' = disk) directly answered by c0147."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-67",
+      "query_text": "Compare how operating systems organize cache, main, and secondary storage in a memory hierarchy with why file-based application systems suffer from data-structure coupling compared to database management systems.",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (CS Systems)",
+      "domain_topic": "OS & Databases / Storage Abstraction",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "rich",
+      "graph_matched_concepts": [
+        "data",
+        "memory_hierarchy"
+      ],
+      "exact_information_need": "Connect OS memory hierarchy trade-offs across cache, main, and secondary memory (oa_os_001 c0080) with file-based system rigidity where file formats are hardcoded in applications (oa_db_001 c0018).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_os_001_s0000_c0080",
+          "source_doc_id": "oa_os_001",
+          "domain": "Operating Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "epub_sec_039",
+          "passage_sha256": "44a96a4089df7278375d1f6768eb976ee134672f7be76bdd4db9f2ce8038a77a"
+        },
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0018",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch03_sec_04",
+          "passage_sha256": "5a4e891fe110e5803523f7fa7b85bcc95954cbef998027263357c966fba808fd"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_os_001_s0000_c0080",
+        "s5v31_oa_db_001_s0000_c0018"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "oa_os_001 c0080 describes the memory hierarchy while oa_db_001 c0018 describes file-based application coupling."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-68",
+      "query_text": "Contrast single-table entity integrity constraints on primary keys in relational databases with how two-phase commit (2PC) ensures atomic commitment across multiple distributed nodes rather than serializable isolation (2PL).",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (CS Systems)",
+      "domain_topic": "Databases & Distributed Systems / Integrity",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Connect relational entity integrity requiring non-null primary keys (oa_db_001 c0114) with 2PC atomic commitment across nodes distinguished from 2PL serializability (oa_ds_001 c0145).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0114",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch09_sec_03",
+          "passage_sha256": "c57fd8b8e192f7728887b0306a37a0e442e594d52f1aeff66812bc03844d29c3"
+        },
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0145",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_024",
+          "passage_sha256": "2977d8192a53fd9e69e4f0f12d386d6a7c47147fb17fc6e456d564139e8e2d3b"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_db_001_s0000_c0114",
+        "s5v31_oa_ds_001_s0000_c0145"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "oa_db_001 c0114 covers entity integrity while oa_ds_001 c0145 contrasts 2PC atomic commit with 2PL isolation."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-69",
+      "query_text": "How do client-perceived operation start and finish intervals define linearizability across quorum reads in distributed systems, and how does this compare to centralized database architectures where the DBMS resides at a single site?",
+      "split": "test",
+      "category": "cross_doc_multi_passage",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Cross-Domain (CS Systems)",
+      "domain_topic": "Databases & Distributed Systems / Consistency",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Connect linearizability across get/set and quorum read intervals (oa_ds_001 c0154, c0157) with single-site centralized database systems (oa_db_001 c0058).",
+      "supporting_evidence": [
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0154",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_025",
+          "passage_sha256": "299d7bd00515b3edea8a4e534250d1e86daed25db505dc119db4b37725f8eeca"
+        },
+        {
+          "passage_id": "s5v31_oa_ds_001_s0000_c0157",
+          "source_doc_id": "oa_ds_001",
+          "domain": "Distributed Systems",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "tex_sec_025",
+          "passage_sha256": "8d3fd033f21cd3cc8a0b092dd35c926473a164fa9f82083236b2222c0b91ed60"
+        },
+        {
+          "passage_id": "s5v31_oa_db_001_s0000_c0058",
+          "source_doc_id": "oa_db_001",
+          "domain": "Databases",
+          "page_start": null,
+          "page_end": null,
+          "section_ref": "ch06_sec_05",
+          "passage_sha256": "11d44734cdfc08ad4467fc625d6e8d5efdc80ac03d84501b802326da3111ba73"
+        }
+      ],
+      "answer_exists_in_eligible_corpus": true,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [
+        "s5v31_oa_ds_001_s0000_c0157",
+        "s5v31_oa_db_001_s0000_c0058"
+      ],
+      "multi_document_truly_necessary": true,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "oa_ds_001 c0154/c0157 define linearizability for quorum reads while oa_db_001 c0058 describes centralized single-site DBMS architecture."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-70",
+      "query_text": "How does RFC 9000 QUIC 0-RTT handshake mitigate replay attacks using server-side anti-replay Bloom filters?",
+      "split": "test",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "Computer Networks (Absent)",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Negative control: RFC 9000 QUIC 0-RTT anti-replay details are absent from CNP3 (Release 9/2011) and all Corpus v3.1 passages.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Zero occurrences of QUIC, RFC 9000, or 0-RTT across all 1,958 Corpus v3.1 passages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-71",
+      "query_text": "What exact GPS and atomic-clock uncertainty bound epsilon in milliseconds does Google Spanner TrueTime report during commit-wait?",
+      "split": "test",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "Distributed Systems (Absent)",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [],
+      "exact_information_need": "Negative control: Google Spanner TrueTime epsilon numbers are absent from all 1,958 Corpus v3.1 passages.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Zero occurrences of Spanner or TrueTime across all 1,958 Corpus v3.1 passages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    },
+    {
+      "query_id": "Q-S5V31-72",
+      "query_text": "How does RocksDB tune LSM-tree leveled compaction write amplification factors and per-level Bloom filter bits-per-key?",
+      "split": "test",
+      "category": "negative_control",
+      "category_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "domain": "Negative Control (Absent)",
+      "domain_topic": "Databases / Storage Engines (Absent)",
+      "origin_v3_query_id": null,
+      "graph_anchor_regime": "sparse",
+      "graph_matched_concepts": [
+        "tree"
+      ],
+      "exact_information_need": "Negative control: RocksDB LSM-tree compaction and write amplification tuning are absent from all 1,958 Corpus v3.1 passages.",
+      "supporting_evidence": [],
+      "answer_exists_in_eligible_corpus": false,
+      "answerability_verification_status": "CANDIDATE_UNVERIFIED_REQUIRES_HUMAN_AUDIT",
+      "minimum_required_evidence_set": [],
+      "multi_document_truly_necessary": false,
+      "necessity_status": "PROVISIONAL_PENDING_HUMAN_VERIFICATION",
+      "single_passage_shortcut_check": {
+        "shortcut_found": false,
+        "rationale": "Zero occurrences of RocksDB, LSM-tree, or write amplification across all 1,958 Corpus v3.1 passages."
+      },
+      "premise_audit_flags": [],
+      "provenance_status": "AI_PROPOSED_CANDIDATE_REQUIRES_HUMAN_VERIFICATION"
+    }
+  ]
+}

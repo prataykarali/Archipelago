@@ -1,0 +1,110 @@
+{
+  "control_systems": [
+    "v31_lexical_bm25",
+    "v31_dense_snowflake",
+    "v31_hybrid_rrf_bm25_dense"
+  ],
+  "dense_embedding_cache": {
+    "cache_file_bytes": 6015104,
+    "dtype": "float32",
+    "embedding_matrix_sha256": "c02f817fc5f54c186c1b3ff15422c86e2283d848f534be3df9b17b933f5b31d1",
+    "embedding_matrix_shape": [
+      1958,
+      768
+    ],
+    "encode_seconds": 270.1929,
+    "model_pin_sha256": "761a2a3a20c45a8a18467455ea1ba48b3bb4dbdf93625f1f869b3f26c8a57ba8",
+    "model_revision": "e58a8f756156a1293d763f17e3aae643474e9b8a",
+    "passage_count": 1958,
+    "passage_ids_sha256": "e5dd0e58554aef90bbcbb6138a1c8d1ae2c4e619f5927370ac5fc9e3e9834c60",
+    "passage_texts_sha256": "70a34d4203e34ab3ab477a453e759f55c64efd19cad9d49547d2336672b20695",
+    "schema_version": "s5v31_dense_cache_v1",
+    "throughput_passages_per_second": 7.25
+  },
+  "depends_on_v21_okf_graph_db": false,
+  "determinism_verification": {
+    "all_systems_deterministic": true,
+    "per_system": {
+      "v31_dense_snowflake": true,
+      "v31_graph_1hop_backfill": true,
+      "v31_graph_1hop_no_backfill": true,
+      "v31_graph_2hop_backfill": true,
+      "v31_graph_2hop_coverage_routed": true,
+      "v31_graph_naive_substring": true,
+      "v31_hybrid_rrf_bm25_dense": true,
+      "v31_lexical_bm25": true
+    },
+    "probe_query_count": 3
+  },
+  "effectiveness_evaluation": "NOT_EVALUATED_PENDING_HUMAN_JUDGMENTS",
+  "frozen_v21_and_v3_artifacts_modified": false,
+  "generated_at_utc": "2026-11-19T11:28:00.092422+00:00",
+  "graph_structure_disclosure": {
+    "concept_count": 610,
+    "depends_on_kuzu_db": false,
+    "edge_count": 1988,
+    "graph_path": "okf_graph.json"
+  },
+  "graph_v3_systems": [
+    "v31_graph_naive_substring",
+    "v31_graph_1hop_no_backfill",
+    "v31_graph_1hop_backfill",
+    "v31_graph_2hop_backfill",
+    "v31_graph_2hop_coverage_routed"
+  ],
+  "inputs": {
+    "corpus_eligibility_stats": {
+      "eligible_passages_used": 1958,
+      "excluded_ineligible_rows": 0,
+      "passage_ids_sha256": "e5dd0e58554aef90bbcbb6138a1c8d1ae2c4e619f5927370ac5fc9e3e9834c60",
+      "passage_texts_sha256": "70a34d4203e34ab3ab477a453e759f55c64efd19cad9d49547d2336672b20695",
+      "total_rows_read": 1958
+    },
+    "corpus_path_relative": "data/annotation_local/s5v3_1/corpus_v31/s5v31_corpus_passages.jsonl",
+    "corpus_sha256": "6366477189b8058b3f523a9d6607abb4d2c249351927918d24979e17833937b9",
+    "graph_path_relative": "okf_graph.json",
+    "graph_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+    "queries_path_relative": "research/s5-v3-1-oa-corpus-expansion/manifests/s5v31_query_benchmark_proposed.json",
+    "queries_sha256": "4c281da97ed2251f8d8603beaa2f92cbfe43cb4930ddfe2f1055ab58de5ee161",
+    "query_count": 72
+  },
+  "pretrained_model_disclosure": {
+    "all_files_verified": true,
+    "license": "Apache-2.0",
+    "local_path_relative": "data/annotation_local/s5v3/models/snowflake-arctic-embed-m-v1.5",
+    "model_safetensors_sha256": "463d27a3e88a748997316367c419bbdab4d809300a5f24b9b19ba9b2dc08ffdd",
+    "pin_manifest_sha256": "761a2a3a20c45a8a18467455ea1ba48b3bb4dbdf93625f1f869b3f26c8a57ba8",
+    "repo_id": "Snowflake/snowflake-arctic-embed-m-v1.5",
+    "revision": "e58a8f756156a1293d763f17e3aae643474e9b8a",
+    "smoke_test": {
+      "all_finite": true,
+      "benchmark_query_or_label_used": false,
+      "device": "cpu",
+      "dtype": "float32",
+      "input_count": 2,
+      "local_files_only": true,
+      "model_load_seconds": 0.4073,
+      "output_shape": [
+        2,
+        768
+      ],
+      "repeat_run_deterministic": true,
+      "smoke_encode_seconds": 0.3546,
+      "unit_norm_verified": true
+    },
+    "total_weight_bytes": 436808446,
+    "verified_file_count": 11
+  },
+  "schema_version": "s5v31-retrieval-v1.0",
+  "system_count": 8,
+  "variant_config_hashes": {
+    "v31_dense_snowflake": "8bc0acf612a9a6232c429984b942b810a73deb128424ec73886e271779956ed2",
+    "v31_graph_1hop_backfill": "f8e5f68edf50b1c2cf3e2c046b86bee8354661778f44b698bc99e17231294643",
+    "v31_graph_1hop_no_backfill": "5dc0817e4bab2b6bf0984653f29e17a73d73eb0fc6308285962da5987839fbd2",
+    "v31_graph_2hop_backfill": "6c0b5489db333e472dc5f8ec829e90c177b3ed89b82a45ebe6d320ef9abf2ddb",
+    "v31_graph_2hop_coverage_routed": "407b1b77468177bb87b6850b3155988aba148a03179a1f9c1a439f8ca233d522",
+    "v31_graph_naive_substring": "affb711dd8ae6e6936b1c12c4280efe91c49ad44e8614d2577ed0cba9a586bd7",
+    "v31_hybrid_rrf_bm25_dense": "37c14173308aa309322c4382c41a1d37b0c8b3693401af7691800eaeb6c44bb3",
+    "v31_lexical_bm25": "d41d1e49be68b63dfef66d333582fea33e0e02c5eeb59a8ac7e80cbad4fef1a5"
+  }
+}
