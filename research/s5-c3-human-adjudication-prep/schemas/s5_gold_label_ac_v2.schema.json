@@ -1,0 +1,399 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archipelago.local/schemas/s5_gold_label_ac_v2.schema.json",
+  "title": "S5-D1 Independent Dual-Human (Reviewer A / Reviewer C) Adjudicated Gold Labels v2",
+  "description": "Versioned gold-label contract for genuinely independent human Reviewer A and Reviewer C over the frozen 254-pair S5-B2.1 pool. Preserves legacy Reviewer B provenance as AI_ASSISTED_OR_GENERATED and excluded from gold without altering the legacy v1 Reviewer B gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "pool_version",
+    "pool_sha256",
+    "primary_human_assessor_pair",
+    "historical_reviewer_b_excluded_from_gold",
+    "legacy_reviewer_b_provenance",
+    "reviewer_a_provenance",
+    "reviewer_c_provenance",
+    "inter_annotator_agreement",
+    "adjudication_summary",
+    "investigator_signoff",
+    "negative_control_verifications",
+    "judgments"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "s5d1_adjudicated_gold_ac_v2"
+    },
+    "status": {
+      "const": "ADJUDICATED_HUMAN_GOLD_AC_V2_FINAL"
+    },
+    "pool_version": {
+      "const": "s5b2_1_proposed_pooled_v2.1_pending_approval"
+    },
+    "pool_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "primary_human_assessor_pair": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "REV_A" },
+        { "const": "REV_C" }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "historical_reviewer_b_excluded_from_gold": {
+      "const": true
+    },
+    "legacy_reviewer_b_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer_id",
+        "provenance_class",
+        "excluded_from_gold",
+        "legacy_v1_contract_preserved"
+      ],
+      "properties": {
+        "reviewer_id": {
+          "const": "REV_B"
+        },
+        "provenance_class": {
+          "const": "AI_ASSISTED_OR_GENERATED"
+        },
+        "excluded_from_gold": {
+          "const": true
+        },
+        "legacy_v1_contract_preserved": {
+          "const": true
+        },
+        "preserved_workbook_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "reviewer_a_provenance": {
+      "$ref": "#/$defs/independentHumanProvenance"
+    },
+    "reviewer_c_provenance": {
+      "$ref": "#/$defs/independentHumanProvenance"
+    },
+    "inter_annotator_agreement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_pairs",
+        "exact_agreement_count",
+        "disagreement_count",
+        "exact_agreement_rate",
+        "cohens_kappa_unweighted",
+        "cohens_kappa_quadratic_weighted"
+      ],
+      "properties": {
+        "total_pairs": {
+          "const": 254
+        },
+        "exact_agreement_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254
+        },
+        "disagreement_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254
+        },
+        "exact_agreement_rate": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "cohens_kappa_unweighted": {
+          "type": ["number", "null"],
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "cohens_kappa_quadratic_weighted": {
+          "type": ["number", "null"],
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "confusion_matrix": {
+          "type": "object"
+        },
+        "per_query_agreement": {
+          "type": "object"
+        }
+      }
+    },
+    "adjudication_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "all_ac_disagreements_adjudicated",
+        "total_disagreements",
+        "adjudicated_count",
+        "adjudicator_provenance"
+      ],
+      "properties": {
+        "all_ac_disagreements_adjudicated": {
+          "const": true
+        },
+        "total_disagreements": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254
+        },
+        "adjudicated_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254
+        },
+        "adjudication_worksheet_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "adjudicator_provenance": {
+          "$ref": "#/$defs/adjudicatorProvenance"
+        }
+      }
+    },
+    "investigator_signoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "investigator_id",
+        "approval_declaration",
+        "human_signoff_confirmed",
+        "signed_timestamp_utc"
+      ],
+      "properties": {
+        "investigator_id": {
+          "type": "string",
+          "minLength": 2
+        },
+        "approval_declaration": {
+          "type": "string",
+          "minLength": 10
+        },
+        "human_signoff_confirmed": {
+          "const": true
+        },
+        "signed_timestamp_utc": {
+          "type": "string",
+          "minLength": 10
+        }
+      }
+    },
+    "negative_control_verifications": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Q-S5B2-03",
+        "Q-S5B2-08",
+        "Q-S5B2-11"
+      ],
+      "properties": {
+        "Q-S5B2-03": { "$ref": "#/$defs/negativeControlVerification" },
+        "Q-S5B2-08": { "$ref": "#/$defs/negativeControlVerification" },
+        "Q-S5B2-11": { "$ref": "#/$defs/negativeControlVerification" }
+      }
+    },
+    "judgments": {
+      "type": "array",
+      "minItems": 254,
+      "maxItems": 254,
+      "items": {
+        "$ref": "#/$defs/goldJudgment"
+      }
+    }
+  },
+  "$defs": {
+    "independentHumanProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer_id",
+        "provenance_class",
+        "assistance_declaration",
+        "prior_exposure_disclosure",
+        "human_attestation_signed",
+        "attestation_signer",
+        "signed_timestamp_utc",
+        "submission_sha256"
+      ],
+      "properties": {
+        "reviewer_id": {
+          "type": "string",
+          "minLength": 2
+        },
+        "provenance_class": {
+          "const": "INDEPENDENT_HUMAN"
+        },
+        "assistance_declaration": {
+          "const": "NONE_INDEPENDENT_HUMAN"
+        },
+        "prior_exposure_disclosure": {
+          "const": "NONE"
+        },
+        "human_attestation_signed": {
+          "const": true
+        },
+        "attestation_signer": {
+          "type": "string",
+          "minLength": 2
+        },
+        "signed_timestamp_utc": {
+          "type": "string",
+          "minLength": 10
+        },
+        "submission_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "adjudicatorProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adjudicator_id",
+        "provenance_class",
+        "assistance_declaration",
+        "human_attestation_signed",
+        "attestation_signer",
+        "signed_timestamp_utc"
+      ],
+      "properties": {
+        "adjudicator_id": {
+          "type": "string",
+          "minLength": 2
+        },
+        "provenance_class": {
+          "enum": [
+            "ADJUDICATED_HUMAN",
+            "NOT_REQUIRED_ZERO_DISAGREEMENTS"
+          ]
+        },
+        "assistance_declaration": {
+          "const": "NONE_INDEPENDENT_HUMAN"
+        },
+        "human_attestation_signed": {
+          "const": true
+        },
+        "attestation_signer": {
+          "type": "string",
+          "minLength": 2
+        },
+        "signed_timestamp_utc": {
+          "type": "string",
+          "minLength": 10
+        }
+      }
+    },
+    "negativeControlVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_answerability_classification",
+        "verifier_id",
+        "provenance_class",
+        "human_attestation_signed",
+        "signed_timestamp_utc"
+      ],
+      "properties": {
+        "human_answerability_classification": {
+          "enum": [
+            "NO_ANSWER_IN_SELECTED_PASSAGES",
+            "NO_ANSWER_IN_FROZEN_CORPUS",
+            "AMBIGUOUS_OR_UNSUPPORTED_FACTUAL_QUESTION",
+            "QUESTION_REQUIRING_REVISION"
+          ]
+        },
+        "verifier_id": {
+          "type": "string",
+          "minLength": 2
+        },
+        "provenance_class": {
+          "const": "INDEPENDENT_HUMAN"
+        },
+        "human_attestation_signed": {
+          "const": true
+        },
+        "signed_timestamp_utc": {
+          "type": "string",
+          "minLength": 10
+        },
+        "evidence_notes": {
+          "type": "string"
+        }
+      }
+    },
+    "goldJudgment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pair_id",
+        "query_id",
+        "passage_id",
+        "passage_sha256",
+        "reviewer_a_grade",
+        "reviewer_c_grade",
+        "final_grade",
+        "adjudication_source",
+        "supporting_quotation"
+      ],
+      "properties": {
+        "pair_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "query_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "passage_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "passage_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "reviewer_a_grade": {
+          "type": "integer",
+          "enum": [0, 1, 2]
+        },
+        "reviewer_c_grade": {
+          "type": "integer",
+          "enum": [0, 1, 2]
+        },
+        "final_grade": {
+          "type": "integer",
+          "enum": [0, 1, 2]
+        },
+        "adjudication_source": {
+          "enum": [
+            "DUAL_HUMAN_AC_AGREEMENT",
+            "ADJUDICATED_HUMAN_AC"
+          ]
+        },
+        "supporting_quotation": {
+          "type": "string"
+        },
+        "adjudication_rationale": {
+          "type": ["string", "null"]
+        },
+        "adjudicator_id": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

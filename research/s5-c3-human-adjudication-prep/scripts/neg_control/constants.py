@@ -1,0 +1,196 @@
+"""Named constants and canonical enums for S5-C3 negative-control verification."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+SCHEMA_VERSION = "s5_negative_control_verification_v1"
+FROZEN_CORPUS_VERSION = "s5a_eval_corpus_v1"
+EXPECTED_CORPUS_PASSAGE_COUNT = 713
+EXPECTED_CORPUS_DOC_COUNT = 53
+EXPECTED_CORPUS_SHA256 = "6435bf449702edf826d69dc8e1ed0525ee611e0c7504d43d2023c32cef8bdba7"
+INVALID_PAGE_EXCLUDED_PASSAGE_ID = (
+    "doc_data_and_computer_communications::doc_data_and_computer_communications_p612_4"
+)
+
+NEGATIVE_CONTROL_QUERY_IDS: tuple[str, ...] = (
+    "Q-S5B2-03",
+    "Q-S5B2-08",
+    "Q-S5B2-11",
+)
+
+# Corpus eligibility statuses
+ELIGIBILITY_ELIGIBLE = "ELIGIBLE_FROZEN_CORPUS"
+ELIGIBILITY_EXCLUDED_INDEX_ONLY = "EXCLUDED_INDEX_ONLY"
+ELIGIBILITY_EXCLUDED_INVALID_PAGE = "EXCLUDED_INVALID_PAGE"
+ELIGIBILITY_EXCLUDED_MANIFEST = "EXCLUDED_NOT_IN_FROZEN_MANIFEST"
+ELIGIBILITY_OUT_OF_CORPUS = "OUT_OF_CORPUS"
+
+# Provenance tiers from s5b2_1_corpus_provenance_registry.json
+TIER_CONSTRUCTED_PILOT_CARD = "source_verified_constructed_pilot_card"
+TIER_TRUNCATED_TEXTBOOK_STUB = "source_verified_truncated_textbook_stub"
+TIER_SEED_CHUNK = "convention_inferred_seed_chunk"
+TIER_PAPER_OR_UPLOAD_CHUNK = "convention_inferred_paper_or_upload_chunk"
+
+# Human answerability classifications (explicitly chosen by human; never auto-filled)
+CLASS_NO_ANSWER_IN_FROZEN_CORPUS = "NO_ANSWER_IN_FROZEN_CORPUS"
+CLASS_NO_ANSWER_IN_SELECTED_PASSAGES = "NO_ANSWER_IN_SELECTED_PASSAGES"
+CLASS_ANSWERABLE_IN_FROZEN_CORPUS = "ANSWERABLE_IN_FROZEN_CORPUS"
+CLASS_AMBIGUOUS_OR_UNSUPPORTED = "AMBIGUOUS_OR_UNSUPPORTED_FACTUAL_QUESTION"
+CLASS_REQUIRES_REVISION = "QUESTION_REQUIRING_REVISION"
+
+VALID_CLASSIFICATIONS: frozenset[str] = frozenset(
+    {
+        CLASS_NO_ANSWER_IN_FROZEN_CORPUS,
+        CLASS_NO_ANSWER_IN_SELECTED_PASSAGES,
+        CLASS_ANSWERABLE_IN_FROZEN_CORPUS,
+        CLASS_AMBIGUOUS_OR_UNSUPPORTED,
+        CLASS_REQUIRES_REVISION,
+    }
+)
+
+# Explicit downstream D1 evaluation impact flags
+IMPACT_RETAIN_AS_NEGATIVE = "RETAIN_AS_VERIFIED_NEGATIVE_CONTROL"
+IMPACT_RECLASSIFY_ANSWERABLE = "RECLASSIFY_AS_ANSWERABLE"
+IMPACT_EXCLUDE_AMBIGUOUS = "EXCLUDE_AMBIGUOUS_OR_UNSUPPORTED_PREMISE"
+IMPACT_EXCLUDE_REVISION = "EXCLUDE_REQUIRES_REVISION"
+IMPACT_HOLD_UNVERIFIED = "HOLD_UNVERIFIED_NEGATIVE_CONTROL"
+
+VALID_D1_IMPACTS: frozenset[str] = frozenset(
+    {
+        IMPACT_RETAIN_AS_NEGATIVE,
+        IMPACT_RECLASSIFY_ANSWERABLE,
+        IMPACT_EXCLUDE_AMBIGUOUS,
+        IMPACT_EXCLUDE_REVISION,
+        IMPACT_HOLD_UNVERIFIED,
+    }
+)
+
+# Allowed (classification -> D1 impact) combinations
+ALLOWED_IMPACT_BY_CLASSIFICATION: dict[str, frozenset[str]] = {
+    CLASS_NO_ANSWER_IN_FROZEN_CORPUS: frozenset({IMPACT_RETAIN_AS_NEGATIVE}),
+    CLASS_NO_ANSWER_IN_SELECTED_PASSAGES: frozenset({IMPACT_HOLD_UNVERIFIED}),
+    CLASS_ANSWERABLE_IN_FROZEN_CORPUS: frozenset(
+        {IMPACT_RECLASSIFY_ANSWERABLE, IMPACT_EXCLUDE_REVISION}
+    ),
+    CLASS_AMBIGUOUS_OR_UNSUPPORTED: frozenset({IMPACT_EXCLUDE_AMBIGUOUS}),
+    CLASS_REQUIRES_REVISION: frozenset({IMPACT_EXCLUDE_REVISION, IMPACT_RECLASSIFY_ANSWERABLE}),
+}
+
+# External factual premise assessments
+PREMISE_VERIFIED_REAL = "VERIFIED_REAL_FACT"
+PREMISE_UNVERIFIED_OR_UNREPORTED = "UNVERIFIED_OR_UNREPORTED"
+PREMISE_SYNTHETIC_OR_FALSE = "SYNTHETIC_OR_FALSE_PREMISE"
+
+VALID_PREMISE_ASSESSMENTS: frozenset[str] = frozenset(
+    {
+        PREMISE_VERIFIED_REAL,
+        PREMISE_UNVERIFIED_OR_UNREPORTED,
+        PREMISE_SYNTHETIC_OR_FALSE,
+    }
+)
+
+# Corpus scope checked options
+SCOPE_CANDIDATES_ONLY = "INSPECTED_HYDRATED_CANDIDATES_ONLY"
+SCOPE_CANDIDATES_AND_INVENTORY = "INSPECTED_HYDRATED_CANDIDATES_AND_53_DOC_INVENTORY"
+SCOPE_FULL_CORPUS_SEARCH = "FULL_CORPUS_SEARCH_PERFORMED"
+
+VALID_CORPUS_SCOPES: frozenset[str] = frozenset(
+    {
+        SCOPE_CANDIDATES_ONLY,
+        SCOPE_CANDIDATES_AND_INVENTORY,
+        SCOPE_FULL_CORPUS_SEARCH,
+    }
+)
+
+CORPUS_WIDE_SCOPES: frozenset[str] = frozenset(
+    {
+        SCOPE_CANDIDATES_AND_INVENTORY,
+        SCOPE_FULL_CORPUS_SEARCH,
+    }
+)
+
+# Per-candidate passage inspection decisions
+CANDIDATE_CONTAINS_YES = "YES"
+CANDIDATE_CONTAINS_NO = "NO"
+CANDIDATE_CONTAINS_PARTIAL = "PARTIAL_OR_AMBIGUOUS"
+
+VALID_CANDIDATE_DECISIONS: frozenset[str] = frozenset(
+    {
+        CANDIDATE_CONTAINS_YES,
+        CANDIDATE_CONTAINS_NO,
+        CANDIDATE_CONTAINS_PARTIAL,
+    }
+)
+
+# Human provenance classes
+PROVENANCE_INDEPENDENT_HUMAN = "INDEPENDENT_HUMAN"
+PROVENANCE_HUMAN_POST_AI = "HUMAN_POST_AI_EXPOSURE"
+PROVENANCE_AI_ASSISTED = "AI_ASSISTED_OR_GENERATED"
+
+VALID_PROVENANCE_CLASSES: frozenset[str] = frozenset(
+    {
+        PROVENANCE_INDEPENDENT_HUMAN,
+        PROVENANCE_HUMAN_POST_AI,
+        PROVENANCE_AI_ASSISTED,
+    }
+)
+
+ELIGIBLE_HUMAN_PROVENANCE_CLASSES: frozenset[str] = frozenset(
+    {
+        PROVENANCE_INDEPENDENT_HUMAN,
+        PROVENANCE_HUMAN_POST_AI,
+    }
+)
+
+# Search modes and defaults
+SEARCH_MODE_SUBSTRING = "substring"
+SEARCH_MODE_TOKENS = "tokens"
+SEARCH_MODE_REGEX = "regex"
+VALID_SEARCH_MODES: frozenset[str] = frozenset(
+    {
+        SEARCH_MODE_SUBSTRING,
+        SEARCH_MODE_TOKENS,
+        SEARCH_MODE_REGEX,
+    }
+)
+
+DEFAULT_SEARCH_LIMIT = 50
+MAX_SEARCH_LIMIT = 750
+EXCERPT_CONTEXT_CHARS = 120
+MIN_RATIONALE_LENGTH = 15
+MIN_ATTESTATION_LENGTH = 10
+
+# Local server constraints (STRICT loopback only)
+LOCALHOST_BIND = "127.0.0.1"
+DEFAULT_UI_PORT = 8767
+MAX_HTTP_BODY_BYTES = 5_242_880
+
+# Repository-relative canonical paths
+REPO_ROOT = Path(__file__).resolve().parents[4]
+DEFAULT_DB_PATH = REPO_ROOT / "okf_graph.db"
+DEFAULT_AUDIT_JSON = (
+    REPO_ROOT
+    / "research"
+    / "s5-b2-benchmark-correction"
+    / "reports"
+    / "s5b2_negative_control_audit.json"
+)
+DEFAULT_PROVENANCE_REGISTRY_JSON = (
+    REPO_ROOT
+    / "research"
+    / "s5-b2-benchmark-correction"
+    / "reports"
+    / "s5b2_1_corpus_provenance_registry.json"
+)
+DEFAULT_CORPUS_MANIFEST_JSON = (
+    REPO_ROOT
+    / "research"
+    / "s5-b1-integrity-repair"
+    / "corpus"
+    / "s5b1_corpus_manifest.json"
+)
+DEFAULT_PRIVATE_DIR = REPO_ROOT / "data" / "annotation_local" / "s5c3" / "negative_control"
+DEFAULT_WORKSHEET_PATH = DEFAULT_PRIVATE_DIR / "s5c3_negative_control_verification.json"
+DEFAULT_BACKUP_DIR = DEFAULT_PRIVATE_DIR / "backups"
+DEFAULT_EXPORT_MD_PATH = DEFAULT_PRIVATE_DIR / "s5c3_negative_control_verification_EXPORT.md"
