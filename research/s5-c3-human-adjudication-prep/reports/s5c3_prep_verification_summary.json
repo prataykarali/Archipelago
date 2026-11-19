@@ -1,0 +1,173 @@
+{
+  "report_name": "S5-C3-P0 Private Human Adjudication Package Verification Summary",
+  "status": "HUMAN_REVIEW_REQUIRED",
+  "contains_copyrighted_passage_text": false,
+  "frozen_inputs_verified": {
+    "corpus_sha256": "6435bf449702edf826d69dc8e1ed0525ee611e0c7504d43d2023c32cef8bdba7",
+    "pool_sha256": "2d13454655dda965304ac4aabddbeef5e39b77bc6927393bebfdaa94235fb037",
+    "reviewer_a_original_sha256": "70049fa849985cfb38aadef2dd499dbf8e665f55f5796a122302d501f17fa09c",
+    "reviewer_b_original_sha256": "ca3e6af86c72c20bf6dbd66d71f3c5c79ef7795de5d149d23c0b918304ae80f4"
+  },
+  "counts": {
+    "pairs_awaiting_independent_review": 254,
+    "disagreements_awaiting_human_adjudication": 51,
+    "text_discrepancies_reconciled": 5,
+    "negative_controls_awaiting_verification": 3
+  },
+  "private_gitignored_artifacts": {
+    "data/annotation_local/s5c3/independent_reviewer_c_s5c3_workbook.md": {
+      "byte_size": 433211,
+      "sha256": "acf6e86cb23e91a0febaf5181eec8ae3eadbe5ece66ec4d6f1907f74aa10f188"
+    },
+    "data/annotation_local/s5c3/independent_reviewer_c_s5c3_sheet.csv": {
+      "byte_size": 76838,
+      "sha256": "ad45eb09606c5f3fce2ec3639ea81940b6bd630cb6ae575f5372ddcff9cb51cb"
+    },
+    "data/annotation_local/s5c3/s5c3_disagreement_adjudication_packet_51.md": {
+      "byte_size": 135878,
+      "sha256": "63b755e9e1c4a165169249284c7335c9dc9344cb34260cf59e2f62907f5cd5e6"
+    },
+    "data/annotation_local/s5c3/s5c3_disagreement_adjudication_packet_51.json": {
+      "byte_size": 150490,
+      "sha256": "34302aab817eecc5c807434478e88502bc86972dc86c410428b3a8854cc79e4d"
+    },
+    "data/annotation_local/s5c3/s5c3_text_discrepancy_reconciliation_5.md": {
+      "byte_size": 19612,
+      "sha256": "e992c16ef48a705d4b065176b4a6e8256d085076aa8b2ea1e64baac972011a58"
+    },
+    "data/annotation_local/s5c3/s5c3_negative_control_verification_worksheets.md": {
+      "byte_size": 111424,
+      "sha256": "678cc2fcdd6bd5fa1ce0deec90c6ebdd1ece6e2bd3764c226c1318467e32662c"
+    }
+  },
+  "discrepancy_metadata": [
+    {
+      "pair_id": "S5B21-PAIR-091",
+      "query_id": "Q-S5B2-04",
+      "reviewer": "REV_B",
+      "passage_id": "papers/bahdanau2014_attention.pdf::chunk_008",
+      "canonical_len": 1528,
+      "workbook_len": 1528,
+      "delta_chars": 0,
+      "whitespace_only_diff": false,
+      "canonical_sha256": "ea07db92788a53213fc3c7276b56f8558e360add591b6dba841aa1849278144f",
+      "workbook_text_sha256": "38cd429c6778c445c0573a0fe680d2b480741c7c81e19ce704c32ee2bf211f4b",
+      "reviewer_grade": 0,
+      "quote_matches_canonical_exact": true,
+      "is_also_grade_disagreement": false
+    },
+    {
+      "pair_id": "S5B21-PAIR-119",
+      "query_id": "Q-S5B2-05",
+      "reviewer": "REV_B",
+      "passage_id": "papers/karpukhin2020_dpr.pdf::chunk_031",
+      "canonical_len": 1600,
+      "workbook_len": 1600,
+      "delta_chars": 0,
+      "whitespace_only_diff": false,
+      "canonical_sha256": "88b63a65142e87b9820fc0709f2ee1d04446484bad2f85e326154a627a2ac31c",
+      "workbook_text_sha256": "71af056b57e5c476b12025c1a1805a967318f16a1d9d37afb5d7bb14940ce8e7",
+      "reviewer_grade": 0,
+      "quote_matches_canonical_exact": true,
+      "is_also_grade_disagreement": false
+    },
+    {
+      "pair_id": "S5B21-PAIR-134",
+      "query_id": "Q-S5B2-06",
+      "reviewer": "REV_B",
+      "passage_id": "papers/bahdanau2014_attention.pdf::chunk_008",
+      "canonical_len": 1528,
+      "workbook_len": 1528,
+      "delta_chars": 0,
+      "whitespace_only_diff": false,
+      "canonical_sha256": "ea07db92788a53213fc3c7276b56f8558e360add591b6dba841aa1849278144f",
+      "workbook_text_sha256": "38cd429c6778c445c0573a0fe680d2b480741c7c81e19ce704c32ee2bf211f4b",
+      "reviewer_grade": 0,
+      "quote_matches_canonical_exact": true,
+      "is_also_grade_disagreement": false
+    },
+    {
+      "pair_id": "S5B21-PAIR-189",
+      "query_id": "Q-S5B2-08",
+      "reviewer": "REV_A",
+      "passage_id": "papers/willard2023_outlines.pdf::chunk_011",
+      "canonical_len": 1558,
+      "workbook_len": 1557,
+      "delta_chars": -1,
+      "whitespace_only_diff": false,
+      "canonical_sha256": "90eeaf2f3b259dafd5703f3c8102b221d28a8a12b4f69a536c3cc929dfd5bb7d",
+      "workbook_text_sha256": "1d9d10bdf1db13d8379d8908930cdf7285eecfb2b6040da8d819225a39de938c",
+      "reviewer_grade": 0,
+      "quote_matches_canonical_exact": true,
+      "is_also_grade_disagreement": false
+    },
+    {
+      "pair_id": "S5B21-PAIR-232",
+      "query_id": "Q-S5B2-11",
+      "reviewer": "REV_A",
+      "passage_id": "papers/willard2023_outlines.pdf::chunk_011",
+      "canonical_len": 1558,
+      "workbook_len": 1557,
+      "delta_chars": -1,
+      "whitespace_only_diff": false,
+      "canonical_sha256": "90eeaf2f3b259dafd5703f3c8102b221d28a8a12b4f69a536c3cc929dfd5bb7d",
+      "workbook_text_sha256": "1d9d10bdf1db13d8379d8908930cdf7285eecfb2b6040da8d819225a39de938c",
+      "reviewer_grade": 0,
+      "quote_matches_canonical_exact": true,
+      "is_also_grade_disagreement": false
+    }
+  ],
+  "disagreement_pair_ids": [
+    "S5B21-PAIR-005",
+    "S5B21-PAIR-009",
+    "S5B21-PAIR-010",
+    "S5B21-PAIR-012",
+    "S5B21-PAIR-017",
+    "S5B21-PAIR-021",
+    "S5B21-PAIR-025",
+    "S5B21-PAIR-030",
+    "S5B21-PAIR-031",
+    "S5B21-PAIR-033",
+    "S5B21-PAIR-034",
+    "S5B21-PAIR-061",
+    "S5B21-PAIR-064",
+    "S5B21-PAIR-068",
+    "S5B21-PAIR-076",
+    "S5B21-PAIR-081",
+    "S5B21-PAIR-083",
+    "S5B21-PAIR-085",
+    "S5B21-PAIR-089",
+    "S5B21-PAIR-090",
+    "S5B21-PAIR-093",
+    "S5B21-PAIR-094",
+    "S5B21-PAIR-097",
+    "S5B21-PAIR-102",
+    "S5B21-PAIR-107",
+    "S5B21-PAIR-111",
+    "S5B21-PAIR-112",
+    "S5B21-PAIR-115",
+    "S5B21-PAIR-116",
+    "S5B21-PAIR-118",
+    "S5B21-PAIR-122",
+    "S5B21-PAIR-124",
+    "S5B21-PAIR-125",
+    "S5B21-PAIR-128",
+    "S5B21-PAIR-129",
+    "S5B21-PAIR-153",
+    "S5B21-PAIR-154",
+    "S5B21-PAIR-163",
+    "S5B21-PAIR-166",
+    "S5B21-PAIR-167",
+    "S5B21-PAIR-172",
+    "S5B21-PAIR-178",
+    "S5B21-PAIR-179",
+    "S5B21-PAIR-210",
+    "S5B21-PAIR-215",
+    "S5B21-PAIR-218",
+    "S5B21-PAIR-219",
+    "S5B21-PAIR-220",
+    "S5B21-PAIR-224",
+    "S5B21-PAIR-226",
+    "S5B21-PAIR-227"
+  ]
+}

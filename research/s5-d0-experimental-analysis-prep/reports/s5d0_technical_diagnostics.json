@@ -1,0 +1,1635 @@
+{
+  "report_name": "S5-D0 Reproducible Six-System Technical Diagnostics (Pre-Gold-Label)",
+  "base_commit": "6450585f60b3c1bea7bef2f411458800552cea0b",
+  "active_queries_count": 10,
+  "total_pooled_pairs": 254,
+  "relevance_metrics_computed": false,
+  "overlap_diagnostics": {
+    "top5_mean_jaccard": {
+      "bm25": {
+        "bm25": 1.0,
+        "dense_snowflake_arctic_768d": 0.4869,
+        "hybrid_rrf_e2e": 0.744,
+        "baseline_graph_1hop": 0.1222,
+        "repaired_graph_1hop_ablation": 0.4472,
+        "repaired_graph_2hop_full": 0.4583
+      },
+      "dense_snowflake_arctic_768d": {
+        "bm25": 0.4869,
+        "dense_snowflake_arctic_768d": 1.0,
+        "hybrid_rrf_e2e": 0.5663,
+        "baseline_graph_1hop": 0.1,
+        "repaired_graph_1hop_ablation": 0.154,
+        "repaired_graph_2hop_full": 0.1651
+      },
+      "hybrid_rrf_e2e": {
+        "bm25": 0.744,
+        "dense_snowflake_arctic_768d": 0.5663,
+        "hybrid_rrf_e2e": 1.0,
+        "baseline_graph_1hop": 0.1333,
+        "repaired_graph_1hop_ablation": 0.3262,
+        "repaired_graph_2hop_full": 0.3373
+      },
+      "baseline_graph_1hop": {
+        "bm25": 0.1222,
+        "dense_snowflake_arctic_768d": 0.1,
+        "hybrid_rrf_e2e": 0.1333,
+        "baseline_graph_1hop": 1.0,
+        "repaired_graph_1hop_ablation": 0.1222,
+        "repaired_graph_2hop_full": 0.1222
+      },
+      "repaired_graph_1hop_ablation": {
+        "bm25": 0.4472,
+        "dense_snowflake_arctic_768d": 0.154,
+        "hybrid_rrf_e2e": 0.3262,
+        "baseline_graph_1hop": 0.1222,
+        "repaired_graph_1hop_ablation": 1.0,
+        "repaired_graph_2hop_full": 0.825
+      },
+      "repaired_graph_2hop_full": {
+        "bm25": 0.4583,
+        "dense_snowflake_arctic_768d": 0.1651,
+        "hybrid_rrf_e2e": 0.3373,
+        "baseline_graph_1hop": 0.1222,
+        "repaired_graph_1hop_ablation": 0.825,
+        "repaired_graph_2hop_full": 1.0
+      }
+    },
+    "top10_mean_jaccard": {
+      "bm25": {
+        "bm25": 1.0,
+        "dense_snowflake_arctic_768d": 0.4739,
+        "hybrid_rrf_e2e": 0.6091,
+        "baseline_graph_1hop": 0.1466,
+        "repaired_graph_1hop_ablation": 0.48,
+        "repaired_graph_2hop_full": 0.4852
+      },
+      "dense_snowflake_arctic_768d": {
+        "bm25": 0.4739,
+        "dense_snowflake_arctic_768d": 1.0,
+        "hybrid_rrf_e2e": 0.648,
+        "baseline_graph_1hop": 0.1088,
+        "repaired_graph_1hop_ablation": 0.2106,
+        "repaired_graph_2hop_full": 0.2159
+      },
+      "hybrid_rrf_e2e": {
+        "bm25": 0.6091,
+        "dense_snowflake_arctic_768d": 0.648,
+        "hybrid_rrf_e2e": 1.0,
+        "baseline_graph_1hop": 0.1216,
+        "repaired_graph_1hop_ablation": 0.2742,
+        "repaired_graph_2hop_full": 0.2795
+      },
+      "baseline_graph_1hop": {
+        "bm25": 0.1466,
+        "dense_snowflake_arctic_768d": 0.1088,
+        "hybrid_rrf_e2e": 0.1216,
+        "baseline_graph_1hop": 1.0,
+        "repaired_graph_1hop_ablation": 0.1164,
+        "repaired_graph_2hop_full": 0.1216
+      },
+      "repaired_graph_1hop_ablation": {
+        "bm25": 0.48,
+        "dense_snowflake_arctic_768d": 0.2106,
+        "hybrid_rrf_e2e": 0.2742,
+        "baseline_graph_1hop": 0.1164,
+        "repaired_graph_1hop_ablation": 1.0,
+        "repaired_graph_2hop_full": 0.8636
+      },
+      "repaired_graph_2hop_full": {
+        "bm25": 0.4852,
+        "dense_snowflake_arctic_768d": 0.2159,
+        "hybrid_rrf_e2e": 0.2795,
+        "baseline_graph_1hop": 0.1216,
+        "repaired_graph_1hop_ablation": 0.8636,
+        "repaired_graph_2hop_full": 1.0
+      }
+    },
+    "top5_mean_shared_count": {
+      "bm25": {
+        "bm25": 5.0,
+        "dense_snowflake_arctic_768d": 2.9,
+        "hybrid_rrf_e2e": 4.1,
+        "baseline_graph_1hop": 0.7,
+        "repaired_graph_1hop_ablation": 2.4,
+        "repaired_graph_2hop_full": 2.5
+      },
+      "dense_snowflake_arctic_768d": {
+        "bm25": 2.9,
+        "dense_snowflake_arctic_768d": 5.0,
+        "hybrid_rrf_e2e": 3.3,
+        "baseline_graph_1hop": 0.7,
+        "repaired_graph_1hop_ablation": 1.1,
+        "repaired_graph_2hop_full": 1.2
+      },
+      "hybrid_rrf_e2e": {
+        "bm25": 4.1,
+        "dense_snowflake_arctic_768d": 3.3,
+        "hybrid_rrf_e2e": 5.0,
+        "baseline_graph_1hop": 0.8,
+        "repaired_graph_1hop_ablation": 2.0,
+        "repaired_graph_2hop_full": 2.1
+      },
+      "baseline_graph_1hop": {
+        "bm25": 0.7,
+        "dense_snowflake_arctic_768d": 0.7,
+        "hybrid_rrf_e2e": 0.8,
+        "baseline_graph_1hop": 3.8,
+        "repaired_graph_1hop_ablation": 0.7,
+        "repaired_graph_2hop_full": 0.7
+      },
+      "repaired_graph_1hop_ablation": {
+        "bm25": 2.4,
+        "dense_snowflake_arctic_768d": 1.1,
+        "hybrid_rrf_e2e": 2.0,
+        "baseline_graph_1hop": 0.7,
+        "repaired_graph_1hop_ablation": 5.0,
+        "repaired_graph_2hop_full": 4.4
+      },
+      "repaired_graph_2hop_full": {
+        "bm25": 2.5,
+        "dense_snowflake_arctic_768d": 1.2,
+        "hybrid_rrf_e2e": 2.1,
+        "baseline_graph_1hop": 0.7,
+        "repaired_graph_1hop_ablation": 4.4,
+        "repaired_graph_2hop_full": 5.0
+      }
+    },
+    "top10_mean_shared_count": {
+      "bm25": {
+        "bm25": 10.0,
+        "dense_snowflake_arctic_768d": 6.0,
+        "hybrid_rrf_e2e": 7.4,
+        "baseline_graph_1hop": 1.8,
+        "repaired_graph_1hop_ablation": 5.3,
+        "repaired_graph_2hop_full": 5.4
+      },
+      "dense_snowflake_arctic_768d": {
+        "bm25": 6.0,
+        "dense_snowflake_arctic_768d": 10.0,
+        "hybrid_rrf_e2e": 7.5,
+        "baseline_graph_1hop": 1.6,
+        "repaired_graph_1hop_ablation": 3.1,
+        "repaired_graph_2hop_full": 3.2
+      },
+      "hybrid_rrf_e2e": {
+        "bm25": 7.4,
+        "dense_snowflake_arctic_768d": 7.5,
+        "hybrid_rrf_e2e": 10.0,
+        "baseline_graph_1hop": 1.7,
+        "repaired_graph_1hop_ablation": 3.9,
+        "repaired_graph_2hop_full": 4.0
+      },
+      "baseline_graph_1hop": {
+        "bm25": 1.8,
+        "dense_snowflake_arctic_768d": 1.6,
+        "hybrid_rrf_e2e": 1.7,
+        "baseline_graph_1hop": 6.9,
+        "repaired_graph_1hop_ablation": 1.3,
+        "repaired_graph_2hop_full": 1.4
+      },
+      "repaired_graph_1hop_ablation": {
+        "bm25": 5.3,
+        "dense_snowflake_arctic_768d": 3.1,
+        "hybrid_rrf_e2e": 3.9,
+        "baseline_graph_1hop": 1.3,
+        "repaired_graph_1hop_ablation": 10.0,
+        "repaired_graph_2hop_full": 9.1
+      },
+      "repaired_graph_2hop_full": {
+        "bm25": 5.4,
+        "dense_snowflake_arctic_768d": 3.2,
+        "hybrid_rrf_e2e": 4.0,
+        "baseline_graph_1hop": 1.4,
+        "repaired_graph_1hop_ablation": 9.1,
+        "repaired_graph_2hop_full": 10.0
+      }
+    },
+    "rank1_exact_agreement_out_of_10": {
+      "bm25": {
+        "bm25": 10,
+        "dense_snowflake_arctic_768d": 5,
+        "hybrid_rrf_e2e": 5,
+        "baseline_graph_1hop": 1,
+        "repaired_graph_1hop_ablation": 4,
+        "repaired_graph_2hop_full": 4
+      },
+      "dense_snowflake_arctic_768d": {
+        "bm25": 5,
+        "dense_snowflake_arctic_768d": 10,
+        "hybrid_rrf_e2e": 8,
+        "baseline_graph_1hop": 1,
+        "repaired_graph_1hop_ablation": 1,
+        "repaired_graph_2hop_full": 1
+      },
+      "hybrid_rrf_e2e": {
+        "bm25": 5,
+        "dense_snowflake_arctic_768d": 8,
+        "hybrid_rrf_e2e": 10,
+        "baseline_graph_1hop": 1,
+        "repaired_graph_1hop_ablation": 1,
+        "repaired_graph_2hop_full": 1
+      },
+      "baseline_graph_1hop": {
+        "bm25": 1,
+        "dense_snowflake_arctic_768d": 1,
+        "hybrid_rrf_e2e": 1,
+        "baseline_graph_1hop": 10,
+        "repaired_graph_1hop_ablation": 1,
+        "repaired_graph_2hop_full": 1
+      },
+      "repaired_graph_1hop_ablation": {
+        "bm25": 4,
+        "dense_snowflake_arctic_768d": 1,
+        "hybrid_rrf_e2e": 1,
+        "baseline_graph_1hop": 1,
+        "repaired_graph_1hop_ablation": 10,
+        "repaired_graph_2hop_full": 8
+      },
+      "repaired_graph_2hop_full": {
+        "bm25": 4,
+        "dense_snowflake_arctic_768d": 1,
+        "hybrid_rrf_e2e": 1,
+        "baseline_graph_1hop": 1,
+        "repaired_graph_1hop_ablation": 8,
+        "repaired_graph_2hop_full": 10
+      }
+    },
+    "non_fallback_overlap_with_bm25": {
+      "baseline_graph_1hop": {
+        "non_fallback_queries": [
+          "Q-S5B2-02",
+          "Q-S5B2-03",
+          "Q-S5B2-04",
+          "Q-S5B2-05",
+          "Q-S5B2-06",
+          "Q-S5B2-07",
+          "Q-S5B2-08",
+          "Q-S5B2-10",
+          "Q-S5B2-11"
+        ],
+        "non_fallback_count": 9,
+        "mean_top10_jaccard_with_bm25": 0.0518,
+        "mean_top10_shared_with_bm25": 0.89
+      },
+      "repaired_graph_1hop_ablation": {
+        "non_fallback_queries": [
+          "Q-S5B2-04",
+          "Q-S5B2-05",
+          "Q-S5B2-06",
+          "Q-S5B2-07",
+          "Q-S5B2-08",
+          "Q-S5B2-10"
+        ],
+        "non_fallback_count": 6,
+        "mean_top10_jaccard_with_bm25": 0.1333,
+        "mean_top10_shared_with_bm25": 2.17
+      },
+      "repaired_graph_2hop_full": {
+        "non_fallback_queries": [
+          "Q-S5B2-04",
+          "Q-S5B2-05",
+          "Q-S5B2-06",
+          "Q-S5B2-07",
+          "Q-S5B2-08",
+          "Q-S5B2-10"
+        ],
+        "non_fallback_count": 6,
+        "mean_top10_jaccard_with_bm25": 0.1421,
+        "mean_top10_shared_with_bm25": 2.33
+      }
+    },
+    "system_exclusivity_top10": {
+      "bm25": {
+        "total_retrieved_top10_pairs": 100,
+        "exclusive_to_system": 9,
+        "shared_with_at_least_one_other": 91
+      },
+      "dense_snowflake_arctic_768d": {
+        "total_retrieved_top10_pairs": 100,
+        "exclusive_to_system": 21,
+        "shared_with_at_least_one_other": 79
+      },
+      "hybrid_rrf_e2e": {
+        "total_retrieved_top10_pairs": 100,
+        "exclusive_to_system": 8,
+        "shared_with_at_least_one_other": 92
+      },
+      "baseline_graph_1hop": {
+        "total_retrieved_top10_pairs": 69,
+        "exclusive_to_system": 45,
+        "shared_with_at_least_one_other": 24
+      },
+      "repaired_graph_1hop_ablation": {
+        "total_retrieved_top10_pairs": 100,
+        "exclusive_to_system": 7,
+        "shared_with_at_least_one_other": 93
+      },
+      "repaired_graph_2hop_full": {
+        "total_retrieved_top10_pairs": 100,
+        "exclusive_to_system": 6,
+        "shared_with_at_least_one_other": 94
+      }
+    }
+  },
+  "graph_1hop_vs_2hop_diagnostics": {
+    "per_query": [
+      {
+        "query_id": "Q-S5B2-01",
+        "domain": "Operating Systems",
+        "baseline_1hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "hop1_paths_count": 0,
+          "hop2_paths_count": 0
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": true,
+          "top5_jaccard": 1.0,
+          "top10_jaccard": 1.0,
+          "added_by_2hop_in_top10": [],
+          "dropped_by_2hop_from_top10": [],
+          "shared_rank_changes_count": 0,
+          "shared_rank_changes": []
+        }
+      },
+      {
+        "query_id": "Q-S5B2-02",
+        "domain": "Operating Systems",
+        "baseline_1hop": {
+          "returned_count": 6,
+          "is_fallback": false,
+          "matched_anchors": [
+            "translation"
+          ],
+          "traversed_concepts_count": 3,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 2,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "hop1_paths_count": 0,
+          "hop2_paths_count": 0
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": true,
+          "top5_jaccard": 1.0,
+          "top10_jaccard": 1.0,
+          "added_by_2hop_in_top10": [],
+          "dropped_by_2hop_from_top10": [],
+          "shared_rank_changes_count": 0,
+          "shared_rank_changes": []
+        }
+      },
+      {
+        "query_id": "Q-S5B2-03",
+        "domain": "Operating Systems",
+        "baseline_1hop": {
+          "returned_count": 1,
+          "is_fallback": false,
+          "matched_anchors": [
+            "act"
+          ],
+          "traversed_concepts_count": 1,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "hop1_paths_count": 0,
+          "hop2_paths_count": 0
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": true,
+          "top5_jaccard": 1.0,
+          "top10_jaccard": 1.0,
+          "added_by_2hop_in_top10": [],
+          "dropped_by_2hop_from_top10": [],
+          "shared_rank_changes_count": 0,
+          "shared_rank_changes": []
+        }
+      },
+      {
+        "query_id": "Q-S5B2-04",
+        "domain": "AI & Machine Learning",
+        "baseline_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "transformer"
+          ],
+          "traversed_concepts_count": 5,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 5,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "attention",
+            "the transformer",
+            "transformer"
+          ],
+          "traversed_concepts_count": 13,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 21
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "attention",
+            "the transformer",
+            "transformer"
+          ],
+          "traversed_concepts_count": 33,
+          "actual_hop_count": 2,
+          "paths_traversed_count": 96,
+          "hop1_paths_count": 21,
+          "hop2_paths_count": 75
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": false,
+          "top5_jaccard": 1.0,
+          "top10_jaccard": 0.6667,
+          "added_by_2hop_in_top10": [
+            "papers/hu2021_lora.pdf::chunk_023",
+            "papers/kwon2023_vllm.pdf::chunk_008"
+          ],
+          "dropped_by_2hop_from_top10": [
+            "papers/brown2020_gpt3.pdf::chunk_020",
+            "papers/kwon2023_vllm.pdf::chunk_009"
+          ],
+          "shared_rank_changes_count": 2,
+          "shared_rank_changes": [
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_030",
+              "rank_1hop": 7,
+              "rank_2hop": 8,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_011",
+              "rank_1hop": 10,
+              "rank_2hop": 9,
+              "delta": 1
+            }
+          ]
+        }
+      },
+      {
+        "query_id": "Q-S5B2-05",
+        "domain": "AI & Machine Learning",
+        "baseline_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "multi-head attention"
+          ],
+          "traversed_concepts_count": 5,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 5,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "attention"
+          ],
+          "traversed_concepts_count": 3,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 2
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "attention"
+          ],
+          "traversed_concepts_count": 5,
+          "actual_hop_count": 2,
+          "paths_traversed_count": 4,
+          "hop1_paths_count": 2,
+          "hop2_paths_count": 2
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": false,
+          "top5_jaccard": 0.25,
+          "top10_jaccard": 0.3333,
+          "added_by_2hop_in_top10": [
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_009",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_013",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_014",
+            "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_017"
+          ],
+          "dropped_by_2hop_from_top10": [
+            "papers/devlin2018_bert.pdf::chunk_003",
+            "papers/devlin2018_bert.pdf::chunk_031",
+            "papers/karpukhin2020_dpr.pdf::chunk_012",
+            "papers/karpukhin2020_dpr.pdf::chunk_031",
+            "upload_17869808::upload_17869808_p4_4"
+          ],
+          "shared_rank_changes_count": 5,
+          "shared_rank_changes": [
+            {
+              "passage_id": "papers/bahdanau2014_attention.pdf::chunk_010",
+              "rank_1hop": 2,
+              "rank_2hop": 1,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_016",
+              "rank_1hop": 3,
+              "rank_2hop": 2,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/lewis2020_rag.pdf::chunk_033",
+              "rank_1hop": 8,
+              "rank_2hop": 3,
+              "delta": 5
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "rank_1hop": 9,
+              "rank_2hop": 4,
+              "delta": 5
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_004",
+              "rank_1hop": 10,
+              "rank_2hop": 5,
+              "delta": 5
+            }
+          ]
+        }
+      },
+      {
+        "query_id": "Q-S5B2-06",
+        "domain": "AI & Machine Learning",
+        "baseline_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "low-rank adaptation",
+            "transformer"
+          ],
+          "traversed_concepts_count": 9,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 9,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "low-rank adaptation",
+            "transformer"
+          ],
+          "traversed_concepts_count": 13,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 12
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "low-rank adaptation",
+            "transformer"
+          ],
+          "traversed_concepts_count": 34,
+          "actual_hop_count": 2,
+          "paths_traversed_count": 68,
+          "hop1_paths_count": 12,
+          "hop2_paths_count": 56
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": false,
+          "top5_jaccard": 0.6667,
+          "top10_jaccard": 0.8182,
+          "added_by_2hop_in_top10": [
+            "papers/kwon2023_vllm.pdf::chunk_008"
+          ],
+          "dropped_by_2hop_from_top10": [
+            "papers/hu2021_lora.pdf::chunk_023"
+          ],
+          "shared_rank_changes_count": 8,
+          "shared_rank_changes": [
+            {
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_003",
+              "rank_1hop": 2,
+              "rank_2hop": 3,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_002",
+              "rank_1hop": 3,
+              "rank_2hop": 4,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008",
+              "rank_1hop": 4,
+              "rank_2hop": 5,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_031",
+              "rank_1hop": 5,
+              "rank_2hop": 6,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_029",
+              "rank_1hop": 6,
+              "rank_2hop": 8,
+              "delta": -2
+            },
+            {
+              "passage_id": "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_030",
+              "rank_1hop": 7,
+              "rank_2hop": 9,
+              "delta": -2
+            },
+            {
+              "passage_id": "papers/hu2021_lora.pdf::chunk_002",
+              "rank_1hop": 8,
+              "rank_2hop": 2,
+              "delta": 6
+            },
+            {
+              "passage_id": "papers/devlin2018_bert.pdf::chunk_011",
+              "rank_1hop": 9,
+              "rank_2hop": 10,
+              "delta": -1
+            }
+          ]
+        }
+      },
+      {
+        "query_id": "Q-S5B2-07",
+        "domain": "AI & Machine Learning",
+        "baseline_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "adapter",
+            "fine-tuning",
+            "qlora",
+            "quantization"
+          ],
+          "traversed_concepts_count": 12,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 12,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "gpu",
+            "qlora"
+          ],
+          "traversed_concepts_count": 6,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 4
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "gpu",
+            "qlora"
+          ],
+          "traversed_concepts_count": 17,
+          "actual_hop_count": 2,
+          "paths_traversed_count": 21,
+          "hop1_paths_count": 4,
+          "hop2_paths_count": 17
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": false,
+          "top5_jaccard": 0.6667,
+          "top10_jaccard": 1.0,
+          "added_by_2hop_in_top10": [],
+          "dropped_by_2hop_from_top10": [],
+          "shared_rank_changes_count": 9,
+          "shared_rank_changes": [
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_003",
+              "rank_1hop": 1,
+              "rank_2hop": 6,
+              "delta": -5
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_002",
+              "rank_1hop": 2,
+              "rank_2hop": 1,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_004",
+              "rank_1hop": 3,
+              "rank_2hop": 2,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_033",
+              "rank_1hop": 4,
+              "rank_2hop": 3,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "rank_1hop": 5,
+              "rank_2hop": 4,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "rank_1hop": 6,
+              "rank_2hop": 5,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_014",
+              "rank_1hop": 8,
+              "rank_2hop": 9,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_017",
+              "rank_1hop": 9,
+              "rank_2hop": 10,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_020",
+              "rank_1hop": 10,
+              "rank_2hop": 8,
+              "delta": 2
+            }
+          ]
+        }
+      },
+      {
+        "query_id": "Q-S5B2-08",
+        "domain": "AI & Machine Learning",
+        "baseline_1hop": {
+          "returned_count": 1,
+          "is_fallback": false,
+          "matched_anchors": [
+            "llama"
+          ],
+          "traversed_concepts_count": 1,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "gpu"
+          ],
+          "traversed_concepts_count": 4,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 3
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "gpu"
+          ],
+          "traversed_concepts_count": 15,
+          "actual_hop_count": 2,
+          "paths_traversed_count": 20,
+          "hop1_paths_count": 3,
+          "hop2_paths_count": 17
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": false,
+          "top5_jaccard": 0.6667,
+          "top10_jaccard": 0.8182,
+          "added_by_2hop_in_top10": [
+            "upload_17869808::upload_17869808_p5_5"
+          ],
+          "dropped_by_2hop_from_top10": [
+            "papers/krizhevsky2012_alexnet.pdf::chunk_016"
+          ],
+          "shared_rank_changes_count": 8,
+          "shared_rank_changes": [
+            {
+              "passage_id": "papers/brown2020_gpt3.pdf::chunk_021",
+              "rank_1hop": 2,
+              "rank_2hop": 8,
+              "delta": -6
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_002",
+              "rank_1hop": 3,
+              "rank_2hop": 2,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_004",
+              "rank_1hop": 4,
+              "rank_2hop": 3,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::chunk_033",
+              "rank_1hop": 5,
+              "rank_2hop": 4,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::qlora_seed_001",
+              "rank_1hop": 6,
+              "rank_2hop": 5,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/dettmers2023_qlora.pdf::qlora_seed_002",
+              "rank_1hop": 7,
+              "rank_2hop": 6,
+              "delta": 1
+            },
+            {
+              "passage_id": "papers/hu2021_lora.pdf::chunk_014",
+              "rank_1hop": 8,
+              "rank_2hop": 9,
+              "delta": -1
+            },
+            {
+              "passage_id": "papers/krizhevsky2012_alexnet.pdf::chunk_010",
+              "rank_1hop": 9,
+              "rank_2hop": 10,
+              "delta": -1
+            }
+          ]
+        }
+      },
+      {
+        "query_id": "Q-S5B2-10",
+        "domain": "Computer Networks",
+        "baseline_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "d-magic",
+            "embeddings",
+            "graph neural network",
+            "neural network",
+            "saga",
+            "zero-shot learning"
+          ],
+          "traversed_concepts_count": 22,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 24,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "nids"
+          ],
+          "traversed_concepts_count": 4,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 3
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": false,
+          "matched_anchors": [
+            "nids"
+          ],
+          "traversed_concepts_count": 4,
+          "actual_hop_count": 1,
+          "paths_traversed_count": 3,
+          "hop1_paths_count": 3,
+          "hop2_paths_count": 0
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": true,
+          "top5_jaccard": 1.0,
+          "top10_jaccard": 1.0,
+          "added_by_2hop_in_top10": [],
+          "dropped_by_2hop_from_top10": [],
+          "shared_rank_changes_count": 0,
+          "shared_rank_changes": []
+        }
+      },
+      {
+        "query_id": "Q-S5B2-11",
+        "domain": "Computer Networks",
+        "baseline_1hop": {
+          "returned_count": 1,
+          "is_fallback": false,
+          "matched_anchors": [
+            "act"
+          ],
+          "traversed_concepts_count": 1,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "traversal_errors_count": 0
+        },
+        "repaired_1hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0
+        },
+        "repaired_2hop": {
+          "returned_count": 10,
+          "is_fallback": true,
+          "matched_anchors": [],
+          "traversed_concepts_count": 0,
+          "actual_hop_count": 0,
+          "paths_traversed_count": 0,
+          "hop1_paths_count": 0,
+          "hop2_paths_count": 0
+        },
+        "repaired_1hop_vs_2hop_diff": {
+          "exact_top10_order_identical": true,
+          "top5_jaccard": 1.0,
+          "top10_jaccard": 1.0,
+          "added_by_2hop_in_top10": [],
+          "dropped_by_2hop_from_top10": [],
+          "shared_rank_changes_count": 0,
+          "shared_rank_changes": []
+        }
+      }
+    ],
+    "summary": {
+      "repaired_1hop_total_paths": 45,
+      "repaired_2hop_total_paths": 212,
+      "repaired_2hop_hop1_paths": 45,
+      "repaired_2hop_hop2_paths": 167,
+      "baseline_1hop_total_paths": 57,
+      "queries_with_observed_2hop_depth": [
+        "Q-S5B2-04",
+        "Q-S5B2-05",
+        "Q-S5B2-06",
+        "Q-S5B2-07",
+        "Q-S5B2-08"
+      ],
+      "queries_where_2hop_changed_top10_order": [
+        "Q-S5B2-04",
+        "Q-S5B2-05",
+        "Q-S5B2-06",
+        "Q-S5B2-07",
+        "Q-S5B2-08"
+      ],
+      "queries_where_2hop_changed_top10_set": [
+        "Q-S5B2-04",
+        "Q-S5B2-05",
+        "Q-S5B2-06",
+        "Q-S5B2-08"
+      ]
+    }
+  },
+  "fallback_diagnostics": {
+    "bm25": {
+      "fallback_count": 0,
+      "total_queries": 10,
+      "fallback_rate": 0.0,
+      "events": []
+    },
+    "dense_snowflake_arctic_768d": {
+      "fallback_count": 0,
+      "total_queries": 10,
+      "fallback_rate": 0.0,
+      "events": []
+    },
+    "hybrid_rrf_e2e": {
+      "fallback_count": 0,
+      "total_queries": 10,
+      "fallback_rate": 0.0,
+      "events": []
+    },
+    "baseline_graph_1hop": {
+      "fallback_count": 1,
+      "total_queries": 10,
+      "fallback_rate": 0.1,
+      "events": [
+        {
+          "query_id": "Q-S5B2-01",
+          "domain": "Operating Systems",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        }
+      ]
+    },
+    "repaired_graph_1hop_ablation": {
+      "fallback_count": 4,
+      "total_queries": 10,
+      "fallback_rate": 0.4,
+      "events": [
+        {
+          "query_id": "Q-S5B2-01",
+          "domain": "Operating Systems",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        },
+        {
+          "query_id": "Q-S5B2-02",
+          "domain": "Operating Systems",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        },
+        {
+          "query_id": "Q-S5B2-03",
+          "domain": "Operating Systems",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        },
+        {
+          "query_id": "Q-S5B2-11",
+          "domain": "Computer Networks",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        }
+      ]
+    },
+    "repaired_graph_2hop_full": {
+      "fallback_count": 4,
+      "total_queries": 10,
+      "fallback_rate": 0.4,
+      "events": [
+        {
+          "query_id": "Q-S5B2-01",
+          "domain": "Operating Systems",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        },
+        {
+          "query_id": "Q-S5B2-02",
+          "domain": "Operating Systems",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        },
+        {
+          "query_id": "Q-S5B2-03",
+          "domain": "Operating Systems",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        },
+        {
+          "query_id": "Q-S5B2-11",
+          "domain": "Computer Networks",
+          "anchor_found": false,
+          "matched_anchors": [],
+          "fallback_strategy": "corpus_bm25",
+          "trigger_reason": "ZERO_ANCHOR_MATCH_IN_CONCEPT_INDEX",
+          "exact_bm25_top10_match": true
+        }
+      ]
+    }
+  },
+  "query_coverage_diagnostics": {
+    "total_missing_slots_out_of_100_by_system": {
+      "bm25": 0,
+      "dense_snowflake_arctic_768d": 0,
+      "hybrid_rrf_e2e": 0,
+      "baseline_graph_1hop": 31,
+      "repaired_graph_1hop_ablation": 0,
+      "repaired_graph_2hop_full": 0
+    },
+    "per_query": [
+      {
+        "query_id": "Q-S5B2-01",
+        "legacy_query_id": "Q-S5A-01",
+        "domain": "Operating Systems",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 10,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [],
+        "unique_retrieved_union_top10": 13,
+        "pooled_pairs_count": 13,
+        "investigator_seed_candidates_count": 3,
+        "seed_candidates_not_in_any_top10": [],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-02",
+        "legacy_query_id": "Q-S5A-02",
+        "domain": "Operating Systems",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 6,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [
+          "baseline_graph_1hop"
+        ],
+        "unique_retrieved_union_top10": 21,
+        "pooled_pairs_count": 22,
+        "investigator_seed_candidates_count": 3,
+        "seed_candidates_not_in_any_top10": [
+          "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001"
+        ],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-03",
+        "legacy_query_id": "Q-S5A-03",
+        "domain": "Operating Systems",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 1,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [
+          "baseline_graph_1hop"
+        ],
+        "unique_retrieved_union_top10": 24,
+        "pooled_pairs_count": 25,
+        "investigator_seed_candidates_count": 2,
+        "seed_candidates_not_in_any_top10": [
+          "archipelago-books-cs/ostep_three_easy_pieces/08_paging.pdf::paging_seed_001"
+        ],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-04",
+        "legacy_query_id": "Q-S5A-04",
+        "domain": "AI & Machine Learning",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 10,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [],
+        "unique_retrieved_union_top10": 30,
+        "pooled_pairs_count": 31,
+        "investigator_seed_candidates_count": 3,
+        "seed_candidates_not_in_any_top10": [
+          "papers/bahdanau2014_attention.pdf::chunk_005"
+        ],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-05",
+        "legacy_query_id": "Q-S5A-05",
+        "domain": "AI & Machine Learning",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 10,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [],
+        "unique_retrieved_union_top10": 29,
+        "pooled_pairs_count": 29,
+        "investigator_seed_candidates_count": 3,
+        "seed_candidates_not_in_any_top10": [],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-06",
+        "legacy_query_id": "Q-S5A-06",
+        "domain": "AI & Machine Learning",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 10,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [],
+        "unique_retrieved_union_top10": 30,
+        "pooled_pairs_count": 31,
+        "investigator_seed_candidates_count": 2,
+        "seed_candidates_not_in_any_top10": [
+          "papers/dettmers2023_qlora.pdf::chunk_005"
+        ],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-07",
+        "legacy_query_id": "Q-S5A-07",
+        "domain": "AI & Machine Learning",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 10,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [],
+        "unique_retrieved_union_top10": 27,
+        "pooled_pairs_count": 28,
+        "investigator_seed_candidates_count": 2,
+        "seed_candidates_not_in_any_top10": [
+          "papers/vaswani2017_attention_is_all_you_need.pdf::chunk_008"
+        ],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-08",
+        "legacy_query_id": "Q-S5A-08",
+        "domain": "AI & Machine Learning",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 1,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [
+          "baseline_graph_1hop"
+        ],
+        "unique_retrieved_union_top10": 25,
+        "pooled_pairs_count": 27,
+        "investigator_seed_candidates_count": 2,
+        "seed_candidates_not_in_any_top10": [
+          "papers/brown2020_gpt3.pdf::chunk_029",
+          "papers/dettmers2023_qlora.pdf::chunk_006"
+        ],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-10",
+        "legacy_query_id": "Q-S5A-10",
+        "domain": "Computer Networks",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 10,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [],
+        "unique_retrieved_union_top10": 24,
+        "pooled_pairs_count": 25,
+        "investigator_seed_candidates_count": 3,
+        "seed_candidates_not_in_any_top10": [
+          "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2"
+        ],
+        "retrieved_top10_not_in_pool": []
+      },
+      {
+        "query_id": "Q-S5B2-11",
+        "legacy_query_id": "Q-S5A-11",
+        "domain": "Computer Networks",
+        "returned_counts_by_system": {
+          "bm25": 10,
+          "dense_snowflake_arctic_768d": 10,
+          "hybrid_rrf_e2e": 10,
+          "baseline_graph_1hop": 1,
+          "repaired_graph_1hop_ablation": 10,
+          "repaired_graph_2hop_full": 10
+        },
+        "systems_with_shortfall_lt_10": [
+          "baseline_graph_1hop"
+        ],
+        "unique_retrieved_union_top10": 21,
+        "pooled_pairs_count": 23,
+        "investigator_seed_candidates_count": 2,
+        "seed_candidates_not_in_any_top10": [
+          "doc_computer_networks_6_e::doc_computer_networks_6_e_p198_2",
+          "papers/real-time network security: integrating ann and dynamic graph-based.pdf::chunk_006"
+        ],
+        "retrieved_top10_not_in_pool": []
+      }
+    ]
+  },
+  "latency_and_runtime_diagnostics": {
+    "s5b1_timing_source": "research/s5-b1-integrity-repair/reports/retrieval_timing_report.json",
+    "s5b1_timing_scope_note": "Measured on the 12-query S5-B1.1 set (5 warm repetitions per query). Q-S5B2-02 and Q-S5B2-10 were reworded in S5-B2.1 and Q-S5A-09/Q-S5A-12 were held; multi-repetition timing was not re-run in S5-B2.1.",
+    "application_cold_start_ms": {
+      "corpus_load_ms": 400.246,
+      "dense_embedding_cache_load_ms": 21.353,
+      "dense_model_load_ms": 7630.455,
+      "bm25_index_build_ms": 407.279,
+      "corpus_scoped_graph_build_ms": 2458.478
+    },
+    "s5b1_system_timing_summary_ms": {
+      "bm25": {
+        "first_query_mean_ms": 4.798,
+        "first_query_max_ms": 6.383,
+        "first_query_min_ms": 3.37,
+        "warm_mean_ms": 4.344,
+        "warm_median_ms": 4.353,
+        "warm_std_ms": 0.888,
+        "warm_min_ms": 2.445,
+        "warm_max_ms": 6.23,
+        "warm_p95_ms": 5.979
+      },
+      "dense_snowflake_arctic_768d": {
+        "first_query_mean_ms": 164.95,
+        "first_query_max_ms": 361.618,
+        "first_query_min_ms": 128.562,
+        "warm_mean_ms": 148.281,
+        "warm_median_ms": 142.261,
+        "warm_std_ms": 17.325,
+        "warm_min_ms": 125.764,
+        "warm_max_ms": 205.963,
+        "warm_p95_ms": 178.982
+      },
+      "hybrid_rrf_e2e": {
+        "first_query_mean_ms": 156.402,
+        "first_query_max_ms": 196.444,
+        "first_query_min_ms": 134.929,
+        "warm_mean_ms": 153.233,
+        "warm_median_ms": 149.064,
+        "warm_std_ms": 15.487,
+        "warm_min_ms": 132.627,
+        "warm_max_ms": 194.791,
+        "warm_p95_ms": 183.876
+      },
+      "baseline_graph_1hop": {
+        "first_query_mean_ms": 21.953,
+        "first_query_max_ms": 61.523,
+        "first_query_min_ms": 5.527,
+        "warm_mean_ms": 20.077,
+        "warm_median_ms": 8.261,
+        "warm_std_ms": 20.864,
+        "warm_min_ms": 4.439,
+        "warm_max_ms": 70.009,
+        "warm_p95_ms": 60.184
+      },
+      "repaired_graph_1hop_ablation": {
+        "first_query_mean_ms": 2.561,
+        "first_query_max_ms": 5.564,
+        "first_query_min_ms": 0.236,
+        "warm_mean_ms": 2.317,
+        "warm_median_ms": 1.53,
+        "warm_std_ms": 2.127,
+        "warm_min_ms": 0.132,
+        "warm_max_ms": 5.576,
+        "warm_p95_ms": 5.312
+      },
+      "repaired_graph_2hop_full": {
+        "first_query_mean_ms": 2.452,
+        "first_query_max_ms": 5.24,
+        "first_query_min_ms": 0.244,
+        "warm_mean_ms": 2.188,
+        "warm_median_ms": 1.673,
+        "warm_std_ms": 1.937,
+        "warm_min_ms": 0.13,
+        "warm_max_ms": 5.007,
+        "warm_p95_ms": 4.933
+      }
+    },
+    "s5b1_per_query_warm_mean_ms": {
+      "bm25": {
+        "Q-S5A-01": 4.799,
+        "Q-S5A-02": 4.197,
+        "Q-S5A-03": 4.842,
+        "Q-S5A-04": 4.202,
+        "Q-S5A-05": 3.398,
+        "Q-S5A-06": 3.482,
+        "Q-S5A-07": 4.147,
+        "Q-S5A-08": 5.794,
+        "Q-S5A-09": 4.665,
+        "Q-S5A-10": 4.814,
+        "Q-S5A-11": 4.967,
+        "Q-S5A-12": 2.819
+      },
+      "dense_snowflake_arctic_768d": {
+        "Q-S5A-01": 139.883,
+        "Q-S5A-02": 133.024,
+        "Q-S5A-03": 177.675,
+        "Q-S5A-04": 131.342,
+        "Q-S5A-05": 130.512,
+        "Q-S5A-06": 147.129,
+        "Q-S5A-07": 170.778,
+        "Q-S5A-08": 165.56,
+        "Q-S5A-09": 137.907,
+        "Q-S5A-10": 141.285,
+        "Q-S5A-11": 163.584,
+        "Q-S5A-12": 140.698
+      },
+      "hybrid_rrf_e2e": {
+        "Q-S5A-01": 140.424,
+        "Q-S5A-02": 137.089,
+        "Q-S5A-03": 179.549,
+        "Q-S5A-04": 137.356,
+        "Q-S5A-05": 135.239,
+        "Q-S5A-06": 150.676,
+        "Q-S5A-07": 167.05,
+        "Q-S5A-08": 172.672,
+        "Q-S5A-09": 145.509,
+        "Q-S5A-10": 151.786,
+        "Q-S5A-11": 166.684,
+        "Q-S5A-12": 154.761
+      },
+      "baseline_graph_1hop": {
+        "Q-S5A-01": 4.848,
+        "Q-S5A-02": 7.513,
+        "Q-S5A-03": 7.651,
+        "Q-S5A-04": 16.73,
+        "Q-S5A-05": 8.204,
+        "Q-S5A-06": 51.431,
+        "Q-S5A-07": 52.379,
+        "Q-S5A-08": 7.749,
+        "Q-S5A-09": 5.268,
+        "Q-S5A-10": 61.989,
+        "Q-S5A-11": 8.792,
+        "Q-S5A-12": 8.366
+      },
+      "repaired_graph_1hop_ablation": {
+        "Q-S5A-01": 4.914,
+        "Q-S5A-02": 3.959,
+        "Q-S5A-03": 5.019,
+        "Q-S5A-04": 0.45,
+        "Q-S5A-05": 0.189,
+        "Q-S5A-06": 0.437,
+        "Q-S5A-07": 0.233,
+        "Q-S5A-08": 0.187,
+        "Q-S5A-09": 4.563,
+        "Q-S5A-10": 0.153,
+        "Q-S5A-11": 4.646,
+        "Q-S5A-12": 3.049
+      },
+      "repaired_graph_2hop_full": {
+        "Q-S5A-01": 4.371,
+        "Q-S5A-02": 3.548,
+        "Q-S5A-03": 4.532,
+        "Q-S5A-04": 0.656,
+        "Q-S5A-05": 0.181,
+        "Q-S5A-06": 0.531,
+        "Q-S5A-07": 0.241,
+        "Q-S5A-08": 0.254,
+        "Q-S5A-09": 4.349,
+        "Q-S5A-10": 0.149,
+        "Q-S5A-11": 4.437,
+        "Q-S5A-12": 3.009
+      }
+    },
+    "s5b2_1_hybrid_rrf_single_pass_breakdown_ms": [
+      {
+        "query_id": "Q-S5B2-01",
+        "bm25_ms": 5.112,
+        "dense_ms": 138.401,
+        "fusion_ms": 0.161,
+        "total_e2e_ms": 143.674
+      },
+      {
+        "query_id": "Q-S5B2-02",
+        "bm25_ms": 7.599,
+        "dense_ms": 151.558,
+        "fusion_ms": 0.123,
+        "total_e2e_ms": 159.28
+      },
+      {
+        "query_id": "Q-S5B2-03",
+        "bm25_ms": 4.789,
+        "dense_ms": 175.171,
+        "fusion_ms": 0.132,
+        "total_e2e_ms": 180.092
+      },
+      {
+        "query_id": "Q-S5B2-04",
+        "bm25_ms": 4.658,
+        "dense_ms": 145.336,
+        "fusion_ms": 0.118,
+        "total_e2e_ms": 150.111
+      },
+      {
+        "query_id": "Q-S5B2-05",
+        "bm25_ms": 4.885,
+        "dense_ms": 140.421,
+        "fusion_ms": 0.113,
+        "total_e2e_ms": 145.418
+      },
+      {
+        "query_id": "Q-S5B2-06",
+        "bm25_ms": 3.601,
+        "dense_ms": 165.351,
+        "fusion_ms": 0.157,
+        "total_e2e_ms": 169.109
+      },
+      {
+        "query_id": "Q-S5B2-07",
+        "bm25_ms": 7.364,
+        "dense_ms": 217.375,
+        "fusion_ms": 0.135,
+        "total_e2e_ms": 224.873
+      },
+      {
+        "query_id": "Q-S5B2-08",
+        "bm25_ms": 7.009,
+        "dense_ms": 171.014,
+        "fusion_ms": 0.131,
+        "total_e2e_ms": 178.154
+      },
+      {
+        "query_id": "Q-S5B2-10",
+        "bm25_ms": 9.819,
+        "dense_ms": 229.783,
+        "fusion_ms": 0.112,
+        "total_e2e_ms": 239.714
+      },
+      {
+        "query_id": "Q-S5B2-11",
+        "bm25_ms": 4.803,
+        "dense_ms": 211.026,
+        "fusion_ms": 0.137,
+        "total_e2e_ms": 215.966
+      }
+    ]
+  }
+}

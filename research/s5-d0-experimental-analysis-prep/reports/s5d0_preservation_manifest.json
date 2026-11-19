@@ -1,0 +1,200 @@
+{
+  "manifest_name": "S5-D0 Frozen Artifact Preservation Manifest",
+  "base_commit": "6450585f60b3c1bea7bef2f411458800552cea0b",
+  "total_artifacts_checked": 21,
+  "verified_exact_matches": 12,
+  "recorded_unmodified": 9,
+  "mismatches": [],
+  "all_checks_passed": true,
+  "artifacts": [
+    {
+      "path": "research/s5-b2-benchmark-correction/corpus/s5b2_proposed_blinded_query_specs.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 5638,
+      "actual_sha256": "011025237209a5432409e7998c350f5c2c4970cf7f9f96c79ff938e2b729af8a",
+      "expected_sha256": "011025237209a5432409e7998c350f5c2c4970cf7f9f96c79ff938e2b729af8a",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/proposed_package_v2_1/retrieval_query_candidate_pool_blinded.csv",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 89215,
+      "actual_sha256": "4c9cb0e58f9f6d32c59eb12804f032be32a6a52c1eeb75055fb5148600f9acd7",
+      "expected_sha256": "4c9cb0e58f9f6d32c59eb12804f032be32a6a52c1eeb75055fb5148600f9acd7",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/proposed_package_v2_1/retrieval_query_pool_blinded.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 114177,
+      "actual_sha256": "2d13454655dda965304ac4aabddbeef5e39b77bc6927393bebfdaa94235fb037",
+      "expected_sha256": "2d13454655dda965304ac4aabddbeef5e39b77bc6927393bebfdaa94235fb037",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/proposed_package_v2_1/RETRIEVAL_ANNOTATION_PROTOCOL.md",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 2186,
+      "actual_sha256": "35a7bc0168431b355f49dc100364493b0ef69d5ff680e3308ca5dcb44dcc46e9",
+      "expected_sha256": "35a7bc0168431b355f49dc100364493b0ef69d5ff680e3308ca5dcb44dcc46e9",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/reports/s5b2_negative_control_audit.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 16878,
+      "actual_sha256": "02e143bfd7b8114ad9652c102248daef36464f521f5b0b3ec1d8b3c4e91199d6",
+      "expected_sha256": "02e143bfd7b8114ad9652c102248daef36464f521f5b0b3ec1d8b3c4e91199d6",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/reports/s5b2_1_passage_necessity_matrix.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 4654,
+      "actual_sha256": "cc72beff79bcd446401a65b7ed57854f9e82dccca685585a16e79c3bda464921",
+      "expected_sha256": "cc72beff79bcd446401a65b7ed57854f9e82dccca685585a16e79c3bda464921",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/reports/s5b2_1_corpus_provenance_registry.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 5072,
+      "actual_sha256": "e537f4a42b2f89f63a7d640a7f9f796e951b535dec9eb690ca361bcd49fa81fc",
+      "expected_sha256": "e537f4a42b2f89f63a7d640a7f9f796e951b535dec9eb690ca361bcd49fa81fc",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/reports/s5b2_1_frozen_ranked_results.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 188918,
+      "actual_sha256": "e20a9f64272c1afa42d62ea7474cb3d9db8e9472c5cf97b639f680e4942eba86",
+      "expected_sha256": "e20a9f64272c1afa42d62ea7474cb3d9db8e9472c5cf97b639f680e4942eba86",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/reports/s5b2_1_topk_pool_coverage_refreshed.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 4086,
+      "actual_sha256": "04be54f0574c55ca95d86a95135eba96c6db143cf7185c362e4115f1272d1958",
+      "expected_sha256": "04be54f0574c55ca95d86a95135eba96c6db143cf7185c362e4115f1272d1958",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b2-benchmark-correction/S5B2_1_APPROVAL_GATE_REPORT.md",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 5212,
+      "actual_sha256": "3250006a650c93675eb1dc96e4df1d07048a5370443e4365529a9fad8ad8db4b",
+      "expected_sha256": "3250006a650c93675eb1dc96e4df1d07048a5370443e4365529a9fad8ad8db4b",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "data/annotation_local/s5c2/originals/reviewer_a_s5b2_1_workbook.md",
+      "scope": "local_gitignored",
+      "exists": true,
+      "byte_size": 432711,
+      "actual_sha256": "70049fa849985cfb38aadef2dd499dbf8e665f55f5796a122302d501f17fa09c",
+      "expected_sha256": "70049fa849985cfb38aadef2dd499dbf8e665f55f5796a122302d501f17fa09c",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "data/annotation_local/s5c2/originals/reviewer_b_s5b2_1_workbook.md",
+      "scope": "local_gitignored",
+      "exists": true,
+      "byte_size": 494106,
+      "actual_sha256": "ca3e6af86c72c20bf6dbd66d71f3c5c79ef7795de5d149d23c0b918304ae80f4",
+      "expected_sha256": "ca3e6af86c72c20bf6dbd66d71f3c5c79ef7795de5d149d23c0b918304ae80f4",
+      "status": "VERIFIED_EXACT_MATCH"
+    },
+    {
+      "path": "research/s5-b1-integrity-repair/corpus/s5b1_corpus_manifest.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 19108,
+      "actual_sha256": "33d8aa5c5bbca5a849fc1df4b73e9813ecffca546ae7ca5abae39d4380e015f9",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-b1-integrity-repair/models/s5b1_model_manifest.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 3438,
+      "actual_sha256": "e3c5d445101433c0e0c03fa782eaf5ac3d87aba5ce286db400d3208757fd85ab",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-b1-integrity-repair/reports/retrieval_timing_report.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 2323,
+      "actual_sha256": "92bf112e53d42c65af6617c05c4cb5492fb84cbd50fbb225297723041dda5fee",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-b1-integrity-repair/reports/retrieval_technical_evaluation_report.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 206400,
+      "actual_sha256": "aa024c3411ef340f8495b48008da8ea595707792569e389f3b742474dd9ce842",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-b1-integrity-repair/reports/graph_information_access_audit.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 4137,
+      "actual_sha256": "7b6ce0f70bf7e475e56f6c0bd79a2f588ef2cba3a044ca2305b5254819b313d5",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-c2-annotation-audit/reports/s5c2_audit_summary.json",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 4363,
+      "actual_sha256": "bc46036961bf53e6a063e145600614fd6941a2549b71599a07f7b47a5d2b8441",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-c2-annotation-audit/reports/S5C2_ANNOTATION_VALIDATION_REPORT.md",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 1953,
+      "actual_sha256": "cecb6b2d26a727f917f7626dcc4f3d7a064136a90109d42e1e94bcd9cd5410b3",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-c2-annotation-audit/reports/S5C2_INTER_ANNOTATOR_AGREEMENT.md",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 2043,
+      "actual_sha256": "591969475535e25c89c2aa896b985b4d239656ba93a7c8a13b9e452254e521e4",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    },
+    {
+      "path": "research/s5-c2-annotation-audit/reports/S5C2_NEGATIVE_CONTROL_VERIFICATION.md",
+      "scope": "tracked_frozen",
+      "exists": true,
+      "byte_size": 2472,
+      "actual_sha256": "8147ed256c44d19a97c03647dbf6e27acaedfdb93761b842b0e7a78e589a5a92",
+      "expected_sha256": null,
+      "status": "RECORDED_UNMODIFIED"
+    }
+  ]
+}
