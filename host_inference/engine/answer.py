@@ -295,45 +295,31 @@ class Engine:
             summary_cids.sort(key=lambda item: (-item[0], item[1]))
             if not scored_cids and summary_cids:
                 scored_cids = summary_cids[:4]
-            best_cid = scored_cids[0][1] if scored_cids else None
-            if best_cid:
-                matched_node = graph.nodes[best_cid]
-                if not payload.get("anchor_concept"):
-                    payload["anchor_concept"] = node_public(matched_node)
-                    payload["render_graph"] = True
-                    payload["render_rule"] = "verified_graph_fallback"
-                rel_pres = [node_public(graph.nodes[p]) for p in graph.prereqs(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
-                rel_unl = [node_public(graph.nodes[u]) for u in graph.unlocks(best_cid, 2)[:NEIGHBOUR_NODE_LIMIT]]
-                rel_conn = [node_public(graph.nodes[r]) for r in graph.related(best_cid)[:NEIGHBOUR_NODE_LIMIT]]
-                for _sc, extra_cid in scored_cids[1:4]:
-                    if extra_cid != best_cid and all(n.get("id") != extra_cid for n in rel_conn):
-                        rel_conn.append(node_public(graph.nodes[extra_cid]))
-                if rel_pres and not payload.get("prerequisites"):
-                    payload["prerequisites"] = rel_pres
-                if rel_unl and not payload.get("unlocks"):
-                    payload["unlocks"] = rel_unl
-                if rel_conn and not payload.get("related_concepts"):
-                    payload["related_concepts"] = rel_conn
-                if not payload.get("citations") or not any(
-                    c.get("label") or c.get("doc_id") or c.get("url")
-                    for c in (payload.get("citations") or [])
-                    if isinstance(c, dict)
-                ):
-                    seed_ids = (
-                        [cid for _sc, cid in scored_cids[:4]]
-                        + list(graph.unlocks(best_cid, 2))
-                        + list(graph.prereqs(best_cid, 2))
-                        + list(graph.related(best_cid))
-                    )
+            # Only genuinely resolved anchor concepts from the canonical router may set anchor_concept.
+            # Do NOT silently invent or substitute an anchor concept for unmatched questions.
+            if not payload.get("anchor_concept"):
+                payload["anchor_concept"] = None
+                payload["render_graph"] = False
+                payload["render_rule"] = "no_verified_concept_match"
+                payload["prerequisites"] = []
+                payload["unlocks"] = []
+                payload["related_concepts"] = []
+            if not payload.get("citations") or not any(
+                c.get("label") or c.get("doc_id") or c.get("url")
+                for c in (payload.get("citations") or [])
+                if isinstance(c, dict)
+            ):
+                if scored_cids:
+                    seed_ids = [cid for _sc, cid in scored_cids[:4]]
                     cites = _collect_up_to_10_citations(seed_ids)
                     if cites:
                         payload["citations"] = cites
                 if not payload.get("inventory"):
                     cards = inventory_card.attach_inventory(
                         payload,
-                        best_cid,
-                        graph.label(best_cid),
-                        str(matched_node.get("summary") or query),
+                        "general",
+                        query,
+                        query,
                         catalogue.load_catalogue(),
                     )
                     if cards:
@@ -362,6 +348,37 @@ class Engine:
         if notices:
             payload["withdrawn_notice"] = notices[0]
             payload["text_override"] = notices[0]
+
+        # Populate instrumentation trace & grounding status for SIGIR Demo Inspector
+        anchor_id = (payload.get("anchor_concept") or {}).get("id") if payload.get("anchor_concept") else None
+        anchor_lbl = (payload.get("anchor_concept") or {}).get("label") or (payload.get("anchor_concept") or {}).get("name") if payload.get("anchor_concept") else None
+        hops = 2 if (anchor_id and (payload.get("prerequisites") or payload.get("unlocks"))) else (1 if anchor_id else 0)
+        cites_count = len([c for c in (payload.get("citations") or []) if isinstance(c, dict) and (c.get("text_passage") or c.get("passage") or c.get("label") or c.get("doc_id"))])
+
+        if anchor_id and cites_count > 0:
+            grounding_badge = "Verified source evidence available"
+            grounding_state = "verified"
+        elif anchor_id:
+            grounding_badge = "Graph structure verified · No direct passage"
+            grounding_state = "partial"
+        elif cites_count > 0:
+            grounding_badge = "General literature evidence · Concept unmatched"
+            grounding_state = "general"
+        else:
+            grounding_badge = "No verified concept match — graph unavailable for this question"
+            grounding_state = "unmatched"
+
+        payload["trace"] = {
+            "intent": route,
+            "concept_id": anchor_id,
+            "concept_label": anchor_lbl,
+            "graph_hops": hops,
+            "retrieval_mode": "Graph-Assisted Hybrid (Lexical + OKF Traversal)",
+            "provider": payload.get("provider") or "Deterministic Rule-Based OKF Fallback",
+            "grounded_passages": cites_count,
+            "grounding_status": grounding_state,
+            "grounding_badge": grounding_badge,
+        }
 
         text = link_answer_sources(text, payload["citations"])
         return {

@@ -58,6 +58,9 @@ import { resetChatUi } from './08-stream-cleanup.js';
 
             // Do not let evidence from a prior answer attach to this response if the server omits metadata.
             window._lastChatMetadata = null;
+            // Phase 1 — SIGIR Demo: clear stale graph state before each new query
+            window._graphNeighborhood = { anchor: null, prereqs: [], unlocks: [], related: [] };
+            populateTopology(null, [], [], [], true);
 
             state.isGenerating = true;
             try { window.isGenerating = true; } catch (_) {}

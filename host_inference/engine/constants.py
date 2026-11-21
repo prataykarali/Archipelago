@@ -76,7 +76,11 @@ ALIASES = {
     "matrix decomposition": "matrix_decomposition",
     "matrix factorization": "matrix_factorization",
     "attention": "attention_mechanism",
-    "transformer": "attention_mechanism",
+    "transformer": "transformer",
+    "transformers": "transformer",
+    "backpropagation": "error_backpropagation_algorithm",
+    "backprop": "error_backpropagation_algorithm",
+    "error backpropagation": "error_backpropagation_algorithm",
     "graph rag": "graph_rag",
     "qiskit": "qiskit",
     # Academic Foundations — Operating Systems
