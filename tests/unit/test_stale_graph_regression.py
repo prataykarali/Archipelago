@@ -7,8 +7,8 @@ a different graph node, and that matched concepts resolve correctly.
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
+import sys
 
 import pytest
 
@@ -36,6 +36,7 @@ def engine():
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _payload(engine, query: str) -> dict:
     """Return only the payload dict from an Engine.answer() call."""
     return engine.answer(query)["payload"]
@@ -52,6 +53,7 @@ def _anchor_id(payload: dict) -> str | None:
 # ---------------------------------------------------------------------------
 # Test A — Compiler query must NOT match Transformer / Attention / any node
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestStaleGraphRegression:
@@ -94,9 +96,7 @@ class TestStaleGraphRegression:
     def test_d_spanner_truetime_no_anchor(self, engine):
         """Out-of-domain query → no concept match."""
         p = _payload(engine, "Explain Spanner TrueTime")
-        assert _anchor_id(p) is None, (
-            f"Spanner TrueTime matched {_anchor_id(p)} — should be None"
-        )
+        assert _anchor_id(p) is None, f"Spanner TrueTime matched {_anchor_id(p)} — should be None"
         assert p.get("render_graph") is False
 
     def test_e_dbms_library_routing(self, engine):
@@ -111,6 +111,7 @@ class TestStaleGraphRegression:
 # ---------------------------------------------------------------------------
 # Trace payload tests (SIGIR Demo instrumentation)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestTracePayload:
@@ -140,4 +141,4 @@ class TestTracePayload:
         p = _payload(engine, "What is Transformer?")
         badge = p["trace"]["grounding_badge"]
         assert isinstance(badge, str)
-        assert len(badge) > 5  # noqa: PLR2004 — sanity check
+        assert len(badge) > 5
