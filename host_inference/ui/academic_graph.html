@@ -874,7 +874,7 @@
       const params = new URLSearchParams(location.search);
       let savedState = {};
       try { savedState = JSON.parse(sessionStorage.getItem(GRAPH_STATE_KEY) || '{}') || {}; } catch (_) {}
-      const targetId = params.get('target_id') || savedState.target_id || '';
+      const targetId = params.get('concept') || params.get('target_id') || savedState.target_id || '';
       const initial = params.get('q') || savedState.q || '';
       const initDomain = params.get('domain') ?? savedState.domain ?? '';
       const initRelation = params.get('relation') ?? savedState.relation ?? '';

@@ -260,7 +260,7 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 [...node.attributes].forEach(attribute => {
                     const name = attribute.name.toLowerCase();
                     const value = attribute.value.trim().toLowerCase();
-                    if (name.startsWith('on')) node.removeAttribute(attribute.name);
+                    if (name.startsWith('on') && !node.classList.contains('inline-cite-btn')) node.removeAttribute(attribute.name);
                     if (name === 'href' && value.startsWith('javascript:')) node.removeAttribute(attribute.name);
                 });
             });
@@ -320,6 +320,11 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
             });
             // Strip trailing incomplete bracket citation markers during live streaming (e.g. "[S", "[S1", "[S1:")
             processedText = processedText.replace(/\[(?:S|P)\d*:?[^\]]*$/i, '');
+            // Convert numeric citations [1], [2] to clickable evidence links
+            processedText = processedText.replace(/\[(\d+)\]/g, (match, num) => {
+                const idx = parseInt(num, 10) - 1;
+                return `<button type="button" class="inline-cite-btn px-1.5 py-0.5 mx-0.5 rounded bg-accentPurple/20 hover:bg-accentPurple/40 text-accentPurple border border-accentPurple/30 text-[10px] font-bold cursor-pointer transition-all" onclick="if(typeof window.scrollToEvidence==='function') window.scrollToEvidence(${idx})" title="View citation ${num} in Inspector">[${num}]</button>`;
+            });
             // Clean up spaces / soft hyphens / weird mid-word en-dashes from model output.
             // CRITICAL: never collapse newlines — that destroys markdown structure.
             processedText = processedText

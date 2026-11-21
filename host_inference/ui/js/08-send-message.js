@@ -188,14 +188,26 @@ import { resetChatUi } from './08-stream-cleanup.js';
                         if (firstFinalize && typeof _addChatBubbleEffects === 'function') {
                             _addChatBubbleEffects(msgEl);
                         }
+                        // Insert Grounding Status Badge above the message text
+                        if (window._lastChatMetadata?.trace && typeof window.renderGroundingBadge === 'function') {
+                            const badgeWrapId = `grounding-badge-${assistantMsgId}`;
+                            if (!document.getElementById(badgeWrapId)) {
+                                const badgeHtml = window.renderGroundingBadge(window._lastChatMetadata.trace);
+                                if (badgeHtml) {
+                                    const wrap = document.createElement('div');
+                                    wrap.id = badgeWrapId;
+                                    wrap.innerHTML = badgeHtml;
+                                    msgEl.parentNode.insertBefore(wrap, msgEl);
+                                }
+                            }
+                        }
                         // Always re-mount paper cards after markdown paint.
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
                     if (window._lastChatMetadata) {
-                        if (typeof renderOkfNodesCard === 'function' && !document.getElementById(`okf-nodes-zone-${assistantMsgId}`)) {
-                            renderOkfNodesCard(assistantMsgId, window._lastChatMetadata);
-                        }
+                        // Consolidate OKF relationships into the Inspector panel (Phase 3 deduplication)
+                        // In-chat duplicate OKF nodes card suppressed in favor of Inspector panel.
                         if (firstFinalize && typeof updateBookStackForQuery === 'function') {
                             updateBookStackForQuery(window._lastChatMetadata);
                         }
@@ -366,6 +378,9 @@ import { resetChatUi } from './08-stream-cleanup.js';
                                 window._lastChatMetadata = metadata;
                                 populatePipeline(metadata);
                                 populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
+                                if (typeof window.populateInspector === 'function') {
+                                    window.populateInspector(metadata);
+                                }
                                 if (typeof updateBookStackForQuery === 'function') {
                                     updateBookStackForQuery(metadata);
                                 }

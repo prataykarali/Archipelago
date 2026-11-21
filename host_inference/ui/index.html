@@ -189,6 +189,10 @@
                             </div>
                             <h4 id="graph-node-title" class="text-sm font-bold text-white truncate">Concept Name</h4>
                             <p id="graph-node-summary" class="text-xs text-gray-300 line-clamp-2 leading-snug">Summary text...</p>
+                            <a id="graph-node-explore-link" href="/academic/graph" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-accentPurple hover:text-accentPink transition-colors mt-1">
+                                <span>Explore in Full Graph</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
                         </div>
 
                         <!-- OKF Key Relationships Section -->
@@ -221,6 +225,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Privacy & Data Management Footer -->
+                <div class="px-3 py-2 border-t border-white/10 text-[10px] text-gray-400 flex items-center justify-between gap-2">
+                    <span title="Queries processed via Supabase Auth &amp; Archipelago AI Gateway. No ad trackers.">Privacy &amp; Terms</span>
+                    <button type="button" onclick="if (confirm('Clear all local chat history and saved browser state?')) { window.archipelagoClearClientStorage && window.archipelagoClearClientStorage({ includeHistory: true }); if (typeof clearAllHistory === 'function') clearAllHistory(); }" class="text-rose-300 hover:text-rose-200 underline cursor-pointer bg-transparent border-0">Clear My Data</button>
                 </div>
 
             </div>

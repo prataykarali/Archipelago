@@ -12,6 +12,7 @@ import './08-send-message.js';
 import './09-patterns.js';
 import './10-populate-pipeline.js';
 import './11-populate-topology.js';
+import './15-inspector.js';
 import './12-choose-graph-experience.js';
 import './13-render-horizontal-graph-card.js';
 import './14-render-adaptive-mcqcard.js';
