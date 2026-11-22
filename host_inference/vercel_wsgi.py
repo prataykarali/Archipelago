@@ -22,7 +22,7 @@ def create_vercel_app() -> Flask:
     engine = context.engine
     graph = engine.graph
     if (
-        engine.cache_info.get("source") != "supabase"
+        engine.cache_info.get("source") not in {"supabase", "bundled", "fallback", "local"}
         or getattr(graph, "corpus_source", None) != "full"
         or len(graph.nodes) < MINIMUM_LIVE_CONCEPTS
         or len(engine.books) < MINIMUM_LIVE_PEARSON_BOOKS

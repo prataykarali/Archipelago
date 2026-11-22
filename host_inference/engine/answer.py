@@ -85,12 +85,14 @@ class Engine:
         self.cache_info = hydrate()
         if graph_path:
             path = graph_path
-        elif (HERE.parent / "okf_graph.json").is_file():
-            path = HERE.parent / "okf_graph.json"
         elif (CACHE / "okf_graph.json").is_file():
             path = CACHE / "okf_graph.json"
+        elif (HERE / "fixtures" / "okf_graph.json").is_file():
+            path = HERE / "fixtures" / "okf_graph.json"
+        elif (HERE / "okf_graph.json").is_file():
+            path = HERE / "okf_graph.json"
         else:
-            path = HERE.parent / "okf_graph.json"
+            path = HERE / "fixtures" / "okf_graph.json"
         self.graph = LibraryGraph(path)
         self.books = load_books()
         self.catalog = Catalog(self.graph.nodes, self.books)
