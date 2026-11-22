@@ -85,7 +85,13 @@ class PageText(HTMLParser):
 def fetch_college_page(url: str, user_id: str | None) -> dict[str, object]:
     """Fetch one approved institutional HTTPS page without following redirects."""
     parsed = urlparse(url)
-    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_COLLEGE_HOSTS:
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname not in ALLOWED_COLLEGE_HOSTS
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.port not in (None, 443)
+    ):
         raise ValueError("Use an HTTPS page from the approved IEM or UEM sites.")
     robots_url = f"{parsed.scheme}://{parsed.hostname}/robots.txt"
     robots_response = requests.get(
@@ -278,43 +284,56 @@ def discover_papers(
     )
     records: dict[str, dict[str, object]] = {}
     status: dict[str, str] = {}
-    for provider, url, params in providers:
-        try:
-            response = requests.get(
-                url,
-                params=params,
-                timeout=HTTP_TIMEOUT_SECONDS,
-                headers={"User-Agent": "ArchipelagoResearch/1.0 (academic discovery)"},
-            )
-            response.raise_for_status()
-            payload = response.json()
-            items = (
-                payload.get("results", [])
-                if provider == "OpenAlex"
-                else payload.get("message", {}).get("items", [])
-            )
-            if not isinstance(items, list):
-                raise ValueError("Unexpected provider response")
-            for item in items:
-                if not isinstance(item, dict):
-                    continue
+
+    def _fetch_rest_provider(
+        provider: str, url: str, params: dict[str, str | int]
+    ) -> tuple[int, list[dict[str, object]]]:
+        response = requests.get(
+            url,
+            params=params,
+            timeout=HTTP_TIMEOUT_SECONDS,
+            headers={"User-Agent": "ArchipelagoResearch/1.0 (academic discovery)"},
+        )
+        response.raise_for_status()
+        payload = response.json()
+        items = (
+            payload.get("results", [])
+            if provider == "OpenAlex"
+            else payload.get("message", {}).get("items", [])
+        )
+        if not isinstance(items, list):
+            raise ValueError("Unexpected provider response")
+        rows: list[dict[str, object]] = []
+        for item in items:
+            if isinstance(item, dict):
                 record = _paper_record(item, provider, topic, user_id)
                 if record:
-                    key = str(record["record_key"])
-                    previous = records.get(key)
-                    if not previous or len(str(record["content"])) > len(str(previous["content"])):
-                        records[key] = record
-            status[provider] = f"ok: {len(items)} fetched"
-        except (requests.RequestException, ValueError, TypeError, AttributeError) as exc:
-            status[provider] = f"unavailable: {type(exc).__name__}"
+                    rows.append(record)
+        return len(items), rows
+
     additional = (
         ("arXiv", arxiv_papers),
         ("Europe PMC", europe_pmc_papers),
         ("Semantic Scholar", semantic_scholar_papers),
     )
-    with ThreadPoolExecutor(max_workers=len(additional)) as pool:
-        futures = [(name, pool.submit(fetch, topic, user_id)) for name, fetch in additional]
-        for name, future in futures:
+    with ThreadPoolExecutor(max_workers=len(providers) + len(additional)) as pool:
+        rest_futures = [
+            (provider, pool.submit(_fetch_rest_provider, provider, url, params))
+            for provider, url, params in providers
+        ]
+        add_futures = [(name, pool.submit(fetch, topic, user_id)) for name, fetch in additional]
+        for provider, future in rest_futures:
+            try:
+                raw_count, rows = future.result()
+                for record in rows:
+                    key = str(record["record_key"])
+                    previous = records.get(key)
+                    if not previous or len(str(record["content"])) > len(str(previous["content"])):
+                        records[key] = record
+                status[provider] = f"ok: {raw_count} fetched"
+            except (requests.RequestException, ValueError, TypeError, AttributeError) as exc:
+                status[provider] = f"unavailable: {type(exc).__name__}"
+        for name, future in add_futures:
             try:
                 rows = future.result()
                 for record in rows:

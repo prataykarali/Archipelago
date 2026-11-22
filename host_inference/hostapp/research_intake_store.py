@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import atexit
 import json
 import os
 import re
+import threading
 from typing import Any
 
 import requests
@@ -20,6 +22,38 @@ SEARCH_RECORD_LIMIT = 150
 TOPIC_PAGE_SIZE = 500
 MAX_TOPIC_ROWS = 10000
 RECENT_PAPER_SCAN = 40
+_SESSION_LOCK = threading.Lock()
+_SESSION: requests.Session | None = requests.Session()
+
+
+def _http_get(url: str, **kwargs: Any) -> requests.Response:
+    if getattr(requests.get, "__module__", "") != "requests.api":
+        return requests.get(url, **kwargs)
+    with _SESSION_LOCK:
+        session = _SESSION
+    if session is not None:
+        return session.get(url, **kwargs)
+    return requests.get(url, **kwargs)
+
+
+def _http_post(url: str, **kwargs: Any) -> requests.Response:
+    if getattr(requests.post, "__module__", "") != "requests.api":
+        return requests.post(url, **kwargs)
+    with _SESSION_LOCK:
+        session = _SESSION
+    if session is not None:
+        return session.post(url, **kwargs)
+    return requests.post(url, **kwargs)
+
+
+def _http_patch(url: str, **kwargs: Any) -> requests.Response:
+    if getattr(requests.patch, "__module__", "") != "requests.api":
+        return requests.patch(url, **kwargs)
+    with _SESSION_LOCK:
+        session = _SESSION
+    if session is not None:
+        return session.patch(url, **kwargs)
+    return requests.patch(url, **kwargs)
 SEARCH_WORD = re.compile(r"[a-z0-9]{3,}", re.IGNORECASE)
 SEARCH_STOPWORDS = frozenset(
     {
@@ -73,7 +107,7 @@ def save_records(records: list[dict[str, object]]) -> int:
     if not records:
         return 0
     endpoint, headers = _endpoint()
-    response = requests.post(
+    response = _http_post(
         endpoint,
         params={"on_conflict": "record_key"},
         data=json.dumps(records),
@@ -96,7 +130,7 @@ def list_records(kind: str | None = None, topic: str | None = None) -> list[dict
         params["kind"] = f"eq.{kind}"
     if topic:
         params["topic"] = f"eq.{topic}"
-    response = requests.get(endpoint, params=params, headers=headers, timeout=STORE_TIMEOUT_SECONDS)
+    response = _http_get(endpoint, params=params, headers=headers, timeout=STORE_TIMEOUT_SECONDS)
     response.raise_for_status()
     rows = response.json()
     if not isinstance(rows, list):
@@ -107,7 +141,7 @@ def list_records(kind: str | None = None, topic: str | None = None) -> list[dict
 def get_record(record_key: str) -> dict[str, Any] | None:
     """Read one saved source by its stable key."""
     endpoint, headers = _endpoint()
-    response = requests.get(
+    response = _http_get(
         endpoint,
         params={"select": RECORD_COLUMNS, "record_key": f"eq.{record_key}", "limit": 1},
         headers=headers,
@@ -142,7 +176,7 @@ def retire_record(row: dict[str, Any], checked_at: str) -> None:
     """Remove a confirmed missing campus page from active graph and retrieval."""
     endpoint, headers = _endpoint()
     metadata = {**row.get("metadata", {}), "active": False, "retired_at": checked_at}
-    response = requests.patch(
+    response = _http_patch(
         endpoint,
         params={"record_key": f"eq.{row['record_key']}"},
         data=json.dumps({"metadata": metadata}),
@@ -157,7 +191,7 @@ def list_graph_records(*, include_inactive: bool = False) -> tuple[list[dict[str
     endpoint, headers = _endpoint()
     rows: list[dict[str, Any]] = []
     while len(rows) < GRAPH_MAX_RECORDS:
-        response = requests.get(
+        response = _http_get(
             endpoint,
             params={
                 "select": RECORD_COLUMNS,
@@ -199,7 +233,7 @@ def search_records(query: str, kind: str | None = "paper") -> list[dict[str, Any
     }
     if kind:
         params["kind"] = f"eq.{kind}"
-    response = requests.get(
+    response = _http_get(
         endpoint,
         params=params,
         headers=headers,
@@ -217,7 +251,7 @@ def count_records() -> dict[str, int]:
     endpoint, headers = _endpoint()
     counts: dict[str, int] = {}
     for kind in COUNT_KINDS:
-        response = requests.get(
+        response = _http_get(
             endpoint,
             params={"select": "id", "kind": f"eq.{kind}", "limit": 1},
             headers={**headers, "Prefer": "count=exact"},
@@ -240,7 +274,7 @@ def list_topic_inventory(max_rows: int = MAX_TOPIC_ROWS) -> list[dict[str, Any]]
     rows: list[dict[str, Any]] = []
     while len(rows) < max_rows:
         page_size = min(TOPIC_PAGE_SIZE, max_rows - len(rows))
-        response = requests.get(
+        response = _http_get(
             f"{url}/rest/v1/research_topic_inventory",
             params={
                 "select": "topic,paper_count,last_ingested_at",
@@ -264,7 +298,7 @@ def list_topic_inventory(max_rows: int = MAX_TOPIC_ROWS) -> list[dict[str, Any]]
 def recent_papers(limit: int = 8) -> list[dict[str, Any]]:
     """Return source links and titles for the public library activity panel."""
     endpoint, headers = _endpoint()
-    response = requests.get(
+    response = _http_get(
         endpoint,
         params={
             "select": "title,topic,source_url,source_name,updated_at,metadata",
@@ -296,3 +330,30 @@ def recent_papers(limit: int = 8) -> list[dict[str, Any]]:
         if len(papers) == limit:
             break
     return papers
+
+
+def shutdown() -> None:
+    """Close pooled HTTP session on process shutdown."""
+    global _SESSION
+    with _SESSION_LOCK:
+        session, _SESSION = _SESSION, None
+    if session is not None:
+        try:
+            session.close()
+        except Exception:
+            pass
+
+
+def _register_shutdown() -> None:
+    atexit.register(shutdown)
+    try:
+        from . import runtime_state
+
+        reg = getattr(runtime_state, "register_shutdown_callback", None)
+        if callable(reg):
+            reg(shutdown)
+    except Exception:
+        pass
+
+
+_register_shutdown()

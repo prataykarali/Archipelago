@@ -10,7 +10,18 @@ from __future__ import annotations
 
 import os
 
-from archipelago.api.app import app
+if os.environ.get("VERCEL"):
+    from pathlib import Path
+    import sys
+
+    _host_dir = Path(__file__).resolve().parent / "host_inference"
+    if str(_host_dir) not in sys.path:
+        sys.path.insert(0, str(_host_dir))
+    from vercel_wsgi import create_vercel_app
+
+    app = create_vercel_app()
+else:
+    from archipelago.api.app import app
 
 __all__ = ["app"]
 

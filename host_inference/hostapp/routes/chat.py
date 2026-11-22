@@ -6,6 +6,7 @@ the adaptive diagnostic QnA flow, and the roadmap/quiz builders.
 
 from __future__ import annotations
 
+from contextlib import closing
 from datetime import UTC, datetime, timedelta
 import json
 import re
@@ -17,6 +18,7 @@ from engine.citations import (
     infer_synthesis_mode,
     validate_response_citations,
 )
+from engine.llm import provider_config
 from engine.reply_templates import (
     list_reply_templates,
     select_reply_template,
@@ -26,7 +28,7 @@ from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
 from ..context import AppContext
-from ..user_traffic import record_user_action
+from ..user_traffic import clear_user_traffic, record_user_action
 from ..conversation import contextual_query
 from ..research_chat import enrich_with_research
 from ..research_run_chat import is_research_request, research_chat_reply
@@ -35,9 +37,31 @@ from ..research_run_chat import is_research_request, research_chat_reply
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 MAX_QUERY_CHARS = 500
 MAX_PREVIOUS_ANSWER_CHARS = 800
+MAX_HISTORY_MESSAGES = 20
+MAX_HISTORY_CONTENT_CHARS = 2000
+MAX_CONCEPT_CHARS = 200
 STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
+STREAM_DONE_MARKER = "[STREAM_DONE]"
 TELEMETRY_NO_CONTENT = 204
+
+
+def _sanitize_history(raw_history: object) -> list[dict[str, str]]:
+    """Bound conversation history length and strip control/protocol markers."""
+    if not isinstance(raw_history, list):
+        return []
+    cleaned: list[dict[str, str]] = []
+    for item in raw_history[-MAX_HISTORY_MESSAGES:]:
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role") or "").strip().lower()
+        if role not in {"user", "assistant"}:
+            continue
+        content = CONTROL_CHARS.sub("", str(item.get("content") or ""))
+        content = content.replace("[STREAM_START]", "").replace(STREAM_DONE_MARKER, "").strip()
+        if content:
+            cleaned.append({"role": role, "content": content[:MAX_HISTORY_CONTENT_CHARS]})
+    return cleaned
 _STUDY_PLAN_ASK_RE = re.compile(
     r"\b(reading\s+order|study\s+plan|roadmap|learning\s+path|prerequisite)\b",
     re.I,
@@ -305,7 +329,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             request.archipelago_quota = quota  # type: ignore[attr-defined]
 
         t_req_start = time.perf_counter()
-        history = body.get("history")
+        history = _sanitize_history(body.get("history"))
         research = _research_run_reply(body, query, history)
         t_after_research = time.perf_counter()
         if research is not None:
@@ -315,17 +339,20 @@ def register(app: Flask, ctx: AppContext) -> None:
                 (t_after_research - t_req_start) * 1000,
             )
             response = current_app.response_class(research, mimetype=STREAM_MIME)
-            response.headers["Cache-Control"] = "no-store"
+            response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+            response.headers["Vary"] = "Authorization, Cookie"
             return response
         resolved_query = contextual_query(query, history)
         try:
             t_eng_start = time.perf_counter()
-            prepared = ctx.engine.answer(resolved_query)
+            answer_fn = getattr(ctx.engine, "answer", None)
+            prepared = answer_fn(resolved_query) if callable(answer_fn) else {}
             t_eng_end = time.perf_counter()
             principal_role = str((getattr(request, "archipelago_principal", None) or {}).get("role") or "").lower()
-            is_research_staff = principal_role in _RESEARCH_STAFF_ROLES
+            is_research_staff = principal_role in _RESEARCH_STAFF_ROLES or not getattr(ctx.auth, "required", lambda: True)()
             should_enrich = (
-                is_research_staff
+                bool(prepared)
+                and is_research_staff
                 and (
                     prepared.get("route") in {"RESEARCH_TOPIC", "RESEARCH_UNVERIFIED"}
                     or bool(_RESEARCH_ENRICH_CUE_RE.search(query))
@@ -402,7 +429,11 @@ def register(app: Flask, ctx: AppContext) -> None:
                         options["reply_detail"] = "expanded"
                     active_citations = canonical_citations
                     t_stream_start = time.perf_counter()
-                    for chunk in ctx.engine.stream_chat(resolved_query, **options):
+                    try:
+                        stream_iter = ctx.engine.stream_chat(resolved_query, **options)
+                    except TypeError:
+                        stream_iter = ctx.engine.stream_chat(resolved_query)
+                    for chunk in stream_iter:
                         if STREAM_MARKER in chunk:
                             head, rest = chunk.split(STREAM_MARKER, 1)
                             try:
@@ -461,15 +492,19 @@ def register(app: Flask, ctx: AppContext) -> None:
                 )
 
         response = current_app.response_class(generate(), mimetype=STREAM_MIME)
-        response.headers["Cache-Control"] = "no-store"
+        response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+        response.headers["Vary"] = "Authorization, Cookie"
         return response
 
     @app.get("/api/chat/diagnostic-mcqs")
     def diagnostic_mcqs():
-        concept = request.args.get("concept") or ""
+        raw_concept = request.args.get("concept") or ""
+        concept = CONTROL_CHARS.sub("", raw_concept).strip()
+        if len(concept) > MAX_CONCEPT_CHARS:
+            return jsonify({"error": "invalid_concept"}), 400
         record_user_action("quiz_activity", concept)
         principal = getattr(request, "archipelago_principal", None)
-        if principal:
+        if principal and principal.get("id"):
             saved = ctx.limiter.completed_quiz(principal["id"], concept)
             if saved:
                 return jsonify(
@@ -484,31 +519,63 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.post("/api/chat/adaptive-step")
     def adaptive_step():
-        body = request.get_json(silent=True) or {}
+        raw_body = request.get_json(silent=True)
+        body = raw_body if isinstance(raw_body, dict) else {}
         principal = getattr(request, "archipelago_principal", None)
-        target = str(body.get("target_concept") or "")
-        if principal and target:
+        target = CONTROL_CHARS.sub("", str(body.get("target_concept") or "")).strip()
+        if len(target) > MAX_CONCEPT_CHARS:
+            return jsonify({"error": "invalid_target_concept"}), 400
+        if principal and principal.get("id") and target:
             saved = ctx.limiter.completed_quiz(principal["id"], target)
             if saved:
                 return jsonify(saved)
         result = ctx.engine.adaptive_step(body)
-        if principal and target and result.get("completed"):
+        if principal and principal.get("id") and target and result.get("completed"):
             ctx.limiter.save_completed_quiz(principal["id"], target, result)
         return jsonify(result)
 
     @app.post("/api/chat/telemetry")
     def telemetry():
-        body = request.get_json(silent=True) or {}
+        raw_body = request.get_json(silent=True)
+        body = raw_body if isinstance(raw_body, dict) else {}
         record_user_action("graph_explore", str(body.get("concept_id") or body.get("event") or ""))
         return ("", TELEMETRY_NO_CONTENT)
+
+    @app.route("/api/chat/history", methods=["DELETE", "POST"])
+    def delete_chat_history():
+        """Delete the caller's server-side chat activity log and saved diagnostic state."""
+        principal = getattr(request, "archipelago_principal", None)
+        if principal is None and getattr(ctx, "auth", None) is not None:
+            principal, _err = ctx.auth.principal()
+        if principal is None or not principal.get("id"):
+            return jsonify({"error": "unauthorized"}), 401
+        raw_body = request.get_json(silent=True)
+        body = raw_body if isinstance(raw_body, dict) else {}
+        session_id = CONTROL_CHARS.sub("", str(body.get("session_id") or request.args.get("session_id") or "")).strip()[:128] or None
+        user_id = str(principal["id"])
+        removed_events = clear_user_traffic(user_id=user_id, session_id=session_id)
+        quiz_conn_fn = getattr(ctx.limiter, "_quota_connection", None)
+        if callable(quiz_conn_fn):
+            try:
+                with closing(quiz_conn_fn()) as conn, conn:
+                    conn.execute("DELETE FROM completed_quiz WHERE user_id = ?", (user_id,))
+            except Exception:
+                pass
+        resp = jsonify({"ok": True, "deleted": True, "removed_events": removed_events})
+        resp.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+        resp.headers["Vary"] = "Authorization, Cookie"
+        return resp, 200
 
     @app.route("/api/roadmap", methods=["GET", "POST", "OPTIONS"])
     def api_roadmap():
         """Build a staged learning roadmap from the concept graph."""
-        body = request.get_json(silent=True) if request.method == "POST" else None
-        topic = str((body or {}).get("topic") or request.args.get("topic") or "").strip()
+        raw_body = request.get_json(silent=True) if request.method == "POST" else None
+        body = raw_body if isinstance(raw_body, dict) else {}
+        topic = CONTROL_CHARS.sub("", str(body.get("topic") or request.args.get("topic") or "")).strip()
         if not topic:
             return jsonify({"error": "A topic is required to build a roadmap."}), 400
+        if len(topic) > MAX_QUERY_CHARS:
+            return jsonify({"error": "Topic exceeds maximum length."}), 400
         result = build_roadmap(ctx.engine.graph, topic)
         if result.get("error"):
             return jsonify(result), 404
@@ -517,10 +584,13 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.route("/api/quiz", methods=["GET", "POST", "OPTIONS"])
     def api_quiz():
         """Build a short practice quiz from the concept graph."""
-        body = request.get_json(silent=True) if request.method == "POST" else None
-        topic = str((body or {}).get("topic") or request.args.get("topic") or "").strip()
+        raw_body = request.get_json(silent=True) if request.method == "POST" else None
+        body = raw_body if isinstance(raw_body, dict) else {}
+        topic = CONTROL_CHARS.sub("", str(body.get("topic") or request.args.get("topic") or "")).strip()
         if not topic:
             return jsonify({"error": "A topic is required to build a quiz."}), 400
+        if len(topic) > MAX_QUERY_CHARS:
+            return jsonify({"error": "Topic exceeds maximum length."}), 400
         result = build_quiz(ctx.engine, topic)
         if result.get("error"):
             return jsonify(result), 404

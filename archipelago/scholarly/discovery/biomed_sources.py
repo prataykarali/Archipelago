@@ -69,6 +69,8 @@ def search_europe_pmc(session: requests.Session, query: str, limit: int) -> dict
         full_urls = (item.get("fullTextUrlList") or {}).get("fullTextUrl") or []
         oa_url = next((u.get("url") for u in full_urls if isinstance(u, dict) and u.get("url")), None)
         url = oa_url or (f"https://europepmc.org/article/MED/{pmid}" if pmid else None)
+        pub_type_raw = str(item.get("pubType") or "").casefold()
+        is_preprint = "preprint" in pub_type_raw or (doi or "").startswith(("10.21203/rs.", "10.1101/", "10.48550/arxiv."))
         paper = PaperRecord(
             title=title,
             identifiers=PaperIdentifiers(doi=doi, pmid=pmid, pmcid=pmcid),
@@ -76,7 +78,7 @@ def search_europe_pmc(session: requests.Session, query: str, limit: int) -> dict
             authors=authors,
             venue=str(item.get("journalTitle") or "").strip() or None,
             publication_date=str(item.get("firstPublicationDate") or item.get("pubYear") or "").strip() or None,
-            publication_type="journal-article",
+            publication_type="preprint" if is_preprint else "journal-article",
             is_open_access=(str(item.get("isOpenAccess") or "").upper() == "Y"),
             oa_url=oa_url,
         )

@@ -1,6 +1,6 @@
 {
-  "last_run_timestamp": "2026-11-11T06:30:02.007582+00:00",
-  "duration_seconds": 21.12,
+  "last_run_timestamp": "2026-11-18T18:30:01.996015+00:00",
+  "duration_seconds": 29.24,
   "topics_processed": 5,
   "total_canonical_records": 40,
   "new_slm_training_pairs": 0,
@@ -203,7 +203,7 @@
       "repo_id": "Prataykarali/graphier"
     },
     "vercel": {
-      "timestamp": "2026-11-11T06:30:17Z",
+      "timestamp": "2026-11-18T18:30:22Z",
       "vercel_url": "https://archipelago-blond.vercel.app",
       "manifest_prepared": true,
       "deploy_hook_triggered": false,

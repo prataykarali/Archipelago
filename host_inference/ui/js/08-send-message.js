@@ -27,6 +27,10 @@ import { resetChatUi } from './08-stream-cleanup.js';
             const inputVal = (inputEl ? inputEl.value : '').trim();
             if (!inputVal) return;
 
+            // Increment request sequence to guard against race conditions or out-of-order streams
+            state.currentQuerySequence = (state.currentQuerySequence || 0) + 1;
+            const thisQuerySequence = state.currentQuerySequence;
+
             if (!state.conversationSessionId) {
                 state.conversationSessionId = 'session_' + Date.now();
             }
@@ -332,6 +336,10 @@ import { resetChatUi } from './08-stream-cleanup.js';
 
                 while (true) {
                     const { done, value } = await reader.read();
+                    if (thisQuerySequence !== state.currentQuerySequence) {
+                        try { await reader.cancel(); } catch (_) {}
+                        return;
+                    }
                     armStreamIdleWatchdog();
                     if (done) {
                         if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);

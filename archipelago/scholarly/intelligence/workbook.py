@@ -21,23 +21,85 @@ NA = "PROVIDER_FIELD_ABSENT"
 LICENSE_RESTRICTED = "LICENSE_RESTRICTED"
 HEADERS = {
     "Papers": [
-        "Paper ID", "Title", "Year", "Publication date", "DOI", "URL", "arXiv ID",
-        "OpenAlex ID", "Semantic Scholar ID", "Publication type", "Authors", "Author IDs",
-        "Keywords and topics", "Research field", "Methods", "Datasets", "Evaluation metrics",
-        "Abstract", "Venue ID", "Venue", "Publisher", "Citations", "Citation provider",
-        "Open access", "License", "Retrieved at", "Evidence status",
+        "Paper ID",
+        "Title",
+        "Year",
+        "Publication date",
+        "DOI",
+        "URL",
+        "arXiv ID",
+        "OpenAlex ID",
+        "Semantic Scholar ID",
+        "Publication type",
+        "Authors",
+        "Author IDs",
+        "Keywords and topics",
+        "Research field",
+        "Methods",
+        "Datasets",
+        "Evaluation metrics",
+        "Abstract",
+        "Venue ID",
+        "Venue",
+        "Publisher",
+        "Citations",
+        "Citation provider",
+        "Open access",
+        "License",
+        "Retrieved at",
+        "Evidence status",
+        "Citations per year",
+        "FWCI",
+        "Published vs Preprint",
+        "First online date",
+        "Google Research status",
+        "Google Scholar URL",
     ],
     "Authors": [
-        "Author ID", "Name", "ORCID", "OpenAlex ID", "Semantic Scholar ID",
-        "Affiliations (paper metadata)", "Provider affiliations", "Identity status",
-        "Publication count", "Citation count", "h-index", "i10-index",
-        "Primary research fields", "Representative papers", "Coauthor IDs",
-        "Profile URL", "Source", "Metric definition", "Coverage", "Observed at",
+        "Author ID",
+        "Name",
+        "ORCID",
+        "OpenAlex ID",
+        "Semantic Scholar ID",
+        "Affiliations (paper metadata)",
+        "Provider affiliations",
+        "Identity status",
+        "Publication count",
+        "Citation count",
+        "h-index",
+        "i10-index",
+        "Primary research fields",
+        "Representative papers",
+        "Coauthor IDs",
+        "Profile URL",
+        "Source",
+        "Metric definition",
+        "Coverage",
+        "Observed at",
+        "Current/last-known affiliation",
+        "Google Scholar search",
+        "Google Scholar profile",
+        "Identity confidence",
     ],
     "Venues": [
-        "Venue ID", "Name", "Type", "Publisher", "ISSN", "Subject areas", "Open access",
-        "Venue URL", "Journal Impact Factor", "CiteScore", "SJR", "CORE classification",
-        "Other metrics", "Metric source", "Provider", "Retrieved at", "Paper IDs",
+        "Venue ID",
+        "Name",
+        "Type",
+        "Publisher",
+        "ISSN",
+        "Subject areas",
+        "Open access",
+        "Venue URL",
+        "Journal Impact Factor",
+        "CiteScore",
+        "SJR",
+        "CORE classification",
+        "Other metrics",
+        "Metric source",
+        "Provider",
+        "Retrieved at",
+        "Paper IDs",
+        "Venue category",
     ],
     "References": [
         "Source paper ID",
@@ -97,8 +159,20 @@ def _metric(value: Any, missing_reason: str = NA) -> Any:
     return missing_reason if value is None else value
 
 
-def build_workbook(run: dict[str, Any]) -> BytesIO:
-    """Build typed, source-linked sheets without filling unknown metrics."""
+def build_workbook(run: dict[str, Any], mode: str = "standard") -> BytesIO:
+    """Build either the 5-sheet Standard Export (default) or 14-sheet Advanced Technical Export."""
+    normalized_mode = (mode or "standard").strip().casefold()
+    if normalized_mode == "standard":
+        from .workbook_rankable import build_rankable_workbook
+
+        return build_rankable_workbook(run)
+    if normalized_mode != "advanced":
+        raise ValueError("invalid_export_mode")
+    return _build_advanced_workbook(run)
+
+
+def _build_advanced_workbook(run: dict[str, Any]) -> BytesIO:
+    """Build typed, source-linked 14-sheet technical sheets without filling unknown metrics."""
     book = Workbook()
     default_sheet = book.active
     if default_sheet is not None:
@@ -127,11 +201,21 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         if edge["type"] == "COAUTHORED_WITH":
             coauthors.setdefault(edge["source"], set()).add(edge["target"])
             coauthors.setdefault(edge["target"], set()).add(edge["source"])
-    by_openalex = {
-        p["identifiers"].get("openalex_id"): p
-        for p in run["papers"]
-        if p["identifiers"].get("openalex_id")
-    }
+    by_known: dict[str, dict[str, Any]] = {}
+    for p in run["papers"]:
+        pids = p.get("identifiers") or {}
+        for k in (
+            pids.get("openalex_id"),
+            str(pids.get("openalex_id") or "").rsplit("/", 1)[-1],
+            pids.get("semantic_scholar_id"),
+        ):
+            if k:
+                by_known[str(k)] = p
+        d = pids.get("doi") or p.get("doi")
+        if d:
+            dn = str(d).strip().casefold().removeprefix("https://doi.org/")
+            by_known[dn] = p
+            by_known[f"https://doi.org/{dn}"] = p
     observations = {row["id"]: row for row in run.get("author_observations", [])}
     statuses = {s.get("source"): s.get("status") for s in run.get("sources", [])}
     authors: dict[str, dict[str, Any]] = {}
@@ -164,7 +248,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 _names(paper.get("methods") or []),
                 _names(paper.get("datasets") or []),
                 _names(paper.get("evaluation_metrics") or []),
-                paper["abstract"],
+                paper.get("abstract"),
                 vid,
                 paper["venue"],
                 paper.get("publisher") or evidence.get("publisher"),
@@ -174,6 +258,12 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 paper.get("license"),
                 paper.get("retrieved_at") or run["retrieved_at"],
                 paper["evidence_status"],
+                paper.get("citations_per_year"),
+                paper.get("fwci"),
+                paper.get("published_vs_preprint"),
+                _date(paper.get("first_online_date")),
+                ", ".join((paper.get("google_research") or {}).get("classifications") or ["NONE"]),
+                paper.get("google_scholar_url"),
             ],
         )
         sheets["Papers"].cell(sheets["Papers"].max_row, 4).number_format = "yyyy-mm-dd"
@@ -187,7 +277,15 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         if vid:
             venues.setdefault(vid, {"paper": paper, "papers": []})["papers"].append(paper)
         for reference in paper["references"]:
-            cited = by_openalex.get(reference) if isinstance(reference, str) else None
+            cited = (
+                (
+                    by_known.get(reference)
+                    or by_known.get(reference.rsplit("/", 1)[-1])
+                    or by_known.get(reference.strip().casefold().removeprefix("https://doi.org/"))
+                )
+                if isinstance(reference, str)
+                else None
+            )
             add(
                 "References",
                 [
@@ -202,6 +300,11 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         providers = sorted(
             {s.get("source_type") for s in paper["provenance"] if s.get("source_type")}
         )
+        rel = paper.get("relevance_classification") or {}
+        membership_basis = (
+            f"{rel.get('rule_version', 'archipelago.relevance.v2')}: "
+            f"{rel.get('label', 'RELEVANT')} ({paper.get('eligibility_reason') or rel.get('reason') or 'semantic_match'})"
+        )
         add(
             "Topic_Results",
             [
@@ -209,7 +312,7 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 pid,
                 paper.get("collection_order") or paper.get("rank"),
                 run.get("ordering"),
-                "Topic terms present in provider title, abstract or fields",
+                membership_basis,
                 "; ".join(providers),
                 "; ".join(f"{p}={statuses.get(p, 'unknown')}" for p in providers),
                 paper.get("retrieved_at") or run["retrieved_at"],
@@ -225,10 +328,10 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                     source.get("fetched_at"),
                     paper.get("license")
                     or ("open access" if paper.get("is_open_access") else None),
-                    paper["evidence_status"],
+                    f"{paper['evidence_status']} | id={source.get('source_record_id') or 'n/a'} | {source.get('contribution_type') or 'discovery'}",
                 ],
             )
-        if not paper["abstract"]:
+        if not paper.get("abstract"):
             add("Errors_Review", [pid, "abstract_unavailable", "No abstract in provider response"])
         if paper.get("retraction_status") is True:
             add("Errors_Review", [pid, "retracted", "Provider marked work retracted"])
@@ -241,50 +344,95 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
     for key, entry in authors.items():
         author = entry["author"]
         source_paper = entry["source_paper"]
-        provider_ids = (source_paper.get("source_metadata") or {}).get("author_openalex_ids") or []
+        smeta = source_paper.get("source_metadata") or {}
+        provider_ids = smeta.get("author_openalex_ids") or []
         provider_id = provider_ids[entry["index"]] if entry["index"] < len(provider_ids) else None
-        short = provider_id.rsplit("/", 1)[-1] if provider_id else None
-        observation = observations.get(short or "", {})
-        metrics = observation.get("metrics") or {}
-        missing_status = (
-            observation.get("enrichment_status")
-            if observation
-            else ("ENRICHMENT_PENDING" if short else "IDENTITY_UNRESOLVED")
+        s2_ids = smeta.get("author_s2_ids") or []
+        s2_id = s2_ids[entry["index"]] if entry["index"] < len(s2_ids) else None
+        short = (
+            provider_id.rsplit("/", 1)[-1] if provider_id else (f"s2:{s2_id}" if s2_id else None)
         )
-        if missing_status == "AVAILABLE":
-            missing_status = "PROVIDER_FIELD_ABSENT"
+        orcid_raw = str(author.get("orcid") or "").rsplit("/", 1)[-1]
+        matched_obs: list[dict[str, Any]] = []
+        for candidate_key in (
+            provider_id.rsplit("/", 1)[-1] if provider_id else None,
+            f"s2:{s2_id}" if s2_id else None,
+            f"orcid:{orcid_raw}" if orcid_raw else None,
+        ):
+            if candidate_key and candidate_key in observations:
+                matched_obs.append(observations[candidate_key])
         fields = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:3]})
-        author_rows_meta.append({"key": key, "short": short})
-        add(
-            "Authors",
-            [
-                key,
-                observation.get("name") or author["name"],
-                observation.get("orcid") or author.get("orcid"),
-                provider_id,
-                None,
-                "; ".join(author.get("institutions") or []),
-                "; ".join(
-                    str(a["institution"])
-                    for a in observation.get("affiliations") or []
-                    if a.get("institution")
-                ),
-                observation.get("identity_status")
-                or ("provider_linked" if provider_id else "unverified_name_only"),
-                _metric(metrics.get("publication_count"), missing_status),
-                _metric(metrics.get("citation_count"), missing_status),
-                _metric(metrics.get("h_index"), missing_status),
-                _metric(metrics.get("i10_index"), missing_status),
-                "; ".join(observation.get("topics") or fields),
-                "; ".join(p["paper_id"] for p in entry["papers"][:3]),
-                "; ".join(sorted(coauthors.get(key, ()))),
-                f"https://openalex.org/{short}" if short else None,
-                observation.get("provider") or "paper metadata",
-                metrics.get("definition"),
-                metrics.get("coverage"),
-                observation.get("retrieved_at"),
-            ],
-        )
+        rows_to_emit = matched_obs or [{}]
+        for observation in rows_to_emit:
+            metrics = observation.get("metrics") or {}
+            missing_status = (
+                observation.get("enrichment_status")
+                if observation
+                else ("ENRICHMENT_PENDING" if short else "IDENTITY_UNRESOLVED")
+            )
+            if missing_status == "AVAILABLE":
+                missing_status = "PROVIDER_FIELD_ABSENT"
+            obs_short = observation.get("id") or short
+            author_rows_meta.append({"key": key, "short": obs_short, "obs": observation})
+            profile_url = (
+                observation.get("source_url")
+                or (
+                    f"https://openalex.org/{short}"
+                    if short and not str(short).startswith(("s2:", "orcid:"))
+                    else None
+                )
+                or (f"https://www.semanticscholar.org/author/{s2_id}" if s2_id else None)
+                or (f"https://orcid.org/{orcid_raw}" if orcid_raw else None)
+            )
+            add(
+                "Authors",
+                [
+                    key,
+                    observation.get("name") or author["name"],
+                    observation.get("orcid") or author.get("orcid"),
+                    provider_id,
+                    s2_id,
+                    "; ".join(author.get("institutions") or []),
+                    "; ".join(
+                        str(a["institution"])
+                        for a in observation.get("affiliations") or []
+                        if a.get("institution")
+                    ),
+                    observation.get("identity_review_status")
+                    or observation.get("identity_status")
+                    or (
+                        "provider_linked"
+                        if (provider_id or s2_id or orcid_raw)
+                        else "unverified_name_only"
+                    ),
+                    _metric(metrics.get("publication_count"), missing_status),
+                    _metric(metrics.get("citation_count"), missing_status),
+                    _metric(metrics.get("h_index"), missing_status),
+                    _metric(metrics.get("i10_index"), missing_status),
+                    "; ".join(observation.get("topics") or fields),
+                    "; ".join(p["paper_id"] for p in entry["papers"][:3]),
+                    "; ".join(sorted(coauthors.get(key, ()))),
+                    profile_url,
+                    observation.get("provider") or "paper metadata",
+                    metrics.get("definition"),
+                    metrics.get("coverage"),
+                    observation.get("retrieved_at"),
+                    "; ".join(
+                        str(a["institution"])
+                        for a in observation.get("current_affiliations") or []
+                        if a.get("institution")
+                    )
+                    or None,
+                    observation.get("google_scholar_search_url"),
+                    observation.get("google_scholar_profile_url") or "NOT_AVAILABLE",
+                    observation.get("identity_confidence")
+                    or (
+                        "high_provider_id"
+                        if (provider_id or s2_id or orcid_raw)
+                        else "low_name_only"
+                    ),
+                ],
+            )
     for vid, entry in venues.items():
         paper = entry["paper"]
         details = paper.get("venue_details") or {}
@@ -294,7 +442,13 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         subjects = sorted({str(t) for p in entry["papers"] for t in (p.get("topics") or [])[:2]})
         other_parts = [
             f"{k}={details[k]}"
-            for k in ("openalex_2yr_mean_citedness", "h_index", "i10_index", "works_count", "is_in_doaj")
+            for k in (
+                "openalex_2yr_mean_citedness",
+                "h_index",
+                "i10_index",
+                "works_count",
+                "is_in_doaj",
+            )
             if details.get(k) is not None
         ]
         venue_rows_meta.append({"vid": vid, "details": details})
@@ -320,15 +474,32 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
                 details.get("provider"),
                 details.get("retrieved_at") or run["retrieved_at"],
                 "; ".join(p["paper_id"] for p in entry["papers"]),
+                details.get("venue_category"),
             ],
         )
     populate_extra_sheets(add, run, author_rows_meta, venue_rows_meta)
     for edge in graph["edges"]:
         if edge["type"] == "CITES":
-            add("Citation_Edges", [edge["source"].removeprefix("paper:"), edge["target"].removeprefix("paper:"), edge["provider"], "CITES"])
+            add(
+                "Citation_Edges",
+                [
+                    edge["source"].removeprefix("paper:"),
+                    edge["target"].removeprefix("paper:"),
+                    edge["provider"],
+                    "CITES",
+                ],
+            )
     kinds: dict[str, int] = {}
     for node in graph["nodes"]:
         kinds[node["kind"]] = kinds.get(node["kind"], 0) + 1
+    sort_meta = run.get("sort_metadata") or {}
+    prov_sel = run.get("provider_selection") or {}
+    enr_audit = run.get("enrichment_audit") or {}
+    failed_enr = {
+        p: v.get("failures", [])
+        for p, v in (enr_audit.get("providers") or {}).items()
+        if v.get("failures")
+    }
     manifest = {
         "topic": topic,
         "requested_count": run["options"].get("top_k"),
@@ -339,14 +510,23 @@ def build_workbook(run: dict[str, Any]) -> BytesIO:
         "filtered_count": run.get("filtered_count"),
         "selected_count": len(run["papers"]),
         "ordering": run.get("ordering"),
-        "ranking_policy": "No ranking or quality scores are computed; order is collection order only",
+        "sort_algorithm": sort_meta.get("selected") or run.get("ordering"),
+        "sort_version": sort_meta.get("version") or "archipelago.sort.v2",
+        "sort_definition": sort_meta.get("definition") or "Sorted by selected ordering",
+        "relevance_rule_version": "archipelago.relevance.v2",
+        "candidate_waterfall": json.dumps(prov_sel.get("waterfall", {}), sort_keys=True),
+        "source_contributions": json.dumps(
+            prov_sel.get("source_contributions", {}), sort_keys=True
+        ),
+        "failed_enrichment_requests": json.dumps(failed_enr, sort_keys=True),
+        "query_disambiguation": json.dumps(run.get("query_disambiguation") or {}, sort_keys=True),
         "provider_status": json.dumps(run.get("sources", []), sort_keys=True),
-        "provider_selection": json.dumps(run.get("provider_selection", {}), sort_keys=True),
+        "provider_selection": json.dumps(prov_sel, sort_keys=True),
         "google_scholar_link": run.get("google_scholar_url") or NA,
         "provider_versions": "unavailable from responses",
         "graph_nodes": json.dumps(kinds, sort_keys=True),
         "graph_edges": len(graph["edges"]),
-        "compatibility": "Topic_Rankings was replaced by Topic_Results (no scores)",
+        "compatibility": "14-sheet research intelligence workbook",
     }
     for key, value in manifest.items():
         add("Run_Manifest", [key, value])

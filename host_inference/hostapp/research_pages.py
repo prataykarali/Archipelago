@@ -11,20 +11,20 @@ from .config import UI
 PAGE_DETAILS = {
     "papers": ("Research", "Explore the research graph and ingest papers for a new topic."),
     "progress": ("Ingestion progress", "Follow your local research job and inspect its results."),
-    "topics": ("Research atlas", "Explore topics and their verified paper networks."),
+    "topics": ("Recent topics", "Open recent saved searches and their papers."),
     "paper": ("Paper OKF", "Source-backed observations for one research paper."),
     "topic": ("Topic dossier", "Source-backed overview of all saved papers for one topic."),
 }
 PAGE_SCRIPTS = {
-    "papers": ("research_intelligence.js",),
+    "papers": ("research_download.js", "research_intelligence.js"),
     "progress": ("research_progress.js",),
     "topics": ("research_topics.js",),
-    "paper": ("research_paper.js",),
-    "topic": ("research_topic.js",),
+    "paper": ("research_run_dossier.js", "research_paper.js"),
+    "topic": ("research_download.js", "research_run_dossier.js", "research_topic.js"),
 }
 SHELL = UI / "research_shell.html"
 FRAGMENTS = UI / "research_pages"
-ASSET_VERSION = "20261112s5"
+ASSET_VERSION = "20261122stages4"
 
 
 def render_research_page(page: str) -> Response:
@@ -32,13 +32,7 @@ def render_research_page(page: str) -> Response:
     title, subtitle = PAGE_DETAILS[page]
     shell = SHELL.read_text(encoding="utf-8")
     fragment = (FRAGMENTS / f"{page}.html").read_text(encoding="utf-8")
-    scripts = (
-        [
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js" defer></script>'
-        ]
-        if page == "topics"
-        else []
-    )
+    scripts: list[str] = []
     scripts.extend(
         f'<script src="/{name}?v={ASSET_VERSION}" defer></script>' for name in PAGE_SCRIPTS[page]
     )
@@ -49,4 +43,7 @@ def render_research_page(page: str) -> Response:
         .replace("__SCRIPTS__", "\n  ".join(scripts))
         .replace("__CONTENT__", fragment)
     )
-    return Response(html, mimetype="text/html")
+    response = Response(html, mimetype="text/html")
+    if page in {"papers", "topic"}:
+        response.cache_control.no_store = True
+    return response

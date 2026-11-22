@@ -3,6 +3,28 @@
 const s5 = id => document.getElementById(id);
 let activeRunId = null;
 const S5_STATE_KEY = 'archipelago_research_state_v1';
+let activeExcelController = null;
+let isExcelDownloadInFlight = false;
+const trackedExcelBlobUrls = new Set();
+
+function revokeExcelBlobUrl(url) {
+  if (!url || !trackedExcelBlobUrls.has(url)) return;
+  trackedExcelBlobUrls.delete(url);
+  try { URL.revokeObjectURL(url); } catch (_) {}
+}
+
+function cleanupResearchIntelligenceDownloads() {
+  if (activeExcelController) {
+    try { activeExcelController.abort(); } catch (_) {}
+    activeExcelController = null;
+  }
+  for (const url of Array.from(trackedExcelBlobUrls)) {
+    revokeExcelBlobUrl(url);
+  }
+}
+
+window.addEventListener('pagehide', cleanupResearchIntelligenceDownloads);
+window.addEventListener('beforeunload', cleanupResearchIntelligenceDownloads);
 
 function formatShortDate(iso) {
   if (!iso) return '';
@@ -61,25 +83,78 @@ function showRun(run) {
   s5('retrieved-at').textContent = `Retrieved ${run.retrieved_at} · ${run.candidate_count} provider candidates · ${run.filtered_count} after filters`;
   s5('provider-status').textContent = run.sources.map(source => `${source.source}: ${source.status} (${source.record_count})`).join(' · ');
   const excelLink = s5('excel-link');
-  excelLink.href = `/api/research/intelligence/runs/${activeRunId}/xlsx`;
+  const runIdForExport = activeRunId || run.run_id;
+  const exportEndpoint = `/api/research/intelligence/runs/${encodeURIComponent(runIdForExport)}/xlsx`;
+  const exportFilename = `archipelago-research-${String(runIdForExport).slice(0, 8)}.xlsx`;
+  if (activeExcelController) {
+    activeExcelController.abort();
+    activeExcelController = null;
+    isExcelDownloadInFlight = false;
+  }
+  const defaultExcelLabel = excelLink.dataset.defaultLabel || excelLink.textContent || 'Download Excel';
+  excelLink.dataset.defaultLabel = defaultExcelLabel;
+  excelLink.textContent = defaultExcelLabel;
+  excelLink.removeAttribute('aria-busy');
+  excelLink.removeAttribute('aria-disabled');
+  excelLink.href = exportEndpoint;
+  excelLink.download = exportFilename;
   excelLink.onclick = async event => {
     event.preventDefault();
-    const runId = activeRunId;
-    if (!runId) return;
+    if (!runIdForExport || isExcelDownloadInFlight) return;
+    isExcelDownloadInFlight = true;
+    const controller = new AbortController();
+    activeExcelController = controller;
+    excelLink.setAttribute('aria-busy', 'true');
+    excelLink.setAttribute('aria-disabled', 'true');
+    excelLink.textContent = 'Downloading Excel…';
     try {
-      const resp = await fetch(`/api/research/intelligence/runs/${runId}/xlsx`, { cache: 'no-store', credentials: 'include' });
-      if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
+      const resp = await fetch(exportEndpoint, {
+        cache: 'no-store',
+        credentials: 'same-origin',
+        signal: controller.signal,
+      });
+      if (resp.status === 401 || resp.status === 403) {
+        throw new Error('Your session has expired or you do not have access to this workbook. Please sign in again.');
+      }
+      if (!resp.ok) {
+        let errMsg = `Export failed (${resp.status})`;
+        try {
+          const errPayload = await resp.json();
+          if (errPayload?.error) errMsg = errPayload.error;
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
       const blob = await resp.blob();
+      if (!blob || blob.size < 4) throw new Error('Received an empty workbook.');
+      const sig = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
+      if (sig[0] !== 0x50 || sig[1] !== 0x4b) {
+        throw new Error('Received an invalid Excel workbook file.');
+      }
+      if (excelLink.dataset.blobUrl) {
+        revokeExcelBlobUrl(excelLink.dataset.blobUrl);
+        delete excelLink.dataset.blobUrl;
+      }
       const url = URL.createObjectURL(blob);
+      trackedExcelBlobUrls.add(url);
+      excelLink.dataset.blobUrl = url;
       const a = document.createElement('a');
       a.href = url;
-      a.download = `archipelago-research-${runId.slice(0, 8)}.xlsx`;
+      a.download = exportFilename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      setTimeout(() => revokeExcelBlobUrl(url), 10000);
     } catch (err) {
+      if (err?.name === 'AbortError') return;
       s5('provider-status').textContent = err.message || 'Could not download workbook.';
+    } finally {
+      if (activeExcelController === controller) {
+        activeExcelController = null;
+        isExcelDownloadInFlight = false;
+        excelLink.removeAttribute('aria-busy');
+        excelLink.removeAttribute('aria-disabled');
+        excelLink.textContent = defaultExcelLabel;
+      }
     }
   };
   const list = s5('paper-results');
@@ -283,29 +358,35 @@ async function loadUpdates() {
 }
 
 window.addEventListener('load', async () => {
-  if (!await window.archipelagoResearchReady) return;
+  const principal = await window.archipelagoResearchReady;
+  if (!principal) return;
   const savedRunId = restoreResearchForm();
-  await loadHistory();
-  if (savedRunId) {
+
+  const restoreSavedRun = async () => {
+    if (!savedRunId) return;
     try {
       s5('intelligence-status').textContent = 'Restoring your previous research view…';
       activeRunId = savedRunId;
-      const run = await s5Json(`/api/research/intelligence/runs/${savedRunId}`);
+      const run = await s5Json(`/api/research/intelligence/runs/${encodeURIComponent(savedRunId)}`);
       showRun(run);
       s5('intelligence-status').textContent = `Restored ${run.papers?.length || 0} papers.`;
     } catch (_) {
       activeRunId = null;
       s5('intelligence-status').textContent = 'Ready to search.';
     }
-  }
-  try {
-    const me = await s5Json('/api/auth/me');
-    if (['faculty', 'librarian', 'administrator'].includes(me.role)) {
-      s5('monitor-section').hidden = false;
-      await loadMonitors();
-      await loadUpdates();
-    }
-  } catch (_) { /* Monitoring remains unavailable without a verified role. */ }
+  };
+
+  const initMonitoring = async () => {
+    try {
+      const role = principal?.role || (await s5Json('/api/auth/me'))?.role;
+      if (['faculty', 'librarian', 'administrator'].includes(role)) {
+        s5('monitor-section').hidden = false;
+        await Promise.all([loadMonitors(), loadUpdates()]);
+      }
+    } catch (_) { /* Monitoring remains unavailable without a verified role. */ }
+  };
+
+  await Promise.all([loadHistory(), restoreSavedRun(), initMonitoring()]);
   s5('monitor-save').addEventListener('click', async () => {
     const options = currentSearchOptions();
     const topic = options.topic.trim();

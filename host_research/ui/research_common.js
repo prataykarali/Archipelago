@@ -5,10 +5,11 @@ window.archipelagoResearchReady = new Promise(resolve => {
   });
 });
 
-window.archipelagoResearchCounts = async () => {
+window.archipelagoResearchCounts = async ({ background = false, signal } = {}) => {
+  const headers = background ? { 'X-Background-Poll': '1' } : undefined;
   const [graphResponse, intakeResponse] = await Promise.all([
-    fetch('/api/research/graph/papers', { cache: 'no-store' }),
-    fetch('/api/research/intake/metrics', { cache: 'no-store' })
+    fetch('/api/research/graph/papers', { cache: 'no-store', headers, signal }),
+    fetch('/api/research/intake/metrics', { cache: 'no-store', headers, signal })
   ]);
   if (!graphResponse.ok || !intakeResponse.ok) throw new Error('Research counts are unavailable.');
   const graph = await graphResponse.json();

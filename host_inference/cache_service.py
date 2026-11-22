@@ -12,6 +12,8 @@ Implements doc 03_ai_call_minimization_caching.md:
 
 from __future__ import annotations
 
+import atexit
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 import hashlib
 import logging
@@ -33,6 +35,7 @@ DEFAULT_LIBRARY_VERSION = "2026.09"
 RESPONSE_TTL_SEC = 3600  # 1 hour
 RETRIEVAL_TTL_SEC = 1800  # 30 minutes
 GRAPH_TTL_SEC = 7200  # 2 hours
+MAX_MEM_CACHE_ENTRIES = 500
 
 
 class CacheMetrics:
@@ -127,6 +130,14 @@ class RequestDeduplicator:
             self._in_flight.pop(key, None)
             self._results.pop(key, None)
 
+    def shutdown(self) -> None:
+        """Unblock any waiting followers and clear in-flight tracking on shutdown."""
+        with self._lock:
+            for evt in self._in_flight.values():
+                evt.set()
+            self._in_flight.clear()
+            self._results.clear()
+
 
 class CacheService:
     """Thread-safe Supabase & in-memory cache manager implementing doc 03 specifications."""
@@ -148,16 +159,30 @@ class CacheService:
         self._mem_response: dict[str, dict[str, Any]] = {}
         self._mem_retrieval: dict[str, dict[str, Any]] = {}
         self._mem_graph: dict[str, dict[str, Any]] = {}
+        self._session: requests.Session | None = requests.Session()
+        self._executor: ThreadPoolExecutor | None = ThreadPoolExecutor(max_workers=2)
+        self._closed = False
 
         self.supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
         self.supabase_key = (
             os.environ.get("SUPABASE_SECRET_KEY")
             or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
             or os.environ.get("SUPABASE_SERVICE_KEY")
-            or os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
+            or ""
         ).strip()
         self.has_supabase = bool(self.supabase_url and self.supabase_key)
         self.supabase_table_available = True
+
+    @staticmethod
+    def _evict_if_full(store: dict[str, dict[str, Any]], now: float) -> None:
+        if len(store) < MAX_MEM_CACHE_ENTRIES:
+            return
+        expired = [k for k, v in store.items() if v.get("expires_at_epoch", 0) <= now]
+        for k in expired:
+            store.pop(k, None)
+        while len(store) >= MAX_MEM_CACHE_ENTRIES:
+            oldest_key = next(iter(store))
+            store.pop(oldest_key, None)
 
     # ─── Query Normalization (Doc 03 Section 5) ──────────────────────────
 
@@ -238,11 +263,12 @@ class CacheService:
                 return entry
 
         # 2. Supabase REST lookup if configured
-        if self.has_supabase and self.supabase_table_available:
+        if self.has_supabase and self.supabase_table_available and not self._closed:
             try:
                 url = f"{self.supabase_url}/rest/v1/ai_response_cache"
                 params = {"cache_key": f"eq.{cache_key}", "select": "*"}
-                resp = requests.get(url, headers=self._headers(), params=params, timeout=3.0)
+                getter = self._session.get if self._session is not None else requests.get
+                resp = getter(url, headers=self._headers(), params=params, timeout=3.0)
                 if resp.status_code == 200:
                     rows = resp.json()
                     if isinstance(rows, list) and rows:
@@ -255,6 +281,7 @@ class CacheService:
                                 # Populate local memory cache
                                 row["expires_at_epoch"] = exp_dt.timestamp()
                                 with self._lock:
+                                    self._evict_if_full(self._mem_response, now)
                                     self._mem_response[cache_key] = row
                                 return row
                         except Exception:
@@ -305,21 +332,28 @@ class CacheService:
 
         # 1. Update in-memory cache
         with self._lock:
+            self._evict_if_full(self._mem_response, now_dt.timestamp())
             self._mem_response[cache_key] = data
 
         # 2. Persist to Supabase REST asynchronously / best-effort
-        if self.has_supabase and self.supabase_table_available:
+        if self.has_supabase and self.supabase_table_available and not self._closed and self._executor is not None:
 
             def _push():
+                if self._closed:
+                    return
                 try:
                     payload = dict(data)
                     payload.pop("expires_at_epoch", None)
                     url = f"{self.supabase_url}/rest/v1/ai_response_cache"
-                    requests.post(url, headers=self._headers(), json=payload, timeout=4.0)
+                    poster = self._session.post if self._session is not None else requests.post
+                    poster(url, headers=self._headers(), json=payload, timeout=4.0)
                 except Exception:
                     pass
 
-            threading.Thread(target=_push, daemon=True).start()
+            try:
+                self._executor.submit(_push)
+            except RuntimeError:
+                pass
 
     # ─── Retrieval Cache (Doc 03 Section 6) ───────────────────────────────
 
@@ -336,11 +370,13 @@ class CacheService:
         self, query: str, data: dict[str, Any], ttl_seconds: int = RETRIEVAL_TTL_SEC
     ) -> None:
         query_hash = self.hash_str(self.normalize_query(query))
-        exp_epoch = time.time() + ttl_seconds
+        now = time.time()
+        exp_epoch = now + ttl_seconds
         payload = dict(data)
         payload["query_hash"] = query_hash
         payload["expires_at_epoch"] = exp_epoch
         with self._lock:
+            self._evict_if_full(self._mem_retrieval, now)
             self._mem_retrieval[query_hash] = payload
 
     # ─── Graph Cache (Doc 03 Section 7) ───────────────────────────────────
@@ -358,16 +394,56 @@ class CacheService:
         self, concept_id: str, data: dict[str, Any], ttl_seconds: int = GRAPH_TTL_SEC
     ) -> None:
         key = f"{concept_id}:{self.graph_version}"
-        exp_epoch = time.time() + ttl_seconds
+        now = time.time()
+        exp_epoch = now + ttl_seconds
         payload = dict(data)
         payload["concept_id"] = concept_id
         payload["graph_version"] = self.graph_version
         payload["expires_at_epoch"] = exp_epoch
         with self._lock:
+            self._evict_if_full(self._mem_graph, now)
             self._mem_graph[key] = payload
+
+    def shutdown(self) -> None:
+        """Stop background cache persistence and close pooled HTTP connections."""
+        with self._lock:
+            self._closed = True
+            executor, self._executor = self._executor, None
+            session, self._session = self._session, None
+        if executor is not None:
+            try:
+                executor.shutdown(wait=False, cancel_futures=True)
+            except Exception:
+                pass
+        if session is not None:
+            try:
+                session.close()
+            except Exception:
+                pass
 
 
 # Global shared singletons
 cache_service = CacheService()
 request_dedup = RequestDeduplicator()
 cache_metrics = CacheMetrics()
+
+
+def shutdown() -> None:
+    """Module-level graceful shutdown hook for cache singletons."""
+    request_dedup.shutdown()
+    cache_service.shutdown()
+
+
+def _register_shutdown() -> None:
+    atexit.register(shutdown)
+    try:
+        from hostapp import runtime_state
+
+        reg = getattr(runtime_state, "register_shutdown_callback", None)
+        if callable(reg):
+            reg(shutdown)
+    except Exception:
+        pass
+
+
+_register_shutdown()

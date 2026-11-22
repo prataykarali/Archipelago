@@ -11,6 +11,7 @@ from archipelago.scholarly.discovery.provider_selector import select_providers
 from archipelago.scholarly.pipeline.relevance import relevance_score
 
 RESEARCH_SOURCES = ("openalex", "crossref", "arxiv", "semantic_scholar")
+MAX_CONCURRENT_PROVIDERS = 4
 
 
 class DiscoveryOrchestrator:
@@ -26,11 +27,14 @@ class DiscoveryOrchestrator:
         query: str,
         limit_per_source: int = 10,
         explicit_sources: list[str] | None = None,
+        resolved_domain: str | None = None,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         """Return canonical candidates and source summaries without fake success."""
-        plan = select_providers(query, explicit_sources=explicit_sources)
+        plan = select_providers(
+            query, explicit_sources=explicit_sources, resolved_domain=resolved_domain
+        )
         active = plan["selected"] or list(RESEARCH_SOURCES)
-        with ThreadPoolExecutor(max_workers=len(active)) as executor:
+        with ThreadPoolExecutor(max_workers=min(len(active), MAX_CONCURRENT_PROVIDERS)) as executor:
             futures = [
                 executor.submit(self.sources.search, source, query, limit_per_source)
                 for source in active
@@ -39,6 +43,31 @@ class DiscoveryOrchestrator:
         raw = [item for response in responses for item in response.records]
         candidates = self.canonicalizer.canonicalize_candidates(raw)
         candidates.sort(key=lambda item: -relevance_score(item, query)[0])
+
+        waterfall: dict[str, dict[str, Any]] = {}
+        for response in responses:
+            waterfall[response.source] = {
+                "raw_records": len(response.records),
+                "normalized_records": len(response.records),
+                "pages_fetched": response.pages_fetched,
+                "matched_to_existing": 0,
+                "unique_primary": 0,
+                "http_status": response.http_status,
+                "status": response.status,
+            }
+        for cand in candidates:
+            psrc = cand.get("source")
+            disc = [psrc] if psrc else []
+            if psrc in waterfall:
+                waterfall[psrc]["unique_primary"] += 1
+            for m in cand.get("merge_history") or []:
+                msrc = m.get("source")
+                if msrc and msrc not in disc:
+                    disc.append(msrc)
+                if msrc in waterfall:
+                    waterfall[msrc]["matched_to_existing"] += 1
+            cand["discovered_by"] = disc
+
         summaries = [response.summary() for response in responses]
         for skipped in plan["skipped"]:
             summaries.append(
@@ -56,10 +85,12 @@ class DiscoveryOrchestrator:
             )
         self.last_selection = {
             "domain": plan["domain"],
+            "detected_domain": plan.get("detected_domain", plan["domain"]),
             "providers_queried": active,
             "providers_skipped": plan["skipped"],
             "candidate_count": len(raw),
             "deduplicated_count": len(candidates),
+            "waterfall": waterfall,
         }
         return candidates, summaries
 

@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-11-11T06:30:14Z",
+  "timestamp": "2026-11-18T18:30:19Z",
   "latest_query": "deep learning architectures, computer networks, data structures and algorithms, distributed systems, natural language processing",
-  "elapsed_seconds": 12.7,
+  "elapsed_seconds": 17.97,
   "sources": {
     "arxiv": {
       "mode": "live",

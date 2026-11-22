@@ -73,6 +73,7 @@ ingest/
 # IDE / editor configs
 .kombai/
 .claude/
+.agents/
 
 # Linter / test caches
 .ruff_cache/
@@ -148,5 +149,13 @@ research/**/admin_package/
 **/*admin_retrieval_manifest*.json
 **/*admin_query_specs*.json
 
+# Pre-launch security audit report (never commit or deploy)
+AUDIT.md
+**/AUDIT.md
 
 
+
+
+*.zip
+*.sqlite3
+outputs/

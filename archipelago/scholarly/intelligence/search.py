@@ -8,14 +8,41 @@ import re
 from typing import Any
 
 from archipelago.scholarly.discovery.canonicalizer import normalize_title
+from archipelago.scholarly.discovery.google_research import (
+    check_google_research_access,
+    classify_google_research_paper,
+    google_research_search_url,
+)
 from archipelago.scholarly.discovery.orchestrator import DiscoveryOrchestrator
+from archipelago.scholarly.discovery.scholar_deeplink import generate_scholar_url
 
-from .enrichment import enrich_authors, enrich_venues, venue_observation
+from .enrichment import (
+    detect_author_collisions,
+    enrich_authors,
+    enrich_orcid_authors,
+    enrich_papers_multi_provider,
+    enrich_s2_authors,
+    enrich_venues,
+    orcid_author_observations,
+    venue_observation,
+)
 from .extraction import extract_evidence
+from .relevance_engine import concept_anchor_coverage, disambiguate_query, evaluate_relevance
+from .semantic_rerank import rerank_candidates, semantic_rank_cutoff
 
-DEFAULT_TOP_K = 20
-MAX_TOP_K = 100
-SOURCE_MULTIPLIER = 2
+DEFAULT_TOP_K = 30
+MAX_TOP_K = 500
+DISPLAY_PAPER_CAP = 30
+SOURCE_MULTIPLIER = 3
+MAX_CANDIDATE_FETCH = 500
+SSM_QUERY_RE = re.compile(r"\b(?:state[- ]space|space state) models?\b", re.IGNORECASE)
+SSM_EVIDENCE_RE = re.compile(
+    r"\b(?:state[- ]space (?:models?|modelling|modeling|networks?)|"
+    r"structured state space|selective state space|mamba|s4)\b",
+    re.IGNORECASE,
+)
+COMPARABLE_CITATION_PROVIDER = "openalex"
+CITATION_PROVIDER_PRIORITY = ("openalex", "semantic_scholar", "crossref", "europe_pmc", "openaire")
 MAX_QUERY_CHARS = 200
 VERSION_SUFFIX = re.compile(r"/v\d+$", re.IGNORECASE)
 VALID_DOI = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
@@ -71,12 +98,13 @@ def clean_scholarly_text(raw: str | None) -> str:
 def assess_topic_eligibility(
     topic: str, title: str, abstract: str | None, fields: str = ""
 ) -> tuple[bool, str]:
-    """Evaluate central-concept eligibility without ranking scores."""
+    """Evaluate central-concept eligibility using semantic proximity and domain compatibility."""
     text_ta = " ".join((title or "", abstract or ""))
-    evidence = re.sub(r"[^\w]+", " ", " ".join((title, abstract or "", fields)).casefold())
     query = re.sub(r"[^\w]+", " ", QUERY_MODIFIERS.sub(" ", topic).casefold()).strip()
     if not query:
         return False, "empty_query"
+    if SSM_QUERY_RE.search(query) and not SSM_EVIDENCE_RE.search(title or ""):
+        return False, "missing_central_concepts:state_space_model"
     if QUERY_SLM_RE.search(query) and QUERY_EDGE_RE.search(query):
         has_slm = bool(SLM_CONCEPT_RE.search(text_ta))
         has_edge = bool(EDGE_CONCEPT_RE.search(text_ta))
@@ -85,22 +113,18 @@ def assess_topic_eligibility(
             return True, "matched_slm_edge_efficiency_concepts"
         missing = [
             name
-            for name, ok in (("slm", has_slm), ("edge_on_device", has_edge), ("efficiency", has_eff))
+            for name, ok in (
+                ("slm", has_slm),
+                ("edge_on_device", has_edge),
+                ("efficiency", has_eff),
+            )
             if not ok
         ]
         return False, f"missing_central_concepts:{','.join(missing)}"
     if QUERY_GNN_RE.search(query) and not GNN_CONCEPT_RE.search(text_ta):
         return False, "missing_central_concepts:gnn"
-    alias_matched = False
-    for phrase, alias in TOPIC_ALIASES.items():
-        if phrase in query and re.search(rf"\b{re.escape(alias)}\b", evidence):
-            query = query.replace(phrase, " ")
-            alias_matched = True
-    terms = [word for word in query.split() if word not in TOPIC_STOPWORDS]
-    matched = (bool(terms) or alias_matched) and all(
-        re.search(rf"\b{re.escape(word)}s?\b", evidence) for word in terms
-    )
-    return matched, ("matched_query_terms" if matched else "missing_query_terms")
+    rel = evaluate_relevance(topic, title, abstract, fields)
+    return bool(rel["eligible"]), str(rel["reason"])
 
 
 def topic_matches(topic: str, title: str, abstract: str | None, fields: str = "") -> bool:
@@ -125,6 +149,91 @@ def _version_key(row: dict[str, Any]) -> tuple[str, str, str, int | None] | None
     )
 
 
+SORT_DEFINITIONS: dict[str, dict[str, str]] = {
+    "newest": {
+        "label": "Newest publication",
+        "definition": "Sorted descending by provider-reported publication_date (missing dates last).",
+        "source": "Provider bibliographic metadata",
+    },
+    "relevance": {
+        "label": "Query relevance",
+        "definition": "Sorted by provider relevance order (tie-broken by publication date).",
+        "source": "Upstream provider search ranking",
+    },
+    "citations": {
+        "label": "Most cited",
+        "definition": "Sorted by OpenAlex citation count only; papers without an OpenAlex observation sort last.",
+        "source": "OpenAlex",
+    },
+    "foundational": {
+        "label": "Foundational / High-impact relevant",
+        "definition": "Sorted by OpenAlex citation count, then OpenAlex FWCI; missing values sort last.",
+        "source": "OpenAlex",
+    },
+    "citations_per_year": {
+        "label": "Citations per year",
+        "definition": "Sorted by OpenAlex citations / max(1, current_year - pub_year + 1); missing values sort last.",
+        "source": "OpenAlex",
+    },
+    "fwci": {
+        "label": "Field-Weighted Citation Impact (FWCI)",
+        "definition": "Sorted descending by OpenAlex FWCI; missing values sorted last.",
+        "source": "OpenAlex",
+    },
+    "open_access": {
+        "label": "Verified open access",
+        "definition": "Verified open-access papers first, tie-broken by publication date.",
+        "source": "OpenAlex / Semantic Scholar / arXiv / Europe PMC",
+    },
+    "evidence_completeness": {
+        "label": "Verified metadata coverage",
+        "definition": "Topic-eligible papers with more populated provider-backed paper, author identity, and venue fields first.",
+        "source": "Extracted from provider metadata & abstracts",
+    },
+    "provider": {
+        "label": "Provider order",
+        "definition": "Preserves the canonicalized multi-provider return order.",
+        "source": "Discovery orchestrator",
+    },
+}
+
+
+def _provider_citation_count(row: dict[str, Any], provider: str) -> int | None:
+    """Read one provider's observed count without mixing citation corpora."""
+    for observation in row.get("citation_observations") or []:
+        count = observation.get("count")
+        if (
+            observation.get("provider") == provider
+            and isinstance(count, int)
+            and not isinstance(count, bool)
+            and count >= 0
+        ):
+            return count
+    return None
+
+
+def _verified_metadata_fields(row: dict[str, Any]) -> int:
+    """Count fields with actual evidence before choosing a bounded paper set."""
+    metadata = row.get("source_metadata") or {}
+    present = (
+        bool(row.get("abstract")),
+        bool(row.get("doi")),
+        bool(row.get("authors")),
+        isinstance(row.get("year"), int),
+        row.get("citation_count") is not None,
+        row.get("fwci") is not None,
+        row.get("citation_normalized_percentile") is not None,
+        row.get("is_open_access") is not None,
+        bool(row.get("methods")),
+        bool(row.get("benchmark_performance")),
+        bool(row.get("references")) or row.get("reference_count") is not None,
+        bool(row.get("code_repo_urls")) or bool(row.get("dataset_repo_urls")),
+        bool(metadata.get("author_openalex_ids")),
+        bool(metadata.get("venue_id")),
+    )
+    return sum(present)
+
+
 def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
     """Validate user filters without accepting arbitrary provider URLs."""
     topic = str(payload.get("topic") or "").strip()
@@ -144,22 +253,28 @@ def validate_options(payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("invalid_year")
     if start and end and start > end:
         raise ValueError("invalid_year_range")
-    sort = payload.get("sort", "newest")
-    if sort not in {"relevance", "newest", "provider"}:
+    sort = str(payload.get("sort") or "newest").strip()
+    if sort == "most_cited":
+        sort = "citations"
+    if sort not in SORT_DEFINITIONS:
         raise ValueError("invalid_sort")
     oa = payload.get("open_access")
     if oa is not None and not isinstance(oa, bool):
         raise ValueError("invalid_open_access")
     return {
         "topic": topic,
-        "top_k": top_k,
+        "top_k": min(top_k, DISPLAY_PAPER_CAP),
         "year_from": start,
         "year_to": end,
-        "sort": "newest" if sort == "relevance" else sort,
+        "sort": sort,
         "open_access": oa,
         "paper_type": str(payload.get("paper_type") or "").strip()[:80],
         "field": str(payload.get("field") or "").strip()[:80],
         "venue": str(payload.get("venue") or "").strip()[:120],
+        "author": str(payload.get("author") or "").strip()[:120],
+        "institution": str(payload.get("institution") or "").strip()[:120],
+        "publisher": str(payload.get("publisher") or "").strip()[:120],
+        "provider": str(payload.get("provider") or "").strip()[:60],
     }
 
 
@@ -170,21 +285,42 @@ def discover(
     options = validate_options(payload)
     engine = orchestrator or DiscoveryOrchestrator()
     search_query = " ".join(QUERY_MODIFIERS.sub(" ", options["topic"]).split()) or options["topic"]
+    disambig = disambiguate_query(
+        options["topic"],
+        field_override=options.get("field")
+        or (str(payload.get("domain")) if payload.get("domain") else None),
+    )
     explicit_sources = (
         [str(s).strip() for s in payload["sources"] if str(s).strip()]
         if isinstance(payload.get("sources"), list)
         else None
     )
+    fetch_limit = min(
+        MAX_CANDIDATE_FETCH, max(options["top_k"] * SOURCE_MULTIPLIER, options["top_k"] + 50)
+    )
     if explicit_sources is not None:
         candidates, sources = engine.discover_with_status(
-            search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER), explicit_sources=explicit_sources
+            search_query, fetch_limit, explicit_sources=explicit_sources
+        )
+    elif orchestrator is None:
+        candidates, sources = engine.discover_with_status(
+            search_query,
+            fetch_limit,
+            resolved_domain=disambig["resolved_domain"],
         )
     else:
-        candidates, sources = engine.discover_with_status(
-            search_query, min(MAX_TOP_K, options["top_k"] * SOURCE_MULTIPLIER)
-        )
+        candidates, sources = engine.discover_with_status(search_query, fetch_limit)
+    semantic_scores, semantic_audit = rerank_candidates(options["topic"], candidates)
+    semantic_cutoff = semantic_rank_cutoff(semantic_scores, semantic_audit.get("control_baseline"))
+    strongest_scores = sorted(semantic_scores.values(), reverse=True)
+    strong_semantic_cutoff = (
+        strongest_scores[max(0, len(strongest_scores) // 10 - 1)] if strongest_scores else None
+    )
+    control_baseline = semantic_audit.get("control_baseline")
     rows: list[dict[str, Any]] = []
-    for candidate in candidates:
+    rel_eligible_by_prov: dict[str, int] = {}
+    rel_rejected_by_prov: dict[str, dict[str, int]] = {}
+    for candidate_index, candidate in enumerate(candidates):
         paper = candidate["paper"]
         clean_title = clean_scholarly_text(paper.title)
         clean_abstract = clean_scholarly_text(paper.abstract) if paper.abstract else None
@@ -210,19 +346,87 @@ def discover(
             continue
         if options["venue"] and options["venue"].casefold() not in (paper.venue or "").casefold():
             continue
+        if options["author"] and not any(
+            options["author"].casefold() in (a.name or "").casefold() for a in paper.authors
+        ):
+            continue
+        if options["institution"] and not any(
+            options["institution"].casefold() in (inst or "").casefold()
+            for a in paper.authors
+            for inst in (a.institutions or [])
+        ):
+            continue
+        if (
+            options["publisher"]
+            and options["publisher"].casefold()
+            not in str(metadata.get("publisher") or "").casefold()
+        ):
+            continue
+        if (
+            options["provider"]
+            and options["provider"].casefold() not in str(candidate.get("source") or "").casefold()
+        ):
+            continue
         fields = " ".join(
             str(value) for value in (metadata.get("topics") or metadata.get("keywords") or [])
         )
         if options["field"] and options["field"].casefold() not in fields.casefold():
             continue
+        rel_eval = evaluate_relevance(
+            options["topic"], clean_title, clean_abstract, fields, metadata.get("research_domain")
+        )
         eligible, eligibility_reason = assess_topic_eligibility(
             options["topic"], clean_title, clean_abstract, fields
         )
+        model_score = semantic_scores.get(candidate_index)
+        anchor_coverage = concept_anchor_coverage(options["topic"], clean_title, clean_abstract)
+        if (
+            not eligible
+            and model_score is not None
+            and semantic_cutoff is not None
+            and model_score >= semantic_cutoff
+            and (
+                anchor_coverage >= 0.5
+                or (
+                    strong_semantic_cutoff is not None
+                    and model_score >= strong_semantic_cutoff
+                    and isinstance(control_baseline, (int, float))
+                    and model_score >= control_baseline + 1.1
+                )
+            )
+            and (clean_abstract or anchor_coverage == 1.0)
+            and not eligibility_reason.startswith("missing_central_concepts")
+            and not eligibility_reason.startswith("field_mismatch")
+        ):
+            eligible = True
+            eligibility_reason = "semantic_rerank_with_concept_anchor"
+            rel_eval = {
+                **rel_eval,
+                "label": "RELEVANT",
+                "eligible": True,
+                "confidence": max(float(rel_eval.get("confidence") or 0.0), 0.55),
+                "reason": eligibility_reason,
+                "semantic_model": semantic_audit.get("model"),
+                "semantic_logit": model_score,
+                "concept_anchor_coverage": anchor_coverage,
+            }
+        psrc = str(candidate.get("source") or "unknown")
         if not eligible:
+            rej_map = rel_rejected_by_prov.setdefault(psrc, {})
+            rej_map[eligibility_reason] = rej_map.get(eligibility_reason, 0) + 1
             continue
+        rel_eligible_by_prov[psrc] = rel_eligible_by_prov.get(psrc, 0) + 1
         provenance = [candidate.get("provenance")]
-        provenance.extend(entry.get("provenance") for entry in candidate.get("merge_history", []))
-        source_links = [p.model_dump(mode="json") for p in provenance if p is not None and hasattr(p, "model_dump")]
+        merge_hist = candidate.get("merge_history") or []
+        provenance.extend(entry.get("provenance") for entry in merge_hist)
+        source_links = []
+        for pidx, p in enumerate(provenance):
+            if p is not None and hasattr(p, "model_dump"):
+                dumped = p.model_dump(mode="json")
+                dumped["contribution_type"] = (
+                    "discovery_primary" if pidx == 0 else "discovery_merged"
+                )
+                source_links.append(dumped)
         citation_observations = [
             {"provider": candidate.get("source"), "count": candidate.get("citation_count")}
         ] + [
@@ -230,10 +434,20 @@ def discover(
             for entry in candidate.get("merge_history", [])
         ]
         citation_observations = [
-            entry for entry in citation_observations if isinstance(entry["count"], int)
+            entry
+            for entry in citation_observations
+            if isinstance(entry["count"], int)
+            and not isinstance(entry["count"], bool)
+            and entry["count"] >= 0
         ]
-        citation_observation = max(
-            citation_observations, key=lambda entry: entry["count"], default=None
+        citation_observation = next(
+            (
+                entry
+                for provider in CITATION_PROVIDER_PRIORITY
+                for entry in citation_observations
+                if entry["provider"] == provider
+            ),
+            next(iter(citation_observations), None),
         )
         doi = paper.identifiers.doi
         valid_doi = doi if doi and VALID_DOI.fullmatch(doi) else None
@@ -243,69 +457,140 @@ def discover(
         source_url = next((p.get("source_url") for p in source_links if p.get("source_url")), None)
         found = extract_evidence(clean_title, clean_abstract, source_url=source_url)
         fetched = [p.get("fetched_at") for p in source_links if p.get("fetched_at")]
-        rows.append(
-            {
-                "paper_id": paper.paper_id,
-                "title": clean_title,
-                "subtitle": metadata.get("subtitle"),
-                "year": year,
-                "publication_date": paper.publication_date,
-                "doi": valid_doi,
-                "identifiers": paper.identifiers.model_dump(mode="json"),
-                "authors": [a.model_dump(mode="json") for a in paper.authors],
-                "venue": paper.venue,
-                "publication_type": paper.publication_type,
-                "language": paper.language,
-                "abstract": clean_abstract,
-                "is_open_access": paper.is_open_access,
-                "oa_status": metadata.get("oa_status"),
-                "version_status": metadata.get("version_status"),
-                "url": source_url,
-                "landing_page_url": metadata.get("landing_page_url"),
-                "citation_count": citation_observation["count"] if citation_observation else None,
-                "citation_provider": citation_observation["provider"]
-                if citation_observation
-                else None,
-                "citation_observations": citation_observations,
-                "fwci": metadata.get("fwci"),
-                "citation_normalized_percentile": metadata.get("citation_normalized_percentile"),
-                "references": metadata.get("referenced_works") or [],
-                "source_metadata": metadata,
-                "topics": metadata.get("topics") or metadata.get("keywords") or [],
-                "primary_topic": metadata.get("primary_topic"),
-                "research_domain": metadata.get("research_domain"),
-                "research_field": metadata.get("research_field") or metadata.get("research_domain"),
-                "research_subfield": metadata.get("research_subfield"),
-                "methods": metadata.get("methods") or found["methods"],
-                "models": found["models"],
-                "datasets": metadata.get("datasets") or found["datasets"],
-                "tasks": found["tasks"],
-                "evaluation_metrics": metadata.get("evaluation_metrics")
-                or found["evaluation_metrics"],
-                "claims": found["claims"],
-                "claim_status": found["claim_status"],
-                "grants": metadata.get("grants") or [],
-                "corresponding_authors": metadata.get("corresponding_authors") or [],
-                "author_institutions": metadata.get("author_institutions") or [],
-                "countries_distinct_count": metadata.get("countries_distinct_count"),
-                "institutions_distinct_count": metadata.get("institutions_distinct_count"),
-                "author_ids": metadata.get("author_openalex_ids") or [],
-                "publisher": metadata.get("publisher"),
-                "license": paper.license,
-                "oa_url": paper.oa_url,
-                "retrieved_at": max(fetched) if fetched else None,
-                "retraction_status": metadata.get("retraction_status"),
-                "provenance": source_links,
-                "source": candidate.get("source"),
-                "evidence_status": "REFERENCE_METADATA_AVAILABLE"
-                if metadata.get("referenced_works")
-                else "ABSTRACT_AVAILABLE"
-                if paper.abstract
-                else "METADATA_ONLY",
-                "eligibility_reason": eligibility_reason,
-                "identity_review": review,
-            }
+        cit_count = citation_observation["count"] if citation_observation else None
+        current_yr = datetime.now(UTC).year
+        cit_per_year = (
+            round(cit_count / max(1, current_yr - year + 1), 2)
+            if isinstance(cit_count, int) and isinstance(year, int)
+            else None
         )
+        pub_vs_preprint = (
+            "preprint"
+            if (paper.publication_type or "").casefold() == "preprint"
+            or (
+                paper.identifiers.arxiv_id
+                and not valid_doi
+                and (paper.venue or "").casefold() == "arxiv"
+            )
+            else ("published" if (valid_doi or paper.publication_type) else "unknown")
+        )
+        missing_identity: list[str] = []
+        if not clean_title:
+            missing_identity.append("missing_title")
+        if not paper.authors:
+            missing_identity.append("missing_authors")
+        if year is None:
+            missing_identity.append("missing_year")
+        if not (source_url or valid_doi):
+            missing_identity.append("missing_url_or_doi")
+        if not source_links:
+            missing_identity.append("missing_provenance")
+        discovered_by = list(
+            candidate.get("discovered_by")
+            or ([candidate.get("source")] if candidate.get("source") else [])
+        )
+        evidence_completeness = sum(
+            bool(val)
+            for val in (
+                clean_abstract,
+                valid_doi,
+                metadata.get("methods") or found["methods"],
+                metadata.get("datasets") or found["datasets"],
+                metadata.get("evaluation_metrics") or found["evaluation_metrics"],
+                metadata.get("grants"),
+                metadata.get("referenced_works"),
+            )
+        )
+        row_obj = {
+            "paper_id": paper.paper_id,
+            "title": clean_title,
+            "subtitle": metadata.get("subtitle"),
+            "year": year,
+            "publication_date": paper.publication_date,
+            "first_online_date": metadata.get("first_online_date"),
+            "doi": valid_doi,
+            "identifiers": paper.identifiers.model_dump(mode="json"),
+            "arxiv_version": metadata.get("arxiv_version"),
+            "authors": [a.model_dump(mode="json") for a in paper.authors],
+            "venue": paper.venue,
+            "publication_type": paper.publication_type,
+            "published_vs_preprint": pub_vs_preprint,
+            "language": paper.language,
+            "abstract": clean_abstract,
+            "is_open_access": paper.is_open_access,
+            "oa_status": metadata.get("oa_status"),
+            "version_status": metadata.get("version_status"),
+            "url": source_url,
+            "landing_page_url": metadata.get("landing_page_url"),
+            "google_scholar_url": generate_scholar_url(
+                clean_title, paper.authors[0].name if paper.authors else None
+            ),
+            "google_scholar_status": "NOT_AVAILABLE",
+            "citation_count": cit_count,
+            "citations_per_year": cit_per_year,
+            "influential_citations": metadata.get("influential_citations"),
+            "citation_provider": citation_observation["provider"] if citation_observation else None,
+            "citation_observations": citation_observations,
+            "fwci": metadata.get("fwci"),
+            "citation_normalized_percentile": metadata.get("citation_normalized_percentile"),
+            "references": metadata.get("referenced_works") or [],
+            "reference_count": metadata.get("reference_count"),
+            "source_metadata": metadata,
+            "topics": metadata.get("topics") or metadata.get("keywords") or [],
+            "primary_topic": metadata.get("primary_topic"),
+            "research_domain": metadata.get("research_domain"),
+            "research_field": metadata.get("research_field") or metadata.get("research_domain"),
+            "research_subfield": metadata.get("research_subfield"),
+            "methods": metadata.get("methods") or found["methods"],
+            "models": found["models"],
+            "datasets": metadata.get("datasets") or found["datasets"],
+            "tasks": found["tasks"],
+            "evaluation_metrics": metadata.get("evaluation_metrics") or found["evaluation_metrics"],
+            "benchmark_performance": found["benchmark_performance"],
+            "claims": found["claims"],
+            "claim_status": found["claim_status"],
+            "field_statuses": found["field_statuses"],
+            "code_repo_urls": found["code_repo_urls"],
+            "dataset_repo_urls": found["dataset_repo_urls"],
+            "grants": metadata.get("grants") or [],
+            "corresponding_authors": metadata.get("corresponding_authors") or [],
+            "author_institutions": metadata.get("author_institutions") or [],
+            "countries_distinct_count": metadata.get("countries_distinct_count"),
+            "institutions_distinct_count": metadata.get("institutions_distinct_count"),
+            "author_ids": metadata.get("author_openalex_ids") or [],
+            "publisher": metadata.get("publisher"),
+            "license": paper.license,
+            "oa_url": paper.oa_url,
+            "retrieved_at": max(fetched) if fetched else None,
+            "retraction_status": metadata.get("retraction_status"),
+            "provenance": source_links,
+            "source": candidate.get("source"),
+            "contributing_providers": list(
+                candidate.get("contributing_providers")
+                or ([candidate.get("source")] if candidate.get("source") else [])
+            ),
+            "provider_records": dict(candidate.get("provider_records") or {}),
+            "field_provenance": dict(candidate.get("field_provenance") or {}),
+            "conflicting_observations": list(candidate.get("conflicting_observations") or []),
+            "version_relationships": list(candidate.get("version_relationships") or []),
+            "identity_match_confidence": candidate.get("identity_match_confidence")
+            or "single_provider",
+            "evidence_status": "REFERENCE_METADATA_AVAILABLE"
+            if metadata.get("referenced_works")
+            else "ABSTRACT_AVAILABLE"
+            if paper.abstract
+            else "METADATA_ONLY",
+            "eligibility_reason": eligibility_reason,
+            "relevance_classification": rel_eval,
+            "identity_review": review,
+            "discovered_by": discovered_by,
+            "enriched_by": [],
+            "standard_eligible": len(missing_identity) == 0,
+            "standard_exclusion_reasons": missing_identity,
+            "evidence_completeness_score": evidence_completeness,
+        }
+        row_obj["google_research"] = classify_google_research_paper(row_obj)
+        rows.append(row_obj)
     versioned: dict[tuple[str, str, str, int | None], dict[str, Any]] = {}
     unique: list[dict[str, Any]] = []
     for row in rows:
@@ -317,20 +602,34 @@ def discover(
         if prior is None or (row["doi"] or "") > (prior["doi"] or ""):
             versioned[key] = row
     dedup_rows = unique + list(versioned.values())
-    by_work: dict[tuple[str, str, int], dict[str, Any]] = {}
+    by_work: dict[tuple[str, str], dict[str, Any]] = {}
     rows = []
     for row in dedup_rows:
         authors = row.get("authors") or []
         ntitle = normalize_title(row.get("title") or "")
-        yr = row.get("year")
-        if not ntitle or not authors or not yr:
+        if not ntitle or not authors:
             rows.append(row)
             continue
-        wkey = (ntitle, authors[0]["name"].casefold().strip(), int(yr))
+        wkey = (ntitle, authors[0]["name"].casefold().strip())
         existing = by_work.get(wkey)
         if existing is None:
             by_work[wkey] = row
             rows.append(row)
+            continue
+        # Prefer published version over preprint when collapsing versions of the same work
+        if (
+            existing.get("published_vs_preprint") == "preprint"
+            and row.get("published_vs_preprint") == "published"
+        ):
+            idx = rows.index(existing)
+            row["alternate_dois"] = list({d for d in (existing.get("doi"), row.get("doi")) if d})
+            row["provenance"] = list(row.get("provenance") or []) + list(
+                existing.get("provenance") or []
+            )
+            if not row.get("abstract") and existing.get("abstract"):
+                row["abstract"] = existing["abstract"]
+            by_work[wkey] = row
+            rows[idx] = row
             continue
         alt_dois = list(existing.get("alternate_dois") or [])
         for d in (existing.get("doi"), row.get("doi")):
@@ -342,20 +641,124 @@ def discover(
         )
         if not existing.get("abstract") and row.get("abstract"):
             existing["abstract"] = row["abstract"]
-    if options["sort"] == "newest":
+    sort_mode = options["sort"]
+    if sort_mode == "newest":
         rows.sort(key=lambda row: (row["publication_date"] or "", row["paper_id"]), reverse=True)
+    elif sort_mode in {"citations", "foundational"}:
+        rows.sort(
+            key=lambda row: (
+                _provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) is not None,
+                _provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) or -1,
+                row["fwci"] if row.get("fwci") is not None else -1.0,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "relevance":
+        rows.sort(
+            key=lambda row: (
+                (row.get("relevance_classification") or {}).get("confidence", 0.0),
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "citations_per_year":
+        rows.sort(
+            key=lambda row: (
+                _provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) is not None,
+                (_provider_citation_count(row, COMPARABLE_CITATION_PROVIDER) or 0)
+                / max(1, datetime.now(UTC).year - (row.get("year") or datetime.now(UTC).year) + 1),
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "fwci":
+        rows.sort(
+            key=lambda row: (
+                row["fwci"] is not None,
+                row["fwci"] if row["fwci"] is not None else -1.0,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "open_access":
+        rows.sort(
+            key=lambda row: (
+                row["is_open_access"] is True,
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
+    elif sort_mode == "evidence_completeness":
+        rows.sort(
+            key=lambda row: (
+                row.get("standard_eligible") is True,
+                _verified_metadata_fields(row),
+                (row.get("relevance_classification") or {}).get("confidence", 0.0),
+                row["publication_date"] or "",
+            ),
+            reverse=True,
+        )
     selected = rows[: options["top_k"]]
     for position, row in enumerate(selected, 1):
         row["collection_order"] = position
     retrieved_at = datetime.now(UTC).isoformat()
-    enriched_venues = enrich_venues(selected) if orchestrator is None else {}
+    enrichment_audit: dict[str, Any] = {"providers": {}, "secondary_matches": {}}
     if orchestrator is None:
         from archipelago.scholarly.discovery.extended_sources import fetch_opencitations_for_dois
 
-        oc_dois = [str(r["doi"]) for r in selected if r.get("doi")]
-        oc_map = fetch_opencitations_for_dois(engine.sources.session, oc_dois) if oc_dois else {}
-    else:
+        try:
+            enrichment_audit = enrich_papers_multi_provider(selected, session=engine.sources.session)
+        except Exception:
+            enrichment_audit = {"providers": {}, "secondary_matches": {}}
+        try:
+            enriched_venues = enrich_venues(selected, session=engine.sources.session)
+        except Exception:
+            enriched_venues = {}
         oc_map = {}
+        try:
+            oc_dois = [str(r["doi"]) for r in selected if r.get("doi")][:8]
+            if oc_dois:
+                oc_map = fetch_opencitations_for_dois(engine.sources.session, oc_dois, max_dois=5)
+        except Exception:
+            oc_map = {}
+        try:
+            gr_status = check_google_research_access(engine.sources.session, options["topic"])
+        except Exception:
+            gr_status = {"source": "google_research", "status": "unavailable"}
+        sources_out = [*sources, gr_status]
+        oa_authors: list[dict[str, Any]] = []
+        s2_authors: list[dict[str, Any]] = []
+        orcid_map: dict[str, Any] = {}
+        try:
+            oa_authors = enrich_authors(selected, session=engine.sources.session)
+        except Exception:
+            pass
+        try:
+            s2_authors = enrich_s2_authors(selected, session=engine.sources.session, max_authors=5)
+        except Exception:
+            pass
+        try:
+            orcid_map = enrich_orcid_authors(selected, session=engine.sources.session, max_authors=5)
+        except Exception:
+            pass
+        orcid_obs = orcid_author_observations(orcid_map)
+        author_obs = oa_authors + s2_authors + orcid_obs
+        for obs in author_obs:
+            orc = str(obs.get("orcid") or "").rsplit("/", 1)[-1]
+            if orc and orc in orcid_map:
+                obs["orcid_verified"] = True
+                obs["orcid_url"] = orcid_map[orc]["orcid_url"]
+    else:
+        enriched_venues = {}
+        oc_map = {}
+        sources_out = list(sources)
+        author_obs = []
+    collisions = detect_author_collisions(selected)
+    if collisions:
+        for obs in author_obs:
+            if " ".join(str(obs.get("name") or "").casefold().split()) in collisions:
+                obs["identity_review_status"] = "IDENTITY_REVIEW_REQUIRED"
     for row in selected:
         row["venue_details"] = venue_observation(row, retrieved_at, enriched_venues)
         row["retrieved_at"] = row["retrieved_at"] or retrieved_at
@@ -364,23 +767,74 @@ def discover(
             row["citation_observations"].append(
                 {"provider": "opencitations", "count": oc_map[doi_key]["count"]}
             )
-    from archipelago.scholarly.discovery.scholar_deeplink import generate_scholar_url
+        disc_set = set(row.get("discovered_by") or [])
+        enriched_provs: list[str] = []
+        for p in row.get("provenance") or []:
+            stype = p.get("source_type")
+            ctype = str(p.get("contribution_type") or "")
+            if (
+                stype
+                and ctype == "stage2_enrichment"
+                and stype not in disc_set
+                and stype not in enriched_provs
+            ):
+                enriched_provs.append(stype)
+        row["enriched_by"] = enriched_provs
+
+    # Complete the 11-step per-provider candidate waterfall & source contributions
+    selected_primary_by_prov: dict[str, int] = {}
+    source_contributions: dict[str, int] = {}
+    for row in selected:
+        psrc = str(row.get("source") or "unknown")
+        selected_primary_by_prov[psrc] = selected_primary_by_prov.get(psrc, 0) + 1
+        seen_provs = {
+            p.get("source_type") for p in (row.get("provenance") or []) if p.get("source_type")
+        }
+        for sp in seen_provs:
+            source_contributions[sp] = source_contributions.get(sp, 0) + 1
 
     selection = dict(getattr(engine, "last_selection", {}) or {})
+    waterfall = dict(selection.get("waterfall") or {})
+    for prov, w in waterfall.items():
+        w["relevance_eligible"] = rel_eligible_by_prov.get(prov, 0)
+        w["relevance_rejected"] = rel_rejected_by_prov.get(prov, {})
+        w["selected_primary"] = selected_primary_by_prov.get(prov, 0)
+        w["secondary_metadata_matches"] = enrichment_audit["secondary_matches"].get(prov, 0)
+        audit_p = enrichment_audit["providers"].get(prov) or {}
+        w["enrichment_attempts"] = audit_p.get("attempts", 0)
+        w["enrichment_successes"] = audit_p.get("successes", 0)
+        w["enrichment_failures"] = audit_p.get("failures", [])
+        w["exported_provenance_count"] = source_contributions.get(prov, 0)
+    selection["waterfall"] = waterfall
+    selection["source_contributions"] = source_contributions
     selection["final_returned_count"] = len(selected)
     selection["rate_limits_encountered"] = [
-        s["source"] for s in sources if s.get("rate_limited")
+        s["source"] for s in sources_out if s.get("rate_limited")
     ]
+    sort_info = SORT_DEFINITIONS[sort_mode]
     return {
         "schema": "archipelago.research_intelligence.v2",
+        "export_format_version": "rich30.v1",
         "options": options,
         "retrieved_at": retrieved_at,
-        "sources": sources,
+        "sources": sources_out,
         "provider_selection": selection,
+        "query_disambiguation": disambig,
+        "semantic_rerank": semantic_audit,
+        "enrichment_audit": enrichment_audit,
         "google_scholar_url": generate_scholar_url(options["topic"]),
+        "google_research_url": google_research_search_url(options["topic"]),
         "candidate_count": len(candidates),
         "filtered_count": len(rows),
-        "ordering": "publication_date_desc" if options["sort"] == "newest" else "provider_returned",
+        "ordering": "publication_date_desc" if sort_mode == "newest" else sort_mode,
+        "sort_metadata": {
+            "selected": sort_mode,
+            "version": "archipelago.sort.v2",
+            **sort_info,
+            "collected_at": retrieved_at,
+            "missing_policy": "missing_values_excluded_and_sorted_last_never_zero",
+        },
+        "author_collisions": collisions,
         "papers": selected,
-        "author_observations": enrich_authors(selected) if orchestrator is None else [],
+        "author_observations": author_obs,
     }

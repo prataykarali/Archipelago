@@ -15,14 +15,19 @@ def _hash(prefix: str, value: str) -> str:
 
 
 def author_key(paper: dict[str, Any], index: int) -> str:
-    """Stable author identity: provider ID, then ORCID, else paper-scoped unverified."""
-    ids = (paper.get("source_metadata") or {}).get("author_openalex_ids") or []
+    """Stable author identity: OpenAlex ID, then ORCID, then S2 ID, else paper-scoped unverified."""
+    meta = paper.get("source_metadata") or {}
+    ids = meta.get("author_openalex_ids") or []
     provider_id = ids[index] if index < len(ids) else None
     author = paper["authors"][index]
     if provider_id:
         return "author:" + str(provider_id).rsplit("/", 1)[-1]
     if author.get("orcid"):
         return _hash("author", author["orcid"])
+    s2_ids = meta.get("author_s2_ids") or []
+    s2_id = s2_ids[index] if index < len(s2_ids) else None
+    if s2_id:
+        return f"author:s2:{s2_id}"
     return _hash("author-unverified", f"{paper['paper_id']}:{index}:{author['name']}")
 
 
@@ -49,11 +54,31 @@ def build_graph(run: dict[str, Any]) -> dict[str, Any]:
     topic = run["options"]["topic"]
     topic_id = _hash("topic", topic)
     nodes[topic_id] = {"id": topic_id, "kind": "Topic", "name": topic}
-    known = {
-        paper["identifiers"].get("openalex_id"): paper["paper_id"]
-        for paper in run["papers"]
-        if paper["identifiers"].get("openalex_id")
-    }
+    known: dict[str, str] = {}
+    for paper in run["papers"]:
+        pid = paper["paper_id"]
+        ids = paper.get("identifiers") or {}
+        oa_id = ids.get("openalex_id")
+        if oa_id:
+            known[oa_id] = pid
+            known[str(oa_id).rsplit("/", 1)[-1]] = pid
+        doi = ids.get("doi") or paper.get("doi")
+        if doi:
+            dnorm = str(doi).strip().casefold().removeprefix("https://doi.org/")
+            known[dnorm] = pid
+            known[f"https://doi.org/{dnorm}"] = pid
+        s2_id = ids.get("semantic_scholar_id")
+        if s2_id:
+            known[str(s2_id).strip()] = pid
+        arxiv_id = ids.get("arxiv_id")
+        if arxiv_id:
+            anorm = str(arxiv_id).strip().casefold()
+            known[anorm] = pid
+
+    raw_reference_count = 0
+    identifier_matched_count = 0
+    existence_verified_count = 0
+    in_collection_edges = 0
     for paper in run["papers"]:
         paper_id = "paper:" + paper["paper_id"]
         provider = paper.get("citation_provider") or paper.get("source")
@@ -109,13 +134,43 @@ def build_graph(run: dict[str, Any]) -> dict[str, Any]:
         if venue_id:
             nodes.setdefault(venue_id, {"id": venue_id, "kind": "Venue", "name": paper["venue"]})
             edge(paper_id, venue_id, "PUBLISHED_IN", provider)
-        for reference in paper["references"]:
-            cited = known.get(reference) if isinstance(reference, str) else None
+        for reference in paper.get("references") or []:
+            if not isinstance(reference, str) or not reference.strip():
+                continue
+            raw_reference_count += 1
+            ref_norm = reference.strip()
+            ref_low = ref_norm.casefold().removeprefix("https://doi.org/")
+            if ref_norm.startswith("https://openalex.org/W") or ref_low.startswith("10."):
+                identifier_matched_count += 1
+            cited = known.get(ref_norm) or known.get(ref_norm.rsplit("/", 1)[-1]) or known.get(ref_low)
             if cited and cited != paper["paper_id"]:
+                existence_verified_count += 1
+                before = len(seen)
                 edge(paper_id, "paper:" + cited, "CITES", provider)
+                if len(seen) > before:
+                    in_collection_edges += 1
+    unresolved_count = max(0, raw_reference_count - identifier_matched_count)
+    externally_resolved_edges = max(0, identifier_matched_count - in_collection_edges)
     return {
         "schema": "archipelago.scholarly_graph.v1",
         "run_at": run["retrieved_at"],
         "nodes": list(nodes.values()),
         "edges": edges,
+        "coverage_report": {
+            "raw_reference_count": raw_reference_count,
+            "identifier_matched_count": identifier_matched_count,
+            "existence_verified_count": existence_verified_count,
+            "in_collection_edges": in_collection_edges,
+            "externally_resolved_edges": externally_resolved_edges,
+            "unresolved_count": unresolved_count,
+            "verification_coverage": round(existence_verified_count / raw_reference_count, 4)
+            if raw_reference_count
+            else None,
+            # Backwards-compatible aliases
+            "total_reference_links": raw_reference_count,
+            "resolved_known_works": identifier_matched_count,
+            "resolution_rate": round(identifier_matched_count / raw_reference_count, 4)
+            if raw_reference_count
+            else None,
+        },
     }

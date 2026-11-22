@@ -169,6 +169,10 @@
 
   <footer class="relative z-10 pb-8 pt-4 text-center">
     <p class="text-xs text-white/40"><span aria-hidden="true">△</span> Archipelago — Islands of insight, connected.</p>
+    <details class="mx-auto mt-2 max-w-xl px-4 text-[11px] text-white/45">
+      <summary class="cursor-pointer hover:text-white/75">Privacy Policy, Data Usage &amp; Terms</summary>
+      <p class="mt-1.5 leading-relaxed">Archipelago collects your institutional username, role, chat history, and saved research queries to provide academic discovery. Data is processed via Supabase Auth, scholarly providers (OpenAlex, Crossref, Semantic Scholar, arXiv), and the Archipelago AI gateway. No advertising or third-party tracking cookies are used. You may clear local chat and research history at any time from your session or request account deletion via the IEM/UEM Library Administrator.</p>
+    </details>
   </footer>
 
   <!-- Role-Based Auth Popup Modal with 1-Click Access -->
@@ -240,8 +244,12 @@
     // ── Auth Modal Functions ──
     let targetDestination = "/chat";
 
+    function sanitizeLandingTarget(candidate) {
+      return typeof candidate === "string" && /^\/(?!\/|\\)/.test(candidate) ? candidate : "/chat";
+    }
+
     function openAuthModal(mode, target = "/chat") {
-      targetDestination = target;
+      targetDestination = sanitizeLandingTarget(target);
       const fullLoginLink = document.getElementById("modal-full-login-link");
       if (fullLoginLink) {
         fullLoginLink.href = `/login?next=${encodeURIComponent(targetDestination)}`;
@@ -285,7 +293,7 @@
           });
         }
 
-        window.location.assign(targetDestination);
+        window.location.assign(sanitizeLandingTarget(targetDestination));
       } catch (err) {
         if (msg) msg.textContent = err?.message || "Sign-in failed. Please try again.";
       }

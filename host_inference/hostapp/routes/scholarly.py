@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from threading import Lock
 import time
 from typing import Any
@@ -18,6 +19,7 @@ from ..research_access import ResearchCapability, allowed
 
 SNAPSHOT_PATH = HOST_ROOT / "fixtures/live_scholarly_manifest.json"
 DEFAULT_REPO = "Prataykarali/graphier"
+REPO_PATTERN = re.compile(r"^[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+$")
 CACHE_SECONDS = 300
 HTTP_TIMEOUT_SECONDS = 6
 _cache_lock = Lock()
@@ -33,7 +35,9 @@ def _snapshot() -> tuple[dict[str, Any] | None, str]:
         if isinstance(cached, dict) and isinstance(expires, (int, float)) and now < expires:
             return cached, "published_cache"
 
-    repo = os.environ.get("ARCHIPELAGO_SCHOLARLY_HF_REPO", DEFAULT_REPO)
+    repo = os.environ.get("ARCHIPELAGO_SCHOLARLY_HF_REPO", DEFAULT_REPO).strip()
+    if not REPO_PATTERN.fullmatch(repo):
+        repo = DEFAULT_REPO
     url = (
         f"https://huggingface.co/datasets/{repo}/resolve/main/catalogs/live_scholarly_manifest.json"
     )
@@ -78,4 +82,7 @@ def register(app: Flask, ctx: AppContext) -> None:
         payload, delivery = _snapshot()
         if payload is None:
             return jsonify({"status": "unavailable", "items": [], "resources": []}), 503
-        return jsonify({**payload, "delivery": delivery})
+        resp = jsonify({**payload, "delivery": delivery})
+        resp.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+        resp.headers["Vary"] = "Authorization, Cookie"
+        return resp

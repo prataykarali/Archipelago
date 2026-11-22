@@ -27,13 +27,14 @@ document.querySelector("#login-form").addEventListener("submit", async (event) =
   if (!supabase) return;
   const username = document.querySelector("#username").value.trim();
   const role = document.querySelector("#role").value;
-  if (!USERNAME_PATTERN.test(username)) {
+  const isEmail = username.includes("@");
+  if (!isEmail && !USERNAME_PATTERN.test(username)) {
     status.textContent = "Enter a valid staff username.";
     return;
   }
   status.textContent = "Signing in…";
   const { error } = await supabase.auth.signInWithPassword({
-    email: `${username.toLowerCase()}@${role}${EMAIL_DOMAIN}`,
+    email: isEmail ? username.toLowerCase() : `${username.toLowerCase()}@${role}${EMAIL_DOMAIN}`,
     password: document.querySelector("#password").value,
   });
   if (error) {
@@ -50,31 +51,108 @@ document.querySelector("#login-form").addEventListener("submit", async (event) =
     status.textContent = "This account needs a research staff role.";
     return;
   }
+  try {
+    await fetch("/api/auth/session", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        Authorization: `Bearer ${data.session.access_token}`,
+      },
+      body: JSON.stringify({ access_token: data.session.access_token }),
+    });
+  } catch (_) {}
   location.replace(next);
 });
 
+const HANDOFF_STATE_KEY = 'archipelago_handoff_state';
+let activeHandoffPopup = null;
+
+function generateHandoffState() {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 document.querySelector('#continue-session').addEventListener('click', () => {
   status.textContent = 'Checking your main Archipelago session…';
+  const state = generateHandoffState();
+  sessionStorage.setItem(HANDOFF_STATE_KEY, state);
   const bridge = new URL('https://archipelago-blond.vercel.app/session-bridge.html');
   bridge.searchParams.set('target', location.origin);
-  const popup = window.open(bridge.href, 'archipelago-session', 'width=560,height=360');
-  if (!popup) status.textContent = 'Allow the Archipelago session window, then try again.';
+  bridge.searchParams.set('state', state);
+  activeHandoffPopup = window.open(bridge.href, 'archipelago-session', 'width=560,height=360');
+  if (!activeHandoffPopup) {
+    sessionStorage.removeItem(HANDOFF_STATE_KEY);
+    status.textContent = 'Allow the Archipelago session window, then try again.';
+  }
 });
 
-window.addEventListener('message', async event => {
-  if (event.origin !== 'https://archipelago-blond.vercel.app' || event.data?.type !== 'archipelago-session-v1' || !supabase) return;
-  const { access_token, refresh_token } = event.data;
-  if (typeof access_token !== 'string' || typeof refresh_token !== 'string') return;
-  const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
-  if (error || !data.session?.access_token) { status.textContent = 'Session handoff failed. Please sign in here.'; return; }
+window.addEventListener('message', async (event) => {
+  if (event.origin !== 'https://archipelago-blond.vercel.app') return;
+  if (activeHandoffPopup && event.source !== activeHandoffPopup) return;
+  const msgType = event.data?.type;
+  if (msgType !== 'archipelago-session-v2' && msgType !== 'archipelago-session-v1') return;
+
+  const expectedState = sessionStorage.getItem(HANDOFF_STATE_KEY);
+  sessionStorage.removeItem(HANDOFF_STATE_KEY);
+  activeHandoffPopup = null;
+
+  if (!expectedState || typeof event.data?.state !== 'string' || event.data.state !== expectedState) {
+    status.textContent = 'Session handoff state verification failed. Please try again.';
+    return;
+  }
+
+  let accessToken = null;
+  if (typeof event.data.ticket === 'string' && event.data.ticket.length >= 16) {
+    try {
+      const redeemResp = await fetch('/api/auth/handoff-redeem', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify({ ticket: event.data.ticket, state: expectedState, nonce: expectedState }),
+        cache: 'no-store',
+      });
+      if (redeemResp.ok) {
+        const redeemed = await redeemResp.json();
+        accessToken = typeof redeemed?.access_token === 'string' ? redeemed.access_token : null;
+        if (redeemed?.authenticated && !accessToken) {
+          location.replace(next);
+          return;
+        }
+      }
+    } catch (_) {}
+  }
+
+  if (!accessToken && typeof event.data.access_token === 'string') {
+    accessToken = event.data.access_token;
+  }
+  if (!accessToken) {
+    status.textContent = 'Session handoff failed. Please sign in here.';
+    return;
+  }
+
   const response = await fetch('/api/auth/me', {
-    headers: { Authorization: `Bearer ${data.session.access_token}` },
+    headers: { Authorization: `Bearer ${accessToken}` },
     cache: 'no-store',
   });
   if (!response.ok) {
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     status.textContent = 'This account cannot access the staff space.';
     return;
   }
+  try {
+    await fetch('/api/auth/session', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ access_token: accessToken }),
+    });
+  } catch (_) {}
   location.replace(next);
 });

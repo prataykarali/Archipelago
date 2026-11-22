@@ -107,6 +107,49 @@ class TestStaleGraphRegression:
         # Library queries don't need a concept anchor
         assert _anchor_id(p) is None or result["route"] == "CATALOG_SHELF_ROUTING"
 
+    def test_repeated_alternating_queries_no_leak(self, engine):
+        """Alternating queries: compiler -> transformer -> compiler.
+
+        State must not leak from the matched query into the subsequent unmatched query.
+        """
+        # Turn 1: Compiler query
+        p1 = _payload(engine, "How do compilers transform source code into machine instructions?")
+        assert _anchor_id(p1) is None
+        assert p1.get("render_graph") is False
+
+        # Turn 2: Transformer query
+        p2 = _payload(engine, "What is Transformer?")
+        assert _anchor_id(p2) == "transformer"
+        assert p2.get("render_graph") is True
+
+        # Turn 3: Compiler query again (must NOT have stale transformer graph)
+        p3 = _payload(engine, "How do compilers transform source code into machine instructions?")
+        assert _anchor_id(p3) is None
+        assert p3.get("render_graph") is False
+        assert p3["trace"]["concept_id"] is None
+        assert p3["trace"]["graph_hops"] == 0
+
+    def test_rapidly_consecutive_queries(self, engine):
+        """Simulate rapid queries in quick succession without cross-contamination."""
+        queries = [
+            ("Explain virtual memory paging", "virtual_memory"),
+            ("How do compilers transform source code?", None),
+            ("Explain Attention Mechanism", "attention_mechanism"),
+            ("What are operating system deadlocks?", "deadlock"),
+            ("Spanner TrueTime distributed timestamps", None),
+        ]
+        for q, expected_anchor in queries:
+            p = _payload(engine, q)
+            actual_anchor = _anchor_id(p)
+            if expected_anchor is None:
+                assert actual_anchor is None, f"Query '{q}' should have no anchor, got {actual_anchor}"
+                assert p.get("render_graph") is False
+            else:
+                assert actual_anchor == expected_anchor, (
+                    f"Query '{q}' expected {expected_anchor}, got {actual_anchor}"
+                )
+                assert p.get("render_graph") is True
+
 
 # ---------------------------------------------------------------------------
 # Trace payload tests (SIGIR Demo instrumentation)

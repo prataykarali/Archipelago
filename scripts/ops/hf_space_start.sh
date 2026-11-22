@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Start Archipelago inference for Hugging Face Spaces (single-port demo).
 set -euo pipefail
-cd "$(dirname "$0")/../../.."
+cd "$(dirname "$0")/../.."
 
 PORT="${PORT:-7860}"
 export ARCHIPELAGO_BIND="${ARCHIPELAGO_BIND:-0.0.0.0}"

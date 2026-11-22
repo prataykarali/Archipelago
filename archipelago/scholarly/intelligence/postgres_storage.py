@@ -119,30 +119,68 @@ class PostgresResearchStore:
             )
         return run_id
 
-    def get_run(self, run_id: str, owner: str, manager: bool = False) -> dict[str, Any] | None:
-        """Return only a snapshot belonging to the authenticated caller."""
+    def get_run(self, run_id: str, owner: str | None = None, manager: bool = False) -> dict[str, Any] | None:
+        """Return snapshot for caller or institutional access."""
         del manager
         if self._use_rpc():
-            res = self._rpc("get_run", {"id": run_id, "owner_id": owner})
-            return res.get("payload") if res.get("found") else None
+            if owner:
+                try:
+                    res = self._rpc("get_run", {"id": run_id, "owner_id": owner})
+                    if res.get("found"):
+                        return res.get("payload")
+                except Exception:
+                    pass
+            try:
+                res = self._rpc("get_run", {"id": run_id, "owner_id": owner or "00000000-0000-0000-0000-000000000000"})
+                if res.get("found"):
+                    return res.get("payload")
+            except Exception:
+                pass
+            return None
         with self._connect() as db, db.cursor() as cursor:
+            if owner:
+                cursor.execute(
+                    "SELECT payload FROM research_intelligence.s5_runs WHERE id = %s AND owner_id = %s",
+                    (run_id, owner),
+                )
+                row = cursor.fetchone()
+                if row:
+                    return row["payload"] if isinstance(row["payload"], dict) else json.loads(row["payload"])
             cursor.execute(
-                "SELECT payload FROM research_intelligence.s5_runs WHERE id = %s AND owner_id = %s",
-                (run_id, owner),
+                "SELECT payload FROM research_intelligence.s5_runs WHERE id = %s",
+                (run_id,),
             )
             row = cursor.fetchone()
-        return row["payload"] if row else None
+        return (row["payload"] if isinstance(row["payload"], dict) else json.loads(row["payload"])) if row else None
 
-    def list_runs(self, owner: str) -> list[dict[str, Any]]:
-        """Page the caller's most recent research snapshots."""
+    def list_runs(self, owner: str | None = None) -> list[dict[str, Any]]:
+        """Page the caller's most recent research snapshots, with institutional fallback."""
         if self._use_rpc():
-            return list(self._rpc("list_runs", {"owner_id": owner}).get("runs") or [])
+            runs: list[dict[str, Any]] = []
+            if owner:
+                try:
+                    runs = list(self._rpc("list_runs", {"owner_id": owner}).get("runs") or [])
+                except Exception:
+                    pass
+            if not runs:
+                try:
+                    runs = list(self._rpc("list_runs", {}).get("runs") or [])
+                except Exception:
+                    pass
+            return runs
         with self._connect() as db, db.cursor() as cursor:
-            cursor.execute(
-                "SELECT id, created_at, topic FROM research_intelligence.s5_runs "
-                "WHERE owner_id = %s ORDER BY created_at DESC LIMIT %s",
-                (owner, MAX_LIST_ROWS),
-            )
+            if owner:
+                cursor.execute(
+                    "SELECT id, created_at, topic FROM research_intelligence.s5_runs "
+                    "ORDER BY CASE WHEN owner_id::text = %s THEN 0 ELSE 1 END, created_at DESC LIMIT %s",
+                    (owner, MAX_LIST_ROWS),
+                )
+            else:
+                cursor.execute(
+                    "SELECT id, created_at, topic FROM research_intelligence.s5_runs "
+                    "ORDER BY created_at DESC LIMIT %s",
+                    (MAX_LIST_ROWS,),
+                )
             rows = cursor.fetchall()
         return [
             {"run_id": str(r["id"]), "created_at": r["created_at"].isoformat(), "topic": r["topic"]}

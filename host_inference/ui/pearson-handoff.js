@@ -77,7 +77,17 @@
         const book = await response.json();
         document.getElementById('book-title').textContent = book.title || 'Pearson Digital Textbook';
         document.getElementById('book-author').textContent = (book.author || 'Pearson Education') + ` · Page ${targetPage}`;
-        targetReaderUrl = book.reader_url || `https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?version=1.0.317.1#book/${bookId}/page/${targetPage}`;
+        const defaultPearsonUrl = `https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?version=1.0.317.1#book/${bookId}/page/${targetPage}`;
+        let safePearsonUrl = defaultPearsonUrl;
+        if (typeof book.reader_url === 'string') {
+          try {
+            const candidate = new URL(book.reader_url, window.location.origin);
+            if (candidate.protocol === 'https:' && (candidate.hostname === 'pearson.com' || candidate.hostname.endsWith('.pearson.com'))) {
+              safePearsonUrl = candidate.href;
+            }
+          } catch (_) {}
+        }
+        targetReaderUrl = safePearsonUrl;
         document.getElementById('btn-open-reader').href = targetReaderUrl;
       } catch (err) {
         document.getElementById('book-title').textContent = 'Pearson Textbook Holding';

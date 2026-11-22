@@ -11,7 +11,8 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parent
-CACHE = ROOT / "cache"
+PACKAGED_CACHE = ROOT / "cache"
+CACHE = Path("/tmp/archipelago/cache") if os.environ.get("VERCEL") else PACKAGED_CACHE
 BUCKET = "archipelago-cache"
 OBJECT = "library_inventory.json"
 SAMPLE_INVENTORY = ROOT / "sample_inventory.csv"

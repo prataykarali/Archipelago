@@ -13,7 +13,7 @@ from library_inventory import inventory_stats, load_inventory
 from remote_cache import load_books, load_library_manifest, public_book
 import requests
 
-from ..config import LIBRARIAN_ROLES
+from ..config import LIBRARIAN_ROLES, MAX_CONTENT_LENGTH_BYTES
 from ..context import AppContext
 from ..koha_bridge import load_koha_snapshot, public_holdings
 from ..research_intake_store import get_record
@@ -77,7 +77,10 @@ def register(app: Flask, ctx: AppContext) -> None:
         evidence = library_paper_evidence(row)
         if evidence is None:
             return jsonify({"error": "evidence_unavailable"}), 404
-        return jsonify(evidence)
+        resp = jsonify(evidence)
+        resp.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+        resp.headers["Vary"] = "Authorization, Cookie"
+        return resp
 
     @app.get("/api/library/data")
     def library_data():
@@ -154,8 +157,13 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify(
                 {"error": "invalid_file", "detail": "Choose a CSV inventory export."}
             ), 400
+        raw_bytes = upload.read(MAX_CONTENT_LENGTH_BYTES + 1)
+        if len(raw_bytes) > MAX_CONTENT_LENGTH_BYTES:
+            return jsonify(
+                {"error": "file_too_large", "detail": "CSV file exceeds maximum size limit."}
+            ), 413
         try:
-            rows = ctx.inventory.parse(upload.read())
+            rows = ctx.inventory.parse(raw_bytes)
         except ValueError as exc:
             return jsonify({"error": "invalid_csv", "detail": str(exc)}), 400
         try:

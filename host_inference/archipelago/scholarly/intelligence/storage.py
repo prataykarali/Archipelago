@@ -88,24 +88,30 @@ class ResearchStore:
             )
         return run_id
 
-    def get_run(self, run_id: str, owner: str, manager: bool = False) -> dict[str, Any] | None:
-        """Read a run only for its owner or an authorized manager."""
+    def get_run(self, run_id: str, owner: str | None = None, manager: bool = False) -> dict[str, Any] | None:
+        """Read a run for its owner or an authorized manager."""
         with self._connect() as db:
             row = db.execute("SELECT owner, payload FROM runs WHERE id = ?", (run_id,)).fetchone()
-        return json.loads(row["payload"]) if row and (manager or row["owner"] == owner) else None
+        return json.loads(row["payload"]) if row and (manager or owner is None or row["owner"] == owner) else None
 
-    def list_runs(self, owner: str) -> list[dict[str, Any]]:
-        """List recent run manifests without exposing other users' queries."""
+    def list_runs(self, owner: str | None = None) -> list[dict[str, Any]]:
+        """List recent run manifests across the institution."""
         with self._connect() as db:
-            rows = db.execute(
-                "SELECT id, created_at, payload FROM runs WHERE owner = ? ORDER BY created_at DESC LIMIT ?",
-                (owner, MAX_LIST_ROWS),
-            ).fetchall()
+            if owner:
+                rows = db.execute(
+                    "SELECT id, created_at, payload FROM runs ORDER BY CASE WHEN owner = ? THEN 0 ELSE 1 END, created_at DESC LIMIT ?",
+                    (owner, MAX_LIST_ROWS),
+                ).fetchall()
+            else:
+                rows = db.execute(
+                    "SELECT id, created_at, payload FROM runs ORDER BY created_at DESC LIMIT ?",
+                    (MAX_LIST_ROWS,),
+                ).fetchall()
         return [
             {
                 "run_id": row["id"],
                 "created_at": row["created_at"],
-                "topic": json.loads(row["payload"])["options"]["topic"],
+                "topic": json.loads(row["payload"]).get("options", {}).get("topic", "Saved topic"),
             }
             for row in rows
         ]
@@ -296,14 +302,18 @@ class ResearchStore:
 
 def durable_storage_configured() -> bool:
     """Return whether direct Postgres or hosted service-role Supabase RPC is configured."""
+    if os.getenv("ARCHIPELAGO_RESEARCH_DB", "").strip():
+        return False
     if os.getenv("ARCHIPELAGO_RESEARCH_DATABASE_URL", "").strip():
         return True
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return False
     url = os.getenv("SUPABASE_URL", "").strip()
     key = (
         os.getenv("SUPABASE_SECRET_KEY", "").strip()
         or os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     )
-    return bool(os.getenv("VERCEL") and url and key)
+    return bool(url and key)
 
 
 def hosted_store() -> ResearchStore | PostgresResearchStore:

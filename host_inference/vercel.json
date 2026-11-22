@@ -3,9 +3,31 @@
   "functions": {
     "app.py": {
       "maxDuration": 300,
-      "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,**/__pycache__/**,**/*.pyc}"
+      "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,.git/**,AUDIT.md,**/AUDIT.md,**/*.sqlite3,**/*.bak,**/*stripped_backup*,**/__pycache__/**,**/*.pyc}"
     }
   },
+  "headers": [
+    {
+      "source": "/research",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, proxy-revalidate"},
+        {"key": "CDN-Cache-Control", "value": "no-store"},
+        {"key": "Surrogate-Control", "value": "no-store"},
+        {"key": "Pragma", "value": "no-cache"},
+        {"key": "Expires", "value": "0"}
+      ]
+    },
+    {
+      "source": "/research/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, proxy-revalidate"},
+        {"key": "CDN-Cache-Control", "value": "no-store"},
+        {"key": "Surrogate-Control", "value": "no-store"},
+        {"key": "Pragma", "value": "no-cache"},
+        {"key": "Expires", "value": "0"}
+      ]
+    }
+  ],
   "crons": [
     {"path": "/api/research/intake/scheduled", "schedule": "0 3 * * *"},
     {"path": "/api/internal/s5-monitor-tick", "schedule": "0 4 * * *"}

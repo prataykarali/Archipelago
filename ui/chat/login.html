@@ -54,7 +54,8 @@
     const requestedNext = new URLSearchParams(window.location.search).get("next") || "/chat";
 
     function accountEmail(username, role) {
-      return `${username.trim().toLowerCase()}@${role}${EMAIL_DOMAIN}`;
+      const cleaned = username.trim().toLowerCase();
+      return cleaned.includes("@") ? cleaned : `${cleaned}@${role}${EMAIL_DOMAIN}`;
     }
 
     function destinationForRole(role, config) {
@@ -102,7 +103,7 @@
       const role = roleSelect.value;
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
-      if (!USERNAME_PATTERN.test(username)) {
+      if (!username.includes("@") && !USERNAME_PATTERN.test(username)) {
         message.textContent = "Username must be between 3 and 64 characters.";
         return;
       }

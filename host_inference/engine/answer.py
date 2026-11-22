@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
+import time
 
 from demo_cards import redact_for_model
 from library_index import Catalog
@@ -119,6 +120,7 @@ class Engine:
 
     def answer(self, query: str) -> dict:
         """Route ``query`` and return grounded text plus the graph payload."""
+        start_time = time.perf_counter()
         query = (query or "").strip()
         self.graph._query = query
         route, text, anchor, extra = self._route(query)
@@ -350,34 +352,48 @@ class Engine:
             payload["text_override"] = notices[0]
 
         # Populate instrumentation trace & grounding status for SIGIR Demo Inspector
+        latency_s = round(time.perf_counter() - start_time, 2)
+        latency_ms = int((time.perf_counter() - start_time) * 1000)
+
         anchor_id = (payload.get("anchor_concept") or {}).get("id") if payload.get("anchor_concept") else None
         anchor_lbl = (payload.get("anchor_concept") or {}).get("label") or (payload.get("anchor_concept") or {}).get("name") if payload.get("anchor_concept") else None
         hops = 2 if (anchor_id and (payload.get("prerequisites") or payload.get("unlocks"))) else (1 if anchor_id else 0)
         cites_count = len([c for c in (payload.get("citations") or []) if isinstance(c, dict) and (c.get("text_passage") or c.get("passage") or c.get("label") or c.get("doc_id"))])
 
         if anchor_id and cites_count > 0:
-            grounding_badge = "Verified source evidence available"
+            grounding_badge = "Passage matched · Verified OKF structure"
             grounding_state = "verified"
+            grounding_detail = "passage_matched"
+            retrieval_mode = "Graph-Assisted Traversal (OKF + Lexical Passages)"
         elif anchor_id:
-            grounding_badge = "Graph structure verified · No direct passage"
+            grounding_badge = "OKF structure resolved · No direct passage"
             grounding_state = "partial"
+            grounding_detail = "partial_grounding"
+            retrieval_mode = "Graph-Assisted Traversal (OKF Only)"
         elif cites_count > 0:
-            grounding_badge = "General literature evidence · Concept unmatched"
+            grounding_badge = "No Verified Graph Match · Lexical literature fallback"
             grounding_state = "general"
+            grounding_detail = "no_graph_match"
+            retrieval_mode = "Lexical Literature Retrieval (Unindexed Concept)"
         else:
-            grounding_badge = "No verified concept match — graph unavailable for this question"
+            grounding_badge = "No Verified Graph Match"
             grounding_state = "unmatched"
+            grounding_detail = "no_graph_match"
+            retrieval_mode = "Direct Abstention / Catalog Fallback"
 
         payload["trace"] = {
             "intent": route,
             "concept_id": anchor_id,
             "concept_label": anchor_lbl,
             "graph_hops": hops,
-            "retrieval_mode": "Graph-Assisted Hybrid (Lexical + OKF Traversal)",
+            "retrieval_mode": retrieval_mode,
             "provider": payload.get("provider") or "Deterministic Rule-Based OKF Fallback",
             "grounded_passages": cites_count,
             "grounding_status": grounding_state,
+            "grounding_detail": grounding_detail,
             "grounding_badge": grounding_badge,
+            "latency_s": latency_s,
+            "latency_ms": latency_ms,
         }
 
         text = link_answer_sources(text, payload["citations"])

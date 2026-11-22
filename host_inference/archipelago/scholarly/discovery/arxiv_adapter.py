@@ -79,6 +79,16 @@ class ArXivAdapter:
 
         pub_el = entry.find("atom:published", self.ns)
         pub_date = pub_el.text[:10] if pub_el is not None and pub_el.text else None
+        upd_el = entry.find("atom:updated", self.ns)
+        updated_date = upd_el.text[:10] if upd_el is not None and upd_el.text else None
+
+        ver_match = re.search(r"(v\d+)$", arxiv_id)
+        arxiv_version = ver_match.group(1) if ver_match else None
+        categories = [
+            cat.attrib["term"]
+            for cat in entry.findall("atom:category", self.ns)
+            if cat.attrib.get("term")
+        ]
 
         authors = []
         for a_el in entry.findall("atom:author", self.ns):
@@ -129,4 +139,14 @@ class ArXivAdapter:
             "raw_sha256": raw_sha256,
             "citation_count": None,
             "pdf_url": pdf_url,
+            "source_metadata": {
+                "arxiv_version": arxiv_version,
+                "updated_date": updated_date,
+                "first_online_date": pub_date,
+                "categories": categories,
+                "topics": categories,
+                "peer_reviewed": False,
+                "published_vs_preprint": "preprint",
+                "landing_page_url": raw_id_url,
+            },
         }

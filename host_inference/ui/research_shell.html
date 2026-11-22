@@ -11,10 +11,12 @@
   <link rel="stylesheet" href="/research_layout.css">
   <link rel="stylesheet" href="/research_simple.css">
   <link rel="stylesheet" href="/research_studio.css?v=20261114s5">
-  <link rel="stylesheet" href="/research_atlas.css?v=20261026i">
+  <link rel="stylesheet" href="/research_atlas.css?v=20261117recenttopics">
   <link rel="stylesheet" href="/research_paper.css?v=20261026k">
-  <link rel="stylesheet" href="/research_topic.css?v=20261026k">
-  <link rel="stylesheet" href="/research_intelligence.css?v=20261114s5">
+  <link rel="stylesheet" href="/research_topic.css?v=20261117completefit">
+  <link rel="stylesheet" href="/research_intelligence.css?v=20261117completefit">
+  <link rel="stylesheet" href="/research_rankings.css?v=20261117blondunified">
+  <link rel="stylesheet" href="/research_run_dossier.css?v=20261117blondunified">
   <style>body[data-research-page="paper"] .research-page-heading, body[data-research-page="topic"] .research-page-heading { display: none; }</style>
   <script type="module" src="/auth_bridge.js"></script>
   <script src="/research_common.js" defer></script>
@@ -26,6 +28,7 @@
     <nav aria-label="Primary">
       <a href="/library">Library</a>
       <a href="/chat">Chat</a>
+      <a href="/librarian">Librarian Space</a>
       <a href="/research" aria-current="page">Research</a>
     </nav>
   </header>
@@ -36,6 +39,10 @@
       <p>__SUBTITLE__</p>
     </header>
     __CONTENT__
+    <footer class="research-privacy-footer" style="margin-top:32px;padding-top:16px;border-top:1px solid rgba(148,163,184,0.2);font-size:12px;color:#64748b;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;">
+      <span>Privacy &amp; Terms: Institutional research queries &amp; saved runs are processed via Supabase, OpenAlex, Crossref, Semantic Scholar &amp; arXiv. No third-party ad trackers.</span>
+      <button type="button" onclick="window.archipelagoClearClientStorage && window.archipelagoClearClientStorage({ includeHistory: true }); alert('Cleared saved local research and browser history.');" style="background:transparent;border:1px solid rgba(148,163,184,0.4);border-radius:6px;padding:4px 10px;font-size:11px;color:inherit;cursor:pointer;">Clear local research state</button>
+    </footer>
   </main>
 </body>
 </html>

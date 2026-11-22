@@ -195,14 +195,70 @@ def validate_negative_controls(
     pool_query_ids: set[str],
     schema_mode: str,
     result: PreflightResult,
+    *,
+    expected_nc_ids: tuple[str, ...] | list[str] | None = None,
+    benchmark_version: str | None = None,
 ) -> None:
-    """Validate negative-control verifications and record reclassifications."""
-    required_neg_ids = [qid for qid in PROVISIONAL_NEG_CONTROL_IDS if qid in pool_query_ids]
-    if not required_neg_ids:
-        return
+    """Validate negative-control verifications and record reclassifications (fail-closed)."""
+    resolved_version = benchmark_version
+    if resolved_version is None and result.pool_version and "s5b2_1" in result.pool_version:
+        resolved_version = "s5v2.1"
+
+    if expected_nc_ids is not None:
+        required_neg_ids = list(expected_nc_ids)
+        if not required_neg_ids:
+            result.errors.append(
+                PreflightFinding(
+                    "UNVERIFIED_NEGATIVE_CONTROLS",
+                    "Empty expected_nc_ids specification; refusing silent negative-control bypass.",
+                )
+            )
+            return
+        missing_in_pool = [qid for qid in required_neg_ids if qid not in pool_query_ids]
+        if missing_in_pool:
+            result.errors.append(
+                PreflightFinding(
+                    "UNVERIFIED_NEGATIVE_CONTROLS",
+                    f"Expected negative-control IDs absent from pool: {missing_in_pool}",
+                )
+            )
+            return
+    else:
+        non_v21_qids = sorted(qid for qid in pool_query_ids if not qid.startswith("Q-S5B2-"))
+        if (resolved_version is not None and resolved_version != "s5v2.1") or non_v21_qids:
+            result.errors.append(
+                PreflightFinding(
+                    "UNVERIFIED_NEGATIVE_CONTROLS",
+                    "Non-v2.1 query IDs or benchmark_version supplied to legacy v2.1 preflight "
+                    "without explicit expected_nc_ids; refusing silent negative-control bypass.",
+                )
+            )
+            return
+        required_neg_ids = [qid for qid in PROVISIONAL_NEG_CONTROL_IDS if qid in pool_query_ids]
+        if not required_neg_ids:
+            result.errors.append(
+                PreflightFinding(
+                    "UNVERIFIED_NEGATIVE_CONTROLS",
+                    "No expected negative-control IDs matched pool_query_ids; "
+                    "refusing silent negative-control bypass.",
+                )
+            )
+            return
+
     if not isinstance(neg_records, dict):
-        result.errors.append(PreflightFinding("UNVERIFIED_NEGATIVE_CONTROLS", "Missing negative-control records"))
+        result.errors.append(
+            PreflightFinding("UNVERIFIED_NEGATIVE_CONTROLS", "Missing negative-control records")
+        )
         return
+
+    extra_nc_ids = sorted(set(neg_records.keys()) - set(required_neg_ids))
+    if extra_nc_ids:
+        result.errors.append(
+            PreflightFinding(
+                "UNVERIFIED_NEGATIVE_CONTROLS",
+                f"Unexpected negative-control records not in expected_nc_ids: {extra_nc_ids}",
+            )
+        )
 
     for qid in required_neg_ids:
         rec = neg_records.get(qid)

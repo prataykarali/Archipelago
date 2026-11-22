@@ -9,16 +9,16 @@ from __future__ import annotations
 import importlib.util
 import os
 
-from flask import Flask, jsonify, redirect, request, send_from_directory
+from flask import Flask, jsonify, make_response, redirect, request, send_from_directory
 
 from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
 from ..context import AppContext
 from ..page_fragments import assembled_page
 from ..research_pages import PAGE_DETAILS, render_research_page
+from ..security import is_safe_redirect_target
 from .ingest import _worker_available
 
 GRAPH_PAGE_FILE = "graph.html"
-RESEARCH_ORIGIN = "https://archipelago-librarian.vercel.app"
 
 #: Concept count below which the deployment is provably running the tracked
 #: fixture rather than the library's full corpus.  The fixture is ~59 concepts;
@@ -34,10 +34,17 @@ def register(app: Flask, ctx: AppContext) -> None:
         if name in AUTH_GATED_PAGES and ctx.auth.required():
             principal, _error = ctx.auth.principal()
             if principal is None:
-                return redirect(f"/login?next=/{name}")
+                next_path = f"/{name}"
+                if not is_safe_redirect_target(next_path):
+                    next_path = "/chat"
+                return redirect(f"/login?next={next_path}")
         if name in {"chat", "library"}:
-            return assembled_page(UI, PAGE_FILES[name])
-        return send_from_directory(UI, PAGE_FILES[name])
+            resp = make_response(assembled_page(UI, PAGE_FILES[name]))
+        else:
+            resp = make_response(send_from_directory(UI, PAGE_FILES[name]))
+        if name in AUTH_GATED_PAGES or name == "login":
+            resp.headers["Cache-Control"] = "private, no-store"
+        return resp
 
     @app.get("/")
     @app.get("/landing")
@@ -57,7 +64,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                 return redirect("/login?next=/graph")
             if principal.get("role") not in ELEVATED_ROLES:
                 return redirect("/chat")
-        return redirect(f"{RESEARCH_ORIGIN}/academic/graph")
+        return redirect("/academic/graph")
 
     @app.get("/research")
     @app.get("/research/")
@@ -68,7 +75,7 @@ def register(app: Flask, ctx: AppContext) -> None:
     def research_subpage(page: str):
         if page not in PAGE_DETAILS:
             return jsonify({"error": "not_found"}), 404
-        return redirect(f"{RESEARCH_ORIGIN}{request.full_path.rstrip('?')}")
+        return render_research_page(page)
 
     @app.get("/library")
     @app.get("/library/")

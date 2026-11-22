@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "s5v31_benchmark_config.schema.json",
+  "title": "S5-v3.1 Benchmark Configuration Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "benchmark_version",
+    "corpus_id",
+    "corpus_sha256",
+    "query_manifest_id",
+    "query_manifest_sha256",
+    "split",
+    "approved_query_ids",
+    "approved_negative_control_ids",
+    "pool_id",
+    "pool_sha256",
+    "pool_depth_k",
+    "expected_pair_count",
+    "retrieval_manifest_sha256",
+    "system_hashes"
+  ],
+  "properties": {
+    "benchmark_version": {
+      "const": "s5v3.1"
+    },
+    "corpus_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "corpus_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "query_manifest_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "query_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "split": {
+      "type": "string",
+      "enum": ["dev", "test", "dev_and_test"]
+    },
+    "approved_query_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "approved_negative_control_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "pool_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pool_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pool_depth_k": {
+      "type": "integer",
+      "enum": [5, 10]
+    },
+    "expected_pair_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "retrieval_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "system_hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    }
+  }
+}

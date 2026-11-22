@@ -11,10 +11,22 @@ import { storageKey } from './storage-key.js';
             const bottomMapContainer = document.getElementById('bottom-svg-map-container');
 
             if (!anchor) {
-                if (isReset) {
-                    if (placeholder) placeholder.classList.remove('hidden');
-                    if (view) view.classList.add('hidden');
+                if (placeholder) {
+                    placeholder.classList.remove('hidden');
+                    placeholder.innerHTML = `
+                        <div class="p-4 rounded-xl bg-white/5 border border-white/10 text-center flex flex-col items-center gap-2">
+                            <i class="fa-solid fa-circle-nodes text-gray-500 text-lg"></i>
+                            <p class="text-xs font-semibold text-gray-300">No Verified Graph Match</p>
+                            <p class="text-[10px] text-gray-400">Lexical and literature fallback executed without concept substitution.</p>
+                        </div>
+                    `;
                 }
+                if (view) view.classList.add('hidden');
+                if (bottomMapContainer) {
+                    bottomMapContainer.classList.add('hidden');
+                    bottomMapContainer.classList.remove('is-visible');
+                }
+                window._graphNeighborhood = { anchor: null, prereqs: [], unlocks: [], related: [] };
                 return;
             }
 
@@ -94,8 +106,8 @@ import { storageKey } from './storage-key.js';
                     x: cx, y: cy, type: 'anchor', data: activeAnchor
                 });
 
-                const preX = Math.max(36, cx - Math.min(cx - 28, large ? 200 : 120));
-                const unX = Math.min(w - 36, cx + Math.min(w - cx - 28, large ? 200 : 120));
+                const preX = Math.max(64, cx - Math.min(cx - 48, large ? 200 : 130));
+                const unX = Math.min(w - 64, cx + Math.min(w - cx - 48, large ? 200 : 130));
                 const pN = Math.max(safePrereqs.length, 1);
                 const uN = Math.max(safeUnlocks.length, 1);
                 safePrereqs.forEach((p, i) => {
@@ -210,13 +222,22 @@ import { storageKey } from './storage-key.js';
 
                     const short = (n.label || n.id || '').length > 28 ? (n.label || n.id).slice(0, 27) + '…' : (n.label || n.id || '');
                     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    text.setAttribute('x', n.x);
-                    text.setAttribute('y', n.y + r + 14);
+                    const charW = large ? 7.2 : 6.0;
+                    const textW = short.length * charW;
+                    const halfW = textW / 2;
+                    let clampedX = n.x;
+                    if (clampedX - halfW < 8) clampedX = 8 + halfW;
+                    if (clampedX + halfW > w - 8) clampedX = w - 8 - halfW;
+                    text.setAttribute('x', clampedX);
+
+                    let textY = n.y + r + 14;
+                    if (textY > h - 6) textY = n.y - r - 6;
+                    text.setAttribute('y', textY);
                     text.setAttribute('text-anchor', 'middle');
                     text.setAttribute('fill', '#e5e7eb');
-                    text.setAttribute('font-size', large ? '13px' : '11px');
+                    text.setAttribute('font-size', large ? '12px' : '10.5px');
                     text.setAttribute('font-weight', '700');
-                    text.setAttribute('font-family', "'Brigend', sans-serif");
+                    text.setAttribute('font-family', "system-ui, -apple-system, sans-serif");
                     text.textContent = short;
                     g.appendChild(text);
 

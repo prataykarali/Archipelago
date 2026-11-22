@@ -24,7 +24,10 @@ def discover_repository_items() -> tuple[list[dict[str, str]], dict[str, object]
         FEED_URL,
         headers={"User-Agent": "ArchipelagoAcademic/1.0 (repository metadata monitor)"},
         timeout=REQUEST_TIMEOUT_SECONDS,
+        allow_redirects=False,
     )
+    if response.is_redirect:
+        raise ValueError("Unexpected repository feed redirect")
     response.raise_for_status()
     if len(response.content) > MAX_FEED_BYTES:
         raise ValueError("Repository feed exceeds size limit")

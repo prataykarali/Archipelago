@@ -9,6 +9,7 @@ import hashlib
 import html
 import json
 import logging
+import os
 import re
 from typing import Any
 import urllib.parse
@@ -40,31 +41,68 @@ class OpenAlexAdapter:
         self.headers = {"User-Agent": f"Archipelago-Research-Platform/1.1 (mailto:{polite_email})"}
 
     def search(self, query: str, limit: int = 10) -> list[dict[str, Any]]:
-        """Search OpenAlex works for a given research query."""
-        params = urllib.parse.urlencode(
-            {
-                "search": query,
-                "per-page": min(limit, 50),
-                "sort": "relevance_score:desc",
-            }
-        )
-        url = f"{self.base_url}?{params}"
-        req = urllib.request.Request(url, headers=self.headers)
-
-        try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                raw_bytes = resp.read()
-                raw_sha256 = hashlib.sha256(raw_bytes).hexdigest()
-                payload = json.loads(raw_bytes.decode("utf-8"))
-
-                results = []
-                for item in payload.get("results", []):
-                    canonical_item = self._transform_item(item, raw_sha256)
-                    results.append(canonical_item)
-                return results
-        except Exception as e:
-            logger.error("OpenAlex search failed for query '%s': %s", query, e)
-            return []
+        """Search OpenAlex works with pagination and response validation."""
+        target = max(1, min(limit, 500))
+        per_page = min(target, 100)
+        results: list[dict[str, Any]] = []
+        page = 1
+        while len(results) < target:
+            params = urllib.parse.urlencode(
+                {
+                    "search": query,
+                    "per-page": per_page,
+                    "page": page,
+                    "sort": "relevance_score:desc",
+                    **(
+                        {"api_key": api_key}
+                        if (api_key := os.getenv("OPENALEX_API_KEY", "").strip())
+                        else {}
+                    ),
+                }
+            )
+            url = f"{self.base_url}?{params}"
+            req = urllib.request.Request(url, headers=self.headers)
+            try:
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    status = getattr(resp, "status", 200)
+                    ctype = (resp.headers.get("Content-Type") or "").lower()
+                    if status != 200 or ("json" not in ctype and ctype):
+                        logger.warning(
+                            "OpenAlex unexpected response status=%s content_type=%s", status, ctype
+                        )
+                        break
+                    raw_bytes = resp.read()
+                    raw_sha256 = hashlib.sha256(raw_bytes).hexdigest()
+                    payload = json.loads(raw_bytes.decode("utf-8"))
+                    if not isinstance(payload, dict) or payload.get("error"):
+                        logger.warning(
+                            "OpenAlex error payload for query '%s': %s",
+                            query,
+                            payload.get("error")
+                            if isinstance(payload, dict)
+                            else type(payload).__name__,
+                        )
+                        break
+                    items = payload.get("results")
+                    if not isinstance(items, list) or not items:
+                        break
+                    for item in items:
+                        if isinstance(item, dict):
+                            results.append(self._transform_item(item, raw_sha256))
+                            if len(results) >= target:
+                                break
+                    if len(items) < per_page:
+                        break
+                    page += 1
+            except Exception as e:
+                logger.error(
+                    "OpenAlex search failed for query '%s' page=%d: %s",
+                    query,
+                    page,
+                    type(e).__name__,
+                )
+                break
+        return results
 
     def _transform_item(self, item: dict[str, Any], raw_sha256: str) -> dict[str, Any]:
         """Convert OpenAlex work object to unified candidate dict."""
@@ -186,11 +224,14 @@ class OpenAlexAdapter:
                     if entry.get("display_name")
                 ],
                 "retraction_status": item.get("is_retracted"),
-                "author_openalex_ids": [(entry.get("author") or {}).get("id") for entry in authorships],
+                "author_openalex_ids": [
+                    (entry.get("author") or {}).get("id") for entry in authorships
+                ],
                 "corresponding_authors": [
                     (entry.get("author") or {}).get("display_name")
                     for entry in authorships
-                    if entry.get("is_corresponding") and (entry.get("author") or {}).get("display_name")
+                    if entry.get("is_corresponding")
+                    and (entry.get("author") or {}).get("display_name")
                 ],
                 "author_institutions": [
                     [

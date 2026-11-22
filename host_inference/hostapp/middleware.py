@@ -5,21 +5,45 @@ One concern: cross-cutting request policy, registered once against the Flask app
 
 from __future__ import annotations
 
+import hmac
+from urllib.parse import urlsplit
+
 from flask import Flask, jsonify, request
 
 from .config import (
     ALLOWED_ORIGINS,
+    CSRF_COOKIE_NAME,
     LIBRARIAN_ROLES,
     PUBLIC_API,
     PUBLIC_API_PREFIXES,
+    SESSION_COOKIE_NAME,
 )
 from .context import AppContext
+from .log_redaction import redact
 from .research_access import ResearchCapability, allowed, audit_action
+from .runtime_state import begin_request, end_request, is_shutting_down
+from .security import SAFE_METHODS, is_allowed_handoff_origin
 
 OPTIONS_NO_CONTENT = 204
+SHUTDOWN_RETRY_AFTER_SEC = 5
+HEALTH_PATHS = frozenset({"/health", "/ready", "/api/health", "/api/readiness"})
+LOGOUT_PATHS = frozenset({"/api/auth/logout", "/api/auth/session"})
 
 CORS_METHODS = "GET,POST,PATCH,DELETE,OPTIONS"
-CORS_HEADERS = "Content-Type,Authorization,X-Requested-With"
+CORS_HEADERS = "Content-Type,Authorization,X-Requested-With,X-CSRF-Token,X-Background-Poll"
+_BLOCKED_SUFFIXES = (
+    ".env",
+    ".git",
+    ".sqlite3",
+    ".sqlite",
+    ".db",
+    ".bak",
+    ".old",
+    ".orig",
+    ".swp",
+    ".pyc",
+    "audit.md",
+)
 
 # Runtime assets are built with the Tailwind Play CDN, so the policy allows the
 # specific CDNs the UI loads rather than 'unsafe-eval'.
@@ -33,6 +57,38 @@ CONTENT_SECURITY_POLICY = (
     "frame-src 'self' https://ebooks.elibrary.in.pearson.com https://elibrary.in.pearson.com https://huggingface.co; "
     "worker-src 'self' blob: https://cdnjs.cloudflare.com"
 )
+
+
+def _is_blocked_dotfile_or_artifact(path: str) -> bool:
+    """Return True when ``path`` targets dotfiles, backup files, SQLite DBs, or AUDIT.md."""
+    if not path or "\\" in path or ".." in path:
+        return True
+    segments = [seg for seg in path.split("/") if seg]
+    if any(seg.startswith(".") or seg.endswith("~") for seg in segments):
+        return True
+    lowered = path.lower()
+    if "stripped_backup" in lowered or lowered.endswith(_BLOCKED_SUFFIXES):
+        return True
+    return False
+
+
+def _origin_from_url(value: str) -> str:
+    parsed = urlsplit(value.strip())
+    if parsed.scheme in {"http", "https"} and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return ""
+
+
+def _is_trusted_request_origin(origin: str, path: str) -> bool:
+    cleaned = (origin or "").strip().rstrip("/")
+    if not cleaned or cleaned == "*" or cleaned == "null":
+        return False
+    host_origin = request.host_url.rstrip("/")
+    if cleaned in ALLOWED_ORIGINS or cleaned == host_origin:
+        return True
+    if path in {"/api/auth/handoff-ticket", "/api/auth/handoff-redeem"} and is_allowed_handoff_origin(cleaned):
+        return True
+    return False
 
 
 def _research_capability(path: str, method: str) -> ResearchCapability:
@@ -67,14 +123,99 @@ def _rate_limited_response(retry_after: int):
     return response
 
 
+def _shutting_down_response(is_health_probe: bool = False):
+    if is_health_probe:
+        payload = {
+            "ok": False,
+            "status": "shutting_down",
+            "detail": "Server is draining in-flight requests for graceful shutdown.",
+        }
+    else:
+        payload = {
+            "error": "service_unavailable",
+            "status": "shutting_down",
+            "detail": "Server is shutting down. Please retry shortly.",
+            "retry_after": SHUTDOWN_RETRY_AFTER_SEC,
+        }
+    response = jsonify(payload)
+    response.status_code = 503
+    response.headers["Retry-After"] = str(SHUTDOWN_RETRY_AFTER_SEC)
+    response.headers["Cache-Control"] = "private, no-store"
+    return response
+
+
+def _check_csrf(ctx: AppContext, path: str):
+    """Enforce Origin/Referer and CSRF checks on state-changing requests."""
+    if request.method in SAFE_METHODS:
+        return None
+    origin = request.headers.get("Origin", "").strip()
+    referer = request.headers.get("Referer", "").strip()
+    sec_fetch_site = request.headers.get("Sec-Fetch-Site", "").strip().lower()
+
+    origin_trusted = bool(origin) and _is_trusted_request_origin(origin, path)
+    if origin and not origin_trusted:
+        return jsonify(
+            {"error": "forbidden", "detail": "CSRF validation failed: untrusted Origin."}
+        ), 403
+
+    referer_origin = _origin_from_url(referer) if referer else ""
+    referer_trusted = bool(referer_origin) and _is_trusted_request_origin(referer_origin, path)
+    if referer and not referer_trusted:
+        return jsonify(
+            {"error": "forbidden", "detail": "CSRF validation failed: untrusted Referer."}
+        ), 403
+
+    if sec_fetch_site == "cross-site" and not origin_trusted:
+        return jsonify(
+            {"error": "forbidden", "detail": "CSRF validation failed: cross-site request blocked."}
+        ), 403
+
+    cookie_token = request.cookies.get(SESSION_COOKIE_NAME, "").strip()
+    has_bearer = request.headers.get("Authorization", "").startswith("Bearer ")
+    if cookie_token and not has_bearer:
+        csrf_header = request.headers.get("X-CSRF-Token", "").strip()
+        csrf_cookie = request.cookies.get(CSRF_COOKIE_NAME, "").strip()
+        verify_fn = getattr(ctx.auth, "verify_csrf_token", None)
+        csrf_valid = False
+        if csrf_header:
+            if callable(verify_fn) and verify_fn(cookie_token, csrf_header):
+                csrf_valid = True
+            elif csrf_cookie and hmac.compare_digest(csrf_cookie, csrf_header):
+                csrf_valid = True
+            else:
+                return jsonify(
+                    {"error": "forbidden", "detail": "CSRF validation failed: invalid CSRF token."}
+                ), 403
+        is_logout = path == "/api/auth/logout" or (
+            path == "/api/auth/session" and request.method == "DELETE"
+        )
+        has_custom_header = bool(request.headers.get("X-Requested-With", "").strip())
+        if not is_logout and not (csrf_valid or has_custom_header or origin_trusted or referer_trusted):
+            return jsonify(
+                {
+                    "error": "forbidden",
+                    "detail": "CSRF validation failed for cookie-authenticated mutation.",
+                }
+            ), 403
+    return None
+
+
 def register_middleware(app: Flask, ctx: AppContext) -> None:
     """Register the request guard, security headers and JSON error handlers."""
 
     @app.before_request
     def _guard():
+        path = request.path
+        if is_shutting_down() or not begin_request():
+            return _shutting_down_response(is_health_probe=path in HEALTH_PATHS)
+        request._archipelago_in_flight = True  # type: ignore[attr-defined]
         if request.method == "OPTIONS":
             return ("", OPTIONS_NO_CONTENT)
-        path = request.path
+        if _is_blocked_dotfile_or_artifact(path):
+            return jsonify({"error": "not_found"}), 404
+        csrf_rejection = _check_csrf(ctx, path)
+        if csrf_rejection is not None:
+            return csrf_rejection
         if (
             path.startswith("/api/research/") and path not in PUBLIC_API
         ) or path == "/api/scholarly/snapshot":
@@ -121,9 +262,23 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
             request.archipelago_principal = principal  # type: ignore[attr-defined]
         if path.startswith("/api/chat"):
             return _apply_limit(ctx.limiter.check_chat())
+        if (
+            path.startswith("/api/auth/")
+            and request.method not in SAFE_METHODS
+            and path != "/api/auth/logout"
+            and not (path == "/api/auth/session" and request.method == "DELETE")
+        ):
+            check_auth = getattr(ctx.limiter, "check_auth", ctx.limiter.check_api)
+            return _apply_limit(check_auth())
         if path.startswith("/api/") or path.startswith("/open/") or path.startswith("/papers/"):
             return _apply_limit(ctx.limiter.check_api())
         return None
+
+    @app.teardown_request
+    def _release_in_flight(_exc=None):
+        if getattr(request, "_archipelago_in_flight", False):
+            request._archipelago_in_flight = False  # type: ignore[attr-defined]
+            end_request()
 
     def _is_protected_api(path: str) -> bool:
         if not path.startswith("/api/"):
@@ -144,12 +299,28 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         if quota:
             response.headers["X-Queries-Remaining"] = str(quota["remaining"])
             response.headers["X-Queries-Used"] = str(quota["used"])
-        origin = request.headers.get("Origin", "")
-        if origin in ALLOWED_ORIGINS:
+        origin = request.headers.get("Origin", "").strip()
+        if origin and origin != "*" and (
+            origin in ALLOWED_ORIGINS
+            or (
+                request.path in {"/api/auth/handoff-ticket", "/api/auth/handoff-redeem"}
+                and is_allowed_handoff_origin(origin)
+            )
+        ):
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Headers"] = CORS_HEADERS
             response.headers["Access-Control-Allow-Methods"] = CORS_METHODS
+            response.headers.add("Vary", "Origin")
+        has_auth = (
+            bool(request.headers.get("Authorization"))
+            or bool(request.cookies.get(SESSION_COOKIE_NAME))
+            or getattr(request, "archipelago_principal", None) is not None
+        )
+        if request.path.startswith("/api/") or has_auth:
+            existing_cc = response.headers.get("Cache-Control", "")
+            if not existing_cc or ("no-store" not in existing_cc and "public" not in existing_cc):
+                response.headers["Cache-Control"] = "private, no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -179,6 +350,24 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
             {"error": "not_found", "detail": "The requested resource could not be found."}
         ), 404
 
+    @app.errorhandler(405)
+    def handle_method_not_allowed(_error):
+        return jsonify(
+            {
+                "error": "method_not_allowed",
+                "detail": "The HTTP method is not allowed for this endpoint.",
+            }
+        ), 405
+
+    @app.errorhandler(413)
+    def handle_payload_too_large(_error):
+        return jsonify(
+            {
+                "error": "payload_too_large",
+                "detail": "The request payload exceeds the maximum allowed size.",
+            }
+        ), 413
+
     @app.errorhandler(429)
     def handle_rate_limit(_error):
         return jsonify(
@@ -187,7 +376,7 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
 
     @app.errorhandler(500)
     def handle_internal_error(error):
-        app.logger.error("Internal Server Error: %s", error)
+        app.logger.error("Internal Server Error: %s", redact(str(error)))
         return jsonify(
             {"error": "internal_error", "detail": "An internal server error occurred."}
         ), 500

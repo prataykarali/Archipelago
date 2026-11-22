@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import atexit
 from datetime import UTC, datetime
 from functools import lru_cache
 from html.parser import HTMLParser
 import os
 import re
+import threading
 import time
 from urllib.parse import parse_qs, quote_plus, urljoin, urlparse
 
@@ -14,20 +16,34 @@ import requests
 
 BUCKET = "archipelago-cache"
 OBJECT = "koha_catalog_snapshot.json"
-REQUEST_TIMEOUT_SECONDS = 12
+REQUEST_TIMEOUT_SECONDS = 8
 CACHE_SECONDS = 300
 
 OPAC_ORIGIN = "https://uemk-opac.l2c2.co.in"
 OPAC_HOST = "uemk-opac.l2c2.co.in"
 OPAC_SEARCH_PATH = "/cgi-bin/koha/opac-search.pl"
 OPAC_DETAIL_PATH = "/cgi-bin/koha/opac-detail.pl"
-LIVE_OPAC_TIMEOUT_SECONDS = 5
+LIVE_OPAC_TIMEOUT_SECONDS = 3
 MAX_OPAC_PAGE_BYTES = 2_000_000
 MAX_OPAC_REDIRECTS = 3
 MAX_CHAT_OPAC_RECORDS = 3
 MAX_OPAC_HOLDINGS = 300
 OPAC_USER_AGENT = "ArchipelagoAcademic/1.0 (user-triggered catalogue lookup)"
 BIB_PATTERN = re.compile(r"^\d{1,9}$")
+
+_SESSION_LOCK = threading.Lock()
+_SESSION: requests.Session | None = requests.Session()
+
+
+def _http_get(url: str, **kwargs: object) -> requests.Response:
+    """Use the pooled session unless tests monkeypatched ``requests.get``."""
+    if getattr(requests.get, "__module__", "") != "requests.api":
+        return requests.get(url, **kwargs)  # type: ignore[arg-type]
+    with _SESSION_LOCK:
+        session = _SESSION
+    if session is not None:
+        return session.get(url, **kwargs)  # type: ignore[arg-type]
+    return requests.get(url, **kwargs)  # type: ignore[arg-type]
 
 
 def load_koha_snapshot() -> dict[str, object] | None:
@@ -43,7 +59,7 @@ def _load_for_bucket(_bucket: int) -> dict[str, object] | None:
     if not base or not key:
         return None
     try:
-        response = requests.get(
+        response = _http_get(
             f"{base}/storage/v1/object/{BUCKET}/{OBJECT}",
             headers={"apikey": key, "Authorization": f"Bearer {key}"},
             timeout=REQUEST_TIMEOUT_SECONDS,
@@ -124,7 +140,7 @@ def _opac_fetch(path: str, params: dict[str, str]) -> tuple[str, str]:
     """Fetch one public Koha OPAC page, rejecting off-host redirects and oversized responses."""
     url = f"{OPAC_ORIGIN}{path}"
     for _ in range(MAX_OPAC_REDIRECTS + 1):
-        response = requests.get(
+        response = _http_get(
             url,
             params=params,
             headers={"User-Agent": OPAC_USER_AGENT, "Accept": "text/html"},
@@ -511,3 +527,31 @@ def lookup_chat_library_holding(query: str) -> dict[str, object] | None:
         }
     except (requests.RequestException, ValueError):
         return _snapshot_fallback(cleaned)
+
+
+def shutdown() -> None:
+    """Close pooled HTTP connections and clear snapshot cache on shutdown."""
+    global _SESSION
+    with _SESSION_LOCK:
+        session, _SESSION = _SESSION, None
+    if session is not None:
+        try:
+            session.close()
+        except Exception:
+            pass
+    _load_for_bucket.cache_clear()
+
+
+def _register_shutdown() -> None:
+    atexit.register(shutdown)
+    try:
+        from . import runtime_state
+
+        reg = getattr(runtime_state, "register_shutdown_callback", None)
+        if callable(reg):
+            reg(shutdown)
+    except Exception:
+        pass
+
+
+_register_shutdown()

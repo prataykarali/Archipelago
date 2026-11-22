@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "s5v31_gold_label.schema.json",
+  "title": "S5-v3.1 Dual-Human Adjudicated Gold Label Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "benchmark_config",
+    "reviewer_a_provenance",
+    "reviewer_c_provenance",
+    "inter_annotator_agreement",
+    "adjudication_summary",
+    "negative_control_verifications",
+    "investigator_signoff",
+    "judgments"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "s5v31_adjudicated_gold_v1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ADJUDICATED_HUMAN_GOLD_V31_FINAL",
+        "SYNTHETIC_TEST_GOLD_DO_NOT_PUBLISH"
+      ]
+    },
+    "benchmark_config": {
+      "type": "object",
+      "required": [
+        "benchmark_version",
+        "corpus_id",
+        "corpus_sha256",
+        "query_manifest_id",
+        "query_manifest_sha256",
+        "split",
+        "approved_query_ids",
+        "approved_negative_control_ids",
+        "pool_id",
+        "pool_sha256",
+        "pool_depth_k",
+        "expected_pair_count",
+        "retrieval_manifest_sha256",
+        "system_hashes"
+      ],
+      "properties": {
+        "benchmark_version": {"const": "s5v3.1"},
+        "corpus_id": {"type": "string", "minLength": 1},
+        "corpus_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "query_manifest_id": {"type": "string", "minLength": 1},
+        "query_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "split": {"type": "string", "enum": ["dev", "test", "dev_and_test"]},
+        "approved_query_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "approved_negative_control_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "pool_id": {"type": "string", "minLength": 1},
+        "pool_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "pool_depth_k": {"type": "integer", "enum": [5, 10]},
+        "expected_pair_count": {"type": "integer", "minimum": 1},
+        "retrieval_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "system_hashes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "reviewer_a_provenance": {"$ref": "#/$defs/reviewer_provenance"},
+    "reviewer_c_provenance": {"$ref": "#/$defs/reviewer_provenance"},
+    "inter_annotator_agreement": {
+      "type": "object",
+      "required": [
+        "total_pairs",
+        "exact_agreement_count",
+        "disagreement_count",
+        "exact_agreement_rate",
+        "cohens_kappa_unweighted",
+        "cohens_kappa_quadratic_weighted"
+      ],
+      "properties": {
+        "total_pairs": {"type": "integer", "minimum": 1},
+        "exact_agreement_count": {"type": "integer", "minimum": 0},
+        "disagreement_count": {"type": "integer", "minimum": 0},
+        "exact_agreement_rate": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "cohens_kappa_unweighted": {"type": "number", "minimum": -1.0, "maximum": 1.0},
+        "cohens_kappa_quadratic_weighted": {"type": "number", "minimum": -1.0, "maximum": 1.0}
+      }
+    },
+    "adjudication_summary": {
+      "type": "object",
+      "required": [
+        "all_disagreements_adjudicated",
+        "total_disagreements",
+        "adjudicated_count",
+        "adjudication_worksheet_sha256",
+        "adjudicator_provenance"
+      ],
+      "properties": {
+        "all_disagreements_adjudicated": {"const": true},
+        "total_disagreements": {"type": "integer", "minimum": 0},
+        "adjudicated_count": {"type": "integer", "minimum": 0},
+        "adjudication_worksheet_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "adjudicator_provenance": {
+          "type": "object",
+          "required": [
+            "adjudicator_id",
+            "provenance_class",
+            "assistance_declaration",
+            "human_attestation_signed",
+            "attestation_signer",
+            "signed_timestamp_utc"
+          ],
+          "properties": {
+            "adjudicator_id": {"type": "string", "minLength": 1},
+            "provenance_class": {
+              "type": "string",
+              "enum": ["ADJUDICATED_HUMAN", "NOT_REQUIRED_ZERO_DISAGREEMENTS"]
+            },
+            "assistance_declaration": {"const": "NONE_INDEPENDENT_HUMAN"},
+            "human_attestation_signed": {"const": true},
+            "attestation_signer": {"type": "string", "minLength": 1},
+            "signed_timestamp_utc": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "negative_control_verifications": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "query_id",
+          "human_nc_classification",
+          "verifier_id",
+          "provenance_class",
+          "assistance_declaration",
+          "human_attestation_signed",
+          "attestation_signer",
+          "signed_timestamp_utc",
+          "corpus_sha256",
+          "rationale"
+        ],
+        "properties": {
+          "query_id": {"type": "string", "minLength": 1},
+          "human_nc_classification": {
+            "type": "string",
+            "enum": [
+              "confirmed_unanswerable",
+              "answerable_in_corpus",
+              "ambiguous",
+              "unsupported_premise",
+              "requires_revision"
+            ]
+          },
+          "verifier_id": {"type": "string", "minLength": 1},
+          "provenance_class": {"const": "INDEPENDENT_HUMAN"},
+          "assistance_declaration": {"const": "NONE_INDEPENDENT_HUMAN"},
+          "human_attestation_signed": {"const": true},
+          "attestation_signer": {"type": "string", "minLength": 1},
+          "signed_timestamp_utc": {"type": "string", "minLength": 1},
+          "corpus_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "rationale": {"type": "string", "minLength": 8}
+        }
+      }
+    },
+    "investigator_signoff": {
+      "type": "object",
+      "required": [
+        "investigator_id",
+        "approval_declaration",
+        "human_signoff_confirmed",
+        "signed_timestamp_utc",
+        "corpus_sha256",
+        "query_manifest_sha256",
+        "pool_sha256",
+        "retrieval_manifest_sha256",
+        "nc_verification_sha256"
+      ],
+      "properties": {
+        "investigator_id": {"type": "string", "minLength": 1},
+        "approval_declaration": {"type": "string", "minLength": 8},
+        "human_signoff_confirmed": {"const": true},
+        "signed_timestamp_utc": {"type": "string", "minLength": 1},
+        "corpus_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "query_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "pool_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "retrieval_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "nc_verification_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "judgments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "pair_id",
+          "query_id",
+          "passage_id",
+          "passage_sha256",
+          "reviewer_a_grade",
+          "reviewer_c_grade",
+          "final_grade",
+          "adjudication_source",
+          "supporting_quotation",
+          "adjudication_rationale",
+          "adjudicator_id"
+        ],
+        "properties": {
+          "pair_id": {"type": "string", "minLength": 1},
+          "query_id": {"type": "string", "minLength": 1},
+          "passage_id": {"type": "string", "minLength": 1},
+          "passage_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "reviewer_a_grade": {"type": "integer", "enum": [0, 1, 2]},
+          "reviewer_c_grade": {"type": "integer", "enum": [0, 1, 2]},
+          "final_grade": {"type": "integer", "enum": [0, 1, 2]},
+          "adjudication_source": {
+            "type": "string",
+            "enum": ["DUAL_HUMAN_AGREEMENT", "ADJUDICATED_HUMAN"]
+          },
+          "supporting_quotation": {"type": "string"},
+          "adjudication_rationale": {"type": "string"},
+          "adjudicator_id": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "reviewer_provenance": {
+      "type": "object",
+      "required": [
+        "reviewer_id",
+        "domain_group",
+        "provenance_class",
+        "assistance_declaration",
+        "prior_exposure_disclosure",
+        "human_attestation_signed",
+        "attestation_signer",
+        "signed_timestamp_utc",
+        "submission_sha256"
+      ],
+      "properties": {
+        "reviewer_id": {"type": "string", "minLength": 1},
+        "domain_group": {"type": "string", "minLength": 1},
+        "provenance_class": {"const": "INDEPENDENT_HUMAN"},
+        "assistance_declaration": {"const": "NONE_INDEPENDENT_HUMAN"},
+        "prior_exposure_disclosure": {"type": "string", "minLength": 1},
+        "human_attestation_signed": {"const": true},
+        "attestation_signer": {"type": "string", "minLength": 1},
+        "signed_timestamp_utc": {"type": "string", "minLength": 1},
+        "submission_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

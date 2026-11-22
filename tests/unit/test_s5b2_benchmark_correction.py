@@ -248,7 +248,7 @@ class TestS5B2_1ApprovalBlockerResolution:
             pytest.skip("okf_graph.db not present")
         for wb_name, rev_id in [("reviewer_a_s5b2_1_workbook.md", "REV_A"), ("reviewer_b_s5b2_1_workbook.md", "REV_B")]:
             wb = (local_v21 / wb_name).read_text(encoding="utf-8")
-            assert (f"Reviewer ID:** `{rev_id}`" in wb) or (f"Reviewer ID: {rev_id}" in wb)
+            assert f"Reviewer ID:** `{rev_id}`" in wb
             for kw in self.FORBIDDEN_REVIEWER_LEAKS:
                 assert kw not in wb, f"Leaked {kw} in {wb_name}"
             assert "S5B21-PAIR-001" in wb and "S5B21-PAIR-254" in wb

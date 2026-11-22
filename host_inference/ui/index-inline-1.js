@@ -2,17 +2,17 @@
             theme: {
                 extend: {
                     colors: {
-                        darkBg: '#090514',
-                        panelBg: 'rgba(15, 10, 25, 0.6)',
-                        accentPurple: '#8b5cf6',
-                        accentPink: '#ec4899',
+                        darkBg: '#0F172A',
+                        panelBg: '#1E293B',
+                        accentPurple: '#6366f1',
+                        accentPink: '#0d9488',
                         accentCyan: '#06b6d4',
                     },
                     fontFamily: {
-                        sans: ['Brigend', 'sans-serif'],
-                        display: ['Aurellis', 'sans-serif'],
-                        body: ['Brigend', 'sans-serif'],
-                        mono: ['Brigend', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        body: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
                     }
                 }
             }

@@ -1,0 +1,66 @@
+{
+  "schema_version": "s5v3_essential_model_pin_v1",
+  "repo_id": "Snowflake/snowflake-arctic-embed-m-v1.5",
+  "source": "https://huggingface.co/Snowflake/snowflake-arctic-embed-m-v1.5",
+  "revision": "e58a8f756156a1293d763f17e3aae643474e9b8a",
+  "license": "Apache-2.0",
+  "role": "essential_dense_and_hybrid_control",
+  "local_path": "data/annotation_local/s5v3/models/snowflake-arctic-embed-m-v1.5",
+  "files": {
+    "1_Pooling/config.json": {
+      "bytes": 297,
+      "sha256": "4bf279dd9204db673304cab6e7db8448f427412a0d87f04c3e19f1de55dd98cd"
+    },
+    "README.md": {
+      "bytes": 272657,
+      "sha256": "c4db76f0902e1d102d455d5ca5f75272134e8a06392a089e7f7d03c484fa7a7d"
+    },
+    "config.json": {
+      "bytes": 772,
+      "sha256": "d2dddc06af0aeeb7fd3289a3dee1ac76dce0c3df2467cadd26f5f731f8d7919b"
+    },
+    "config_sentence_transformers.json": {
+      "bytes": 253,
+      "sha256": "705887b2d56911fa93be916a2457bcc38d289740c630e06b3684ba3abf61a071"
+    },
+    "model.safetensors": {
+      "bytes": 435588776,
+      "sha256": "463d27a3e88a748997316367c419bbdab4d809300a5f24b9b19ba9b2dc08ffdd"
+    },
+    "modules.json": {
+      "bytes": 350,
+      "sha256": "21ddb3037a55ebf4549eb5c1dc44c3f28f10b56ec7f1335c92fd90e5b30d88ac"
+    },
+    "sentence_bert_config.json": {
+      "bytes": 108,
+      "sha256": "b59d00070ef6dfc0bb74bc5d52717cb9d5c0a0f94b8edca6c04f241351cd8ccb"
+    },
+    "special_tokens_map.json": {
+      "bytes": 695,
+      "sha256": "5d5b662e421ea9fac075174bb0688ee0d9431699900b90662acd44b2a350503a"
+    },
+    "tokenizer.json": {
+      "bytes": 711649,
+      "sha256": "91f1def9b9391fdabe028cd3f3fcc4efd34e5d1f08c3bf2de513ebb5911a1854"
+    },
+    "tokenizer_config.json": {
+      "bytes": 1381,
+      "sha256": "0e83e9d7206b3ade43f8f2aeef523cf5d5b4a25b67af21b273de21972c0f58b7"
+    },
+    "vocab.txt": {
+      "bytes": 231508,
+      "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+    }
+  },
+  "smoke_test": {
+    "device": "cpu",
+    "input_count": 2,
+    "output_shape": [
+      2,
+      768
+    ],
+    "finite": true,
+    "unit_norm": true,
+    "test_query_or_label_used": false
+  }
+}

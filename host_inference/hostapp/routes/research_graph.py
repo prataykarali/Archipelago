@@ -17,7 +17,19 @@ ANNOTATION_PATH = "/rest/v1/research_graph_annotations"
 MAX_SUMMARY_LENGTH = 2000
 MAX_SOURCE_URL_LENGTH = 500
 STORE_TIMEOUT_SECONDS = 8
+STAFF_ROLES = frozenset({"faculty", "librarian", "administrator"})
 EDITOR_ROLES = frozenset({"librarian", "administrator"})
+
+
+def _resolve_principal(ctx: AppContext | None = None) -> dict | None:
+    principal = getattr(request, "archipelago_principal", None)
+    if principal is None and ctx is not None and getattr(ctx, "auth", None) is not None:
+        principal, _err = ctx.auth.principal()
+        if isinstance(principal, dict) and principal.get("id"):
+            request.archipelago_principal = principal  # type: ignore[attr-defined]
+    if not isinstance(principal, dict) or not str(principal.get("id") or "").strip():
+        return None
+    return principal
 
 
 def _store_config() -> tuple[str, str]:
@@ -46,6 +58,11 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.get("/api/research/graph/annotation")  # type: ignore[misc]
     def get_annotation() -> ResponseReturnValue:
+        principal = _resolve_principal(ctx)
+        if principal is not None and principal.get("role") not in STAFF_ROLES:
+            return jsonify({"error": "forbidden"}), 403
+        if principal is None and getattr(ctx, "auth", None) is not None and ctx.auth.required():
+            return jsonify({"error": "unauthorized"}), 401
         concept_id = (request.args.get("concept_id") or "").strip()
         if concept_id not in ctx.engine.graph.nodes:
             return jsonify({"error": "not_found"}), 404
@@ -66,11 +83,14 @@ def register(app: Flask, ctx: AppContext) -> None:
         except (requests.RequestException, RuntimeError, ValueError):
             current_app.logger.exception("Graph annotation read failed")
             return jsonify({"error": "storage_unavailable"}), 503
-        return jsonify({"annotation": rows[0] if rows else None})
+        resp = jsonify({"annotation": rows[0] if rows else None})
+        resp.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+        resp.headers["Vary"] = "Authorization, Cookie"
+        return resp
 
     @app.post("/api/research/graph/annotation")  # type: ignore[misc]
     def save_annotation() -> ResponseReturnValue:
-        principal = getattr(request, "archipelago_principal", None)
+        principal = _resolve_principal(ctx)
         if principal is None or principal.get("role") not in EDITOR_ROLES:
             return jsonify({"error": "forbidden"}), 403
         # The browser uses a bearer token; rejecting cookie-only mutations

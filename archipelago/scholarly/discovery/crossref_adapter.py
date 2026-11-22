@@ -138,6 +138,17 @@ class CrossrefAdapter:
             license=item.get("license", [{}])[0].get("URL") if item.get("license") else None,
         )
 
+        online_parts = (item.get("published-online") or {}).get("date-parts", [[None]])[0]
+        first_online_date = None
+        if online_parts and online_parts[0]:
+            om = online_parts[1] if len(online_parts) > 1 and online_parts[1] else 1
+            od = online_parts[2] if len(online_parts) > 2 and online_parts[2] else 1
+            first_online_date = f"{online_parts[0]:04d}-{om:02d}-{od:02d}"
+        updates = item.get("update-to") or []
+        is_retracted = any(
+            isinstance(u, dict) and str(u.get("type") or "").lower() == "retraction"
+            for u in updates
+        )
         return {
             "source": "crossref",
             "paper": paper,
@@ -149,6 +160,9 @@ class CrossrefAdapter:
                 "publisher": item.get("publisher"),
                 "subtitle": (item.get("subtitle") or [None])[0],
                 "venue_issn": item.get("ISSN"),
+                "venue_isbn": item.get("ISBN"),
+                "first_online_date": first_online_date,
+                "retraction_status": True if is_retracted else None,
                 "landing_page_url": item.get("URL"),
                 "keywords": item.get("subject") or [],
                 "grants": [

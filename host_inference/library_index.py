@@ -5,9 +5,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
+import threading
+import time
 from urllib.parse import quote
 
 HERE = Path(__file__).resolve().parent
+_HF_PATHS_LOCK = threading.Lock()
+_HF_PATHS_CACHE: tuple[float, list[str], frozenset[str]] = (0.0, [], frozenset())
+_HF_PATHS_TTL_SEC = 30.0
 STOP = {
     "what",
     "whats",
@@ -62,19 +67,31 @@ def _tokens(text: str) -> set[str]:
 
 
 def load_hf_paths() -> list[str]:
+    global _HF_PATHS_CACHE
+    now = time.monotonic()
+    with _HF_PATHS_LOCK:
+        if _HF_PATHS_CACHE[1] and (now - _HF_PATHS_CACHE[0]) < _HF_PATHS_TTL_SEC:
+            return list(_HF_PATHS_CACHE[1])
+    resolved: list[str] = []
     try:
         from remote_cache import load_library_manifest
 
         paths = load_library_manifest().get("hf_paths", [])
-        if isinstance(paths, list):
-            return [str(path) for path in paths if str(path).endswith(".pdf")]
+        if isinstance(paths, list) and paths:
+            resolved = [str(path) for path in paths if str(path).endswith(".pdf")]
     except Exception:
         pass
-    path = HERE / "cache" / "hf_files.json"
-    if not path.is_file():
-        return []
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    return list(payload.get("pdfs") or [])
+    if not resolved:
+        path = HERE / "cache" / "hf_files.json"
+        if path.is_file():
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                resolved = list(payload.get("pdfs") or [])
+            except (OSError, json.JSONDecodeError):
+                resolved = []
+    with _HF_PATHS_LOCK:
+        _HF_PATHS_CACHE = (now, resolved, frozenset(resolved))
+    return list(resolved)
 
 
 def resolve_hf_path(value: str) -> str:
@@ -82,7 +99,14 @@ def resolve_hf_path(value: str) -> str:
     raw = (value or "").strip().lstrip("/")
     if not raw:
         return ""
-    paths = set(load_hf_paths())
+    now = time.monotonic()
+    with _HF_PATHS_LOCK:
+        if _HF_PATHS_CACHE[2] and (now - _HF_PATHS_CACHE[0]) < _HF_PATHS_TTL_SEC:
+            paths = _HF_PATHS_CACHE[2]
+        else:
+            paths = frozenset()
+    if not paths:
+        paths = frozenset(load_hf_paths())
     if raw in paths:
         return raw
     base = raw.rsplit("/", 1)[-1]

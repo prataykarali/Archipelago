@@ -1,0 +1,532 @@
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.scheduler: Starting scholarly discovery cycle: 2026-11-14T18:30:02.343556+00:00
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'deep learning architectures'
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'deep learning architectures'
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'deep learning architectures'
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'deep learning architectures'
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 00:00:02 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 00:00:02 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 00:00:03 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 00:00:05 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+/home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'computer networks'
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'computer networks'
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'computer networks'
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'computer networks'
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 00:00:09 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'data structures and algorithms'
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'data structures and algorithms'
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'data structures and algorithms'
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'data structures and algorithms'
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 00:00:16 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 00:00:16 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 1 records.
+2026-11-15 00:00:17 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 00:00:18 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'distributed systems'
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'distributed systems'
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'distributed systems'
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'distributed systems'
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 00:00:19 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'natural language processing'
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'natural language processing'
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'natural language processing'
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'natural language processing'
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 00:00:21 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 00:00:21 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 00:00:22 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 00:00:22 [INFO] archipelago.scholarly.scheduler: >>> Synchronizing discovery manifests...
+2026-11-15 00:00:22 [INFO] archipelago.scholarly.cloud_sync: Starting sync to Hugging Face repository: Prataykarali/graphier
+2026-11-15 00:00:22 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/live_scholarly_manifest.json -> catalogs/live_scholarly_manifest.json
+2026-11-15 00:00:23 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/agent-harnesses "HTTP/1.1 200 OK"
+2026-11-15 00:00:23 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-15 00:00:24 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-15 00:00:24 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/latest_harvest_summary.json -> catalogs/latest_harvest_summary.json
+2026-11-15 00:00:25 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-15 00:00:26 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-15 00:00:26 [INFO] archipelago.scholarly.cloud_sync: Prepared hosted scholarly snapshot at /home/pratay-karali/Desktop/archipelago/Archipelago/host_inference/fixtures/live_scholarly_manifest.json
+2026-11-15 00:00:31 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-15 00:00:31 [INFO] archipelago.scholarly.scheduler: Discovery cycle complete in 29.42s. 5 topics searched.
+2026-11-15 00:00:31 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.scheduler: Starting scholarly discovery cycle: 2026-11-15T06:30:01.558681+00:00
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'deep learning architectures'
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'deep learning architectures'
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'deep learning architectures'
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'deep learning architectures'
+2026-11-15 12:00:01 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 12:00:02 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 12:00:02 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 12:00:03 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 12:00:04 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+/home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+2026-11-15 12:00:05 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 12:00:05 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'computer networks'
+2026-11-15 12:00:05 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'computer networks'
+2026-11-15 12:00:05 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'computer networks'
+2026-11-15 12:00:05 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'computer networks'
+2026-11-15 12:00:05 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 12:00:05 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 12:00:06 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 12:00:06 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'data structures and algorithms'
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'data structures and algorithms'
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'data structures and algorithms'
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'data structures and algorithms'
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 12:00:07 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 1 records.
+2026-11-15 12:00:08 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'distributed systems'
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'distributed systems'
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'distributed systems'
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'distributed systems'
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 12:00:09 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 12:00:10 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'natural language processing'
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'natural language processing'
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'natural language processing'
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'natural language processing'
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-15 12:00:11 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-15 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-15 12:00:12 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-15 12:00:13 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-15 12:00:13 [INFO] archipelago.scholarly.scheduler: >>> Synchronizing discovery manifests...
+2026-11-15 12:00:13 [INFO] archipelago.scholarly.cloud_sync: Starting sync to Hugging Face repository: Prataykarali/graphier
+2026-11-15 12:00:13 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/live_scholarly_manifest.json -> catalogs/live_scholarly_manifest.json
+2026-11-15 12:00:14 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-15 12:00:14 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-15 12:00:14 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/latest_harvest_summary.json -> catalogs/latest_harvest_summary.json
+2026-11-15 12:00:15 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-15 12:00:16 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-15 12:00:16 [INFO] archipelago.scholarly.cloud_sync: Prepared hosted scholarly snapshot at /home/pratay-karali/Desktop/archipelago/Archipelago/host_inference/fixtures/live_scholarly_manifest.json
+2026-11-15 12:00:21 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-15 12:00:21 [INFO] archipelago.scholarly.scheduler: Discovery cycle complete in 20.15s. 5 topics searched.
+2026-11-15 12:00:21 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.scheduler: Starting scholarly discovery cycle: 2026-11-15T18:30:03.018268+00:00
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'deep learning architectures'
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'deep learning architectures'
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'deep learning architectures'
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'deep learning architectures'
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 00:00:03 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 00:00:03 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 00:00:04 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 00:00:07 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+/home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+2026-11-16 00:00:13 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 00:00:13 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'computer networks'
+2026-11-16 00:00:13 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'computer networks'
+2026-11-16 00:00:13 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'computer networks'
+2026-11-16 00:00:13 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'computer networks'
+2026-11-16 00:00:13 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 00:00:13 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 00:00:17 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 00:00:17 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 00:00:18 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'data structures and algorithms'
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'data structures and algorithms'
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'data structures and algorithms'
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'data structures and algorithms'
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 00:00:19 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 1 records.
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'distributed systems'
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'distributed systems'
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'distributed systems'
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'distributed systems'
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 00:00:22 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 00:00:22 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'natural language processing'
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'natural language processing'
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'natural language processing'
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'natural language processing'
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 00:00:24 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 00:00:25 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 00:00:25 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 00:00:27 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 00:00:28 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 00:00:28 [INFO] archipelago.scholarly.scheduler: >>> Synchronizing discovery manifests...
+2026-11-16 00:00:28 [INFO] archipelago.scholarly.cloud_sync: Starting sync to Hugging Face repository: Prataykarali/graphier
+2026-11-16 00:00:28 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/live_scholarly_manifest.json -> catalogs/live_scholarly_manifest.json
+2026-11-16 00:00:29 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/agent-harnesses "HTTP/1.1 200 OK"
+2026-11-16 00:00:29 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-16 00:00:31 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-16 00:00:31 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/latest_harvest_summary.json -> catalogs/latest_harvest_summary.json
+2026-11-16 00:00:32 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-16 00:00:33 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-16 00:00:33 [INFO] archipelago.scholarly.cloud_sync: Prepared hosted scholarly snapshot at /home/pratay-karali/Desktop/archipelago/Archipelago/host_inference/fixtures/live_scholarly_manifest.json
+2026-11-16 00:00:40 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 00:00:40 [INFO] archipelago.scholarly.scheduler: Discovery cycle complete in 37.29s. 5 topics searched.
+2026-11-16 00:00:40 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.scheduler: Starting scholarly discovery cycle: 2026-11-16T06:30:02.241053+00:00
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'deep learning architectures'
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'deep learning architectures'
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'deep learning architectures'
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'deep learning architectures'
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 12:00:02 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 12:00:02 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 12:00:04 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 12:00:04 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+/home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'computer networks'
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'computer networks'
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'computer networks'
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'computer networks'
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 12:00:07 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 12:00:07 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 12:00:08 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'data structures and algorithms'
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'data structures and algorithms'
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'data structures and algorithms'
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'data structures and algorithms'
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 12:00:09 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 12:00:09 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 1 records.
+2026-11-16 12:00:10 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'distributed systems'
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'distributed systems'
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'distributed systems'
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'distributed systems'
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 12:00:11 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 12:00:11 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 12:00:12 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 12:00:13 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 12:00:13 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'natural language processing'
+2026-11-16 12:00:13 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'natural language processing'
+2026-11-16 12:00:13 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'natural language processing'
+2026-11-16 12:00:13 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'natural language processing'
+2026-11-16 12:00:13 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-16 12:00:13 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-16 12:00:14 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-16 12:00:14 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-16 12:00:15 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-16 12:00:16 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-16 12:00:16 [INFO] archipelago.scholarly.scheduler: >>> Synchronizing discovery manifests...
+2026-11-16 12:00:16 [INFO] archipelago.scholarly.cloud_sync: Starting sync to Hugging Face repository: Prataykarali/graphier
+2026-11-16 12:00:16 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/live_scholarly_manifest.json -> catalogs/live_scholarly_manifest.json
+2026-11-16 12:00:17 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-16 12:00:17 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-16 12:00:17 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/latest_harvest_summary.json -> catalogs/latest_harvest_summary.json
+2026-11-16 12:00:18 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-16 12:00:18 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-16 12:00:18 [INFO] archipelago.scholarly.cloud_sync: Prepared hosted scholarly snapshot at /home/pratay-karali/Desktop/archipelago/Archipelago/host_inference/fixtures/live_scholarly_manifest.json
+2026-11-16 12:00:23 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-16 12:00:23 [INFO] archipelago.scholarly.scheduler: Discovery cycle complete in 21.40s. 5 topics searched.
+2026-11-16 12:00:23 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.scheduler: Starting scholarly discovery cycle: 2026-11-16T18:30:02.414379+00:00
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'deep learning architectures'
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'deep learning architectures'
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'deep learning architectures'
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'deep learning architectures'
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 00:00:02 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 00:00:02 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 00:00:02 [ERROR] archipelago.scholarly.openalex: OpenAlex search failed for query 'deep learning architectures' page=1: HTTP Error 429: Too Many Requests
+2026-11-17 00:00:03 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 0 records.
+2026-11-17 00:00:03 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+/home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'computer networks'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'computer networks'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'computer networks'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'computer networks'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 00:00:09 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 00:00:09 [ERROR] archipelago.scholarly.openalex: OpenAlex search failed for query 'computer networks' page=1: HTTP Error 429: Too Many Requests
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 0 records.
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'data structures and algorithms'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'data structures and algorithms'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'data structures and algorithms'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'data structures and algorithms'
+2026-11-17 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 00:00:10 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 00:00:10 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 00:00:10 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 1 records.
+2026-11-17 00:00:10 [ERROR] archipelago.scholarly.openalex: OpenAlex search failed for query 'data structures and algorithms' page=1: HTTP Error 429: Too Many Requests
+2026-11-17 00:00:10 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 0 records.
+2026-11-17 00:00:11 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-17 00:00:11 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'distributed systems'
+2026-11-17 00:00:11 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'distributed systems'
+2026-11-17 00:00:11 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'distributed systems'
+2026-11-17 00:00:11 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'distributed systems'
+2026-11-17 00:00:11 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 00:00:11 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 00:00:12 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 00:00:12 [ERROR] archipelago.scholarly.openalex: OpenAlex search failed for query 'distributed systems' page=1: HTTP Error 429: Too Many Requests
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 0 records.
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'natural language processing'
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'natural language processing'
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'natural language processing'
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'natural language processing'
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 00:00:12 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 00:00:13 [ERROR] archipelago.scholarly.openalex: OpenAlex search failed for query 'natural language processing' page=1: HTTP Error 429: Too Many Requests
+2026-11-17 00:00:13 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 0 records.
+2026-11-17 00:00:14 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-17 00:00:14 [INFO] archipelago.scholarly.scheduler: >>> Synchronizing discovery manifests...
+2026-11-17 00:00:14 [INFO] archipelago.scholarly.cloud_sync: Starting sync to Hugging Face repository: Prataykarali/graphier
+2026-11-17 00:00:14 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/live_scholarly_manifest.json -> catalogs/live_scholarly_manifest.json
+2026-11-17 00:00:15 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-17 00:00:16 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-17 00:00:16 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/latest_harvest_summary.json -> catalogs/latest_harvest_summary.json
+2026-11-17 00:00:16 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-17 00:00:16 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-17 00:00:16 [INFO] archipelago.scholarly.cloud_sync: Prepared hosted scholarly snapshot at /home/pratay-karali/Desktop/archipelago/Archipelago/host_inference/fixtures/live_scholarly_manifest.json
+2026-11-17 00:00:22 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 00:00:22 [INFO] archipelago.scholarly.scheduler: Discovery cycle complete in 20.56s. 5 topics searched.
+2026-11-17 00:00:22 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.scheduler: Starting scholarly discovery cycle: 2026-11-17T06:30:01.870261+00:00
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'deep learning architectures'
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'deep learning architectures'
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'deep learning architectures'
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'deep learning architectures'
+2026-11-17 12:00:01 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 12:00:02 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 12:00:02 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 12:00:04 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+/home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+2026-11-17 12:00:05 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 12:00:17 [ERROR] archipelago.scholarly.arxiv: arXiv search failed for 'deep learning architectures': The read operation timed out
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 0 records.
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'computer networks'
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'computer networks'
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'computer networks'
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'computer networks'
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 12:00:17 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 12:00:17 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 12:00:18 [ERROR] archipelago.scholarly.arxiv: arXiv search failed for 'computer networks': HTTP Error 429: Unknown Error
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 0 records.
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'data structures and algorithms'
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'data structures and algorithms'
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'data structures and algorithms'
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'data structures and algorithms'
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 12:00:18 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 12:00:18 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 1 records.
+2026-11-17 12:00:20 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-17 12:00:33 [ERROR] archipelago.scholarly.arxiv: arXiv search failed for 'data structures and algorithms': The read operation timed out
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 0 records.
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'distributed systems'
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'distributed systems'
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'distributed systems'
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'distributed systems'
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 12:00:33 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 12:00:33 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 12:00:36 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-17 12:00:48 [ERROR] archipelago.scholarly.arxiv: arXiv search failed for 'distributed systems': The read operation timed out
+2026-11-17 12:00:48 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 0 records.
+2026-11-17 12:00:48 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'natural language processing'
+2026-11-17 12:00:48 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'natural language processing'
+2026-11-17 12:00:48 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'natural language processing'
+2026-11-17 12:00:48 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'natural language processing'
+2026-11-17 12:00:48 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-17 12:00:49 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-17 12:00:49 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-17 12:00:49 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-17 12:00:49 [ERROR] archipelago.scholarly.arxiv: arXiv search failed for 'natural language processing': HTTP Error 429: Unknown Error
+2026-11-17 12:00:49 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 0 records.
+2026-11-17 12:00:50 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-17 12:00:50 [INFO] archipelago.scholarly.scheduler: >>> Synchronizing discovery manifests...
+2026-11-17 12:00:50 [INFO] archipelago.scholarly.cloud_sync: Starting sync to Hugging Face repository: Prataykarali/graphier
+2026-11-17 12:00:50 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/live_scholarly_manifest.json -> catalogs/live_scholarly_manifest.json
+2026-11-17 12:00:51 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/agent-harnesses "HTTP/1.1 200 OK"
+2026-11-17 12:00:51 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-17 12:00:52 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-17 12:00:52 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/latest_harvest_summary.json -> catalogs/latest_harvest_summary.json
+2026-11-17 12:00:52 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-17 12:00:53 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-17 12:00:53 [INFO] archipelago.scholarly.cloud_sync: Prepared hosted scholarly snapshot at /home/pratay-karali/Desktop/archipelago/Archipelago/host_inference/fixtures/live_scholarly_manifest.json
+2026-11-17 12:00:58 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-17 12:00:58 [INFO] archipelago.scholarly.scheduler: Discovery cycle complete in 56.27s. 5 topics searched.
+2026-11-17 12:00:58 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-19 00:00:01 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-19 00:00:01 [INFO] archipelago.scholarly.scheduler: Starting scholarly discovery cycle: 2026-11-18T18:30:01.996015+00:00
+2026-11-19 00:00:01 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-19 00:00:01 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'deep learning architectures'
+2026-11-19 00:00:01 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'deep learning architectures'
+2026-11-19 00:00:01 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'deep learning architectures'
+2026-11-19 00:00:02 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'deep learning architectures'
+2026-11-19 00:00:02 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-19 00:00:02 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-19 00:00:02 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-19 00:00:03 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-19 00:00:04 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+/home/pratay-karali/Desktop/archipelago/Archipelago/archipelago/inference/synthesis/graph_notes.py:7: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'computer networks'
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'computer networks'
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'computer networks'
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'computer networks'
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-19 00:00:06 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-19 00:00:06 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-19 00:00:07 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-19 00:00:08 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-19 00:00:08 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'data structures and algorithms'
+2026-11-19 00:00:08 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'data structures and algorithms'
+2026-11-19 00:00:08 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'data structures and algorithms'
+2026-11-19 00:00:08 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'data structures and algorithms'
+2026-11-19 00:00:08 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-19 00:00:08 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-19 00:00:09 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-19 00:00:09 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 1 records.
+2026-11-19 00:00:10 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'distributed systems'
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'distributed systems'
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'distributed systems'
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'distributed systems'
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-19 00:00:11 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-19 00:00:11 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-19 00:00:12 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.scheduler: >>> Processing Topic: 'natural language processing'
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.harvester: Starting 4-way parallel harvest for query: 'natural language processing'
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.harvester: Using native ArXivAdapter for 'natural language processing'
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.harvester: Using native IEMCRPAdapter for 'natural language processing'
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.harvester: Source 'google_scholar' completed with 0 records.
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.harvester: Source 'opac' completed with 0 records.
+2026-11-19 00:00:14 [WARNING] archipelago.scholarly.iemcrp: Direct fetch of IEM CRP portal returned (HTTP Error 403: Forbidden). Using local portal link manifest.
+2026-11-19 00:00:14 [INFO] archipelago.scholarly.harvester: Source 'iemcrp' completed with 4 records.
+2026-11-19 00:00:17 [INFO] archipelago.scholarly.harvester: Source 'openalex' completed with 4 records.
+2026-11-19 00:00:19 [INFO] archipelago.scholarly.harvester: Source 'arxiv' completed with 4 records.
+2026-11-19 00:00:19 [INFO] archipelago.scholarly.scheduler: >>> Synchronizing discovery manifests...
+2026-11-19 00:00:19 [INFO] archipelago.scholarly.cloud_sync: Starting sync to Hugging Face repository: Prataykarali/graphier
+2026-11-19 00:00:19 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/live_scholarly_manifest.json -> catalogs/live_scholarly_manifest.json
+2026-11-19 00:00:20 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/agent-harnesses "HTTP/1.1 200 OK"
+2026-11-19 00:00:20 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-19 00:00:21 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-19 00:00:21 [INFO] archipelago.scholarly.cloud_sync: Uploading data/catalogs/latest_harvest_summary.json -> catalogs/latest_harvest_summary.json
+2026-11-19 00:00:21 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/preupload/main "HTTP/1.1 200 OK"
+2026-11-19 00:00:22 [INFO] httpx: HTTP Request: POST https://huggingface.co/api/datasets/Prataykarali/graphier/commit/main "HTTP/1.1 200 OK"
+2026-11-19 00:00:22 [INFO] archipelago.scholarly.cloud_sync: Prepared hosted scholarly snapshot at /home/pratay-karali/Desktop/archipelago/Archipelago/host_inference/fixtures/live_scholarly_manifest.json
+2026-11-19 00:00:31 [INFO] archipelago.scholarly.scheduler: ================================================================================
+2026-11-19 00:00:31 [INFO] archipelago.scholarly.scheduler: Discovery cycle complete in 29.24s. 5 topics searched.
+2026-11-19 00:00:31 [INFO] archipelago.scholarly.scheduler: ================================================================================

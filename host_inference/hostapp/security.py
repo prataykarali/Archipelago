@@ -7,44 +7,140 @@ globals, which keeps them testable without patching imports.
 
 from __future__ import annotations
 
+import base64
 from collections import defaultdict, deque
 from contextlib import closing
 from datetime import UTC, datetime
 import hashlib
+import hmac
 import json
 import math
 import os
 from pathlib import Path
+import re
+import secrets
 import sqlite3
 import threading
 import time
+from urllib.parse import urlsplit
 
 from flask import request
 import requests
 
 from .config import (
+    ABSOLUTE_SESSION_LIFETIME_SECONDS,
+    ALLOWED_ORIGINS,
     API_RATE_MAX_PER_MIN,
     API_RATE_MIN_GAP_SEC,
+    AUTH_RATE_MAX_PER_MIN,
+    AUTH_RATE_MIN_GAP_SEC,
     AUTH_ROLES,
     CHAT_RATE_MAX_PER_MIN,
     CHAT_RATE_MIN_GAP_SEC,
+    ELEVATED_ROLES,
+    HANDOFF_TICKET_TTL_SECONDS,
+    IDLE_TIMEOUT_SECONDS,
     RATE_WINDOW_SEC,
 )
 from .runtime_state import hosted_runtime, runtime_rpc
 
 SUPABASE_USER_TIMEOUT_SEC = 10
 SUPABASE_PROFILE_TIMEOUT_SEC = 8
-# Client IP headers set by trusted edge proxies (Vercel/Cloudflare/Fly), never client-supplied X-Forwarded-For.
-CLIENT_IP_HEADERS = ("X-Vercel-Forwarded-For", "CF-Connecting-IP", "Fly-Client-IP", "X-Real-IP")
+# Client IP headers set by Vercel's trusted edge proxy, never client-spoofable headers.
+CLIENT_IP_HEADERS = ("X-Vercel-Forwarded-For", "X-Real-IP")
 # The burst min-gap guards state-changing calls.  Idempotent reads must never be
 # rejected on timing alone: a reader opening two exact book links, or a page
 # firing several API calls in parallel, is normal browsing, not abuse.  The
 # per-minute ceiling still applies to every method.
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
-IDLE_TIMEOUT_SECONDS = 300
 PRINCIPAL_CACHE_TTL_SECONDS = 45.0
 HOURLY_QUERY_LIMIT = 10
 QUERY_WINDOW_SECONDS = 3600
+MAX_TRACKED_SESSIONS = 4096
+MAX_TRACKED_BUCKETS = 4096
+MAX_TOKEN_LENGTH = 4096
+
+_USER_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
+_CONTROL_OR_SPACE_RE = re.compile(r"[\x00-\x20\x7f]")
+_CONTROL_CHAR_RE = re.compile(r"[\x00-\x1f\x7f]")
+_LIBRARIAN_ORIGIN_RE = re.compile(
+    r"^https://archipelago-librarian(?:-[a-z0-9-]+-shinaura)?\.vercel\.app$"
+)
+
+_SHARED_LOCK = threading.Lock()
+_SHARED_REVOKED_BY_SCOPE: dict[str, set[str]] = defaultdict(set)
+_SHARED_TICKETS_BY_SCOPE: dict[str, dict[str, dict]] = defaultdict(dict)
+_PROCESS_CSRF_KEY = secrets.token_hex(32)
+
+
+def _runtime_scope() -> str:
+    """Isolate shared in-memory state per pytest test while sharing across instances in a test."""
+    current_test = os.environ.get("PYTEST_CURRENT_TEST", "")
+    return current_test.split(" ")[0] if current_test else "production"
+
+
+def is_allowed_handoff_origin(origin: str) -> bool:
+    """Return True when ``origin`` is an exact allowlisted Archipelago/Librarian origin."""
+    if not isinstance(origin, str):
+        return False
+    cleaned = origin.strip()
+    if not cleaned or cleaned == "*" or _CONTROL_CHAR_RE.search(cleaned):
+        return False
+    return cleaned in ALLOWED_ORIGINS or bool(_LIBRARIAN_ORIGIN_RE.fullmatch(cleaned))
+
+
+def is_safe_redirect_target(
+    target: str | None,
+    allowlisted_origins: tuple[str, ...] = (),
+) -> bool:
+    """Return True only for relative internal paths or exact allowlisted origins."""
+    if not isinstance(target, str) or not target:
+        return False
+    if target != target.strip() or _CONTROL_CHAR_RE.search(target) or "\\" in target:
+        return False
+    parsed = urlsplit(target)
+    if parsed.username or parsed.password:
+        return False
+    if target.startswith("/"):
+        if target.startswith("//") or "://" in parsed.path or parsed.scheme or parsed.netloc:
+            return False
+        return True
+    if parsed.scheme in {"http", "https"} and parsed.netloc:
+        origin = f"{parsed.scheme}://{parsed.netloc}"
+        allowed = set(allowlisted_origins)
+        if origin in allowed and (not parsed.path or parsed.path.startswith("/")) and not parsed.path.startswith("//"):
+            return True
+    return False
+
+
+def safe_redirect_path(
+    target: str | None,
+    default: str = "/chat",
+    allowlisted_origins: tuple[str, ...] = (),
+) -> str:
+    """Return ``target`` if safe for redirection, otherwise ``default``."""
+    return target if is_safe_redirect_target(target, allowlisted_origins) else default
+
+
+def _is_rejected_jwt_or_token(token: str) -> bool:
+    """Reject malformed tokens, oversized tokens, or JWTs using alg=none / missing signatures."""
+    if not token or len(token) > MAX_TOKEN_LENGTH or _CONTROL_OR_SPACE_RE.search(token):
+        return True
+    if token.startswith("eyJ") or token.count(".") >= 2:
+        parts = token.split(".")
+        if len(parts) != 3 or not parts[0] or not parts[1] or not parts[2].strip():
+            return True
+        try:
+            padded = parts[0] + "=" * (-len(parts[0]) % 4)
+            header = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
+        except Exception:
+            return True
+        if not isinstance(header, dict):
+            return True
+        alg = str(header.get("alg") or "").strip().lower()
+        if not alg or alg == "none":
+            return True
+    return False
 
 
 def _format_iso_utc(timestamp: float) -> str:
@@ -63,18 +159,185 @@ class AuthGuard:
 
     def __init__(self) -> None:
         self._last_activity: dict[str, float] = {}
+        self._session_started: dict[str, float] = {}
         self._principal_cache: dict[str, tuple[dict, float]] = {}
         self._expired: set[str] = set()
         self._lock = threading.Lock()
 
+    @staticmethod
+    def _idle_timeout_seconds() -> float:
+        raw = os.getenv("ARCHIPELAGO_IDLE_TIMEOUT_SECONDS", "").strip()
+        if raw:
+            try:
+                return max(1.0, float(raw))
+            except ValueError:
+                pass
+        return float(IDLE_TIMEOUT_SECONDS)
+
+    @staticmethod
+    def _absolute_lifetime_seconds() -> float:
+        raw = os.getenv("ARCHIPELAGO_SESSION_MAX_AGE_SECONDS", "").strip()
+        if raw:
+            try:
+                return max(1.0, float(raw))
+            except ValueError:
+                pass
+        return float(ABSOLUTE_SESSION_LIFETIME_SECONDS)
+
+    @staticmethod
+    def _is_background_poll() -> bool:
+        """True when a request is passive status polling that must not reset idle expiry."""
+        try:
+            if request.headers.get("X-Background-Poll", "").strip().lower() in {"1", "true", "yes"}:
+                return True
+            if request.headers.get("X-Session-Passive", "").strip().lower() in {"1", "true", "yes"}:
+                return True
+            if request.args.get("poll", "").strip().lower() in {"1", "true", "yes"}:
+                return True
+        except RuntimeError:
+            return False
+        return False
+
+    def csrf_token_for(self, token: str) -> str:
+        """Derive a per-session CSRF token bound to ``token``."""
+        if not token:
+            return ""
+        secret = os.getenv("ARCHIPELAGO_CSRF_SECRET", "").strip() or _PROCESS_CSRF_KEY
+        return hmac.new(secret.encode("utf-8"), token.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    def verify_csrf_token(self, token: str, candidate: str) -> bool:
+        """Constant-time verification of a session-bound CSRF token."""
+        if not token or not candidate:
+            return False
+        expected = self.csrf_token_for(token)
+        return hmac.compare_digest(expected, candidate.strip())
+
+    def is_revoked(self, token: str) -> bool:
+        """Return True if ``token`` has been logged out or invalidated."""
+        if not token:
+            return True
+        token_id = hashlib.sha256(token.encode()).hexdigest()
+        scope = _runtime_scope()
+        with self._lock, _SHARED_LOCK:
+            return token_id in self._expired or token_id in _SHARED_REVOKED_BY_SCOPE[scope]
+
+    def rotate_session(self, token: str, previous_token: str = "") -> str:
+        """Rotate session tracking on login or privilege change and return a CSRF token."""
+        if previous_token and previous_token != token:
+            self.end_session(previous_token)
+        if not token:
+            return ""
+        token_id = hashlib.sha256(token.encode()).hexdigest()
+        now = time.monotonic()
+        scope = _runtime_scope()
+        with self._lock, _SHARED_LOCK:
+            self._expired.discard(token_id)
+            _SHARED_REVOKED_BY_SCOPE[scope].discard(token_id)
+            self._session_started[token_id] = now
+            self._last_activity[token_id] = now
+        return self.csrf_token_for(token)
+
     def end_session(self, token: str) -> None:
-        """Invalidate the current bearer token locally after logout."""
+        """Invalidate the current bearer token locally and across instances after logout."""
         if token:
             token_id = hashlib.sha256(token.encode()).hexdigest()
-            with self._lock:
+            scope = _runtime_scope()
+            with self._lock, _SHARED_LOCK:
                 self._last_activity.pop(token_id, None)
+                self._session_started.pop(token_id, None)
                 self._principal_cache.pop(token_id, None)
                 self._expired.add(token_id)
+                _SHARED_REVOKED_BY_SCOPE[scope].add(token_id)
+                if len(self._expired) > MAX_TRACKED_SESSIONS:
+                    self._expired.clear()
+                    self._expired.add(token_id)
+
+    def issue_handoff_ticket(
+        self,
+        principal: dict,
+        target_origin: str,
+        nonce: str = "",
+    ) -> tuple[dict | None, str | None]:
+        """Issue a single-use, short-lived, origin-bound handoff ticket (never carrying refresh_token)."""
+        if not principal or not principal.get("id") or not principal.get("token"):
+            return None, "An authenticated session is required."
+        if principal.get("role") not in ELEVATED_ROLES:
+            return None, "A staff account is required for session handoff."
+        cleaned_origin = (target_origin or "").strip().rstrip("/")
+        if not is_allowed_handoff_origin(cleaned_origin):
+            return None, "Target origin is not permitted for session handoff."
+        cleaned_nonce = (nonce or "").strip()[:128]
+        if _CONTROL_CHAR_RE.search(cleaned_nonce):
+            return None, "Invalid handoff nonce."
+        raw_ticket = secrets.token_urlsafe(32)
+        ticket_id = hashlib.sha256(raw_ticket.encode("utf-8")).hexdigest()
+        now = time.monotonic()
+        expires_at = now + float(HANDOFF_TICKET_TTL_SECONDS)
+        scope = _runtime_scope()
+        with _SHARED_LOCK:
+            store = _SHARED_TICKETS_BY_SCOPE[scope]
+            expired_keys = [k for k, v in store.items() if now >= v["expires_at"] or v["used"]]
+            for k in expired_keys:
+                store.pop(k, None)
+            store[ticket_id] = {
+                "id": str(principal["id"]),
+                "role": str(principal["role"]),
+                "username": str(principal.get("username") or ""),
+                "token": str(principal["token"]),
+                "target_origin": cleaned_origin,
+                "nonce": cleaned_nonce,
+                "expires_at": expires_at,
+                "used": False,
+            }
+        return {
+            "ticket": raw_ticket,
+            "target_origin": cleaned_origin,
+            "expires_in": HANDOFF_TICKET_TTL_SECONDS,
+            "nonce": cleaned_nonce,
+        }, None
+
+    def redeem_handoff_ticket(
+        self,
+        ticket: str,
+        origin: str = "",
+        nonce: str = "",
+    ) -> tuple[dict | None, str | None]:
+        """Atomically redeem a single-use handoff ticket once for its bound origin."""
+        cleaned_ticket = (ticket or "").strip()
+        if not cleaned_ticket or len(cleaned_ticket) > 256 or _CONTROL_OR_SPACE_RE.search(cleaned_ticket):
+            return None, "Handoff ticket is invalid, expired, or already used."
+        ticket_id = hashlib.sha256(cleaned_ticket.encode("utf-8")).hexdigest()
+        now = time.monotonic()
+        scope = _runtime_scope()
+        with _SHARED_LOCK:
+            store = _SHARED_TICKETS_BY_SCOPE[scope]
+            entry = store.pop(ticket_id, None)
+        if entry is None or entry.get("used") or now >= entry.get("expires_at", 0.0):
+            return None, "Handoff ticket is invalid, expired, or already used."
+        entry["used"] = True
+        cleaned_origin = (origin or "").strip().rstrip("/")
+        if not cleaned_origin or cleaned_origin != entry["target_origin"]:
+            return None, "Handoff ticket origin mismatch."
+        expected_nonce = entry.get("nonce") or ""
+        cleaned_nonce = (nonce or "").strip()
+        if expected_nonce and cleaned_nonce != expected_nonce:
+            return None, "Handoff ticket nonce mismatch."
+        if self.is_revoked(entry["token"]):
+            return None, "The underlying session has been logged out."
+        token_id = hashlib.sha256(entry["token"].encode()).hexdigest()
+        principal = {
+            "id": entry["id"],
+            "role": entry["role"],
+            "username": entry["username"],
+            "token": entry["token"],
+            "target_origin": entry["target_origin"],
+            "nonce": expected_nonce,
+        }
+        with self._lock:
+            self._session_started[token_id] = now
+            self._last_activity[token_id] = now
+            self._principal_cache[token_id] = (dict(principal), now)
+        return principal, None
 
     def required(self) -> bool:
         """True when a verified Supabase session is mandatory."""
@@ -111,15 +374,24 @@ class AuthGuard:
         token = self._bearer_token()
         if not token:
             return None, "A Supabase session is required."
+        if _is_rejected_jwt_or_token(token):
+            return None, "Your Supabase session could not be verified."
         token_id = hashlib.sha256(token.encode()).hexdigest()
         now = time.monotonic()
-        with self._lock:
+        idle_timeout = self._idle_timeout_seconds()
+        absolute_lifetime = self._absolute_lifetime_seconds()
+        is_poll = self._is_background_poll()
+        scope = _runtime_scope()
+        with self._lock, _SHARED_LOCK:
             last_active = self._last_activity.get(token_id)
-            if token_id in self._expired or (
-                last_active is not None and now - last_active >= IDLE_TIMEOUT_SECONDS
-            ):
+            started_at = self._session_started.get(token_id)
+            is_revoked = token_id in self._expired or token_id in _SHARED_REVOKED_BY_SCOPE[scope]
+            idle_expired = last_active is not None and (now - last_active) >= idle_timeout
+            abs_expired = started_at is not None and (now - started_at) >= absolute_lifetime
+            if is_revoked or idle_expired or abs_expired:
                 self._expired.add(token_id)
                 self._last_activity.pop(token_id, None)
+                self._session_started.pop(token_id, None)
                 self._principal_cache.pop(token_id, None)
                 return (
                     None,
@@ -127,27 +399,32 @@ class AuthGuard:
                 )
             cached = self._principal_cache.get(token_id)
             if cached is not None and (now - cached[1]) < PRINCIPAL_CACHE_TTL_SECONDS:
-                self._last_activity[token_id] = now
+                if not is_poll or token_id not in self._last_activity:
+                    self._last_activity[token_id] = now
                 return dict(cached[0]), None
         headers = {"apikey": key, "Authorization": f"Bearer {token}"}
         try:
             user_response = requests.get(
                 f"{url}/auth/v1/user", headers=headers, timeout=SUPABASE_USER_TIMEOUT_SEC
             )
+            user_payload = user_response.json() if user_response.status_code == 200 else {}
+            if not isinstance(user_payload, dict):
+                user_payload = {}
+            user_id = str(user_payload.get("id") or "").strip()
             profile_response = (
                 requests.get(
                     f"{url}/rest/v1/profiles",
                     params={
                         "select": "username,role",
-                        "id": f"eq.{user_response.json().get('id', '')}",
+                        "id": f"eq.{user_id}",
                     },
                     headers=headers,
                     timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
                 )
-                if user_response.status_code == 200
+                if user_response.status_code == 200 and _USER_ID_RE.fullmatch(user_id)
                 else None
             )
-        except requests.RequestException:
+        except (requests.RequestException, ValueError):
             return None, "Supabase identity verification is unavailable."
         if (
             user_response.status_code != 200
@@ -155,14 +432,17 @@ class AuthGuard:
             or profile_response.status_code != 200
         ):
             return None, "Your Supabase session could not be verified."
-        profiles = profile_response.json()
-        if not isinstance(profiles, list) or len(profiles) != 1:
+        try:
+            profiles = profile_response.json()
+        except ValueError:
+            return None, "Your Supabase session could not be verified."
+        if not isinstance(profiles, list) or len(profiles) != 1 or not isinstance(profiles[0], dict):
             return None, "Your account does not have an assigned Archipelago role."
         role = str(profiles[0].get("role") or "")
         if role not in AUTH_ROLES:
             return None, "Your account role is not permitted in Archipelago."
         principal = {
-            "id": str(user_response.json().get("id") or ""),
+            "id": user_id,
             "role": role,
             "username": profiles[0].get("username") or "",
             "token": token,
@@ -170,7 +450,17 @@ class AuthGuard:
         if not principal["id"]:
             return None, "Your account identity is incomplete."
         with self._lock:
-            self._last_activity[token_id] = now
+            if len(self._principal_cache) >= MAX_TRACKED_SESSIONS:
+                self._principal_cache.clear()
+                self._last_activity.clear()
+                self._session_started.clear()
+            prev = self._principal_cache.get(token_id)
+            if prev is not None and prev[0].get("role") != role:
+                self._session_started[token_id] = now
+            else:
+                self._session_started.setdefault(token_id, now)
+            if not is_poll or token_id not in self._last_activity:
+                self._last_activity[token_id] = now
             self._principal_cache[token_id] = (dict(principal), now)
         return principal, None
 
@@ -181,8 +471,11 @@ class RateLimiter:
     def __init__(self) -> None:
         self._chat: dict[str, deque] = defaultdict(deque)
         self._api: dict[str, deque] = defaultdict(deque)
+        self._auth: dict[str, deque] = defaultdict(deque)
         self._chat_last_mutation: dict[str, float] = {}
         self._api_last_mutation: dict[str, float] = {}
+        self._auth_last_mutation: dict[str, float] = {}
+        self._bucket_lock = threading.Lock()
         self._daily_lock = threading.Lock()
         self._quota_db = Path(os.getenv("ARCHIPELAGO_QUOTA_DB", str(DEFAULT_QUOTA_DB)))
 
@@ -381,6 +674,34 @@ class RateLimiter:
         return request.remote_addr or "127.0.0.1"
 
     @staticmethod
+    def _check_key(
+        key: str,
+        bucket_map: dict[str, deque],
+        last_mutation_map: dict[str, float],
+        max_per_min: int,
+        min_gap_sec: float,
+        enforce_min_gap: bool = True,
+    ) -> tuple[bool, int]:
+        now = time.time()
+        if len(bucket_map) > MAX_TRACKED_BUCKETS and key not in bucket_map:
+            bucket_map.clear()
+            last_mutation_map.clear()
+        bucket = bucket_map[key]
+        if not bucket:
+            last_mutation_map.pop(key, None)
+        while bucket and now - bucket[0] > RATE_WINDOW_SEC:
+            bucket.popleft()
+        last_mutation = last_mutation_map.get(key)
+        if enforce_min_gap and last_mutation is not None and now - last_mutation < min_gap_sec:
+            return True, 1
+        if len(bucket) >= max_per_min:
+            return True, max(1, int(RATE_WINDOW_SEC - (now - bucket[0])))
+        bucket.append(now)
+        if enforce_min_gap:
+            last_mutation_map[key] = now
+        return False, 0
+
+    @staticmethod
     def _check(
         bucket_map: dict[str, deque],
         last_mutation_map: dict[str, float],
@@ -389,18 +710,29 @@ class RateLimiter:
         enforce_min_gap: bool = True,
     ) -> tuple[bool, int]:
         ip = RateLimiter.client_ip()
-        now = time.time()
-        bucket = bucket_map[ip]
-        while bucket and now - bucket[0] > RATE_WINDOW_SEC:
-            bucket.popleft()
-        last_mutation = last_mutation_map.get(ip)
-        if enforce_min_gap and last_mutation is not None and now - last_mutation < min_gap_sec:
-            return True, 1
-        if len(bucket) >= max_per_min:
-            return True, max(1, int(RATE_WINDOW_SEC - (now - bucket[0])))
-        bucket.append(now)
-        if enforce_min_gap:
-            last_mutation_map[ip] = now
+        limited, retry_after = RateLimiter._check_key(
+            ip,
+            bucket_map,
+            last_mutation_map,
+            max_per_min,
+            min_gap_sec,
+            enforce_min_gap,
+        )
+        if limited:
+            return True, retry_after
+        principal = getattr(request, "archipelago_principal", None)
+        user_id = str(principal.get("id") or "").strip() if isinstance(principal, dict) else ""
+        if user_id and user_id != "guest":
+            acct_limited, acct_retry = RateLimiter._check_key(
+                f"acct:{user_id}",
+                bucket_map,
+                last_mutation_map,
+                max_per_min,
+                min_gap_sec,
+                False,
+            )
+            if acct_limited:
+                return True, acct_retry
         return False, 0
 
     @staticmethod
@@ -410,20 +742,33 @@ class RateLimiter:
 
     def check_chat(self) -> tuple[bool, int]:
         """Check the strict chat bucket (burst-gated on state-changing calls)."""
-        return self._check(
-            self._chat,
-            self._chat_last_mutation,
-            CHAT_RATE_MAX_PER_MIN,
-            CHAT_RATE_MIN_GAP_SEC,
-            self._is_state_changing(),
-        )
+        with self._bucket_lock:
+            return self._check(
+                self._chat,
+                self._chat_last_mutation,
+                CHAT_RATE_MAX_PER_MIN,
+                CHAT_RATE_MIN_GAP_SEC,
+                self._is_state_changing(),
+            )
 
     def check_api(self) -> tuple[bool, int]:
         """Check the general API bucket (burst-gated on state-changing calls)."""
-        return self._check(
-            self._api,
-            self._api_last_mutation,
-            API_RATE_MAX_PER_MIN,
-            API_RATE_MIN_GAP_SEC,
-            self._is_state_changing(),
-        )
+        with self._bucket_lock:
+            return self._check(
+                self._api,
+                self._api_last_mutation,
+                API_RATE_MAX_PER_MIN,
+                API_RATE_MIN_GAP_SEC,
+                self._is_state_changing(),
+            )
+
+    def check_auth(self) -> tuple[bool, int]:
+        """Check the authentication mutation bucket to throttle credential/token abuse."""
+        with self._bucket_lock:
+            return self._check(
+                self._auth,
+                self._auth_last_mutation,
+                AUTH_RATE_MAX_PER_MIN,
+                AUTH_RATE_MIN_GAP_SEC,
+                self._is_state_changing(),
+            )
