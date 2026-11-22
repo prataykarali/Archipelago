@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 # Searched in order; the first readable file wins. Host-relative paths only, so
 # the service is portable between the library computer and the cloud.
 CATALOGUE_PATHS = (
+    Path("host_inference/fixtures/pearson_bookshelf.json"),
+    Path("fixtures/pearson_bookshelf.json"),
     Path("data/catalogs/pearson_bookshelf.json"),
     Path("host_inference/cache/pearson_bookshelf.json"),
     Path("../data/catalogs/pearson_bookshelf.json"),

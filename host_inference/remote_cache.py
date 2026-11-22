@@ -43,10 +43,12 @@ def _headers() -> dict[str, str] | None:
 def _fallback(name: str) -> Path | None:
     for candidate in (
         PACKAGED_CACHE / name,
+        ROOT / "fixtures" / name,
         ROOT / name,
         ROOT / "data" / name,
         ROOT.parent / name,
         ROOT.parent / "data" / "catalogs" / name,
+        ROOT.parent / "host_inference" / "fixtures" / name,
     ):
         if candidate.is_file():
             return candidate
@@ -165,7 +167,11 @@ def load_books() -> list[dict]:
     if not path.is_file():
         _hydrate_if_needed()
     if not path.is_file():
-        return []
+        fallback = _fallback("pearson_bookshelf.json")
+        if fallback and fallback.is_file():
+            path = fallback
+        else:
+            return []
     try:
         mtime = path.stat().st_mtime
         key = f"books:{path}"
@@ -188,7 +194,11 @@ def load_library_manifest() -> dict:
     if not path.is_file():
         _hydrate_if_needed()
     if not path.is_file():
-        return {}
+        fallback = _fallback("library_manifest.json")
+        if fallback and fallback.is_file():
+            path = fallback
+        else:
+            return {}
     try:
         mtime = path.stat().st_mtime
         key = f"manifest:{path}"
