@@ -63,6 +63,7 @@ def research_topic_reply(
                 "score": max(best_score, 0.93 if hits else best_score),
                 "reason": "research_topic_verified_dates",
                 "citations": citations,
+                "hide_graph": True,
                 "intent_category": IntentCategory.RESEARCH_TOPIC.value,
             },
         )

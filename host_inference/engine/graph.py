@@ -269,7 +269,7 @@ class LibraryGraph:
         return {
             "label": label,
             "evidence_id": f"S{index}",
-            "source_type": "ingested_pdf" if source and page and hf_url else "metadata_only",
+            "source_type": "ingested_pdf" if source and page and hf_url else ("catalog_metadata" if is_broken_textbook else "metadata_only"),
             "concept_id": cid,
             "doc_id": doc_id,
             "doc_title": (source or {}).get("title") or "",
@@ -287,10 +287,11 @@ class LibraryGraph:
             "publication_year": (source or {}).get("publication_year"),
             "source_provider": (source or {}).get("source_provider"),
             "retrieved_at": (source or {}).get("retrieved_at"),
-            "verification_status": "Verified"
+            "verification_status": "Passage located"
             if source and page and hf_url
-            else ("Reference metadata only (PDF not in reader)" if is_broken_textbook else "Requires verification"),
-            "access_status": "Available" if hf_url and not all_withdrawn else "Unavailable",
+            else ("Source linked — not independently audited" if is_broken_textbook else "Source linked"),
+            "status_level": "passage_located" if (source and page and hf_url) else "source_linked",
+            "access_status": "Available" if hf_url and not all_withdrawn else ("Catalog reference only" if is_broken_textbook else "Unavailable"),
         }
 
     def citation(self, cid: str, index: int = 1) -> str:

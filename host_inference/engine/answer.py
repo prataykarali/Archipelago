@@ -361,10 +361,23 @@ class Engine:
         cites_count = len([c for c in (payload.get("citations") or []) if isinstance(c, dict) and (c.get("text_passage") or c.get("passage") or c.get("label") or c.get("doc_id"))])
 
         if anchor_id and cites_count > 0:
-            grounding_badge = "Passage matched · Verified OKF structure"
-            grounding_state = "verified"
-            grounding_detail = "passage_matched"
-            retrieval_mode = "Graph-Assisted Traversal (OKF + Lexical Passages)"
+            has_verified_passage = any(
+                c.get("source_type") == "ingested_pdf"
+                and c.get("url")
+                and not str(c.get("doc_id", "")).startswith("textbooks/")
+                for c in (payload.get("citations") or [])
+                if isinstance(c, dict)
+            )
+            if has_verified_passage:
+                grounding_badge = "Passage located · Grounded"
+                grounding_state = "verified"
+                grounding_detail = "passage_matched"
+                retrieval_mode = "Graph-Assisted Traversal (OKF + Verified Passages)"
+            else:
+                grounding_badge = "Source linked — not independently audited"
+                grounding_state = "source_linked"
+                grounding_detail = "source_linked_unverified"
+                retrieval_mode = "Graph-Assisted Traversal (OKF + Source-Linked Metadata)"
         elif anchor_id:
             grounding_badge = "OKF structure resolved · No direct passage"
             grounding_state = "partial"

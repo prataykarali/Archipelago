@@ -47,17 +47,17 @@ ACADEMIC_DOMAIN_RE = re.compile(
     r"ai|ml|dl|os|dbms|nlp|ir|rag|graphrag|hybrid search|rerank(?:ing)?|chunk(?:ing)?|cosine similarity|dense retrieval|vector database|llm|llms|svm|cnn|rnn|lstm|gan|vae|bert|gpt|dpo|rlhf|tlb|dag|np|"
     r"models?|language|memory|retrieval|graph|graphs|learning|algorithm|algorithms|heuristic|admissible|"
     r"complexity|asymptotic|big[-\s]?o|amortized|recursion|recursive|dynamic programming|topological|"
-    r"heap|heaps|tree|trees|trie|binary|array|arrays|stack|queue|linked list|hash(?:ing)?|sort(?:ing)?|"
-    r"dijkstra|bellman|bfs|dfs|shortest path|spanning tree|np-complete|np-hard|decidable|undecidable|"
-    r"automata|automaton|turing|dfa|nfa|grammar|grammars|cfg|chomsky|pumping lemma|kleene|"
-    r"compiler|compilers|lexer|lexical|parser|parsing|syntax|semantic|ast|code generation|register allocation|type checking|"
+    r"heap|heaps|tree|trees|trie|binary|array|arrays|stack|queue|linked list|hash(?:ing)?|sort(?:ing)?|avl|avl\s+trees?|"
+    r"dijkstra|bellman|bfs|dfs|shortest path|spanning tree|np-complete|np-hard|decidable|undecidable|post\s+correspondence\s+problem|pcp|"
+    r"automata|automaton|turing|dfa|nfa|grammar|grammars|cfg|cfl|context[-\s]?free(?:\s+languages?|\s+grammars?)?|chomsky|pumping lemma|kleene|"
+    r"compiler|compilers|lexer|lexical|parser|parsing|syntax|semantic|ast|code generation|register allocation|type checking|llvm|ssa|static\s+single\s+assignment|"
     r"operating system|process|processes|thread|threads|scheduling|deadlock|banker|mutex|semaphore|concurrency|synchronization|"
     r"virtual memory|pag(?:ing|ng)|page table|page replacement|thrashing|filesystem|file system|inode|syscall|address translation|\bmmu\b|"
     r"database|db|buffer|pool|sql|acid|transaction|transactions|serializability|normalization|b-tree|b\+ tree|lsm|index(?:ing|es)?|relational algebra|"
     r"network|networks|tcp|udp|ip|http|dns|routing|congestion|slow start|aimd|cwnd|flow control|osi|mac|packet|packets|socket|"
     r"distributed|consensus|paxos|raft|cap theorem|replication|sharding|vector clock|federated|"
     r"architecture|cpu|cache|caches|kv cach(?:e|ing)|flashattention|pipeline|pipelining|risc|isa|alu|instruction|hazard|branch prediction|simd|"
-    r"cryptography|encryption|decryption|rsa|aes|tls|ssl|authentication|cybersecurity|vulnerability|xss|sql injection|"
+    r"cryptography|encryption|decryption|rsa|aes|tls|ssl|authentication|cybersecurity|vulnerability|xss|sql injection|zk-snarks?|zk-starks?|zero-knowledge|snarks?|"
     r"matrix|matrices|vector|vectors|eigenvalue|eigenvector|svd|singular value decomposition|determinant|rank|linear algebra|orthogonality|"
     r"probability|bayes|bayesian|distribution|variance|covariance|expectation|markov|hypothesis|regression|"
     r"calculus|derivative|gradient|jacobian|hessian|integral|optimization|convex|"
@@ -65,7 +65,8 @@ ACADEMIC_DOMAIN_RE = re.compile(
     r"computer vision|convolution|pooling|dense|layer|layers|parameter|parameters|weight|weights|bias|biases|"
     r"activation|loss|regularization|dropout|kernel|krnel|perceptron|epoch|epochs|batch|"
     r"bm25|tf-idf|quantization|lora|qlora|fine-tuning|software engineering|testing|design pattern|solid|"
-    r"agi|artificial general intelligence|superintelligence|e-?resources?|e-?books?|opac|subscriptions?|journals?|pearson|books?|textbooks?|roadmap|curriculum|pagerank|page\s*rank"
+    r"agi|artificial\s+general\s+intelligence|superintelligence|artificial\s+intelligence|decision\s+trees?|"
+    r"e-?resources?|e-?books?|opac|subscriptions?|journals?|pearson|books?|textbooks?|roadmap|curriculum|pagerank|page\s*rank"
     r")\b)",
     re.I,
 )
@@ -145,12 +146,19 @@ _OS_MEMORY_CONTEXT_RE = re.compile(
 
 def _is_domain_incompatible(graph, query: str, cid: str) -> bool:
     """Reject cross-domain homonym matches (e.g. OS address translation -> NLP Translation)."""
+    q_lower = (query or "").lower()
     if cid == "translation" and _OS_MEMORY_CONTEXT_RE.search(query or ""):
+        return True
+    if cid == "tree" and re.search(r"\b(avl|binary\s+search|bst|red[-\s]?black|syntax\s+tree|b[-\s]?tree|b\+)\b", q_lower):
+        return True
+    if cid == "context" and re.search(r"\b(context[-\s]?free|cfl|cfg)\b", q_lower):
         return True
     node = graph.nodes.get(cid) or {}
     label = str(node.get("label") or "").lower()
     summary = str(node.get("summary") or "").lower()
     if label == "translation" and "natural language" in summary and _OS_MEMORY_CONTEXT_RE.search(query or ""):
+        return True
+    if label == "tree" and "decision tree" in summary and re.search(r"\b(avl|binary\s+search|bst|b[-\s]?tree)\b", q_lower):
         return True
     return False
 
@@ -256,6 +264,30 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         return "GREETING", text, None, {"hide_graph": True, "reason": "greeting"}
 
     clean_query = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
+    # Normalize common fused question tokens (e.g. "what isdeadlock" -> "what is deadlock", "whatis" -> "what is")
+    clean_query = re.sub(
+        r"\b(is|what|how|why|where|who|the|a|an)(deadlock|transformer|compilers|paging|dag|rag)\b",
+        r"\1 \2",
+        clean_query,
+        flags=re.I,
+    )
+    clean_query = re.sub(
+        r"\b(what|how|why|where|who)(is|are|do|does|can)\b",
+        r"\1 \2",
+        clean_query,
+        flags=re.I,
+    )
+    def _split_fused(match: re.Match[str]) -> str:
+        pfx, sfx = match.group(1), match.group(2)
+        if (
+            (graph and sfx.lower() in getattr(graph, "nodes", {}))
+            or ACADEMIC_DOMAIN_RE.search(sfx)
+            or sfx.lower() in ("deadlock", "deadlocks", "transformer", "transformers", "compiler", "compilers", "paging")
+        ):
+            return f"{pfx} {sfx}"
+        return match.group(0)
+
+    clean_query = re.sub(r"\b(is|what|the|about|explain)([a-z]{3,})\b", _split_fused, clean_query, flags=re.I)
     if (
         classify_query_intent(clean_query) == IntentCategory.CAPABILITY_INQUIRY
         or _CAPABILITY_BROAD_RE.search(clean_query)
@@ -363,17 +395,31 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     # and answered with a book page instead of a traversal path.
     learning_request = bool(DIAG_RE.search(clean_query))
     relational_request = bool(RELATE_RE.search(clean_query))
+    prereq_request = bool(re.search(r"\b(?:prereq|prereqs|prerequisite|prerequisites)\b", clean_query, re.I))
     explain_request = bool(
-        re.search(r"\b(?:explain|what\s+is|define|how\s+do|how\s+does)\b", clean_query, re.I)
+        re.search(r"\b(?:explain|what\s+(?:is|are)|define|how\s+do|how\s+does)\b", clean_query, re.I)
+    )
+    book_about_request = bool(
+        re.search(
+            r"\b(?:show|suggest|recommend|list|find|which|what)\b.{0,30}\b(?:books?|textbooks?|papers?|articles?)\b.{0,25}\b(?:about|on|for|explain(?:ing)?)\b"
+            r"|\b(?:show|suggest|recommend|list|find)\b.{0,25}\b(?:available\s+)?[a-z0-9][a-z0-9\- ]{1,35}\s+(?:books?|textbooks?)\b",
+            clean_query,
+            re.I,
+        )
     )
     if (
         catalog_hit
-        and SOURCE_LOOKUP_RE.search(clean_query)
         and not SHELF_RE.search(clean_query)
         and not PAPER_LOOKUP_RE.search(clean_query)
         and not learning_request
         and not relational_request
-        and not explain_request
+        and not prereq_request
+        and not book_about_request
+        and (
+            SOURCE_LOOKUP_RE.search(clean_query)
+            or not explain_request
+            or "artificial intelligence: a modern approach" in clean_query.lower()
+        )
     ):
         return (
             "BOOK_PAGE",
@@ -841,6 +887,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             {
                 "score": max(best_score, 0.93 if hits else best_score),
                 "reason": "research_topic_verified_dates",
+                "hide_graph": True,
                 "intent_category": IntentCategory.RESEARCH_TOPIC.value,
             },
         )
@@ -880,6 +927,11 @@ def _load_library_manifest() -> dict:
 def _extract_topic_terms(query: str) -> list[str]:
     tokens = re.findall(r"[a-z0-9]+", query.lower())
     terms = [t for t in tokens if len(t) >= 2 and t not in _QUERY_STOPWORDS]
+    for term in list(terms):
+        if len(term) >= 5 and term.endswith("s") and not term.endswith("ss"):
+            singular = term[:-1]
+            if singular not in terms:
+                terms.append(singular)
     # Expand common academic abbreviations so catalog matching stays reliable.
     expanded: list[str] = []
     aliases = {
@@ -891,6 +943,16 @@ def _extract_topic_terms(query: str) -> list[str]:
         "kv": ["kv", "vllm", "pagedattention", "cache"],
         "caching": ["cache", "caching", "pagedattention", "vllm"],
         "cache": ["cache", "caching", "pagedattention", "vllm"],
+        "deadlock": ["deadlock", "deadlocks", "concurrency", "operating", "system"],
+        "deadlocks": ["deadlock", "deadlocks", "concurrency", "operating", "system"],
+        "cfl": ["context", "free", "grammar", "automata", "theory"],
+        "cfg": ["context", "free", "grammar", "parsing", "compiler"],
+        "avl": ["avl", "tree", "binary", "search", "balanced", "dsa"],
+        "ssa": ["ssa", "static", "single", "assignment", "compiler", "llvm"],
+        "llvm": ["llvm", "compiler", "optimization", "ssa", "intermediate"],
+        "snark": ["snark", "snarks", "cryptography", "zero", "knowledge"],
+        "snarks": ["snark", "snarks", "cryptography", "zero", "knowledge"],
+        "zk": ["zk", "zero", "knowledge", "snark", "cryptography"],
     }
     for term in terms:
         if term not in expanded:
@@ -1024,6 +1086,16 @@ def _catalog_books_reply(
     lines = ["**Verified books in the Archipelago & UEMK catalog:**", ""]
     for _, title, author, source, link in matched[:6]:
         lines.append(f"- **{title}** ({author}) — {source}: [{link}]({link})")
+
+    if re.search(r"\b(papers?|preprints?|articles?)\b", clean_query, re.I):
+        lines.append("")
+        lines.append("**Separately Attributed Research Literature & Discovery:**")
+        papers_hit = _indexed_papers_reply(engine, clean_query, best_score)
+        if papers_hit is not None and papers_hit[1]:
+            lines.append(papers_hit[1])
+        else:
+            lines.append("- *No offline preprints currently indexed; browse live scholarly discovery via [/research](/research) for current research publications.*")
+
     return (
         "LIBRARY_LOOKUP",
         "\n".join(lines),
