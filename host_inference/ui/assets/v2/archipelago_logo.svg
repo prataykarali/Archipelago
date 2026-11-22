@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="archiGrad" x1="4" y1="40" x2="44" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="50%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="archiGlow" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#14B8A6" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+  <!-- Background subtle glow circle -->
+  <circle cx="24" cy="24" r="22" fill="url(#archiGlow)" stroke="#0EA5E9" stroke-opacity="0.2" stroke-width="1"/>
+  <!-- Main archipelago dynamic curve 1: Primary sweeping wave/wing -->
+  <path d="M8 32 C14 18, 26 12, 42 16 C34 22, 28 32, 20 34 C14 35, 10 34, 8 32 Z" fill="url(#archiGrad)"/>
+  <!-- Secondary island node 2: Ascending wing/fin -->
+  <path d="M16 28 C22 20, 30 16, 40 18 C34 24, 28 30, 22 30 C19 30, 17 29, 16 28 Z" fill="#67E8F9" fill-opacity="0.75"/>
+  <!-- Tertiary micro-island/node 3: Floating pearl / knowledge nexus -->
+  <circle cx="35" cy="12" r="3.5" fill="#A5F3FC"/>
+  <circle cx="14" cy="36" r="2" fill="#38BDF8" fill-opacity="0.8"/>
+</svg>

@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "created_at": "2026-11-22T14:44:20Z",
+  "target": "ACM SIGIR 2027 Demonstrations Track",
+  "provenance": "Original SVG vector asset system authored for Archipelago D-UX V2",
+  "license": "Apache-2.0 / Archipelago AI Labs",
+  "assets": [
+    "archipelago_logo.svg",
+    "archipelago_header_logo.svg",
+    "favicon.svg",
+    "archipelago_logo_mono.svg",
+    "icon_concept_graph.svg",
+    "icon_research_papers.svg",
+    "icon_library_opac.svg",
+    "icon_evidence.svg",
+    "icon_trace.svg",
+    "icon_saved_conversations.svg",
+    "icon_academic_domains.svg",
+    "book_cover_placeholder.svg",
+    "icon_institutional_holding.svg",
+    "icon_open_access.svg",
+    "icon_restricted_source.svg",
+    "icon_missing_doc.svg",
+    "graph_empty_state.svg",
+    "graph_unmatched_state.svg",
+    "librarian_avatar_36.svg"
+  ],
+  "standards": {
+    "colors": {
+      "background": "#0F172A",
+      "surfaces": "#1E293B",
+      "primary_accent": "#06B6D4",
+      "secondary_accent": "#10B981",
+      "warning_unindexed": "#F59E0B"
+    },
+    "mascot_size": "32-40px compact avatar"
+  }
+}

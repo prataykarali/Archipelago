@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 40" fill="none">
+  <g transform="translate(0, 2)">
+    <path d="M6 26 C11 14, 21 9, 34 12 C28 17, 23 25, 16 27 C11 28, 8 27, 6 26 Z" fill="#06B6D4"/>
+    <path d="M12 23 C17 16, 24 13, 32 14 C27 19, 22 24, 17 24 C14 24, 13 23, 12 23 Z" fill="#10B981"/>
+    <circle cx="28" cy="9" r="2.5" fill="#67E8F9"/>
+  </g>
+  <text x="44" y="26" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#F8FAFC" letter-spacing="-0.5">Archipelago</text>
+</svg>

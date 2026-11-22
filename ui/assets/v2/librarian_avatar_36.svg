@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <circle cx="18" cy="18" r="17" fill="#4C1D95" stroke="#A855F7" stroke-width="1.5"/>
+  <!-- Hair -->
+  <path d="M10 18 C10 10, 26 10, 26 18 C26 24, 28 28, 28 28 C26 28, 24 26, 24 24 C20 27, 16 27, 12 24 C12 26, 10 28, 8 28 C8 28, 10 24, 10 18 Z" fill="#7C2D12"/>
+  <!-- Face -->
+  <circle cx="18" cy="18" r="9" fill="#FED7AA"/>
+  <!-- Glasses -->
+  <circle cx="15" cy="17" r="3.5" stroke="#06B6D4" stroke-width="1.2" fill="none"/>
+  <circle cx="21" cy="17" r="3.5" stroke="#06B6D4" stroke-width="1.2" fill="none"/>
+  <line x1="18.5" y1="17" x2="17.5" y2="17" stroke="#06B6D4" stroke-width="1.2"/>
+  <!-- Eyes -->
+  <circle cx="15" cy="17" r="1.2" fill="#0369A1"/>
+  <circle cx="21" cy="17" r="1.2" fill="#0369A1"/>
+  <!-- Smile -->
+  <path d="M16 22 Q18 24 20 22" stroke="#9A3412" stroke-width="1" stroke-linecap="round" fill="none"/>
+</svg>
