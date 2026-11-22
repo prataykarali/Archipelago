@@ -97,14 +97,13 @@ def hydrate() -> dict[str, str]:
         return {"source": source, "cache": str(CACHE)}
 
     if _production_mode():
-        if os.environ.get("VERCEL"):
-            for name in FILES:
-                source_file = PACKAGED_CACHE / name
-                target = CACHE / name
-                if source_file.is_file() and not target.is_file():
-                    target.write_bytes(source_file.read_bytes())
-            if (CACHE / "okf_graph.json").is_file():
-                return {"source": "bundled", "cache": str(CACHE)}
+        for name in FILES:
+            source_file = PACKAGED_CACHE / name if (PACKAGED_CACHE / name).is_file() else (ROOT / "fixtures" / name)
+            target = CACHE / name
+            if source_file.is_file() and not target.is_file():
+                target.write_bytes(source_file.read_bytes())
+        if (CACHE / "okf_graph.json").is_file():
+            return {"source": "bundled", "cache": str(CACHE)}
         return {"source": source, "cache": str(CACHE)}
 
     for name in FILES:
