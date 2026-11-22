@@ -55,10 +55,12 @@ def main():
                 headless=True
             )
 
-            # Test configurations
+            # Test configurations (Desktop, Tablet, Mobile)
             viewports = [
                 {"name": "1440x900", "width": 1440, "height": 900},
                 {"name": "1366x768", "width": 1366, "height": 768},
+                {"name": "tablet_768x1024", "width": 768, "height": 1024},
+                {"name": "mobile_390x844", "width": 390, "height": 844},
             ]
 
             for vp in viewports:
