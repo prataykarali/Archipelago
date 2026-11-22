@@ -129,6 +129,8 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
     principal = getattr(request, "archipelago_principal", None)
     if not principal or not principal.get("id"):
         return None
+    if not run_id_arg and re.search(r"\b(books?|library|opac|koha|holdings?|catalog)\b", query, re.I):
+        return None
     if not run_id_arg and not is_research_request(query, True):
         return None
     if str(principal.get("role") or "").lower() not in _RESEARCH_STAFF_ROLES:
