@@ -427,17 +427,48 @@ function renderSavedTopicPreview(savedRun, runId) {
   if (papersLink) papersLink.href = papersUrl;
 }
 
+function renderStorageUnavailable(runId) {
+  const shortId = runId ? String(runId).slice(0, 8) : "unknown";
+  const title = dossierEl("topic-title");
+  if (title && title.textContent === "Loading topic\u2026") title.textContent = "Research Topic";
+  const breadcrumb = dossierEl("topic-breadcrumb");
+  if (breadcrumb && breadcrumb.textContent === "Topic overview") breadcrumb.textContent = "Research Topic";
+  const status = dossierEl("topic-status");
+  if (status) status.textContent = `Topic run ${shortId}\u2026 — remote dossier storage is not reachable in this deployment. Your saved papers are available from the Papers link.`;
+  const conclusion = dossierEl("topic-conclusion");
+  if (conclusion) conclusion.textContent = "Detailed coverage metrics require the Supabase research store. Papers saved in your session are still accessible.";
+  const papersUrl = runId ? `/research/papers?run=${encodeURIComponent(runId)}` : "/research/topics";
+  const actions = dossierEl("topic-actions");
+  if (actions && !actions.firstChild) {
+    actions.append(
+      dossierLink("Browse saved papers \u2197", papersUrl, "topic-action"),
+      dossierLink("Ask chat about this topic \u2197", runId ? `/chat?research_run_id=${encodeURIComponent(runId)}` : "/chat", "topic-action secondary")
+    );
+  }
+  const papersLink = dossierEl("topic-papers-link");
+  if (papersLink) papersLink.href = papersUrl;
+}
+
+const STORAGE_UNAVAILABLE_CODES = new Set([503]);
+const STORAGE_ERROR_KEYS = new Set(["research_storage_not_configured", "research_storage_unavailable", "research_runtime_unavailable"]);
+
+function isStorageUnavailable(status, body) {
+  if (!STORAGE_UNAVAILABLE_CODES.has(status)) return false;
+  if (!body || typeof body !== "object") return true;
+  return !body.error || STORAGE_ERROR_KEYS.has(String(body.error));
+}
+
 window.addEventListener("load", async () => {
   const params = new URLSearchParams(location.search);
   const run = params.get("run");
   const example = params.get("example");
   const paperPage = document.body.dataset.researchPage === "paper";
-  const status = dossierEl(paperPage ? "paper-subtitle" : "topic-status");
+  const statusEl = dossierEl(paperPage ? "paper-subtitle" : "topic-status");
   const loadProgress = dossierEl(paperPage ? "paper-load-progress" : "topic-load-progress");
   
   if (!run && !example) {
     if (params.has(paperPage ? "key" : "name")) return;
-    if (status) status.textContent = "Choose a research run from the search page.";
+    if (statusEl) statusEl.textContent = "Choose a research run from the search page.";
     if (loadProgress) loadProgress.hidden = true;
     return;
   }
@@ -447,15 +478,37 @@ window.addEventListener("load", async () => {
     if (run && !/^[a-f0-9-]{36}$/i.test(run)) throw new Error("Invalid research run.");
     
     const url = run ? `/api/research/intelligence/runs/${encodeURIComponent(run)}/dossier` : "/research/example/dossiers.json";
+    let previewLoaded = false;
     if (run && !paperPage) {
       try {
         const savedResponse = await fetch(`/api/research/intelligence/runs/${encodeURIComponent(run)}`, { cache: "no-store" });
-        if (savedResponse.ok) renderSavedTopicPreview(await savedResponse.json(), run);
+        if (savedResponse.ok) {
+          renderSavedTopicPreview(await savedResponse.json(), run);
+          previewLoaded = true;
+        } else if (savedResponse.status === 503) {
+          let body = null;
+          try { body = await savedResponse.json(); } catch (_) { /* ignore */ }
+          if (isStorageUnavailable(savedResponse.status, body)) {
+            renderStorageUnavailable(run);
+            return;
+          }
+        }
       } catch (_) { /* The dossier request below can still restore this topic. */ }
     }
     
     const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) throw new Error(`Research dossier unavailable (${response.status}).`);
+    if (!response.ok) {
+      let body = null;
+      try { body = await response.json(); } catch (_) { /* ignore */ }
+      if (!paperPage && run && isStorageUnavailable(response.status, body)) {
+        if (!previewLoaded) renderStorageUnavailable(run);
+        if (statusEl && previewLoaded) {
+          statusEl.textContent = "Detailed dossier metrics are unavailable (research storage not configured). Browse saved papers using the link above.";
+        }
+        return;
+      }
+      throw new Error(`Research dossier unavailable (${response.status}).`);
+    }
     const dossier = await response.json();
     if (paperPage) {
       const paperParam = params.get("paper");
@@ -468,8 +521,12 @@ window.addEventListener("load", async () => {
       renderRunTopic(dossier, { run, example });
     }
   } catch (error) {
-    if (status) {
-      status.textContent = `Detailed topic metrics could not load (${error.message}). Browse saved papers from the Papers link.`;
+    if (statusEl) {
+      statusEl.textContent = `Detailed topic metrics could not load (${error.message}). Browse saved papers from the Papers link.`;
+    }
+    const titleEl = dossierEl("topic-title");
+    if (!paperPage && run && titleEl && titleEl.textContent === "Loading topic\u2026") {
+      renderStorageUnavailable(run);
     }
   } finally {
     if (loadProgress) loadProgress.hidden = true;
