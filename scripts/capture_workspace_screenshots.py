@@ -31,6 +31,8 @@ def main():
     env = os.environ.copy()
     env["PORT"] = str(PORT)
     env["PYTHONPATH"] = f"{ROOT}/host_inference:{env.get('PYTHONPATH', '')}"
+    env["ARCHIPELAGO_AUTH_REQUIRED"] = "0"
+    env["ARCHIPELAGO_OPEN_READING"] = "1"
 
     print(f"Starting server on port {PORT}...")
     server = subprocess.Popen(
@@ -62,7 +64,8 @@ def main():
             for vp in viewports:
                 print(f"Capturing screenshots for viewport {vp['name']}...")
                 page = browser.new_page(viewport={"width": vp["width"], "height": vp["height"]})
-                page.goto(f"{BASE_URL}/", wait_until="networkidle")
+                page.goto(f"{BASE_URL}/chat", wait_until="domcontentloaded")
+                page.wait_for_selector("#chat-input", timeout=15000)
 
                 # Initial workspace welcome view
                 page.screenshot(path=str(SCREENSHOT_DIR / f"00_workspace_welcome_{vp['name']}.png"))

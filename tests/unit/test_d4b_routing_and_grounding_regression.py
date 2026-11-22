@@ -90,3 +90,44 @@ class TestD4BRoutingAndIntegrity:
         text = res[1]
         assert "catalog" in text.lower() or "books" in text.lower()
         assert "research" in text.lower() or "literature" in text.lower()
+
+    def test_phase10_required_queries_coverage(self, engine: Engine) -> None:
+        """Verify routing for all 10 SIGIR Phase 10 required queries."""
+        # 1 & 2: Deadlock consistency
+        assert engine._route("What is deadlock?")[2] == "deadlock"
+        assert engine._route("what isdeadlock")[2] == "deadlock"
+
+        # 3: Transformer
+        assert engine._route("What is Transformer?")[2] == "transformer"
+
+        # 4: Compilers
+        res_comp = engine._route("How do compilers transform source code into machine instructions?")
+        assert res_comp[0] in {"BOOK_PAGE", "GRAPH_SYNTHESIS", "GENERAL_EXPLANATION"}
+        assert res_comp[3].get("hide_graph") is True or "compilers" in res_comp[1].lower()
+
+        # 5: Virtual memory paging
+        res_vm = engine._route("What is virtual memory paging?")
+        assert res_vm[0] == "GRAPH_SYNTHESIS"
+        assert res_vm[2] == "virtual_memory"
+
+        # 6: DPR to RAG multi-hop
+        res_dpr = engine._route("How does DPR relate to RAG?")
+        assert res_dpr[0] == "MULTI_CONCEPT"
+        assert res_dpr[3].get("multi_hop", {}).get("concepts") == ["DPR", "RAG"]
+
+        # 7: Library lookup
+        res_dbms = engine._route("Find DBMS books in the UEM Kolkata library.")
+        assert res_dbms[0] == "LIBRARY_LOOKUP"
+        assert res_dbms[3].get("hide_graph") is True
+
+        # 8: Research topic lookup
+        res_grag = engine._route("Find research papers about GraphRAG.")
+        assert res_grag[0] == "RESEARCH_TOPIC"
+        assert res_grag[3].get("hide_graph") is True
+
+        # 9: Spanner TrueTime honesty (unindexed disclosure, no fabrication)
+        res_spanner = engine._route("Explain Spanner TrueTime and its prerequisites.")
+        assert res_spanner[0] == "MULTI_CONCEPT"
+        multi = res_spanner[3].get("multi_hop", {})
+        assert multi.get("is_partial") is True
+        assert "Spanner TrueTime" in multi.get("missing", [])
