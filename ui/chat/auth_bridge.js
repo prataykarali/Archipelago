@@ -103,7 +103,7 @@ async function handleRemoteLogout() {
   window.archipelagoClearClientStorage({ includeHistory: false });
   try {
     const { supabase } = await window.archipelagoAuthReady;
-    if (supabase) await supabase.auth.signOut({ scope: "local" });
+    if (supabase) await supabase.auth.signOut({ scope: "global" });
   } catch (_) {}
   if (window.location.pathname !== LOGIN_PATH) {
     window.location.replace(LOGIN_PATH);
@@ -166,9 +166,14 @@ window.archipelagoLogout = async ({ redirectUrl = LOGIN_PATH, clearHistory = fal
   } catch (_) {}
   try {
     const { supabase } = await window.archipelagoAuthReady;
-    if (supabase) await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut({ scope: "global" });
   } catch (_) {}
-  window.location.replace(redirectUrl);
+  // Append ?logout=1 to the redirect so the login page knows not to auto-redirect
+  // back (which would cause a loop when the session is fully cleared).
+  const finalUrl = redirectUrl === LOGIN_PATH
+    ? `${LOGIN_PATH}?logout=1`
+    : redirectUrl;
+  window.location.replace(finalUrl);
 };
 
 async function loadConfig() {

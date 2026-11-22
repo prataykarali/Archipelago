@@ -40,6 +40,11 @@
       <div id="message" role="status" aria-live="polite"></div>
       <button type="submit" class="submit-btn">Sign in</button>
     </form>
+    <details style="margin-top:16px;font-size:12px;color:#94a3b8;line-height:1.45;">
+      <summary style="cursor:pointer;color:#cbd5e1;font-weight:500;">Privacy, Data Retention &amp; Terms</summary>
+      <p style="margin:8px 0;">Archipelago processes your institutional account identifier, role, chat queries, and saved research runs to deliver library &amp; scholarly discovery services. Authentication is managed via Supabase Auth; scholarly metadata queries are sent to OpenAlex, Crossref, Semantic Scholar, arXiv, and our AI inference gateway. No third-party advertising trackers are used. Session data expires after 60 minutes of inactivity. For account deletion or privacy inquiries, contact the IEM/UEM Library Administrator or clear your saved browser data below.</p>
+      <button type="button" id="clear-browser-data" style="background:rgba(255,255,255,0.08);border:1px solid #43345f;border-radius:8px;color:#e2e8f0;cursor:pointer;font-size:11px;padding:6px 10px;width:auto;">Clear saved browser data &amp; history</button>
+    </details>
   </main>
 
   <script type="module">
@@ -51,7 +56,56 @@
     const usernameInput = document.querySelector("#username");
     const passwordInput = document.querySelector("#password");
     const submitBtn = form.querySelector("button[type='submit']");
-    const requestedNext = new URLSearchParams(window.location.search).get("next") || "/chat";
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedNext = urlParams.get("next") || "/chat";
+    const isTimeout = urlParams.has("timeout");
+    const isForceLogout = urlParams.has("logout");
+    if (isTimeout) {
+      message.textContent = "Session expired due to inactivity. Please sign in again.";
+    }
+    document.querySelector("#clear-browser-data")?.addEventListener("click", async () => {
+      if (typeof window.archipelagoPurgeMyData === "function") {
+        await window.archipelagoPurgeMyData();
+      } else {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      message.textContent = "Cleared saved browser data and local session history.";
+    });
+
+    // Check for an already-active session and handle it.
+    // If ?logout=1 in URL, we were redirected from sign-out — do not auto-redirect.
+    // If ?timeout=1, session expired — do not auto-redirect.
+    // Otherwise, if a valid Supabase session exists, redirect to the destination.
+    if (!isTimeout && !isForceLogout) {
+      (async () => {
+        try {
+          const { config, supabase } = await window.archipelagoAuthReady;
+          if (config?.configured && supabase) {
+            const { data } = await supabase.auth.getSession();
+            if (data?.session?.access_token) {
+              // Verify the session is still valid server-side
+              const meResp = await fetch("/api/auth/me", { cache: "no-store" });
+              if (meResp.ok) {
+                const principal = await meResp.json();
+                if (principal?.authenticated && principal?.role) {
+                  // Already signed in — redirect immediately
+                  window.location.replace(destinationForRole(principal.role, config));
+                  return;
+                }
+              }
+              // Server rejected session — clear it and show login form
+              try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+              if (typeof window.archipelagoClearClientStorage === "function") {
+                window.archipelagoClearClientStorage({ includeHistory: false });
+              }
+            }
+          }
+        } catch (_) {
+          // Could not check session — show login form normally
+        }
+      })();
+    }
 
     function accountEmail(username, role) {
       const cleaned = username.trim().toLowerCase();
@@ -76,6 +130,9 @@
       }
 
       const allowedPrefixes = ["/chat", "/library", "/read", "/open", "/reader.html"];
+      if (["faculty", "librarian", "administrator"].includes(role)) {
+        allowedPrefixes.push("/research", "/graph");
+      }
       const isAllowed = allowedPrefixes.some(prefix => target.pathname.startsWith(prefix));
       if (!isAllowed) {
         return fallback.href;
