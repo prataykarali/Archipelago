@@ -703,6 +703,45 @@ window.addEventListener('popstate', (e) => {
         dismissGraphChoiceModal();
     }
 });
+
+// Watchdog: Ensure hero-video and all avatar videos keep looping continuously
+(function initVideoLoopWatchdog() {
+    function watch(videoEl) {
+        if (!videoEl || videoEl._loopWatchdogSet) return;
+        videoEl._loopWatchdogSet = true;
+        videoEl.loop = true;
+        videoEl.muted = true;
+        const play = () => {
+            const p = videoEl.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+        };
+        videoEl.addEventListener('pause', () => { if (!document.hidden) play(); });
+        videoEl.addEventListener('ended', () => { videoEl.currentTime = 0; play(); });
+        videoEl.addEventListener('stalled', play);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
+        play();
+    }
+
+    const heroVid = document.getElementById('hero-video');
+    if (heroVid) watch(heroVid);
+    document.querySelectorAll('.avatar-shell video').forEach(watch);
+
+    // Watchdog check interval every 4 seconds to guarantee no frozen videos
+    setInterval(() => {
+        if (document.hidden) return;
+        if (heroVid && heroVid.paused) {
+            heroVid.play().catch(() => {});
+        }
+        document.querySelectorAll('.avatar-shell').forEach((shell) => {
+            if (shell.dataset.avatarMode !== 'paused') {
+                const active = shell.querySelector('video:not(.is-hidden)');
+                if (active && active.paused) {
+                    active.play().catch(() => {});
+                }
+            }
+        });
+    }, 4000);
+})();
 </script>
 
 <!-- JS Logic -->

@@ -10,7 +10,10 @@
   </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="/scene_background_3d.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
+
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -61,18 +64,24 @@
 </head>
 <body class="min-h-screen bg-black text-white relative overflow-x-hidden flex flex-col justify-between">
 
-  <!-- Full-screen Looping Cinematic Background Video with custom JS fade engine -->
+  <!-- Full-screen Looping Cinematic Background Video with Interactive 3D Galaxy -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
     <video
       id="bg-hero-video"
-      src="/ui/assets/archi_main.mp4"
+      src="/ui/assets/landing_vortex.mp4"
+      poster="/ui/assets/landing_vortex_poster.jpg"
       autoplay
       loop
       muted
       playsinline
-      class="absolute inset-0 w-full h-full object-cover translate-y-[17%] opacity-0"
+      webkit-playsinline
+      preload="auto"
+      class="absolute inset-0 w-full h-full object-cover translate-y-[10%] opacity-90 transition-opacity duration-700"
     ></video>
-    <div class="absolute inset-0 bg-gradient-to-b from-black/75 via-black/35 to-black/90"></div>
+    <!-- Luminous 3D Interactive Galaxy Canvas -->
+    <canvas data-archipelago-scene aria-hidden="true" class="absolute inset-0 w-full h-full opacity-95 mix-blend-screen pointer-events-none z-[1]"></canvas>
+    <!-- Crisp atmospheric gradient (unblurred, bright, revealing the 3D galaxy & video) -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none z-[2]"></div>
   </div>
 
   <!-- Header: Archipelago Wordmark left, nav links & Sign In right -->
@@ -164,10 +173,6 @@
           Indian Journals ↗
         </a>
       </div>
-      <div class="mt-5 flex items-center justify-center gap-3" aria-label="Institutional partners">
-        <img src="/assets/iem-logo.png" alt="Institute of Engineering and Management" class="h-12 w-auto rounded bg-white p-1" loading="lazy">
-        <img src="/assets/uem-logo.png" alt="University of Engineering and Management" class="h-12 w-auto rounded bg-white p-1" loading="lazy">
-      </div>
     </section>
   </main>
 
@@ -224,59 +229,29 @@
     </div>
   </div>
 
-  <!-- Custom requestAnimationFrame Video Fade System (500ms fade-in/fade-out) -->
+  <!-- Continuous Rock-Solid Video & 3D Looping Engine -->
   <script>
     if (window.lucide) lucide.createIcons();
 
-    (function initVideoFadeEngine() {
+    (function keepHeroPlaying() {
       const video = document.getElementById('bg-hero-video');
       if (!video) return;
 
-      let animFrameId = null;
-      let fadingOut = false;
+      video.style.opacity = '0.92';
+      video.loop = true;
+      video.muted = true;
 
-      function fadeVideo(targetOpacity, durationMs, onComplete) {
-        if (animFrameId) cancelAnimationFrame(animFrameId);
-        const startOpacity = parseFloat(video.style.opacity || 0);
-        const startTime = performance.now();
+      const play = () => {
+        const p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      };
 
-        function step(now) {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / durationMs, 1);
-          video.style.opacity = startOpacity + (targetOpacity - startOpacity) * progress;
-
-          if (progress < 1) {
-            animFrameId = requestAnimationFrame(step);
-          } else if (onComplete) {
-            onComplete();
-          }
-        }
-        animFrameId = requestAnimationFrame(step);
-      }
-
-      video.addEventListener('loadeddata', () => fadeVideo(0.85, 500));
-      video.addEventListener('play', () => fadeVideo(0.85, 500));
-
-      video.addEventListener('timeupdate', () => {
-        if (video.duration && (video.duration - video.currentTime <= 0.55) && !fadingOut) {
-          fadingOut = true;
-          fadeVideo(0, 500);
-        }
-      });
-
-      video.addEventListener('ended', () => {
-        video.style.opacity = '0';
-        setTimeout(() => {
-          video.currentTime = 0;
-          fadingOut = false;
-          video.play().catch(() => {});
-          fadeVideo(0.85, 500);
-        }, 100);
-      });
-
-      video.play().then(() => fadeVideo(0.85, 500)).catch(() => {
-        video.style.opacity = '0.7';
-      });
+      video.addEventListener('pause', () => { if (!document.hidden) play(); });
+      video.addEventListener('ended', () => { video.currentTime = 0; play(); });
+      video.addEventListener('stalled', play);
+      video.addEventListener('loadeddata', () => { video.style.opacity = '0.92'; play(); });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
+      play();
     })();
 
     // ── Auth Modal Functions ──

@@ -72,11 +72,14 @@
   <!-- Fullscreen Cinematic Butterfly Video Background (Fully Visible) -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
     <video
-      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260717_120352_eb988725-1351-43b3-8095-16e4a1005e3d.mp4"
+      id="bg-library-video"
+      src="/ui/assets/library_vortex.mp4"
+      poster="/ui/assets/library_vortex_poster.jpg"
       autoplay
       loop
       muted
       playsinline
+      webkit-playsinline
       class="w-full h-full object-cover opacity-80"
     ></video>
     <!-- Soft Vignette Gradient -->
@@ -1069,6 +1072,19 @@
     const refreshBtn = document.getElementById('refresh-jobs');
     if (refreshBtn) refreshBtn.addEventListener('click', loadJobs);
     if (role === 'librarian' || role === 'administrator') loadJobs();
+  })();
+
+  (function keepLibraryVideoLooping() {
+    const v = document.getElementById('bg-library-video') || document.querySelector('video[src*="library_vortex"]');
+    if (!v) return;
+    v.loop = true;
+    v.muted = true;
+    const play = () => { const p = v.play(); if (p && typeof p.catch === 'function') p.catch(() => {}); };
+    v.addEventListener('pause', () => { if (!document.hidden) play(); });
+    v.addEventListener('ended', () => { v.currentTime = 0; play(); });
+    v.addEventListener('stalled', play);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
+    play();
   })();
   </script>
 </body>

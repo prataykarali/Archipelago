@@ -11,16 +11,17 @@
             if (!canvas) return;
 
             fpScene = new THREE.Scene();
-            fpScene.fog = new THREE.FogExp2(0x000000, 0.008);
+            // Light, subtle atmospheric fog so particles stay bright and clearly visible
+            fpScene.fog = new THREE.FogExp2(0x06020c, 0.0015);
 
             fpCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1500);
             fpCamera.position.set(0, 0, 95);
 
             fpRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
             fpRenderer.setSize(window.innerWidth, window.innerHeight);
-            fpRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+            fpRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
 
-            const geom = new THREE.TetrahedronGeometry(0.32);
+            const geom = new THREE.TetrahedronGeometry(0.38);
             const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
             fpInstancedMesh = new THREE.InstancedMesh(geom, mat, FP_PARTICLE_COUNT);
             fpInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -41,12 +42,13 @@
                 const z = Math.sin(angle) * radius;
 
                 dummy.position.set(x, y, z);
-                dummy.scale.setScalar(0.2 + Math.random() * 0.9);
+                dummy.scale.setScalar(0.25 + Math.random() * 1.1);
                 dummy.updateMatrix();
                 fpInstancedMesh.setMatrixAt(i, dummy.matrix);
 
-                const hue = 0.55 + Math.random() * 0.35;
-                color.setHSL(hue, 0.85, 0.65);
+                // Bright vibrant holographic palette: luminous cyan, violet, magenta, amber
+                const hue = 0.55 + Math.random() * 0.38;
+                color.setHSL(hue % 1.0, 0.95, 0.75);
                 fpInstancedMesh.setColorAt(i, color);
             }
             fpInstancedMesh.instanceMatrix.needsUpdate = true;

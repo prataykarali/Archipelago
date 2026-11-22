@@ -186,7 +186,22 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
                 if (!vid._avatarErrorBound) {
                     vid._avatarErrorBound = true;
                     vid.addEventListener('error', () => {
-                        console.warn('Avatar video failed to load:', vid.currentSrc || vid.src);
+                        console.warn('Avatar video failed to load, advancing:', vid.currentSrc || vid.src);
+                        const cur = parseInt(root.dataset.avatarIndex || '0', 10) || 0;
+                        _showAvatarClipAt(root, (cur + 1) % AVATAR_STORY.length);
+                    });
+                }
+                if (!vid._avatarWatchdogBound) {
+                    vid._avatarWatchdogBound = true;
+                    vid.addEventListener('pause', () => {
+                        if (!document.hidden && root.dataset.avatarMode !== 'paused' && !vid.classList.contains('is-hidden')) {
+                            playAvatarVideo(vid);
+                        }
+                    });
+                    vid.addEventListener('stalled', () => {
+                        if (!document.hidden && root.dataset.avatarMode !== 'paused' && !vid.classList.contains('is-hidden')) {
+                            playAvatarVideo(vid);
+                        }
                     });
                 }
                 // Story advances on ended (one full play per beat)
