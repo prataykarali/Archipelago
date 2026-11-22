@@ -148,7 +148,7 @@ const CHAT_RESPONSE_TIMEOUT_MS = 45000;
 
         function _onAvatarClipEnded(root) {
             return function handleEnded() {
-                if (!root || root.dataset.avatarWired !== '1') return;
+                if (!root) return;
                 const mode = root.dataset.avatarMode || 'story';
                 if (mode === 'paused') return;
                 if (mode === 'think') {

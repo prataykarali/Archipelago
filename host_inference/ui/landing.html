@@ -10,8 +10,6 @@
   </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script defer src="/scene_background_3d.js"></script>
   <script type="module" src="/auth_bridge.js"></script>
 
   <style>
@@ -64,8 +62,8 @@
 </head>
 <body class="min-h-screen bg-black text-white relative overflow-x-hidden flex flex-col justify-between">
 
-  <!-- Full-screen Looping Cinematic Background Video with Interactive 3D Galaxy -->
-  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+  <!-- Full-screen Looping Cinematic Background Video -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
     <video
       id="bg-hero-video"
       src="/ui/assets/landing_vortex.mp4"
@@ -78,10 +76,8 @@
       preload="auto"
       class="absolute inset-0 w-full h-full object-cover translate-y-[10%] opacity-90 transition-opacity duration-700"
     ></video>
-    <!-- Luminous 3D Interactive Galaxy Canvas -->
-    <canvas data-archipelago-scene aria-hidden="true" class="absolute inset-0 w-full h-full opacity-95 mix-blend-screen pointer-events-none z-[1]"></canvas>
-    <!-- Crisp atmospheric gradient (unblurred, bright, revealing the 3D galaxy & video) -->
-    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none z-[2]"></div>
+    <!-- Crisp atmospheric gradient (unblurred, bright, revealing the video) -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none"></div>
   </div>
 
   <!-- Header: Archipelago Wordmark left, nav links & Sign In right -->
@@ -97,6 +93,15 @@
       </a>
       <a href="/library" class="hidden sm:inline-block text-white/80 hover:text-white text-xs font-medium uppercase tracking-wider no-underline transition-colors">
         Library
+      </a>
+      <a href="/research" class="hidden sm:inline-block text-violet-300 hover:text-white text-xs font-medium uppercase tracking-wider no-underline transition-colors">
+        Research
+      </a>
+      <a href="/academic/graph" class="hidden sm:inline-block text-cyan-300 hover:text-white text-xs font-medium uppercase tracking-wider no-underline transition-colors">
+        Academic
+      </a>
+      <a href="/librarian" class="hidden sm:inline-block text-emerald-300 hover:text-white text-xs font-medium uppercase tracking-wider no-underline transition-colors">
+        Librarian
       </a>
       <button
         type="button"
@@ -148,6 +153,11 @@
         >
           Library details &rarr;
         </a>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
+        <a href="/librarian" class="liquid-glass rounded-full px-4 py-2 text-emerald-300 hover:text-white transition-all shadow">Librarian Space ↗</a>
+        <a href="/research" class="liquid-glass rounded-full px-4 py-2 text-violet-300 hover:text-white transition-all shadow">Research ↗</a>
+        <a href="/academic/graph" class="liquid-glass rounded-full px-4 py-2 text-cyan-300 hover:text-white transition-all shadow">Academic Graph ↗</a>
       </div>
     </section>
 
@@ -229,7 +239,7 @@
     </div>
   </div>
 
-  <!-- Continuous Rock-Solid Video & 3D Looping Engine -->
+  <!-- Continuous Rock-Solid Video Looping Engine -->
   <script>
     if (window.lucide) lucide.createIcons();
 
@@ -237,20 +247,24 @@
       const video = document.getElementById('bg-hero-video');
       if (!video) return;
 
-      video.style.opacity = '0.92';
       video.loop = true;
       video.muted = true;
 
       const play = () => {
-        const p = video.play();
-        if (p && typeof p.catch === 'function') p.catch(() => {});
+        if (video.paused || video.ended) {
+          const p = video.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        }
       };
 
-      video.addEventListener('pause', () => { if (!document.hidden) play(); });
+      video.addEventListener('pause', play);
       video.addEventListener('ended', () => { video.currentTime = 0; play(); });
       video.addEventListener('stalled', play);
       video.addEventListener('loadeddata', () => { video.style.opacity = '0.92'; play(); });
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
+      document.addEventListener('visibilitychange', play);
+      window.addEventListener('focus', play);
+      window.addEventListener('pageshow', play);
+      setInterval(play, 1000);
       play();
     })();
 

@@ -706,41 +706,50 @@ window.addEventListener('popstate', (e) => {
 
 // Watchdog: Ensure hero-video and all avatar videos keep looping continuously
 (function initVideoLoopWatchdog() {
+    function ensurePlay(v) {
+        if (!v) return;
+        v.loop = true;
+        v.muted = true;
+        if (v.paused || v.ended) {
+            const p = v.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+        }
+    }
+
     function watch(videoEl) {
         if (!videoEl || videoEl._loopWatchdogSet) return;
         videoEl._loopWatchdogSet = true;
         videoEl.loop = true;
         videoEl.muted = true;
-        const play = () => {
-            const p = videoEl.play();
-            if (p && typeof p.catch === 'function') p.catch(() => {});
-        };
-        videoEl.addEventListener('pause', () => { if (!document.hidden) play(); });
-        videoEl.addEventListener('ended', () => { videoEl.currentTime = 0; play(); });
-        videoEl.addEventListener('stalled', play);
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
-        play();
+        videoEl.addEventListener('pause', () => { ensurePlay(videoEl); });
+        videoEl.addEventListener('ended', () => { videoEl.currentTime = 0; ensurePlay(videoEl); });
+        videoEl.addEventListener('stalled', () => { ensurePlay(videoEl); });
+        ensurePlay(videoEl);
     }
 
-    const heroVid = document.getElementById('hero-video');
-    if (heroVid) watch(heroVid);
-    document.querySelectorAll('.avatar-shell video').forEach(watch);
-
-    // Watchdog check interval every 4 seconds to guarantee no frozen videos
-    setInterval(() => {
-        if (document.hidden) return;
-        if (heroVid && heroVid.paused) {
-            heroVid.play().catch(() => {});
+    function checkAll() {
+        const heroVid = document.getElementById('hero-video');
+        if (heroVid) {
+            watch(heroVid);
+            ensurePlay(heroVid);
         }
-        document.querySelectorAll('.avatar-shell').forEach((shell) => {
-            if (shell.dataset.avatarMode !== 'paused') {
-                const active = shell.querySelector('video:not(.is-hidden)');
-                if (active && active.paused) {
-                    active.play().catch(() => {});
-                }
+        document.querySelectorAll('.avatar-shell video, video.avatar-clip').forEach((v) => {
+            watch(v);
+            if (!v.classList.contains('is-hidden') && (!v.parentElement || v.parentElement.dataset.avatarMode !== 'paused')) {
+                ensurePlay(v);
             }
         });
-    }, 4000);
+    }
+
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkAll(); });
+    window.addEventListener('focus', checkAll);
+    window.addEventListener('pageshow', checkAll);
+
+    // Initial check
+    checkAll();
+
+    // Regular heartbeat every 1 second to guarantee continuous looping
+    setInterval(checkAll, 1000);
 })();
 </script>
 
