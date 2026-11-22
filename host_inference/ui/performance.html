@@ -172,10 +172,7 @@
                     <div class="text-neutral-400 mt-2">Timestamp: ${new Date().toISOString()}</div>
                 `;
             } catch (err) {
-                const warnDiv = document.createElement('div');
-                warnDiv.className = 'text-amber-400';
-                warnDiv.textContent = `Telemetry fetch warning: ${err.message}`;
-                logEl.replaceChildren(warnDiv);
+                logEl.innerHTML = `<div class="text-amber-400">Telemetry fetch warning: ${err.message}</div>`;
             }
         }
         

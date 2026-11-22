@@ -147,11 +147,6 @@ import { autoPrompt } from './07-open-page-viewer-modal.js';
                 else summary = 'No summary available for this concept yet.';
             }
             if (sumEl) sumEl.textContent = summary;
-            const exploreLink = document.getElementById('graph-node-explore-link');
-            if (exploreLink) {
-                const targetCid = _nodeId(node) || nodeId;
-                exploreLink.href = targetCid ? `/academic/graph?concept=${encodeURIComponent(targetCid)}` : '/academic/graph';
-            }
 
             // OKF relationships relative to neighborhood
             const reqDiv = document.getElementById('okf-rel-requires');

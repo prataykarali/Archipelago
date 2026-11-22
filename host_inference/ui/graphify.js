@@ -185,16 +185,9 @@ window.ArchipelagoGraphify = (function() {
       cliPanel.style.flexDirection = 'column';
       cliPanel.style.justifyContent = 'space-between';
 
-      const escHtml = (val) => String(val ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-
       let traceHTML = '';
       for (let i = 0; i < pathNodeNames.length; i++) {
-        traceHTML += `<div style="font-weight: 600; color: #fff; margin-top: 2px;">${escHtml(pathNodeNames[i])}</div>`;
+        traceHTML += `<div style="font-weight: 600; color: #fff; margin-top: 2px;">${pathNodeNames[i]}</div>`;
         if (i < pathNodeNames.length - 1) {
           const rel = i % 2 === 0 ? 'uses' : 'references';
           const dir = i % 2 === 1 ? '&lt;--' : '--';
@@ -206,17 +199,17 @@ window.ArchipelagoGraphify = (function() {
         <div>
           <div style="color: #00ffa3; font-weight: 600; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
             <span>$ graphify path</span>
-            <span>"${escHtml(sourceName)}"</span>
-            <span>"${escHtml(targetName)}"</span>
+            <span>"${sourceName}"</span>
+            <span>"${targetName}"</span>
             <span style="display: inline-block; width: 6px; height: 12px; background: #00ffa3; animation: blink 1s step-end infinite;"></span>
           </div>
-          <div style="color: #34d399; font-size: 10px; margin: 8px 0 6px 0;">Shortest path (${Number(hops) || 0} hops):</div>
+          <div style="color: #34d399; font-size: 10px; margin: 8px 0 6px 0;">Shortest path (${hops} hops):</div>
           <div style="padding-left: 2px;">
             ${traceHTML}
           </div>
         </div>
         <div style="color: #00ffa3; font-size: 11px; font-weight: 600; margin-top: 10px; border-top: 1px solid rgba(0,255,163,0.15); pt-2;">
-          ${Number(hops) || 0} hops. Zero files opened.
+          ${hops} hops. Zero files opened.
         </div>
       `;
       bodyWrapper.appendChild(cliPanel);
@@ -302,24 +295,18 @@ window.ArchipelagoGraphify = (function() {
         cy.edges().slice(0, 3).addClass('active-path');
       });
 
-      // Continuous 60fps moving signal & pulsing glow loop (paused when hidden or disconnected)
+      // Continuous 60fps moving signal & pulsing glow loop
       let animOffset = 0;
       let animPulse = 0;
       function animateFlow() {
-        if (!container.isConnected) {
-          delete activeAnimationLoops[containerId];
-          return;
-        }
-        if (!document.hidden) {
-          animOffset = (animOffset - 0.7) % 30;
-          animPulse += 0.05;
-          const currentGlow = 14 + Math.sin(animPulse) * 5;
+        animOffset = (animOffset - 0.7) % 30;
+        animPulse += 0.05;
+        const currentGlow = 14 + Math.sin(animPulse) * 5;
 
-          cy.batch(() => {
-            cy.edges('.active-path').style('line-dash-offset', animOffset);
-            cy.nodes('.active-path').style('shadow-blur', currentGlow);
-          });
-        }
+        cy.batch(() => {
+          cy.edges('.active-path').style('line-dash-offset', animOffset);
+          cy.nodes('.active-path').style('shadow-blur', currentGlow);
+        });
 
         activeAnimationLoops[containerId] = requestAnimationFrame(animateFlow);
       }
@@ -331,12 +318,7 @@ window.ArchipelagoGraphify = (function() {
           const node = evt.target;
           const data = node.data();
           if (!data.name) return;
-          tooltip.replaceChildren();
-          const titleEl = document.createElement('strong');
-          titleEl.style.color = '#00ffa3';
-          titleEl.textContent = String(data.name || '');
-          const summaryEl = document.createTextNode(String(data.summary || 'Active node'));
-          tooltip.append(titleEl, document.createElement('br'), summaryEl);
+          tooltip.innerHTML = `<strong style="color: #00ffa3;">${data.name}</strong><br/>${data.summary || 'Active node'}`;
           tooltip.style.display = 'block';
         });
 

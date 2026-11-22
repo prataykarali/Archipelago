@@ -260,7 +260,7 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 [...node.attributes].forEach(attribute => {
                     const name = attribute.name.toLowerCase();
                     const value = attribute.value.trim().toLowerCase();
-                    if (name.startsWith('on') && !node.classList.contains('inline-cite-btn')) node.removeAttribute(attribute.name);
+                    if (name.startsWith('on')) node.removeAttribute(attribute.name);
                     if (name === 'href' && value.startsWith('javascript:')) node.removeAttribute(attribute.name);
                 });
             });
@@ -284,13 +284,6 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
 
         function renderMarkdownSafely(target, text, citations = null) {
             let processedText = String(text || '');
-            if (Array.isArray(window._lastChatMetadata?.research_sources) && window._lastChatMetadata.research_sources.length) {
-                // The structured source cards below the reply carry these links.
-                // Keep API stream text intact for non-browser clients.
-                processedText = processedText
-                    .replace(/^Saved source evidence \(verify the linked paper or college page\):\s*$/gmi, '')
-                    .replace(/^\[\d+\].*\bSource:\s*https:\/\/\S+.*$/gmi, '');
-            }
             const citationMap = {};
             const cites = citations || (window._lastChatMetadata ? getResponseCitations(window._lastChatMetadata) : []);
             cites.forEach(c => {
@@ -299,32 +292,26 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 }
             });
 
-            // Resolve only IDs present in the server's evidence metadata.
+            // Expand [S1] and bare S1 markers into clickable direct page links (Pearson / HuggingFace only)
             const linkForCitation = (id) => {
                 const cit = citationMap[id];
                 if (!cit) return null;
-                const rawPage = Number(cit.page_number ?? cit.page);
-                const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
+                const pageNum = cit.page_number || cit.page || 1;
                 const targetUrl = citationPageUrl(cit);
-                const label = page ? `${id} · PDF p.${page}` : id;
-                return targetUrl ? `[${label}](${targetUrl})` : `[${id}]`;
+                const label = `(p.${pageNum} ↗)`;
+                return targetUrl ? `[${label}](${targetUrl})` : `[${label}]`;
             };
-            processedText = processedText.replace(/\[((?:S|P)\d+)(?:\s*:[^\]]*)?\]/g, (match, id) => {
+            processedText = processedText.replace(/\[(S\d+)(?:\s*:[^\]]*)?\]/g, (match, id) => {
                 const res = linkForCitation(id);
                 return res !== null ? res : '';
             });
-            // Bare IDs the model sometimes emits without brackets.
-            processedText = processedText.replace(/(?<!\[)\b((?:S|P)\d+)\b(?!\])/g, (match, id) => {
+            // Bare S1 / S2 the model sometimes emits without brackets
+            processedText = processedText.replace(/(?<!\[)\b(S\d+)\b(?!\])/g, (match, id) => {
                 const res = linkForCitation(id);
                 return res !== null ? res : '';
             });
             // Strip trailing incomplete bracket citation markers during live streaming (e.g. "[S", "[S1", "[S1:")
-            processedText = processedText.replace(/\[(?:S|P)\d*:?[^\]]*$/i, '');
-            // Convert numeric citations [1], [2] to clickable evidence links
-            processedText = processedText.replace(/\[(\d+)\]/g, (match, num) => {
-                const idx = parseInt(num, 10) - 1;
-                return `<button type="button" class="inline-cite-btn px-1.5 py-0.5 mx-0.5 rounded bg-accentPurple/20 hover:bg-accentPurple/40 text-accentPurple border border-accentPurple/30 text-[10px] font-bold cursor-pointer transition-all" onclick="if(typeof window.scrollToEvidence==='function') window.scrollToEvidence(${idx})" title="View citation ${num} in Inspector">[${num}]</button>`;
-            });
+            processedText = processedText.replace(/\[S\d*:?[^\]]*$/i, '');
             // Clean up spaces / soft hyphens / weird mid-word en-dashes from model output.
             // CRITICAL: never collapse newlines — that destroys markdown structure.
             processedText = processedText
@@ -354,17 +341,6 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 // Multiline via the m flag (Python-style inline flags crash JS parse).
                 .replace(/^\s*to\s+(?=\(p\.)/gim, '');
 
-            // Protect LaTeX math spans before Markdown parsing so underscores/brackets aren't mangled
-            const mathSpans = [];
-            const protectedText = processedText.replace(
-                /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$(?:\\.|[^$\n])+?\$)/g,
-                (m) => {
-                    const idx = mathSpans.length;
-                    mathSpans.push(m);
-                    return `@@ARCHIPELAGO_MATH_${idx}@@`;
-                }
-            );
-
             // Prefer GFM with soft line breaks for chat answers
             let html = '';
             try {
@@ -372,40 +348,19 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                     if (typeof marked.setOptions === 'function') {
                         marked.setOptions({ gfm: true, breaks: true });
                     }
-                    html = marked.parse(protectedText);
+                    html = marked.parse(processedText);
                 } else {
-                    html = protectedText
+                    html = processedText
                         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                         .replace(/\n/g, '<br>');
                 }
             } catch (err) {
                 console.warn('Markdown parse failed:', err);
-                html = protectedText
+                html = processedText
                     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                     .replace(/\n/g, '<br>');
             }
-            let safeHtml = sanitizeMarkdown(html);
-            safeHtml = safeHtml.replace(/@@ARCHIPELAGO_MATH_(\d+)@@/g, (_m, i) => {
-                const raw = mathSpans[Number(i)] || '';
-                return raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            });
-            target.innerHTML = safeHtml;
-            if (typeof window.renderMathInElement === 'function') {
-                try {
-                    window.renderMathInElement(target, {
-                        delimiters: [
-                            { left: '$$', right: '$$', display: true },
-                            { left: '\\[', right: '\\]', display: true },
-                            { left: '$', right: '$', display: false },
-                            { left: '\\(', right: '\\)', display: false },
-                        ],
-                        output: 'html',
-                        throwOnError: false,
-                    });
-                } catch (err) {
-                    console.warn('KaTeX render failed:', err);
-                }
-            }
+            target.innerHTML = sanitizeMarkdown(html);
         }
 
 export { _glowWrap, _hideWelcomeWithTransition, _isGenDesc, _updateGlowState, escapeHTML, renderMarkdownSafely, sanitizeMarkdown };

@@ -1,14 +1,13 @@
-import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 15-submit-adaptive-answer.js
 // Feature module 16 of 22.
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
-import { getOrCreateQuizZone } from './11-populate-topology.js';
+import { getOrCreateInteractiveZone } from './11-populate-topology.js';
 import { renderAdaptiveMCQCard } from './14-render-adaptive-mcqcard.js';
 import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.js';
 
         async function submitAdaptiveAnswer(msgId) {
             const state = window._adaptiveState[msgId];
-            if (!state || !state.current_mcq || state.submitted) return;
+            if (!state || !state.current_mcq) return;
 
             const checked = document.querySelector(`input[name="adaptive_radio_${msgId}"]:checked`);
             if (!checked) return;
@@ -40,7 +39,6 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     })
                 });
                 const data = await resp.json();
-                if (!resp.ok) throw new Error(data.detail || data.error || 'Quiz request failed');
 
                 // Update styling of radio choices
                 const isTick = data.is_tick;
@@ -64,7 +62,6 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 // Update state
                 state.consecutive_ticks = data.consecutive_ticks || 0;
                 state.history = data.history || state.history || [];
-                state.submitted = true;
 
                 // Update tick boxes in header
                 for (let i = 1; i <= 3; i++) {
@@ -85,7 +82,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                 const hint = document.getElementById(`adaptive-hint-${msgId}`);
 
                 if (data.completed) {
-                    state.finished = true;
+                    state.submitted = true;
                     if (banner) {
                         banner.classList.remove('hidden');
                         if (data.completion_reason === '3_consecutive_ticks_mastered' || state.consecutive_ticks >= 3) {
@@ -122,19 +119,16 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     if (hint) hint.textContent = 'Assessment finished. Personalized topology rendered below.';
 
                     // Store evaluation in localStorage and render Personalized Graph
-                    const correctCount = state.history.filter(h => h.is_correct).length;
                     const evalData = data.evaluation || {
                         target_concept: state.target_concept,
-                        score: `${correctCount}/${state.history.length}`,
-                        passed: correctCount >= 3,
-                        full_score: state.history.length > 0 && correctCount === state.history.length,
+                        score: `${state.history.filter(h => h.is_correct).length}/${state.history.length}`,
+                        passed: state.consecutive_ticks >= 3,
+                        full_score: state.consecutive_ticks >= 3,
                         personalized_graph: data.personalized_graph || {},
                     };
                     try {
-                        localStorage.setItem(storageKey('archipelago_eval_' + state.target_concept), JSON.stringify(evalData));
-                        localStorage.setItem(storageKey('archipelago_choice_' + state.target_concept), 'personalized');
-                        localStorage.setItem(storageKey('archipelago_quiz_cooldown_until'), String(Date.now() + 120000));
-                        sessionStorage.removeItem(storageKey('archipelago_adaptive_' + msgId));
+                        localStorage.setItem('archipelago_eval_' + state.target_concept, JSON.stringify(evalData));
+                        localStorage.setItem('archipelago_choice_' + state.target_concept, 'personalized');
                     } catch (_) {}
 
                     revealFinalCorrectQuestionAndFinish(msgId, data, evalData, state.metadata);
@@ -166,19 +160,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                         }
                     }
                     if (hint) {
-                        hint.textContent = isTick
-                            ? 'Correct! Advancing to next question…'
-                            : 'Prerequisite gap detected. Moving to foundational review…';
-                    }
-                    try { sessionStorage.setItem(storageKey('archipelago_adaptive_' + msgId), JSON.stringify(state)); } catch (_) {}
-                    if (state.next_question) {
-                        if (state._advanceTimer) clearTimeout(state._advanceTimer);
-                        state._advanceTimer = setTimeout(() => {
-                            state._advanceTimer = null;
-                            if (window._adaptiveState[msgId]?.next_question) {
-                                advanceAdaptiveStep(msgId);
-                            }
-                        }, 900);
+                        hint.textContent = isTick ? 'Correct! Advancing towards target concept.' : 'Prerequisite gap detected. Leaping back 2 hops to foundational concepts.';
                     }
                 }
 
@@ -195,20 +177,10 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         function advanceAdaptiveStep(msgId) {
             const state = window._adaptiveState[msgId];
-            if (!state) return;
-            if (state._advanceTimer) {
-                clearTimeout(state._advanceTimer);
-                state._advanceTimer = null;
-            }
-            if (!state.next_question) {
-                if (state.evaluation) {
-                    renderPersonalizedGraphCard(msgId, state.evaluation, state.metadata);
-                }
-                return;
-            }
+            if (!state || !state.next_question) return;
 
             // Swipe out current card before showing next
-            const zone = getOrCreateQuizZone(msgId);
+            const zone = getOrCreateInteractiveZone(msgId);
             const currentCard = zone ? zone.querySelector('.adaptive-card-content') : null;
             if (currentCard) {
                 currentCard.classList.add('swipe-out-left');
@@ -238,7 +210,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         // ── Final Correct Question Celebration + Transition to Graph ──
         function revealFinalCorrectQuestionAndFinish(msgId, completionData, evalData, metadata) {
-            const zone = getOrCreateQuizZone(msgId);
+            const zone = getOrCreateInteractiveZone(msgId);
             if (!zone) {
                 renderPersonalizedGraphCard(msgId, evalData, metadata);
                 return;

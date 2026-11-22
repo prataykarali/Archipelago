@@ -15,16 +15,32 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
             const allUnlocks = (unlocks && unlocks.length) ? unlocks : [];
             const allRelated = (related && related.length) ? related : [];
 
-            const effectivePrereqs = allPrereqs.slice();
-            const isResearchGraph = Boolean(
-                metadata && (metadata.graph_mode === 'research' || metadata.research_run_id || metadata.contract === 'RESEARCH_EVIDENCE')
-            );
+            // If prerequisites are empty (e.g. BERT with 0 immediate prereqs indexed), enrich with foundational predecessors from curriculum chain
+            let effectivePrereqs = allPrereqs.slice();
+            if (!effectivePrereqs.length) {
+                const msgKey = cardId.replace('hgraph-', '');
+                const chain = (metadata && metadata.chain) || (window._adaptiveState && window._adaptiveState[msgKey] && window._adaptiveState[msgKey].chain) || [];
+                const anchorKey = _nodeId(anchor).toLowerCase();
+                const filteredChain = chain.filter(c => _nodeId(c).toLowerCase() !== anchorKey);
+                if (filteredChain.length) {
+                    effectivePrereqs = filteredChain.map(c => ({ id: _nodeId(c), name: _nodeLabel(c), difficulty: 'foundational' }));
+                } else {
+                    const canonMap = {
+                        'bert': ['transformer', 'attention_mechanism', 'neural_network'],
+                        'transformer': ['attention_mechanism', 'neural_network', 'matrix_multiplication'],
+                        'low_rank_adaptation': ['fine_tuning', 'transformer', 'linear_algebra'],
+                        'retrieval_augmented_generation': ['vector_database', 'transformer', 'dense_passage_retrieval'],
+                    };
+                    const defaults = canonMap[anchorKey] || ['neural_network', 'machine_learning'];
+                    effectivePrereqs = defaults.map(c => ({ id: c, name: c.replace(/_/g, ' ').toUpperCase(), difficulty: 'foundational' }));
+                }
+            }
 
             const totalCandidateCount = subNodes.length >= 4 
                 ? subNodes.length 
                 : (effectivePrereqs.length + allUnlocks.length + allRelated.length + 1);
             
-            const w = Math.max(1100, Math.min(2400, totalCandidateCount * 160));
+            const w = Math.max(860, Math.min(1380, totalCandidateCount * 115));
             const h = 230;
             svgElement.setAttribute('viewBox', `0 0 ${w} ${h}`);
             svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -101,21 +117,21 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 }
 
                 // Place 2-hop foundational prerequisites (comfortably inset from left)
-                const p2X = w * 0.2;
+                const p2X = Math.max(135, cx - 225);
                 p2.forEach((p, i) => {
                     const y = (h / (p2.length + 1)) * (i + 1);
                     nodes.push({ id: p.id, label: _nodeLabel(p), summary: _nodeSummary(p), x: p2X, y: y, type: 'prereq', data: p });
                 });
 
                 // Place 1-hop immediate prerequisites closer to center
-                const p1X = w * 0.35;
+                const p1X = cx - 115;
                 p1.forEach((p, i) => {
                     const y = (h / (p1.length + 1)) * (i + 1);
                     nodes.push({ id: p.id, label: _nodeLabel(p), summary: _nodeSummary(p), x: p1X, y: y, type: 'prereq', data: p });
                 });
 
                 // Place unlocks closer to center
-                const unlX = w * 0.65;
+                const unlX = cx + 115;
                 unls.forEach((u, i) => {
                     const y = (h / (unls.length + 1)) * (i + 1);
                     nodes.push({ id: u.id, label: _nodeLabel(u), summary: _nodeSummary(u), x: unlX, y: y, type: 'unlock', data: u });
@@ -124,7 +140,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 // Place others / bridge nodes
                 others.forEach((o, i) => {
                     const isTop = i % 2 === 0;
-                    const xOff = (i - 1.5) * 140;
+                    const xOff = (i - 1) * 75;
                     nodes.push({ id: o.id, label: _nodeLabel(o), summary: _nodeSummary(o), x: cx + xOff, y: isTop ? 34 : h - 34, type: 'related', data: o });
                 });
 
@@ -159,7 +175,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 const deepUnlocks = allUnlocks.slice(3, 8);
 
                 if (deepPrereqs.length > 0) {
-                    const deepX = w * 0.2;
+                    const deepX = Math.max(135, cx - 225);
                     deepPrereqs.forEach((p, i) => {
                         const y = (h / (deepPrereqs.length + 1)) * (i + 1);
                         nodes.push({ id: _nodeId(p, 'dp' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: deepX, y: y, type: 'prereq', data: p });
@@ -168,16 +184,16 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
 
                 immPrereqs.forEach((p, i) => {
                     const y = (h / (immPrereqs.length + 1)) * (i + 1);
-                    nodes.push({ id: _nodeId(p, 'p' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: w * 0.35, y: y, type: 'prereq', data: p });
+                    nodes.push({ id: _nodeId(p, 'p' + i), label: _nodeLabel(p), summary: _nodeSummary(p), x: cx - 115, y: y, type: 'prereq', data: p });
                 });
 
                 immUnlocks.forEach((u, i) => {
                     const y = (h / (immUnlocks.length + 1)) * (i + 1);
-                    nodes.push({ id: _nodeId(u, 'u' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: w * 0.65, y: y, type: 'unlock', data: u });
+                    nodes.push({ id: _nodeId(u, 'u' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: cx + 115, y: y, type: 'unlock', data: u });
                 });
 
                 if (deepUnlocks.length > 0) {
-                    const deepUnlX = w * 0.8;
+                    const deepUnlX = Math.min(w - 135, cx + 225);
                     deepUnlocks.forEach((u, i) => {
                         const y = (h / (deepUnlocks.length + 1)) * (i + 1);
                         nodes.push({ id: _nodeId(u, 'du' + i), label: _nodeLabel(u), summary: _nodeSummary(u), x: deepUnlX, y: y, type: 'unlock', data: u });
@@ -186,7 +202,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
 
                 allRelated.slice(0, 4).forEach((r, i) => {
                     const isTop = i % 2 === 0;
-                    const xOff = (i - 1.5) * 140;
+                    const xOff = (i - 1) * 75;
                     nodes.push({
                         id: _nodeId(r, 'r' + i),
                         label: _nodeLabel(r),
@@ -202,11 +218,11 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 nodes.forEach(n => {
                     if (n.type === 'anchor') return;
                     if (n.type === 'prereq') {
-                        edgesToDraw.push({ u: n, v: nodes[0], relation: isResearchGraph ? 'HAS_TOPIC' : 'REQUIRES', type: 'prereq' });
+                        edgesToDraw.push({ u: n, v: nodes[0], relation: 'REQUIRES', type: 'prereq' });
                     } else if (n.type === 'unlock') {
-                        edgesToDraw.push({ u: nodes[0], v: n, relation: isResearchGraph ? 'HAS_PAPER' : 'UNLOCKS', type: 'unlock' });
+                        edgesToDraw.push({ u: nodes[0], v: n, relation: 'UNLOCKS', type: 'unlock' });
                     } else {
-                        edgesToDraw.push({ u: nodes[0], v: n, relation: isResearchGraph ? 'HAS_PAPER' : 'CONNECTS', type: 'related' });
+                        edgesToDraw.push({ u: nodes[0], v: n, relation: 'CONNECTS', type: 'related' });
                     }
                 });
             }
@@ -239,18 +255,8 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 g.setAttribute('data-node-id', n.id);
                 g.setAttribute('data-node-label', n.label);
                 g.setAttribute('data-node-type', n.type);
-                g.setAttribute('role', 'button');
-                g.setAttribute('tabindex', '0');
-                g.setAttribute('aria-label', n.label);
                 g.style.color = c.stroke;
                 g.style.cursor = 'pointer';
-                g.style.pointerEvents = 'all';
-                g.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        selectHorizontalNode(cardId, n.id, n.data, anchor, prereqs, unlocks, related);
-                    }
-                });
 
                 g.addEventListener('click', (ev) => {
                     ev.stopPropagation();
@@ -355,7 +361,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 if (canvasContainer) {
                     const anchorNode = nodes.find(n => n.type === 'anchor') || nodes[0];
                     if (anchorNode) {
-                        canvasContainer.scrollLeft = 0;
+                        canvasContainer.scrollLeft = Math.max(0, anchorNode.x - (canvasContainer.clientWidth / 2));
                     }
                 }
             }, 60);
