@@ -316,28 +316,36 @@ def evaluate_passage_retrieval(
         p = resp["payload"]
         cites = p.get("citations", [])
 
-        # P0-4 FIX: Use exact doc_id + page_number corpus lookup.
-        # engine.cite_record() always returns chunk_id=None; fuzzy text prefix matching
-        # is unreliable. Use canonical (doc_id, page_number) key into corpus index.
+        # D5.3-A: Propagate canonical chunk_id from citation records directly.
+        # If c.chunk_id is present, canonical pid is f"{c_doc}::{c_chunk}".
+        # Otherwise fallback to exact (c_doc, c_page) lookup; preserve unmatched cases.
         corpus_by_doc_page: dict[tuple[str, int], list[str]] = meta_by_id.get(
             "__corpus_by_doc_page__",
             {},  # type: ignore[arg-type]
         )
         archi_pids: list[str] = []
         archi_scores: list[float] = []
-        # Scores: anchor-document citations score 1.0, neighborhood citations decaying
+        # Heuristic citation-order scores: anchor-document citations score 1.0, decaying
         for idx, c in enumerate(cites):
             c_doc = c.get("doc_id") or ""
+            c_chunk = c.get("chunk_id")
             c_page = int(c.get("page_number") or 0)
-            matches = corpus_by_doc_page.get((c_doc, c_page), [])
+            canonical_pid = f"{c_doc}::{c_chunk}" if (c_doc and c_chunk) else None
             score = 1.0 if idx == 0 else max(0.1, 1.0 - idx * 0.15)
-            for matched_pid in matches:
-                if matched_pid not in archi_pids:
-                    archi_pids.append(matched_pid)
+            if canonical_pid and canonical_pid in meta_by_id:
+                if canonical_pid not in archi_pids:
+                    archi_pids.append(canonical_pid)
                     archi_scores.append(score)
+            else:
+                matches = corpus_by_doc_page.get((c_doc, c_page), [])
+                for matched_pid in matches:
+                    if matched_pid not in archi_pids:
+                        archi_pids.append(matched_pid)
+                        archi_scores.append(score)
 
-        # Build TREC format run records with actual retrieval scores (P0-4 fix)
-        # BM25: actual BM25 term score; Dense: cosine similarity; Archipelago: citation rank score.
+        # Build TREC format run records with actual scores:
+        # BM25: actual BM25 term score; Dense: cosine similarity;
+        # Archipelago: heuristic citation-order decay score.
         bm_scores_map = {pid: round(float(score), 6) for pid, score in bm_res}
         fh_scores_map = {passages[i].passage_id: round(float(fh_sims[i]), 6) for i in top_fh}
         n_scores_map = {passages[i].passage_id: round(float(n_sims[i]), 6) for i in top_n}
@@ -398,8 +406,12 @@ def run_all_evaluations() -> dict[str, Any]:
     )
     raw_graph: dict[str, Any] = json.loads((HOST_DIR / "fixtures" / "okf_graph.json").read_bytes())
 
-    print("Initializing Snowflake Arctic Embed M model on CUDA...")
-    neural_model = SentenceTransformer("Snowflake/snowflake-arctic-embed-m", device="cuda")
+    print("Initializing Snowflake Arctic Embed M model on CUDA (pinned revision)...")
+    neural_model = SentenceTransformer(
+        "Snowflake/snowflake-arctic-embed-m",
+        revision="fc74610d18462d218e312aa986ec5c8a75a98152",
+        device="cuda",
+    )
     engine = Engine()
 
     print("Running Experiment A: Concept Resolution...")
@@ -421,15 +433,17 @@ def run_all_evaluations() -> dict[str, Any]:
 
     full_results: dict[str, Any] = {
         "metadata": {
-            "date": "2026-11-22",
-            "eval_framework": "Archipelago D5.2 Scientific Evaluation Suite (P0 fixes applied)",
-            "source_commit": "b49d5398b3b649619055121e63d98e84fa8198fd",
+            "date": "2026-11-23",
+            "eval_framework": "Archipelago D5.3-A Scientific Evaluation Suite",
+            "source_commit": "6b84f8de7bfee07d8efae208e069daff24bea668",
             "p0_fixes_applied": [
-                "P0-1: Citation audit regenerated from live engine calls (27 citations, not 28)",
+                "P0-1: Citation audit regenerated from live engine calls (traceable records)",
                 "P0-2: QRels re-labelled ALGORITHMIC_RULE_BASED_CANDIDATE; unjudged_qrels.json added",
                 "P0-3: Relationship evaluation uses exact (source, predicate, destination) triple equality",
-                "P0-4: Canonical passage IDs via exact doc_id+page_number lookup; real retrieval scores in TREC runs",
+                "P0-4: Canonical passage IDs via chunk_id propagation and exact lookup; real scores in TREC runs",
+                "P0-5: Pinned Snowflake revision fc74610d18462d218e312aa986ec5c8a75a98152 enforced with embedding_manifest.json",
                 "P0-6: Reviewer provenance labels corrected; no independent review claimed",
+                "D5.3-A: Unsupported query abstention (Q39 returns 0 citations, clean boundary)",
             ],
             "target": "ACM SIGIR 2027 Demonstrations Track",
             "corpus_size": len(passages),
@@ -439,6 +453,7 @@ def run_all_evaluations() -> dict[str, Any]:
             "neural_model": "Snowflake/snowflake-arctic-embed-m",
             "neural_model_revision": "fc74610d18462d218e312aa986ec5c8a75a98152",
             "feature_hashed_baseline": "BLAKE2b 384-dim (host_inference/engine/text.py)",
+            "graph_assisted_retrieval_scoring": "Heuristic citation-order decay scores (not learned retrieval scores)",
             "qrel_provenance": "ALGORITHMIC_RULE_BASED_CANDIDATE — not human-verified",
         },
         "experiment_a_concept_resolution": concept_summary,

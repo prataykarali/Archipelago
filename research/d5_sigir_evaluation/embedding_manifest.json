@@ -1,0 +1,43 @@
+{
+  "manifest_metadata": {
+    "creation_date": "2026-11-23",
+    "standard": "ACM SIGIR 2027 Demonstrations Track Reproducibility Standard",
+    "description": "Validation manifest for cached embedding arrays used in Archipelago benchmark evaluation."
+  },
+  "embedding_model": {
+    "model_name": "Snowflake/snowflake-arctic-embed-m",
+    "revision": "fc74610d18462d218e312aa986ec5c8a75a98152",
+    "dimensions": 768,
+    "max_seq_length": 512,
+    "normalize_embeddings": true,
+    "query_prefix": "Represent this sentence for searching relevant passages: ",
+    "document_prefix": ""
+  },
+  "corpus_passages": {
+    "source_file": "host_inference/fixtures/okf_graph.json",
+    "source_file_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+    "total_passages": 775,
+    "passage_id_order_fingerprint": "78ed1180011b7818bcf0269956e1cd278cc39c701a33888e1296415c0c7b2967",
+    "min_passage_chars": 40,
+    "deduplication": "first_seen_by_passage_id"
+  },
+  "concept_nodes": {
+    "source_file": "host_inference/fixtures/okf_graph.json",
+    "total_concepts": 610,
+    "concept_ordering": "sorted_keys_ascending"
+  },
+  "cached_arrays": {
+    "corpus_embeddings": {
+      "filename": "corpus_embeddings_snowflake.npy",
+      "shape": [775, 768],
+      "dtype": "float32",
+      "sha256": "f2fe942e6c07d95337ec22b1bcaaa1e0666e33ee47012518db7a302be7ea26c2"
+    },
+    "concept_embeddings": {
+      "filename": "concept_embeddings_snowflake.npy",
+      "shape": [610, 768],
+      "dtype": "float32",
+      "sha256": "db7a019a684b343c92c1a76aac7ebe2f1208362e560c9fffb8b91eec3818a3f3"
+    }
+  }
+}

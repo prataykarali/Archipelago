@@ -1,14 +1,16 @@
 {
   "metadata": {
-    "date": "2026-11-22",
-    "eval_framework": "Archipelago D5.2 Scientific Evaluation Suite (P0 fixes applied)",
-    "source_commit": "b49d5398b3b649619055121e63d98e84fa8198fd",
+    "date": "2026-11-23",
+    "eval_framework": "Archipelago D5.3-A Scientific Evaluation Suite",
+    "source_commit": "6b84f8de7bfee07d8efae208e069daff24bea668",
     "p0_fixes_applied": [
-      "P0-1: Citation audit regenerated from live engine calls (27 citations, not 28)",
+      "P0-1: Citation audit regenerated from live engine calls (traceable records)",
       "P0-2: QRels re-labelled ALGORITHMIC_RULE_BASED_CANDIDATE; unjudged_qrels.json added",
       "P0-3: Relationship evaluation uses exact (source, predicate, destination) triple equality",
-      "P0-4: Canonical passage IDs via exact doc_id+page_number lookup; real retrieval scores in TREC runs",
-      "P0-6: Reviewer provenance labels corrected; no independent review claimed"
+      "P0-4: Canonical passage IDs via chunk_id propagation and exact lookup; real scores in TREC runs",
+      "P0-5: Pinned Snowflake revision fc74610d18462d218e312aa986ec5c8a75a98152 enforced with embedding_manifest.json",
+      "P0-6: Reviewer provenance labels corrected; no independent review claimed",
+      "D5.3-A: Unsupported query abstention (Q39 returns 0 citations, clean boundary)"
     ],
     "target": "ACM SIGIR 2027 Demonstrations Track",
     "corpus_size": 775,
@@ -18,6 +20,7 @@
     "neural_model": "Snowflake/snowflake-arctic-embed-m",
     "neural_model_revision": "fc74610d18462d218e312aa986ec5c8a75a98152",
     "feature_hashed_baseline": "BLAKE2b 384-dim (host_inference/engine/text.py)",
+    "graph_assisted_retrieval_scoring": "Heuristic citation-order decay scores (not learned retrieval scores)",
     "qrel_provenance": "ALGORITHMIC_RULE_BASED_CANDIDATE \u2014 not human-verified"
   },
   "experiment_a_concept_resolution": {
@@ -626,8 +629,8 @@
       "ndcg_at_5": 0.6415,
       "recall_at_5": 0.3707,
       "precision_at_5": 0.5405,
-      "latency_mean_ms": 3.61,
-      "latency_p95_ms": 4.79,
+      "latency_mean_ms": 3.08,
+      "latency_p95_ms": 4.02,
       "queries_evaluated_count": 37
     },
     "feature_hashed_vector": {
@@ -635,8 +638,8 @@
       "ndcg_at_5": 0.1764,
       "recall_at_5": 0.1093,
       "precision_at_5": 0.1514,
-      "latency_mean_ms": 0.63,
-      "latency_p95_ms": 0.88,
+      "latency_mean_ms": 0.55,
+      "latency_p95_ms": 0.8,
       "queries_evaluated_count": 37
     },
     "snowflake_arctic_neural": {
@@ -644,17 +647,17 @@
       "ndcg_at_5": 0.6524,
       "recall_at_5": 0.3324,
       "precision_at_5": 0.573,
-      "latency_mean_ms": 17.76,
-      "latency_p95_ms": 21.4,
+      "latency_mean_ms": 17.36,
+      "latency_p95_ms": 22.2,
       "queries_evaluated_count": 37
     },
     "archipelago_graph_assisted": {
-      "mrr": 0.4189,
-      "ndcg_at_5": 0.2848,
-      "recall_at_5": 0.0754,
-      "precision_at_5": 0.2595,
-      "latency_mean_ms": 24.76,
-      "latency_p95_ms": 47.54,
+      "mrr": 0.4865,
+      "ndcg_at_5": 0.2253,
+      "recall_at_5": 0.0597,
+      "precision_at_5": 0.173,
+      "latency_mean_ms": 22.73,
+      "latency_p95_ms": 46.04,
       "queries_evaluated_count": 37
     }
   },

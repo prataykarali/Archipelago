@@ -269,3 +269,64 @@ def test_qrels_labelled_algorithmic_not_human() -> None:
     assert "ALGORITHMIC" in meta.get("label_generation_method", ""), (
         f"Expected ALGORITHMIC in label_generation_method, got: {meta.get('label_generation_method')}"
     )
+
+
+@pytest.mark.unit
+def test_embedding_manifest_validity() -> None:
+    """Validate embedding manifest matches cached files and model specs."""
+    manifest_path = D5_DIR / "embedding_manifest.json"
+    assert manifest_path.exists(), f"Missing embedding manifest: {manifest_path}"
+    manifest = json.loads(manifest_path.read_bytes())
+    assert manifest["embedding_model"]["revision"] == SNOWFLAKE_MODEL_REVISION
+    assert manifest["embedding_model"]["dimensions"] == 768
+    assert manifest["corpus_passages"]["total_passages"] == CORPUS_EXPECTED_SIZE
+    # Verify cached array checksums match
+    for arr_name, arr_spec in manifest.get("cached_arrays", {}).items():
+        arr_path = D5_DIR / arr_spec["filename"]
+        assert arr_path.exists(), f"Missing cached array: {arr_path}"
+        actual_sha = hashlib.sha256(arr_path.read_bytes()).hexdigest()
+        assert actual_sha == arr_spec["sha256"], f"Checksum mismatch for {arr_name}"
+
+
+@pytest.mark.unit
+def test_unsupported_query_abstention_behavior() -> None:
+    """Q39 (Spanner TrueTime) and near misses must cleanly abstain with 0 citations and no graph."""
+    from engine.answer import Engine
+
+    e = Engine()
+    res = e.answer("Explain Spanner TrueTime and its prerequisites.")
+    p = res["payload"]
+    assert p.get("anchor_concept") is None, "Q39 should have no anchor"
+    assert len(p.get("citations", [])) == 0, (
+        f"Q39 returned {len(p['citations'])} citations, expected 0"
+    )
+    assert p.get("render_graph") is False, "Q39 should not render graph"
+    assert p.get("prerequisites") == [], "Q39 should have empty prerequisites"
+    assert p.get("unlocks") == [], "Q39 should have empty unlocks"
+
+
+@pytest.mark.unit
+def test_canonical_chunk_id_propagation() -> None:
+    """LibraryGraph.cite_record must include canonical chunk_id for indexed concepts."""
+    from engine.answer import Engine
+
+    e = Engine()
+    rec = e.graph.cite_record("transformer", "What is Transformer?")
+    assert rec.get("chunk_id") is not None, "chunk_id missing from cite_record"
+    assert rec.get("chunk_id").startswith("chunk_") or "_p" in rec.get("chunk_id")
+
+
+@pytest.mark.unit
+def test_human_annotation_worksheet_integrity() -> None:
+    """Annotation worksheet must be present, blinded, with uncompleted reviewer fields."""
+    ws_path = D5_DIR / "human_annotation_worksheet.json"
+    assert ws_path.exists(), f"Missing worksheet: {ws_path}"
+    ws = json.loads(ws_path.read_bytes())
+    assert ws["worksheet_metadata"]["status"] == "PENDING_HUMAN_ANNOTATION"
+    items = ws.get("items", [])
+    assert len(items) >= 50, f"Too few items in worksheet: {len(items)}"
+    # Verify reviewer assessment fields are NOT filled
+    for item in items[:10]:
+        assert item["reviewer_assessment"]["relevance_grade"] is None
+        assert item["reviewer_assessment"]["reviewer_id"] is None
+        assert item["blinded_candidate_id"].startswith("CAND-")

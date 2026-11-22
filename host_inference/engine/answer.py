@@ -301,6 +301,7 @@ class Engine:
                 scored_cids = summary_cids[:4]
             # Only genuinely resolved anchor concepts from the canonical router may set anchor_concept.
             # Do NOT silently invent or substitute an anchor concept for unmatched questions.
+            # Furthermore, unindexed/unmatched queries must NOT attach synthetic fallback citations.
             if not payload.get("anchor_concept"):
                 payload["anchor_concept"] = None
                 payload["render_graph"] = False
@@ -308,7 +309,8 @@ class Engine:
                 payload["prerequisites"] = []
                 payload["unlocks"] = []
                 payload["related_concepts"] = []
-            if not payload.get("citations") or not any(
+                payload["citations"] = []
+            elif not payload.get("citations") or not any(
                 c.get("label") or c.get("doc_id") or c.get("url")
                 for c in (payload.get("citations") or [])
                 if isinstance(c, dict)

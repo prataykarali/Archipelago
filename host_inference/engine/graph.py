@@ -229,15 +229,13 @@ class LibraryGraph:
             page = int(source.get("page_number") or 0)
             doc_id = str(source.get("doc_id") or "").lower()
             canonical_bonus = 0
-            if cid in ("transformer", "self_attention", "multi_head_attention") and "vaswani" in doc_id:
-                canonical_bonus = 50
-            elif cid in ("bert", "masked_language_modeling") and "devlin" in doc_id:
-                canonical_bonus = 50
-            elif cid in ("rag", "retrieval_augmented_generation") and "lewis" in doc_id:
-                canonical_bonus = 50
-            elif cid in ("dpr", "dense_passage_retrieval") and "karpukhin" in doc_id:
-                canonical_bonus = 50
-            elif cid in ("flashattention",) and ("dao" in doc_id or "upload_cb7badb2" in doc_id):
+            if (
+                (cid in ("transformer", "self_attention", "multi_head_attention") and "vaswani" in doc_id)
+                or (cid in ("bert", "masked_language_modeling") and "devlin" in doc_id)
+                or (cid in ("rag", "retrieval_augmented_generation") and "lewis" in doc_id)
+                or (cid in ("dpr", "dense_passage_retrieval") and "karpukhin" in doc_id)
+                or (cid in ("flashattention",) and ("dao" in doc_id or "upload_cb7badb2" in doc_id))
+            ):
                 canonical_bonus = 50
             return overlap * SOURCE_OVERLAP_WEIGHT + (SOURCE_LATER_PAGE_BONUS if page > 1 else 0) + canonical_bonus
 
@@ -262,6 +260,7 @@ class LibraryGraph:
             source, all_withdrawn = source_override, False
         raw_page = (source or {}).get("page_number")
         page = int(raw_page) if raw_page else None
+        chunk_id = (source or {}).get("chunk_id")
         doc_id = hf_doc_path(str((source or {}).get("doc_id") or ""))
         if not doc_id and not all_withdrawn and cid in FORMULAS:
             _formula, filename, _formula_page = FORMULAS[cid]
@@ -291,6 +290,7 @@ class LibraryGraph:
             "source_type": "ingested_pdf" if source and page and hf_url else ("catalog_metadata" if is_broken_textbook else "metadata_only"),
             "concept_id": cid,
             "doc_id": doc_id,
+            "chunk_id": chunk_id,
             "doc_title": doc_title,
             "authors": authors,
             "page_number": page,
