@@ -1,0 +1,88 @@
+{
+  "metadata": {
+    "description": "Supported queries with zero relevant corpus passages in the algorithmic qrels.",
+    "disclosure": "These queries are excluded from passage retrieval evaluation metrics. This omission is disclosed rather than silently excluded."
+  },
+  "abstention_queries": [
+    {
+      "query_id": "Q39",
+      "query": "Explain Spanner TrueTime and its prerequisites.",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q40",
+      "query": "What is Byzantine fault tolerance in distributed systems?",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q41",
+      "query": "How does Raft consensus elect a leader?",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q42",
+      "query": "Explain CRISPR-Cas9 gene editing mechanism.",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q43",
+      "query": "What is quantum key distribution in cryptography?",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q44",
+      "query": "Explain the Ricardian theory of comparative advantage.",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q45",
+      "query": "How do compilers transform source code into machine instructions?",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q46",
+      "query": "Explain the fluid dynamics of Navier-Stokes equations.",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q47",
+      "query": "What is the Krebs cycle in cellular respiration?",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q48",
+      "query": "Explain plate tectonics and continental drift.",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q49",
+      "query": "How does Paxos achieve consensus across asynchronous networks?",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    },
+    {
+      "query_id": "Q50",
+      "query": "What is Keynesian fiscal multiplier in macroeconomic policy?",
+      "reason": "UNSUPPORTED_ABSTENTION_QUERY",
+      "expected_behavior": "Engine should return no anchor/citations; qrels intentionally empty."
+    }
+  ],
+  "unjudged_supported_queries": [
+    {
+      "query_id": "Q19",
+      "query": "What is Cross-Encoder re-ranking?",
+      "reason": "NO_RELEVANT_CORPUS_PASSAGES_FOUND",
+      "details": "Supported concept but no matching corpus passage met keyword/doc threshold during algorithmic labeling."
+    }
+  ]
+}

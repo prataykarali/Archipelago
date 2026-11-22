@@ -1,534 +1,3022 @@
 {
-  "Q01": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_005": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_002": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_008": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_023": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_016": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_029": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_031": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_014": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_006": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_030": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_007": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_026": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_025": 1
+  "metadata": {
+    "description": "Passage-level relevance judgments for Archipelago D5 SIGIR evaluation.",
+    "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+    "human_reviewed": false,
+    "annotation_provenance": "keyword_density_and_doc_substring_matching",
+    "independent_peer_review": false,
+    "total_queries": 50,
+    "queries_with_positive_labels": 37,
+    "total_positive_labels": 445,
+    "disclosure": "All 445 positive labels were generated algorithmically by keyword density and document substring matching rules. No human relevance judgments have been made. Labels are ALGORITHMIC_CANDIDATE and must not be reported as human-verified qrels. 13 queries have zero labels (12 unsupported abstention, 1 supported with no corpus match)."
   },
-  "Q02": {
-    "papers/Velickovic2017_GAT.pdf::chunk_023": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_028": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_004": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_037": 1,
-    "papers/Bahdanau2014_Attention.pdf::chunk_010": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_005": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_002": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_026": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_011": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_031": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_010": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_024": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_032": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_014": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_029": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_006": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_012": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_012": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": 1
-  },
-  "Q03": {
-    "papers/Devlin2018_BERT.pdf::chunk_024": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_010": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_023": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_027": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_011": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_015": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_026": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_019": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_020": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_021": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_025": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_029": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_007": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_022": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_028": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_031": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_001": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_004": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_003": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_008": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_017": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_018": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_033": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_034": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_013": 1
-  },
-  "Q04": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_006": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_009": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_029": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_035": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_022": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_021": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_028": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_031": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_003": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_032": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_019": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_036": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_011": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_010": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_030": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_023": 1
-  },
-  "Q05": {
-    "papers/Lewis2020_RAG.pdf::chunk_023": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_011": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_012": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_028": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_016": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_029": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_056": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_033": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_037": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_057": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_002": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_031": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_004": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_055": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_019": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_036": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_026": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_025": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_024": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_022": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_015": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_008": 1
-  },
-  "Q06": {
-    "papers/Hu2021_LoRA.pdf::chunk_012": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_019": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_005": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_021": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_020": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_011": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_030": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_016": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_006": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_023": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_034": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_015": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_019": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_017": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_004": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_020": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_033": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_029": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_004": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_029": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_022": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_002": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_007": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_002": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_005": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_009": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_013": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_033": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_014": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_027": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_003": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_014": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_015": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_021": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_023": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_010": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_028": 1,
-    "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_003": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_002": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_001": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_017": 1
-  },
-  "Q07": {
-    "papers/Dettmers2023_QLoRA.pdf::chunk_011": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_018": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_016": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_006": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_019": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_017": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_020": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_033": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_029": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_004": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_007": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_002": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_005": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_003": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_014": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_015": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_021": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_023": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_003": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_002": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_001": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_013": 1
-  },
-  "Q08": {
-    "upload_cb7badb2::upload_cb7badb2_p1_0": 1,
-    "upload_cb7badb2::upload_cb7badb2_p2_2": 1,
-    "upload_17869808::upload_17869808_p2_2": 1,
-    "upload_cb7badb2::upload_cb7badb2_p5_5": 1,
-    "upload_17869808::upload_17869808_p5_5": 1,
-    "upload_cb7badb2::upload_cb7badb2_p4_4": 1,
-    "upload_17869808::upload_17869808_p4_4": 1,
-    "upload_17869808::upload_17869808_p1_0": 1,
-    "upload_cb7badb2::upload_cb7badb2_p3_3": 1,
-    "upload_17869808::upload_17869808_p3_3": 1
-  },
-  "Q09": {
-    "papers/Kwon2023_vLLM.pdf::chunk_024": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_023": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_020": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_019": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_007": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_021": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_018": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_001": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_016": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_030": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_029": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_028": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_027": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_006": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_005": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_017": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_014": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_008": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_002": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_026": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_004": 1,
-    "papers/Kwon2023_vLLM.pdf::paged_attention_seed_004": 1,
-    "papers/Kwon2023_vLLM.pdf::paged_attention_seed_002": 1,
-    "papers/Kwon2023_vLLM.pdf::paged_attention_seed_001": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_025": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_003": 1,
-    "papers/Kwon2023_vLLM.pdf::vllm_seed_004": 1,
-    "papers/Kwon2023_vLLM.pdf::vllm_seed_002": 1,
-    "papers/Kwon2023_vLLM.pdf::vllm_seed_001": 1
-  },
-  "Q10": {
-    "papers/Velickovic2017_GAT.pdf::chunk_037": 1,
-    "papers/Kipf2016_GCN.pdf::chunk_014": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_010": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_013": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_031": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_036": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_014": 1,
-    "papers/Kipf2016_GCN.pdf::chunk_022": 1,
-    "papers/Kipf2016_GCN.pdf::chunk_030": 1,
-    "papers/Kipf2016_GCN.pdf::chunk_009": 1,
-    "papers/Kipf2016_GCN.pdf::chunk_005": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_020": 1,
-    "papers/Kipf2016_GCN.pdf::chunk_027": 1,
-    "papers/Velickovic2017_GAT.pdf::chunk_003": 1,
-    "papers/Kipf2016_GCN.pdf::chunk_010": 1
-  },
-  "Q11": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": 1
-  },
-  "Q12": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_016": 1
-  },
-  "Q13": {
-    "papers/Hu2021_LoRA.pdf::chunk_035": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_018": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_013": 1
-  },
-  "Q14": {
-    "papers/Devlin2018_BERT.pdf::chunk_029": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_004": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_003": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_033": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_014": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_013": 1
-  },
-  "Q15": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_006": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_007": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_029": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_035": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_022": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_028": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_021": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_028": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_032": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_020": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_027": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_026": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_002": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_004": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_015": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_030": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_025": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_023": 1
-  },
-  "Q16": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_029": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_004": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_030": 1
-  },
-  "Q17": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_012": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_006": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_004": 1
-  },
-  "Q18": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_006": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_031": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_009": 1
-  },
-  "Q19": {},
-  "Q20": {
-    "papers/Edge2024_GraphRAG.pdf::chunk_018": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_020": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_019": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_032": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_038": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_037": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_006": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_005": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_002": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_014": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_030": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_007": 1
-  },
-  "Q21": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_038": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_017": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_004": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_037": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_005": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_002": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_008": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_031": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_006": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_007": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": 1
-  },
-  "Q22": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": 1
-  },
-  "Q23": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_006": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_029": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_035": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_022": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_021": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_028": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_032": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_002": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_004": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_030": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_025": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_023": 1
-  },
-  "Q24": {
-    "papers/Lewis2020_RAG.pdf::chunk_011": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_009": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_028": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_003": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_002": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_031": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_004": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_019": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_008": 1
-  },
-  "Q25": {
-    "upload_cb7badb2::upload_cb7badb2_p3_3": 1
-  },
-  "Q26": {
-    "papers/Hu2021_LoRA.pdf::chunk_012": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_005": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_036": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_020": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_023": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_034": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_002": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_011": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_018": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_013": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_014": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_027": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_010": 1,
-    "papers/Hu2021_LoRA.pdf::chunk_006": 1
-  },
-  "Q27": {
-    "papers/Dettmers2023_QLoRA.pdf::chunk_011": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_018": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_016": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_006": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_019": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_017": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_020": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_033": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_029": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_004": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_007": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_002": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_005": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_009": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_003": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_014": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_015": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_021": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_023": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_008": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_012": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_003": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_002": 1,
-    "papers/Dettmers2023_QLoRA.pdf::qlora_seed_001": 1,
-    "papers/Dettmers2023_QLoRA.pdf::chunk_013": 1
-  },
-  "Q28": {
-    "papers/Kwon2023_vLLM.pdf::chunk_024": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_023": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_020": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_019": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_007": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_021": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_018": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_001": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_016": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_030": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_029": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_028": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_027": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_006": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_005": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_017": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_014": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_008": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_002": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_026": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_004": 1,
-    "papers/Kwon2023_vLLM.pdf::paged_attention_seed_004": 1,
-    "papers/Kwon2023_vLLM.pdf::paged_attention_seed_002": 1,
-    "papers/Kwon2023_vLLM.pdf::paged_attention_seed_001": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_025": 1,
-    "papers/Kwon2023_vLLM.pdf::chunk_003": 1,
-    "papers/Kwon2023_vLLM.pdf::vllm_seed_004": 1,
-    "papers/Kwon2023_vLLM.pdf::vllm_seed_002": 1,
-    "papers/Kwon2023_vLLM.pdf::vllm_seed_001": 1
-  },
-  "Q29": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_012": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": 1
-  },
-  "Q30": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_015": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": 1
-  },
-  "Q31": {
-    "papers/Devlin2018_BERT.pdf::chunk_010": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_011": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_007": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_031": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_001": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_004": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_003": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_008": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_017": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_033": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_034": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_014": 1,
-    "papers/Devlin2018_BERT.pdf::chunk_013": 1
-  },
-  "Q32": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_006": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_031": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_011": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_010": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_004": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_030": 1
-  },
-  "Q33": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_031": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_022": 1
-  },
-  "Q34": {
-    "papers/Edge2024_GraphRAG.pdf::chunk_020": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_021": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_019": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_032": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_022": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_038": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_037": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_005": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_031": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_002": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_030": 1,
-    "papers/Edge2024_GraphRAG.pdf::chunk_012": 1
-  },
-  "Q35": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": 1
-  },
-  "Q36": {
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_029": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_014": 1,
-    "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": 1
-  },
-  "Q37": {
-    "papers/Karpukhin2020_DPR.pdf::chunk_012": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_006": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_009": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_022": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_028": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_021": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_057": 1,
-    "papers/Lewis2020_RAG.pdf::chunk_002": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_032": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_002": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_014": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_011": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_010": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_004": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_015": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_030": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_025": 1,
-    "papers/Karpukhin2020_DPR.pdf::chunk_023": 1
-  },
-  "Q38": {
-    "upload_cb7badb2::upload_cb7badb2_p2_2": 1,
-    "upload_cb7badb2::upload_cb7badb2_p4_4": 1,
-    "upload_cb7badb2::upload_cb7badb2_p3_3": 1
-  },
-  "Q39": {},
-  "Q40": {},
-  "Q41": {},
-  "Q42": {},
-  "Q43": {},
-  "Q44": {},
-  "Q45": {},
-  "Q46": {},
-  "Q47": {},
-  "Q48": {},
-  "Q49": {},
-  "Q50": {}
+  "qrels": {
+    "Q01": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_026": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is Transformer?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q02": {
+      "passages": {
+        "papers/Velickovic2017_GAT.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_037": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Bahdanau2014_Attention.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_026": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_024": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_032": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Attention Mechanism",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q03": {
+      "passages": {
+        "papers/Devlin2018_BERT.pdf::chunk_024": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_027": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_026": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_034": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is BERT?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q04": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_035": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_032": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_036": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Dense Passage Retrieval",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q05": {
+      "passages": {
+        "papers/Lewis2020_RAG.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_056": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_037": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_057": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_055": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_036": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_026": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_024": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is Retrieval-Augmented Generation?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q06": {
+      "passages": {
+        "papers/Hu2021_LoRA.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_034": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_027": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "doc_lora_low_rank_adaptation_of_large::doc_lora_low_rank_adaptation_of_large_p3_1": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Low-Rank Adaptation (LoRA)",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q07": {
+      "passages": {
+        "papers/Dettmers2023_QLoRA.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is QLoRA?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q08": {
+      "passages": {
+        "upload_cb7badb2::upload_cb7badb2_p1_0": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_cb7badb2::upload_cb7badb2_p2_2": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_17869808::upload_17869808_p2_2": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_cb7badb2::upload_cb7badb2_p5_5": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_17869808::upload_17869808_p5_5": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_cb7badb2::upload_cb7badb2_p4_4": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_17869808::upload_17869808_p4_4": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_17869808::upload_17869808_p1_0": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_cb7badb2::upload_cb7badb2_p3_3": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_17869808::upload_17869808_p3_3": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain FlashAttention",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q09": {
+      "passages": {
+        "papers/Kwon2023_vLLM.pdf::chunk_024": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_027": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_026": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::paged_attention_seed_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::paged_attention_seed_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::paged_attention_seed_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::vllm_seed_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::vllm_seed_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::vllm_seed_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is PagedAttention in vLLM?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q10": {
+      "passages": {
+        "papers/Velickovic2017_GAT.pdf::chunk_037": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kipf2016_GCN.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_036": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kipf2016_GCN.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kipf2016_GCN.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kipf2016_GCN.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kipf2016_GCN.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kipf2016_GCN.pdf::chunk_027": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Velickovic2017_GAT.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kipf2016_GCN.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Graph Neural Networks",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q11": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is Scaled Dot-Product Attention?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q12": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Positional Encoding in Transformers",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q13": {
+      "passages": {
+        "papers/Hu2021_LoRA.pdf::chunk_035": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is Layer Normalization?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q14": {
+      "passages": {
+        "papers/Devlin2018_BERT.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Masked Language Modeling",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q15": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_035": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_032": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_027": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_026": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is BM25?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q16": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Inverted Index in information retrieval",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q17": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is Maximum Inner Product Search (MIPS)?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q18": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain Dual Encoder architecture",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q19": {
+      "passages": {},
+      "query_text": "What is Cross-Encoder re-ranking?",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q20": {
+      "passages": {
+        "papers/Edge2024_GraphRAG.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_032": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_038": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_037": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Explain GraphRAG",
+      "is_supported": true,
+      "category": "core_concept"
+    },
+    "Q21": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_038": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_037": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does self-attention relate to the Transformer?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q22": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What mathematical prerequisites are required for self-attention?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q23": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_035": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_032": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does DPR compare to BM25 in open-domain QA?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q24": {
+      "passages": {
+        "papers/Lewis2020_RAG.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does RAG integrate Dense Passage Retrieval?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q25": {
+      "passages": {
+        "upload_cb7badb2::upload_cb7badb2_p3_3": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Why does FlashAttention require online softmax?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q26": {
+      "passages": {
+        "papers/Hu2021_LoRA.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_036": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_034": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_027": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Hu2021_LoRA.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does LoRA adapt Transformer weight matrices?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q27": {
+      "passages": {
+        "papers/Dettmers2023_QLoRA.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::qlora_seed_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Dettmers2023_QLoRA.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is the relationship between QLoRA and LoRA?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q28": {
+      "passages": {
+        "papers/Kwon2023_vLLM.pdf::chunk_024": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_018": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_016": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_027": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_026": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::paged_attention_seed_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::paged_attention_seed_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::paged_attention_seed_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::vllm_seed_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::vllm_seed_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Kwon2023_vLLM.pdf::vllm_seed_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does PagedAttention manage the KV cache in vLLM?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q29": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What linear algebra operation underpins query-key attention projection?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q30": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Why is softmax used in attention mechanisms?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q31": {
+      "passages": {
+        "papers/Devlin2018_BERT.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_007": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_001": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_003": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_008": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_017": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_033": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_034": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Devlin2018_BERT.pdf::chunk_013": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does BERT relate to the Transformer encoder?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q32": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "Why are dual-encoders preferred over cross-encoders for first-stage retrieval?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q33": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does re-ranking use cross-encoders after dense retrieval?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q34": {
+      "passages": {
+        "papers/Edge2024_GraphRAG.pdf::chunk_020": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_019": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_032": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_038": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_037": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_005": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_031": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Edge2024_GraphRAG.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What role does community detection play in GraphRAG?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q35": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does layer normalization stabilize activations in Transformers?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q36": {
+      "passages": {
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_029": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Vaswani2017_Attention_Is_All_You_Need.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "What is the role of residual connections around attention sub-layers?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q37": {
+      "passages": {
+        "papers/Karpukhin2020_DPR.pdf::chunk_012": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_006": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_009": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_022": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_028": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_021": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_057": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Lewis2020_RAG.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_032": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_002": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_014": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_011": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_010": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_004": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_015": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_030": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_025": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "papers/Karpukhin2020_DPR.pdf::chunk_023": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How do vector embeddings enable continuous dense retrieval?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q38": {
+      "passages": {
+        "upload_cb7badb2::upload_cb7badb2_p2_2": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_cb7badb2::upload_cb7badb2_p4_4": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        },
+        "upload_cb7badb2::upload_cb7badb2_p3_3": {
+          "relevance_grade": 1,
+          "label_generation_method": "ALGORITHMIC_RULE_BASED_CANDIDATE",
+          "human_reviewed": false,
+          "annotation_provenance": "keyword_density_and_doc_substring_matching"
+        }
+      },
+      "query_text": "How does tiling reduce HBM memory traffic in FlashAttention?",
+      "is_supported": true,
+      "category": "relational"
+    },
+    "Q39": {
+      "passages": {},
+      "query_text": "Explain Spanner TrueTime and its prerequisites.",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q40": {
+      "passages": {},
+      "query_text": "What is Byzantine fault tolerance in distributed systems?",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q41": {
+      "passages": {},
+      "query_text": "How does Raft consensus elect a leader?",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q42": {
+      "passages": {},
+      "query_text": "Explain CRISPR-Cas9 gene editing mechanism.",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q43": {
+      "passages": {},
+      "query_text": "What is quantum key distribution in cryptography?",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q44": {
+      "passages": {},
+      "query_text": "Explain the Ricardian theory of comparative advantage.",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q45": {
+      "passages": {},
+      "query_text": "How do compilers transform source code into machine instructions?",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q46": {
+      "passages": {},
+      "query_text": "Explain the fluid dynamics of Navier-Stokes equations.",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q47": {
+      "passages": {},
+      "query_text": "What is the Krebs cycle in cellular respiration?",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q48": {
+      "passages": {},
+      "query_text": "Explain plate tectonics and continental drift.",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q49": {
+      "passages": {},
+      "query_text": "How does Paxos achieve consensus across asynchronous networks?",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    },
+    "Q50": {
+      "passages": {},
+      "query_text": "What is Keynesian fiscal multiplier in macroeconomic policy?",
+      "is_supported": false,
+      "category": "unsupported_abstention"
+    }
+  }
 }

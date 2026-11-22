@@ -1,9 +1,12 @@
 {
   "audit_metadata": {
     "review_date": "2026-11-22",
-    "auditor_role": "SIGIR Demonstrations Evaluation Lead & ML Engineer",
+    "auditor_role": "Pratay Karali (Lead Author and System Architect)",
     "evaluation_scope": "D5 Academic Knowledge Graph Grounding Gate",
-    "standard": "ACM SIGIR 2027 Scientific Demonstration Reproducibility"
+    "standard": "ACM SIGIR 2027 Scientific Demonstration Reproducibility",
+    "review_type": "AUTHOR_SELF_REVIEW",
+    "independent_peer_review": false,
+    "disclosure": "All 40 verified edges were reviewed by the primary system author (Pratay Karali). No independent double-blind peer review has been completed. Legacy records attributing review to SIGIR_Reviewer_Lead have been corrected. D5.2 P0-6 fix applied 2026-11-22."
   },
   "statistics": {
     "total_evaluated": 45,
@@ -24,8 +27,10 @@
       "supporting_passage": "The Transformer is the first transduction model relying entirely on self-attention to compute representations of its input and output without using sequence-aligned RNNs or convolution.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Direction corrected: Transformer uses Self-Attention as an architectural building block."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Direction corrected: Transformer uses Self-Attention as an architectural building block.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "transformer",
@@ -37,8 +42,10 @@
       "supporting_passage": "Multi-head attention allows the model to jointly attend to information from different representation subspaces at different positions. With a single attention head, averaging inhibits this.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Architectural component in encoder and decoder."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Architectural component in encoder and decoder.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "transformer",
@@ -50,8 +57,10 @@
       "supporting_passage": "Since our model contains no recurrence and no convolution, in order for the model to make use of the order of the sequence, we must inject some information about the relative or absolute positions of the tokens in the sequence.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Sinusoidal positional encoding injected at bottom of encoder/decoder stacks."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Sinusoidal positional encoding injected at bottom of encoder/decoder stacks.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "transformer",
@@ -63,8 +72,10 @@
       "supporting_passage": "In addition to attention sub-layers, each of the layers in our encoder and decoder contains a fully connected feed-forward network, which is applied to each position separately and identically.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Position-wise FFN sub-layer consists of two linear transformations with ReLU in between."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Position-wise FFN sub-layer consists of two linear transformations with ReLU in between.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "transformer",
@@ -76,8 +87,10 @@
       "supporting_passage": "We employ a residual connection around each of the two sub-layers, followed by layer normalization. That is, the output of each sub-layer is LayerNorm(x + Sublayer(x)).",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Direct identity shortcut surrounding attention and FFN blocks."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Direct identity shortcut surrounding attention and FFN blocks.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "transformer",
@@ -89,8 +102,10 @@
       "supporting_passage": "We employ a residual connection around each of the two sub-layers, followed by layer normalization. That is, the output of each sub-layer is LayerNorm(x + Sublayer(x)).",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Layer normalization stabilizes training across sub-layer activations."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Layer normalization stabilizes training across sub-layer activations.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "multi_head_attention",
@@ -102,8 +117,10 @@
       "supporting_passage": "We call our particular attention \"Scaled Dot-Product Attention\". The input consists of queries and keys of dimension d_k, and values of dimension d_v.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Multi-head attention projects inputs and executes h parallel instances of scaled dot-product attention."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Multi-head attention projects inputs and executes h parallel instances of scaled dot-product attention.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "flashattention",
@@ -115,8 +132,10 @@
       "supporting_passage": "The core algorithm employs tiling to compute attention in SRAM blocks. Given inputs Q, K, V in HBM, it tracks running normalization statistics via online softmax without materializing full N x N matrix.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Incremental softmax normalization enables single-pass IO-aware execution."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Incremental softmax normalization enables single-pass IO-aware execution.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "flashattention",
@@ -128,8 +147,10 @@
       "supporting_passage": "We propose FlashAttention, an IO-aware exact attention algorithm that uses tiling to reduce the number of memory reads/writes between GPU high bandwidth memory (HBM) and GPU on-chip SRAM.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Hardware-aware tiling matches GPU SRAM memory cache hierarchy."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Hardware-aware tiling matches GPU SRAM memory cache hierarchy.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "long_context_transformer",
@@ -141,8 +162,10 @@
       "supporting_passage": "Empirical results demonstrate that FlashAttention trains GPT-2 up to 3x faster than standard PyTorch... enabling long-context transformers with sequence length up to 64K.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Subquadratic memory scaling unlocks extended sequence modeling."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Subquadratic memory scaling unlocks extended sequence modeling.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "self_attention",
@@ -154,8 +177,10 @@
       "supporting_passage": "An algebraic operation producing a matrix from the linear combination of row and column vectors of two matrices, providing the foundational transformation mechanism for dense layers, attention projections, and embedding lookups in neural networks.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "pedagogical_consensus",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Computing QK^T and multiplying by V mathematically requires linear algebraic matrix multiplication."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Computing QK^T and multiplying by V mathematically requires linear algebraic matrix multiplication.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "scaled_dot_product_attention",
@@ -167,8 +192,10 @@
       "supporting_passage": "Attention(Q, K, V) = softmax(Q K^T / sqrt(d_k)) V. We compute the attention function on a set of queries simultaneously, packed together into a matrix Q.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Softmax operation scales dot-products into convex weights over value vectors."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Softmax operation scales dot-products into convex weights over value vectors.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "softmax",
@@ -180,8 +207,10 @@
       "supporting_passage": "A probability distribution assigns probabilities between 0 and 1 to each possible event such that their total sum equals 1. Softmax exponentiates and normalizes inputs to form a categorical distribution.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "pedagogical_consensus",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Understanding attention weights as probabilities requires probability distribution foundations."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Understanding attention weights as probabilities requires probability distribution foundations.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "transformer",
@@ -193,8 +222,10 @@
       "supporting_passage": "Similarly to other sequence transduction models, we use learned embeddings to convert the input tokens and output tokens to vectors of dimension d_model.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Discrete tokens must be embedded into continuous vector spaces before transformer encoding."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Discrete tokens must be embedded into continuous vector spaces before transformer encoding.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "layer_normalization",
@@ -206,8 +237,10 @@
       "supporting_passage": "Like batch normalization, we also apply layer normalization to compute the normalization statistics from the summed inputs to the neurons on the same layer: mean and variance.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Mathematical foundation of standard deviation and variance."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Mathematical foundation of standard deviation and variance.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "residual_connection",
@@ -219,8 +252,10 @@
       "supporting_passage": "The formulation of F(x) + x can be realized by feedforward neural networks with shortcut connections. Shortcut connections are those skipping one or more layers, performing identity mapping and element-wise addition.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Skip connections require dimension-matched vector addition."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Skip connections require dimension-matched vector addition.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "multi_head_attention",
@@ -232,8 +267,10 @@
       "supporting_passage": "Multi-head attention linearly projects the queries, keys and values h times with different, learned linear projections to d_k, d_k and d_v dimensions, respectively.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Parameter projection matrices W_i^Q, W_i^K, W_i^V map representations into subspaces."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Parameter projection matrices W_i^Q, W_i^K, W_i^V map representations into subspaces.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "retrieval_augmented_generation",
@@ -245,8 +282,10 @@
       "supporting_passage": "Our retriever component is based on Dense Passage Retrieval (DPR) (Karpukhin et al., 2020). DPR uses a bi-encoder architecture: one encoder embeds documents into a dense index, and the other embeds queries.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Lewis et al. explicitly integrate Karpukhin DPR as the non-parametric neural retriever."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Lewis et al. explicitly integrate Karpukhin DPR as the non-parametric neural retriever.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "retrieval_augmented_generation",
@@ -255,11 +294,13 @@
       "direction": "forward",
       "doc_id": "papers/Lewis2020_RAG.pdf",
       "page_number": 1,
-      "supporting_passage": "We explore a general-purpose fine-tuning recipe for retrieval-augmented generation (RAG) \u2014 models which combine pre-trained parametric and non-parametric memory for language generation.",
+      "supporting_passage": "We explore a general-purpose fine-tuning recipe for retrieval-augmented generation (RAG) — models which combine pre-trained parametric and non-parametric memory for language generation.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Core conceptual contribution: combining neural weights with external document knowledge."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Core conceptual contribution: combining neural weights with external document knowledge.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "retrieval_augmented_generation",
@@ -271,8 +312,10 @@
       "supporting_passage": "The generator component is a pre-trained seq2seq model BART, which conditions on the retrieved documents and input sequence to produce target outputs.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Parametric generator module conditioned jointly on query and retrieved contexts."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Parametric generator module conditioned jointly on query and retrieved contexts.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "dense_passage_retrieval",
@@ -284,8 +327,10 @@
       "supporting_passage": "DPR uses a dense dual-encoder architecture: one encoder E_P embeds passages, and another encoder E_Q embeds questions. Similarity is scored as the dot product between question and passage representations.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Decoupled bi-encoder structure enables offline pre-indexing of millions of passages."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Decoupled bi-encoder structure enables offline pre-indexing of millions of passages.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "dense_passage_retrieval",
@@ -297,8 +342,10 @@
       "supporting_passage": "Both question and passage encoders are initialized with BERT-base (Devlin et al., 2018) and fine-tuned using in-batch negatives with negative log-likelihood loss.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "DPR leverages pre-trained BERT contextual embeddings for dense representations."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "DPR leverages pre-trained BERT contextual embeddings for dense representations.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "dense_passage_retrieval",
@@ -310,8 +357,10 @@
       "supporting_passage": "At test time, given a question q, passage retrieval corresponds to Maximum Inner Product Search (MIPS) over the pre-computed passage embeddings using FAISS.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Sub-linear nearest-neighbor lookup over high-dimensional vector index."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Sub-linear nearest-neighbor lookup over high-dimensional vector index.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "dense_passage_retrieval",
@@ -323,8 +372,10 @@
       "supporting_passage": "Dense retrieval maps both text passages and questions into continuous d-dimensional vector representations, scoring similarity by vector dot product or cosine distance.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "pedagogical_consensus",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Foundation of neural IR: continuous embedding vector spaces."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Foundation of neural IR: continuous embedding vector spaces.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "dense_passage_retrieval",
@@ -336,8 +387,10 @@
       "supporting_passage": "Open-domain question answering has traditionally relied on sparse term-matching baselines like BM25. We show that retrieval can be practically implemented using dense representations alone, substantially outperforming BM25.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Key comparison in Karpukhin 2020: dense semantic matching vs sparse lexical matching."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Key comparison in Karpukhin 2020: dense semantic matching vs sparse lexical matching.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "bm25",
@@ -349,8 +402,10 @@
       "supporting_passage": "An inverted index consists of a dictionary of terms and, for each term, a postings list recording document occurrences. BM25 efficiently evaluates term matching scores by scanning posting lists.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "pedagogical_consensus",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Sparse retrieval architectures rely structurally on inverted indexes."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Sparse retrieval architectures rely structurally on inverted indexes.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "bm25",
@@ -362,8 +417,10 @@
       "supporting_passage": "The BM25 weighting scheme represents an instantiation of the probabilistic relevance framework, combining non-linearly scaled term frequency (TF) and inverse document frequency (IDF) with document length normalization.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Classical probabilistic information retrieval ranking function."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Classical probabilistic information retrieval ranking function.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "cross_encoder",
@@ -375,8 +432,10 @@
       "supporting_passage": "While cross-encoders that apply all-to-all attention across query and document tokens achieve higher accuracy, they are too computationally expensive for large-scale retrieval. Dual encoders allow passages to be indexed independently offline.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Fundamental computational trade-off in modern retrieval architectures."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Fundamental computational trade-off in modern retrieval architectures.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "reranking",
@@ -388,8 +447,10 @@
       "supporting_passage": "We use BERT as a cross-encoder to re-rank the top candidates retrieved by an initial first-stage retrieval system (such as BM25 or DPR), jointly attending over the concatenated query-passage pair.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Multi-stage retrieval pipelines: dense/sparse recall followed by cross-encoder re-ranking."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Multi-stage retrieval pipelines: dense/sparse recall followed by cross-encoder re-ranking.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "graph_rag",
@@ -401,8 +462,10 @@
       "supporting_passage": "GraphRAG extracts structured entities, relationships, and claims from source text chunks using LLMs to build a comprehensive knowledge graph.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Structure-guided retrieval replaces raw chunk-level similarity."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Structure-guided retrieval replaces raw chunk-level similarity.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "graph_rag",
@@ -414,8 +477,10 @@
       "supporting_passage": "Hierarchical community detection (Leiden algorithm) clusters nodes into modular subgraphs. LLMs generate modular summaries for each community, providing global context for multi-hop synthesis.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Global question-answering over entire corpus via hierarchical graph summaries."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Global question-answering over entire corpus via hierarchical graph summaries.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "approximate_nearest_neighbor",
@@ -427,8 +492,10 @@
       "supporting_passage": "Vector similarity search relies on computing distances between query and dataset vectors, typically using Euclidean L2 distance or inner product (cosine similarity on normalized vectors).",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "pedagogical_consensus",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Indexing vector spaces requires metric space properties."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Indexing vector spaces requires metric space properties.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "low_rank_adaptation",
@@ -440,8 +507,10 @@
       "supporting_passage": "We hypothesize that the updates to the weights also have a low \"intrinsic rank\" during adaptation. For a pre-trained weight matrix W_0, we constrain its update by representing Delta W = B A, where B in R^(d x r), A in R^(r x k), and rank r << min(d, k).",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Low-rank factorized parameter parameterization reduces trainable parameter count by orders of magnitude."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Low-rank factorized parameter parameterization reduces trainable parameter count by orders of magnitude.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "low_rank_adaptation",
@@ -453,8 +522,10 @@
       "supporting_passage": "We apply LoRA to the attention weights in Transformer models. In a Transformer layer, there are four weight matrices in the self-attention module (W_q, W_k, W_v, W_o). We adapt W_q and W_v.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Direct application of parameter-efficient fine-tuning to Transformer attention projections."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Direct application of parameter-efficient fine-tuning to Transformer attention projections.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "qlora",
@@ -466,8 +537,10 @@
       "supporting_passage": "QLoRA introduces innovations to reduce memory without sacrificing performance: 4-bit NormalFloat quantization, double quantization, and paged optimizers, backpropagating gradients through frozen 4-bit weights into LoRA adapters.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Quantized low-rank adaptation built directly on top of LoRA formulation."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Quantized low-rank adaptation built directly on top of LoRA formulation.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "qlora",
@@ -479,8 +552,10 @@
       "supporting_passage": "The NormalFloat (NF4) data type builds on Quantile Quantization... It is information-theoretically optimal for zero-mean, unit-variance normally distributed weights.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Custom non-linear quantization data type."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Custom non-linear quantization data type.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "bert",
@@ -492,8 +567,10 @@
       "supporting_passage": "BERT alleviates the unidirectionality constraint by using a \"masked language model\" (MLM) pre-training objective. The masked language model randomly masks some of the tokens from the input, and the objective is to predict the original vocabulary id of the masked word based only on its context.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Bidirectional contextual representation via masked token recovery."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Bidirectional contextual representation via masked token recovery.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "bert",
@@ -505,8 +582,10 @@
       "supporting_passage": "BERT's model architecture is a multi-layer bidirectional Transformer encoder based on the original implementation described in Vaswani et al. (2017).",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Encoder-only stack derived from Vaswani Transformer."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Encoder-only stack derived from Vaswani Transformer.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "paged_attention",
@@ -518,8 +597,10 @@
       "supporting_passage": "PagedAttention partitions the continuous Key-Value (KV) cache of each sequence into non-contiguous physical memory blocks, mitigating fragmentation and enabling near-zero memory waste.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Virtual memory paging applied to dynamic Transformer KV tensors."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Virtual memory paging applied to dynamic Transformer KV tensors.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     },
     {
       "from_id": "vllm",
@@ -531,8 +612,10 @@
       "supporting_passage": "We propose vLLM, a high-throughput distributed LLM serving system built around PagedAttention, which delivers up to 2-4x higher throughput than existing serving engines.",
       "human_review_status": "VERIFIED",
       "pedagogical_or_explicit": "explicit_in_paper",
-      "reviewer": "SIGIR_Reviewer_Lead",
-      "notes": "Production inference engine built upon PagedAttention."
+      "reviewer": "pratay_karali_lead_author",
+      "notes": "Production inference engine built upon PagedAttention.",
+      "review_type": "AUTHOR_SELF_REVIEW",
+      "independent_review": false
     }
   ]
 }
