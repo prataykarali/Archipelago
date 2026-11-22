@@ -14,8 +14,6 @@ __pycache__
 /jobs
 /artifacts
 /node_modules
-/host_inference
-/ui
 /frontend
 /training_data
 /tests

@@ -10,16 +10,21 @@ from __future__ import annotations
 
 import os
 
+from pathlib import Path
+import sys
+
+_host_dir = Path(__file__).resolve().parent / "host_inference"
+if _host_dir.is_dir() and str(_host_dir) not in sys.path:
+    sys.path.insert(0, str(_host_dir))
+
 if os.environ.get("VERCEL"):
-    from pathlib import Path
-    import sys
-
-    _host_dir = Path(__file__).resolve().parent / "host_inference"
-    if str(_host_dir) not in sys.path:
-        sys.path.insert(0, str(_host_dir))
-    from vercel_wsgi import create_vercel_app
-
-    app = create_vercel_app()
+    try:
+        from vercel_wsgi import create_vercel_app
+        app = create_vercel_app()
+    except Exception as _exc:
+        import logging
+        logging.exception("Failed to build vercel app from host_inference: %s", _exc)
+        from archipelago.api.app import app
 else:
     from archipelago.api.app import app
 
