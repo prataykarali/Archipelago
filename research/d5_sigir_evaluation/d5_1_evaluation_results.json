@@ -1,0 +1,808 @@
+{
+  "metadata": {
+    "date": "2026-11-22",
+    "eval_framework": "Archipelago D5.1 Scientific Evaluation Suite",
+    "source_commit": "02cb2bcd2ebcf1a47f7287388330abb73484c78d",
+    "target": "ACM SIGIR 2027 Demonstrations Track",
+    "corpus_size": 775,
+    "total_queries": 50,
+    "supported_queries": 38,
+    "unsupported_queries": 12,
+    "neural_model": "Snowflake/snowflake-arctic-embed-m",
+    "feature_hashed_baseline": "BLAKE2b 384-dim (host_inference/engine/text.py)"
+  },
+  "experiment_a_concept_resolution": {
+    "bm25_lexical": {
+      "concept_resolution_accuracy_supported": 0.4211,
+      "hits_supported": "16/38",
+      "abstention_accuracy_unsupported": 0.0,
+      "abstentions_correct": "0/12",
+      "overall_accuracy_all_queries": 0.32,
+      "error_count_supported": 22,
+      "errors": [
+        {
+          "query_id": "Q01",
+          "query": "What is Transformer?",
+          "expected": "transformer",
+          "predicted": "relationship_extraction"
+        },
+        {
+          "query_id": "Q04",
+          "query": "Explain Dense Passage Retrieval",
+          "expected": "retrieval",
+          "predicted": "dense_passage_retriever"
+        },
+        {
+          "query_id": "Q07",
+          "query": "What is QLoRA?",
+          "expected": "qlora",
+          "predicted": "relationship_extraction"
+        },
+        {
+          "query_id": "Q11",
+          "query": "What is Scaled Dot-Product Attention?",
+          "expected": "scaled_dot_product_attention",
+          "predicted": "eigenvector"
+        },
+        {
+          "query_id": "Q12",
+          "query": "Explain Positional Encoding in Transformers",
+          "expected": "positional_encoding",
+          "predicted": "auto_encoding_variational_inference"
+        },
+        {
+          "query_id": "Q16",
+          "query": "Explain Inverted Index in information retrieval",
+          "expected": "inverted_index",
+          "predicted": "llama_index"
+        },
+        {
+          "query_id": "Q17",
+          "query": "What is Maximum Inner Product Search (MIPS)?",
+          "expected": "maximum_inner_product_search",
+          "predicted": "relationship_extraction"
+        },
+        {
+          "query_id": "Q18",
+          "query": "Explain Dual Encoder architecture",
+          "expected": "dual_encoder",
+          "predicted": "deep_auto_encoder"
+        },
+        {
+          "query_id": "Q19",
+          "query": "What is Cross-Encoder re-ranking?",
+          "expected": "cross_encoder",
+          "predicted": "binary_cross_entropy"
+        },
+        {
+          "query_id": "Q20",
+          "query": "Explain GraphRAG",
+          "expected": "graph_rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q22",
+          "query": "What mathematical prerequisites are required for self-attention?",
+          "expected": "self_attention",
+          "predicted": "transformer_layer"
+        },
+        {
+          "query_id": "Q23",
+          "query": "How does DPR compare to BM25 in open-domain QA?",
+          "expected": "retrieval",
+          "predicted": "closed_domain_qa"
+        },
+        {
+          "query_id": "Q26",
+          "query": "How does LoRA adapt Transformer weight matrices?",
+          "expected": "low_rank_adaptation",
+          "predicted": "matrix_factorization"
+        },
+        {
+          "query_id": "Q27",
+          "query": "What is the relationship between QLoRA and LoRA?",
+          "expected": "qlora",
+          "predicted": "relationship_extraction"
+        },
+        {
+          "query_id": "Q29",
+          "query": "What linear algebra operation underpins query-key attention projection?",
+          "expected": "self_attention",
+          "predicted": "linear_algebra"
+        },
+        {
+          "query_id": "Q30",
+          "query": "Why is softmax used in attention mechanisms?",
+          "expected": "attention_mechanism",
+          "predicted": "online_softmax"
+        },
+        {
+          "query_id": "Q32",
+          "query": "Why are dual-encoders preferred over cross-encoders for first-stage retrieval?",
+          "expected": "retrieval",
+          "predicted": "deep_modularity_networks"
+        },
+        {
+          "query_id": "Q33",
+          "query": "How does re-ranking use cross-encoders after dense retrieval?",
+          "expected": "cross_encoder",
+          "predicted": "deep_modularity_networks"
+        },
+        {
+          "query_id": "Q34",
+          "query": "What role does community detection play in GraphRAG?",
+          "expected": "graph_rag",
+          "predicted": "community_detection"
+        },
+        {
+          "query_id": "Q35",
+          "query": "How does layer normalization stabilize activations in Transformers?",
+          "expected": "layer_normalization",
+          "predicted": "layernorm"
+        },
+        {
+          "query_id": "Q36",
+          "query": "What is the role of residual connections around attention sub-layers?",
+          "expected": "transformer",
+          "predicted": "fully_connected"
+        },
+        {
+          "query_id": "Q37",
+          "query": "How do vector embeddings enable continuous dense retrieval?",
+          "expected": "retrieval",
+          "predicted": "word_embeddings"
+        }
+      ]
+    },
+    "feature_hashed_vector": {
+      "concept_resolution_accuracy_supported": 0.0789,
+      "hits_supported": "3/38",
+      "abstention_accuracy_unsupported": 0.5833,
+      "abstentions_correct": "7/12",
+      "overall_accuracy_all_queries": 0.2,
+      "error_count_supported": 35,
+      "errors": [
+        {
+          "query_id": "Q01",
+          "query": "What is Transformer?",
+          "expected": "transformer",
+          "predicted": null
+        },
+        {
+          "query_id": "Q02",
+          "query": "Explain Attention Mechanism",
+          "expected": "attention_mechanism",
+          "predicted": null
+        },
+        {
+          "query_id": "Q03",
+          "query": "What is BERT?",
+          "expected": "bert",
+          "predicted": null
+        },
+        {
+          "query_id": "Q04",
+          "query": "Explain Dense Passage Retrieval",
+          "expected": "retrieval",
+          "predicted": null
+        },
+        {
+          "query_id": "Q05",
+          "query": "What is Retrieval-Augmented Generation?",
+          "expected": "rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q07",
+          "query": "What is QLoRA?",
+          "expected": "qlora",
+          "predicted": null
+        },
+        {
+          "query_id": "Q08",
+          "query": "Explain FlashAttention",
+          "expected": "flashattention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q09",
+          "query": "What is PagedAttention in vLLM?",
+          "expected": "paged_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q10",
+          "query": "Explain Graph Neural Networks",
+          "expected": "graph_neural_network",
+          "predicted": "deep_semi_supervised_embedding"
+        },
+        {
+          "query_id": "Q11",
+          "query": "What is Scaled Dot-Product Attention?",
+          "expected": "scaled_dot_product_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q12",
+          "query": "Explain Positional Encoding in Transformers",
+          "expected": "positional_encoding",
+          "predicted": null
+        },
+        {
+          "query_id": "Q13",
+          "query": "What is Layer Normalization?",
+          "expected": "layer_normalization",
+          "predicted": "network_layer"
+        },
+        {
+          "query_id": "Q15",
+          "query": "What is BM25?",
+          "expected": "bm25",
+          "predicted": null
+        },
+        {
+          "query_id": "Q16",
+          "query": "Explain Inverted Index in information retrieval",
+          "expected": "inverted_index",
+          "predicted": null
+        },
+        {
+          "query_id": "Q17",
+          "query": "What is Maximum Inner Product Search (MIPS)?",
+          "expected": "maximum_inner_product_search",
+          "predicted": null
+        },
+        {
+          "query_id": "Q18",
+          "query": "Explain Dual Encoder architecture",
+          "expected": "dual_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q19",
+          "query": "What is Cross-Encoder re-ranking?",
+          "expected": "cross_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q20",
+          "query": "Explain GraphRAG",
+          "expected": "graph_rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q22",
+          "query": "What mathematical prerequisites are required for self-attention?",
+          "expected": "self_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q23",
+          "query": "How does DPR compare to BM25 in open-domain QA?",
+          "expected": "retrieval",
+          "predicted": null
+        },
+        {
+          "query_id": "Q24",
+          "query": "How does RAG integrate Dense Passage Retrieval?",
+          "expected": "rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q25",
+          "query": "Why does FlashAttention require online softmax?",
+          "expected": "flashattention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q26",
+          "query": "How does LoRA adapt Transformer weight matrices?",
+          "expected": "low_rank_adaptation",
+          "predicted": null
+        },
+        {
+          "query_id": "Q27",
+          "query": "What is the relationship between QLoRA and LoRA?",
+          "expected": "qlora",
+          "predicted": "eigenvalue"
+        },
+        {
+          "query_id": "Q28",
+          "query": "How does PagedAttention manage the KV cache in vLLM?",
+          "expected": "paged_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q29",
+          "query": "What linear algebra operation underpins query-key attention projection?",
+          "expected": "self_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q30",
+          "query": "Why is softmax used in attention mechanisms?",
+          "expected": "attention_mechanism",
+          "predicted": null
+        },
+        {
+          "query_id": "Q31",
+          "query": "How does BERT relate to the Transformer encoder?",
+          "expected": "bert",
+          "predicted": "context"
+        },
+        {
+          "query_id": "Q32",
+          "query": "Why are dual-encoders preferred over cross-encoders for first-stage retrieval?",
+          "expected": "retrieval",
+          "predicted": null
+        },
+        {
+          "query_id": "Q33",
+          "query": "How does re-ranking use cross-encoders after dense retrieval?",
+          "expected": "cross_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q34",
+          "query": "What role does community detection play in GraphRAG?",
+          "expected": "graph_rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q35",
+          "query": "How does layer normalization stabilize activations in Transformers?",
+          "expected": "layer_normalization",
+          "predicted": null
+        },
+        {
+          "query_id": "Q36",
+          "query": "What is the role of residual connections around attention sub-layers?",
+          "expected": "transformer",
+          "predicted": "determinant"
+        },
+        {
+          "query_id": "Q37",
+          "query": "How do vector embeddings enable continuous dense retrieval?",
+          "expected": "retrieval",
+          "predicted": null
+        },
+        {
+          "query_id": "Q38",
+          "query": "How does tiling reduce HBM memory traffic in FlashAttention?",
+          "expected": "flashattention",
+          "predicted": null
+        }
+      ]
+    },
+    "snowflake_arctic_neural": {
+      "concept_resolution_accuracy_supported": 0.3684,
+      "hits_supported": "14/38",
+      "abstention_accuracy_unsupported": 1.0,
+      "abstentions_correct": "12/12",
+      "overall_accuracy_all_queries": 0.52,
+      "error_count_supported": 24,
+      "errors": [
+        {
+          "query_id": "Q03",
+          "query": "What is BERT?",
+          "expected": "bert",
+          "predicted": null
+        },
+        {
+          "query_id": "Q04",
+          "query": "Explain Dense Passage Retrieval",
+          "expected": "retrieval",
+          "predicted": "dense_passage_retriever"
+        },
+        {
+          "query_id": "Q07",
+          "query": "What is QLoRA?",
+          "expected": "qlora",
+          "predicted": null
+        },
+        {
+          "query_id": "Q11",
+          "query": "What is Scaled Dot-Product Attention?",
+          "expected": "scaled_dot_product_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q12",
+          "query": "Explain Positional Encoding in Transformers",
+          "expected": "positional_encoding",
+          "predicted": null
+        },
+        {
+          "query_id": "Q15",
+          "query": "What is BM25?",
+          "expected": "bm25",
+          "predicted": null
+        },
+        {
+          "query_id": "Q16",
+          "query": "Explain Inverted Index in information retrieval",
+          "expected": "inverted_index",
+          "predicted": null
+        },
+        {
+          "query_id": "Q17",
+          "query": "What is Maximum Inner Product Search (MIPS)?",
+          "expected": "maximum_inner_product_search",
+          "predicted": null
+        },
+        {
+          "query_id": "Q18",
+          "query": "Explain Dual Encoder architecture",
+          "expected": "dual_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q19",
+          "query": "What is Cross-Encoder re-ranking?",
+          "expected": "cross_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q20",
+          "query": "Explain GraphRAG",
+          "expected": "graph_rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q22",
+          "query": "What mathematical prerequisites are required for self-attention?",
+          "expected": "self_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q23",
+          "query": "How does DPR compare to BM25 in open-domain QA?",
+          "expected": "retrieval",
+          "predicted": null
+        },
+        {
+          "query_id": "Q24",
+          "query": "How does RAG integrate Dense Passage Retrieval?",
+          "expected": "rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q26",
+          "query": "How does LoRA adapt Transformer weight matrices?",
+          "expected": "low_rank_adaptation",
+          "predicted": "matrix_factorization"
+        },
+        {
+          "query_id": "Q27",
+          "query": "What is the relationship between QLoRA and LoRA?",
+          "expected": "qlora",
+          "predicted": null
+        },
+        {
+          "query_id": "Q29",
+          "query": "What linear algebra operation underpins query-key attention projection?",
+          "expected": "self_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q30",
+          "query": "Why is softmax used in attention mechanisms?",
+          "expected": "attention_mechanism",
+          "predicted": null
+        },
+        {
+          "query_id": "Q32",
+          "query": "Why are dual-encoders preferred over cross-encoders for first-stage retrieval?",
+          "expected": "retrieval",
+          "predicted": null
+        },
+        {
+          "query_id": "Q33",
+          "query": "How does re-ranking use cross-encoders after dense retrieval?",
+          "expected": "cross_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q34",
+          "query": "What role does community detection play in GraphRAG?",
+          "expected": "graph_rag",
+          "predicted": "community_detection"
+        },
+        {
+          "query_id": "Q35",
+          "query": "How does layer normalization stabilize activations in Transformers?",
+          "expected": "layer_normalization",
+          "predicted": null
+        },
+        {
+          "query_id": "Q36",
+          "query": "What is the role of residual connections around attention sub-layers?",
+          "expected": "transformer",
+          "predicted": null
+        },
+        {
+          "query_id": "Q37",
+          "query": "How do vector embeddings enable continuous dense retrieval?",
+          "expected": "retrieval",
+          "predicted": null
+        }
+      ]
+    },
+    "archipelago_resolver": {
+      "concept_resolution_accuracy_supported": 0.6842,
+      "hits_supported": "26/38",
+      "abstention_accuracy_unsupported": 1.0,
+      "abstentions_correct": "12/12",
+      "overall_accuracy_all_queries": 0.76,
+      "error_count_supported": 12,
+      "errors": [
+        {
+          "query_id": "Q11",
+          "query": "What is Scaled Dot-Product Attention?",
+          "expected": "scaled_dot_product_attention",
+          "predicted": "attention_mechanism"
+        },
+        {
+          "query_id": "Q16",
+          "query": "Explain Inverted Index in information retrieval",
+          "expected": "inverted_index",
+          "predicted": "retrieval"
+        },
+        {
+          "query_id": "Q17",
+          "query": "What is Maximum Inner Product Search (MIPS)?",
+          "expected": "maximum_inner_product_search",
+          "predicted": null
+        },
+        {
+          "query_id": "Q18",
+          "query": "Explain Dual Encoder architecture",
+          "expected": "dual_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q19",
+          "query": "What is Cross-Encoder re-ranking?",
+          "expected": "cross_encoder",
+          "predicted": null
+        },
+        {
+          "query_id": "Q20",
+          "query": "Explain GraphRAG",
+          "expected": "graph_rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q22",
+          "query": "What mathematical prerequisites are required for self-attention?",
+          "expected": "self_attention",
+          "predicted": "attention_mechanism"
+        },
+        {
+          "query_id": "Q29",
+          "query": "What linear algebra operation underpins query-key attention projection?",
+          "expected": "self_attention",
+          "predicted": null
+        },
+        {
+          "query_id": "Q30",
+          "query": "Why is softmax used in attention mechanisms?",
+          "expected": "attention_mechanism",
+          "predicted": null
+        },
+        {
+          "query_id": "Q33",
+          "query": "How does re-ranking use cross-encoders after dense retrieval?",
+          "expected": "cross_encoder",
+          "predicted": "retrieval"
+        },
+        {
+          "query_id": "Q34",
+          "query": "What role does community detection play in GraphRAG?",
+          "expected": "graph_rag",
+          "predicted": null
+        },
+        {
+          "query_id": "Q36",
+          "query": "What is the role of residual connections around attention sub-layers?",
+          "expected": "transformer",
+          "predicted": "attention_mechanism"
+        }
+      ]
+    }
+  },
+  "experiment_b_passage_retrieval": {
+    "bm25": {
+      "mrr": 0.75,
+      "ndcg_at_5": 0.6415,
+      "recall_at_5": 0.3707,
+      "precision_at_5": 0.5405,
+      "latency_mean_ms": 2.91,
+      "latency_p95_ms": 3.79,
+      "queries_evaluated_count": 37
+    },
+    "feature_hashed_vector": {
+      "mrr": 0.2806,
+      "ndcg_at_5": 0.1764,
+      "recall_at_5": 0.1093,
+      "precision_at_5": 0.1514,
+      "latency_mean_ms": 0.51,
+      "latency_p95_ms": 0.7,
+      "queries_evaluated_count": 37
+    },
+    "snowflake_arctic_neural": {
+      "mrr": 0.75,
+      "ndcg_at_5": 0.6524,
+      "recall_at_5": 0.3324,
+      "precision_at_5": 0.573,
+      "latency_mean_ms": 15.37,
+      "latency_p95_ms": 16.64,
+      "queries_evaluated_count": 37
+    },
+    "archipelago_graph_assisted": {
+      "mrr": 0.5473,
+      "ndcg_at_5": 0.2377,
+      "recall_at_5": 0.0715,
+      "precision_at_5": 0.173,
+      "latency_mean_ms": 21.22,
+      "latency_p95_ms": 39.44,
+      "queries_evaluated_count": 37
+    }
+  },
+  "relationship_prediction_evaluation": {
+    "total_relational_queries": 18,
+    "true_positives": 1,
+    "inverted_directions": 1,
+    "missing_predictions": 16,
+    "total_triples_surfaced": 194,
+    "precision": 0.0052,
+    "recall": 0.0556,
+    "f1": 0.0095,
+    "detailed_cases": [
+      {
+        "query_id": "Q21",
+        "query": "How does self-attention relate to the Transformer?",
+        "anchor_resolved": "self_attention",
+        "expected_triple": "(transformer, USES, self_attention)",
+        "verdict": "INVERTED_DIRECTION",
+        "triples_predicted_count": 18
+      },
+      {
+        "query_id": "Q22",
+        "query": "What mathematical prerequisites are required for self-attention?",
+        "anchor_resolved": "attention_mechanism",
+        "expected_triple": "(self_attention, REQUIRES, matrix_multiplication)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 12
+      },
+      {
+        "query_id": "Q23",
+        "query": "How does DPR compare to BM25 in open-domain QA?",
+        "anchor_resolved": "bm25",
+        "expected_triple": "(dense_passage_retrieval, CONTRASTS_WITH, bm25)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 6
+      },
+      {
+        "query_id": "Q24",
+        "query": "How does RAG integrate Dense Passage Retrieval?",
+        "anchor_resolved": "rag",
+        "expected_triple": "(retrieval_augmented_generation, USES, dense_passage_retrieval)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 18
+      },
+      {
+        "query_id": "Q25",
+        "query": "Why does FlashAttention require online softmax?",
+        "anchor_resolved": "flashattention",
+        "expected_triple": "(flashattention, USES, online_softmax)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 7
+      },
+      {
+        "query_id": "Q26",
+        "query": "How does LoRA adapt Transformer weight matrices?",
+        "anchor_resolved": "transformer",
+        "expected_triple": "(low_rank_adaptation, APPLIES_TO, transformer)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 18
+      },
+      {
+        "query_id": "Q27",
+        "query": "What is the relationship between QLoRA and LoRA?",
+        "anchor_resolved": "qlora",
+        "expected_triple": "(qlora, USES, low_rank_adaptation)",
+        "verdict": "CORRECT_DIRECTION",
+        "triples_predicted_count": 5
+      },
+      {
+        "query_id": "Q28",
+        "query": "How does PagedAttention manage the KV cache in vLLM?",
+        "anchor_resolved": "paged_attention",
+        "expected_triple": "(paged_attention, USES, kv_cache)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 7
+      },
+      {
+        "query_id": "Q29",
+        "query": "What linear algebra operation underpins query-key attention projection?",
+        "anchor_resolved": null,
+        "expected_triple": "(self_attention, REQUIRES, matrix_multiplication)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 0
+      },
+      {
+        "query_id": "Q30",
+        "query": "Why is softmax used in attention mechanisms?",
+        "anchor_resolved": null,
+        "expected_triple": "(scaled_dot_product_attention, REQUIRES, softmax)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 0
+      },
+      {
+        "query_id": "Q31",
+        "query": "How does BERT relate to the Transformer encoder?",
+        "anchor_resolved": "bert",
+        "expected_triple": "(bert, USES, transformer)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 18
+      },
+      {
+        "query_id": "Q32",
+        "query": "Why are dual-encoders preferred over cross-encoders for first-stage retrieval?",
+        "anchor_resolved": "retrieval",
+        "expected_triple": "(cross_encoder, CONTRASTS_WITH, dual_encoder)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 18
+      },
+      {
+        "query_id": "Q33",
+        "query": "How does re-ranking use cross-encoders after dense retrieval?",
+        "anchor_resolved": "retrieval",
+        "expected_triple": "(reranking, USES, cross_encoder)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 18
+      },
+      {
+        "query_id": "Q34",
+        "query": "What role does community detection play in GraphRAG?",
+        "anchor_resolved": null,
+        "expected_triple": "(graph_rag, USES, community_summaries)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 0
+      },
+      {
+        "query_id": "Q35",
+        "query": "How does layer normalization stabilize activations in Transformers?",
+        "anchor_resolved": "transformer",
+        "expected_triple": "(transformer, USES, layer_normalization)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 18
+      },
+      {
+        "query_id": "Q36",
+        "query": "What is the role of residual connections around attention sub-layers?",
+        "anchor_resolved": "attention_mechanism",
+        "expected_triple": "(transformer, USES, residual_connection)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 12
+      },
+      {
+        "query_id": "Q37",
+        "query": "How do vector embeddings enable continuous dense retrieval?",
+        "anchor_resolved": "vector_embeddings",
+        "expected_triple": "(dense_passage_retrieval, REQUIRES, vector_embeddings)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 12
+      },
+      {
+        "query_id": "Q38",
+        "query": "How does tiling reduce HBM memory traffic in FlashAttention?",
+        "anchor_resolved": "flashattention",
+        "expected_triple": "(flashattention, USES, tiling)",
+        "verdict": "MISSING_PREDICTION",
+        "triples_predicted_count": 7
+      }
+    ]
+  }
+}

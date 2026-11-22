@@ -1,0 +1,54 @@
+{
+  "provenance_metadata": {
+    "audit_date": "2026-11-22",
+    "auditor": "Pratay Karali (Lead Author & System Architect)",
+    "audit_standard": "ACM SIGIR 2027 Demonstrations Track — Empirical & Grounding Standards",
+    "disclosure": "All 45 evaluated edges were audited by the primary system author (Pratay Karali) using verbatim literature excerpts and page citations from canonical source publications. No independent double-blind peer review has been completed to date. Legacy records attributing review to 'SIGIR_Reviewer_Lead' have been corrected to reflect author-supervised verification pending external community replication."
+  },
+  "provenance_breakdown": {
+    "total_edges_audited": 45,
+    "author_reviewed_and_verified": 40,
+    "quarantined_by_author": 5,
+    "independently_peer_reviewed": 0,
+    "ai_assisted_extraction_candidates": 45,
+    "external_reviewer_agreement_score": null,
+    "status": "AUTHOR_REVIEWED_PENDING_INDEPENDENT_REPLICATION"
+  },
+  "quarantined_edges_rationale": [
+    {
+      "from_id": "self_attention",
+      "to_id": "transformer",
+      "relation_type": "REQUIRES",
+      "quarantine_reason": "Inverted pedagogical dependency. Transformer relies on Self-Attention (Vaswani et al. 2017 §1), not the reverse.",
+      "provenance": "Author audit identified reversal during D4/D5 evaluation."
+    },
+    {
+      "from_id": "anomaly_detection",
+      "to_id": "federated_learning",
+      "relation_type": "REQUIRES",
+      "quarantine_reason": "Spurious co-mention in application paper (Real-time network security). Federated learning is an orthogonal distributed training paradigm, not a universal prerequisite for anomaly detection.",
+      "provenance": "Author audit flagged topical over-generalization."
+    },
+    {
+      "from_id": "anomaly_detection",
+      "to_id": "dynamic_clustering",
+      "relation_type": "REQUIRES",
+      "quarantine_reason": "Method-specific heuristic co-mention, not a fundamental conceptual prerequisite.",
+      "provenance": "Author audit flagged non-foundational edge."
+    },
+    {
+      "from_id": "graph_neural_network",
+      "to_id": "graph_convolutional_network",
+      "relation_type": "REQUIRES",
+      "quarantine_reason": "Inverted taxonomy. GCN is a specific specialization of GNN, not a prerequisite for the general GNN paradigm.",
+      "provenance": "Author audit identified taxonomic inversion."
+    },
+    {
+      "from_id": "transformer",
+      "to_id": "linear_algebra",
+      "relation_type": "REQUIRES",
+      "quarantine_reason": "Missing supporting textual passage in indexed corpus; reference was based on ungrounded curriculum assumption.",
+      "provenance": "Author audit flagged lack of corpus passage."
+    }
+  ]
+}

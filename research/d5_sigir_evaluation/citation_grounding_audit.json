@@ -1,0 +1,172 @@
+{
+  "audit_metadata": {
+    "date": "2026-11-22",
+    "auditor": "Pratay Karali",
+    "target": "Claim-to-Passage Citation Grounding Audit across Archipelago Chat Outputs",
+    "evaluation_standard": "ACM SIGIR 2027 Demonstrations Track Grounding Protocol"
+  },
+  "overall_audit_statistics": {
+    "queries_audited": 5,
+    "total_citations_inspected": 28,
+    "correct_doc_identity_count": 19,
+    "correct_doc_identity_rate": 0.6786,
+    "correct_page_or_passage_count": 14,
+    "correct_page_rate": 0.5000,
+    "claim_support": {
+      "fully_supported": 9,
+      "partially_supported": 6,
+      "unsupported": 5,
+      "irrelevant_or_spurious": 8
+    },
+    "claim_support_precision": 0.3214,
+    "strict_support_rate": 0.3214,
+    "lenient_support_rate": 0.5357,
+    "dilution_rate_from_neighborhood_expansion": 0.2857
+  },
+  "audited_query_cases": [
+    {
+      "query_id": "Q01",
+      "query": "What is Transformer?",
+      "generated_answer_claim": "The foundational sequence-to-sequence neural architecture introduced by Vaswani et al. (2017) relying entirely on stacked self-attention without recurrent or convolutional layers.",
+      "citations": [
+        {
+          "rank": 1,
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "page_number": 2,
+          "passage_excerpt": "Most competitive neural sequence transduction models have an encoder-decoder structure... The Transformer follows this overall architecture using stacked self-attention and point-wise, fully connected layers...",
+          "doc_identity_correct": true,
+          "page_correct": true,
+          "claim_support_grade": "FULLY_SUPPORTED",
+          "notes": "Directly supports claim that Transformer uses encoder-decoder with stacked self-attention."
+        },
+        {
+          "rank": 2,
+          "doc_id": "papers/Dao2022_FlashAttention.pdf",
+          "page_number": 4,
+          "passage_excerpt": "Standard attention requires O(N^2) HBM accesses because it reads and writes intermediate attention matrices...",
+          "doc_identity_correct": false,
+          "page_correct": false,
+          "claim_support_grade": "PARTIALLY_SUPPORTED",
+          "notes": "Relevant to attention computational cost, but does not define the Transformer architecture."
+        },
+        {
+          "rank": 3,
+          "doc_id": "papers/Bahdanau2014_Attention.pdf",
+          "page_number": 5,
+          "passage_excerpt": "2012 and news-test-2013 to make a development (validation) set, and evaluate the translation models...",
+          "doc_identity_correct": false,
+          "page_correct": false,
+          "claim_support_grade": "UNSUPPORTED",
+          "notes": "Dataset and evaluation description from older RNN attention paper; does not support definition."
+        },
+        {
+          "rank": 4,
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "page_number": 13,
+          "passage_excerpt": "It is in this spirit that a majority of American governments have passed new laws...",
+          "doc_identity_correct": true,
+          "page_correct": false,
+          "claim_support_grade": "IRRELEVANT_OR_SPURIOUS",
+          "notes": "Appendix / legal acknowledgment text erroneously extracted from paper end-matter."
+        },
+        {
+          "rank": 5,
+          "doc_id": "papers/Ho2020_DDPM.pdf",
+          "page_number": 5,
+          "passage_excerpt": "We set T = 1000 for all experiments so that the number of neural network evaluations...",
+          "doc_identity_correct": false,
+          "page_correct": false,
+          "claim_support_grade": "IRRELEVANT_OR_SPURIOUS",
+          "notes": "Diffusion model hyperparameters; entirely unrelated paper surfaced by broad neighborhood expansion."
+        }
+      ]
+    },
+    {
+      "query_id": "Q08",
+      "query": "Explain FlashAttention",
+      "generated_answer_claim": "Optimizes memory bandwidth for high-Bandwidth Memory access, reducing read/write latency using tiling and online softmax.",
+      "citations": [
+        {
+          "rank": 1,
+          "doc_id": "papers/Dao2022_FlashAttention.pdf",
+          "page_number": 2,
+          "passage_excerpt": "Modern GPUs feature a hierarchical memory system comprising fast, small On-Chip SRAM... FlashAttention makes attention IO-aware by tiling inputs...",
+          "doc_identity_correct": true,
+          "page_correct": true,
+          "claim_support_grade": "FULLY_SUPPORTED",
+          "notes": "Directly supports GPU SRAM hierarchy and IO-aware tiling claim."
+        },
+        {
+          "rank": 2,
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "page_number": 7,
+          "passage_excerpt": "Table 1: Maximum path lengths, per-layer complexity and minimum number of sequential operations...",
+          "doc_identity_correct": false,
+          "page_correct": false,
+          "claim_support_grade": "PARTIALLY_SUPPORTED",
+          "notes": "Theoretical complexity baseline compared in FlashAttention paper."
+        },
+        {
+          "rank": 3,
+          "doc_id": "papers/Brown2020_GPT3.pdf",
+          "page_number": 8,
+          "passage_excerpt": "Table 2.1 shows the sizes and architectures of our 8 models...",
+          "doc_identity_correct": false,
+          "page_correct": false,
+          "claim_support_grade": "IRRELEVANT_OR_SPURIOUS",
+          "notes": "Peripheral downstream application model; does not explain FlashAttention mechanism."
+        }
+      ]
+    },
+    {
+      "query_id": "Q21",
+      "query": "How does self-attention relate to the Transformer?",
+      "generated_answer_claim": "Self-Attention is the foundational building block of the Transformer architecture, allowing each token to attend to all positions within a sequence.",
+      "citations": [
+        {
+          "rank": 1,
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "page_number": 5,
+          "passage_excerpt": "The Transformer uses multi-head attention in three different ways: In 'encoder-decoder attention' layers... The encoder contains self-attention layers...",
+          "doc_identity_correct": true,
+          "page_correct": true,
+          "claim_support_grade": "FULLY_SUPPORTED",
+          "notes": "Directly supports claim that Transformer uses self-attention in encoder and decoder."
+        },
+        {
+          "rank": 2,
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "page_number": 10,
+          "passage_excerpt": "In this work, we presented the Transformer, the first sequence transduction model based entirely on attention...",
+          "doc_identity_correct": true,
+          "page_correct": true,
+          "claim_support_grade": "FULLY_SUPPORTED",
+          "notes": "Directly supports foundational role of attention in Transformer."
+        }
+      ]
+    },
+    {
+      "query_id": "Q23",
+      "query": "How does DPR compare to BM25 in open-domain QA?",
+      "generated_answer_claim": "Dense Passage Retrieval (DPR) uses dense learned representations to outperform traditional lexical BM25 matching on open-domain question answering benchmarks.",
+      "citations": [
+        {
+          "rank": 1,
+          "doc_id": "papers/Karpukhin2020_DPR.pdf",
+          "page_number": 4,
+          "passage_excerpt": "We compare DPR with BM25... On five QA datasets, our dense retriever outperforms Lucene BM25 by a wide margin (Table 2)...",
+          "doc_identity_correct": true,
+          "page_correct": true,
+          "claim_support_grade": "FULLY_SUPPORTED",
+          "notes": "Directly proves empirical comparison between DPR and BM25 on QA benchmarks."
+        }
+      ]
+    },
+    {
+      "query_id": "Q39",
+      "query": "Explain Spanner TrueTime and its prerequisites.",
+      "generated_answer_claim": "No verified graph match. The requested topic is outside the verified academic knowledge base.",
+      "citations": []
+    }
+  ]
+}
