@@ -905,6 +905,8 @@ _QUERY_STOPWORDS = frozenset({
     "the", "a", "an", "any", "some", "books", "book", "textbooks", "textbook", "papers",
     "paper", "preprints", "preprint", "articles", "article", "about", "on", "for",
     "explain", "explaining", "in", "of", "and", "or", "to", "library", "catalog",
+    "uem", "uemk", "university", "campus", "college", "institute", "institution",
+    "opac", "koha", "holdings",
 })
 
 
@@ -943,8 +945,8 @@ def _extract_topic_terms(query: str) -> list[str]:
         "kv": ["kv", "vllm", "pagedattention", "cache"],
         "caching": ["cache", "caching", "pagedattention", "vllm"],
         "cache": ["cache", "caching", "pagedattention", "vllm"],
-        "deadlock": ["deadlock", "deadlocks", "concurrency", "operating", "system"],
-        "deadlocks": ["deadlock", "deadlocks", "concurrency", "operating", "system"],
+        "deadlock": ["deadlock", "deadlocks", "concurrency", "operating"],
+        "deadlocks": ["deadlock", "deadlocks", "concurrency", "operating"],
         "cfl": ["context", "free", "grammar", "automata", "theory"],
         "cfg": ["context", "free", "grammar", "parsing", "compiler"],
         "avl": ["avl", "tree", "binary", "search", "balanced", "dsa"],
@@ -1014,9 +1016,30 @@ def _catalog_books_reply(
     pearson_fallback = catalogue.load_catalogue()
     holdings = list(manifest.get("holdings") or [])
 
-    def _score_item(text_blob: str) -> int:
-        low = text_blob.lower()
-        return sum(1 for t in terms if t in low)
+    raw_query_tokens = [
+        t for t in re.findall(r"[a-z0-9]+", clean_query.lower())
+        if len(t) >= 2 and t not in _QUERY_STOPWORDS
+    ]
+
+    def _score_item(title: str, author: str, domain_or_subj: str, desc: str = "") -> int:
+        t_tokens = set(re.findall(r"[a-z0-9]+", title.lower()))
+        d_tokens = set(re.findall(r"[a-z0-9]+", desc.lower())) if desc else set()
+        a_tokens = set(re.findall(r"[a-z0-9]+", author.lower())) if author else set()
+
+        score = 0
+        for qt in raw_query_tokens:
+            if qt in t_tokens:
+                score += 20
+            elif qt in d_tokens:
+                score += 8
+            elif qt in a_tokens:
+                score += 15
+
+        for et in terms:
+            if et not in raw_query_tokens:
+                if et in t_tokens:
+                    score += 10
+        return score
 
     matched: list[tuple[int, str, str, str, str]] = []
     seen_titles: set[str] = set()
@@ -1027,8 +1050,12 @@ def _catalog_books_reply(
         title = str(item.get("title") or "").strip()
         if not title:
             continue
-        blob = f"{title} {item.get('author', '')} {item.get('domain', '')} {item.get('desc', '')}"
-        sc = _score_item(blob)
+        sc = _score_item(
+            title,
+            str(item.get("author") or ""),
+            str(item.get("domain") or ""),
+            str(item.get("desc") or ""),
+        )
         if sc > 0:
             key = title.lower()
             if key in seen_titles:
@@ -1043,8 +1070,11 @@ def _catalog_books_reply(
         title = str(item.get("title") or "").strip()
         if not title or title.lower() in seen_titles:
             continue
-        blob = f"{title} {item.get('author', '')} {item.get('domain', '')}"
-        sc = _score_item(blob)
+        sc = _score_item(
+            title,
+            str(item.get("author") or ""),
+            str(item.get("domain") or ""),
+        )
         if sc > 0:
             seen_titles.add(title.lower())
             link = str(item.get("reader_base_url") or "https://ebooks.elibrary.in.pearson.com/")
@@ -1054,8 +1084,11 @@ def _catalog_books_reply(
         title = str(h.get("title") or "").strip()
         if not title or title.lower() in seen_titles:
             continue
-        blob = f"{title} {h.get('author', '')} {h.get('subject', '')}"
-        sc = _score_item(blob)
+        sc = _score_item(
+            title,
+            str(h.get("author") or ""),
+            str(h.get("subject") or ""),
+        )
         if sc > 0:
             seen_titles.add(title.lower())
             biblio = h.get("biblionumber") or ""

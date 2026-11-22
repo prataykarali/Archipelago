@@ -26,6 +26,9 @@ HF_DOC_MAP = {
     "bahdanau2014_attention.pdf": "papers/Bahdanau2014_Attention.pdf",
     "kwon2023_vllm.pdf": "papers/Kwon2023_vLLM.pdf",
     "brown2020_gpt3.pdf": "papers/Brown2020_GPT3.pdf",
+    "upload_cb7badb2": "papers/Dao2022_FlashAttention.pdf",
+    "dao2022_flashattention.pdf": "papers/Dao2022_FlashAttention.pdf",
+    "karpukhin2020_dpr.pdf": "papers/Karpukhin2020_DPR.pdf",
 }
 
 DATASET_PREFIXES = ("papers/", "textbooks/", "archipelago-books-cs/")

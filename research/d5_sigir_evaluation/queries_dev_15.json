@@ -1,0 +1,107 @@
+[
+  {
+    "query_id": "DEV01",
+    "category": "core_concept",
+    "query": "What is Multi-Head Attention?",
+    "expected_concept": "multi_head_attention",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV02",
+    "category": "core_concept",
+    "query": "Explain Gradient Descent",
+    "expected_concept": "gradient_descent",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV03",
+    "category": "core_concept",
+    "query": "What is LoRA rank r?",
+    "expected_concept": "low_rank_adaptation",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV04",
+    "category": "core_concept",
+    "query": "Explain Vector Similarity Search",
+    "expected_concept": "retrieval",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV05",
+    "category": "core_concept",
+    "query": "What is FAISS index?",
+    "expected_concept": "retrieval",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV06",
+    "category": "core_concept",
+    "query": "Explain BERT bidirectional attention",
+    "expected_concept": "bert",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV07",
+    "category": "core_concept",
+    "query": "What is BART seq2seq model in RAG?",
+    "expected_concept": "rag",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV08",
+    "category": "core_concept",
+    "query": "Explain KV cache memory overhead in LLMs",
+    "expected_concept": "kv_cache",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV09",
+    "category": "core_concept",
+    "query": "What is NormalFloat4 quantization in QLoRA?",
+    "expected_concept": "qlora",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV10",
+    "category": "core_concept",
+    "query": "Explain Leiden community detection in GraphRAG",
+    "expected_concept": "graph_rag",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV11",
+    "category": "core_concept",
+    "query": "What is TF-IDF formula in information retrieval?",
+    "expected_concept": "bm25",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV12",
+    "category": "core_concept",
+    "query": "Explain approximate nearest neighbors",
+    "expected_concept": "retrieval",
+    "is_supported": true
+  },
+  {
+    "query_id": "DEV13",
+    "category": "unsupported_abstention",
+    "query": "What is MapReduce distributed sorting?",
+    "expected_concept": null,
+    "is_supported": false
+  },
+  {
+    "query_id": "DEV14",
+    "category": "unsupported_abstention",
+    "query": "Explain photosystem II light absorption in plants.",
+    "expected_concept": null,
+    "is_supported": false
+  },
+  {
+    "query_id": "DEV15",
+    "category": "unsupported_abstention",
+    "query": "What is Black-Scholes option pricing model?",
+    "expected_concept": null,
+    "is_supported": false
+  }
+]

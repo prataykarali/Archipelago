@@ -1,0 +1,675 @@
+[
+  {
+    "query_id": "Q01",
+    "category": "core_concept",
+    "query": "What is Transformer?",
+    "expected_concept": "transformer",
+    "expected_canonical_doc": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "transformer",
+      "self_attention",
+      "multi_head_attention"
+    ]
+  },
+  {
+    "query_id": "Q02",
+    "category": "core_concept",
+    "query": "Explain Attention Mechanism",
+    "expected_concept": "attention_mechanism",
+    "expected_canonical_doc": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "attention_mechanism",
+      "self_attention",
+      "scaled_dot_product_attention"
+    ]
+  },
+  {
+    "query_id": "Q03",
+    "category": "core_concept",
+    "query": "What is BERT?",
+    "expected_concept": "bert",
+    "expected_canonical_doc": "papers/Devlin2018_BERT.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "bert",
+      "masked_language_modeling",
+      "transformer"
+    ]
+  },
+  {
+    "query_id": "Q04",
+    "category": "core_concept",
+    "query": "Explain Dense Passage Retrieval",
+    "expected_concept": "retrieval",
+    "expected_canonical_doc": "papers/Karpukhin2020_DPR.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "dense_passage_retrieval",
+      "retrieval",
+      "dual_encoder",
+      "bm25"
+    ]
+  },
+  {
+    "query_id": "Q05",
+    "category": "core_concept",
+    "query": "What is Retrieval-Augmented Generation?",
+    "expected_concept": "rag",
+    "expected_canonical_doc": "papers/Lewis2020_RAG.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "rag",
+      "retrieval_augmented_generation",
+      "dense_passage_retrieval"
+    ]
+  },
+  {
+    "query_id": "Q06",
+    "category": "core_concept",
+    "query": "Explain Low-Rank Adaptation (LoRA)",
+    "expected_concept": "low_rank_adaptation",
+    "expected_canonical_doc": "papers/Hu2021_LoRA.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "low_rank_adaptation",
+      "lora",
+      "matrix_factorization"
+    ]
+  },
+  {
+    "query_id": "Q07",
+    "category": "core_concept",
+    "query": "What is QLoRA?",
+    "expected_concept": "qlora",
+    "expected_canonical_doc": "papers/Dettmers2023_QLoRA.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "qlora",
+      "low_rank_adaptation",
+      "4bit_normalfloat"
+    ]
+  },
+  {
+    "query_id": "Q08",
+    "category": "core_concept",
+    "query": "Explain FlashAttention",
+    "expected_concept": "flashattention",
+    "expected_canonical_doc": "papers/Dao2022_FlashAttention.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "flashattention",
+      "online_softmax",
+      "tiling"
+    ]
+  },
+  {
+    "query_id": "Q09",
+    "category": "core_concept",
+    "query": "What is PagedAttention in vLLM?",
+    "expected_concept": "paged_attention",
+    "expected_canonical_doc": "papers/Kwon2023_vLLM.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "paged_attention",
+      "kv_cache",
+      "vllm"
+    ]
+  },
+  {
+    "query_id": "Q10",
+    "category": "core_concept",
+    "query": "Explain Graph Neural Networks",
+    "expected_concept": "graph_neural_network",
+    "expected_canonical_doc": "papers/Velickovic2017_GAT.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "graph_neural_network",
+      "gat",
+      "gcn"
+    ]
+  },
+  {
+    "query_id": "Q11",
+    "category": "core_concept",
+    "query": "What is Scaled Dot-Product Attention?",
+    "expected_concept": "scaled_dot_product_attention",
+    "expected_canonical_doc": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "scaled_dot_product_attention",
+      "softmax",
+      "self_attention"
+    ]
+  },
+  {
+    "query_id": "Q12",
+    "category": "core_concept",
+    "query": "Explain Positional Encoding in Transformers",
+    "expected_concept": "positional_encoding",
+    "expected_canonical_doc": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "positional_encoding",
+      "transformer"
+    ]
+  },
+  {
+    "query_id": "Q13",
+    "category": "core_concept",
+    "query": "What is Layer Normalization?",
+    "expected_concept": "layer_normalization",
+    "expected_canonical_doc": "papers/Ba2016_Layer_Normalization.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "layer_normalization",
+      "transformer"
+    ]
+  },
+  {
+    "query_id": "Q14",
+    "category": "core_concept",
+    "query": "Explain Masked Language Modeling",
+    "expected_concept": "masked_language_modeling",
+    "expected_canonical_doc": "papers/Devlin2018_BERT.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "masked_language_modeling",
+      "bert"
+    ]
+  },
+  {
+    "query_id": "Q15",
+    "category": "core_concept",
+    "query": "What is BM25?",
+    "expected_concept": "bm25",
+    "expected_canonical_doc": "papers/Robertson2009_BM25.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "bm25",
+      "inverted_index",
+      "term_frequency_inverse_document_frequency"
+    ]
+  },
+  {
+    "query_id": "Q16",
+    "category": "core_concept",
+    "query": "Explain Inverted Index in information retrieval",
+    "expected_concept": "inverted_index",
+    "expected_canonical_doc": "textbooks/introduction_to_information_retrieval_manning.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "inverted_index",
+      "bm25"
+    ]
+  },
+  {
+    "query_id": "Q17",
+    "category": "core_concept",
+    "query": "What is Maximum Inner Product Search (MIPS)?",
+    "expected_concept": "maximum_inner_product_search",
+    "expected_canonical_doc": "papers/Karpukhin2020_DPR.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "maximum_inner_product_search",
+      "dense_passage_retrieval",
+      "vector_embeddings"
+    ]
+  },
+  {
+    "query_id": "Q18",
+    "category": "core_concept",
+    "query": "Explain Dual Encoder architecture",
+    "expected_concept": "dual_encoder",
+    "expected_canonical_doc": "papers/Karpukhin2020_DPR.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "dual_encoder",
+      "dense_passage_retrieval"
+    ]
+  },
+  {
+    "query_id": "Q19",
+    "category": "core_concept",
+    "query": "What is Cross-Encoder re-ranking?",
+    "expected_concept": "cross_encoder",
+    "expected_canonical_doc": "papers/Nogueira2019_Passage_Reranking.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "cross_encoder",
+      "reranking",
+      "dual_encoder"
+    ]
+  },
+  {
+    "query_id": "Q20",
+    "category": "core_concept",
+    "query": "Explain GraphRAG",
+    "expected_concept": "graph_rag",
+    "expected_canonical_doc": "papers/Edge2024_GraphRAG.pdf",
+    "is_supported": true,
+    "gold_relevant_concepts": [
+      "graph_rag",
+      "entity_knowledge_graph",
+      "community_summaries"
+    ]
+  },
+  {
+    "query_id": "Q21",
+    "category": "relational",
+    "query": "How does self-attention relate to the Transformer?",
+    "expected_concept": "self_attention",
+    "expected_canonical_doc": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "transformer",
+      "rel": "USES",
+      "to": "self_attention"
+    },
+    "gold_relevant_concepts": [
+      "transformer",
+      "self_attention"
+    ]
+  },
+  {
+    "query_id": "Q22",
+    "category": "relational",
+    "query": "What mathematical prerequisites are required for self-attention?",
+    "expected_concept": "self_attention",
+    "expected_canonical_doc": "textbooks/introduction_to_linear_algebra_strang.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "self_attention",
+      "rel": "REQUIRES",
+      "to": "matrix_multiplication"
+    },
+    "gold_relevant_concepts": [
+      "self_attention",
+      "matrix_multiplication",
+      "softmax"
+    ]
+  },
+  {
+    "query_id": "Q23",
+    "category": "relational",
+    "query": "How does DPR compare to BM25 in open-domain QA?",
+    "expected_concept": "retrieval",
+    "expected_canonical_doc": "papers/Karpukhin2020_DPR.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "dense_passage_retrieval",
+      "rel": "CONTRASTS_WITH",
+      "to": "bm25"
+    },
+    "gold_relevant_concepts": [
+      "dense_passage_retrieval",
+      "bm25"
+    ]
+  },
+  {
+    "query_id": "Q24",
+    "category": "relational",
+    "query": "How does RAG integrate Dense Passage Retrieval?",
+    "expected_concept": "rag",
+    "expected_canonical_doc": "papers/Lewis2020_RAG.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "retrieval_augmented_generation",
+      "rel": "USES",
+      "to": "dense_passage_retrieval"
+    },
+    "gold_relevant_concepts": [
+      "rag",
+      "dense_passage_retrieval"
+    ]
+  },
+  {
+    "query_id": "Q25",
+    "category": "relational",
+    "query": "Why does FlashAttention require online softmax?",
+    "expected_concept": "flashattention",
+    "expected_canonical_doc": "papers/Dao2022_FlashAttention.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "flashattention",
+      "rel": "USES",
+      "to": "online_softmax"
+    },
+    "gold_relevant_concepts": [
+      "flashattention",
+      "online_softmax",
+      "tiling"
+    ]
+  },
+  {
+    "query_id": "Q26",
+    "category": "relational",
+    "query": "How does LoRA adapt Transformer weight matrices?",
+    "expected_concept": "low_rank_adaptation",
+    "expected_canonical_doc": "papers/Hu2021_LoRA.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "low_rank_adaptation",
+      "rel": "APPLIES_TO",
+      "to": "transformer"
+    },
+    "gold_relevant_concepts": [
+      "low_rank_adaptation",
+      "transformer"
+    ]
+  },
+  {
+    "query_id": "Q27",
+    "category": "relational",
+    "query": "What is the relationship between QLoRA and LoRA?",
+    "expected_concept": "qlora",
+    "expected_canonical_doc": "papers/Dettmers2023_QLoRA.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "qlora",
+      "rel": "USES",
+      "to": "low_rank_adaptation"
+    },
+    "gold_relevant_concepts": [
+      "qlora",
+      "low_rank_adaptation"
+    ]
+  },
+  {
+    "query_id": "Q28",
+    "category": "relational",
+    "query": "How does PagedAttention manage the KV cache in vLLM?",
+    "expected_concept": "paged_attention",
+    "expected_canonical_doc": "papers/Kwon2023_vLLM.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "paged_attention",
+      "rel": "USES",
+      "to": "kv_cache"
+    },
+    "gold_relevant_concepts": [
+      "paged_attention",
+      "kv_cache"
+    ]
+  },
+  {
+    "query_id": "Q29",
+    "category": "relational",
+    "query": "What linear algebra operation underpins query-key attention projection?",
+    "expected_concept": "self_attention",
+    "expected_canonical_doc": "textbooks/introduction_to_linear_algebra_strang.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "self_attention",
+      "rel": "REQUIRES",
+      "to": "matrix_multiplication"
+    },
+    "gold_relevant_concepts": [
+      "matrix_multiplication",
+      "self_attention"
+    ]
+  },
+  {
+    "query_id": "Q30",
+    "category": "relational",
+    "query": "Why is softmax used in attention mechanisms?",
+    "expected_concept": "attention_mechanism",
+    "expected_canonical_doc": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "scaled_dot_product_attention",
+      "rel": "REQUIRES",
+      "to": "softmax"
+    },
+    "gold_relevant_concepts": [
+      "softmax",
+      "attention_mechanism",
+      "probability_distribution"
+    ]
+  },
+  {
+    "query_id": "Q31",
+    "category": "relational",
+    "query": "How does BERT relate to the Transformer encoder?",
+    "expected_concept": "bert",
+    "expected_canonical_doc": "papers/Devlin2018_BERT.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "bert",
+      "rel": "USES",
+      "to": "transformer"
+    },
+    "gold_relevant_concepts": [
+      "bert",
+      "transformer"
+    ]
+  },
+  {
+    "query_id": "Q32",
+    "category": "relational",
+    "query": "Why are dual-encoders preferred over cross-encoders for first-stage retrieval?",
+    "expected_concept": "retrieval",
+    "expected_canonical_doc": "papers/Karpukhin2020_DPR.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "cross_encoder",
+      "rel": "CONTRASTS_WITH",
+      "to": "dual_encoder"
+    },
+    "gold_relevant_concepts": [
+      "dual_encoder",
+      "cross_encoder"
+    ]
+  },
+  {
+    "query_id": "Q33",
+    "category": "relational",
+    "query": "How does re-ranking use cross-encoders after dense retrieval?",
+    "expected_concept": "cross_encoder",
+    "expected_canonical_doc": "papers/Nogueira2019_Passage_Reranking.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "reranking",
+      "rel": "USES",
+      "to": "cross_encoder"
+    },
+    "gold_relevant_concepts": [
+      "reranking",
+      "cross_encoder"
+    ]
+  },
+  {
+    "query_id": "Q34",
+    "category": "relational",
+    "query": "What role does community detection play in GraphRAG?",
+    "expected_concept": "graph_rag",
+    "expected_canonical_doc": "papers/Edge2024_GraphRAG.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "graph_rag",
+      "rel": "USES",
+      "to": "community_summaries"
+    },
+    "gold_relevant_concepts": [
+      "graph_rag",
+      "community_summaries"
+    ]
+  },
+  {
+    "query_id": "Q35",
+    "category": "relational",
+    "query": "How does layer normalization stabilize activations in Transformers?",
+    "expected_concept": "layer_normalization",
+    "expected_canonical_doc": "papers/Ba2016_Layer_Normalization.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "transformer",
+      "rel": "USES",
+      "to": "layer_normalization"
+    },
+    "gold_relevant_concepts": [
+      "layer_normalization",
+      "transformer"
+    ]
+  },
+  {
+    "query_id": "Q36",
+    "category": "relational",
+    "query": "What is the role of residual connections around attention sub-layers?",
+    "expected_concept": "transformer",
+    "expected_canonical_doc": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "transformer",
+      "rel": "USES",
+      "to": "residual_connection"
+    },
+    "gold_relevant_concepts": [
+      "residual_connection",
+      "transformer"
+    ]
+  },
+  {
+    "query_id": "Q37",
+    "category": "relational",
+    "query": "How do vector embeddings enable continuous dense retrieval?",
+    "expected_concept": "retrieval",
+    "expected_canonical_doc": "papers/Karpukhin2020_DPR.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "dense_passage_retrieval",
+      "rel": "REQUIRES",
+      "to": "vector_embeddings"
+    },
+    "gold_relevant_concepts": [
+      "vector_embeddings",
+      "dense_passage_retrieval"
+    ]
+  },
+  {
+    "query_id": "Q38",
+    "category": "relational",
+    "query": "How does tiling reduce HBM memory traffic in FlashAttention?",
+    "expected_concept": "flashattention",
+    "expected_canonical_doc": "papers/Dao2022_FlashAttention.pdf",
+    "is_supported": true,
+    "expected_relation": {
+      "from": "flashattention",
+      "rel": "USES",
+      "to": "tiling"
+    },
+    "gold_relevant_concepts": [
+      "flashattention",
+      "tiling"
+    ]
+  },
+  {
+    "query_id": "Q39",
+    "category": "unsupported_abstention",
+    "query": "Explain Spanner TrueTime and its prerequisites.",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q40",
+    "category": "unsupported_abstention",
+    "query": "What is Byzantine fault tolerance in distributed systems?",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q41",
+    "category": "unsupported_abstention",
+    "query": "How does Raft consensus elect a leader?",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q42",
+    "category": "unsupported_abstention",
+    "query": "Explain CRISPR-Cas9 gene editing mechanism.",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q43",
+    "category": "unsupported_abstention",
+    "query": "What is quantum key distribution in cryptography?",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q44",
+    "category": "unsupported_abstention",
+    "query": "Explain the Ricardian theory of comparative advantage.",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q45",
+    "category": "unsupported_abstention",
+    "query": "How do compilers transform source code into machine instructions?",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q46",
+    "category": "unsupported_abstention",
+    "query": "Explain the fluid dynamics of Navier-Stokes equations.",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q47",
+    "category": "unsupported_abstention",
+    "query": "What is the Krebs cycle in cellular respiration?",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q48",
+    "category": "unsupported_abstention",
+    "query": "Explain plate tectonics and continental drift.",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q49",
+    "category": "unsupported_abstention",
+    "query": "How does Paxos achieve consensus across asynchronous networks?",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  },
+  {
+    "query_id": "Q50",
+    "category": "unsupported_abstention",
+    "query": "What is Keynesian fiscal multiplier in macroeconomic policy?",
+    "expected_concept": null,
+    "expected_canonical_doc": null,
+    "is_supported": false,
+    "gold_relevant_concepts": []
+  }
+]

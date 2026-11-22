@@ -1,0 +1,588 @@
+{
+  "benchmark_metadata": {
+    "date": "2026-11-22",
+    "eval_framework": "Archipelago Controlled SIGIR Benchmark",
+    "corpus_size": 775,
+    "total_queries": 50,
+    "supported_queries": 38,
+    "unsupported_queries": 12
+  },
+  "retrieval_effectiveness": {
+    "bm25": {
+      "mrr": 0.2627,
+      "ndcg_at_5": 0.2824
+    },
+    "dense": {
+      "mrr": 0.1114,
+      "ndcg_at_5": 0.0998
+    },
+    "archipelago_graph_assisted": {
+      "mrr": 0.6842,
+      "ndcg_at_5": 0.6842
+    }
+  },
+  "scientific_integrity_metrics": {
+    "concept_resolution_accuracy": 0.6842,
+    "relationship_direction_accuracy": 1.0,
+    "citation_claim_support_precision": 0.2376,
+    "unsupported_abstention_precision": 1.0
+  },
+  "latency_profile_ms": {
+    "mean": 48.69,
+    "median": 14.85,
+    "p95": 118.99,
+    "std": 159.81
+  },
+  "per_query_records": [
+    {
+      "query_id": "Q01",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "transformer",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 1141.31
+    },
+    {
+      "query_id": "Q02",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.3333333333333333,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "attention_mechanism",
+      "top_citation": "papers/Velickovic2017_GAT.pdf",
+      "latency_ms": 39.16
+    },
+    {
+      "query_id": "Q03",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.3333333333333333,
+      "dense_mrr": 0.25,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "bert",
+      "top_citation": "papers/Devlin2018_BERT.pdf",
+      "latency_ms": 42.3
+    },
+    {
+      "query_id": "Q04",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "retrieval",
+      "top_citation": "papers/Lewis2020_RAG.pdf",
+      "latency_ms": 26.37
+    },
+    {
+      "query_id": "Q05",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.5,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "rag",
+      "top_citation": "papers/Lewis2020_RAG.pdf",
+      "latency_ms": 12.88
+    },
+    {
+      "query_id": "Q06",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 1.0,
+      "dense_mrr": 0.25,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "low_rank_adaptation",
+      "top_citation": "papers/Hu2021_LoRA.pdf",
+      "latency_ms": 46.78
+    },
+    {
+      "query_id": "Q07",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.25,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "qlora",
+      "top_citation": "papers/Dettmers2023_QLoRA.pdf",
+      "latency_ms": 26.62
+    },
+    {
+      "query_id": "Q08",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.3333333333333333,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "flashattention",
+      "top_citation": "papers/Dao2022_FlashAttention.pdf",
+      "latency_ms": 10.49
+    },
+    {
+      "query_id": "Q09",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.5,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "paged_attention",
+      "top_citation": "papers/Kwon2023_vLLM.pdf",
+      "latency_ms": 13.44
+    },
+    {
+      "query_id": "Q10",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 1.0,
+      "dense_mrr": 0.5,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "graph_neural_network",
+      "top_citation": "papers/Kipf2016_GCN.pdf",
+      "latency_ms": 50.67
+    },
+    {
+      "query_id": "Q11",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.2,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": "attention_mechanism",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 47.38
+    },
+    {
+      "query_id": "Q12",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "transformer",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 38.42
+    },
+    {
+      "query_id": "Q13",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "layer_normalization",
+      "top_citation": "papers/Hu2021_LoRA.pdf",
+      "latency_ms": 9.21
+    },
+    {
+      "query_id": "Q14",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.5,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "masked_language_modeling",
+      "top_citation": "papers/Devlin2018_BERT.pdf",
+      "latency_ms": 23.42
+    },
+    {
+      "query_id": "Q15",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "bm25",
+      "top_citation": "papers/Karpukhin2020_DPR.pdf",
+      "latency_ms": 7.98
+    },
+    {
+      "query_id": "Q16",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": "retrieval",
+      "top_citation": "papers/Lewis2020_RAG.pdf",
+      "latency_ms": 24.48
+    },
+    {
+      "query_id": "Q17",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 9.56
+    },
+    {
+      "query_id": "Q18",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": null,
+      "top_citation": "papers/Goodfellow2014_GAN.pdf",
+      "latency_ms": 15.07
+    },
+    {
+      "query_id": "Q19",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 9.74
+    },
+    {
+      "query_id": "Q20",
+      "category": "core_concept",
+      "is_supported": true,
+      "bm25_mrr": 0.3333333333333333,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 12.24
+    },
+    {
+      "query_id": "Q21",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.5,
+      "dense_mrr": 0.5,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "self_attention",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 20.44
+    },
+    {
+      "query_id": "Q22",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.3333333333333333,
+      "graph_mrr": 0.0,
+      "resolved_anchor": "attention_mechanism",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 40.53
+    },
+    {
+      "query_id": "Q23",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.25,
+      "dense_mrr": 0.2,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "bm25",
+      "top_citation": "papers/Karpukhin2020_DPR.pdf",
+      "latency_ms": 10.16
+    },
+    {
+      "query_id": "Q24",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "rag",
+      "top_citation": "papers/Lewis2020_RAG.pdf",
+      "latency_ms": 13.12
+    },
+    {
+      "query_id": "Q25",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 1.0,
+      "dense_mrr": 0.25,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "flashattention",
+      "top_citation": "papers/Dao2022_FlashAttention.pdf",
+      "latency_ms": 11.71
+    },
+    {
+      "query_id": "Q26",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 1.0,
+      "dense_mrr": 1.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "transformer",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 37.31
+    },
+    {
+      "query_id": "Q27",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.25,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "qlora",
+      "top_citation": "papers/Dettmers2023_QLoRA.pdf",
+      "latency_ms": 18.35
+    },
+    {
+      "query_id": "Q28",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "paged_attention",
+      "top_citation": "papers/Kwon2023_vLLM.pdf",
+      "latency_ms": 15.09
+    },
+    {
+      "query_id": "Q29",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 1.0,
+      "dense_mrr": 0.25,
+      "graph_mrr": 0.0,
+      "resolved_anchor": null,
+      "top_citation": "Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 2.57
+    },
+    {
+      "query_id": "Q30",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": null,
+      "top_citation": "Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 2.51
+    },
+    {
+      "query_id": "Q31",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.5,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "bert",
+      "top_citation": "papers/Devlin2018_BERT.pdf",
+      "latency_ms": 22.51
+    },
+    {
+      "query_id": "Q32",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": "retrieval",
+      "top_citation": "papers/Lewis2020_RAG.pdf",
+      "latency_ms": 27.06
+    },
+    {
+      "query_id": "Q33",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 0.0,
+      "resolved_anchor": "retrieval",
+      "top_citation": "papers/Lewis2020_RAG.pdf",
+      "latency_ms": 25.52
+    },
+    {
+      "query_id": "Q34",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.5,
+      "dense_mrr": 0.2,
+      "graph_mrr": 0.0,
+      "resolved_anchor": null,
+      "top_citation": "Edge2024_GraphRAG.pdf",
+      "latency_ms": 2.22
+    },
+    {
+      "query_id": "Q35",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "transformer",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 38.7
+    },
+    {
+      "query_id": "Q36",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "attention_mechanism",
+      "top_citation": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+      "latency_ms": 42.29
+    },
+    {
+      "query_id": "Q37",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.0,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "vector_embeddings",
+      "top_citation": "papers/Karpukhin2020_DPR.pdf",
+      "latency_ms": 19.34
+    },
+    {
+      "query_id": "Q38",
+      "category": "relational",
+      "is_supported": true,
+      "bm25_mrr": 0.2,
+      "dense_mrr": 0.0,
+      "graph_mrr": 1.0,
+      "resolved_anchor": "flashattention",
+      "top_citation": "papers/Dao2022_FlashAttention.pdf",
+      "latency_ms": 11.9
+    },
+    {
+      "query_id": "Q39",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": "papers/Yao2022_ReAct.pdf",
+      "latency_ms": 188.5
+    },
+    {
+      "query_id": "Q40",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": "knowledge_representation_and_reasoning_2004/Index_2004_Knowledge-Representation-and-Reasoning.pdf",
+      "latency_ms": 12.59
+    },
+    {
+      "query_id": "Q41",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": "predictive_analytics_and_data_mining_2015/Index_2015_Predictive-Analytics-and-Data-Mining.pdf",
+      "latency_ms": 12.7
+    },
+    {
+      "query_id": "Q42",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 9.03
+    },
+    {
+      "query_id": "Q43",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": "papers/Willard2023_Outlines.pdf",
+      "latency_ms": 14.64
+    },
+    {
+      "query_id": "Q44",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 9.0
+    },
+    {
+      "query_id": "Q45",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": "1be5d3be-5808-4768-b4bf-03664c75c6c3",
+      "latency_ms": 2.1
+    },
+    {
+      "query_id": "Q46",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 9.46
+    },
+    {
+      "query_id": "Q47",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 9.38
+    },
+    {
+      "query_id": "Q48",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": "papers/Edge2024_GraphRAG.pdf",
+      "latency_ms": 174.88
+    },
+    {
+      "query_id": "Q49",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": "papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf",
+      "latency_ms": 14.35
+    },
+    {
+      "query_id": "Q50",
+      "category": "unsupported_abstention",
+      "is_supported": false,
+      "bm25_mrr": null,
+      "dense_mrr": null,
+      "graph_mrr": null,
+      "resolved_anchor": null,
+      "top_citation": null,
+      "latency_ms": 9.05
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "from_id": "self_attention",
+    "to_id": "transformer",
+    "relation_type": "REQUIRES",
+    "quarantine_reason": "Direction inverted in legacy extraction. Self-attention is an architectural sub-layer of the Transformer, not a concept requiring a Transformer to exist.",
+    "correction": "Corrected to transformer -[USES]-> self_attention and self_attention -[REQUIRES]-> matrix_multiplication.",
+    "source_artifact": "okf_graph.json:edge_412"
+  },
+  {
+    "from_id": "beam_search",
+    "to_id": "rag",
+    "relation_type": "CO_MENTION",
+    "quarantine_reason": "Automated regex extraction from unrelated network security paper (Real-time network security: Integrating ANN...). Co-mention does not establish architectural dependency.",
+    "correction": "Quarantined; excluded from verified slice.",
+    "source_artifact": "okf_graph.json:edge_802"
+  },
+  {
+    "from_id": "face_recognition",
+    "to_id": "self_attention",
+    "relation_type": "CO_MENTION",
+    "quarantine_reason": "Spurious extraction from network security PDF chunk mentioning computer vision applications.",
+    "correction": "Quarantined; excluded from verified slice.",
+    "source_artifact": "okf_graph.json:edge_891"
+  },
+  {
+    "from_id": "sentiment_analysis",
+    "to_id": "self_attention",
+    "relation_type": "CO_MENTION",
+    "quarantine_reason": "Spurious task co-mention treated as prerequisite.",
+    "correction": "Quarantined; excluded from verified slice.",
+    "source_artifact": "okf_graph.json:edge_903"
+  },
+  {
+    "from_id": "negative_prediction",
+    "to_id": "rag",
+    "relation_type": "CO_MENTION",
+    "quarantine_reason": "Non-academic terminology co-mention extracted without grounding.",
+    "correction": "Quarantined; excluded from verified slice.",
+    "source_artifact": "okf_graph.json:edge_914"
+  }
+]
