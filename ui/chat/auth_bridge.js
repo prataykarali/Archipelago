@@ -1,13 +1,180 @@
 import "./user_management_modal.js";
+import "./password_visibility.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const API_PREFIX = "/api/";
 const LOGIN_PATH = "/login";
 // Pages anyone may read without signing in.
-const OPEN_PATHS = new Set(["/", "/landing"]);
-const IDLE_TIMEOUT_MS = 300000;
+const OPEN_PATHS = new Set(["/", "/landing", "/library"]);
+const IDLE_TIMEOUT_MS = 3600000;
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
-const STAFF_ROUTES = new Set(["/chat", "/library", "/graph"]);
+const STAFF_ROUTES = new Set(["/chat", "/library", "/graph", "/research"]);
+const AUTH_CHANNEL_NAME = "archipelago_auth_channel";
+const LOGOUT_STORAGE_KEY = "archipelago_logout_broadcast";
+const ACTIVE_PRINCIPAL_KEY = "archipelago_active_principal_id";
+
+const authChannel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(AUTH_CHANNEL_NAME) : null;
+const inFlightPageControllers = new Set();
+let isHandlingLogout = false;
+let isPageUnloading = false;
+
+function handleGracefulPageShutdown(event) {
+  const persisted = Boolean(event?.persisted);
+  if (isPageUnloading && !persisted) return;
+  if (!persisted) isPageUnloading = true;
+  for (const controller of Array.from(inFlightPageControllers)) {
+    try { controller.abort(); } catch (_) {}
+  }
+  inFlightPageControllers.clear();
+  if (!persisted) {
+    try { authChannel?.close(); } catch (_) {}
+  }
+}
+
+window.addEventListener("pagehide", handleGracefulPageShutdown);
+window.addEventListener("beforeunload", handleGracefulPageShutdown);
+window.addEventListener("pageshow", () => { isPageUnloading = false; });
+
+function readCookie(name) {
+  const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)"));
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
+function syncActivePrincipal(principal) {
+  const nextId = String(principal?.id || principal?.user_id || principal?.username || "");
+  if (!nextId) return;
+  try {
+    const prevId = sessionStorage.getItem(ACTIVE_PRINCIPAL_KEY);
+    if (prevId && prevId !== nextId) {
+      sessionStorage.removeItem("archipelago_research_state_v1");
+      sessionStorage.removeItem("archipelago_research_state_v2");
+      sessionStorage.removeItem("archipelago_research_pending_v2");
+      sessionStorage.removeItem("archipelago_academic_graph_state_v1");
+    }
+    sessionStorage.setItem(ACTIVE_PRINCIPAL_KEY, nextId);
+  } catch (_) {}
+}
+
+window.archipelagoClearClientStorage = ({ includeHistory = false } = {}) => {
+  try {
+    const sessionKeys = [
+      "archipelago_local_user",
+      "archipelago_research_state_v1",
+      "archipelago_research_state_v2",
+      "archipelago_research_pending_v2",
+      "archipelago_academic_graph_state_v1",
+      "archipelago_handoff_state",
+      ACTIVE_PRINCIPAL_KEY,
+    ];
+    for (const k of sessionKeys) sessionStorage.removeItem(k);
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i);
+      if (k && (k.startsWith("sb-") || (includeHistory && k.startsWith("archipelago_")))) {
+        sessionStorage.removeItem(k);
+      }
+    }
+  } catch (_) {}
+  try {
+    localStorage.removeItem("archipelago_local_user");
+    localStorage.removeItem("archipelago_access_token");
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (!k || k === LOGOUT_STORAGE_KEY) continue;
+      if (k.startsWith("sb-") || (includeHistory && k.startsWith("archipelago_"))) {
+        localStorage.removeItem(k);
+      }
+    }
+  } catch (_) {}
+};
+
+function broadcastLogout() {
+  try {
+    authChannel?.postMessage({ type: "logout", ts: Date.now() });
+  } catch (_) {}
+  try {
+    localStorage.setItem(LOGOUT_STORAGE_KEY, String(Date.now()));
+  } catch (_) {}
+}
+
+async function handleRemoteLogout() {
+  if (isHandlingLogout) return;
+  isHandlingLogout = true;
+  window.archipelagoUserId = null;
+  window.archipelagoClearClientStorage({ includeHistory: false });
+  try {
+    const { supabase } = await window.archipelagoAuthReady;
+    if (supabase) await supabase.auth.signOut({ scope: "global" });
+  } catch (_) {}
+  if (window.location.pathname !== LOGIN_PATH) {
+    window.location.replace(LOGIN_PATH);
+  }
+}
+
+if (authChannel) {
+  authChannel.addEventListener("message", (event) => {
+    if (event.data?.type === "logout") handleRemoteLogout();
+  });
+}
+window.addEventListener("storage", (event) => {
+  if (event.key === LOGOUT_STORAGE_KEY && event.newValue) handleRemoteLogout();
+});
+
+window.archipelagoPurgeMyData = async () => {
+  window.archipelagoClearClientStorage({ includeHistory: true });
+  try {
+    await fetch("/api/chat/history", {
+      method: "DELETE",
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+  } catch (_) {}
+  try {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+  } catch (_) {}
+  try {
+    await fetch("/api/auth/session", {
+      method: "DELETE",
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+  } catch (_) {}
+};
+
+window.archipelagoLogout = async ({ redirectUrl = LOGIN_PATH, clearHistory = false } = {}) => {
+  if (isHandlingLogout) return;
+  isHandlingLogout = true;
+  window.archipelagoUserId = null;
+  window.archipelagoClearClientStorage({ includeHistory: clearHistory });
+  broadcastLogout();
+  try {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+  } catch (_) {}
+  try {
+    await fetch("/api/auth/session", {
+      method: "DELETE",
+      credentials: "same-origin",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+  } catch (_) {}
+  try {
+    const { supabase } = await window.archipelagoAuthReady;
+    if (supabase) await supabase.auth.signOut({ scope: "global" });
+  } catch (_) {}
+  // Append ?logout=1 to the redirect so the login page knows not to auto-redirect
+  // back (which would cause a loop when the session is fully cleared).
+  const finalUrl = redirectUrl === LOGIN_PATH
+    ? `${LOGIN_PATH}?logout=1`
+    : redirectUrl;
+  window.location.replace(finalUrl);
+};
 
 async function loadConfig() {
   try {
@@ -19,29 +186,63 @@ async function loadConfig() {
   return { configured: false, required: true };
 }
 
-function isApiRequest(input) {
+function getApiUrl(input) {
   const target = typeof input === "string" ? input : input.url;
-  return new URL(target, window.location.origin).pathname.startsWith(API_PREFIX);
+  const parsed = new URL(target, window.location.origin);
+  return parsed.origin === window.location.origin && parsed.pathname.startsWith(API_PREFIX) ? parsed : null;
 }
 
 async function addAccessToken(supabase, input, init = {}) {
-  if (!isApiRequest(input)) return init;
-  const { data } = await supabase.auth.getSession();
-  if (!data.session?.access_token) return init;
+  const apiUrl = getApiUrl(input);
+  if (!apiUrl) return init;
   const headers = new Headers(init.headers || (typeof input === "string" ? undefined : input.headers));
-  headers.set("Authorization", `Bearer ${data.session.access_token}`);
+  headers.set("X-Requested-With", "XMLHttpRequest");
+  const csrfCookie = readCookie("archipelago_csrf") || readCookie("csrf_token");
+  if (csrfCookie && !headers.has("X-CSRF-Token")) {
+    headers.set("X-CSRF-Token", csrfCookie);
+  }
+  if (apiUrl.pathname === "/api/readiness" && !headers.has("X-Background-Poll")) {
+    headers.set("X-Background-Poll", "1");
+  }
+  if (supabase) {
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.access_token) {
+      headers.set("Authorization", `Bearer ${data.session.access_token}`);
+    }
+  }
   return { ...init, headers };
 }
 
 window.archipelagoAuthReady = (async () => {
   const config = await loadConfig();
-  if (!config.configured) return { config, supabase: null };
+  const originalFetch = window.fetch.bind(window);
+  if (!config.configured) {
+    window.fetch = async (input, init) => {
+      const apiUrl = getApiUrl(input);
+      if (apiUrl?.pathname === "/api/readiness" && document.hidden) {
+        return new Response(JSON.stringify({ ready: true, paused: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return originalFetch(input, await addAccessToken(null, input, init));
+    };
+    return { config, supabase: null };
+  }
 
   const supabase = createClient(config.url, config.publishableKey, {
     auth: { persistSession: true, autoRefreshToken: true },
   });
-  const originalFetch = window.fetch.bind(window);
-  window.fetch = async (input, init) => originalFetch(input, await addAccessToken(supabase, input, init));
+  window.fetch = async (input, init) => {
+    const apiUrl = getApiUrl(input);
+    if (apiUrl?.pathname === "/api/readiness" && document.hidden) {
+      return new Response(JSON.stringify({ ready: true, paused: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return originalFetch(input, await addAccessToken(supabase, input, init));
+  };
   return { config, supabase };
 })();
 
@@ -55,29 +256,23 @@ window.archipelagoRequireSession = async () => {
       if (response.ok) {
         const principal = await response.json();
         window.archipelagoUserId = principal.id || principal.user_id;
+        syncActivePrincipal(principal);
         return data.session;
       }
     }
   } catch (_) {}
-  sessionStorage.removeItem("archipelago_local_user");
-  localStorage.removeItem("archipelago_local_user");
+  window.archipelagoClearClientStorage({ includeHistory: false });
   if (OPEN_PATHS.has(window.location.pathname.replace(/\/$/, "") || "/")) return null;
   const next = encodeURIComponent(window.location.pathname + window.location.search);
   window.location.replace(`${LOGIN_PATH}?next=${next}`);
   return null;
 };
 
-if (["/chat", "/library", "/graph"].includes(window.location.pathname.replace(/\/$/, ""))) {
+if (["/chat", "/graph"].includes(window.location.pathname.replace(/\/$/, "")) || window.location.pathname.startsWith('/research')) {
   let idleTimer;
   const expire = async () => {
-    try {
-      const { supabase } = await window.archipelagoAuthReady;
-      await fetch('/api/auth/session', { method: 'DELETE', credentials: 'same-origin' });
-      if (supabase) await supabase.auth.signOut();
-    } finally {
-      window.archipelagoUserId = null;
-      window.location.replace('/login?timeout=1');
-    }
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    await window.archipelagoLogout({ redirectUrl: `/login?timeout=1&next=${next}` });
   };
   const resetIdle = () => {
     clearTimeout(idleTimer);
@@ -105,13 +300,15 @@ window.archipelagoAuthorizePage = async (allowedRoles) => {
     return null;
   }
 
-  const response = await fetch("/api/auth/me");
+  const response = await fetch("/api/auth/me", { cache: "no-store" });
   if (!response.ok) {
+    window.archipelagoClearClientStorage({ includeHistory: false });
     await supabase.auth.signOut();
     window.location.replace(LOGIN_PATH);
     return null;
   }
   const principal = await response.json();
+  syncActivePrincipal(principal);
   if (!allowedRoles.includes(principal.role)) {
     window.location.replace("/chat");
     return null;
@@ -121,7 +318,7 @@ window.archipelagoAuthorizePage = async (allowedRoles) => {
 
 window.archipelagoRouteForRole = (role, requestedPath) => {
   const allowed = role === "student" ? STUDENT_ROUTES : STAFF_ROUTES;
-  return allowed.has(requestedPath) ? requestedPath : "/chat";
+  return allowed.has(requestedPath) || (role !== 'student' && requestedPath.startsWith('/research/')) ? requestedPath : "/chat";
 };
 
 window.archipelagoMountNavigation = async () => {
@@ -155,7 +352,7 @@ window.archipelagoMountNavigation = async () => {
 
   const routes = principal.role === "student"
     ? [["Chat", "/chat"], ["Library", "/library"]]
-    : [["Chat", "/chat"], ["Library", "/library"], ["Graph", "/graph"]];
+    : [["Chat", "/chat"], ["Library", "/library"], ["Research", "/research"]];
   for (const [label, href] of routes) {
     const link = document.createElement("a");
     link.href = href;
@@ -187,13 +384,7 @@ window.archipelagoMountNavigation = async () => {
   signOut.onmouseenter = () => { signOut.style.background = "#ffffff"; };
   signOut.onmouseleave = () => { signOut.style.background = "rgba(255,255,255,0.9)"; };
   signOut.addEventListener("click", async () => {
-    sessionStorage.removeItem("archipelago_local_user");
-    localStorage.removeItem("archipelago_local_user");
-    try { await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" }); } catch (_) {}
-    if (supabase) {
-      try { await supabase.auth.signOut(); } catch (_) {}
-    }
-    window.location.assign(LOGIN_PATH);
+    await window.archipelagoLogout({ redirectUrl: LOGIN_PATH });
   });
   nav.appendChild(signOut);
   document.body.appendChild(nav);
