@@ -9,8 +9,11 @@
     <script src="/index-inline-1.js"></script>
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Marked.js (Markdown renderer) -->
+    <!-- Marked.js (Markdown renderer) & KaTeX (Math renderer) -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
     <!-- Prism.js (Syntax highlighting) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -36,6 +39,8 @@
     <link rel="stylesheet" href="/styles/09-user-bubble-warfield-font.css">
     <link rel="stylesheet" href="/styles/10-swipe-transitions-animations.css">
     <link rel="stylesheet" href="/styles/11-roadmap-responsive.css">
+    <link rel="stylesheet" href="/styles/12-research-workspace.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/v2/favicon.svg">
 
 <!-- MASTER FONT OVERRIDE FOR AURELLIS AND BRIGEND ONLY -->
 <!-- WARFIELD CHAT MESSAGE FONT -->
@@ -44,10 +49,10 @@
 </head>
 <body class="bg-darkBg text-gray-100 font-sans h-full overflow-hidden relative">
 
-    <!-- Glowing cosmic background blobs -->
-    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accentPurple opacity-20 filter blur-[120px] animate-blob -z-10"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accentPink opacity-20 filter blur-[120px] animate-blob animation-delay-2000 -z-10"></div>
-    <div class="absolute top-[30%] right-[20%] w-[40%] h-[40%] rounded-full bg-accentCyan opacity-10 filter blur-[120px] animate-blob animation-delay-4000 -z-10"></div>
+    <!-- Restrained background ambient glow (5-8% opacity) -->
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accentPurple opacity-[0.06] filter blur-[140px] pointer-events-none -z-10"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accentPink opacity-[0.05] filter blur-[140px] pointer-events-none -z-10"></div>
+    <div class="absolute top-[30%] right-[20%] w-[40%] h-[40%] rounded-full bg-accentCyan opacity-[0.05] filter blur-[140px] pointer-events-none -z-10"></div>
 
     <!-- Main Layout Container -->
     <div class="flex flex-col h-full">
@@ -61,10 +66,11 @@
             <div class="header-orb header-orb-b" aria-hidden="true"></div>
             <!-- Navigation Links (Chat Workspace) -->
             <div class="flex items-center gap-2">
-                <div class="px-3 py-1.5 rounded-lg bg-accentPurple/25 text-white font-bold text-xs flex items-center gap-1.5 border border-accentPurple/50 shadow-sm" title="Chat Workspace">
-                    <i class="fa-solid fa-comments text-accentPink"></i>
-                    <span class="font-extrabold tracking-wide">Chat</span>
-                </div>
+                <a href="/" class="header-brand flex items-center gap-2.5 hover:opacity-90 transition-opacity" title="Archipelago Academic Assistant">
+                    <img src="/assets/v2/archipelago_header_logo.svg" alt="Archipelago" class="h-7 w-auto">
+                    <span class="header-title-divider"></span>
+                    <span class="header-institution-tag hidden sm:inline">Academic Assistant</span>
+                </a>
             </div>
 
             <div class="flex items-center gap-2">
@@ -155,69 +161,59 @@
                     </div>
                 </div>
 
-                <!-- Concept Graph & OKF Key Relationships Inspector (ConceptCard) -->
-                <div class="flex-1 flex flex-col gap-3 min-h-[240px]">
+                <!-- Academic & Institutional Quick Access -->
+                <div class="flex-1 flex flex-col gap-3 min-h-[180px]">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <img src="/ui/assets/graph_btn.png" class="w-5 h-5 object-contain" alt="Graph">
-                            Concept Graph & OKF Keys
+                            <i class="fa-solid fa-building-columns text-accentPurple text-xs"></i>
+                            <span>Library &amp; Research</span>
                         </h3>
                     </div>
-                    
-                    <div id="topology-placeholder" class="glass-neon-card flex-1 flex flex-col items-center justify-center p-5 text-center text-gray-400 bg-black/30 border border-dashed border-white/15">
-                        <div class="w-12 h-12 flex items-center justify-center mb-3">
-                            <img src="/ui/assets/graph_btn.png" class="w-full h-full object-contain" alt="Graph">
-                        </div>
-                        <p class="text-[11px] leading-relaxed text-gray-300 max-w-[200px]">Ask a question or tap a book to view the concept graph & OKF relationships.</p>
-                    </div>
-
-                    <div id="topology-view" class="hidden glass-neon-card flex flex-col gap-3 overflow-y-auto max-h-[420px] p-3">
-                        <!-- Left Sidebar SVG Map -->
-                        <div id="sidebar-svg-map-container" class="w-full h-44 rounded-2xl glass-light border border-amber-400/30 relative overflow-hidden flex items-center justify-center shadow-inner">
-                            <div class="graph-ripple-bg" id="sidebar-ripple-bg"></div>
-                            <svg id="sidebar-svg-map" class="w-full h-full"></svg>
-                        </div>
-
-                        <!-- Active Node Header -->
-                        <div class="p-3.5 rounded-2xl glass-glow border border-accentPurple/40 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span id="graph-node-type" class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-accentPurple/25 text-accentPurple border border-accentPurple/40 shadow-[0_0_10px_rgba(139,92,246,0.2)]">Concept Node</span>
-                                <span id="graph-node-diff" class="text-[9px] text-amber-300 font-mono">Foundational</span>
-                            </div>
-                            <h4 id="graph-node-title" class="text-sm font-bold text-white truncate">Concept Name</h4>
-                            <p id="graph-node-summary" class="text-xs text-gray-300 line-clamp-2 leading-snug">Summary text...</p>
-                        </div>
-
-                        <!-- OKF Key Relationships Section -->
-                        <div class="space-y-2">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 flex items-center gap-1">
-                                <i class="fa-solid fa-key text-accentPink text-[10px]"></i> OKF Key Relationships
-                            </span>
-
-                            <div class="space-y-1.5 text-xs">
-                                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-accentPurple uppercase">↑ REQUIRES (Prerequisites)</span>
-                                    <div id="okf-rel-requires" class="flex flex-wrap gap-1">
-                                        <span class="text-[10px] text-gray-500 italic">None indexed</span>
-                                    </div>
-                                </div>
-
-                                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-emerald-400 uppercase">↓ UNLOCKS (Enables)</span>
-                                    <div id="okf-rel-unlocks" class="flex flex-wrap gap-1">
-                                        <span class="text-[10px] text-gray-500 italic">None indexed</span>
-                                    </div>
-                                </div>
-
-                                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-1">
-                                    <span class="text-[9px] font-bold text-accentCyan uppercase">◈ CONNECTS (Uses / Part Of)</span>
-                                    <div id="okf-rel-connects" class="flex flex-wrap gap-1">
-                                        <span class="text-[10px] text-gray-500 italic">None indexed</span>
-                                    </div>
+                    <div class="space-y-2 text-xs">
+                        <a href="/library" class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPurple/50 hover:bg-slate-800 text-gray-200 flex items-center justify-between transition-all group">
+                            <div class="flex items-center gap-2.5">
+                                <img src="/assets/v2/icon_library_opac.svg" class="w-5 h-5 object-contain" alt="OPAC">
+                                <div>
+                                    <p class="font-bold text-xs text-white group-hover:text-amber-300">Central Library OPAC</p>
+                                    <p class="text-[10px] text-gray-400">Search 20,000+ catalog holdings</p>
                                 </div>
                             </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-gray-500 group-hover:text-white transition-colors"></i>
+                        </a>
+
+                        <a href="/academic/graph" target="_blank" rel="noopener" class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentCyan/50 hover:bg-slate-800 text-gray-200 flex items-center justify-between transition-all group">
+                            <div class="flex items-center gap-2.5">
+                                <img src="/assets/v2/icon_concept_graph.svg" class="w-5 h-5 object-contain" alt="Graph Explorer">
+                                <div>
+                                    <p class="font-bold text-xs text-white group-hover:text-cyan-300">Global Graph Explorer</p>
+                                    <p class="text-[10px] text-gray-400">Interactive Cytoscape OKF topology</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-500 group-hover:text-white transition-colors"></i>
+                        </a>
+
+                        <a href="/research" class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPink/50 hover:bg-slate-800 text-gray-200 flex items-center justify-between transition-all group">
+                            <div class="flex items-center gap-2.5">
+                                <img src="/assets/v2/icon_research_papers.svg" class="w-5 h-5 object-contain" alt="Research">
+                                <div>
+                                    <p class="font-bold text-xs text-white group-hover:text-pink-300">Research Intelligence</p>
+                                    <p class="text-[10px] text-gray-400">Multi-provider literature synthesis</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-gray-500 group-hover:text-white transition-colors"></i>
+                        </a>
+
+                        <div class="sidebar-mode-indicator flex items-center gap-2 p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/40 text-[10px] text-cyan-300 font-mono">
+                            <i class="fa-solid fa-layer-group text-accentCyan"></i>
+                            <span>Active Mode: Graph-Assisted</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Privacy & Data Management Footer -->
+                <div class="px-3 py-2 border-t border-white/10 text-[10px] text-gray-400 flex items-center justify-between gap-2">
+                    <span title="Queries processed via Supabase Auth &amp; Archipelago AI Gateway. No ad trackers.">Privacy &amp; Terms</span>
+                    <button type="button" onclick="if (confirm('Clear all local chat history and saved browser state?')) { window.archipelagoClearClientStorage && window.archipelagoClearClientStorage({ includeHistory: true }); if (typeof clearAllHistory === 'function') clearAllHistory(); }" class="text-rose-300 hover:text-rose-200 underline cursor-pointer bg-transparent border-0">Clear My Data</button>
                 </div>
 
             </div>
@@ -239,8 +235,8 @@
                 <!-- Fixed librarian + concept graph under her (never covers chat bubbles) -->
                 <aside id="sticky-avatar-dock" aria-hidden="true">
                     <div class="avatar-shell" id="sticky-avatar" data-avatar>
-                        <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                        <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
+                        <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
                     </div>
                     <span class="avatar-label">AI Librarian</span>
                     <div id="bottom-svg-map-container" class="hidden" title="Concept neighborhood">
@@ -255,8 +251,8 @@
                     <div id="welcome-container" class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center text-center py-3 md:py-5 gap-4">
 
                         <div class="avatar-shell welcome-avatar" id="welcome-avatar" data-avatar>
-                            <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" muted playsinline webkit-playsinline preload="auto"></video>
-                            <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
+                            <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="auto"></video>
                         </div>
 
                         <!-- 2+3. ShineText + TypewriterText -->
@@ -266,77 +262,66 @@
                         </div>
 
                         <!-- 4+7. DepthParallaxWords + hover-3d — Suggested Prompts -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 w-full max-w-4xl text-left mt-1" id="suggest-grid">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full max-w-4xl text-left mt-1" id="suggest-grid">
 
-                            <button onclick="autoPrompt('What is Low-Rank Adaptation (LoRA)?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentPurple/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('How do compilers transform source code into machine instructions?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPurple/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/brain_btn2.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Brain">
-                                <span class="depth-word-target">What is Low-Rank Adaptation (LoRA)?</span>
+                                <span class="depth-word-target leading-snug">Compiler stages and machine code</span>
                             </button>
 
-                            <button onclick="autoPrompt('Explain the main components of retrieval augmented generation (RAG)')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentPink/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Explain the main components of retrieval augmented generation (RAG)')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPink/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Search">
-                                <span class="depth-word-target">Explain the main components of RAG</span>
+                                <span class="depth-word-target leading-snug">Explain the main components of RAG</span>
                             </button>
 
-                            <button onclick="autoPrompt('What are the prerequisites for BERT model training?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-accentCyan/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Compare B-Trees and LSM-Trees in database storage engines.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentCyan/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/network_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Network">
-                                <span class="depth-word-target">What are the prerequisites for BERT?</span>
+                                <span class="depth-word-target leading-snug">B-Trees vs LSM-Trees</span>
                             </button>
 
-                            <button onclick="autoPrompt('How does the Attention mechanism handle sequence alignment?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Compare TCP Reno and BBR congestion control in high-throughput networks.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-indigo-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/brain_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Attention">
-                                <span class="depth-word-target">How does the Attention mechanism work?</span>
+                                <span class="depth-word-target leading-snug">TCP Reno vs BBR</span>
                             </button>
 
-                            <button onclick="autoPrompt('How do DBMS buffer pools optimize query retrieval in Silberschatz?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('How do DBMS buffer pools optimize query retrieval in Silberschatz?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-amber-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Book">
-                                <span class="depth-word-target">DBMS buffer pools in Silberschatz</span>
+                                <span class="depth-word-target leading-snug">DBMS buffer pools in Silberschatz</span>
                             </button>
 
-                            <button onclick="autoPrompt('Explain virtual memory paging vs segmentation in OSTEP.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Explain virtual memory paging vs segmentation in OSTEP.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-emerald-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Note">
-                                <span class="depth-word-target">Virtual memory paging vs segmentation</span>
+                                <span class="depth-word-target leading-snug">Virtual memory paging vs segmentation</span>
                             </button>
 
-                            <button onclick="autoPrompt('How does GraphRAG combine graph databases with RAG synthesis?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('Explain singular value decomposition and its relation to eigenvalues.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-indigo-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/graph_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Graph">
-                                <span class="depth-word-target">GraphRAG: graph + RAG synthesis</span>
+                                <span class="depth-word-target leading-snug">SVD and eigenvalues</span>
                             </button>
 
-                            <button onclick="autoPrompt('Rank the most critical PEFT and RAG papers in the corpus by contribution.')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('What are the risks of branch prediction and speculative execution in computer architecture?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-rose-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/flash_card_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Flashcard">
-                                <span class="depth-word-target">Rank top PEFT &amp; RAG papers</span>
+                                <span class="depth-word-target leading-snug">Branch prediction and speculation</span>
                             </button>
 
-
-                            <button onclick="autoPrompt('What are the library hours and weekend issue rules?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('What are the library hours and weekend issue rules?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-emerald-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Hours">
-                                <span class="depth-word-target">Library hours &amp; weekend rules</span>
+                                <span class="depth-word-target leading-snug">Library hours &amp; weekend rules</span>
                             </button>
 
-                            <button onclick="autoPrompt('What e-resource portals does the central library provide?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('What e-resource portals does the central library provide?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-sky-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="E-resources">
-                                <span class="depth-word-target">E-resource portals (IEEE, Pearson…)</span>
+                                <span class="depth-word-target leading-snug">E-resource portals (IEEE, Pearson…)</span>
                             </button>
 
-                            <button onclick="autoPrompt('How do I access Pearson eLibrary textbooks?')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('How do I access Pearson eLibrary textbooks?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-amber-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Pearson">
-                                <span class="depth-word-target">Pearson eLibrary — read from library</span>
+                                <span class="depth-word-target leading-snug">Pearson eLibrary — read from library</span>
                             </button>
 
-                            <button onclick="autoPrompt('Suggest books on operating systems')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-rose-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Books">
-                                <span class="depth-word-target">Suggest books on operating systems</span>
-                            </button>
-
-                            <button onclick="autoPrompt('RAG + DBMS')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Library">
-                                <span class="depth-word-target">Multi-topic: RAG + DBMS</span>
-                            </button>
-
-                            <button onclick="autoPrompt('LoRA vs BERT')" class="hover-3d-card p-4 rounded-xl bg-white/5 border border-white/10 hover:border-sky-400/40 hover:bg-white/10 text-xs text-gray-300 font-medium transition-all duration-200 flex items-start gap-3 group">
+                            <button onclick="autoPrompt('How does the Linux Completely Fair Scheduler choose processes to run?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-sky-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
                                 <img src="/ui/assets/settings_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Compare">
-                                <span class="depth-word-target">Compare LoRA vs BERT</span>
+                                <span class="depth-word-target leading-snug">Linux CFS process scheduling</span>
                             </button>
                         </div>
                     </div>
@@ -345,20 +330,17 @@
                 </div><!-- /#chat-stage -->
 
                 <!-- Input area -->
-                <div class="px-4 py-4 md:px-8 md:py-6 border-t border-white/10 glass-light">
-                    <!-- 6. GlowBorderCard wrapping the input -->
-                    <div class="max-w-4xl mx-auto glow-border-wrap">
-                        <div class="relative flex items-center bg-black/40 rounded-xl">
-                            <textarea id="chat-input" placeholder="Ask AIML, books, library hours, e-resources…" rows="1" class="w-full py-3 pl-4 pr-16 bg-transparent text-gray-200 text-sm rounded-xl border border-white/10 outline-none focus:border-accentPurple/50 focus:ring-1 focus:ring-accentPurple/20 transition-all duration-200 resize-none" onkeydown="handleKey(event)"></textarea>
+                <div class="px-4 py-4 md:px-8 md:py-5 border-t border-slate-700/60 bg-slate-900/80">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="relative flex items-center bg-slate-800/80 rounded-xl border border-slate-700/70 focus-within:border-accentPurple focus-within:ring-1 focus-within:ring-accentPurple/30 transition-all">
+                            <textarea id="chat-input" placeholder="Ask a technical question or trace prerequisites…" rows="1" class="w-full py-3.5 pl-4 pr-16 bg-transparent text-gray-100 text-sm outline-none transition-all duration-200 resize-none font-sans" onkeydown="handleKey(event)"></textarea>
                             <div class="absolute right-3 flex items-center gap-2">
-                                <button type="button" id="send-btn" onclick="handleSendBtnClick(event)" class="w-10 h-10 rounded-lg bg-accentPurple text-white hover:bg-accentPurple/80 flex items-center justify-center transition-all duration-200 shadow-md shadow-accentPurple/20 z-20 cursor-pointer pointer-events-auto" aria-label="Send or stop message" title="Send message">
+                                <button type="button" id="send-btn" onclick="handleSendBtnClick(event)" class="w-10 h-10 rounded-lg bg-accentPurple text-white hover:bg-accentPurple/85 flex items-center justify-center transition-all duration-200 shadow-md shadow-accentPurple/25 z-20 cursor-pointer pointer-events-auto" aria-label="Send or stop message" title="Send message">
                                     <i id="send-btn-icon" class="fa-solid fa-arrow-up text-sm"></i>
                                 </button>
                             </div>
                         </div>
-                        <p id="query-limit-status" class="mt-2 text-xs text-slate-300" aria-live="polite">10 AI chat queries per rolling 60-minute window.</p>
                     </div>
-                    <p id="chat-availability" class="max-w-3xl mx-auto mt-2 text-[11px] text-gray-500">Student mode: query only. Librarians manage PDFs in the Graph UI → Librarian tab.</p>
                 </div>
             </main>
 

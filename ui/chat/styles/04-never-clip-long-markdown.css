@@ -26,11 +26,22 @@
         .chat-bubble p,
         .chat-bubble li,
         .chat-bubble a,
-        .chat-bubble span {
+        .chat-bubble span:not(.katex):not(.katex *) {
             overflow-wrap: break-word;
             word-break: normal;
             writing-mode: horizontal-tb !important;
             white-space: normal;
+        }
+        .chat-bubble .katex,
+        .chat-bubble .katex * {
+            white-space: nowrap;
+            overflow-wrap: normal;
+        }
+        .chat-bubble .katex-display {
+            display: block;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0.35rem 0;
         }
         .chat-bubble pre {
             max-width: 100%;

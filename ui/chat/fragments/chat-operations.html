@@ -1,78 +1,182 @@
-            <!-- Right Panel: Ingestion operations + retrieval trace (starts closed) -->
+            <!-- Right Panel: SIGIR Demo Inspector — tabbed (Graph / Evidence / Trace) -->
             <aside id="pipeline-panel" class="side-panel panel-closed border-l border-white/10 glass flex flex-col shrink-0" aria-hidden="true">
-            <div class="side-panel-inner flex flex-col p-5 overflow-y-auto gap-6 h-full">
-<div class="flex items-center justify-between">
+            <div class="side-panel-inner flex flex-col overflow-y-auto h-full">
+
+<!-- Inspector Header -->
+<div class="flex items-center justify-between px-4 pt-4 pb-2">
 <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-<i class="fa-solid fa-route text-accentPurple"></i>
-Live operations
+<i class="fa-solid fa-microscope text-accentPurple"></i>
+Inspector
 </h3>
-<button type="button" onclick="togglePipeline()" class="text-gray-400 hover:text-white transition-colors" aria-label="Close pipeline panel">
+<button type="button" onclick="togglePipeline()" class="text-gray-400 hover:text-white transition-colors" aria-label="Close inspector">
 <i class="fa-solid fa-xmark text-base"></i>
 </button>
 </div>
 
-<hr class="border-white/10">
-
-<!-- 📚 Stack of Books -->
-<div class="flex flex-col gap-3">
-    <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
-            Stack of Books
-        </span>
-        <span id="books-count" class="text-xs text-gray-400 font-mono"></span>
+<!-- Retrieval mode indicator (read-only, Phase 7) -->
+<div class="px-4 pb-2">
+    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-accentPurple/10 border border-accentPurple/20 text-[9px] font-bold text-accentPurple/80 w-fit select-none">
+        <i class="fa-solid fa-magnifying-glass-chart text-[8px]"></i>
+        <span id="retrieval-mode-indicator" class="hidden">Graph-Assisted Hybrid</span>
     </div>
-    <!-- Category Filter Selector -->
-    <div id="books-filter" class="flex flex-wrap gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold">
-        <button data-filter="all" class="px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all">All</button>
-        <button data-filter="dbms" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DBMS</button>
-        <button data-filter="os" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">OS</button>
-        <button data-filter="dl" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DL</button>
-        <button data-filter="math" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Math</button>
-        <button data-filter="peft" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">RAG/FT</button>
-        <button data-filter="gnn" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">GNN</button>
-        <button data-filter="syllabi" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Syllabi</button>
-    </div>
-    <!-- Document Collection / Provenance Selector -->
-    <div id="type-filter" class="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold mt-1">
-        <button data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center">All Docs</button>
-        <button data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Library / Pearson</button>
-        <button data-type-filter="open_source" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Peer-reviewed arXiv papers and open-access textbooks">🌐 Open-Source</button>
-    </div>
-    <div id="books-list" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1"></div>
 </div>
 
-<hr class="border-white/10">
+<!-- Tab bar -->
+<div class="flex gap-1 px-4 pb-3" role="tablist" aria-label="Inspector tabs">
+    <button type="button" id="inspector-tab-btn-graph" onclick="switchInspectorTab('graph')"
+        class="flex-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all border bg-accentPurple/30 text-accentPurple border-accentPurple/40"
+        role="tab" aria-selected="true" aria-controls="inspector-pane-graph">
+        <img src="/assets/v2/icon_concept_graph.svg" class="w-3.5 h-3.5 inline mr-1" alt="">Graph
+    </button>
+    <button type="button" id="inspector-tab-btn-evidence" onclick="switchInspectorTab('evidence')"
+        class="flex-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all border bg-white/5 text-gray-400 border-transparent"
+        role="tab" aria-selected="false" aria-controls="inspector-pane-evidence">
+        <img src="/assets/v2/icon_evidence.svg" class="w-3.5 h-3.5 inline mr-1" alt="">Evidence
+    </button>
+    <button type="button" id="inspector-tab-btn-trace" onclick="switchInspectorTab('trace')"
+        class="flex-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all border bg-white/5 text-gray-400 border-transparent"
+        role="tab" aria-selected="false" aria-controls="inspector-pane-trace">
+        <img src="/assets/v2/icon_trace.svg" class="w-3.5 h-3.5 inline mr-1" alt="">Trace
+    </button>
+</div>
 
+<hr class="border-white/10 mx-4">
 
-                    <!-- KuzuDB Source Citations -->
-                    <div class="flex flex-col gap-3">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-file-invoice text-accentPink"></i>
-                            KuzuDB Source Citations
-                        </span>
-                        
-                        <div id="citations-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
-                            No citations retrieved yet.
-                        </div>
+<!-- ── Graph pane ── -->
+<div id="inspector-pane-graph" class="flex-1 flex flex-col gap-3.5 px-4 py-3 overflow-y-auto" role="tabpanel">
+    <!-- Active Concept Topology & SVG -->
+    <div id="topology-placeholder" class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/60 text-center flex flex-col items-center justify-center gap-2">
+        <img src="/assets/v2/graph_empty_state.svg" class="w-14 h-14 object-contain opacity-75" alt="Empty Graph">
+        <p class="text-xs font-semibold text-gray-300">No Verified Graph Match</p>
+        <p class="text-[10px] text-gray-400">Ask a technical question to inspect the resolved concept graph &amp; prerequisite paths.</p>
+    </div>
 
-                        <div id="citations-list" class="hidden flex flex-col gap-2"></div>
-                    </div>
+    <div id="topology-view" class="hidden flex flex-col gap-3">
+        <!-- SVG Interactive Node Map -->
+        <div id="sidebar-svg-map-container" class="w-full h-44 rounded-xl bg-slate-900 border border-slate-700/70 relative overflow-hidden flex items-center justify-center shadow-inner">
+            <div class="graph-ripple-bg" id="sidebar-ripple-bg"></div>
+            <svg id="sidebar-svg-map" class="w-full h-full p-2"></svg>
+        </div>
 
-                    <!-- Step Execution Logs -->
-                    <div class="flex flex-col gap-3">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-list-check text-accentCyan"></i>
-                            Execution Trace
-                        </span>
-                        
-                        <div id="logs-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
-                            No logs captured yet.
-                        </div>
+        <!-- Active Resolved Concept Card -->
+        <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/70 space-y-1.5">
+            <div class="flex items-center justify-between">
+                <span id="graph-node-type" class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-accentPurple/25 text-accentPurple border border-accentPurple/40">Concept Node</span>
+                <span id="graph-node-diff" class="text-[9px] text-amber-300 font-mono">Foundational</span>
+            </div>
+            <h4 id="graph-node-title" class="text-sm font-bold text-white truncate">Concept Name</h4>
+            <p id="graph-node-summary" class="text-xs text-gray-300 line-clamp-2 leading-snug">Summary text...</p>
+            <div class="pt-1 flex items-center justify-between">
+                <a id="graph-node-explore-link" href="/academic/graph" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-accentPurple hover:text-accentPink transition-colors">
+                    <span>Explore in Graph Explorer</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                </a>
+            </div>
+        </div>
 
-                        <div id="logs-list" class="hidden flex flex-col gap-2.5"></div>
-                    </div>
+        <!-- Validated OKF Key Relationships -->
+        <div class="space-y-1.5 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col gap-1">
+                <span class="text-[9px] font-bold text-accentPurple uppercase tracking-wider">↑ REQUIRES (Validated Prerequisites)</span>
+                <div id="okf-rel-requires" class="flex flex-wrap gap-1">
+                    <span class="text-[10px] text-gray-500 italic">None indexed</span>
                 </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col gap-1">
+                <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">↓ UNLOCKS (Enables)</span>
+                <div id="okf-rel-unlocks" class="flex flex-wrap gap-1">
+                    <span class="text-[10px] text-gray-500 italic">None indexed</span>
+                </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col gap-1">
+                <span class="text-[9px] font-bold text-accentCyan uppercase tracking-wider">◈ CONNECTS (Uses / Part Of)</span>
+                <div id="okf-rel-connects" class="flex flex-wrap gap-1">
+                    <span class="text-[10px] text-gray-500 italic">None indexed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="border-slate-700/60 my-1">
+
+    <!-- 📚 Stack of Books -->
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
+                Stack of Books
+            </span>
+            <span id="books-count" class="text-xs text-gray-400 font-mono"></span>
+        </div>
+        <div id="books-filter" class="flex flex-wrap gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold">
+            <button data-filter="all" class="px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all">All</button>
+            <button data-filter="dbms" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DBMS</button>
+            <button data-filter="os" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">OS</button>
+            <button data-filter="dl" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DL</button>
+            <button data-filter="math" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Math</button>
+            <button data-filter="peft" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">RAG/FT</button>
+            <button data-filter="gnn" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">GNN</button>
+            <button data-filter="syllabi" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Syllabi</button>
+        </div>
+        <div id="type-filter" class="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold mt-1">
+            <button data-type-filter="open_source" class="flex-1 px-2 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center" title="Peer-reviewed arXiv papers and open-access textbooks">🌐 Open Access</button>
+            <button data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Library Holdings</button>
+            <button data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center">All Docs</button>
+        </div>
+        <div id="books-list" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1"></div>
+    </div>
+
+    <hr class="border-white/10">
+
+    <!-- KuzuDB Source Citations (legacy — kept for existing JS compatibility) -->
+    <div class="flex flex-col gap-3">
+        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-file-invoice text-accentPink"></i>
+            Source Citations
+        </span>
+        <div id="citations-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
+            No citations retrieved yet.
+        </div>
+        <div id="citations-list" class="hidden flex flex-col gap-2"></div>
+    </div>
+</div>
+
+<!-- ── Evidence pane ── -->
+<div id="inspector-pane-evidence" class="hidden flex-1 flex flex-col gap-3 px-4 py-3 overflow-y-auto" role="tabpanel">
+    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+        <img src="/assets/v2/icon_evidence.svg" class="w-3.5 h-3.5 object-contain" alt="">
+        Source Evidence &amp; Bibliographic Metadata
+    </span>
+    <div id="inspector-evidence-list" class="flex flex-col gap-2">
+        <p class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">Ask a question to see source evidence.</p>
+    </div>
+</div>
+
+<!-- ── Trace pane ── -->
+<div id="inspector-pane-trace" class="hidden flex-1 flex flex-col gap-3 px-4 py-3 overflow-y-auto" role="tabpanel">
+    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+        <img src="/assets/v2/icon_trace.svg" class="w-3.5 h-3.5 object-contain" alt="">
+        Retrieval &amp; Routing Trace
+    </span>
+    <div id="inspector-trace-list" class="flex flex-col gap-2">
+        <p class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">No trace data yet.</p>
+    </div>
+
+    <!-- Legacy execution logs (kept for existing JS) -->
+    <div class="mt-3 flex flex-col gap-3">
+        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-terminal text-gray-500"></i>
+            Execution Logs
+        </span>
+        <div id="logs-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
+            No logs captured yet.
+        </div>
+        <div id="logs-list" class="hidden flex flex-col gap-2.5"></div>
+    </div>
+</div>
+
             </div>
             </aside>
 

@@ -73,12 +73,54 @@ import { API_CONTRACT } from './00-current-origin.js';
                 // inventory table ONLY from records verified against the Koha export;
                 // render cited PDFs and research papers in a compact Sources & Resources block.
                 const citations = getResponseCitations(metadata) || [];
-                const verifiedHoldings = citations.filter(c => Boolean(c && c.koha_record_verified)).slice(0, 8);
-                const otherSources = citations.filter(c => !(c && c.koha_record_verified)).slice(0, 8);
-                if (verifiedHoldings.length || otherSources.length) {
+                const verifiedHoldings = citations.filter(c => Boolean(c && c.koha_record_verified)).slice(0, 10);
+                const otherSources = citations.filter(c => !(c && c.koha_record_verified)).slice(0, 10);
+                const inventoryCards = (Array.isArray(metadata.inventory) && metadata.inventory.length)
+                    ? metadata.inventory.slice(0, 6)
+                    : (Array.isArray(metadata.digital_resources) ? metadata.digital_resources.slice(0, 6) : []);
+                if (verifiedHoldings.length || otherSources.length || inventoryCards.length) {
                     container = document.createElement('section');
                     container.className = 'library-inventory-section';
                     let html = '';
+                    if (inventoryCards.length) {
+                        html += `
+                            <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">
+                                <span class="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-books text-sky-400"></i> Catalogue &amp; Digital Inventory (${inventoryCards.length})
+                                </span>
+                                <span class="text-[11px] text-gray-400 bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Institutional Match
+                                </span>
+                            </div>
+                            <div class="inventory-table-wrap overflow-x-auto w-full mb-3">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-sky-500/30 text-sky-400">
+                                            <th class="py-2 px-3">Book / Title</th>
+                                            <th class="py-2 px-3">Author</th>
+                                            <th class="py-2 px-3 whitespace-nowrap">ISBN</th>
+                                            <th class="py-2 px-3 whitespace-nowrap">Match</th>
+                                            <th class="py-2 px-3 text-center whitespace-nowrap">Access</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${inventoryCards.map(card => {
+                                            const rUrl = card.reader_url || '';
+                                            return `
+                                                <tr class="border-b border-white/10 hover:bg-white/5 transition-colors">
+                                                    <td class="py-2 px-3 font-semibold text-gray-200">${escapeHTML(card.title || 'Catalogue Title')}</td>
+                                                    <td class="py-2 px-3 text-gray-300">${escapeHTML(card.author || '—')}</td>
+                                                    <td class="py-2 px-3 font-mono text-[11px] text-sky-300 whitespace-nowrap">${escapeHTML(card.isbn || '—')}</td>
+                                                    <td class="py-2 px-3 text-[11px] text-emerald-300 whitespace-nowrap">${escapeHTML(card.confidence || 'indexed')}</td>
+                                                    <td class="py-2 px-3 text-center whitespace-nowrap">${rUrl ? `<a class="view-page-link inline-block text-indigo-200 text-xs font-bold underline" href="${escapeHTML(rUrl)}" target="_blank" rel="noopener noreferrer">Open e-book</a>` : '<span class="text-gray-500">Cataloged</span>'}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
                     if (verifiedHoldings.length) {
                         html += `
                             <div class="library-inventory-header flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-sky-500/20">

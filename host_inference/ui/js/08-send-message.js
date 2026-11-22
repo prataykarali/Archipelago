@@ -107,7 +107,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
             }
 
             try {
-                const response = await postChatRequest(inputVal, state.currentAbortController.signal);
+                const response = await postChatRequest(inputVal, state.currentAbortController.signal, { synthesis: true });
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();

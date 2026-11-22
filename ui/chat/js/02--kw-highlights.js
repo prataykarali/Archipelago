@@ -40,6 +40,7 @@ import { state } from './00-state.js';
                     let p = node.parentNode;
                     while (p && p !== root) {
                         if (SKIP_TAGS.has(p.nodeName)) return NodeFilter.FILTER_REJECT;
+                        if (p.classList && (p.classList.contains('katex') || p.classList.contains('katex-mathml'))) return NodeFilter.FILTER_REJECT;
                         // Skip headings — they are already accent-styled.
                         if (/^H[1-6]$/.test(p.nodeName)) return NodeFilter.FILTER_REJECT;
                         p = p.parentNode;
@@ -199,8 +200,9 @@ import { state } from './00-state.js';
 
         function citationPageUrl(citation) {
             if (!citation || typeof citation !== 'object') return '';
-            const rawPage = Number(citation.page_number ?? citation.page);
-            const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
+            let rawPage = Number(citation.page_number ?? citation.page);
+            let page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
+            if (!Number.isFinite(page) || page < 1) page = 1;
 
             const directUrl = citation.reader_url || citation.url || citation.pdf_url || '';
 

@@ -71,7 +71,7 @@ export function applyQuotaCooldown(resetAt, retryAfter) {
     }, delayMs);
 }
 
-export async function postChatRequest(inputVal, signal) {
+export async function postChatRequest(inputVal, signal, options = { synthesis: true }) {
     // Send only the last N turns — long chats must not bloat the request body.
     const cleanHistory = state.chatHistory
         .slice(-MAX_HISTORY_TURNS_SENT)
@@ -92,7 +92,7 @@ export async function postChatRequest(inputVal, signal) {
             history: cleanHistory,
             session_id: state.conversationSessionId,
             // Enable synthesis so that local SLM generates natural academic answers
-            synthesis: true
+            synthesis: options?.synthesis !== false
         })
     });
 

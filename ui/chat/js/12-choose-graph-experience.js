@@ -1,7 +1,8 @@
 import { storageKey } from './storage-key.js';
+import { state as chatState } from './00-state.js';
 // Auto-split from ui/chat/index.html — 12-choose-graph-experience.js
 // Feature module 13 of 22.
-import { dismissGraphChoiceModal, getOrCreateInteractiveZone, showGraphChoiceModal } from './11-populate-topology.js';
+import { dismissGraphChoiceModal, getOrCreateInteractiveZone, getOrCreateQuizZone, showGraphChoiceModal } from './11-populate-topology.js';
 import { _nodeId, _nodeLabel } from './10-populate-pipeline.js';
 import { renderHorizontalGraphCard } from './13-render-horizontal-graph-card.js';
 import { renderAdaptiveMCQCard } from './14-render-adaptive-mcqcard.js';
@@ -86,7 +87,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             const anchor = metadata.anchor_concept;
             const anchorId = _nodeId(anchor);
             const anchorLabel = _nodeLabel(anchor) || 'Target Concept';
-            const zone = getOrCreateInteractiveZone(msgId);
+            const zone = getOrCreateQuizZone(msgId);
             if (!zone) return;
             try {
                 const saved = localStorage.getItem(storageKey('archipelago_eval_' + anchorId));
@@ -184,10 +185,34 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
         window.startPersonalizedQnA = startPersonalizedQnA;
 
         function switchToPersonalizedGraph(msgId) {
+            if (chatState.isGenerating || window.isGenerating) {
+                const btn = document.getElementById(`quiz-start-${msgId}`);
+                if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.textContent = 'Wait for AI reply to finish…';
+                    setTimeout(() => { if (btn.isConnected) btn.innerHTML = orig; }, 2200);
+                }
+                return;
+            }
             const completed = window._adaptiveState && window._adaptiveState[msgId];
             if (completed && completed.finished) {
                 startPersonalizedQnA(msgId, completed.metadata);
                 return;
+            }
+            if (!(completed && completed.current_mcq)) {
+                try {
+                    const cooldownUntil = Number(localStorage.getItem(storageKey('archipelago_quiz_cooldown_until')) || 0);
+                    if (cooldownUntil && Date.now() < cooldownUntil) {
+                        const rem = Math.max(1, Math.ceil((cooldownUntil - Date.now()) / 1000));
+                        const mins = Math.floor(rem / 60);
+                        const secs = rem % 60;
+                        const btn = document.getElementById(`quiz-start-${msgId}`);
+                        if (btn) {
+                            btn.textContent = `Quiz cooldown (${mins}m ${String(secs).padStart(2, '0')}s)`;
+                        }
+                        return;
+                    }
+                } catch (_) {}
             }
             if (completed && completed.submitted && completed.next_question) {
                 window.advanceAdaptiveStep(msgId);
@@ -198,7 +223,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
             if (state && state.current_mcq) {
                 const anchorId = state.target_concept || (state.metadata && _nodeId(state.metadata.anchor_concept));
                 try { localStorage.setItem(storageKey('archipelago_choice_' + anchorId), 'personalized'); } catch (_) {}
-                const zone = getOrCreateInteractiveZone(msgId);
+                const zone = getOrCreateQuizZone(msgId);
                 if (zone) {
                     zone.innerHTML = '';
                     renderAdaptiveMCQCard(msgId);
@@ -226,7 +251,7 @@ import { setReadingView } from './07-open-page-viewer-modal.js';
                             window.advanceAdaptiveStep(msgId);
                             return;
                         }
-                        const zone = getOrCreateInteractiveZone(msgId);
+                        const zone = getOrCreateQuizZone(msgId);
                         if (zone) {
                             zone.innerHTML = '';
                             renderAdaptiveMCQCard(msgId);

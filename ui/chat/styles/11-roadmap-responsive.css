@@ -58,3 +58,31 @@ body {
         align-items: stretch;
     }
 }
+
+/* Phase 4: Compact Research Interface — 55% / 45% Responsive Split-Pane */
+@media (min-width: 1024px) {
+    #app-body {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    #pipeline-panel.side-panel:not(.panel-closed) {
+        width: 45% !important;
+        min-width: 380px !important;
+        max-width: 45% !important;
+        flex: 0 0 45% !important;
+    }
+
+    #pipeline-panel:not(.panel-closed) .side-panel-inner {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    #app-body:has(#pipeline-panel:not(.panel-closed)) #chat-main {
+        width: 55% !important;
+        max-width: 55% !important;
+        flex: 0 0 55% !important;
+    }
+}
+

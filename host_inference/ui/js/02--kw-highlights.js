@@ -200,8 +200,9 @@ import { state } from './00-state.js';
 
         function citationPageUrl(citation) {
             if (!citation || typeof citation !== 'object') return '';
-            const rawPage = Number(citation.page_number ?? citation.page);
-            const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
+            let rawPage = Number(citation.page_number ?? citation.page);
+            let page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
+            if (!Number.isFinite(page) || page < 1) page = 1;
 
             const directUrl = citation.reader_url || citation.url || citation.pdf_url || '';
 

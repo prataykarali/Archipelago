@@ -384,12 +384,11 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                     .replace(/\n/g, '<br>');
             }
-            let safeHtml = sanitizeMarkdown(html);
-            safeHtml = safeHtml.replace(/@@ARCHIPELAGO_MATH_(\d+)@@/g, (_m, i) => {
+            html = html.replace(/@@ARCHIPELAGO_MATH_(\d+)@@/g, (_m, i) => {
                 const raw = mathSpans[Number(i)] || '';
                 return raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             });
-            target.innerHTML = safeHtml;
+            target.innerHTML = sanitizeMarkdown(html);
             if (typeof window.renderMathInElement === 'function') {
                 try {
                     window.renderMathInElement(target, {

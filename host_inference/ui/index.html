@@ -39,6 +39,8 @@
     <link rel="stylesheet" href="/styles/09-user-bubble-warfield-font.css">
     <link rel="stylesheet" href="/styles/10-swipe-transitions-animations.css">
     <link rel="stylesheet" href="/styles/11-roadmap-responsive.css">
+    <link rel="stylesheet" href="/styles/12-research-workspace.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/v2/favicon.svg">
 
 <!-- MASTER FONT OVERRIDE FOR AURELLIS AND BRIGEND ONLY -->
 <!-- WARFIELD CHAT MESSAGE FONT -->
@@ -64,10 +66,11 @@
             <div class="header-orb header-orb-b" aria-hidden="true"></div>
             <!-- Navigation Links (Chat Workspace) -->
             <div class="flex items-center gap-2">
-                <div class="px-3 py-1.5 rounded-lg bg-accentPurple/25 text-white font-bold text-xs flex items-center gap-1.5 border border-accentPurple/50 shadow-sm" title="Chat Workspace">
-                    <i class="fa-solid fa-comments text-accentPink"></i>
-                    <span class="font-extrabold tracking-wide">Chat</span>
-                </div>
+                <a href="/" class="header-brand flex items-center gap-2.5 hover:opacity-90 transition-opacity" title="Archipelago Academic Assistant">
+                    <img src="/assets/v2/archipelago_header_logo.svg" alt="Archipelago" class="h-7 w-auto">
+                    <span class="header-title-divider"></span>
+                    <span class="header-institution-tag hidden sm:inline">Academic Assistant</span>
+                </a>
             </div>
 
             <div class="flex items-center gap-2">
@@ -169,7 +172,7 @@
                     <div class="space-y-2 text-xs">
                         <a href="/library" class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPurple/50 hover:bg-slate-800 text-gray-200 flex items-center justify-between transition-all group">
                             <div class="flex items-center gap-2.5">
-                                <i class="fa-solid fa-book-bookmark text-amber-400 text-sm"></i>
+                                <img src="/assets/v2/icon_library_opac.svg" class="w-5 h-5 object-contain" alt="OPAC">
                                 <div>
                                     <p class="font-bold text-xs text-white group-hover:text-amber-300">Central Library OPAC</p>
                                     <p class="text-[10px] text-gray-400">Search 20,000+ catalog holdings</p>
@@ -180,7 +183,7 @@
 
                         <a href="/academic/graph" target="_blank" rel="noopener" class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentCyan/50 hover:bg-slate-800 text-gray-200 flex items-center justify-between transition-all group">
                             <div class="flex items-center gap-2.5">
-                                <i class="fa-solid fa-diagram-project text-accentCyan text-sm"></i>
+                                <img src="/assets/v2/icon_concept_graph.svg" class="w-5 h-5 object-contain" alt="Graph Explorer">
                                 <div>
                                     <p class="font-bold text-xs text-white group-hover:text-cyan-300">Global Graph Explorer</p>
                                     <p class="text-[10px] text-gray-400">Interactive Cytoscape OKF topology</p>
@@ -191,7 +194,7 @@
 
                         <a href="/research" class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPink/50 hover:bg-slate-800 text-gray-200 flex items-center justify-between transition-all group">
                             <div class="flex items-center gap-2.5">
-                                <i class="fa-solid fa-microscope text-accentPink text-sm"></i>
+                                <img src="/assets/v2/icon_research_papers.svg" class="w-5 h-5 object-contain" alt="Research">
                                 <div>
                                     <p class="font-bold text-xs text-white group-hover:text-pink-300">Research Intelligence</p>
                                     <p class="text-[10px] text-gray-400">Multi-provider literature synthesis</p>
@@ -199,6 +202,11 @@
                             </div>
                             <i class="fa-solid fa-chevron-right text-[10px] text-gray-500 group-hover:text-white transition-colors"></i>
                         </a>
+
+                        <div class="sidebar-mode-indicator flex items-center gap-2 p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-800/40 text-[10px] text-cyan-300 font-mono">
+                            <i class="fa-solid fa-layer-group text-accentCyan"></i>
+                            <span>Active Mode: Graph-Assisted</span>
+                        </div>
                     </div>
                 </div>
 

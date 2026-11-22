@@ -2,7 +2,7 @@ import { storageKey } from './storage-key.js';
 // Auto-split from ui/chat/index.html — 15-submit-adaptive-answer.js
 // Feature module 16 of 22.
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
-import { getOrCreateInteractiveZone } from './11-populate-topology.js';
+import { getOrCreateQuizZone } from './11-populate-topology.js';
 import { renderAdaptiveMCQCard } from './14-render-adaptive-mcqcard.js';
 import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.js';
 
@@ -133,6 +133,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                     try {
                         localStorage.setItem(storageKey('archipelago_eval_' + state.target_concept), JSON.stringify(evalData));
                         localStorage.setItem(storageKey('archipelago_choice_' + state.target_concept), 'personalized');
+                        localStorage.setItem(storageKey('archipelago_quiz_cooldown_until'), String(Date.now() + 120000));
                         sessionStorage.removeItem(storageKey('archipelago_adaptive_' + msgId));
                     } catch (_) {}
 
@@ -165,9 +166,20 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
                         }
                     }
                     if (hint) {
-                        hint.textContent = isTick ? 'Correct! Advancing towards target concept.' : 'Prerequisite gap detected. Leaping back 2 hops to foundational concepts.';
+                        hint.textContent = isTick
+                            ? 'Correct! Advancing to next question…'
+                            : 'Prerequisite gap detected. Moving to foundational review…';
                     }
                     try { sessionStorage.setItem(storageKey('archipelago_adaptive_' + msgId), JSON.stringify(state)); } catch (_) {}
+                    if (state.next_question) {
+                        if (state._advanceTimer) clearTimeout(state._advanceTimer);
+                        state._advanceTimer = setTimeout(() => {
+                            state._advanceTimer = null;
+                            if (window._adaptiveState[msgId]?.next_question) {
+                                advanceAdaptiveStep(msgId);
+                            }
+                        }, 900);
+                    }
                 }
 
             } catch (err) {
@@ -183,10 +195,20 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         function advanceAdaptiveStep(msgId) {
             const state = window._adaptiveState[msgId];
-            if (!state || !state.next_question) return;
+            if (!state) return;
+            if (state._advanceTimer) {
+                clearTimeout(state._advanceTimer);
+                state._advanceTimer = null;
+            }
+            if (!state.next_question) {
+                if (state.evaluation) {
+                    renderPersonalizedGraphCard(msgId, state.evaluation, state.metadata);
+                }
+                return;
+            }
 
             // Swipe out current card before showing next
-            const zone = getOrCreateInteractiveZone(msgId);
+            const zone = getOrCreateQuizZone(msgId);
             const currentCard = zone ? zone.querySelector('.adaptive-card-content') : null;
             if (currentCard) {
                 currentCard.classList.add('swipe-out-left');
@@ -216,7 +238,7 @@ import { renderPersonalizedGraphCard } from './16-render-personalized-graph-ca.j
 
         // ── Final Correct Question Celebration + Transition to Graph ──
         function revealFinalCorrectQuestionAndFinish(msgId, completionData, evalData, metadata) {
-            const zone = getOrCreateInteractiveZone(msgId);
+            const zone = getOrCreateQuizZone(msgId);
             if (!zone) {
                 renderPersonalizedGraphCard(msgId, evalData, metadata);
                 return;

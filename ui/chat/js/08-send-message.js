@@ -1,6 +1,6 @@
 import { state } from './00-state.js';
 import { setSendButtonState, stopGeneration } from './07-open-page-viewer-modal.js';
-import { dismissGraphChoiceModal, populateTopology } from './11-populate-topology.js';
+import { dismissGraphChoiceModal, populateTopology, renderOkfNodesCard } from './11-populate-topology.js';
 import { API_HOST, CHAT_RESPONSE_TIMEOUT_MS, MAX_HISTORY_TURNS_SENT, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, setLibrarianThinking, showStickyAvatar } from './00-current-origin.js';
 import { _addChatBubbleEffects, appendMessage } from './09-patterns.js';
 import { _updateGlowState, renderMarkdownSafely } from './01--hide-welcome-with-transitio.js';
@@ -26,6 +26,10 @@ import { resetChatUi } from './08-stream-cleanup.js';
             const inputEl = document.getElementById('chat-input');
             const inputVal = (inputEl ? inputEl.value : '').trim();
             if (!inputVal) return;
+
+            // Increment request sequence to guard against race conditions or out-of-order streams
+            state.currentQuerySequence = (state.currentQuerySequence || 0) + 1;
+            const thisQuerySequence = state.currentQuerySequence;
 
             if (!state.conversationSessionId) {
                 state.conversationSessionId = 'session_' + Date.now();
@@ -58,6 +62,9 @@ import { resetChatUi } from './08-stream-cleanup.js';
 
             // Do not let evidence from a prior answer attach to this response if the server omits metadata.
             window._lastChatMetadata = null;
+            // Phase 1 — SIGIR Demo: clear stale graph state before each new query
+            window._graphNeighborhood = { anchor: null, prereqs: [], unlocks: [], related: [] };
+            populateTopology(null, [], [], [], true);
 
             state.isGenerating = true;
             try { window.isGenerating = true; } catch (_) {}
@@ -100,7 +107,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
             }
 
             try {
-                const response = await postChatRequest(inputVal, state.currentAbortController.signal);
+                const response = await postChatRequest(inputVal, state.currentAbortController.signal, { synthesis: true });
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -148,7 +155,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 typewriter = new SmoothTypewriterStream((textToPaint) => {
                     paintAssistant(textToPaint);
                 }, {
-                    speed: 12,
+                    speed: 4,
                     onLiveChange: (live) => {
                         if (!msgEl) return;
                         msgEl.classList.toggle('is-live-streaming', !!live);
@@ -185,16 +192,31 @@ import { resetChatUi } from './08-stream-cleanup.js';
                         if (firstFinalize && typeof _addChatBubbleEffects === 'function') {
                             _addChatBubbleEffects(msgEl);
                         }
+                        // Insert Grounding Status Badge above the message text
+                        if (window._lastChatMetadata?.trace && typeof window.renderGroundingBadge === 'function') {
+                            const badgeWrapId = `grounding-badge-${assistantMsgId}`;
+                            if (!document.getElementById(badgeWrapId)) {
+                                const badgeHtml = window.renderGroundingBadge(window._lastChatMetadata.trace);
+                                if (badgeHtml) {
+                                    const wrap = document.createElement('div');
+                                    wrap.id = badgeWrapId;
+                                    wrap.innerHTML = badgeHtml;
+                                    msgEl.parentNode.insertBefore(wrap, msgEl);
+                                }
+                            }
+                        }
                         // Always re-mount paper cards after markdown paint.
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
-                    if (firstFinalize && window._lastChatMetadata) {
-                        if (typeof updateBookStackForQuery === 'function') {
+                    if (window._lastChatMetadata) {
+                        // Consolidate OKF relationships into the Inspector panel (Phase 3 deduplication)
+                        // In-chat duplicate OKF nodes card suppressed in favor of Inspector panel.
+                        if (firstFinalize && typeof updateBookStackForQuery === 'function') {
                             updateBookStackForQuery(window._lastChatMetadata);
                         }
-                        if (typeof renderGraphExperiencePrompt === 'function') {
-                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: true });
+                        if (typeof renderGraphExperiencePrompt === 'function' && !document.getElementById(`interactive-zone-${assistantMsgId}`)) {
+                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: firstFinalize });
                         }
                     }
                 };
@@ -304,23 +326,26 @@ import { resetChatUi } from './08-stream-cleanup.js';
                                 assistantText = rest;
                                 typewriter.update(rest, { instant: true });
                             }
-                            awaitingFinalFrame = false;
-                            rest = "";
-                            _finishStreamUi();
-                            break;
                         }
-                        // The final payload may arrive in the next network chunk.
+                        awaitingFinalFrame = false;
                         rest = "";
+                        _finishStreamUi();
                         break;
                     }
                 };
 
                 while (true) {
                     const { done, value } = await reader.read();
+                    if (thisQuerySequence !== state.currentQuerySequence) {
+                        try { await reader.cancel(); } catch (_) {}
+                        return;
+                    }
                     armStreamIdleWatchdog();
                     if (done) {
                         if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
-                        typewriter.flush();
+                        if (!bubbleFinalized) {
+                            typewriter.flush();
+                        }
                         if (!cleanedIndicator && msgEl) {
                             msgEl.innerHTML = '';
                             cleanedIndicator = true;
@@ -331,9 +356,10 @@ import { resetChatUi } from './08-stream-cleanup.js';
                             consumeTextChunk(buffer);
                             buffer = '';
                         }
-                        // Always re-finalize after the terminal flush so paper
-                        // cards survive the innerHTML wipe from flush/render.
-                        finalizeStreamedBubble();
+                        // Always re-finalize only if not already finalized (or if buffer above flushed)
+                        if (!bubbleFinalized || !document.getElementById(`interactive-zone-${assistantMsgId}`)) {
+                            finalizeStreamedBubble();
+                        }
                         if (msgEl && window._lastChatMetadata) {
                             appendEvidenceRail(msgEl, window._lastChatMetadata);
                             wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
@@ -360,6 +386,9 @@ import { resetChatUi } from './08-stream-cleanup.js';
                                 window._lastChatMetadata = metadata;
                                 populatePipeline(metadata);
                                 populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
+                                if (typeof window.populateInspector === 'function') {
+                                    window.populateInspector(metadata);
+                                }
                                 if (typeof updateBookStackForQuery === 'function') {
                                     updateBookStackForQuery(metadata);
                                 }

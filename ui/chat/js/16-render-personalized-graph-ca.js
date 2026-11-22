@@ -1,13 +1,13 @@
 // Auto-split from ui/chat/index.html — 16-render-personalized-graph-ca.js
 // Feature module 17 of 22.
-import { getOrCreateInteractiveZone } from './11-populate-topology.js';
+import { getOrCreateQuizZone } from './11-populate-topology.js';
 import { _nodeLabel } from './10-populate-pipeline.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
 
         // ── Personalized Knowledge Graph Card Rendering ──
         function renderPersonalizedGraphCard(msgId, evalData, metadata) {
-            const zone = getOrCreateInteractiveZone(msgId);
+            const zone = getOrCreateQuizZone(msgId);
             if (!zone) return;
 
             const cardId = `pers-graph-${msgId}`;
