@@ -40,9 +40,9 @@ body {
   opacity: 0.06;
 }
 
-/* Mascot occupies 32-36px header avatar; dock no longer consumes 15% width */
-#sticky-avatar-dock {
-  display: none !important;
+/* Single sticky video avatar dock stays visible when active */
+#sticky-avatar-dock:not(.is-visible) {
+  display: none;
 }
 
 /* ── Top Header Navigation ─────────────────────────────────────────────────── */

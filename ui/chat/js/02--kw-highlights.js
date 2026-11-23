@@ -350,11 +350,14 @@ import { state } from './00-state.js';
             if (!deduped.length) return;
 
             const rail = document.createElement('div');
-            rail.className = 'evidence-rail mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2';
-            const label = document.createElement('span');
-            label.className = 'text-[10px] uppercase tracking-wider font-bold text-gray-400 mr-1';
-            label.textContent = 'Sources';
+            rail.className = 'evidence-rail mt-4 p-3 rounded-xl border border-purple-500/25 bg-purple-950/25 flex flex-col gap-2';
+            const label = document.createElement('div');
+            label.className = 'text-[10px] uppercase tracking-wider font-extrabold text-purple-300 flex items-center gap-1.5';
+            label.innerHTML = '<i class="fa-solid fa-book-open text-[10px]"></i><span>Resources &amp; Sources</span>';
             rail.appendChild(label);
+            const linksWrap = document.createElement('div');
+            linksWrap.className = 'flex flex-wrap items-center gap-2';
+            rail.appendChild(linksWrap);
             deduped.forEach(({ citation, href }, index) => {
                 const rawPage = Number(citation.page_number ?? citation.page);
                 const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
@@ -379,7 +382,7 @@ import { state } from './00-state.js';
                     sourceLink.rel = 'noopener noreferrer';
                     sourceLink.textContent = 'Open source ↗';
                     card.appendChild(sourceLink);
-                    rail.appendChild(card);
+                    linksWrap.appendChild(card);
                     return;
                 }
                 const link = document.createElement('a');
@@ -389,7 +392,7 @@ import { state } from './00-state.js';
                 link.dataset.pageUrl = href;
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
-                rail.appendChild(link);
+                linksWrap.appendChild(link);
 
             });
             messageBody.appendChild(rail);

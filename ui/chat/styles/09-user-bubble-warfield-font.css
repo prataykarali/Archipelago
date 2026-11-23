@@ -113,23 +113,28 @@
         display: none !important;
     }
 
-    /* Speaking Avatar Dock: Restored as a modern glass sidebar indicator */
+    /* Speaking Avatar Dock: Single unclipped circular video avatar staying on screen */
     #sticky-avatar-dock {
         display: none;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        padding: 4.5rem 0.5rem 1rem 0.5rem !important;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        padding: 1rem 0.5rem 1.25rem 0.75rem !important;
         flex: 0 0 10.5rem;
         z-index: 15;
         width: 10.5rem;
         max-width: 10.5rem;
+        height: auto !important;
+        max-height: none !important;
         gap: 0.5rem;
-        overflow: hidden;
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(12, 8, 24, 0.45);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        overflow: visible !important;
+        border-right: none;
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #sticky-avatar-dock.is-visible {
@@ -143,8 +148,9 @@
         width: 8.5rem;
         height: 8.5rem;
         border-radius: 50%;
-        box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
-        border: 2px solid rgba(255, 255, 255, 0.25);
+        overflow: hidden;
+        box-shadow: 0 0 24px rgba(168, 85, 247, 0.45);
+        border: 2px solid rgba(255, 255, 255, 0.28);
     }
     #sticky-avatar-dock .avatar-label {
         margin-top: 0.4rem;

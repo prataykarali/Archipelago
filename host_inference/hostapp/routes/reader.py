@@ -13,7 +13,7 @@ from urllib.parse import quote, unquote
 
 from engine import _hf_doc_path
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
-from library_index import hf_title, resolve_hf_path
+from library_index import hf_title, resolve_hf_path, resolve_hf_source
 from remote_cache import load_books, pearson_page_url
 import requests
 
@@ -31,7 +31,7 @@ MAX_BOOK_ID_LEN = 128
 MAX_DOC_ID_LEN = 256
 
 BOOK_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\. ]+$")
-SAFE_DOC_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\./]+$")
+SAFE_DOC_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_\-\./ ()&,+'\[\]]+$")
 SAFE_FILENAME_PATTERN = re.compile(r"[^a-zA-Z0-9_.\-]")
 
 DATASET_PREFIXES = ("papers/", "textbooks/", "archipelago-books-cs/")
@@ -208,15 +208,20 @@ def register(app: Flask, ctx: AppContext) -> None:
             candidates.append(f"textbooks/{base_name}")
 
         upstream = None
-        seen_verified: set[str] = set()
+        seen_verified: set[tuple[str, str]] = set()
         for candidate in candidates:
-            verified = resolve_hf_path(candidate)
-            if not verified or verified in seen_verified:
+            repo_name, verified = resolve_hf_source(candidate)
+            if not verified:
                 continue
-            seen_verified.add(verified)
+            key = (repo_name or HF_REPO_NAME, verified)
+            if key in seen_verified:
+                continue
+            seen_verified.add(key)
+            resolve_base = f"https://huggingface.co/datasets/{key[0]}/resolve/main"
+            encoded_path = quote(verified, safe="/")
             try:
                 response = requests.get(
-                    f"{HF_DATASET_RESOLVE_BASE}/{verified}",
+                    f"{resolve_base}/{encoded_path}",
                     headers={"Authorization": f"Bearer {token}"} if token else {},
                     stream=True,
                     timeout=HF_STREAM_TIMEOUT_SEC,

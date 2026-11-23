@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import re
 import threading
 import time
 from urllib.parse import quote
 
+import requests
+
 HERE = Path(__file__).resolve().parent
 _HF_PATHS_LOCK = threading.Lock()
-_HF_PATHS_CACHE: tuple[float, list[str], frozenset[str]] = (0.0, [], frozenset())
-_HF_PATHS_TTL_SEC = 30.0
+_HF_PATHS_CACHE: tuple[float, list[str], dict[str, str]] = (0.0, [], {})
+_HF_PATHS_TTL_SEC = 300.0
+_HF_TREE_TIMEOUT_SEC = 8.0
+DEFAULT_LIBRARY_REPO = "Prataykarali/Library_books"
+DEFAULT_GRAPHIER_REPO = "Prataykarali/graphier"
 STOP = {
     "what",
     "whats",
@@ -66,61 +72,144 @@ def _tokens(text: str) -> set[str]:
     return {tok for tok in re.findall(r"[a-z0-9]{4,}", (text or "").lower()) if tok not in STOP}
 
 
-def load_hf_paths() -> list[str]:
+def _fetch_hf_repo_pdfs(repo: str, token: str) -> list[str]:
+    """Fetch recursive PDF paths from a Hugging Face dataset repo."""
+    if not repo:
+        return []
+    url = f"https://huggingface.co/api/datasets/{repo}/tree/main?recursive=true"
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    try:
+        resp = requests.get(url, headers=headers, timeout=_HF_TREE_TIMEOUT_SEC)
+        if resp.status_code != 200:
+            return []
+        items = resp.json()
+        if not isinstance(items, list):
+            return []
+        return [
+            str(item["path"])
+            for item in items
+            if isinstance(item, dict) and str(item.get("path", "")).lower().endswith(".pdf")
+        ]
+    except Exception:
+        return []
+
+
+def _load_hf_repo_map() -> tuple[list[str], dict[str, str]]:
+    """Return ``(all_paths, path_to_repo)`` merged across Library_books and graphier."""
     global _HF_PATHS_CACHE
     now = time.monotonic()
     with _HF_PATHS_LOCK:
         if _HF_PATHS_CACHE[1] and (now - _HF_PATHS_CACHE[0]) < _HF_PATHS_TTL_SEC:
-            return list(_HF_PATHS_CACHE[1])
-    resolved: list[str] = []
+            return list(_HF_PATHS_CACHE[1]), dict(_HF_PATHS_CACHE[2])
+
+    lib_repo = os.environ.get("HF_LIBRARY_REPO", DEFAULT_LIBRARY_REPO).strip() or DEFAULT_LIBRARY_REPO
+    graph_repo = os.environ.get("ARCHIPELAGO_SCHOLARLY_HF_REPO", DEFAULT_GRAPHIER_REPO).strip() or DEFAULT_GRAPHIER_REPO
+    token = os.environ.get("HF_TOKEN", "").strip()
+
+    path_to_repo: dict[str, str] = {}
     try:
         from remote_cache import load_library_manifest
 
         paths = load_library_manifest().get("hf_paths", [])
-        if isinstance(paths, list) and paths:
-            resolved = [str(path) for path in paths if str(path).endswith(".pdf")]
+        if isinstance(paths, list):
+            for p in paths:
+                sp = str(p).strip().lstrip("/")
+                if sp.lower().endswith(".pdf"):
+                    path_to_repo[sp] = lib_repo
     except Exception:
         pass
-    if not resolved:
-        path = HERE / "cache" / "hf_files.json"
-        if path.is_file():
+
+    if not path_to_repo:
+        cache_path = HERE / "cache" / "hf_files.json"
+        if cache_path.is_file():
             try:
-                payload = json.loads(path.read_text(encoding="utf-8"))
-                resolved = list(payload.get("pdfs") or [])
+                payload = json.loads(cache_path.read_text(encoding="utf-8"))
+                for p in payload.get("pdfs") or []:
+                    sp = str(p).strip().lstrip("/")
+                    if sp.lower().endswith(".pdf"):
+                        path_to_repo[sp] = lib_repo
             except (OSError, json.JSONDecodeError):
-                resolved = []
+                pass
+
+    # Live HF Hub tree refresh for both Library_books and graphier when HF_TOKEN is set.
+    if token:
+        for repo in (lib_repo, graph_repo):
+            for sp in _fetch_hf_repo_pdfs(repo, token):
+                clean = sp.strip().lstrip("/")
+                if clean and clean not in path_to_repo:
+                    path_to_repo[clean] = repo
+
+    resolved = list(path_to_repo.keys())
     with _HF_PATHS_LOCK:
-        _HF_PATHS_CACHE = (now, resolved, frozenset(resolved))
-    return list(resolved)
+        _HF_PATHS_CACHE = (now, resolved, path_to_repo)
+    return resolved, path_to_repo
 
 
-def resolve_hf_path(value: str) -> str:
-    """Resolve a reader request only to a dataset file present in the cloud manifest."""
+def load_hf_paths() -> list[str]:
+    paths, _ = _load_hf_repo_map()
+    return paths
+
+
+def _norm_slug(value: str) -> str:
+    stem = value.rsplit("/", 1)[-1]
+    stem = re.sub(r"\.pdf$", "", stem, flags=re.I)
+    stem = re.sub(r"^(?:doc|book|paper|pearson)_+", "", stem, flags=re.I)
+    return re.sub(r"[^a-z0-9]+", "", stem.lower())
+
+
+def resolve_hf_source(value: str) -> tuple[str, str]:
+    """Resolve a reader request to ``(hf_repo, path)`` across Library_books & graphier."""
     raw = (value or "").strip().lstrip("/")
     if not raw:
-        return ""
-    now = time.monotonic()
-    with _HF_PATHS_LOCK:
-        if _HF_PATHS_CACHE[2] and (now - _HF_PATHS_CACHE[0]) < _HF_PATHS_TTL_SEC:
-            paths = _HF_PATHS_CACHE[2]
-        else:
-            paths = frozenset()
+        return "", ""
+    paths, path_to_repo = _load_hf_repo_map()
     if not paths:
-        paths = frozenset(load_hf_paths())
-    if raw in paths:
-        return raw
+        return "", ""
+
+    if raw in path_to_repo:
+        return path_to_repo[raw], raw
+
+    lower_map = {p.lower(): p for p in paths}
+    if raw.lower() in lower_map:
+        matched = lower_map[raw.lower()]
+        return path_to_repo[matched], matched
+
     base = raw.rsplit("/", 1)[-1]
     candidates = (
         raw.removeprefix("papers/"),
+        f"papers/{base}",
         f"books/papers/{base}",
         f"textbooks/{base}",
         f"books/textbooks/{base}",
         f"archipelago-books-cs/{raw}",
+        f"archipelago-books-cs/{base}",
     )
     for candidate in candidates:
-        if candidate in paths:
-            return candidate
-    return ""
+        matched = lower_map.get(candidate.lower())
+        if matched:
+            return path_to_repo[matched], matched
+
+    # Case-insensitive basename match across any subdirectory in Library_books or graphier.
+    base_lower = base.lower()
+    for p in paths:
+        if p.rsplit("/", 1)[-1].lower() == base_lower:
+            return path_to_repo[p], p
+
+    # Normalized slug match for doc_ / book_ / paper_ identifiers.
+    target_slug = _norm_slug(raw)
+    if len(target_slug) >= 5:
+        for p in paths:
+            p_slug = _norm_slug(p)
+            if p_slug == target_slug or (len(p_slug) >= 6 and (target_slug in p_slug or p_slug in target_slug)):
+                return path_to_repo[p], p
+
+    return "", ""
+
+
+def resolve_hf_path(value: str) -> str:
+    """Resolve a reader request only to a dataset file present in the HF datasets."""
+    _, path = resolve_hf_source(value)
+    return path
 
 
 def hf_title(path: str) -> str:

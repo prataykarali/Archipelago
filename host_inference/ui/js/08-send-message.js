@@ -1,6 +1,6 @@
 import { state } from './00-state.js';
 import { setSendButtonState, stopGeneration } from './07-open-page-viewer-modal.js';
-import { dismissGraphChoiceModal, populateTopology, renderOkfNodesCard } from './11-populate-topology.js';
+import { dismissGraphChoiceModal, populateTopology, renderOkfNodesCard, renderQuizSectionCard } from './11-populate-topology.js';
 import { API_HOST, CHAT_RESPONSE_TIMEOUT_MS, MAX_HISTORY_TURNS_SENT, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, setLibrarianThinking, showStickyAvatar } from './00-current-origin.js';
 import { _addChatBubbleEffects, appendMessage } from './09-patterns.js';
 import { _updateGlowState, renderMarkdownSafely } from './01--hide-welcome-with-transitio.js';
@@ -211,9 +211,12 @@ import { resetChatUi } from './08-stream-cleanup.js';
                     }
                     if (window._lastChatMetadata) {
                         // Graph, Evidence, and Trace are displayed in the right-side Inspector panel.
-                        // Keep the main chat reply clean (answer + Sources only) without duplicate inline graph cards.
+                        // Keep the main chat reply clean: Answer -> Resources card -> Generate Quiz button (if valid).
                         if (firstFinalize && typeof updateBookStackForQuery === 'function') {
                             updateBookStackForQuery(window._lastChatMetadata);
+                        }
+                        if (typeof renderQuizSectionCard === 'function' && window._lastChatMetadata.anchor_concept) {
+                            renderQuizSectionCard(assistantMsgId, window._lastChatMetadata);
                         }
                     }
                 };
