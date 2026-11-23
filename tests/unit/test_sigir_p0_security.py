@@ -112,3 +112,29 @@ def test_dossier_does_not_fallback_to_manager_for_another_student(monkeypatch):
     response_manager = app.test_client().get(url)
     assert response_manager.status_code == 200
     assert calls[-1] == ("admin-1", True)
+
+
+@pytest.mark.unit
+def test_release_sha_prefers_explicit_then_vercel_git_commit_sha(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """X-Archipelago-Release falls back safely from ARCHIPELAGO_RELEASE_SHA to VERCEL_GIT_COMMIT_SHA."""
+    from vercel_wsgi import resolve_release_sha
+
+    monkeypatch.delenv("ARCHIPELAGO_RELEASE_SHA", raising=False)
+    monkeypatch.delenv("VERCEL_GIT_COMMIT_SHA", raising=False)
+    assert resolve_release_sha() == "unversioned"
+
+    monkeypatch.setenv("VERCEL_GIT_COMMIT_SHA", "3dcfe036d14e2ca9b2215b6322cc1641aa6dbd50")
+    assert resolve_release_sha() == "3dcfe036d14e2ca9b2215b6322cc1641aa6dbd50"
+
+    monkeypatch.setenv("ARCHIPELAGO_RELEASE_SHA", "explicit-release-123")
+    assert resolve_release_sha() == "explicit-release-123"
+
+    # Malformed explicit value falls back cleanly to valid VERCEL_GIT_COMMIT_SHA.
+    monkeypatch.setenv("ARCHIPELAGO_RELEASE_SHA", "bad\r\nheader")
+    assert resolve_release_sha() == "3dcfe036d14e2ca9b2215b6322cc1641aa6dbd50"
+
+    # Both malformed -> unversioned.
+    monkeypatch.setenv("VERCEL_GIT_COMMIT_SHA", "bad value with spaces")
+    assert resolve_release_sha() == "unversioned"

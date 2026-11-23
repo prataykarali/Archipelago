@@ -14,6 +14,15 @@ MINIMUM_LIVE_PEARSON_BOOKS = 40
 _SAFE_SHA_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
 
+def resolve_release_sha() -> str:
+    """Resolve the deployed release SHA from explicit or Vercel Git env vars."""
+    for env_key in ("ARCHIPELAGO_RELEASE_SHA", "VERCEL_GIT_COMMIT_SHA"):
+        candidate = (os.environ.get(env_key) or "").strip()
+        if candidate and _SAFE_SHA_RE.fullmatch(candidate):
+            return candidate
+    return "unversioned"
+
+
 def create_vercel_app() -> Flask:
     """Build the app only with the existing full Supabase corpus."""
     os.environ["ARCHIPELAGO_ENV"] = "production"
@@ -39,10 +48,7 @@ def create_vercel_app() -> Flask:
 
     @app.after_request
     def release_headers(response: Response) -> Response:
-        raw_sha = (os.environ.get("ARCHIPELAGO_RELEASE_SHA") or "").strip()
-        response.headers["X-Archipelago-Release"] = (
-            raw_sha if _SAFE_SHA_RE.fullmatch(raw_sha) else "unversioned"
-        )
+        response.headers["X-Archipelago-Release"] = resolve_release_sha()
         return response
 
     return app
