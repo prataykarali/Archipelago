@@ -40,14 +40,15 @@ LLM completion.
 **Type:** `What is self-attention and how does it relate to Transformers?`
 
 **Point out:**
-- The graph inspector now shows the `self_attention → transformer` edge
-  with a **USES** relationship
-- The relationship direction is correct (self-attention is USED BY
-  transformer, not the reverse)
+- The graph inspector now shows the `self_attention` connected to `transformer`
+  with a **RELATED / REQUIRES** relationship
+- The specific architectural role (self-attention as a foundational component
+  of the Transformer) is synthesized in the grounded text response and supported
+  by citations
 - Citation links to Vaswani 2017 §3.2 (Scaled Dot-Product Attention)
 
-**Key claim:** Relationship direction is verified — perfect 1.0 accuracy
-across all 18 relational queries in the held-out test.
+**Key claim:** Relationship traversal connects related concepts without asserting
+fabricated structural edge labels.
 
 ### Turn 3 — Prerequisite Chain (40 seconds)
 
@@ -56,13 +57,13 @@ across all 18 relational queries in the held-out test.
 **Point out:**
 - The graph shows `self_attention → matrix_multiplication` and
   `self_attention → softmax` with **REQUIRES** edges
-- These are **pedagogical prerequisites**, not structural USES relations
+- These are **pedagogical prerequisites**, connecting attention mechanisms
+  to underlying mathematical foundations
 - The human review record classifies them as `pedagogical_consensus`
 - The evidence passage explains why linear algebra is foundational
 
-**Key claim:** The system distinguishes structural component relationships
-(USES) from learning prerequisites (REQUIRES), a distinction not captured
-by flat retrieval.
+**Key claim:** The system captures prerequisite learning paths (`REQUIRES`),
+a distinction not captured by flat lexical retrieval.
 
 ---
 
@@ -74,27 +75,27 @@ by flat retrieval.
 
 **Point out:**
 - Concept resolved to `rag` with citation to Lewis et al. 2020
-- Graph shows `rag → dpr` (USES) and `rag → transformer` (USES)
+- Graph shows `rag` connected to `dpr` (`REQUIRES`) and `transformer` (`RELATED`)
 - The evidence panel displays the supporting passage from the RAG paper
 - The grounding badge confirms verified graph match
 
-**Key claim:** Multi-hop concept relationships — RAG uses DPR, which
-itself uses BERT, which uses Transformer. The graph captures this chain.
+**Key claim:** Multi-hop concept relationships — RAG connects to dense retrieval
+and transformer sequence-to-sequence foundations.
 
-### Turn 5 — Contrastive Relationship (45 seconds)
+### Turn 5 — Contrastive Evaluation (45 seconds)
 
 **Type:** `How does DPR compare to BM25 for passage retrieval?`
 
 **Point out:**
-- The graph shows `dpr → bm25` with a **CONTRASTS_WITH** edge
-- Citation to Karpukhin et al. 2020 (DPR paper)
+- The response synthesizes the contrast between dense bi-encoder retrieval and sparse BM25
+- Citations to Karpukhin et al. 2020 (DPR paper) and Lewis et al. 2020 (RAG paper)
 - The evidence passage explains DPR's learned dense representations
   versus BM25's lexical matching
-- Our own evaluation confirms this distinction: Dense (0.11 MRR) vs
-  BM25 (0.26 MRR) on our small corpus
+- Our controlled evaluation reflects these IR trade-offs on the held-out test set:
+  Neural Dense (0.5476 MRR) and BM25 (0.5750 MRR), compared to Graph-Assisted (0.4865 MRR)
 
-**Key claim:** The graph captures not just hierarchical relationships but
-also contrastive comparisons between approaches.
+**Key claim:** The system grounds comparative IR methodology in dual original
+literature citations rather than unverified contrastive graph edges.
 
 ---
 

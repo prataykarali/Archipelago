@@ -33,17 +33,17 @@ Demonstrate how Archipelago disambiguates **structural architectural components*
   - **Document:** `papers/Vaswani2017_Attention_Is_All_You_Need.pdf` (Page 2)
   - **Authors:** Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, Illia Polosukhin
   - **Passage Text:**
-    > *"The Transformer is the first transduction model relying entirely on self-attention to compute representations of its input and output without using sequence-aligned RNNs or convolution."*
+    > *"Figure 1: The Transformer - model architecture. The Transformer follows this overall architecture using stacked self-attention and point-wise, fully connected layers for both the encoder and decoder, shown in the left and right halves of Figure 1, respectively."* (High-level sequence transduction description introduced on page 1).
 - **Inspector State:**
-  - **Graph Subgraph:** Centers on `transformer`, displaying outward directed edges to `self_attention` (`USES`), `multi_head_attention` (`USES`), `positional_encoding` (`USES`), and `vector_embeddings` (`REQUIRES`).
+  - **Graph Subgraph:** Centers on `transformer`, displaying outward directed connections to `self_attention` (`RELATED`), `multi_head_attention` (`RELATED`), and prerequisite connections to `vector_embeddings` (`REQUIRES`).
   - **Trace Metrics:** Latency $\approx 60\text{ ms}$, Graph hops: 2, Grounded passages: 10.
 
 #### Turn 2: Component Deep-Dive Query
 - **User Query:** `How does self-attention relate to the Transformer?`
 - **Resolved Anchor Concept:** `self_attention`
 - **Scientific Relationship Displayed:**
-  - `transformer` $\xrightarrow{\text{USES}}$ `self_attention`
-  - Inverted legacy edge (`self_attention -[requires]-> transformer`) is formally quarantined; the system explains that self-attention is an internal sub-layer of the Transformer architecture, not an independent concept that requires a transformer to exist.
+  - `self_attention` $\xleftrightarrow{\text{RELATED / REQUIRES}}$ `transformer`
+  - The runtime stores verifiable `REQUIRES`, `RELATED`, and `UNLOCKS` relationships. The specific architectural decomposition (that self-attention is a core sub-layer of Transformer rather than requiring a transformer to exist) is synthesized in the grounded answer text supported by the Vaswani 2017 citation, rather than asserting unverified `USES` or `PART_OF` edge types in the graph schema.
 - **Supporting Citation:**
   - **Document:** `papers/Vaswani2017_Attention_Is_All_You_Need.pdf` (Page 3)
   - **Passage Text:**
@@ -79,7 +79,7 @@ Demonstrate how Archipelago supports Information Retrieval researchers and stude
   - **Passage Text:**
     > *"We explore a general-purpose fine-tuning recipe for retrieval-augmented generation (RAG) — models which combine pre-trained parametric and non-parametric memory for language generation."*
 - **Inspector State:**
-  - Displays RAG connections to `dense_passage_retrieval` (`USES`), `non_parametric_memory` (`USES`), and `sequence_to_sequence_model` (`USES`).
+  - Displays RAG connections to `dense_passage_retrieval` (`REQUIRES`), `retrieval` (`RELATED`), and `transformer` (`RELATED`).
 
 #### Turn 2: DPR Component and Contrast with BM25
 - **User Query:** `Explain Dense Passage Retrieval`
@@ -92,7 +92,8 @@ Demonstrate how Archipelago supports Information Retrieval researchers and stude
     > *"DPR follows a bi-encoder architecture: one encoder embeds documents into a dense index, and the other embeds queries. Passage retrieval corresponds to Maximum Inner Product Search (MIPS) using FAISS index."*
 - **Architectural & IR Contrast Displayed:**
   - **Dual-Encoder:** Decoupled encoders allow offline pre-indexing of millions of passages in continuous vector spaces.
-  - **Contrast with BM25:** `dense_passage_retrieval` $\xleftrightarrow{\text{CONTRASTS\_WITH}}$ `bm25`
+  - **Contrast with BM25 (Grounded Text Synthesis):**
+    - The knowledge graph schema does not assert an unverified `CONTRASTS_WITH` edge; instead, contrast is synthesized in the grounded prose and supported by dual paper citations.
     - BM25 uses term frequency, inverse document frequency, and document length normalization over an inverted index.
     - DPR uses deep transformer representations to capture semantic synonymy without lexical overlap.
   - **Contrast with Cross-Encoder:** Cross-encoders evaluate full query-document cross-attention (higher accuracy, higher latency) and are reserved for second-stage re-ranking.
