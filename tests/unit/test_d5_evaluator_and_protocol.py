@@ -60,6 +60,18 @@ FROZEN_SHA256: dict[Path, str] = {
     D5_DIR / "concept_embeddings_snowflake.npy": (
         "db7a019a684b343c92c1a76aac7ebe2f1208362e560c9fffb8b91eec3818a3f3"
     ),
+    D5_DIR / "ranked_runs" / "bm25.run": (
+        "1df0d3a0ab8dbfec01b89b044b167097e31cc919da8cb6a184e57575f5908446"
+    ),
+    D5_DIR / "ranked_runs" / "snowflake_arctic_neural.run": (
+        "b92152490a46aa3c43d1588267f3ae81ad4de20c361e098d4d63df5239a4a0fd"
+    ),
+    D5_DIR / "ranked_runs" / "feature_hashed_vector.run": (
+        "7d0681efee7f35445a2307fbbc07856add2a94f9f1e873bfa4b3a7ab4956a9d0"
+    ),
+    D5_DIR / "ranked_runs" / "archipelago_graph_assisted.run": (
+        "61e425fa7add8d97375efc1417cb3585514cfd9efaa41fbc010f57bb4444fabe"
+    ),
 }
 
 EXPECTED_SUPPORTED_HITS = 26
@@ -67,8 +79,6 @@ EXPECTED_SUPPORTED_TOTAL = 38
 EXPECTED_UNSUPPORTED_TOTAL = 12
 EXPECTED_BM25_MRR = 0.7500
 EXPECTED_BM25_NDCG5 = 0.6415
-EXPECTED_ARCHI_MRR = 0.4865
-EXPECTED_ARCHI_NDCG5 = 0.2253
 EXPECTED_EVAL_QREL_QUERIES = 37
 EXPECTED_CITATION_TOTAL = 24
 EXPECTED_CITATION_FULL_SUPPORT = 7
@@ -212,18 +222,31 @@ def test_live_engine_concept_resolution_and_abstention_baseline() -> None:
 
 
 @pytest.mark.unit
-def test_live_passage_retrieval_matches_v2_algorithmic_qrels() -> None:
-    """Actual BM25Retriever and Engine() match d5_1_evaluation_results_v2.json metrics."""
-    from engine.answer import Engine
+def test_frozen_ranked_runs_and_bm25_reproduce_v2_algorithmic_qrel_metrics() -> None:
+    """Frozen TREC ranked_runs/*.run and live BM25Retriever match d5_1_evaluation_results_v2.json.
 
-    from archipelago.eval.retrieval_baselines import BM25Retriever, ndcg_at_k, reciprocal_rank
+    Decouples historical frozen D5 baseline rankings (`ranked_runs/*.run`) from
+    post-Issue #11 live runtime citation selection so both baseline provenance and
+    updated runtime behavior are verified without conflation.
+    """
+    from archipelago.eval.retrieval_baselines import (
+        BM25Retriever,
+        ndcg_at_k,
+        precision_at_k,
+        recall_at_k,
+        reciprocal_rank,
+    )
 
-    passages, meta_by_id, by_doc_page, qrels = _load_corpus_passages_and_flat_qrels()
+    pool_mod = _load_pool_module()
+    passages, _, _, qrels = _load_corpus_passages_and_flat_qrels()
     queries: list[dict[str, Any]] = json.loads((D5_DIR / "queries_heldout_50.json").read_bytes())
-    bm25 = BM25Retriever(passages, k1=BM25_K1, b=BM25_B)
-    engine = Engine()
+    v2_ret: dict[str, dict[str, Any]] = json.loads(
+        (D5_DIR / "d5_1_evaluation_results_v2.json").read_bytes()
+    )["experiment_b_passage_retrieval"]
 
-    bm_mrrs, bm_ndcgs, ar_mrrs, ar_ndcgs = [], [], [], []
+    # 1. Verify live BM25Retriever against frozen corpus + algorithmic qrels
+    bm25 = BM25Retriever(passages, k1=BM25_K1, b=BM25_B)
+    bm_mrrs, bm_ndcgs = [], []
     for q in queries:
         rel_map = qrels.get(q["query_id"], {})
         if not rel_map:
@@ -232,29 +255,56 @@ def test_live_passage_retrieval_matches_v2_algorithmic_qrels() -> None:
         bm_mrrs.append(reciprocal_rank(bm_pids, rel_map) or 0.0)
         bm_ndcgs.append(ndcg_at_k(bm_pids, rel_map, TOP_K_EVAL) or 0.0)
 
-        cites = engine.answer(q["query"])["payload"].get("citations", [])
-        archi_pids: list[str] = []
-        for c in cites:
-            c_doc = c.get("doc_id") or ""
-            c_chunk = c.get("chunk_id")
-            c_page = int(c.get("page_number") or 0)
-            cpid = f"{c_doc}::{c_chunk}" if (c_doc and c_chunk) else None
-            if cpid and cpid in meta_by_id:
-                if cpid not in archi_pids:
-                    archi_pids.append(cpid)
-            else:
-                for mpid in by_doc_page.get((c_doc, c_page), []):
-                    if mpid not in archi_pids:
-                        archi_pids.append(mpid)
-        ar_top = archi_pids[:TOP_K_EVAL]
-        ar_mrrs.append(reciprocal_rank(ar_top, rel_map) or 0.0)
-        ar_ndcgs.append(ndcg_at_k(ar_top, rel_map, TOP_K_EVAL) or 0.0)
-
     assert len(bm_mrrs) == EXPECTED_EVAL_QREL_QUERIES
     assert round(float(np.mean(bm_mrrs)), 4) == pytest.approx(EXPECTED_BM25_MRR)
     assert round(float(np.mean(bm_ndcgs)), 4) == pytest.approx(EXPECTED_BM25_NDCG5)
-    assert round(float(np.mean(ar_mrrs)), 4) == pytest.approx(EXPECTED_ARCHI_MRR)
-    assert round(float(np.mean(ar_ndcgs)), 4) == pytest.approx(EXPECTED_ARCHI_NDCG5)
+
+    # 2. Verify all four frozen ranked_runs/*.run files reproduce v2 JSON metrics exactly
+    for sys_name in pool_mod.POOLED_SYSTEMS:
+        run_data = pool_mod.parse_trec_run(
+            D5_DIR / "ranked_runs" / f"{sys_name}.run", depth=TOP_K_EVAL
+        )
+        mrrs, ndcgs, recs, precs = [], [], [], []
+        for q in queries:
+            rel_map = qrels.get(q["query_id"], {})
+            if not rel_map:
+                continue
+            pids = [pid for pid, _, _ in run_data.get(q["query_id"], [])]
+            mrrs.append(reciprocal_rank(pids, rel_map) or 0.0)
+            ndcgs.append(ndcg_at_k(pids, rel_map, TOP_K_EVAL) or 0.0)
+            recs.append(recall_at_k(pids, rel_map, TOP_K_EVAL) or 0.0)
+            precs.append(precision_at_k(pids, rel_map, TOP_K_EVAL) or 0.0)
+
+        assert len(mrrs) == EXPECTED_EVAL_QREL_QUERIES
+        assert round(float(np.mean(mrrs)), 4) == pytest.approx(v2_ret[sys_name]["mrr"])
+        assert round(float(np.mean(ndcgs)), 4) == pytest.approx(v2_ret[sys_name]["ndcg_at_5"])
+        assert round(float(np.mean(recs)), 4) == pytest.approx(v2_ret[sys_name]["recall_at_5"])
+        assert round(float(np.mean(precs)), 4) == pytest.approx(v2_ret[sys_name]["precision_at_5"])
+
+
+@pytest.mark.unit
+def test_live_engine_citation_contract_decoupled_from_frozen_ranking() -> None:
+    """Live Engine() returns well-formed citations without forcing pre-Issue #11 ranking lock."""
+    from engine.answer import Engine
+
+    engine = Engine()
+    queries: list[dict[str, Any]] = json.loads((D5_DIR / "queries_heldout_50.json").read_bytes())
+    supported_with_citations = 0
+
+    for q in queries:
+        if not q["is_supported"]:
+            continue
+        payload = engine.answer(q["query"])["payload"]
+        cites = payload.get("citations", [])
+        if cites:
+            supported_with_citations += 1
+        for cite in cites:
+            assert isinstance(cite, dict)
+            assert cite.get("doc_id"), f"Missing doc_id on live citation for {q['query_id']}"
+            page = cite.get("page_number")
+            assert page is None or (isinstance(page, int) and page >= 0)
+
+    assert supported_with_citations >= EXPECTED_SUPPORTED_HITS
 
 
 @pytest.mark.unit
