@@ -642,7 +642,7 @@ def generate_fig_e(cite_audit: dict[str, Any], engine: Engine) -> list[Path]:
     ax2.set_title("Deterministic Selection Pruning (24 -> 7)", fontsize=9.5)
     ax2.legend(loc="upper right", fontsize=7.2, frameon=True)
     fig.suptitle(
-        "PRELIMINARY AUTHOR-ATTRIBUTED AUDIT (N=24); INDEPENDENT HUMAN VERIFICATION PENDING",
+        "UNVERIFIED LEGACY AUDIT LABELS (N=24); HUMAN VERIFICATION PENDING",
         fontsize=9.2,
         fontweight="bold",
         color="#721c24",
