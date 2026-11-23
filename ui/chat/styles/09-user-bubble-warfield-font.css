@@ -113,23 +113,31 @@
         display: none !important;
     }
 
-    /* Speaking Avatar Dock: Single unclipped circular video avatar vertically centered */
+    /* Chat stage stacked vertically: single avatar centered at top, left-aligned replies below */
+    #chat-stage {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    /* Speaking Avatar Dock: Single unclipped circular video avatar pinned top-center */
     #sticky-avatar-dock {
         display: none;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        position: sticky;
-        top: calc(50vh - 7rem);
-        align-self: flex-start;
-        padding: 0.75rem 0.5rem 0.75rem 0.75rem !important;
-        flex: 0 0 10.5rem;
+        position: relative;
+        top: auto;
+        align-self: center;
+        margin: 0 auto;
+        padding: 0.65rem 0.5rem 0.25rem 0.5rem !important;
+        flex: 0 0 auto !important;
         z-index: 15;
-        width: 10.5rem;
-        max-width: 10.5rem;
+        width: auto !important;
+        max-width: none !important;
         height: auto !important;
         max-height: none !important;
-        gap: 0.5rem;
+        gap: 0.35rem;
         overflow: visible !important;
         border-right: none;
         background: transparent;
@@ -151,7 +159,7 @@
         width: 100%;
     }
     #chat-messages {
-        padding-left: 0.5rem !important;
+        padding: 0.75rem 1.25rem 1.25rem 1.25rem !important;
     }
     #sticky-avatar-dock.is-visible {
         display: flex !important;
