@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "suite": "D8 Authenticated Live SIGIR Verification (J1-J6)",
+    "timestamp_utc": "2026-11-23T14:52:42Z",
+    "target_url": "https://archipelago-blond.vercel.app",
+    "librarian_url": "https://archipelago-librarian.vercel.app",
+    "deployed_sha": "1785846a49db27d5931beb596cf64bbbae778f3c",
+    "deployment_id": "dpl_8QiQvF79qZLQS9oj5xaobxurDarY",
+    "auth_method": "Real /login UI form (Supabase Auth + POST /api/auth/session cookie) in headless Chromium",
+    "verdict_policy": "PASS requires live authenticated browser + byte/content verification. Zero secrets, cookies, JWTs, or credentials recorded."
+  },
+  "deployment": {
+    "inference_readiness_status": 200,
+    "inference_readiness": {
+      "deployed_revision": "1785846a49db27d5931beb596cf64bbbae778f3c",
+      "deployed_revision_versioned": true,
+      "graph_fingerprint": "9818ac0e8fd3",
+      "revision_distinct_from_graph": true,
+      "concepts": 610,
+      "corpus_source": "full",
+      "pearson_books": 40
+    },
+    "librarian_readiness_status": 200,
+    "librarian_readiness": {
+      "ready": true
+    }
+  },
+  "journeys": {
+    "J1": {
+      "journey_id": "J1",
+      "title": "Chat, Graph & Original PDF (What is a Transformer? -> Vaswani2017 PDF bytes)",
+      "verdict": "PASS",
+      "original_source_opened": true,
+      "failing_step": null,
+      "checks": [
+        {
+          "step": "student_login_ui",
+          "route": "/login",
+          "session_post_status": 200,
+          "me_status": 200,
+          "verified_role": "student"
+        },
+        {
+          "step": "chat_transformer",
+          "query": "What is a Transformer?",
+          "http_status": 200,
+          "x_archipelago_release": "1785846a49db27d5931beb596cf64bbbae778f3c",
+          "citation_count": 3,
+          "render_graph": true,
+          "provenance_status": "provenance_verified",
+          "claim_support_status": "not_assessed",
+          "ui_has_vaswani": true,
+          "ui_has_provenance_badge": true,
+          "ui_graph_inspector_rendered": true
+        },
+        {
+          "step": "original_pdf_navigation",
+          "clicked_href": "/papers/Vaswani2017_Attention_Is_All_You_Need.pdf#page=2",
+          "pdf_page_url": "https://archipelago-blond.vercel.app/read?doc=papers%2FVaswani2017_Attention_Is_All_You_Need.pdf&page=2",
+          "pdf_opened_in_browser": true
+        },
+        {
+          "step": "page_view_and_pdf_bytes",
+          "doc_id": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+          "requested_page": 2,
+          "page_view_status": 200,
+          "pdf_http_status": 200,
+          "doc_identity_vaswani2017": true,
+          "valid": true,
+          "byte_length": 2215244,
+          "has_pdf_magic": true,
+          "has_eof_marker": true,
+          "page_count": 15,
+          "page_in_range": true
+        }
+      ],
+      "screenshots": [
+        "docs/sigir/d8_evidence/j1_chat_transformer.png",
+        "docs/sigir/d8_evidence/j1_pdf_viewer.png"
+      ]
+    },
+    "J2": {
+      "journey_id": "J2",
+      "title": "Research Discovery (Dense Passage Retrieval -> providers -> dossier -> DOI/arXiv)",
+      "verdict": "PASS",
+      "original_source_opened": true,
+      "failing_step": null,
+      "checks": [
+        {
+          "step": "research_search_and_papers",
+          "route": "/research",
+          "topic": "Dense Passage Retrieval",
+          "http_status": 200,
+          "run_id": "2468332d-f971-46d5-a9c9-dfd794aff51c",
+          "paper_count": 30,
+          "providers_seen": ["openalex"]
+        },
+        {
+          "step": "research_dossier",
+          "endpoint": "/api/research/intelligence/runs/2468332d-f971-46d5-a9c9-dfd794aff51c/dossier",
+          "http_status": 200,
+          "byte_length": 186193,
+          "has_content": true
+        },
+        {
+          "step": "primary_doi_resolution",
+          "source_url": "https://doi.org/10.1186/s40537-025-01257-9",
+          "http_status": 302,
+          "resolved_url": "https://journalofbigdata.springeropen.com/articles/10.1186/s40537-025-01257-9",
+          "resolved_ok": true
+        }
+      ],
+      "screenshots": [
+        "docs/sigir/d8_evidence/j2_research_results.png",
+        "docs/sigir/d8_evidence/j2_research_dossier.png"
+      ]
+    },
+    "J3": {
+      "journey_id": "J3",
+      "title": "Research Persistence & Export (save run -> reload -> reopen -> XLSX openpyxl verification)",
+      "verdict": "PASS",
+      "original_source_opened": true,
+      "failing_step": null,
+      "checks": [
+        {
+          "step": "list_saved_runs_after_reload",
+          "http_status": 200,
+          "total_saved_runs": 1,
+          "created_run_persisted": true
+        },
+        {
+          "step": "reopen_saved_run",
+          "run_id": "2468332d-f971-46d5-a9c9-dfd794aff51c",
+          "http_status": 200,
+          "reopen_paper_count": 30
+        },
+        {
+          "step": "xlsx_export_openpyxl",
+          "endpoint": "/api/research/intelligence/runs/2468332d-f971-46d5-a9c9-dfd794aff51c/xlsx?mode=standard",
+          "http_status": 200,
+          "valid": true,
+          "byte_length": 26511,
+          "has_zip_magic": true,
+          "has_required_xml": true,
+          "has_worksheet_xml": true,
+          "sheet_names": ["Start Here", "Papers", "Authors", "Sources"],
+          "zip_entry_count": 14,
+          "total_hyperlinks": 103,
+          "sheets_summary": [
+            {"name": "Start Here", "rows": 14, "cols": 2, "hyperlink_count": 0},
+            {"name": "Papers", "rows": 31, "cols": 22, "hyperlink_count": 30},
+            {"name": "Authors", "rows": 81, "cols": 19, "hyperlink_count": 0},
+            {"name": "Sources", "rows": 74, "cols": 6, "hyperlink_count": 73}
+          ],
+          "sample_titles": [
+            "Data augmentation for dense passage retrieval using corpus-passage frequency-based token deletion",
+            "Lora for dense passage retrieval of ConTextual masked auto-encoding",
+            "Aggretriever: A Simple Approach to Aggregate Textual Representations for Robust Dense Passage Retrieval"
+          ],
+          "sample_urls": [
+            "https://openalex.org/W4413168954",
+            "https://openalex.org/W4404896299",
+            "https://openalex.org/W4382449327"
+          ]
+        }
+      ],
+      "screenshots": [
+        "docs/sigir/d8_evidence/j3_saved_run_reopened.png"
+      ]
+    },
+    "J4": {
+      "journey_id": "J4",
+      "title": "Library & OPAC (search -> koha_stale freshness -> institutional Koha record)",
+      "verdict": "PASS",
+      "original_source_opened": true,
+      "failing_step": null,
+      "checks": [
+        {
+          "step": "library_page_and_search",
+          "route": "/library",
+          "http_status": 200,
+          "searched_in_ui": true
+        },
+        {
+          "step": "library_data_api_freshness",
+          "endpoint": "/api/library/data",
+          "http_status": 200,
+          "ebook_count": 91,
+          "holdings_count": 109,
+          "koha_stale": true,
+          "koha_source_updated_at": "2026-11-11T15:24:20.794016+00:00",
+          "holdings_status": "koha_export"
+        },
+        {
+          "step": "institutional_koha_opac_record",
+          "biblionumber": 1910,
+          "expected_title": "Journal of human resource management",
+          "koha_url": "https://uemk-opac.l2c2.co.in/cgi-bin/koha/opac-detail.pl?biblionumber=1910",
+          "http_status": 200,
+          "record_verified": true,
+          "title_matched": true,
+          "browser_opened": true
+        }
+      ],
+      "screenshots": [
+        "docs/sigir/d8_evidence/j4_library_opac.png",
+        "docs/sigir/d8_evidence/j4_koha_record.png"
+      ]
+    },
+    "J5": {
+      "journey_id": "J5",
+      "title": "Unsupported-Topic Integrity (What is Spanner TrueTime?)",
+      "verdict": "PASS",
+      "original_source_opened": false,
+      "failing_step": null,
+      "checks": [
+        {
+          "step": "chat_spanner_truetime",
+          "query": "What is Spanner TrueTime?",
+          "http_status": 200,
+          "clean_abstention": true,
+          "citation_count": 0,
+          "graph_node_count": 0,
+          "graph_edge_count": 0,
+          "render_graph": false,
+          "grounding_status": "unmatched",
+          "provenance_status": "none",
+          "claim_support_status": "not_assessed"
+        }
+      ],
+      "screenshots": [
+        "docs/sigir/d8_evidence/j5_unsupported_abstention.png"
+      ]
+    },
+    "J6": {
+      "journey_id": "J6",
+      "title": "Role-Based Security (P0-2 Cross-User Isolation + Student 403 + Librarian 200)",
+      "verdict": "PASS",
+      "original_source_opened": false,
+      "failing_step": null,
+      "checks": [
+        {
+          "group": "student_librarian_negative",
+          "results": [
+            {"step": "student_post_library_import", "http_status": 403, "forbidden_403": true},
+            {"step": "student_post_handoff_ticket", "http_status": 403, "forbidden_403": true},
+            {"step": "student_get_analytics_sources", "http_status": 403, "forbidden_403": true},
+            {"step": "student_get_analytics_summary", "http_status": 403, "forbidden_403": true},
+            {"step": "student_get_librarian_catalog", "http_status": 403, "forbidden_403": true}
+          ]
+        },
+        {
+          "group": "cross_user_isolation_p0_2",
+          "results": [
+            {"step": "faculty_reads_student_run_detail", "http_status": 404, "isolated_403_or_404": true},
+            {"step": "faculty_reads_student_run/dossier", "http_status": 404, "isolated_403_or_404": true},
+            {"step": "faculty_reads_student_run/xlsx", "http_status": 404, "isolated_403_or_404": true},
+            {"step": "faculty_creates_own_run", "http_status": 200, "run_id_present": true},
+            {"step": "student_reads_faculty_run_detail", "http_status": 404, "isolated_403_or_404": true},
+            {"step": "student_reads_faculty_run/dossier", "http_status": 404, "isolated_403_or_404": true},
+            {"step": "student_reads_faculty_run/xlsx", "http_status": 404, "isolated_403_or_404": true}
+          ]
+        },
+        {
+          "group": "librarian_positive_permissions",
+          "results": [
+            {"step": "librarian_get_analytics_sources", "http_status": 200, "allowed_200": true},
+            {"step": "librarian_get_analytics_summary", "http_status": 200, "allowed_200": true},
+            {"step": "librarian_get_librarian_catalog", "http_status": 200, "allowed_200": true}
+          ]
+        }
+      ],
+      "screenshots": [
+        "docs/sigir/d8_evidence/j6_librarian_session.png"
+      ]
+    }
+  },
+  "summary": {
+    "total": 6,
+    "PASS": 6,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "hosted_demo_verdict": "GO"
+  }
+}

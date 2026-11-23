@@ -115,4 +115,37 @@ Record at **1920x1080, 30 fps, H.264 MP4** (plus WebM copy) with a clean browser
 1. Play the entire 5-minute MP4 offline with Wi-Fi **turned off**.
 2. Confirm every segment chapter marker jumps cleanly in VLC/QuickTime.
 3. Verify zero emails, tokens, or `.env` values appear in any frame.
-4. Keep a local copy of the redacted `docs/sigir/hosted_e2e_results.json` and `docs/sigir/HOSTED_E2E_EVIDENCE_REPORT.md` for reviewer Q&A.
+4. Keep a local copy of the redacted `docs/sigir/d8_evidence/d8_authenticated_e2e_results.json` and `docs/sigir/D8_AUTHENTICATED_E2E_REPORT.md` for reviewer Q&A.
+
+---
+
+## 4. D8-Verified 5-Minute SIGIR Demo Recording Instructions (3 Authoritative Scenarios)
+
+Validated live on `https://archipelago-blond.vercel.app` (deployment `dpl_8QiQvF79qZLQS9oj5xaobxurDarY`, `X-Archipelago-Release: 1785846a49db27d5931beb596cf64bbbae778f3c`, `graph_version: 9818ac0e8fd3`) — **HOSTED DEMO GO (6/6 PASS)**.
+
+### Pre-Recording Setup (Do Before Pressing Record)
+
+1. Sign in via `/login` with the authorized demo student account; verify `/chat` loads cleanly.
+2. Pre-save one `Dense Passage Retrieval` run in `/research` (30-paper discovery takes ~55–65s on cold start; having a saved run ready lets you demonstrate reload persistence + dossier + `.xlsx` export within the 5-minute budget).
+3. Avoid running automated chat scripts against the presenter account within 10 minutes of recording (to stay clear of per-account `/api/chat` rate limiting).
+4. Record at `1920x1080`, 30 fps, H.264 MP4; mask or crop out any personal account identifier in the navbar.
+
+### Scenario 1 — Grounded Concept Graph & Original PDF Provenance (0:00 – 1:50)
+
+- **Route:** `/chat` -> `/read`
+- **Action:** Submit `What is a Transformer?`.
+- **Show on screen:**
+  1. Right-hand Graph Inspector rendering `Transformer` with validated `REQUIRES` prerequisites (`Matrix Multiplication`, `Attention Mechanism`, `Recurrent Neural Network`, `Neural Network`).
+  2. Provenance status (`provenance_verified`, `claim_support_status: not_assessed`) — state clearly that provenance verifies the source passage location, not automated claim entailment.
+  3. Click `Vaswani2017_Attention_Is_All_You_Need.pdf — page 2` -> opens `/read?doc=papers%2FVaswani2017_Attention_Is_All_You_Need.pdf&page=2` and renders page 2/15 of the original 2.2 MB PDF.
+
+### Scenario 2 — Scholarly Research Discovery, Durable Persistence & Excel Export (1:50 – 3:30)
+
+- **Route:** `/research` -> `/research/topic?run=<id>` -> `.xlsx` download
+- **Action:** Open `/research`, show `Dense Passage Retrieval` in *Previous research topics* (or run a fresh search if time permits), reload the page to prove durable persistence, reopen the saved topic dossier (allow 4–8s for dossier hydration), click a primary DOI link (e.g., `https://doi.org/10.1186/s40537-025-01257-9` -> SpringerOpen), and click **Export Excel (.xlsx)**.
+- **Show on screen:** Open the exported `.xlsx` workbook in LibreOffice/Excel showing all 4 sheets (`Start Here`, `Papers`, `Authors`, `Sources`) with real paper metadata and live clickable hyperlinks (103 hyperlinks verified via `openpyxl`).
+
+### Scenario 3 — Institutional Library Freshness & Honest Out-of-Corpus Abstention (3:30 – 5:00)
+
+- **Part A — Library & OPAC (3:30 – 4:15):** Open `/library`, filter by `Algorithms`, point out the explicit freshness disclosure (`koha_stale: true`, dated `koha_source_updated_at`), and open a live institutional Koha OPAC record (`biblionumber=1910` on `uemk-opac.l2c2.co.in`).
+- **Part B — Honest Abstention (4:15 – 5:00):** Return to `/chat` and ask `What is Spanner TrueTime?`. Point out the Trace panel: `GUARDRAIL_INTERCEPT`, `0 hops`, `0 cited passages`, `no_graph_match`, `0.02 s` — proving zero fabricated graph edges or citations on out-of-corpus queries. Conclude with a 15-second note on verified RBAC and P0-2 cross-user run isolation (`404` across student/faculty sessions, `403` student on librarian endpoints).
