@@ -340,9 +340,9 @@ def register(app: Flask, _ctx: AppContext) -> None:
         from archipelago.scholarly.intelligence.storage import hosted_store
 
         try:
+            # _run applies owner scoping for students/faculty and grants manager
+            # access only to authorized librarian/administrator roles.
             run = _run(run_id)
-            if not run:
-                run = hosted_store().get_run(str(run_id), manager=True)
         except (OSError, RuntimeError):
             LOGGER.exception("Research dossier read unavailable")
             return jsonify({"error": "research_storage_unavailable"}), 503
