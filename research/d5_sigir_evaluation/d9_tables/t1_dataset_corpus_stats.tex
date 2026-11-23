@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Archipelago D9 dataset, corpus, knowledge graph, and benchmark statistics.}
+\label{tab:t1_dataset_stats}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{metric\_group} & \textbf{metric\_name} & \textbf{value} & \textbf{provenance\_source} & \textbf{verification\_status} \\
+\midrule
+Corpus & Indexed Source Documents & 60 & host\_inference/fixtures/okf\_graph.json & VERIFIED \\
+Corpus & Total Text Passages (Chunks) & 775 & host\_inference/fixtures/okf\_graph.json & VERIFIED \\
+Knowledge Graph & Canonical Concept Nodes & 610 & host\_inference/fixtures/okf\_graph.json & VERIFIED \\
+Knowledge Graph & Directed Typed Edges & 1988 & host\_inference/fixtures/okf\_graph.json & VERIFIED \\
+Knowledge Graph & Runtime Edge Predicates & 3 (REQUIRES 267, UNLOCKS 387, RELATED 1334) & host\_inference/fixtures/okf\_graph.json & VERIFIED \\
+Benchmarks & Development Calibration Queries & 15 (12 in-scope, 3 abstention) & queries\_dev\_15.json & VERIFIED \\
+Benchmarks & Held-Out Test Queries (Total) & 50 (20 core, 18 relational, 12 abstention) & queries\_heldout\_50.json & VERIFIED \\
+Benchmarks & Algorithmic Candidate QRel Queries & 37 / 38 supported (Q19 missing; 445 positives) & passage\_qrels.json & PROVISIONAL \\
+Human Pool & Re-Blinded Pooled Question-Passage Pairs & 731 across 50 queries (0 graded) & local-only annotation\_packets (outside Git) & VERIFIED \\
+\bottomrule
+\end{tabular}
+\end{table}

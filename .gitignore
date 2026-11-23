@@ -166,3 +166,6 @@ outputs/
 sigir2027_demo.tex
 sigir2027_demo.pdf
 references.bib
+**/annotation_packets/
+**/sealed_key.json
+**/d9_reviewer_*_packet.csv

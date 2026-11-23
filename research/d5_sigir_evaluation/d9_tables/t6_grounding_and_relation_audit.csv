@@ -1,0 +1,10 @@
+audit_dimension,positive_k,total_n,proportion_pct,wilson_95_ci,clopper_pearson_95_ci,epistemic_status
+Exp C: Exact Relational Triple Match,0,18,0.0%,"[0.0%, 17.6%]","[0.0%, 18.5%]",VERIFIED (0/18 exact; schema gap)
+Exp C: Target Concept Appears in Output,6,18,33.3%,"[16.3%, 56.3%]","[13.3%, 59.0%]",VERIFIED (concept-presence only)
+Exp C: Anchor Concept Resolved,15,18,83.3%,"[60.8%, 94.2%]","[58.6%, 96.4%]",VERIFIED (starting node found)
+Citation Audit: Strict Passage Support,7,24,29.2%,"[14.9%, 49.2%]","[12.6%, 51.1%]",PROVISIONAL (unverified legacy labels)
+Citation Audit: Lenient Passage Support,13,24,54.2%,"[35.1%, 72.1%]","[32.8%, 74.4%]",PROVISIONAL (unverified legacy labels)
+Citation Audit: Spurious 1-Hop Dilution,9,24,37.5%,"[21.2%, 57.3%]","[18.8%, 59.4%]",PROVISIONAL (unverified legacy labels)
+Citation Audit: Query-Level Core Answer Supported,7,10,70.0%,"[39.7%, 89.2%]","[34.8%, 93.3%]",PROVISIONAL (unverified legacy labels)
+KG Edge Audit: Verified Grounded Edges,40,45,88.9%,"[76.5%, 95.2%]","[75.9%, 96.3%]",PROVISIONAL (unconfirmed attribution)
+KG Edge Audit: Rejected Hallucinated Edges,5,45,11.1%,"[4.8%, 23.5%]","[3.7%, 24.1%]",PROVISIONAL (unconfirmed attribution)

@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\caption{Experiment C & audits.}
+\label{tab:t4_grounding}
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Evaluation Slice} & \textbf{Metric / Category} & \textbf{Observed Count / Rate} & \textbf{95\% Wilson CI} & \textbf{Provenance \& Qualification} \\
+\midrule
+Exp C: Runtime Triples (N=18) & Exact Triple True Positives (TP) & 0/18 (0.00\%) & [0.00\%, 17.59\%] & VERIFIED runtime (F1=0.0) \\
+Exp C: Runtime Triples (N=18) & Predicate Absent in Runtime Graph & 13/18 (72.22\%) & [49.13\%, 87.50\%] & USES(10), CONTRASTS(2), APPLIES(1) \\
+Exp C: Runtime Triples (N=18) & No Anchor Resolved & 3/18 (16.67\%) & [5.84\%, 39.22\%] & Q29, Q30 (REQUIRES), Q34 (USES) \\
+Exp C: Runtime Triples (N=18) & Assessable REQUIRES Misses & 2/18 (11.11\%) & [3.10\%, 32.80\%] & Q22 (anchor mismatch), Q37 (missing node) \\
+Citation Audit (N=24, 5 q) & Fully Supported Claims & 7/24 (29.17\%) & [14.91\%, 49.17\%] & PROVISIONAL author-only audit \\
+Citation Audit (N=24, 5 q) & Partially Supported Claims & 6/24 (25.00\%) & [12.00\%, 44.90\%] & Lenient support = 13/24 (54.17\%) \\
+Citation Audit (N=24, 5 q) & Irrelevant / Spurious Dilution & 9/24 (37.50\%) & [21.16\%, 57.29\%] & 1-hop neighborhood expansion dilution \\
+Citation Audit (N=24, 5 q) & Unsupported / Unassessable & 2/24 (8.33\%) & [2.32\%, 25.85\%] & 1 unsupported, 1 upload\_17869808 \\
+Graph Edge Slice (N=45) & Author-Verified vs Quarantined & 40/45 (88.89\%) / 5/45 & [76.49\%, 95.16\%] & PROVISIONAL (0 independent reviewers) \\
+\bottomrule
+\end{tabular}
+\end{table}

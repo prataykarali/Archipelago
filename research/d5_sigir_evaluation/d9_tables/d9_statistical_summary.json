@@ -1,0 +1,1461 @@
+{
+  "exp_a_concept_stats": {
+    "archipelago_resolver": {
+      "supported": {
+        "k": 26,
+        "n": 38,
+        "proportion": 0.6842,
+        "wilson_95_ci": [
+          0.5254424010939046,
+          0.8091539632440382
+        ],
+        "clopper_pearson_95_ci": [
+          0.5134729455939784,
+          0.8249746610988732
+        ]
+      },
+      "abstention_corpus": {
+        "k": 12,
+        "n": 12,
+        "proportion": 1.0,
+        "wilson_95_ci": [
+          0.7575059933447592,
+          1.0
+        ],
+        "clopper_pearson_95_ci": [
+          0.7353515306029488,
+          1.0
+        ]
+      },
+      "overall": {
+        "k": 38,
+        "n": 50,
+        "proportion": 0.76,
+        "wilson_95_ci": [
+          0.6258731624205708,
+          0.8570260860300828
+        ],
+        "clopper_pearson_95_ci": [
+          0.6183092518959619,
+          0.8693900838025427
+        ]
+      },
+      "abstention_strict_zero_citations": {
+        "k": 11,
+        "n": 12,
+        "proportion": 0.9167,
+        "wilson_95_ci": [
+          0.646120088858883,
+          0.9851349055950829
+        ],
+        "clopper_pearson_95_ci": [
+          0.6152038348490559,
+          0.9978924067681397
+        ]
+      }
+    },
+    "bm25_lexical": {
+      "supported": {
+        "k": 16,
+        "n": 38,
+        "proportion": 0.4211,
+        "wilson_95_ci": [
+          0.27852501157758713,
+          0.5780765465632945
+        ],
+        "clopper_pearson_95_ci": [
+          0.26309823725148423,
+          0.5917855458800948
+        ]
+      },
+      "abstention_corpus": {
+        "k": 0,
+        "n": 12,
+        "proportion": 0.0,
+        "wilson_95_ci": [
+          2.7755575615628914e-17,
+          0.24249400665524085
+        ],
+        "clopper_pearson_95_ci": [
+          0.0,
+          0.2646484693970512
+        ]
+      },
+      "overall": {
+        "k": 16,
+        "n": 50,
+        "proportion": 0.32,
+        "wilson_95_ci": [
+          0.20758216260656845,
+          0.45810297308144077
+        ],
+        "clopper_pearson_95_ci": [
+          0.19520419466283928,
+          0.4669938401147306
+        ]
+      }
+    },
+    "snowflake_arctic_neural": {
+      "supported": {
+        "k": 14,
+        "n": 38,
+        "proportion": 0.3684,
+        "wilson_95_ci": [
+          0.23384219247155955,
+          0.5271604044299099
+        ],
+        "clopper_pearson_95_ci": [
+          0.21812503509615175,
+          0.5400572140755622
+        ]
+      },
+      "abstention_corpus": {
+        "k": 12,
+        "n": 12,
+        "proportion": 1.0,
+        "wilson_95_ci": [
+          0.7575059933447592,
+          1.0
+        ],
+        "clopper_pearson_95_ci": [
+          0.7353515306029488,
+          1.0
+        ]
+      },
+      "overall": {
+        "k": 26,
+        "n": 50,
+        "proportion": 0.52,
+        "wilson_95_ci": [
+          0.3851174489004461,
+          0.6520286471342196
+        ],
+        "clopper_pearson_95_ci": [
+          0.3741519450790943,
+          0.66339490839654
+        ]
+      }
+    },
+    "feature_hashed_vector": {
+      "supported": {
+        "k": 3,
+        "n": 38,
+        "proportion": 0.0789,
+        "wilson_95_ci": [
+          0.02721459550698771,
+          0.20799371457771457
+        ],
+        "clopper_pearson_95_ci": [
+          0.016586475864529524,
+          0.21377329118061816
+        ]
+      },
+      "abstention_corpus": {
+        "k": 7,
+        "n": 12,
+        "proportion": 0.5833,
+        "wilson_95_ci": [
+          0.31951131254954973,
+          0.8067396863412435
+        ],
+        "clopper_pearson_95_ci": [
+          0.2766696856821058,
+          0.8483477701915698
+        ]
+      },
+      "overall": {
+        "k": 10,
+        "n": 50,
+        "proportion": 0.2,
+        "wilson_95_ci": [
+          0.11243750015776112,
+          0.3303710593222542
+        ],
+        "clopper_pearson_95_ci": [
+          0.10030223747257107,
+          0.33718310838348775
+        ]
+      }
+    }
+  },
+  "mcnemar_paired_tests": {
+    "archipelago_vs_bm25_lexical": {
+      "n": 38,
+      "both_correct_a": 16,
+      "a_only_b": 10,
+      "b_only_c": 0,
+      "both_wrong_d": 12,
+      "discordant_total": 10,
+      "delta_accuracy": 0.2632,
+      "exact_two_sided_p": 0.0019531,
+      "delta_ci_95": [
+        0.1232,
+        0.4032
+      ],
+      "delta_ci_method": "paired Wald",
+      "odds_ratio_exact": "inf",
+      "odds_ratio_haldane_anscombe": 21.0,
+      "archi_only_queries": [
+        "Q01",
+        "Q04",
+        "Q07",
+        "Q12",
+        "Q23",
+        "Q26",
+        "Q27",
+        "Q32",
+        "Q35",
+        "Q37"
+      ],
+      "base_only_queries": []
+    },
+    "archipelago_vs_snowflake_arctic_neural": {
+      "n": 38,
+      "both_correct_a": 14,
+      "a_only_b": 12,
+      "b_only_c": 0,
+      "both_wrong_d": 12,
+      "discordant_total": 12,
+      "delta_accuracy": 0.3158,
+      "exact_two_sided_p": 0.0004883,
+      "delta_ci_95": [
+        0.168,
+        0.4636
+      ],
+      "delta_ci_method": "paired Wald",
+      "odds_ratio_exact": "inf",
+      "odds_ratio_haldane_anscombe": 25.0,
+      "archi_only_queries": [
+        "Q03",
+        "Q04",
+        "Q07",
+        "Q12",
+        "Q15",
+        "Q23",
+        "Q24",
+        "Q26",
+        "Q27",
+        "Q32",
+        "Q35",
+        "Q37"
+      ],
+      "base_only_queries": []
+    },
+    "archipelago_vs_feature_hashed_vector": {
+      "n": 38,
+      "both_correct_a": 3,
+      "a_only_b": 23,
+      "b_only_c": 0,
+      "both_wrong_d": 12,
+      "discordant_total": 23,
+      "delta_accuracy": 0.6053,
+      "exact_two_sided_p": 2e-07,
+      "delta_ci_95": [
+        0.4499,
+        0.7607
+      ],
+      "delta_ci_method": "paired Wald",
+      "odds_ratio_exact": "inf",
+      "odds_ratio_haldane_anscombe": 47.0,
+      "archi_only_queries": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q12",
+        "Q13",
+        "Q15",
+        "Q23",
+        "Q24",
+        "Q25",
+        "Q26",
+        "Q27",
+        "Q28",
+        "Q31",
+        "Q32",
+        "Q35",
+        "Q37",
+        "Q38"
+      ],
+      "base_only_queries": []
+    }
+  },
+  "exp_b_passage_provisional": {
+    "bm25": {
+      "mrr": {
+        "mean": 0.75,
+        "std": 0.3664,
+        "ci_95": [
+          0.6261,
+          0.8604
+        ],
+        "archipelago_minus_system_diff": -0.2635,
+        "diff_ci_95": [
+          -0.4527,
+          -0.0631
+        ],
+        "p_randomization": 0.0156,
+        "p_sign_test": 0.04329,
+        "archi_wins": 7,
+        "ties": 12,
+        "archi_losses": 18
+      },
+      "ndcg@5": {
+        "mean": 0.6415,
+        "std": 0.3278,
+        "ci_95": [
+          0.5347,
+          0.7428
+        ],
+        "archipelago_minus_system_diff": -0.4162,
+        "diff_ci_95": [
+          -0.5354,
+          -0.2909
+        ],
+        "p_randomization": 0.0001,
+        "p_sign_test": 4e-05,
+        "archi_wins": 5,
+        "ties": 3,
+        "archi_losses": 29
+      },
+      "r@5": {
+        "mean": 0.3707,
+        "std": 0.3031,
+        "ci_95": [
+          0.2785,
+          0.4668
+        ],
+        "archipelago_minus_system_diff": -0.311,
+        "diff_ci_95": [
+          -0.4216,
+          -0.2057
+        ],
+        "p_randomization": 0.0001,
+        "p_sign_test": 0.0,
+        "archi_wins": 3,
+        "ties": 5,
+        "archi_losses": 29
+      },
+      "p@5": {
+        "mean": 0.5405,
+        "std": 0.346,
+        "ci_95": [
+          0.4324,
+          0.6541
+        ],
+        "archipelago_minus_system_diff": -0.3676,
+        "diff_ci_95": [
+          -0.4757,
+          -0.2595
+        ],
+        "p_randomization": 0.0001,
+        "p_sign_test": 0.0,
+        "archi_wins": 3,
+        "ties": 5,
+        "archi_losses": 29
+      }
+    },
+    "arctic": {
+      "mrr": {
+        "mean": 0.75,
+        "std": 0.3849,
+        "ci_95": [
+          0.6194,
+          0.8694
+        ],
+        "archipelago_minus_system_diff": -0.2635,
+        "diff_ci_95": [
+          -0.4392,
+          -0.0856
+        ],
+        "p_randomization": 0.0079,
+        "p_sign_test": 0.01182,
+        "archi_wins": 4,
+        "ties": 17,
+        "archi_losses": 16
+      },
+      "ndcg@5": {
+        "mean": 0.6524,
+        "std": 0.3531,
+        "ci_95": [
+          0.536,
+          0.7622
+        ],
+        "archipelago_minus_system_diff": -0.4272,
+        "diff_ci_95": [
+          -0.5364,
+          -0.3161
+        ],
+        "p_randomization": 0.0001,
+        "p_sign_test": 0.0,
+        "archi_wins": 3,
+        "ties": 4,
+        "archi_losses": 30
+      },
+      "r@5": {
+        "mean": 0.3324,
+        "std": 0.2744,
+        "ci_95": [
+          0.2482,
+          0.4234
+        ],
+        "archipelago_minus_system_diff": -0.2727,
+        "diff_ci_95": [
+          -0.3708,
+          -0.1831
+        ],
+        "p_randomization": 0.0001,
+        "p_sign_test": 0.0,
+        "archi_wins": 1,
+        "ties": 6,
+        "archi_losses": 30
+      },
+      "p@5": {
+        "mean": 0.573,
+        "std": 0.3626,
+        "ci_95": [
+          0.4541,
+          0.6919
+        ],
+        "archipelago_minus_system_diff": -0.4,
+        "diff_ci_95": [
+          -0.4974,
+          -0.3027
+        ],
+        "p_randomization": 0.0001,
+        "p_sign_test": 0.0,
+        "archi_wins": 1,
+        "ties": 6,
+        "archi_losses": 30
+      }
+    },
+    "archipelago": {
+      "mrr": {
+        "mean": 0.4865,
+        "std": 0.4893,
+        "ci_95": [
+          0.3311,
+          0.6486
+        ],
+        "archipelago_minus_system_diff": 0.0,
+        "diff_ci_95": [
+          0.0,
+          0.0
+        ],
+        "p_randomization": 1.0,
+        "p_sign_test": 1.0,
+        "archi_wins": 0,
+        "ties": 37,
+        "archi_losses": 0
+      },
+      "ndcg@5": {
+        "mean": 0.2253,
+        "std": 0.2371,
+        "ci_95": [
+          0.1517,
+          0.3031
+        ],
+        "archipelago_minus_system_diff": 0.0,
+        "diff_ci_95": [
+          0.0,
+          0.0
+        ],
+        "p_randomization": 1.0,
+        "p_sign_test": 1.0,
+        "archi_wins": 0,
+        "ties": 37,
+        "archi_losses": 0
+      },
+      "r@5": {
+        "mean": 0.0597,
+        "std": 0.0711,
+        "ci_95": [
+          0.0381,
+          0.0833
+        ],
+        "archipelago_minus_system_diff": 0.0,
+        "diff_ci_95": [
+          0.0,
+          0.0
+        ],
+        "p_randomization": 1.0,
+        "p_sign_test": 1.0,
+        "archi_wins": 0,
+        "ties": 37,
+        "archi_losses": 0
+      },
+      "p@5": {
+        "mean": 0.173,
+        "std": 0.1953,
+        "ci_95": [
+          0.1135,
+          0.2378
+        ],
+        "archipelago_minus_system_diff": 0.0,
+        "diff_ci_95": [
+          0.0,
+          0.0
+        ],
+        "p_randomization": 1.0,
+        "p_sign_test": 1.0,
+        "archi_wins": 0,
+        "ties": 37,
+        "archi_losses": 0
+      }
+    },
+    "feature_hash": {
+      "mrr": {
+        "mean": 0.2806,
+        "std": 0.388,
+        "ci_95": [
+          0.1649,
+          0.4059
+        ],
+        "archipelago_minus_system_diff": 0.2059,
+        "diff_ci_95": [
+          -0.0009,
+          0.4032
+        ],
+        "p_randomization": 0.05679,
+        "p_sign_test": 0.16864,
+        "archi_wins": 17,
+        "ties": 11,
+        "archi_losses": 9
+      },
+      "ndcg@5": {
+        "mean": 0.1764,
+        "std": 0.2535,
+        "ci_95": [
+          0.1029,
+          0.2621
+        ],
+        "archipelago_minus_system_diff": 0.0489,
+        "diff_ci_95": [
+          -0.0601,
+          0.1558
+        ],
+        "p_randomization": 0.39126,
+        "p_sign_test": 0.45826,
+        "archi_wins": 17,
+        "ties": 8,
+        "archi_losses": 12
+      },
+      "r@5": {
+        "mean": 0.1093,
+        "std": 0.197,
+        "ci_95": [
+          0.0541,
+          0.1794
+        ],
+        "archipelago_minus_system_diff": -0.0496,
+        "diff_ci_95": [
+          -0.1274,
+          0.013
+        ],
+        "p_randomization": 0.19718,
+        "p_sign_test": 0.84502,
+        "archi_wins": 14,
+        "ties": 11,
+        "archi_losses": 12
+      },
+      "p@5": {
+        "mean": 0.1514,
+        "std": 0.2281,
+        "ci_95": [
+          0.0865,
+          0.227
+        ],
+        "archipelago_minus_system_diff": 0.0216,
+        "diff_ci_95": [
+          -0.0649,
+          0.1081
+        ],
+        "p_randomization": 0.72283,
+        "p_sign_test": 0.84502,
+        "archi_wins": 14,
+        "ties": 11,
+        "archi_losses": 12
+      }
+    }
+  },
+  "failure_taxonomy": {
+    "categories": {
+      "Missing ontology concept": [
+        "Q11",
+        "Q12",
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q19",
+        "Q23",
+        "Q24",
+        "Q30",
+        "Q32",
+        "Q33",
+        "Q34",
+        "Q36",
+        "Q37",
+        "Q38"
+      ],
+      "Alias-resolution mismatch": [
+        "Q11",
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q19",
+        "Q20",
+        "Q23",
+        "Q26",
+        "Q29",
+        "Q33",
+        "Q34",
+        "Q36"
+      ],
+      "Incorrect canonical anchoring": [
+        "Q11",
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q19",
+        "Q20",
+        "Q22",
+        "Q23",
+        "Q26",
+        "Q29",
+        "Q30",
+        "Q33",
+        "Q34",
+        "Q35",
+        "Q36",
+        "Q37"
+      ],
+      "Unsupported runtime predicate": [
+        "Q21",
+        "Q23",
+        "Q24",
+        "Q25",
+        "Q26",
+        "Q27",
+        "Q28",
+        "Q31",
+        "Q32",
+        "Q33",
+        "Q34",
+        "Q35",
+        "Q36",
+        "Q38"
+      ],
+      "Wrong relation direction": [],
+      "Citation irrelevance": [
+        "Q11",
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q19",
+        "Q20",
+        "Q21",
+        "Q22",
+        "Q23",
+        "Q24",
+        "Q25",
+        "Q26",
+        "Q27",
+        "Q28",
+        "Q29",
+        "Q30",
+        "Q31",
+        "Q32",
+        "Q33",
+        "Q34",
+        "Q35",
+        "Q36",
+        "Q37",
+        "Q38"
+      ],
+      "Legitimate abstention": [
+        "Q39",
+        "Q40",
+        "Q41",
+        "Q42",
+        "Q43",
+        "Q44",
+        "Q45",
+        "Q46",
+        "Q47",
+        "Q48",
+        "Q49",
+        "Q50"
+      ]
+    },
+    "per_query": [
+      {
+        "query_id": "Q01",
+        "category": "core_concept",
+        "query": "What is Transformer?",
+        "expected_concept": "transformer",
+        "gold_concepts": [
+          "multi_head_attention",
+          "self_attention",
+          "transformer"
+        ],
+        "predicted_concept": "transformer",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q02",
+        "category": "core_concept",
+        "query": "Explain Attention Mechanism",
+        "expected_concept": "attention_mechanism",
+        "gold_concepts": [
+          "attention_mechanism",
+          "scaled_dot_product_attention",
+          "self_attention"
+        ],
+        "predicted_concept": "attention_mechanism",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q03",
+        "category": "core_concept",
+        "query": "What is BERT?",
+        "expected_concept": "bert",
+        "gold_concepts": [
+          "bert",
+          "masked_language_modeling",
+          "transformer"
+        ],
+        "predicted_concept": "bert",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q04",
+        "category": "core_concept",
+        "query": "Explain Dense Passage Retrieval",
+        "expected_concept": "retrieval",
+        "gold_concepts": [
+          "bm25",
+          "dense_passage_retrieval",
+          "dual_encoder",
+          "retrieval"
+        ],
+        "predicted_concept": "retrieval",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q05",
+        "category": "core_concept",
+        "query": "What is Retrieval-Augmented Generation?",
+        "expected_concept": "rag",
+        "gold_concepts": [
+          "dense_passage_retrieval",
+          "rag",
+          "retrieval_augmented_generation"
+        ],
+        "predicted_concept": "rag",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q06",
+        "category": "core_concept",
+        "query": "Explain Low-Rank Adaptation (LoRA)",
+        "expected_concept": "low_rank_adaptation",
+        "gold_concepts": [
+          "lora",
+          "low_rank_adaptation",
+          "matrix_factorization"
+        ],
+        "predicted_concept": "low_rank_adaptation",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q07",
+        "category": "core_concept",
+        "query": "What is QLoRA?",
+        "expected_concept": "qlora",
+        "gold_concepts": [
+          "4bit_normalfloat",
+          "low_rank_adaptation",
+          "qlora"
+        ],
+        "predicted_concept": "qlora",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q08",
+        "category": "core_concept",
+        "query": "Explain FlashAttention",
+        "expected_concept": "flashattention",
+        "gold_concepts": [
+          "flashattention",
+          "online_softmax",
+          "tiling"
+        ],
+        "predicted_concept": "flashattention",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q09",
+        "category": "core_concept",
+        "query": "What is PagedAttention in vLLM?",
+        "expected_concept": "paged_attention",
+        "gold_concepts": [
+          "kv_cache",
+          "paged_attention",
+          "vllm"
+        ],
+        "predicted_concept": "paged_attention",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q10",
+        "category": "core_concept",
+        "query": "Explain Graph Neural Networks",
+        "expected_concept": "graph_neural_network",
+        "gold_concepts": [
+          "gat",
+          "gcn",
+          "graph_neural_network"
+        ],
+        "predicted_concept": "graph_neural_network",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q11",
+        "category": "core_concept",
+        "query": "What is Scaled Dot-Product Attention?",
+        "expected_concept": "scaled_dot_product_attention",
+        "gold_concepts": [
+          "scaled_dot_product_attention",
+          "self_attention",
+          "softmax"
+        ],
+        "predicted_concept": "attention_mechanism",
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q12",
+        "category": "core_concept",
+        "query": "Explain Positional Encoding in Transformers",
+        "expected_concept": "positional_encoding",
+        "gold_concepts": [
+          "positional_encoding",
+          "transformer"
+        ],
+        "predicted_concept": "positional_encoding",
+        "concept_hit": true,
+        "failure_tags": [
+          "Missing ontology concept"
+        ]
+      },
+      {
+        "query_id": "Q13",
+        "category": "core_concept",
+        "query": "What is Layer Normalization?",
+        "expected_concept": "layer_normalization",
+        "gold_concepts": [
+          "layer_normalization",
+          "transformer"
+        ],
+        "predicted_concept": "layer_normalization",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q14",
+        "category": "core_concept",
+        "query": "Explain Masked Language Modeling",
+        "expected_concept": "masked_language_modeling",
+        "gold_concepts": [
+          "bert",
+          "masked_language_modeling"
+        ],
+        "predicted_concept": "masked_language_modeling",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q15",
+        "category": "core_concept",
+        "query": "What is BM25?",
+        "expected_concept": "bm25",
+        "gold_concepts": [
+          "bm25",
+          "inverted_index",
+          "term_frequency_inverse_document_frequency"
+        ],
+        "predicted_concept": "bm25",
+        "concept_hit": true,
+        "failure_tags": []
+      },
+      {
+        "query_id": "Q16",
+        "category": "core_concept",
+        "query": "Explain Inverted Index in information retrieval",
+        "expected_concept": "inverted_index",
+        "gold_concepts": [
+          "bm25",
+          "inverted_index"
+        ],
+        "predicted_concept": "retrieval",
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q17",
+        "category": "core_concept",
+        "query": "What is Maximum Inner Product Search (MIPS)?",
+        "expected_concept": "maximum_inner_product_search",
+        "gold_concepts": [
+          "dense_passage_retrieval",
+          "maximum_inner_product_search",
+          "vector_embeddings"
+        ],
+        "predicted_concept": null,
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q18",
+        "category": "core_concept",
+        "query": "Explain Dual Encoder architecture",
+        "expected_concept": "dual_encoder",
+        "gold_concepts": [
+          "dense_passage_retrieval",
+          "dual_encoder"
+        ],
+        "predicted_concept": null,
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q19",
+        "category": "core_concept",
+        "query": "What is Cross-Encoder re-ranking?",
+        "expected_concept": "cross_encoder",
+        "gold_concepts": [
+          "cross_encoder",
+          "dual_encoder",
+          "reranking"
+        ],
+        "predicted_concept": null,
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q20",
+        "category": "core_concept",
+        "query": "Explain GraphRAG",
+        "expected_concept": "graph_rag",
+        "gold_concepts": [
+          "community_summaries",
+          "entity_knowledge_graph",
+          "graph_rag"
+        ],
+        "predicted_concept": null,
+        "concept_hit": false,
+        "failure_tags": [
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q21",
+        "category": "relational",
+        "query": "How does self-attention relate to the Transformer?",
+        "expected_concept": "self_attention",
+        "gold_concepts": [
+          "self_attention",
+          "transformer"
+        ],
+        "predicted_concept": "self_attention",
+        "concept_hit": true,
+        "failure_tags": [
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q22",
+        "category": "relational",
+        "query": "What mathematical prerequisites are required for self-attention?",
+        "expected_concept": "self_attention",
+        "gold_concepts": [
+          "matrix_multiplication",
+          "self_attention",
+          "softmax"
+        ],
+        "predicted_concept": "attention_mechanism",
+        "concept_hit": false,
+        "failure_tags": [
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q23",
+        "category": "relational",
+        "query": "How does DPR compare to BM25 in open-domain QA?",
+        "expected_concept": "retrieval",
+        "gold_concepts": [
+          "bm25",
+          "dense_passage_retrieval"
+        ],
+        "predicted_concept": "bm25",
+        "concept_hit": true,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q24",
+        "category": "relational",
+        "query": "How does RAG integrate Dense Passage Retrieval?",
+        "expected_concept": "rag",
+        "gold_concepts": [
+          "dense_passage_retrieval",
+          "rag"
+        ],
+        "predicted_concept": "rag",
+        "concept_hit": true,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q25",
+        "category": "relational",
+        "query": "Why does FlashAttention require online softmax?",
+        "expected_concept": "flashattention",
+        "gold_concepts": [
+          "flashattention",
+          "online_softmax",
+          "tiling"
+        ],
+        "predicted_concept": "flashattention",
+        "concept_hit": true,
+        "failure_tags": [
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q26",
+        "category": "relational",
+        "query": "How does LoRA adapt Transformer weight matrices?",
+        "expected_concept": "low_rank_adaptation",
+        "gold_concepts": [
+          "low_rank_adaptation",
+          "transformer"
+        ],
+        "predicted_concept": "transformer",
+        "concept_hit": true,
+        "failure_tags": [
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q27",
+        "category": "relational",
+        "query": "What is the relationship between QLoRA and LoRA?",
+        "expected_concept": "qlora",
+        "gold_concepts": [
+          "low_rank_adaptation",
+          "qlora"
+        ],
+        "predicted_concept": "qlora",
+        "concept_hit": true,
+        "failure_tags": [
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q28",
+        "category": "relational",
+        "query": "How does PagedAttention manage the KV cache in vLLM?",
+        "expected_concept": "paged_attention",
+        "gold_concepts": [
+          "kv_cache",
+          "paged_attention"
+        ],
+        "predicted_concept": "paged_attention",
+        "concept_hit": true,
+        "failure_tags": [
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q29",
+        "category": "relational",
+        "query": "What linear algebra operation underpins query-key attention projection?",
+        "expected_concept": "self_attention",
+        "gold_concepts": [
+          "matrix_multiplication",
+          "self_attention"
+        ],
+        "predicted_concept": null,
+        "concept_hit": false,
+        "failure_tags": [
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q30",
+        "category": "relational",
+        "query": "Why is softmax used in attention mechanisms?",
+        "expected_concept": "attention_mechanism",
+        "gold_concepts": [
+          "attention_mechanism",
+          "probability_distribution",
+          "softmax"
+        ],
+        "predicted_concept": null,
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q31",
+        "category": "relational",
+        "query": "How does BERT relate to the Transformer encoder?",
+        "expected_concept": "bert",
+        "gold_concepts": [
+          "bert",
+          "transformer"
+        ],
+        "predicted_concept": "bert",
+        "concept_hit": true,
+        "failure_tags": [
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q32",
+        "category": "relational",
+        "query": "Why are dual-encoders preferred over cross-encoders for first-stage retrieval?",
+        "expected_concept": "retrieval",
+        "gold_concepts": [
+          "cross_encoder",
+          "dual_encoder"
+        ],
+        "predicted_concept": "retrieval",
+        "concept_hit": true,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q33",
+        "category": "relational",
+        "query": "How does re-ranking use cross-encoders after dense retrieval?",
+        "expected_concept": "cross_encoder",
+        "gold_concepts": [
+          "cross_encoder",
+          "reranking"
+        ],
+        "predicted_concept": "retrieval",
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q34",
+        "category": "relational",
+        "query": "What role does community detection play in GraphRAG?",
+        "expected_concept": "graph_rag",
+        "gold_concepts": [
+          "community_summaries",
+          "graph_rag"
+        ],
+        "predicted_concept": null,
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q35",
+        "category": "relational",
+        "query": "How does layer normalization stabilize activations in Transformers?",
+        "expected_concept": "layer_normalization",
+        "gold_concepts": [
+          "layer_normalization",
+          "transformer"
+        ],
+        "predicted_concept": "transformer",
+        "concept_hit": true,
+        "failure_tags": [
+          "Incorrect canonical anchoring",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q36",
+        "category": "relational",
+        "query": "What is the role of residual connections around attention sub-layers?",
+        "expected_concept": "transformer",
+        "gold_concepts": [
+          "residual_connection",
+          "transformer"
+        ],
+        "predicted_concept": "attention_mechanism",
+        "concept_hit": false,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Alias-resolution mismatch",
+          "Incorrect canonical anchoring",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q37",
+        "category": "relational",
+        "query": "How do vector embeddings enable continuous dense retrieval?",
+        "expected_concept": "retrieval",
+        "gold_concepts": [
+          "dense_passage_retrieval",
+          "vector_embeddings"
+        ],
+        "predicted_concept": "vector_embeddings",
+        "concept_hit": true,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Incorrect canonical anchoring",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q38",
+        "category": "relational",
+        "query": "How does tiling reduce HBM memory traffic in FlashAttention?",
+        "expected_concept": "flashattention",
+        "gold_concepts": [
+          "flashattention",
+          "tiling"
+        ],
+        "predicted_concept": "flashattention",
+        "concept_hit": true,
+        "failure_tags": [
+          "Missing ontology concept",
+          "Unsupported runtime predicate",
+          "Citation irrelevance"
+        ]
+      },
+      {
+        "query_id": "Q39",
+        "category": "unsupported_abstention",
+        "query": "Explain Spanner TrueTime and its prerequisites.",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q40",
+        "category": "unsupported_abstention",
+        "query": "What is Byzantine fault tolerance in distributed systems?",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q41",
+        "category": "unsupported_abstention",
+        "query": "How does Raft consensus elect a leader?",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q42",
+        "category": "unsupported_abstention",
+        "query": "Explain CRISPR-Cas9 gene editing mechanism.",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q43",
+        "category": "unsupported_abstention",
+        "query": "What is quantum key distribution in cryptography?",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q44",
+        "category": "unsupported_abstention",
+        "query": "Explain the Ricardian theory of comparative advantage.",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q45",
+        "category": "unsupported_abstention",
+        "query": "How do compilers transform source code into machine instructions?",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q46",
+        "category": "unsupported_abstention",
+        "query": "Explain the fluid dynamics of Navier-Stokes equations.",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q47",
+        "category": "unsupported_abstention",
+        "query": "What is the Krebs cycle in cellular respiration?",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q48",
+        "category": "unsupported_abstention",
+        "query": "Explain plate tectonics and continental drift.",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q49",
+        "category": "unsupported_abstention",
+        "query": "How does Paxos achieve consensus across asynchronous networks?",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      },
+      {
+        "query_id": "Q50",
+        "category": "unsupported_abstention",
+        "query": "What is Keynesian fiscal multiplier in macroeconomic policy?",
+        "expected_concept": null,
+        "gold_concepts": [],
+        "predicted_concept": null,
+        "concept_hit": true,
+        "failure_tags": [
+          "Legitimate abstention"
+        ]
+      }
+    ]
+  }
+}

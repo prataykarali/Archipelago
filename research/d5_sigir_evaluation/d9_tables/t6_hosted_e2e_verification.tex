@@ -1,0 +1,18 @@
+\begin{table}[t]
+\centering
+\caption{Authenticated live E2E.}
+\label{tab:t6_hosted_e2e}
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Journey ID} & \textbf{Authenticated Scenario \& Role} & \textbf{Verdict} & \textbf{Primary Source / Byte Verification} & \textbf{Evidence Artifact} \\
+\midrule
+J1 & Student Chat, Graph \& PDF (Transformer) & PASS (200) & Vaswani2017 p.2/15 (\%PDF- 2,215,244 bytes) & j1\_chat\_transformer.png \\
+J2 & Research Discovery (Dense Passage Retrieval) & PASS (200) & 30 OpenAlex papers, 186KB dossier, DOI 302->200 & j2\_research\_dossier.png \\
+J3 & Research Persistence \& XLSX Export & PASS (200) & Reload persisted; 4-sheet OOXML (103 links) & j3\_saved\_run\_reopened.png \\
+J4 & Library \& Institutional Koha OPAC & PASS (200) & 91 eBooks, 109 holdings, Koha biblionumber=1910 & j4\_koha\_record.png \\
+J5 & Out-of-Corpus Abstention (Spanner TrueTime) & PASS (200) & GUARDRAIL\_INTERCEPT (0.02s), 0 cites, 0 edges & j5\_unsupported\_abstention.png \\
+J6 & RBAC \& P0-2 Cross-User Isolation & PASS (403/404/200) & 5/5 Student->Lib 403; 6/6 cross-user 404; Lib 200 & j6\_librarian\_session.png \\
+\bottomrule
+\end{tabular}
+\end{table}
