@@ -87,8 +87,10 @@ def inventory_stats(rows: list[dict]) -> dict[str, int]:
     """Summarize a normalized holdings list."""
     return {
         "total_records": len(rows),
-        "total_copies": sum(int(row["total_copies"]) for row in rows),
-        "available_copies": sum(int(row["available_copies"]) for row in rows),
+        "total_copies": sum(
+            int(row.get("total_copies", row.get("no_of_copies", 0)) or 0) for row in rows
+        ),
+        "available_copies": sum(int(row.get("available_copies", 0) or 0) for row in rows),
     }
 
 
