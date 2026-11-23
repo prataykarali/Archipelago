@@ -149,8 +149,8 @@ Once both completed CSVs are submitted:
 
 | Artifact / Activity | Performed By | Role / Independence | Status |
 |---|---|---|---|
-| 45 Graph Edges Audit (`human_review_records.json`, `reviewer_provenance.json`) | Pratay Karali | Primary Author (NOT independent) | Completed (40 verified, 5 quarantined) |
-| 24-Citation Grounding Audit (`citation_grounding_audit.json`) | Pratay Karali | Primary Author (NOT independent) | Completed (7/24 fully supported, 9/24 spurious) |
+| 45 Graph Edges Audit (`human_review_records.json`, `reviewer_provenance.json`) | Legacy attribution to Pratay Karali, pending first-person confirmation | Primary Author (NOT independent) | 40 previously marked verified, 5 quarantined; human provenance unconfirmed |
+| 24-Citation Grounding Audit (`citation_grounding_audit.json`) | Legacy attribution to Pratay Karali, pending first-person confirmation | Primary Author (NOT independent) | Prior categorical entries are unconfirmed; fresh blank author audit pending |
 | 445 Algorithmic Passage QRels (`passage_qrels.json`) | Keyword/doc-substring script | Algorithmic heuristic (NOT human) | Frozen & explicitly labeled `ALGORITHMIC_RULE_BASED_CANDIDATE` |
 | System-Blinded Top-5 Pool & Worksheets (`build_blinded_pool.py`, 731 items) | Automated pooling script (Agent C) | Mechanical pooling only (0 grades filled) | Ready for human assignment; all grade fields `null`/empty |
 | Independent Human Passage Relevance Judging (`reviewer_A/B_worksheet.csv`) | **PENDING (Named Humans TBD)** | Independent human annotators | **NOT STARTED (blocks Scientific GO)** |
@@ -164,7 +164,19 @@ using a random secret generated only at a local output path outside the Git
 repository. The private `sealed_key.json` is mode 0600. Reviewer packets
 contain neither the secret nor contributing system/rank data, and every grade
 starts blank. Do not commit packets, keys, completed worksheets, or human
-results. The local `post_annotation_analysis.py` requires two complete,
-distinct reviewer identities, all grades, and completed adjudication before
-writing agreement and human-qrel metrics. Agreement is computed from independent
-grades before adjudication.
+results. The D9.5 packet generator requires a predeclared `full` or `partial`
+assignment and records it in `assignment_manifest.json` before annotation. For
+the partial design, four core, four relational and two abstention queries are
+dual-coded (at least 145 items); the remaining queries are assigned to one
+reviewer in balanced query partitions. `post_annotation_analysis.py` requires
+every assigned grade, distinct human reviewer identities, valid provenance and
+claim-support fields, and human adjudication for every dual-coded disagreement.
+Agreement uses only the actual dual-coded overlap. Human metrics are withheld
+until the coordinator verifies completed human worksheets with checksums and
+attestation, the predeclared reliability thresholds pass, and every top-five
+retrieved item has a human grade. No blank or missing grade is treated as zero.
+Fresh packets replace the legacy public `item_id` as well as the candidate ID.
+Because the corpus text and frozen run files are public, a determined reviewer
+could still reconstruct system membership by matching passages; reviewers must
+agree not to inspect public run/key artifacts while labeling. This is a
+procedural limit of system blinding, not a cryptographic guarantee.
