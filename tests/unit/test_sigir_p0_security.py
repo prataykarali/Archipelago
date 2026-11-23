@@ -6,19 +6,20 @@ never read private production data or require real account credentials.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 from flask import Flask
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-for location in (ROOT / "host_inference", ROOT):
-    if str(location) not in sys.path:
-        sys.path.insert(0, str(location))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+if str(ROOT / "host_inference") not in sys.path:
+    sys.path.append(str(ROOT / "host_inference"))
 
-from hostapp.middleware import _is_protected_reader_path, register_middleware
+from hostapp.middleware import _is_protected_reader_path, register_middleware  # noqa: E402
 
 
 class FakeAuth:
@@ -41,9 +42,9 @@ class FakeLimiter:
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("path", [
-    "/read", "/read/some-book", "/open/book-id", "/papers/book.pdf", "/pdfs/book.pdf"
-])
+@pytest.mark.parametrize(
+    "path", ["/read", "/read/some-book", "/open/book-id", "/papers/book.pdf", "/pdfs/book.pdf"]
+)
 def test_reader_aliases_are_protected(path):
     assert _is_protected_reader_path(path)
 
@@ -55,9 +56,9 @@ def test_non_reader_routes_not_mistaken_for_private_aliases(path):
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("path", [
-    "/read", "/read/subpath", "/open/book-id", "/papers/book.pdf", "/pdfs/book.pdf"
-])
+@pytest.mark.parametrize(
+    "path", ["/read", "/read/subpath", "/open/book-id", "/papers/book.pdf", "/pdfs/book.pdf"]
+)
 def test_anonymous_reader_routes_rejected_by_actual_middleware(path):
     app = Flask(__name__)
     auth = FakeAuth()
@@ -78,9 +79,11 @@ def test_anonymous_reader_routes_rejected_by_actual_middleware(path):
 
 @pytest.mark.unit
 def test_dossier_does_not_fallback_to_manager_for_another_student(monkeypatch):
-    from hostapp.routes.research_intelligence import register
-    from archipelago.scholarly.intelligence import run_dossier, storage
     import uuid
+
+    from hostapp.routes.research_intelligence import register
+
+    from archipelago.scholarly.intelligence import run_dossier, storage
 
     app = Flask(__name__)
     auth = FakeAuth({"id": "student-a", "role": "student", "token": "test"})
