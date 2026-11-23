@@ -155,3 +155,16 @@ Once both completed CSVs are submitted:
 | System-Blinded Top-5 Pool & Worksheets (`build_blinded_pool.py`, 731 items) | Automated pooling script (Agent C) | Mechanical pooling only (0 grades filled) | Ready for human assignment; all grade fields `null`/empty |
 | Independent Human Passage Relevance Judging (`reviewer_A/B_worksheet.csv`) | **PENDING (Named Humans TBD)** | Independent human annotators | **NOT STARTED (blocks Scientific GO)** |
 | Disagreement Adjudication (`adjudication_worksheet.csv`) | **PENDING (Named Human TBD)** | Independent human adjudicator | **NOT STARTED** |
+
+## D9 privacy and re-blinding addendum
+
+The original deterministic salt and sealed key were committed publicly; any
+legacy packet IDs must be considered unblinded. D9 creates fresh HMAC-based IDs
+using a random secret generated only at a local output path outside the Git
+repository. The private `sealed_key.json` is mode 0600. Reviewer packets
+contain neither the secret nor contributing system/rank data, and every grade
+starts blank. Do not commit packets, keys, completed worksheets, or human
+results. The local `post_annotation_analysis.py` requires two complete,
+distinct reviewer identities, all grades, and completed adjudication before
+writing agreement and human-qrel metrics. Agreement is computed from independent
+grades before adjudication.

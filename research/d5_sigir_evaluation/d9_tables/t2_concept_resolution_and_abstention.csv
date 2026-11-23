@@ -1,0 +1,5 @@
+system,supported_hits_k,supported_n,supported_acc_pct,supported_wilson_95_ci,supported_clopper_pearson_95_ci,abstention_hits_k,abstention_n,abstention_acc_pct,abstention_wilson_95_ci,abstention_clopper_pearson_95_ci,overall_acc_pct,overall_wilson_95_ci
+Archipelago Concept Resolver,26,38,68.4%,"[52.5%, 80.9%]","[51.3%, 82.5%]",12,12,100.0%,"[75.8%, 100.0%]","[73.5%, 100.0%]",76.0%,"[62.6%, 85.7%]"
+"BM25 Lexical (k1=1.5, b=0.75)",16,38,42.1%,"[27.9%, 57.8%]","[26.3%, 59.2%]",0,12,0.0%,"[0.0%, 24.2%]","[0.0%, 26.5%]",32.0%,"[20.8%, 45.8%]"
+Snowflake-Arctic-Embed-M (fc74610d),14,38,36.8%,"[23.4%, 52.7%]","[21.8%, 54.0%]",12,12,100.0%,"[75.8%, 100.0%]","[73.5%, 100.0%]",52.0%,"[38.5%, 65.2%]"
+Feature-Hashed Vector (BLAKE2b 384-d),3,38,7.9%,"[2.7%, 20.8%]","[1.7%, 21.4%]",7,12,58.3%,"[32.0%, 80.7%]","[27.7%, 84.8%]",20.0%,"[11.2%, 33.0%]"

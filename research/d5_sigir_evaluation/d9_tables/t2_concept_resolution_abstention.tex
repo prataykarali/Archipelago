@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\caption{Experiment A.}
+\label{tab:t2_concept}
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{System} & \textbf{Supported Acc (N=38)} & \textbf{95\% Wilson CI} & \textbf{Abstention (N=12)} & \textbf{Abst. 95\% CI} & \textbf{Overall (N=50)} & \textbf{Paired McNemar vs Archi} \\
+\midrule
+Archipelago Concept Resolver & 26/38 (68.42\%) & [52.5\%, 80.9\%] & 12/12 (100.00\%) & [75.8\%, 100.0\%] & 38/50 (76.00\%) & Reference (26/38) \\
+BM25 Lexical (k1=1.5, b=0.75) & 16/38 (42.11\%) & [27.9\%, 57.8\%] & 0/12 (0.00\%) & [0.0\%, 24.2\%] & 16/50 (32.00\%) & b=10,c=0 (p=0.0020) \\
+Snowflake-Arctic-Embed-M (Neural) & 14/38 (36.84\%) & [23.4\%, 52.7\%] & 12/12 (100.00\%) & [75.8\%, 100.0\%] & 26/50 (52.00\%) & b=12,c=0 (p=0.0005) \\
+Feature-Hashed Vector (BLAKE2b) & 3/38 (7.89\%) & [2.7\%, 20.8\%] & 7/12 (58.33\%) & [31.9\%, 80.7\%] & 10/50 (20.00\%) & b=23,c=0 (p=0.0000) \\
+\bottomrule
+\end{tabular}
+\end{table}

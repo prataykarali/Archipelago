@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\small
+\caption{D9 claim-to-evidence verification matrix across manuscript sections.}
+\label{tab:t7_claim_matrix}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{claim\_id} & \textbf{manuscript\_section} & \textbf{claim\_summary} & \textbf{verification\_status} & \textbf{evidence\_artifact} & \textbf{statistical\_support} \\
+\midrule
+C01 & Sec 1 \& 2 & Deterministic local KG + corpus index: 610 concepts, 1988 edges, 775 chunks across 60 source documents & VERIFIED & host\_inference/fixtures/okf\_graph.json + d5\_1\_evaluation\_results\_v2.json & Exact SHA-256 \& structure verified \\
+C02 & Sec 2.1 & Four deterministic answer routes (DIRECT\_SYNTHESIS, GRAPH\_NEIGHBORHOOD, DOCUMENT\_SEARCH, NO\_EVIDENCE) & VERIFIED & host\_inference/engine/route\_logic.py:130-198 & Deterministic routing tests pass \\
+C03 & Sec 2.3 \& 3.4 & Authenticated D8 E2E verification passed six role-scoped journeys & VERIFIED & docs/sigir/D8\_AUTHENTICATED\_E2E\_REPORT.md & 6/6 journeys passed on verified release \\
+C04 & Sec 3.1 & Concept resolution on 38 supported queries: Archipelago 68.4\% vs BM25 42.1\%, Arctic 36.8\%, Hash 7.9\% & VERIFIED & d5\_1\_evaluation\_results\_v2.json (exp\_a\_concept) & McNemar p=0.00195 (BM25), p=0.00049 (Arctic) \\
+C05 & Sec 3.1 & Abstention on 12 out-of-corpus queries: 12/12 (100\%) zero corpus passage/graph citations; 11/12 (91.7\%) zero total citations & VERIFIED & d5\_1\_evaluation\_results\_v2.json (Q39-Q50, Q45 book metadata) & 12/12 Wilson [75.8\%, 100.0\%]; 11/12 [64.6\%, 98.5\%] \\
+C06 & Sec 3.2 & Passage retrieval across 4 systems on 37 queries with qrels (Arctic nDCG@5 0.652, BM25 0.642, Archi 0.225) & PROVISIONAL & passage\_qrels.json + ranked\_runs/*.run & Algorithmic candidate qrels (human\_reviewed=false) \\
+C07 & Sec 3.2 & Archipelago underperforms passage rankers on passage nDCG@5 with frozen top-3 anchor cap and 1-hop neighborhood expansion & PROVISIONAL & host\_inference/engine/answer.py:84-93 + d5\_1\_evaluation\_suite.py:296-306 & Delta nDCG@5 = -0.416 vs BM25 (p=0.0001) \\
+C08 & Sec 3.3 & Multi-hop relationship extraction: 0/18 (0.0\%) exact triple match; 6/18 (33.3\%) target concept hits & VERIFIED & d5\_1\_evaluation\_results\_v2.json (exp\_c\_relationships) & 13/18 queries use non-schema predicates \\
+C09 & Sec 3.3 & Legacy citation labels (n=24 citations across 5 queries): 29.2\% strict, 54.2\% lenient, 37.5\% spurious dilution & PROVISIONAL & citation\_grounding\_audit.json & Attribution unconfirmed; independent dual-review pending \\
+C10 & Sec 3.3 & KG edge verification audit (n=45 sampled edges): 40/45 marked valid in legacy records, 11.1\% rejected (5/45) & PROVISIONAL & human\_review\_records.json + reviewer\_provenance.json & Attribution unconfirmed; independent IRR pending \\
+C11 & Sec 3.2 & 731-item blinded annotation pool across 50 queries prepared for independent dual-annotator grading & VERIFIED LOCAL PREPARATION & local-only annotation\_packets (outside Git) + d9\_reviewer\_A\_packet.csv & 731 blank items; external HMAC key outside git \\
+C12 & Protocol Sec 1 & Legacy pool\_key\_SEALED.json in git history provided unbroken blinding & UNSUPPORTED & research/d5\_sigir\_evaluation/worksheets/pool\_key\_SEALED.json & Disclosed \& remediated via D9 external-key re-blinding \\
+C13 & Sec 3.2 & Human-validated inter-annotator agreement (Cohen's kappa\_w, Krippendorff's alpha) on 731 pooled passages & UNVERIFIED & research/d5\_sigir\_evaluation/post\_annotation\_analysis.py & Awaiting human grading execution (0/731 graded) \\
+\bottomrule
+\end{tabular}
+\end{table}

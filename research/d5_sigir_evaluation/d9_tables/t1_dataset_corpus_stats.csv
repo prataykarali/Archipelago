@@ -1,0 +1,10 @@
+metric_group,metric_name,value,provenance_source,verification_status
+Corpus,Indexed Source Documents,60,host_inference/fixtures/okf_graph.json,VERIFIED
+Corpus,Total Text Passages (Chunks),775,host_inference/fixtures/okf_graph.json,VERIFIED
+Knowledge Graph,Canonical Concept Nodes,610,host_inference/fixtures/okf_graph.json,VERIFIED
+Knowledge Graph,Directed Typed Edges,1988,host_inference/fixtures/okf_graph.json,VERIFIED
+Knowledge Graph,Runtime Edge Predicates,"3 (REQUIRES 267, UNLOCKS 387, RELATED 1334)",host_inference/fixtures/okf_graph.json,VERIFIED
+Benchmarks,Development Calibration Queries,"15 (12 in-scope, 3 abstention)",queries_dev_15.json,VERIFIED
+Benchmarks,Held-Out Test Queries (Total),"50 (20 core, 18 relational, 12 abstention)",queries_heldout_50.json,VERIFIED
+Benchmarks,Algorithmic Candidate QRel Queries,37 / 38 supported (Q19 missing; 445 positives),passage_qrels.json,PROVISIONAL
+Human Pool,Re-Blinded Pooled Question-Passage Pairs,731 across 50 queries (0 graded),local-only annotation_packets (outside Git),VERIFIED

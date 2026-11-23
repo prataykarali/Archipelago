@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Experiment A concept resolution (N=38 supported) and abstention accuracy (N=12 out-of-corpus) with 95\% Wilson and exact Clopper-Pearson confidence intervals.}
+\label{tab:t2_concept_abstention}
+\begin{tabular}{lrrrrrrrrrrrr}
+\toprule
+\textbf{system} & \textbf{supported\_hits\_k} & \textbf{supported\_n} & \textbf{supported\_acc\_pct} & \textbf{supported\_wilson\_95\_ci} & \textbf{supported\_clopper\_pearson\_95\_ci} & \textbf{abstention\_hits\_k} & \textbf{abstention\_n} & \textbf{abstention\_acc\_pct} & \textbf{abstention\_wilson\_95\_ci} & \textbf{abstention\_clopper\_pearson\_95\_ci} & \textbf{overall\_acc\_pct} & \textbf{overall\_wilson\_95\_ci} \\
+\midrule
+Archipelago Concept Resolver & 26 & 38 & 68.4\% & [52.5\%, 80.9\%] & [51.3\%, 82.5\%] & 12 & 12 & 100.0\% & [75.8\%, 100.0\%] & [73.5\%, 100.0\%] & 76.0\% & [62.6\%, 85.7\%] \\
+BM25 Lexical (k1=1.5, b=0.75) & 16 & 38 & 42.1\% & [27.9\%, 57.8\%] & [26.3\%, 59.2\%] & 0 & 12 & 0.0\% & [0.0\%, 24.2\%] & [0.0\%, 26.5\%] & 32.0\% & [20.8\%, 45.8\%] \\
+Snowflake-Arctic-Embed-M (fc74610d) & 14 & 38 & 36.8\% & [23.4\%, 52.7\%] & [21.8\%, 54.0\%] & 12 & 12 & 100.0\% & [75.8\%, 100.0\%] & [73.5\%, 100.0\%] & 52.0\% & [38.5\%, 65.2\%] \\
+Feature-Hashed Vector (BLAKE2b 384-d) & 3 & 38 & 7.9\% & [2.7\%, 20.8\%] & [1.7\%, 21.4\%] & 7 & 12 & 58.3\% & [32.0\%, 80.7\%] & [27.7\%, 84.8\%] & 20.0\% & [11.2\%, 33.0\%] \\
+\bottomrule
+\end{tabular}
+\end{table}

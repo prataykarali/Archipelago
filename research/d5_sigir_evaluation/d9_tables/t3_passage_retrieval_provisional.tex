@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\caption{Experiment B.}
+\label{tab:t3_retrieval}
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{System} & \textbf{MRR [95\% Boot CI]} & \textbf{nDCG@5 [95\% Boot CI]} & \textbf{R@5 [95\% Boot CI]} & \textbf{P@5 [95\% Boot CI]} & \textbf{Mean/P95 ms} & \textbf{Paired Delta \& p\_rand} \\
+\midrule
+BM25Okapi (k1=1.5, b=0.75) & 0.7500 [0.626, 0.860] & 0.6415 [0.535, 0.743] & 0.3707 [0.279, 0.467] & 0.5405 [0.432, 0.654] & 3.08 / 4.02 & dMRR=-0.264 (p=0.0156); dnDCG=-0.416 (p=0.0001) \\
+Snowflake-Arctic-Embed-M & 0.7500 [0.619, 0.869] & 0.6524 [0.536, 0.762] & 0.3324 [0.248, 0.423] & 0.5730 [0.454, 0.692] & 17.36 / 22.20 & dMRR=-0.264 (p=0.0079); dnDCG=-0.427 (p=0.0001) \\
+Archipelago (Heuristic Order) & 0.4865 [0.331, 0.649] & 0.2253 [0.152, 0.303] & 0.0597 [0.038, 0.083] & 0.1730 [0.114, 0.238] & 22.73 / 46.04 & Reference \\
+Feature-Hashed (BLAKE2b) & 0.2806 [0.165, 0.406] & 0.1764 [0.103, 0.262] & 0.1093 [0.054, 0.179] & 0.1514 [0.086, 0.227] & 0.55 / 0.80 & dMRR=+0.206 (p=0.0568); dnDCG=+0.049 (p=0.3913) \\
+\bottomrule
+\end{tabular}
+\end{table}

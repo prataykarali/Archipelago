@@ -1,0 +1,15 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Paired exact McNemar contingency tests comparing Archipelago Concept Resolver against baselines on N=38 supported queries.}
+\label{tab:t3_mcnemar}
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+\textbf{comparison} & \textbf{n\_supported} & \textbf{both\_correct\_a} & \textbf{archi\_only\_b} & \textbf{base\_only\_c} & \textbf{both\_wrong\_d} & \textbf{delta\_acc\_pct} & \textbf{delta\_95\_ci\_pct} & \textbf{exact\_mcnemar\_p} & \textbf{odds\_ratio\_ha} & \textbf{discordant\_queries} \\
+\midrule
+Archipelago vs. BM25 Lexical (k1=1.5, b=0.75) & 38 & 16 & 10 & 0 & 12 & +26.3\% & [+12.3\%, +40.3\%] & 0.001953 & 21.00 & Q01,Q04,Q07,Q12,Q23,Q26,Q27,Q32... \\
+Archipelago vs. Snowflake-Arctic-Embed-M (fc74610d) & 38 & 14 & 12 & 0 & 12 & +31.6\% & [+16.8\%, +46.4\%] & 0.000488 & 25.00 & Q03,Q04,Q07,Q12,Q15,Q23,Q24,Q26... \\
+Archipelago vs. Feature-Hashed Vector (BLAKE2b 384-d) & 38 & 3 & 23 & 0 & 12 & +60.5\% & [+45.0\%, +76.1\%] & 0.000000 & 47.00 & Q01,Q02,Q03,Q04,Q05,Q07,Q08,Q09... \\
+\bottomrule
+\end{tabular}
+\end{table}
