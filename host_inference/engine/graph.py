@@ -19,7 +19,12 @@ import numpy as np
 from .academic_sources import ACADEMIC_SOURCES_BY_ID
 from .constants import ALIASES, FORMULAS
 from .docmap import hf_doc_path
-from .text import embed, tokens
+from .evidence_selection import (
+    build_chunk_provenance_index,
+    score_source_for_concept,
+    verify_chunk_provenance,
+)
+from .text import embed
 from .withdrawal import best_live_source, withdrawal_notice_for_doc, withdrawn_documents
 
 # How much of a source passage is retained on a citation record.
@@ -80,6 +85,7 @@ class LibraryGraph:
             self.inn.setdefault(dst, []).append((kind, src))
             self.edge_records[(src, dst, kind)] = edge
         self._emb = {cid: embed(self._blob(node)) for cid, node in self.nodes.items()}
+        self._chunk_provenance_index = build_chunk_provenance_index(self.nodes)
         self._label_index = []
         for cid, node in self.nodes.items():
             label = (node.get("label") or node.get("name") or cid).strip()
@@ -220,24 +226,12 @@ class LibraryGraph:
         sources = list((self.nodes.get(cid) or {}).get("sources") or [])
         if not sources:
             return None, False
-        wanted = set(tokens(query)) | set(tokens(self.label(cid)))
+        label = self.label(cid)
         retired = withdrawn_documents()
 
         def score(source: dict) -> int:
-            passage = source.get("text_passage") or ""
-            overlap = len(wanted & set(tokens(passage)))
-            page = int(source.get("page_number") or 0)
-            doc_id = str(source.get("doc_id") or "").lower()
-            canonical_bonus = 0
-            if (
-                (cid in ("transformer", "self_attention", "multi_head_attention") and "vaswani" in doc_id)
-                or (cid in ("bert", "masked_language_modeling") and "devlin" in doc_id)
-                or (cid in ("rag", "retrieval_augmented_generation") and "lewis" in doc_id)
-                or (cid in ("dpr", "dense_passage_retrieval") and "karpukhin" in doc_id)
-                or (cid in ("flashattention",) and ("dao" in doc_id or "upload_cb7badb2" in doc_id))
-            ):
-                canonical_bonus = 50
-            return overlap * SOURCE_OVERLAP_WEIGHT + (SOURCE_LATER_PAGE_BONUS if page > 1 else 0) + canonical_bonus
+            total, _overlap = score_source_for_concept(cid, label, source, query)
+            return total
 
         return best_live_source(sources, score, retired)
 
@@ -251,23 +245,30 @@ class LibraryGraph:
         then say the title is no longer in records instead of offering a link
         that will 404.
         """
+        retired = withdrawn_documents()
         source, all_withdrawn = self.best_live_source(cid, query or getattr(self, "_query", ""))
-        if (
-            source_override is not None
-            and source_override in (self.nodes.get(cid) or {}).get("sources", [])
-            and str(source_override.get("doc_id") or "") not in withdrawn_documents()
+        if source_override is not None and source_override in (self.nodes.get(cid) or {}).get(
+            "sources", []
         ):
-            source, all_withdrawn = source_override, False
+            override_raw_doc = str(source_override.get("doc_id") or "").strip()
+            override_canonical_doc = hf_doc_path(override_raw_doc)
+            if override_raw_doc not in retired and override_canonical_doc not in retired:
+                source, all_withdrawn = source_override, False
         raw_page = (source or {}).get("page_number")
-        page = int(raw_page) if raw_page else None
+        page = int(raw_page) if raw_page and not all_withdrawn else None
         chunk_id = (source or {}).get("chunk_id")
-        doc_id = hf_doc_path(str((source or {}).get("doc_id") or ""))
+        raw_doc_id = str((source or {}).get("doc_id") or "")
+        doc_id = hf_doc_path(raw_doc_id)
         if not doc_id and not all_withdrawn and cid in FORMULAS:
             _formula, filename, _formula_page = FORMULAS[cid]
             doc_id = f"papers/{filename}"
         name = (source or {}).get("title") or (doc_id.split("/")[-1] if doc_id else "")
         is_broken_textbook = doc_id.startswith("textbooks/")
-        hf_url = f"/read?doc={quote(doc_id, safe='')}" if source and doc_id and not is_broken_textbook else ""
+        hf_url = (
+            f"/read?doc={quote(doc_id, safe='')}"
+            if source and doc_id and not is_broken_textbook and not all_withdrawn
+            else ""
+        )
         if hf_url and page:
             hf_url += f"&page={page}"
         if is_broken_textbook:
@@ -275,22 +276,51 @@ class LibraryGraph:
         label = (
             f"[S{index}: {name}{f', #page={page}' if page else ''}]"
             if name and hf_url
-            else (f"[S{index}: {name} (reference metadata only)]" if name and is_broken_textbook else "")
+            else (
+                f"[S{index}: {name} (reference metadata only)]"
+                if name and is_broken_textbook and not all_withdrawn
+                else ""
+            )
         )
         doc_title = (source or {}).get("title") or ""
         authors = (source or {}).get("authors") or ""
-        if "FlashAttention" in doc_id or "upload_cb7badb2" in str((source or {}).get("doc_id") or ""):
+        if "FlashAttention" in doc_id or "upload_cb7badb2" in raw_doc_id:
             if not doc_title:
-                doc_title = "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"
+                doc_title = (
+                    "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"
+                )
             if not authors:
                 authors = "Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, Christopher Ré"
+        passage_text = ((source or {}).get("text_passage") or "")[:PASSAGE_CHAR_LIMIT]
+        provenance = verify_chunk_provenance(
+            raw_doc_id=raw_doc_id,
+            canonical_doc_id=doc_id,
+            chunk_id=chunk_id,
+            page_number=page,
+            hf_url=hf_url,
+            text_passage=passage_text,
+            all_withdrawn=bool(all_withdrawn),
+            chunk_index=self._chunk_provenance_index,
+        )
         return {
             "label": label,
             "evidence_id": f"S{index}",
-            "source_type": "ingested_pdf" if source and page and hf_url else ("catalog_metadata" if is_broken_textbook else "metadata_only"),
+            "source_type": (
+                "withdrawn"
+                if all_withdrawn
+                else (
+                    "ingested_pdf"
+                    if source and page and hf_url
+                    else ("catalog_metadata" if is_broken_textbook else "metadata_only")
+                )
+            ),
             "concept_id": cid,
             "doc_id": doc_id,
             "chunk_id": chunk_id,
+            "canonical_passage_id": provenance["canonical_passage_id"],
+            "provenance_status": provenance["provenance_status"],
+            "chunk_provenance_match": provenance["chunk_provenance_match"],
+            "claim_support_status": provenance["claim_support_status"],
             "doc_title": doc_title,
             "authors": authors,
             "page_number": page,
@@ -299,18 +329,20 @@ class LibraryGraph:
             "url": hf_url,
             "withdrawn": bool(all_withdrawn),
             "notice": withdrawal_notice_for_doc(doc_id) if all_withdrawn else "",
-            "text_passage": ((source or {}).get("text_passage") or "")[:PASSAGE_CHAR_LIMIT],
-            "passage": ((source or {}).get("text_passage") or "")[:PASSAGE_CHAR_LIMIT],
+            "text_passage": passage_text,
+            "passage": passage_text,
             "section": (source or {}).get("section") or (source or {}).get("section_title"),
             "doi": (source or {}).get("doi"),
             "publication_year": (source or {}).get("publication_year"),
             "source_provider": (source or {}).get("source_provider"),
             "retrieved_at": (source or {}).get("retrieved_at"),
-            "verification_status": "Passage located"
-            if source and page and hf_url
-            else ("Source linked — not independently audited" if is_broken_textbook else "Source linked"),
-            "status_level": "passage_located" if (source and page and hf_url) else "source_linked",
-            "access_status": "Available" if hf_url and not all_withdrawn else ("Catalog reference only" if is_broken_textbook else "Unavailable"),
+            "verification_status": provenance["verification_status"],
+            "status_level": provenance["status_level"],
+            "access_status": (
+                "Available"
+                if hf_url and not all_withdrawn
+                else ("Catalog reference only" if is_broken_textbook else "Unavailable")
+            ),
         }
 
     def citation(self, cid: str, index: int = 1) -> str:
