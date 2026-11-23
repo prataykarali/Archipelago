@@ -1,6 +1,5 @@
 import "./user_management_modal.js";
 import "./password_visibility.js";
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const API_PREFIX = "/api/";
 const LOGIN_PATH = "/login";
@@ -12,6 +11,46 @@ const STAFF_ROUTES = new Set(["/chat", "/library", "/graph", "/research"]);
 const AUTH_CHANNEL_NAME = "archipelago_auth_channel";
 const LOGOUT_STORAGE_KEY = "archipelago_logout_broadcast";
 const ACTIVE_PRINCIPAL_KEY = "archipelago_active_principal_id";
+const AUTH_CONFIG_CACHE_KEY = "archipelago_auth_config_v1";
+const AUTH_ME_CACHE_KEY = "archipelago_me_cache_v1";
+const AUTH_CONFIG_TTL_MS = 600000;
+const AUTH_ME_TTL_MS = 120000;
+const SUPABASE_CDN_TIMEOUT_MS = 3500;
+let cachedAccessToken = "";
+
+async function loadSupabaseCreateClient() {
+  try {
+    const mod = await Promise.race([
+      import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("supabase-cdn-timeout")), SUPABASE_CDN_TIMEOUT_MS)),
+    ]);
+    return mod?.createClient || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function readCachedMe() {
+  try {
+    const raw = sessionStorage.getItem(AUTH_ME_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.ts && (Date.now() - parsed.ts) < AUTH_ME_TTL_MS && parsed.principal?.authenticated) {
+      return parsed.principal;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function writeCachedMe(principal) {
+  try {
+    if (principal && principal.authenticated) {
+      sessionStorage.setItem(AUTH_ME_CACHE_KEY, JSON.stringify({ ts: Date.now(), principal }));
+    } else {
+      sessionStorage.removeItem(AUTH_ME_CACHE_KEY);
+    }
+  } catch (_) {}
+}
 
 const authChannel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(AUTH_CHANNEL_NAME) : null;
 const inFlightPageControllers = new Set();
@@ -59,6 +98,7 @@ window.archipelagoClearClientStorage = ({ includeHistory = false } = {}) => {
   try {
     const sessionKeys = [
       "archipelago_local_user",
+      AUTH_ME_CACHE_KEY,
       "archipelago_research_state_v1",
       "archipelago_research_state_v2",
       "archipelago_research_pending_v2",
@@ -178,8 +218,26 @@ window.archipelagoLogout = async ({ redirectUrl = LOGIN_PATH, clearHistory = fal
 
 async function loadConfig() {
   try {
-    const response = await fetch("/api/auth/config", { cache: "no-store" });
-    if (response.ok) return await response.json();
+    const raw = sessionStorage.getItem(AUTH_CONFIG_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.ts && (Date.now() - parsed.ts) < AUTH_CONFIG_TTL_MS && parsed.config) {
+        return parsed.config;
+      }
+    }
+  } catch (_) {}
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const response = await fetch("/api/auth/config", { cache: "no-store", signal: controller.signal });
+    clearTimeout(timer);
+    if (response.ok) {
+      const cfg = await response.json();
+      try {
+        sessionStorage.setItem(AUTH_CONFIG_CACHE_KEY, JSON.stringify({ ts: Date.now(), config: cfg }));
+      } catch (_) {}
+      return cfg;
+    }
   } catch (err) {
     console.warn("Auth config fetch failed, using fallback:", err);
   }
@@ -204,11 +262,16 @@ async function addAccessToken(supabase, input, init = {}) {
   if (apiUrl.pathname === "/api/readiness" && !headers.has("X-Background-Poll")) {
     headers.set("X-Background-Poll", "1");
   }
-  if (supabase) {
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.access_token) {
-      headers.set("Authorization", `Bearer ${data.session.access_token}`);
-    }
+  if (!headers.has("Authorization") && cachedAccessToken) {
+    headers.set("Authorization", `Bearer ${cachedAccessToken}`);
+  } else if (!headers.has("Authorization") && supabase) {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.access_token) {
+        cachedAccessToken = data.session.access_token;
+        headers.set("Authorization", `Bearer ${cachedAccessToken}`);
+      }
+    } catch (_) {}
   }
   return { ...init, headers };
 }
@@ -216,23 +279,21 @@ async function addAccessToken(supabase, input, init = {}) {
 window.archipelagoAuthReady = (async () => {
   const config = await loadConfig();
   const originalFetch = window.fetch.bind(window);
-  if (!config.configured) {
-    window.fetch = async (input, init) => {
-      const apiUrl = getApiUrl(input);
-      if (apiUrl?.pathname === "/api/readiness" && document.hidden) {
-        return new Response(JSON.stringify({ ready: true, paused: true }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      return originalFetch(input, await addAccessToken(null, input, init));
-    };
-    return { config, supabase: null };
+  let supabase = null;
+  if (config.configured) {
+    const createClient = await loadSupabaseCreateClient();
+    if (createClient) {
+      supabase = createClient(config.url, config.publishableKey, {
+        auth: { persistSession: true, autoRefreshToken: true },
+      });
+      supabase.auth.onAuthStateChange((_event, session) => {
+        cachedAccessToken = session?.access_token || "";
+      });
+      supabase.auth.getSession().then(({ data }) => {
+        cachedAccessToken = data?.session?.access_token || "";
+      }).catch(() => {});
+    }
   }
-
-  const supabase = createClient(config.url, config.publishableKey, {
-    auth: { persistSession: true, autoRefreshToken: true },
-  });
   window.fetch = async (input, init) => {
     const apiUrl = getApiUrl(input);
     if (apiUrl?.pathname === "/api/readiness" && document.hidden) {
@@ -247,17 +308,34 @@ window.archipelagoAuthReady = (async () => {
 })();
 
 window.archipelagoRequireSession = async () => {
+  const cached = readCachedMe();
+  if (cached) {
+    window.archipelagoUserId = cached.id || cached.user_id;
+    syncActivePrincipal(cached);
+    // Revalidate in background without blocking page switch
+    fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" })
+      .then(r => (r.ok ? r.json() : null))
+      .then(p => { if (p?.authenticated) writeCachedMe(p); })
+      .catch(() => {});
+    return { user: cached };
+  }
   const { config, supabase } = await window.archipelagoAuthReady;
   if (!config?.required) return null;
   try {
-    const { data } = await supabase?.auth.getSession();
-    if (data?.session?.access_token) {
-      const response = await fetch("/api/auth/me", { cache: "no-store" });
-      if (response.ok) {
-        const principal = await response.json();
+    let session = null;
+    if (supabase) {
+      const { data } = await supabase.auth.getSession();
+      session = data?.session || null;
+      if (session?.access_token) cachedAccessToken = session.access_token;
+    }
+    const response = await fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" });
+    if (response.ok) {
+      const principal = await response.json();
+      if (principal?.authenticated) {
+        writeCachedMe(principal);
         window.archipelagoUserId = principal.id || principal.user_id;
         syncActivePrincipal(principal);
-        return data.session;
+        return session || { user: principal };
       }
     }
   } catch (_) {}
@@ -285,29 +363,33 @@ if (["/chat", "/graph"].includes(window.location.pathname.replace(/\/$/, "")) ||
 }
 
 window.archipelagoAuthorizePage = async (allowedRoles) => {
+  const cached = readCachedMe();
+  if (cached) {
+    syncActivePrincipal(cached);
+    if (!allowedRoles.includes(cached.role)) {
+      window.location.replace("/chat");
+      return null;
+    }
+    return cached;
+  }
   const { config, supabase } = await window.archipelagoAuthReady;
   if (!config.required) return null;
 
-  if (!supabase) {
-    const next = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.replace(`${LOGIN_PATH}?next=${next}`);
-    return null;
-  }
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) {
-    const next = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.replace(`${LOGIN_PATH}?next=${next}`);
-    return null;
-  }
-
-  const response = await fetch("/api/auth/me", { cache: "no-store" });
+  const response = await fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" });
   if (!response.ok) {
     window.archipelagoClearClientStorage({ includeHistory: false });
-    await supabase.auth.signOut();
-    window.location.replace(LOGIN_PATH);
+    try { if (supabase) await supabase.auth.signOut(); } catch (_) {}
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.replace(`${LOGIN_PATH}?next=${next}`);
     return null;
   }
   const principal = await response.json();
+  if (!principal?.authenticated) {
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.replace(`${LOGIN_PATH}?next=${next}`);
+    return null;
+  }
+  writeCachedMe(principal);
   syncActivePrincipal(principal);
   if (!allowedRoles.includes(principal.role)) {
     window.location.replace("/chat");
@@ -322,17 +404,20 @@ window.archipelagoRouteForRole = (role, requestedPath) => {
 };
 
 window.archipelagoMountNavigation = async () => {
-  const { config, supabase } = await window.archipelagoAuthReady;
-  let principal = null;
-  try {
-    const response = await fetch("/api/auth/me");
-    if (response.ok) {
-      principal = await response.json();
+  let principal = readCachedMe();
+  if (!principal) {
+    await window.archipelagoAuthReady;
+    try {
+      const response = await fetch("/api/auth/me", { credentials: "same-origin" });
+      if (response.ok) {
+        principal = await response.json();
+        if (principal?.authenticated) writeCachedMe(principal);
+      }
+    } catch (err) {
+      principal = null;
     }
-  } catch (err) {
-    console.warn("Could not fetch user identity:", err);
   }
-
+  const { config, supabase } = await window.archipelagoAuthReady;
   if (!principal || !principal.authenticated || !principal.role) return;
 
   const existing = document.querySelector("#archipelago-role-navigation");

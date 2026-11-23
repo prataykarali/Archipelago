@@ -73,36 +73,23 @@
       message.textContent = "Cleared saved browser data and local session history.";
     });
 
-    // Check for an already-active session and handle it.
-    // If ?logout=1 in URL, we were redirected from sign-out — do not auto-redirect.
-    // If ?timeout=1, session expired — do not auto-redirect.
-    // Otherwise, if a valid Supabase session exists, redirect to the destination.
+    // Check for an already-active session via fast cookie check (never block on CDN).
     if (!isTimeout && !isForceLogout) {
       (async () => {
         try {
-          const { config, supabase } = await window.archipelagoAuthReady;
-          if (config?.configured && supabase) {
-            const { data } = await supabase.auth.getSession();
-            if (data?.session?.access_token) {
-              // Verify the session is still valid server-side
-              const meResp = await fetch("/api/auth/me", { cache: "no-store" });
-              if (meResp.ok) {
-                const principal = await meResp.json();
-                if (principal?.authenticated && principal?.role) {
-                  // Already signed in — redirect immediately
-                  window.location.replace(destinationForRole(principal.role, config));
-                  return;
-                }
-              }
-              // Server rejected session — clear it and show login form
-              try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-              if (typeof window.archipelagoClearClientStorage === "function") {
-                window.archipelagoClearClientStorage({ includeHistory: false });
-              }
+          const meResp = await fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" });
+          if (meResp.ok) {
+            const principal = await meResp.json();
+            if (principal?.authenticated && principal?.role) {
+              try {
+                sessionStorage.setItem("archipelago_me_cache_v1", JSON.stringify({ ts: Date.now(), principal }));
+              } catch (_) {}
+              window.location.replace(destinationForRole(principal.role, {}));
+              return;
             }
           }
         } catch (_) {
-          // Could not check session — show login form normally
+          // Show login form normally
         }
       })();
     }
@@ -140,13 +127,42 @@
       return target.href;
     }
 
-    async function establishBrowserSession(session) {
-      const response = await fetch("/api/auth/session", {
+    async function fetchWithTimeout(url, options, timeoutMs = 15000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        return await fetch(url, { ...options, signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function getAuthConfigFast() {
+      try {
+        const raw = sessionStorage.getItem("archipelago_auth_config_v1");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.config?.configured && (Date.now() - (parsed.ts || 0)) < 600000) {
+            return parsed.config;
+          }
+        }
+      } catch (_) {}
+      const resp = await fetchWithTimeout("/api/auth/config", { cache: "no-store", credentials: "same-origin" }, 10000);
+      if (!resp.ok) throw new Error("Sign-in configuration could not be loaded.");
+      const cfg = await resp.json();
+      try {
+        sessionStorage.setItem("archipelago_auth_config_v1", JSON.stringify({ ts: Date.now(), config: cfg }));
+      } catch (_) {}
+      return cfg;
+    }
+
+    async function establishBrowserSession(accessToken) {
+      const response = await fetchWithTimeout("/api/auth/session", {
         method: "POST",
         credentials: "same-origin",
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
         cache: "no-store",
-      });
+      }, 15000);
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload.authenticated !== true) {
         throw new Error(payload.detail || "Could not establish a verified session.");
@@ -169,27 +185,59 @@
       const originalText = submitBtn.textContent;
       submitBtn.textContent = "Signing in…";
       try {
-        const { config, supabase } = await window.archipelagoAuthReady;
-        if (!config?.configured || !supabase) {
+        const config = await getAuthConfigFast();
+        if (!config?.configured || !config?.url || !config?.publishableKey) {
           throw new Error("Sign-in is unavailable: configure Supabase Auth for this deployment.");
         }
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: accountEmail(username, role),
-          password,
-        });
-        if (error || !data?.session) {
-          throw new Error(error?.message || "Invalid username, account type, or password.");
+        // Direct REST password grant — fast, zero dependency on external CDN scripts.
+        const tokenResp = await fetchWithTimeout(
+          `${config.url.replace(/\/+$/, "")}/auth/v1/token?grant_type=password`,
+          {
+            method: "POST",
+            headers: {
+              apikey: config.publishableKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: accountEmail(username, role),
+              password,
+            }),
+          },
+          15000
+        );
+        const tokenData = await tokenResp.json().catch(() => ({}));
+        if (!tokenResp.ok || !tokenData?.access_token) {
+          throw new Error(
+            tokenData?.error_description || tokenData?.msg || "Invalid username, account type, or password."
+          );
         }
 
-        const verified = await establishBrowserSession(data.session);
+        const verified = await establishBrowserSession(tokenData.access_token);
         if (verified.role !== role) {
-          await supabase.auth.signOut();
           await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
           throw new Error("The selected account type does not match your assigned role.");
         }
+        try {
+          sessionStorage.setItem("archipelago_me_cache_v1", JSON.stringify({ ts: Date.now(), principal: verified }));
+        } catch (_) {}
+        // Non-blocking background sync into Supabase JS client if loaded
+        if (window.archipelagoAuthReady) {
+          Promise.resolve(window.archipelagoAuthReady).then(({ supabase }) => {
+            if (supabase && tokenData.refresh_token) {
+              supabase.auth.setSession({
+                access_token: tokenData.access_token,
+                refresh_token: tokenData.refresh_token,
+              }).catch(() => {});
+            }
+          }).catch(() => {});
+        }
         window.location.replace(destinationForRole(verified.role, config));
       } catch (error) {
-        message.textContent = error?.message || "Sign-in failed. Please try again.";
+        if (error?.name === "AbortError") {
+          message.textContent = "Sign-in timed out. Please check your connection and try again.";
+        } else {
+          message.textContent = error?.message || "Sign-in failed. Please try again.";
+        }
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
