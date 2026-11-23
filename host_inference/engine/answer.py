@@ -31,6 +31,7 @@ from .constants import (
     HERE,
 )
 from .contract import contract_for, graph_decision
+from .evidence_selection import build_grounding_trace, select_evidence_citations
 from .graph import LibraryGraph
 from .links import source_links
 from .llm import fallback_config, provider_config, stream_completion
@@ -137,37 +138,18 @@ class Engine:
             for c in (graph.unlocks(anchor, 2)[:NEIGHBOUR_NODE_LIMIT] if anchor else [])
         ]
         rel = [node_public(graph.nodes[c]) for c in (graph.related(anchor) if anchor else [])]
-        def _collect_up_to_10_citations(seed_ids: list[str]) -> list[dict]:
-            collected: list[dict] = []
-            seen_keys: set[tuple[str, object]] = set()
-            for cid in seed_ids:
-                if not cid or cid not in graph.nodes:
-                    continue
-                cand = graph.cite_record(cid, query)
-                if cand and (cand.get("label") or cand.get("doc_id") or cand.get("url")):
-                    key = (str(cand.get("doc_id") or cand.get("url") or cand.get("label")), cand.get("page_number"))
-                    if key not in seen_keys:
-                        seen_keys.add(key)
-                        collected.append(cand)
-                        if len(collected) >= 10:
-                            break
-            return collected
-
         initial_cites = extra.get("citations") or (
             [extra["citation"]] if extra.get("citation") else []
         )
         if not initial_cites and anchor_ok:
-            cite_seeds = [anchor] + [
-                n["id"] for n in (*pres, *unl, *rel) if isinstance(n, dict) and n.get("id")
-            ]
-            initial_cites = _collect_up_to_10_citations(cite_seeds)
+            initial_cites = select_evidence_citations(graph, anchor, query)
 
         payload = {
             "anchor_concept": node_public(graph.nodes[anchor]) if anchor_ok else None,
             "prerequisites": pres if anchor_ok else [],
             "unlocks": unl if anchor_ok else [],
             "related_concepts": rel if anchor_ok else [],
-            "citations": initial_cites[:10],
+            "citations": initial_cites,
             "routing": {
                 "route": route,
                 "score": extra.get("score", 1.0),
@@ -212,7 +194,9 @@ class Engine:
             payload["anchor_concept"] = None
             payload["prerequisites"] = []
             payload["unlocks"] = []
-            if extra.get("hide_graph") or (not learning_graph_requested and not has_verified_relationships):
+            if extra.get("hide_graph") or (
+                not learning_graph_requested and not has_verified_relationships
+            ):
                 payload["render_graph"] = False
                 payload["render_rule"] = "no_verified_graph_for_answer"
 
@@ -237,7 +221,9 @@ class Engine:
                     "author": shelf_record.get("author", ""),
                     "isbn": shelf_record.get("isbn", ""),
                     "confidence": shelf_record.get("status", "OPAC"),
-                    "reader_url": shelf_record.get("reader_url") or shelf_record.get("source_url") or "",
+                    "reader_url": shelf_record.get("reader_url")
+                    or shelf_record.get("source_url")
+                    or "",
                 }
             ]
         if shelf_record.get("digital_available"):
@@ -264,19 +250,45 @@ class Engine:
             if cards:
                 text = text + "\n" + inventory_card.render_inventory_section(cards)
         elif route in {"GENERAL_EXPLANATION", "DISCONNECTED", "MULTI_CONCEPT"} and (
-            not payload.get("anchor_concept") or not payload.get("citations") or not payload.get("inventory_cards")
+            not payload.get("anchor_concept")
+            or not payload.get("citations")
+            or not payload.get("inventory_cards")
         ):
             # Fallback: find closest OKF node / textbook source for general queries
             _FILLER = {
-                "what", "how", "why", "when", "where", "which", "who", "are", "is",
-                "explain", "define", "tell", "about", "does", "the", "and", "for",
-                "with", "from", "into", "concept", "concepts", "related", "topic",
-                "topics", "give", "show", "list", "between", "compare",
+                "what",
+                "how",
+                "why",
+                "when",
+                "where",
+                "which",
+                "who",
+                "are",
+                "is",
+                "explain",
+                "define",
+                "tell",
+                "about",
+                "does",
+                "the",
+                "and",
+                "for",
+                "with",
+                "from",
+                "into",
+                "concept",
+                "concepts",
+                "related",
+                "topic",
+                "topics",
+                "give",
+                "show",
+                "list",
+                "between",
+                "compare",
             }
             q_tokens = {
-                tok
-                for tok in re.findall(r"[a-z0-9]{3,}", query.lower())
-                if tok not in _FILLER
+                tok for tok in re.findall(r"[a-z0-9]{3,}", query.lower()) if tok not in _FILLER
             }
             scored_cids: list[tuple[int, str]] = []
             summary_cids: list[tuple[int, str]] = []
@@ -316,8 +328,7 @@ class Engine:
                 if isinstance(c, dict)
             ):
                 if scored_cids:
-                    seed_ids = [cid for _sc, cid in scored_cids[:4]]
-                    cites = _collect_up_to_10_citations(seed_ids)
+                    cites = select_evidence_citations(graph, scored_cids[0][1], query)
                     if cites:
                         payload["citations"] = cites
                 if not payload.get("inventory"):
@@ -359,59 +370,32 @@ class Engine:
         latency_s = round(time.perf_counter() - start_time, 2)
         latency_ms = int((time.perf_counter() - start_time) * 1000)
 
-        anchor_id = (payload.get("anchor_concept") or {}).get("id") if payload.get("anchor_concept") else None
-        anchor_lbl = (payload.get("anchor_concept") or {}).get("label") or (payload.get("anchor_concept") or {}).get("name") if payload.get("anchor_concept") else None
-        hops = 2 if (anchor_id and (payload.get("prerequisites") or payload.get("unlocks"))) else (1 if anchor_id else 0)
-        cites_count = len([c for c in (payload.get("citations") or []) if isinstance(c, dict) and (c.get("text_passage") or c.get("passage") or c.get("label") or c.get("doc_id"))])
-
-        if anchor_id and cites_count > 0:
-            has_verified_passage = any(
-                c.get("source_type") == "ingested_pdf"
-                and c.get("url")
-                and not str(c.get("doc_id", "")).startswith("textbooks/")
-                for c in (payload.get("citations") or [])
-                if isinstance(c, dict)
-            )
-            if has_verified_passage:
-                grounding_badge = "Passage located · Grounded"
-                grounding_state = "verified"
-                grounding_detail = "passage_matched"
-                retrieval_mode = "Graph-Assisted Traversal (OKF + Verified Passages)"
-            else:
-                grounding_badge = "Source linked — not independently audited"
-                grounding_state = "source_linked"
-                grounding_detail = "source_linked_unverified"
-                retrieval_mode = "Graph-Assisted Traversal (OKF + Source-Linked Metadata)"
-        elif anchor_id:
-            grounding_badge = "OKF structure resolved · No direct passage"
-            grounding_state = "partial"
-            grounding_detail = "partial_grounding"
-            retrieval_mode = "Graph-Assisted Traversal (OKF Only)"
-        elif cites_count > 0:
-            grounding_badge = "No Verified Graph Match · Lexical literature fallback"
-            grounding_state = "general"
-            grounding_detail = "no_graph_match"
-            retrieval_mode = "Lexical Literature Retrieval (Unindexed Concept)"
-        else:
-            grounding_badge = "No Verified Graph Match"
-            grounding_state = "unmatched"
-            grounding_detail = "no_graph_match"
-            retrieval_mode = "Direct Abstention / Catalog Fallback"
-
-        payload["trace"] = {
-            "intent": route,
-            "concept_id": anchor_id,
-            "concept_label": anchor_lbl,
-            "graph_hops": hops,
-            "retrieval_mode": retrieval_mode,
-            "provider": payload.get("provider") or "Deterministic Rule-Based OKF Fallback",
-            "grounded_passages": cites_count,
-            "grounding_status": grounding_state,
-            "grounding_detail": grounding_detail,
-            "grounding_badge": grounding_badge,
-            "latency_s": latency_s,
-            "latency_ms": latency_ms,
-        }
+        anchor_id = (
+            (payload.get("anchor_concept") or {}).get("id")
+            if payload.get("anchor_concept")
+            else None
+        )
+        anchor_lbl = (
+            (payload.get("anchor_concept") or {}).get("label")
+            or (payload.get("anchor_concept") or {}).get("name")
+            if payload.get("anchor_concept")
+            else None
+        )
+        hops = (
+            2
+            if (anchor_id and (payload.get("prerequisites") or payload.get("unlocks")))
+            else (1 if anchor_id else 0)
+        )
+        payload["trace"] = build_grounding_trace(
+            route=route,
+            anchor_id=anchor_id,
+            anchor_label=anchor_lbl,
+            hops=hops,
+            citations=payload.get("citations") or [],
+            provider=str(payload.get("provider") or ""),
+            latency_s=latency_s,
+            latency_ms=latency_ms,
+        )
 
         text = link_answer_sources(text, payload["citations"])
         return {

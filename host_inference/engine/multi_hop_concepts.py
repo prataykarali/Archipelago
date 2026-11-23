@@ -8,6 +8,8 @@ from typing import Any
 
 from .concept_foundations import VERIFIED_CONCEPT_FOUNDATIONS as VERIFIED_CONCEPT_FOUNDATIONS
 from .constants import KILL_SWITCH
+from .evidence_selection import is_low_signal_passage, score_source_for_concept
+from .withdrawal import is_citable_source, withdrawn_documents
 
 # Maximum hops for relationship traversal
 DEFAULT_MAX_HOPS = 5
@@ -117,8 +119,15 @@ class PairwisePath:
 
 
 def _source_supports_summary(summary: str, citation: dict[str, Any]) -> bool:
-    """Require content overlap before attaching a passage citation to a summary."""
+    """Lexical relevance pre-filter before attaching a passage to a summary.
+
+    NOTE: Lexical token overlap is a minimum topical relevance gate only; it
+    does NOT prove semantic claim support (``claim_support_status`` remains
+    ``not_assessed``).
+    """
     passage = str(citation.get("text_passage") or "")
+    if is_low_signal_passage(passage):
+        return False
     summary_terms = {
         word
         for word in re.findall(r"[a-z]{4,}", summary.casefold())
@@ -129,7 +138,7 @@ def _source_supports_summary(summary: str, citation: dict[str, Any]) -> bool:
 
 
 def _grounded_summary_and_citation(graph: Any, cid: str) -> tuple[str, list[dict[str, Any]]]:
-    """Choose a supporting passage before citing a concept definition."""
+    """Choose a live, substantive, provenance-checked passage for a concept summary."""
     node = graph.nodes[cid]
     if cid == "transformer":
         summary = "The Transformer replaces recurrent and convolutional sequence transduction layers with attention."
@@ -137,23 +146,22 @@ def _grounded_summary_and_citation(graph: Any, cid: str) -> tuple[str, list[dict
         summary = "RAG combines a retriever and a generator, training them together to use retrieved documents."
     else:
         summary = str(node.get("summary") or "").strip()
-    terms = {
-        word
-        for word in re.findall(r"[a-z]{4,}", summary.casefold())
-        if word not in SUMMARY_STOPWORDS
-    }
+    retired = withdrawn_documents()
     sources = [
         source
         for source in node.get("sources") or []
-        if source.get("doc_id") and source.get("text_passage")
+        if isinstance(source, dict)
+        and source.get("doc_id")
+        and source.get("text_passage")
+        and is_citable_source(source, retired)
+        and not is_low_signal_passage(str(source.get("text_passage") or ""))
     ]
     if not sources:
         return summary, []
+    label = graph.label(cid)
     best = max(
         sources,
-        key=lambda source: len(
-            terms & set(re.findall(r"[a-z]{4,}", str(source["text_passage"]).casefold()))
-        ),
+        key=lambda source: score_source_for_concept(cid, label, source, summary),
     )
     record = graph.cite_record(cid, str(best["text_passage"]), source_override=best)
     if (
@@ -217,7 +225,9 @@ def extract_concept_mentions(query: str, known_graph=None) -> list[str]:
 
     raw_candidates = []
     for part in parts:
-        cleaned = re.sub(r"^(?:the|an|a|how\s+do|how\s+does|how\s+are|how\s+is)\s+", "", part.strip(), flags=re.I).strip(" ?.,!")
+        cleaned = re.sub(
+            r"^(?:the|an|a|how\s+do|how\s+does|how\s+are|how\s+is)\s+", "", part.strip(), flags=re.I
+        ).strip(" ?.,!")
         if not cleaned or cleaned.lower() in NOISE_TERMS:
             continue
         if re.match(r"^(?:what\s+happens|which\s+\w+\s+handles|why\s+does)\b", cleaned, re.I):
