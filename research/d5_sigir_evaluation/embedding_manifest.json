@@ -17,7 +17,9 @@
     "source_file": "host_inference/fixtures/okf_graph.json",
     "source_file_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
     "total_passages": 775,
-    "passage_id_order_fingerprint": "78ed1180011b7818bcf0269956e1cd278cc39c701a33888e1296415c0c7b2967",
+    "passage_id_order_fingerprint": "b0c921f7e9a2120c605565e16e3534f6b917115190462fa97c4e05345f4bcca9",
+    "passage_id_order_fingerprint_formula": "sha256('\\n'.join(passage_ids)) using first_seen_by_passage_id traversal of okf_graph.json",
+    "legacy_unreproduced_fingerprint": "78ed1180011b7818bcf0269956e1cd278cc39c701a33888e1296415c0c7b2967",
     "min_passage_chars": 40,
     "deduplication": "first_seen_by_passage_id"
   },

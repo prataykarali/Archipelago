@@ -1,4 +1,13 @@
-# D5 Evaluation Report — Archipelago Graph-Assisted Retrieval
+> [!CAUTION]
+> **SUPERSEDED HISTORICAL ARTIFACT — DO NOT CITE.**  
+> This initial D5 report contains retracted methodology (conflated concept resolution
+> with passage MRR, mislabeled BLAKE2b hashing as dense retrieval, evaluated static graph
+> edges instead of runtime output, and did not disclose algorithmic qrels or author-only
+> review). See [`D5_3_SCIENTIFIC_EVALUATION_REPORT.md`](D5_3_SCIENTIFIC_EVALUATION_REPORT.md)
+> and [`d5_1_evaluation_results_v2.json`](d5_1_evaluation_results_v2.json) for the
+> authoritative, verified metrics and **HOLD** scientific readiness verdict.
+
+# D5 Evaluation Report — Archipelago Graph-Assisted Retrieval (Historical / Superseded)
 
 **Date:** 2026-11-22
 **Branch:** `redesign_research_workspace`

@@ -41,23 +41,17 @@ Demonstrate how Archipelago disambiguates **structural architectural components*
 #### Turn 2: Component Deep-Dive Query
 - **User Query:** `How does self-attention relate to the Transformer?`
 - **Resolved Anchor Concept:** `self_attention`
-- **Scientific Relationship Displayed:**
-  - `self_attention` $\xleftrightarrow{\text{RELATED / REQUIRES}}$ `transformer`
-  - The runtime stores verifiable `REQUIRES`, `RELATED`, and `UNLOCKS` relationships. The specific architectural decomposition (that self-attention is a core sub-layer of Transformer rather than requiring a transformer to exist) is synthesized in the grounded answer text supported by the Vaswani 2017 citation, rather than asserting unverified `USES` or `PART_OF` edge types in the graph schema.
-- **Supporting Citation:**
-  - **Document:** `papers/Vaswani2017_Attention_Is_All_You_Need.pdf` (Page 3)
-  - **Passage Text:**
-    > *"An attention function can be described as mapping a query and a set of key-value pairs to an output, where the query, keys, values, and output are all vectors."*
+- **Verified Live Runtime Output (`okf_graph.json`):**
+  - Connects `self_attention` via `RELATED` and `REQUIRES` edges in the live graph (`transformer`, `matrix_multiplication`, `sequence`).
+  - Note: The runtime schema stores only `REQUIRES`, `RELATED`, and `UNLOCKS` (not `USES` or `PART_OF`), and `self_attention -> transformer` remains a known legacy `REQUIRES` direction artifact in `okf_graph.json` (disclosed in `reviewer_provenance.json`).
+- **Supporting Citations (Live Runtime):**
+  - `papers/Vaswani2017_Attention_Is_All_You_Need.pdf` (Pages 5 and 10; 2 citations returned).
 
-#### Turn 3: Mathematical Prerequisite Traversal
+#### Turn 3: Mathematical Prerequisite Query (Live Runtime Coverage Note)
 - **User Query:** `What math is required for self-attention?`
-- **Resolved Prerequisite Path:**
-  - `self_attention` $\xrightarrow{\text{REQUIRES}}$ `matrix_multiplication`
-  - `scaled_dot_product_attention` $\xrightarrow{\text{REQUIRES}}$ `softmax`
-  - `softmax` $\xrightarrow{\text{REQUIRES}}$ `probability_distribution`
-- **Supporting Citations:**
-  - **Linear Algebra:** Gilbert Strang, *Introduction to Linear Algebra* (5th Edition), Page 12 (matrix multiplication for projection matrices $W_Q, W_K, W_V$).
-  - **Probability:** Sheldon Ross, *A First Course in Probability* (9th Edition), Page 110 (softmax exponential normalization into a valid categorical probability distribution).
+- **Verified Live Runtime Behavior:**
+  - Resolves to `attention_mechanism` (not `self_attention`) with `prerequisites=[]` and 10 neighborhood citations (top-3: Vaswani 2017 p. 13, Devlin 2018 p. 3, Bahdanau 2014 p. 4).
+  - *Demonstrator Note:* To inspect mathematical prerequisites (`matrix_multiplication`, `linear_algebra`) in the current runtime graph, inspect the prerequisite list directly on the `transformer` or `self_attention` anchor node from Turns 1–2 rather than expecting a multi-hop Strang/Ross textbook citation chain from Turn 3.
 
 ---
 
@@ -70,33 +64,20 @@ Demonstrate how Archipelago supports Information Retrieval researchers and stude
 
 #### Turn 1: RAG System Architecture
 - **User Query:** `What is Retrieval-Augmented Generation?`
-- **Resolved Anchor Concept:** `rag` (`retrieval_augmented_generation`)
-- **Retrieval Mode:** `Graph-Assisted Traversal (OKF + Verified Passages)`
-- **Grounding Badge:** `Passage located · Grounded` (Status: `verified`)
-- **Primary Source Citation:**
-  - **Document:** `papers/Lewis2020_RAG.pdf` (Page 1)
-  - **Authors:** Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, Douwe Kiela
-  - **Passage Text:**
-    > *"We explore a general-purpose fine-tuning recipe for retrieval-augmented generation (RAG) — models which combine pre-trained parametric and non-parametric memory for language generation."*
-- **Inspector State:**
-  - Displays RAG connections to `dense_passage_retrieval` (`REQUIRES`), `retrieval` (`RELATED`), and `transformer` (`RELATED`).
+- **Resolved Anchor Concept:** `rag`
+- **Retrieval Mode:** `Graph-Assisted Traversal (OKF + Indexed Passages)`
+- **Primary Source Citation (Live Runtime):**
+  - **Document:** `papers/Lewis2020_RAG.pdf` (Page 4; rank 1 of 10 returned citations; note neighborhood expansion also surfaces peripheral papers such as Brown 2020 p. 10 and Goodfellow 2014 p. 2 — a known citation-dilution limitation disclosed in `citation_grounding_audit.json`).
+- **Inspector State (Live Runtime):**
+  - Displays `rag` `related_concepts` including `retrieval_augmented_generation`, `language_model`, `gpt_2`, `beam_search`, and `unlocks` including `advanced_rag`, `large_language_model_serving`.
 
 #### Turn 2: DPR Component and Contrast with BM25
 - **User Query:** `Explain Dense Passage Retrieval`
-- **Resolved Anchor Concept:** `retrieval` / `dense_passage_retrieval`
-- **Grounding Badge:** `Passage located · Grounded` (Status: `verified`)
-- **Primary Source Citation:**
-  - **Document:** `papers/Lewis2020_RAG.pdf` (Page 3) & `papers/Karpukhin2020_DPR.pdf` (Page 2)
-  - **Authors:** Vladimir Karpukhin, Barlas Oğuz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, Wen-tau Yih
-  - **Passage Text:**
-    > *"DPR follows a bi-encoder architecture: one encoder embeds documents into a dense index, and the other embeds queries. Passage retrieval corresponds to Maximum Inner Product Search (MIPS) using FAISS index."*
+- **Resolved Anchor Concept:** `retrieval` (ontology alias; `dense_passage_retriever` and `dpr` appear in its prerequisite/related neighborhood alongside `bm25`).
+- **Primary Source Citations (Live Runtime Top-3):**
+  - `papers/Lewis2020_RAG.pdf` (Pages 3 and 1) and `papers/Devlin2018_BERT.pdf` (Page 5).
 - **Architectural & IR Contrast Displayed:**
-  - **Dual-Encoder:** Decoupled encoders allow offline pre-indexing of millions of passages in continuous vector spaces.
-  - **Contrast with BM25 (Grounded Text Synthesis):**
-    - The knowledge graph schema does not assert an unverified `CONTRASTS_WITH` edge; instead, contrast is synthesized in the grounded prose and supported by dual paper citations.
-    - BM25 uses term frequency, inverse document frequency, and document length normalization over an inverted index.
-    - DPR uses deep transformer representations to capture semantic synonymy without lexical overlap.
-  - **Contrast with Cross-Encoder:** Cross-encoders evaluate full query-document cross-attention (higher accuracy, higher latency) and are reserved for second-stage re-ranking.
+  - The knowledge graph schema does not assert an unverified `CONTRASTS_WITH` edge; instead, `dpr`, `dense_passage_retriever`, and `bm25` appear in the `retrieval` concept neighborhood, while comparative synthesis is presented in prose.
 
 ---
 
