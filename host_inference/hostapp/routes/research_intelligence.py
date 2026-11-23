@@ -337,7 +337,6 @@ def register(app: Flask, _ctx: AppContext) -> None:
     def intelligence_dossier(run_id: uuid.UUID) -> ResponseReturnValue:
         """Return aligned topic and paper details for the run."""
         from archipelago.scholarly.intelligence.run_dossier import build_run_dossier
-        from archipelago.scholarly.intelligence.storage import hosted_store
 
         try:
             # _run applies owner scoping for students/faculty and grants manager
