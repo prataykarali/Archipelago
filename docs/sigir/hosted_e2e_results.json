@@ -1,0 +1,296 @@
+{
+  "metadata": {
+    "suite": "Archipelago Hosted E2E Verification Harness (Issue #12)",
+    "timestamp_utc": "2026-11-23T13:14:50.703161+00:00",
+    "inference_url": "https://archipelago-blond.vercel.app",
+    "research_url": "https://archipelago-librarian.vercel.app",
+    "student_session_available": false,
+    "student_session_source": "missing_env_credentials",
+    "verdict_policy": "PASS requires live functional verification of response content/bytes. BLOCKED means an authorized user session or institutional credential is required and absent; anonymous 401 is NEVER counted as PASS.",
+    "summary": {
+      "total": 6,
+      "PASS": 1,
+      "FAIL": 0,
+      "BLOCKED": 5
+    }
+  },
+  "deployment": {
+    "inference_readiness": {
+      "http_status": 200,
+      "ok": true,
+      "deployed_revision": "unversioned",
+      "deployed_revision_versioned": false,
+      "graph_fingerprint": "9818ac0e8fd3",
+      "revision_distinct_from_graph": true,
+      "vercel_deployment_id": "bom1::iad1::kdbgz-1795439561234-5585888408af",
+      "concepts": 610,
+      "corpus_source": "full",
+      "pearson_books": 40
+    },
+    "research_readiness": {
+      "http_status": 200,
+      "ready": true,
+      "service": "research_transport",
+      "deployed_revision": "missing",
+      "deployed_revision_versioned": false,
+      "vercel_deployment_id": "bom1::iad1::5mjhg-1795439561704-d7470b729ec0"
+    },
+    "auth_config": {
+      "http_status": 200,
+      "configured": true,
+      "required": true,
+      "supabase_url": "https://spllaastejfwclllfndp.supabase.co"
+    }
+  },
+  "browser_smoke": {
+    "available": true,
+    "executable": "/usr/bin/google-chrome",
+    "error": "",
+    "pages": [
+      {
+        "name": "inference_library",
+        "requested_url": "https://archipelago-blond.vercel.app/library",
+        "final_url": "https://archipelago-blond.vercel.app/library",
+        "http_status": 200,
+        "title": "Library Details \u2014 Archipelago Central Repository",
+        "body_text_length": 4005,
+        "has_login_form": true,
+        "has_library_content": true,
+        "page_error_count": 0,
+        "console_error_count": 0,
+        "nav_error": ""
+      },
+      {
+        "name": "inference_chat_gate",
+        "requested_url": "https://archipelago-blond.vercel.app/chat",
+        "final_url": "https://archipelago-blond.vercel.app/login?next=/chat",
+        "http_status": 200,
+        "title": "Sign in \u2014 Archipelago",
+        "body_text_length": 153,
+        "has_login_form": true,
+        "has_library_content": false,
+        "page_error_count": 0,
+        "console_error_count": 1,
+        "nav_error": ""
+      },
+      {
+        "name": "inference_research_gate",
+        "requested_url": "https://archipelago-blond.vercel.app/research",
+        "final_url": "https://archipelago-blond.vercel.app/research",
+        "http_status": 200,
+        "title": "Research \u2014 Archipelago Research",
+        "body_text_length": 797,
+        "has_login_form": false,
+        "has_library_content": false,
+        "page_error_count": 0,
+        "console_error_count": 0,
+        "nav_error": ""
+      },
+      {
+        "name": "inference_login",
+        "requested_url": "https://archipelago-blond.vercel.app/login",
+        "final_url": "https://archipelago-blond.vercel.app/login",
+        "http_status": 200,
+        "title": "Sign in \u2014 Archipelago",
+        "body_text_length": 153,
+        "has_login_form": true,
+        "has_library_content": false,
+        "page_error_count": 0,
+        "console_error_count": 1,
+        "nav_error": ""
+      },
+      {
+        "name": "research_landing",
+        "requested_url": "https://archipelago-librarian.vercel.app/",
+        "final_url": "https://archipelago-librarian.vercel.app/",
+        "http_status": 200,
+        "title": "Archipelago \u2014 Choose your space",
+        "body_text_length": 371,
+        "has_login_form": false,
+        "has_library_content": false,
+        "page_error_count": 0,
+        "console_error_count": 1,
+        "nav_error": ""
+      }
+    ]
+  },
+  "journeys": [
+    {
+      "journey_id": "J1",
+      "title": "Student login -> chat -> Transformer canonical chunk -> page-view -> PDF bytes",
+      "verdict": "BLOCKED",
+      "environment": "hosted_live",
+      "requires_auth": true,
+      "checks": [
+        {
+          "step": "anonymous_chat_gate",
+          "http_status": 401
+        },
+        {
+          "step": "anonymous_pageview_gate",
+          "http_status": 401
+        }
+      ],
+      "evidence": {
+        "auth_gates_confirmed": true
+      },
+      "blocker_detail": "No authorized Supabase student session in environment. Set ARCHIPELAGO_E2E_STUDENT_TOKEN or ARCHIPELAGO_E2E_STUDENT_EMAIL + ARCHIPELAGO_E2E_STUDENT_PASSWORD (human/institutional sign-in required)."
+    },
+    {
+      "journey_id": "J2",
+      "title": "Research topic -> live papers -> dossier -> primary DOI/arXiv URL",
+      "verdict": "BLOCKED",
+      "environment": "hosted_live",
+      "requires_auth": true,
+      "checks": [
+        {
+          "step": "provider_openalex",
+          "http_status": 200,
+          "paper_count": 3
+        },
+        {
+          "step": "provider_crossref",
+          "http_status": 200,
+          "paper_count": 3
+        },
+        {
+          "step": "provider_arxiv",
+          "http_status": 429,
+          "has_xml_entry": false
+        },
+        {
+          "step": "doi_resolution",
+          "http_status": 302,
+          "redirect_target": "https://aclanthology.org/2020.emnlp-main.550"
+        },
+        {
+          "step": "hosted_search_auth_gate",
+          "http_status": 401
+        }
+      ],
+      "evidence": {
+        "external_providers_verified": true,
+        "hosted_search_gate_http": 401
+      },
+      "blocker_detail": "External scholarly providers (OpenAlex/Crossref/DOI) verified live, but hosted authenticated search + dossier (/api/research/intelligence/search & /dossier) requires an authorized Supabase user session."
+    },
+    {
+      "journey_id": "J3",
+      "title": "Save research run -> reopen -> Excel (XLSX) export bytes",
+      "verdict": "BLOCKED",
+      "environment": "hosted_live",
+      "requires_auth": true,
+      "checks": [
+        {
+          "step": "runs_list_auth_gate",
+          "http_status": 401
+        }
+      ],
+      "evidence": {
+        "runs_gate_http": 401
+      },
+      "blocker_detail": "Hosted research run persistence and XLSX export (/api/research/intelligence/runs & /xlsx) require an authorized Supabase user session."
+    },
+    {
+      "journey_id": "J4",
+      "title": "Public OPAC / Library lookup -> Koha biblionumber -> availability/freshness",
+      "verdict": "PASS",
+      "environment": "hosted_live",
+      "requires_auth": false,
+      "checks": [
+        {
+          "step": "inference_library_data",
+          "http_status": 200,
+          "ebook_count": 91,
+          "holdings_count": 109,
+          "holdings_status": "koha_export",
+          "koha_stale": true,
+          "koha_source_updated_at": "2026-11-11T15:24:20.794016+00:00"
+        },
+        {
+          "step": "research_koha_snapshot",
+          "http_status": 200,
+          "stale": true,
+          "source_updated_at": "2026-11-11T15:24:20.794016+00:00",
+          "has_freshness_disclosure": true
+        },
+        {
+          "step": "live_koha_opac_detail",
+          "biblionumber": 1868,
+          "http_status": 200,
+          "record_content_verified": true,
+          "body_bytes": 96317
+        },
+        {
+          "step": "browser_library_page",
+          "name": "inference_library",
+          "requested_url": "https://archipelago-blond.vercel.app/library",
+          "final_url": "https://archipelago-blond.vercel.app/library",
+          "http_status": 200,
+          "title": "Library Details \u2014 Archipelago Central Repository",
+          "body_text_length": 4005,
+          "has_login_form": true,
+          "has_library_content": true,
+          "page_error_count": 0,
+          "console_error_count": 0,
+          "nav_error": ""
+        }
+      ],
+      "evidence": {
+        "ebook_count": 91,
+        "holdings_count": 109,
+        "koha_snapshot_stale": true,
+        "koha_source_updated_at": "2026-11-11T15:24:20.794016+00:00",
+        "live_opac_biblio_verified": true,
+        "browser_library_verified": true
+      },
+      "blocker_detail": ""
+    },
+    {
+      "journey_id": "J5",
+      "title": "Unsupported topic (Q39) -> clean abstention (zero citations/graph)",
+      "verdict": "BLOCKED",
+      "environment": "hosted_live",
+      "requires_auth": true,
+      "checks": [
+        {
+          "step": "anonymous_q39_chat_gate",
+          "http_status": 401
+        }
+      ],
+      "evidence": {
+        "chat_gate_http": 401
+      },
+      "blocker_detail": "Hosted POST /api/chat requires an authorized Supabase student session; anonymous 401 confirms auth gate only and does not prove Q39 abstention."
+    },
+    {
+      "journey_id": "J6",
+      "title": "Role negative test: student cannot perform librarian operations",
+      "verdict": "BLOCKED",
+      "environment": "hosted_live",
+      "requires_auth": true,
+      "checks": [
+        {
+          "step": "anonymous_inference_library_import",
+          "http_status": 401
+        },
+        {
+          "step": "anonymous_inference_handoff_ticket",
+          "http_status": 401
+        },
+        {
+          "step": "anonymous_research_opac_live",
+          "http_status": 401
+        },
+        {
+          "step": "anonymous_research_librarian_books",
+          "http_status": 401
+        }
+      ],
+      "evidence": {
+        "anonymous_gates_401_or_403": true
+      },
+      "blocker_detail": "Anonymous 401/403 proves unauthenticated blocking only. Proving that an authenticated student role receives HTTP 403 on librarian endpoints requires an authorized Supabase student session."
+    }
+  ]
+}
