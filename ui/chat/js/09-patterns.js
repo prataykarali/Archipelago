@@ -164,11 +164,6 @@ import { renderGraphExperiencePrompt } from './12-choose-graph-experience.js';
                 }
                 messageHtml = `
                     <div class="assistant-row">
-                        <div class="assistant-header flex items-center justify-between mb-1.5 px-0.5">
-                            <div class="assistant-identity flex items-center gap-2">
-                                <span class="assistant-name text-xs font-bold text-purple-200 tracking-wide">Archipelago</span>
-                            </div>
-                        </div>
                         <div class="msg-bubble-wrap ai-wrap flex flex-col gap-1 min-w-0 flex-1${isTyping ? ' is-thinking' : ''}">
                             <div id="msg-body-${msgId}" class="chat-bubble">
                                 ${thinkingHtml}

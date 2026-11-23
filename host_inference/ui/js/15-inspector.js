@@ -3,7 +3,7 @@
 import { setPanelOpen, syncPanelToggleUI, isPanelOpen } from './03-wrap-library-inventory-secti.js';
 import { citationPageUrl, citationTitle } from './02--kw-highlights.js';
 
-const TAB_IDS = ['graph', 'evidence', 'trace'];
+const TAB_IDS = ['graph', 'books', 'trace'];
 const BADGE_COLORS = {
     verified: { bg: 'bg-emerald-500/20', border: 'border-emerald-400/40', text: 'text-emerald-300', dot: 'bg-emerald-400' },
     passage_matched: { bg: 'bg-emerald-500/20', border: 'border-emerald-400/40', text: 'text-emerald-300', dot: 'bg-emerald-400' },
@@ -17,11 +17,12 @@ const BADGE_COLORS = {
 // ── Tab switching ────────────────────────────────────────────────────────────
 
 function switchInspectorTab(tabId) {
+    const resolvedTab = tabId === 'evidence' ? 'trace' : tabId;
     for (const id of TAB_IDS) {
         const btn = document.getElementById(`inspector-tab-btn-${id}`);
         const pane = document.getElementById(`inspector-pane-${id}`);
         if (!btn || !pane) continue;
-        const isActive = id === tabId;
+        const isActive = id === resolvedTab;
         pane.classList.toggle('hidden', !isActive);
         btn.classList.toggle('bg-accentPurple/30', isActive);
         btn.classList.toggle('text-accentPurple', isActive);

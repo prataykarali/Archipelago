@@ -28,10 +28,10 @@ Inspector
         role="tab" aria-selected="true" aria-controls="inspector-pane-graph">
         <img src="/assets/v2/icon_concept_graph.svg" class="w-3.5 h-3.5 inline mr-1" alt="">Graph
     </button>
-    <button type="button" id="inspector-tab-btn-evidence" onclick="switchInspectorTab('evidence')"
+    <button type="button" id="inspector-tab-btn-books" onclick="switchInspectorTab('books')"
         class="flex-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all border bg-white/5 text-gray-400 border-transparent"
-        role="tab" aria-selected="false" aria-controls="inspector-pane-evidence">
-        <img src="/assets/v2/icon_evidence.svg" class="w-3.5 h-3.5 inline mr-1" alt="">Evidence
+        role="tab" aria-selected="false" aria-controls="inspector-pane-books">
+        <i class="fa-solid fa-book-open text-amber-400 mr-1 text-[10px]"></i>Books
     </button>
     <button type="button" id="inspector-tab-btn-trace" onclick="switchInspectorTab('trace')"
         class="flex-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all border bg-white/5 text-gray-400 border-transparent"
@@ -99,10 +99,22 @@ Inspector
         </div>
     </div>
 
-    <hr class="border-slate-700/60 my-1">
+    <!-- KuzuDB Source Citations (legacy — kept for existing JS compatibility) -->
+    <div class="hidden flex-col gap-3">
+        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-file-invoice text-accentPink"></i>
+            Source Citations
+        </span>
+        <div id="citations-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
+            No citations retrieved yet.
+        </div>
+        <div id="citations-list" class="hidden flex flex-col gap-2"></div>
+    </div>
+</div>
 
-    <!-- 📚 Stack of Books -->
-    <div class="flex flex-col gap-3">
+<!-- ── Books pane (Stack of Books) ── -->
+<div id="inspector-pane-books" class="hidden flex-1 flex flex-col gap-3 px-4 py-3 overflow-y-auto" role="tabpanel">
+    <div class="flex flex-col gap-3 flex-1 min-h-0">
         <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
@@ -125,36 +137,11 @@ Inspector
             <button data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Library Holdings</button>
             <button data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center">All Docs</button>
         </div>
-        <div id="books-list" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1"></div>
-    </div>
-
-    <hr class="border-white/10">
-
-    <!-- KuzuDB Source Citations (legacy — kept for existing JS compatibility) -->
-    <div class="flex flex-col gap-3">
-        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-file-invoice text-accentPink"></i>
-            Source Citations
-        </span>
-        <div id="citations-placeholder" class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">
-            No citations retrieved yet.
-        </div>
-        <div id="citations-list" class="hidden flex flex-col gap-2"></div>
+        <div id="books-list" class="flex-1 flex flex-col gap-2 overflow-y-auto pr-1"></div>
     </div>
 </div>
 
-<!-- ── Evidence pane ── -->
-<div id="inspector-pane-evidence" class="hidden flex-1 flex flex-col gap-3 px-4 py-3 overflow-y-auto" role="tabpanel">
-    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-        <img src="/assets/v2/icon_evidence.svg" class="w-3.5 h-3.5 object-contain" alt="">
-        Source Evidence &amp; Bibliographic Metadata
-    </span>
-    <div id="inspector-evidence-list" class="flex flex-col gap-2">
-        <p class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">Ask a question to see source evidence.</p>
-    </div>
-</div>
-
-<!-- ── Trace pane ── -->
+<!-- ── Trace pane (Trace + Evidence) ── -->
 <div id="inspector-pane-trace" class="hidden flex-1 flex flex-col gap-3 px-4 py-3 overflow-y-auto" role="tabpanel">
     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
         <img src="/assets/v2/icon_trace.svg" class="w-3.5 h-3.5 object-contain" alt="">
@@ -162,6 +149,19 @@ Inspector
     </span>
     <div id="inspector-trace-list" class="flex flex-col gap-2">
         <p class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">No trace data yet.</p>
+    </div>
+
+    <hr class="border-white/10 my-1">
+
+    <!-- Source Evidence moved inside Trace section -->
+    <div id="inspector-evidence-section" class="flex flex-col gap-2">
+        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+            <img src="/assets/v2/icon_evidence.svg" class="w-3.5 h-3.5 object-contain" alt="">
+            Source Evidence &amp; Bibliographic Metadata
+        </span>
+        <div id="inspector-evidence-list" class="flex flex-col gap-2">
+            <p class="text-xs text-gray-500 italic p-3 rounded bg-white/5 border border-white/5">Ask a question to see source evidence.</p>
+        </div>
     </div>
 
     <!-- Legacy execution logs (kept for existing JS) -->
