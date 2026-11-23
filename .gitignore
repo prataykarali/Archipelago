@@ -159,3 +159,13 @@ AUDIT.md
 *.zip
 *.sqlite3
 outputs/
+
+# Private SIGIR manuscript packages: local delivery only
+/docs/sigir/manuscript/
+/research/s5-e0-pre-results-paper-prep/manuscript/
+sigir2027_demo.tex
+sigir2027_demo.pdf
+references.bib
+**/annotation_packets/
+**/sealed_key.json
+**/d9_reviewer_*_packet.csv

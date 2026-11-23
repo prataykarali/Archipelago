@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Overlapping failure and behavior taxonomy across all 50 held-out queries.}
+\label{tab:t5_failure_taxonomy}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{failure\_category} & \textbf{operational\_definition} & \textbf{count\_all\_50} & \textbf{pct\_all\_50} & \textbf{pct\_relevant\_subset} & \textbf{representative\_query\_ids} \\
+\midrule
+Missing ontology concept & Expected concept or relation endpoint absent from 610-node okf\_graph.json & 15 & 30.0\% & 15/38 (39.5\%) & Q11, Q12, Q16, Q17, Q18, Q19, Q23, Q24... \\
+Alias-resolution mismatch & Concept surface forms/aliases fail to match query phrasing & 12 & 24.0\% & 12/38 (31.6\%) & Q11, Q16, Q17, Q18, Q19, Q20, Q23, Q26... \\
+Incorrect canonical anchoring & Resolver predicts wrong primary concept or misses canonical expected\_concept & 16 & 32.0\% & 16/38 (42.1\%) & Q11, Q16, Q17, Q18, Q19, Q20, Q22, Q23... \\
+Unsupported runtime predicate & Expected relation predicate absent from 3-predicate runtime KG schema & 14 & 28.0\% & 14/18 (77.8\%) & Q21, Q23, Q24, Q25, Q26, Q27, Q28, Q31... \\
+Wrong relation direction & KG edge stored in reverse orientation or mismatched predicate vs benchmark & 0 & 0.0\% & 0/18 (0.0\%) &  \\
+Citation irrelevance & Returned citations miss canonical concept chunks or include spurious 1-hop dilution & 24 & 48.0\% & 24/50 (48.0\%) & Q11, Q16, Q17, Q18, Q19, Q20, Q21, Q22... \\
+Legitimate abstention & Out-of-corpus query correctly returns NO\_EVIDENCE with zero corpus passage citations & 12 & 24.0\% & 12/12 (100.0\%) & Q39, Q40, Q41, Q42, Q43, Q44, Q45, Q46... \\
+\bottomrule
+\end{tabular}
+\end{table}
