@@ -200,6 +200,11 @@ def _check_csrf(ctx: AppContext, path: str):
     return None
 
 
+def _is_protected_reader_path(path: str) -> bool:
+    """Require the same authentication on every alias of the hosted PDF/reader routes."""
+    return path == "/read" or path.startswith(("/read/", "/open/", "/papers/", "/pdfs/"))
+
+
 def register_middleware(app: Flask, ctx: AppContext) -> None:
     """Register the request guard, security headers and JSON error handlers."""
 
@@ -251,10 +256,10 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
                         "detail": "A librarian or administrator session is required.",
                     }
                 ), 403
-        # Library browsing, reader routes and chat stay public so an exact
-        # book/page link is never blocked by a login redirect.
+        # Protect all PDF and reader route aliases when authentication is enabled.
+        # An alternate path must never bypass the normal private-library guard.
         if _is_protected_api(path) or (
-            ctx.auth.required() and (path.startswith(("/open/", "/papers/")) or path == "/read")
+            ctx.auth.required() and _is_protected_reader_path(path)
         ):
             principal, error = ctx.auth.principal()
             if principal is None:
@@ -270,7 +275,7 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         ):
             check_auth = getattr(ctx.limiter, "check_auth", ctx.limiter.check_api)
             return _apply_limit(check_auth())
-        if path.startswith("/api/") or path.startswith("/open/") or path.startswith("/papers/"):
+        if path.startswith("/api/") or _is_protected_reader_path(path):
             return _apply_limit(ctx.limiter.check_api())
         return None
 
