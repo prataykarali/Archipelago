@@ -50,20 +50,13 @@ LLM completion.
 **Key claim:** Relationship traversal connects related concepts without asserting
 fabricated structural edge labels.
 
-### Turn 3 — Prerequisite Chain (40 seconds)
+### Turn 3 — Prerequisite Neighborhood Inspection (40 seconds)
 
 **Type:** `What mathematical concepts are prerequisites for self-attention?`
 
-**Point out:**
-- The graph shows `self_attention → matrix_multiplication` and
-  `self_attention → softmax` with **REQUIRES** edges
-- These are **pedagogical prerequisites**, connecting attention mechanisms
-  to underlying mathematical foundations
-- The human review record classifies them as `pedagogical_consensus`
-- The evidence passage explains why linear algebra is foundational
-
-**Key claim:** The system captures prerequisite learning paths (`REQUIRES`),
-a distinction not captured by flat lexical retrieval.
+**Point out (verified live runtime behavior):**
+- Note that this compound phrasing currently resolves to `attention_mechanism` with an empty prerequisite list (`prereqs=[]`), whereas `transformer` (Turn 1) and `self_attention` (Turn 2) expose `matrix_multiplication` and `linear_algebra` in their prerequisite neighborhoods.
+- Use this transparently to show both what the live graph surfaces and where compound query resolution / relation extraction still fail (0.0 exact triple F1 in D5.1-v2).
 
 ---
 
@@ -74,30 +67,23 @@ a distinction not captured by flat lexical retrieval.
 **Type:** `How does Retrieval-Augmented Generation work?`
 
 **Point out:**
-- Concept resolved to `rag` with citation to Lewis et al. 2020
-- Graph shows `rag` connected to `dpr` (`REQUIRES`) and `transformer` (`RELATED`)
-- The evidence panel displays the supporting passage from the RAG paper
-- The grounding badge confirms verified graph match
-
-**Key claim:** Multi-hop concept relationships — RAG connects to dense retrieval
-and transformer sequence-to-sequence foundations.
+- Concept resolves to `rag` with rank-1 citation to `papers/Lewis2020_RAG.pdf` (Page 4)
+- Graph neighborhood shows `rag` related to `retrieval_augmented_generation`, `language_model`, `gpt_2`, and unlocking `advanced_rag`
+- Be transparent about neighborhood citation dilution (peripheral papers can appear at lower ranks; 37.5% spurious rate in the 24-citation author audit)
 
 ### Turn 5 — Contrastive Evaluation (45 seconds)
 
 **Type:** `How does DPR compare to BM25 for passage retrieval?`
 
 **Point out:**
-- The response synthesizes the contrast between dense bi-encoder retrieval and sparse BM25
-- Citations to Karpukhin et al. 2020 (DPR paper) and Lewis et al. 2020 (RAG paper)
-- The evidence passage explains DPR's learned dense representations
-  versus BM25's lexical matching
-- Controlled evaluation on the held-out set (D5.1-v2, algorithmic qrels, not human-verified):
-  BM25 (MRR=0.75, nDCG@5=0.6415), Snowflake-Arctic neural dense (MRR=0.75, nDCG@5=0.6524),
-  Feature-Hashed Vector (MRR=0.28), Graph-Assisted (MRR=0.4865 — heuristic decay scores, not learned).
+- Concept resolves to `retrieval`, whose neighborhood includes `dpr`, `dense_passage_retriever`, and `bm25`, with citations to `Lewis2020_RAG.pdf` (Pages 3, 7) and `Devlin2018_BERT.pdf` (Page 7)
+- Controlled evaluation on the held-out set (D5.1-v2, **algorithmic candidate qrels, NOT human-verified**):
+  BM25 (MRR=0.7500, nDCG@5=0.6415), Snowflake-Arctic neural dense (MRR=0.7500, nDCG@5=0.6524),
+  Archipelago Graph-Assisted (MRR=0.4865, nDCG@5=0.2253 — heuristic decay scores, not learned),
+  Feature-Hashed Vector (MRR=0.2806, nDCG@5=0.1764).
   Source: `research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json`.
 
-**Key claim:** The system grounds comparative IR methodology in dual original
-literature citations rather than unverified contrastive graph edges.
+**Key claim:** The system surfaces related retrieval concepts in the graph neighborhood while disclosing that flat BM25 and neural dense rankers outperform graph-assisted citation retrieval on passage-level ranking.
 
 ---
 
@@ -115,9 +101,10 @@ literature citations rather than unverified contrastive graph edges.
   verified graph grounding
 - The trace intent is `GUARDRAIL_INTERCEPT` or `GENERAL_EXPLANATION`
 
-**Key claim:** Perfect abstention precision (1.0) — the system never
-fabricates knowledge graph structure for unsupported topics. This is a
-critical scientific integrity property.
+**Key claim:** 12/12 (100%) anchor-abstention accuracy on the 12 held-out out-of-domain
+benchmark queries (`Q39`–`Q50`, returning `anchor_concept=None`, `render_graph=False`,
+and 0 corpus passage citations; 11/12 return 0 total citations while `Q45` surfaces 1
+Pearson catalog book metadata entry).
 
 ---
 
@@ -131,8 +118,9 @@ Summarize the three contributions demonstrated:
 2. **Knowledge graph traversal** — Graph surfaces `RELATED`, `REQUIRES`, `UNLOCKS` edges.
    `USES`, `CONTRASTS_WITH`, and `APPLIES_TO` are absent from the runtime schema; 13/18
    relational queries have predicates absent from the graph (D5.1-v2 relationship audit).
-3. **Honest abstention** for unsupported topics — 12 out-of-corpus queries return zero
-   citations and zero fabricated graph edges (D5.3-A verified).
+3. **Honest abstention** for unsupported topics — 12/12 out-of-corpus queries return
+   `anchor_concept=None`, `render_graph=False`, and zero indexed paper citations (11/12
+   return 0 total citations; `Q45` surfaces 1 Pearson catalog book metadata entry).
 
 Note that this is a **Demonstrations Track** submission — the system is live and deployed.
 Passage qrels are algorithmically generated (not human-verified); citation grounding has

@@ -1,0 +1,308 @@
+%% ACM SIGIR 2027 Demonstrations Track — 4-Page Manuscript Draft
+%% Strictly grounded in verified runtime and evaluation artifacts
+%% (research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json,
+%%  citation_grounding_audit.json, reviewer_provenance.json).
+%%
+%% Compile with: pdflatex sigir2027_demo && bibtex sigir2027_demo && pdflatex sigir2027_demo && pdflatex sigir2027_demo
+\documentclass[sigconf,anonymous=false,review=true]{acmart}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+
+\acmConference[SIGIR '27]{Proceedings of the 50th International ACM SIGIR Conference on Research and Development in Information Retrieval}{July 2027}{TBD}
+\acmBooktitle{Proceedings of the 50th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR '27)}
+\acmPrice{15.00}
+\acmISBN{978-1-4503-XXXX-X/27/07}
+
+\begin{document}
+
+\title{Archipelago: Concept-Anchored Academic Knowledge Navigation with Honest Boundary Abstention}
+
+\author{Pratay Karali}
+\affiliation{%
+  \institution{\todo{AFFILIATION: Confirm institutional affiliation and department}}
+  \city{\todo{CITY}}
+  \country{\todo{COUNTRY}}
+}
+\email{\todo{EMAIL: Confirm contact email}}
+% \orcid{\todo{ORCID}}
+
+\begin{abstract}
+Students and researchers navigating technical literature frequently need both
+canonical concept grounding (linking a question to a structured ontology node and
+its prerequisite neighborhood) and verifiable passage provenance, while avoiding
+hallucinated citations when a topic lies outside the indexed corpus. We demonstrate
+\textbf{Archipelago}, an interactive, graph-assisted academic research workspace
+built over a frozen corpus of 775 passages and 610 AI/ML and Information Retrieval
+concepts. Rather than positioning graph traversal as a replacement for flat passage
+rankers, Archipelago focuses on (i) concept-level resolution to canonical ontology
+nodes, (ii) interactive graph neighborhood inspection alongside direct PDF page
+linking, and (iii) explicit abstention when queries fall outside the indexed
+knowledge boundary. On a frozen 50-query held-out benchmark (38 supported, 12
+out-of-domain), Archipelago achieves 68.42\% top-1 concept resolution (26/38) versus
+42.11\% for BM25 and 36.84\% for \texttt{snowflake-arctic-embed-m}, while achieving
+12/12 (100\%) abstention with zero fabricated citations or graph edges on
+out-of-domain queries. We also report candid negative findings: on provisional
+algorithmic passage qrels, BM25 and neural dense retrieval (MRR 0.7500) outperform
+Archipelago's heuristic graph-assisted passage ranking (MRR 0.4865), runtime exact
+triple extraction achieves 0.0 F1 due to a predicate-schema gap, and an author-only
+citation audit finds 29.17\% strict claim support (7/24) with 37.50\% neighborhood
+dilution (9/24). Independent human relevance judging over a 731-item system-blinded
+top-5 pool is specified and pending.
+\end{abstract}
+
+\begin{CCSXML}
+<ccs2012>
+ <concept>
+  <concept_id>10002951.10003317.10003331</concept_id>
+  <concept_desc>Information systems~Users and interactive retrieval</concept_desc>
+  <concept_significance>500</concept_significance>
+ </concept>
+ <concept>
+  <concept_id>10002951.10003317.10003338</concept_id>
+  <concept_desc>Information systems~Retrieval models and ranking</concept_desc>
+  <concept_significance>300</concept_significance>
+ </concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Information systems~Users and interactive retrieval}
+\ccsdesc[300]{Information systems~Retrieval models and ranking}
+
+\keywords{interactive information retrieval, concept resolution, knowledge graph navigation, abstention, scholarly search}
+
+\maketitle
+
+\section{Introduction}
+Interactive scholarly search and retrieval-augmented generation (RAG) systems
+\cite{lewis2020rag} commonly return flat lists of retrieved text chunks or fluent
+LLM summaries that obscure how technical concepts depend on one another and fail
+silently when a query falls outside the indexed collection. Conversely, flat
+lexical rankers such as BM25 \cite{robertson2009bm25} and dense bi-encoders such as
+DPR \cite{karpukhin2020dpr} excel at passage-level ranking but always return top-$k$
+passages even for completely unsupported domains, providing no structural abstention
+signal.
+
+We demonstrate \textbf{Archipelago}, an academic research workspace that pairs a
+concept-anchored knowledge graph (610 concept nodes, 775 deduplicated source
+passages) with an interactive chat interface, graph inspector, and page-level PDF
+viewer. Our design explicitly separates \emph{concept resolution and boundary
+abstention} from \emph{full-corpus passage ranking}. In keeping with rigorous IR
+demonstration standards, we report both verified strengths and candid failure modes:
+\begin{itemize}
+  \item \textbf{Concept Resolution:} Archipelago resolves 26/38 (68.42\%) supported
+        held-out queries to their canonical concept node, outperforming BM25 (16/38,
+        42.11\%) and zero-shot neural dense matching (14/38, 36.84\%) at 22.73\,ms
+        mean in-process latency.
+  \item \textbf{Boundary Abstention:} On all 12 held-out out-of-domain queries
+        (e.g., Spanner TrueTime, CRISPR-Cas9, Navier-Stokes), Archipelago returns
+        \texttt{anchor\_concept=None}, \texttt{render\_graph=False}, and zero
+        indexed corpus passage citations (12/12, 100\%; 11/12 return zero total
+        citations while \texttt{Q45} surfaces one Pearson catalog book metadata
+        pointer with zero graph edges).
+  \item \textbf{Transparent Limitations:} We explicitly disclose where Archipelago
+        does \emph{not} outperform baselines---flat passage retrieval (BM25/neural
+        MRR 0.7500 vs.\ Archipelago 0.4865 on provisional algorithmic qrels), exact
+        typed relation extraction (TP=0/18), and neighborhood citation dilution
+        (37.50\% spurious citations in an author-only 24-citation audit).
+\end{itemize}
+
+\paragraph{Live Demo \& Screencast.}
+Hosted demo: \texttt{https://archipelago-blond.vercel.app/chat} (authenticated
+workspace; \todo{LIVE-DEMO-VERIFY: Verify authenticated chat, PDF reader, and
+workbook export in live browser session prior to camera-ready}). Screencast video:
+\todo{DEMO-VIDEO: Insert persistent archival URL (e.g., Zenodo/YouTube unlisted)
+for 3--5 minute demonstration video}.
+
+\section{System Architecture}
+Archipelago comprises three decoupled services and a frozen knowledge fixture
+(\texttt{okf\_graph.json}, 610 concepts, 775 source passages $\ge 40$ chars):
+\begin{enumerate}
+  \item \textbf{Concept Resolution \& Abstention Engine (\texttt{host\_inference}):}
+        Maps incoming user queries to a canonical concept node via lexical/alias
+        matching and embedding similarity over concept descriptors, applying an
+        abstention boundary that suppresses graph rendering and citations when no
+        indexed anchor meets threshold.
+  \item \textbf{Knowledge Graph Neighborhood Layer:} Traverses directed edges in
+        \texttt{okf\_graph.json} across three runtime predicates---\texttt{REQUIRES},
+        \texttt{RELATED}, and \texttt{UNLOCKS}---surfacing prerequisites, unlocked
+        topics, and related concepts alongside canonical \texttt{doc\_id::chunk\_id}
+        passage citations.
+  \item \textbf{Interactive Research Workspace UI:} Presents three synchronized
+        panes: (a) grounded chat synthesis with clickable inline citations, (b) an
+        interactive subgraph inspector centered on the resolved anchor concept, and
+        (c) an authorized PDF page viewer and scholarly API discovery integrations
+        (OpenAlex, Crossref, arXiv, and institutional Koha OPAC snapshot).
+\end{enumerate}
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.94\columnwidth}{\centering\vspace{1.2cm}
+    \textbf{Figure 1 Placeholder: Archipelago System Architecture}\\[4pt]
+    Query $\rightarrow$ Concept Resolver \& Abstention Gate $\rightarrow$
+    OKF Graph (\texttt{REQUIRES}/\texttt{RELATED}/\texttt{UNLOCKS}) $\rightarrow$
+    Synchronized Chat + Graph Inspector + PDF Page Viewer.\\[4pt]
+    \todo{FIG-1: Replace with high-resolution vector PDF diagram.}
+    \vspace{1.2cm}}}
+  \caption{End-to-end architecture of Archipelago separating concept-anchored
+  graph navigation and abstention from downstream synthesis and PDF page viewing.}
+  \label{fig:arch}
+\end{figure}
+
+\section{Demonstration Walkthrough}
+At the SIGIR demonstration booth, attendees interact with three live scenarios
+(5 minutes total) using verified runtime behaviors:
+
+\begin{description}
+  \item[Scenario 1: Transformer Concept Grounding.] Querying \emph{``What is
+        Transformer?''} resolves anchor \texttt{transformer}, displays
+        \texttt{REQUIRES}/\texttt{RELATED}/\texttt{UNLOCKS} neighbors (including
+        \texttt{matrix\_multiplication}, \texttt{self\_attention}, and
+        \texttt{linear\_algebra}), and links rank-1 citation
+        \cite{vaswani2017attention} (p.\,2) in the page viewer. Follow-up
+        \emph{``How does self-attention relate to the Transformer?''} anchors on
+        \texttt{self\_attention} with two Vaswani et al.\ passages (pp.\,5, 10),
+        while also illustrating our honest disclosure of a legacy inverted
+        \texttt{REQUIRES} edge in the static graph fixture.
+  \item[Scenario 2: RAG and Dense Retrieval Neighborhoods.] Querying \emph{``What is
+        Retrieval-Augmented Generation?''} anchors on \texttt{rag} with rank-1
+        citation to Lewis et al.\ \cite{lewis2020rag} (p.\,4), while \emph{``How
+        does DPR compare to BM25 for passage retrieval?''} anchors on
+        \texttt{retrieval} and surfaces \texttt{dpr},
+        \texttt{dense\_passage\_retriever}, and \texttt{bm25} in the concept
+        neighborhood. Attendees can inspect both grounded citations and lower-ranked
+        neighborhood dilution directly in the evidence drawer.
+  \item[Scenario 3: Honest Out-of-Domain Abstention.] Querying \emph{``Explain
+        Spanner TrueTime and its prerequisites.''} triggers boundary abstention:
+        \texttt{anchor\_concept=None}, \texttt{render\_graph=False}, and zero
+        citations, preventing fabricated prerequisite chains or broken PDF links.
+\end{description}
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.94\columnwidth}{\centering\vspace{1.2cm}
+    \textbf{Figure 2 Placeholder: Live Workspace Screenshot}\\[4pt]
+    Three-pane UI showing Scenario 1 (\texttt{transformer} anchor, graph inspector,
+    and Vaswani et al.\ 2017 p.\,2 evidence viewer) alongside Scenario 3 abstention
+    state.\\[4pt]
+    \todo{FIG-2: Capture annotated high-DPI screenshot from authenticated hosted UI.}
+    \vspace{1.2cm}}}
+  \caption{Archipelago research workspace showing synchronized concept grounding,
+  graph neighborhood inspection, and passage provenance.}
+  \label{fig:ui}
+\end{figure}
+
+\section{Empirical Evaluation \& Audit}
+All experiments use frozen, SHA-256-locked artifacts in
+\texttt{research/d5\_sigir\_evaluation/}: a 15-query development split
+(\texttt{queries\_dev\_15.json}) and a 50-query held-out split
+(\texttt{queries\_heldout\_50.json}: 20 core concept, 18 relational, 12
+out-of-domain abstention) over the 775-passage, 610-concept corpus. Zero query IDs
+and zero normalized query strings overlap between dev and held-out splits (7 target
+concepts overlap due to the compact AI/ML/IR domain; zero tuning was performed on
+held-out queries). We compare Archipelago against BM25Okapi ($k_1=1.5, b=0.75$),
+a 384-dim BLAKE2b feature-hashed vector baseline, and pretrained neural dense
+retrieval (\texttt{Snowflake/snowflake-arctic-embed-m} \cite{merrick2024arctic},
+pinned revision \texttt{fc74610d18462d218e312aa986ec5c8a75a98152}, 768-dim, CUDA).
+
+\subsection{Experiment A: Concept Resolution \& Abstention}
+Table~\ref{tab:concept} reports top-1 canonical concept resolution on the 38
+supported queries and abstention accuracy on the 12 unsupported queries. Archipelago
+achieves 68.42\% supported accuracy (+26.31 pp over BM25; +31.58 pp over
+Snowflake-Arctic) and 100\% abstention (12/12) with zero citations on unsupported
+queries. The 12 supported misses stem from unindexed ontology nodes (e.g.,
+\texttt{cross\_encoder}, \texttt{dual\_encoder}), alias mismatches
+(\texttt{dpr} vs.\ \texttt{dense\_passage\_retrieval}), and compound multi-word
+phrasings.
+
+\begin{table}[t]
+\centering
+\caption{Experiment A: Top-1 Concept Resolution ($N=38$ supported) and Out-of-Domain
+Abstention ($N=12$ unsupported) on frozen \texttt{queries\_heldout\_50.json}.}
+\label{tab:concept}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{System} & \textbf{Supp. Acc.} & \textbf{Abstention} & \textbf{Overall} \\
+\midrule
+BM25 Lexical & 42.11\% (16/38) & 0.00\% (0/12) & 32.00\% (16/50) \\
+Feature-Hashed (BLAKE2b) & 7.89\% (3/38) & 58.33\% (7/12) & 20.00\% (10/50) \\
+Snowflake-Arctic-Embed-M & 36.84\% (14/38) & \textbf{100.0\%} (12/12) & 52.00\% (26/50) \\
+\textbf{Archipelago Resolver} & \textbf{68.42\%} (26/38) & \textbf{100.0\%} (12/12) & \textbf{76.00\%} (38/50) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Experiment B: Passage Retrieval (Provisional Algorithmic QRels)}
+Table~\ref{tab:retrieval} evaluates top-5 passage retrieval over the 37 queries with
+non-empty qrels (12 abstention queries and supported query \texttt{Q19} have zero
+algorithmic labels, disclosed in \texttt{unjudged\_qrels.json}). \textbf{Crucial
+disclosure:} the 445 positive labels in \texttt{passage\_qrels.json} are
+\texttt{ALGORITHMIC\_RULE\_BASED\_CANDIDATE} labels (\texttt{human\_reviewed=false}),
+not human-verified qrels. On these provisional qrels, BM25 and Snowflake-Arctic both
+achieve MRR 0.7500, substantially outperforming Archipelago's heuristic
+citation-order ranking (MRR 0.4865, nDCG@5 0.2253). Archipelago is therefore
+positioned strictly as a concept navigator, not a passage ranker.
+\todo{HUMAN-QRELS: Replace or augment Table~\ref{tab:retrieval} with human-adjudicated
+qrels and significance tests once two independent human annotators complete the
+731-item system-blinded top-5 pool and report $\kappa_w$ and Krippendorff's $\alpha$.}
+
+\begin{table}[t]
+\centering
+\caption{Experiment B: Provisional Passage Retrieval ($N=37$) on \emph{algorithmic
+candidate} qrels (NOT human-verified). Latency measured in-process on RTX 2050.}
+\label{tab:retrieval}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{System} & \textbf{MRR} & \textbf{nDCG@5} & \textbf{R@5} & \textbf{Lat. (ms)} \\
+\midrule
+BM25Okapi & \textbf{0.7500} & 0.6415 & \textbf{0.3707} & \textbf{2.91} \\
+Snowflake-Arctic-Embed-M & \textbf{0.7500} & \textbf{0.6524} & 0.3324 & 17.36 \\
+Archipelago (Heuristic) & 0.4865 & 0.2253 & 0.0597 & 22.73 \\
+Feature-Hashed (BLAKE2b) & 0.2806 & 0.1764 & 0.1093 & 0.51 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Experiment C \& Grounding Audits}
+\paragraph{Exact Runtime Relationship Prediction.}
+Evaluating exact \texttt{(source, predicate, destination)} triple equality over live
+runtime graph edges (\texttt{engine.graph.out}/\texttt{inn}) across the 18 relational
+queries yields \textbf{TP=0}, Precision=0.0, Recall=0.0 (over 2 assessable queries),
+and F1=0.0. Thirteen of 18 queries request predicates absent from the runtime schema
+(\texttt{USES}, \texttt{CONTRASTS\_WITH}, \texttt{APPLIES\_TO}), three resolve no
+anchor (\texttt{Q29}, \texttt{Q30}, \texttt{Q34}), and the two assessable
+\texttt{REQUIRES} queries (\texttt{Q22}, \texttt{Q37}) do not surface their expected
+triples. We therefore make zero claims of typed relation-extraction accuracy.
+
+\paragraph{Citation Grounding \& Edge Provenance (Author-Only).}
+An author-only audit (Pratay Karali; \texttt{independent\_peer\_review=false}) of
+24 live citations across 5 representative queries (\texttt{Q01}, \texttt{Q08},
+\texttt{Q21}, \texttt{Q23}, \texttt{Q39}) found \textbf{7/24 (29.17\%)} fully
+supported, 6/24 (25.00\%) partially supported, 1/24 unsupported, \textbf{9/24
+(37.50\%)} irrelevant or spurious due to broad neighborhood citation expansion, and
+1/24 unassessable. Similarly, 45 graph-slice edges (40 verified, 5 quarantined) were
+audited solely by the primary author. \todo{INDEPENDENT-AUDIT: Report independent
+human replication of citation grounding and graph-edge audits.}
+
+\section{Limitations, Ethics, and Reproducibility}
+Archipelago's current limitations are explicitly surfaced in the UI and evaluation
+artifacts: (1) passage qrels are algorithmic pending completion of our 731-item
+system-blinded pooled top-5 human annotation and third-party adjudication protocol
+(explicitly single-blinded to system and rank, not clinical double-blind);
+(2) broad neighborhood citation collection introduces 37.50\% spurious citations
+beyond the primary anchor citation; (3) the runtime graph schema supports only
+\texttt{REQUIRES}, \texttt{RELATED}, and \texttt{UNLOCKS}; and (4) copyrighted
+textbooks are never stored in full---only open-access research papers, authorized
+metadata, and institutional OPAC/eLibrary handoffs are indexed. All frozen splits,
+SHA-256 manifests, pinned model revisions, automated integrity tests, and blank
+human worksheets are released in the project repository for full reproducibility.
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}
