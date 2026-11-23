@@ -87,4 +87,9 @@ references or citations; a 1.2361 pt overfull vertical box warning remains.
 | Submission package | HOLD: author identity/contact, working reviewer access or video, and human review pending |
 
 The draft PR must stay unmerged until a different-role reviewer and the
-required CI gates resolve. No production deployment was performed.
+required CI gates resolve. No manual deployment command was run. A read-only
+HEAD request to the public login URL returned HTTP 200 and
+`X-Archipelago-Release: 236526b7ceab7a500b93cdf042336cf9187de4cd`
+after the privacy commit was pushed to the integration base, indicating an
+automated release change. The authenticated D8 journeys have not been rerun
+on that release; reviewer access is therefore not newly verified.
