@@ -210,13 +210,10 @@ import { resetChatUi } from './08-stream-cleanup.js';
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                     }
                     if (window._lastChatMetadata) {
-                        // Consolidate OKF relationships into the Inspector panel (Phase 3 deduplication)
-                        // In-chat duplicate OKF nodes card suppressed in favor of Inspector panel.
+                        // Graph, Evidence, and Trace are displayed in the right-side Inspector panel.
+                        // Keep the main chat reply clean (answer + Sources only) without duplicate inline graph cards.
                         if (firstFinalize && typeof updateBookStackForQuery === 'function') {
                             updateBookStackForQuery(window._lastChatMetadata);
-                        }
-                        if (typeof renderGraphExperiencePrompt === 'function' && !document.getElementById(`interactive-zone-${assistantMsgId}`)) {
-                            renderGraphExperiencePrompt(assistantMsgId, window._lastChatMetadata, { showPopup: firstFinalize });
                         }
                     }
                 };

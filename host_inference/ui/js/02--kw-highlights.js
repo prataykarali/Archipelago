@@ -92,12 +92,43 @@ import { state } from './00-state.js';
             });
         }
 
+        const PAPER_TITLE_MAP = {
+            'lewis2020_rag.pdf': 'Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (Lewis et al., 2020)',
+            'vaswani2017_attention_is_all_you_need.pdf': 'Attention Is All You Need (Vaswani et al., 2017)',
+            'brown2020_gpt3.pdf': 'Language Models are Few-Shot Learners (Brown et al., 2020)',
+            'goodfellow2014_gan.pdf': 'Generative Adversarial Nets (Goodfellow et al., 2014)',
+            'hu2021_lora.pdf': 'LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021)',
+            'dettmers2023_qlora.pdf': 'QLoRA: Efficient Finetuning of Quantized LLMs (Dettmers et al., 2023)',
+            'devlin2018_bert.pdf': 'BERT: Pre-training of Deep Bidirectional Transformers (Devlin et al., 2018)',
+            'edge2024_graphrag.pdf': 'From Local to Global: A Graph RAG Approach (Edge et al., 2024)',
+            'deisenroth_math_for_ml.pdf': 'Mathematics for Machine Learning (Deisenroth et al., 2020)',
+            'bahdanau2014_attention.pdf': 'Neural Machine Translation by Jointly Learning to Align and Translate (Bahdanau et al., 2014)',
+            'kwon2023_vllm.pdf': 'Efficient Memory Management for LLM Serving with PagedAttention (Kwon et al., 2023)',
+            'dao2022_flashattention.pdf': 'FlashAttention: Fast and Memory-Efficient Exact Attention (Dao et al., 2022)',
+            'karpukhin2020_dpr.pdf': 'Dense Passage Retrieval for Open-Domain Question Answering (Karpukhin et al., 2020)',
+            'hochreiter1997_lstm.pdf': 'Long Short-Term Memory (Hochreiter & Schmidhuber, 1997)',
+        };
+
         function citationTitle(citation, fallback = 'Source') {
+            const rawDoc = String(citation.doc_id || citation.document_id || citation.source_id || citation.pdf || '');
+            const base = rawDoc.split('/').pop().trim().toLowerCase();
+            if (base && PAPER_TITLE_MAP[base]) return PAPER_TITLE_MAP[base];
+
             const named = citation.doc_title || citation.title || citation.document_title;
-            if (named) return String(named);
-            const filename = String(citation.doc_id || citation.document_id || fallback).split('/').pop();
-            return filename.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ')
-                .replace(/^[A-Za-z]+\d{4}\s+/, '').trim() || fallback;
+            if (named) {
+                const namedStr = String(named).trim();
+                const namedBase = namedStr.split('/').pop().toLowerCase();
+                if (PAPER_TITLE_MAP[namedBase]) return PAPER_TITLE_MAP[namedBase];
+                if (!/\.pdf$/i.test(namedStr) && !/_/.test(namedStr)) return namedStr;
+            }
+
+            const filename = String(rawDoc || named || fallback).split('/').pop().replace(/\.pdf$/i, '').trim();
+            const match = filename.match(/^([A-Za-z]+)(\d{4})[_\-\s]+(.+)$/);
+            if (match) {
+                const cleanTopic = match[3].replace(/[_-]+/g, ' ').trim();
+                return `${cleanTopic} (${match[1]} et al., ${match[2]})`;
+            }
+            return filename.replace(/[_-]+/g, ' ').trim() || fallback;
         }
 
         function showPearsonCredentialToast() {
@@ -301,9 +332,22 @@ import { state } from './00-state.js';
             }
             // Keep source navigation in the chat itself.  The inventory is useful
             // context, but it must not be the only way to reach a cited page.
-            const citations = getResponseCitations(metadata).slice(0, 8);
-            messageBody.setAttribute("data-evidence-count", String(citations.length));
-            if (!citations.length) return;
+            const rawCitations = getResponseCitations(metadata);
+            const deduped = [];
+            const seenDocs = new Set();
+            for (const citation of rawCitations) {
+                const href = citationPageUrl(citation);
+                if (!href) continue;
+                const docKey = String(
+                    citation.doc_id || citation.document_id || citation.book_id || citation.url || href.split('#')[0].split('&page=')[0]
+                ).toLowerCase().split('/').pop();
+                if (seenDocs.has(docKey)) continue;
+                seenDocs.add(docKey);
+                deduped.push({ citation, href });
+                if (deduped.length >= 5) break;
+            }
+            messageBody.setAttribute("data-evidence-count", String(deduped.length));
+            if (!deduped.length) return;
 
             const rail = document.createElement('div');
             rail.className = 'evidence-rail mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2';
@@ -311,17 +355,16 @@ import { state } from './00-state.js';
             label.className = 'text-[10px] uppercase tracking-wider font-bold text-gray-400 mr-1';
             label.textContent = 'Sources';
             rail.appendChild(label);
-            citations.forEach((citation, index) => {
+            deduped.forEach(({ citation, href }, index) => {
                 const rawPage = Number(citation.page_number ?? citation.page);
                 const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                 const title = citationTitle(citation, `Source ${index + 1}`);
-                const href = citationPageUrl(citation);
                 if (citation.source_type === 'research_paper' || citation.source_type === 'scholarly_source') {
                     const card = document.createElement('details');
                     card.className = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200';
                     const summary = document.createElement('summary');
                     summary.className = 'cursor-pointer font-semibold focus:outline-none focus:ring-2 focus:ring-violet-400';
-                    summary.textContent = `${citation.evidence_id || `P${index + 1}`} · ${title}`;
+                    summary.textContent = title;
                     card.appendChild(summary);
                     if (citation.text_span) {
                         const excerpt = document.createElement('p');
@@ -329,31 +372,23 @@ import { state } from './00-state.js';
                         excerpt.textContent = String(citation.text_span);
                         card.appendChild(excerpt);
                     }
-                    const level = document.createElement('p');
-                    level.className = 'mt-1 text-[11px] text-slate-400';
-                    level.textContent = String(citation.evidence_level || 'Saved source record; inspect the original for full context.');
-                    card.appendChild(level);
-                    if (href) {
-                        const sourceLink = document.createElement('a');
-                        sourceLink.className = 'mt-2 inline-block text-xs font-semibold text-violet-200 underline focus:outline-none focus:ring-2 focus:ring-violet-400';
-                        sourceLink.href = href;
-                        sourceLink.target = '_blank';
-                        sourceLink.rel = 'noopener noreferrer';
-                        sourceLink.textContent = 'Open source ↗';
-                        card.appendChild(sourceLink);
-                    }
+                    const sourceLink = document.createElement('a');
+                    sourceLink.className = 'mt-2 inline-block text-xs font-semibold text-violet-200 underline focus:outline-none focus:ring-2 focus:ring-violet-400';
+                    sourceLink.href = href;
+                    sourceLink.target = '_blank';
+                    sourceLink.rel = 'noopener noreferrer';
+                    sourceLink.textContent = 'Open source ↗';
+                    card.appendChild(sourceLink);
                     rail.appendChild(card);
                     return;
                 }
-                const link = document.createElement(href ? 'a' : 'span');
+                const link = document.createElement('a');
                 link.className = 'view-page-link text-[11px] font-semibold';
-                link.textContent = page ? `${title} · PDF p.${page}` : `${title} · page unverified`;
-                if (href) {
-                    link.href = href;
-                    link.dataset.pageUrl = href;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                }
+                link.textContent = page ? `${title} · p. ${page}` : title;
+                link.href = href;
+                link.dataset.pageUrl = href;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
                 rail.appendChild(link);
 
             });

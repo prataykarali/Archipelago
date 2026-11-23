@@ -1,7 +1,7 @@
 // Auto-split from ui/chat/index.html — 01--hide-welcome-with-transitio.js
 // Feature module 2 of 22.
 import { pauseAvatarRoot } from './00-current-origin.js';
-import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
+import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-highlights.js';
 
         // ── 5. SwitchboardCard lightgrid (lives under hero — always on) ─
         (function initSwitchboard() {
@@ -306,10 +306,12 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 const rawPage = Number(cit.page_number ?? cit.page);
                 const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                 const targetUrl = citationPageUrl(cit);
-                const label = page ? `${id} · PDF p.${page}` : id;
-                return targetUrl ? `[${label}](${targetUrl})` : `[${id}]`;
+                const title = typeof citationTitle === 'function' ? citationTitle(cit, id) : id;
+                const label = page ? `${title} · p. ${page}` : title;
+                return targetUrl ? `[${label}](${targetUrl})` : '';
             };
-            processedText = processedText.replace(/\[((?:S|P)\d+)(?:\s*:[^\]]*)?\]/g, (match, id) => {
+            // Consume any already-present markdown link target "(...)" after [S1] so raw (/read?doc=...) never leaks.
+            processedText = processedText.replace(/\[((?:S|P)\d+)(?:\s*:[^\]]*)?\](?:\s*\([^)]*\))?/g, (match, id) => {
                 const res = linkForCitation(id);
                 return res !== null ? res : '';
             });
@@ -318,6 +320,13 @@ import { citationPageUrl, getResponseCitations } from './02--kw-highlights.js';
                 const res = linkForCitation(id);
                 return res !== null ? res : '';
             });
+            // When structured citations exist, strip redundant trailing markdown "Sources:" blocks
+            // and raw appended PDF link lines; appendEvidenceRail renders one clean, deduplicated Sources bar.
+            if (cites.length > 0) {
+                processedText = processedText
+                    .replace(/\n+(?:#{1,4}\s*|\*{1,2})?Sources:?\*{0,2}\s*\n(?:[ \t]*(?:[-*•]|\d+\.)[ \t]+.*(?:\n|$))+/gi, '\n')
+                    .replace(/\n+\[[^\]]+\]\(\/(?:papers|read|open)\/[^)]*\)(?:\s*\n+\[[^\]]+\]\(\/(?:papers|read|open)\/[^)]*\))*\s*$/gi, '');
+            }
             // Strip trailing incomplete bracket citation markers during live streaming (e.g. "[S", "[S1", "[S1:")
             processedText = processedText.replace(/\[(?:S|P)\d*:?[^\]]*$/i, '');
             // Convert numeric citations [1], [2] to clickable evidence links

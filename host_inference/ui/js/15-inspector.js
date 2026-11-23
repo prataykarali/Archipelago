@@ -1,7 +1,7 @@
 // SIGIR Demo Inspector — tabbed right panel (Graph / Evidence / Trace).
 // Phase 2–7 of D-UX-1.
 import { setPanelOpen, syncPanelToggleUI, isPanelOpen } from './03-wrap-library-inventory-secti.js';
-import { citationPageUrl } from './02--kw-highlights.js';
+import { citationPageUrl, citationTitle } from './02--kw-highlights.js';
 
 const TAB_IDS = ['graph', 'evidence', 'trace'];
 const BADGE_COLORS = {
@@ -52,7 +52,9 @@ function _sourceCategory(cite) {
 
 function _renderCitation(cite, index) {
     const cat = _sourceCategory(cite);
-    const title = cite.title || cite.doc_title || cite.label || cite.doc_id || 'Untitled Resource';
+    const title = typeof citationTitle === 'function'
+        ? citationTitle(cite, 'Untitled Resource')
+        : (cite.title || cite.doc_title || cite.label || cite.doc_id || 'Untitled Resource');
     const authors = cite.authors || cite.author || 'Archipelago Academic Index';
     const year = cite.year || cite.publication_year || '';
     const isbn = cite.isbn || '';
