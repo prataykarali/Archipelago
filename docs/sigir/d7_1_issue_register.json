@@ -1,0 +1,119 @@
+{
+  "metadata": {
+    "title": "Archipelago D7.1 Machine-Readable Issue Register",
+    "version": "D7.1",
+    "generated_at": "2026-11-23",
+    "source_commit": "8ffa2d60d34d91dfad54c3a96f1d9bf815131fcd",
+    "d5_eval_source": "research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json",
+    "citation_audit_source": "research/d5_sigir_evaluation/citation_grounding_audit.json"
+  },
+  "issues": [
+    {
+      "id": "ISS-01",
+      "severity": "P0",
+      "category": "audit_integrity",
+      "title": "Probe runner conflated expected auth boundaries with functional PASSes",
+      "description": "The D7.0 probe runner assigned BLOCKED_BY_AUTH to any HTTP 401/403 response regardless of whether it was expected by the probe's intent. This allowed auth-gate confirmation probes to be miscounted as end-to-end functional verification.",
+      "status": "FIXED",
+      "fix": "D7.1 probe runner: expect_auth_block=True probes are classified BLOCKED_BY_AUTH (gate confirmed); expect_auth_block=False probes that receive 401/403 are classified FAIL.",
+      "files_changed": ["scripts/benchmarks/cross_system_audit_runner.py"],
+      "evidence": "23 probes re-run: 14 PASS (public/external endpoints), 9 BLOCKED_BY_AUTH (auth gate confirmations), 0 FAIL."
+    },
+    {
+      "id": "ISS-02",
+      "severity": "P0",
+      "category": "stale_scientific_claims",
+      "title": "FIVE_MINUTE_WALKTHROUGH.md claimed MRR 0.68 (2.6x BM25) — not supported by D5.1-v2",
+      "description": "The wrap-up section stated 'MRR 0.68, 2.6x BM25'. D5.1-v2 Experiment B shows BM25 MRR=0.75 and Snowflake neural MRR=0.75. The Archipelago concept resolver is evaluated in Experiment A (concept resolution accuracy), not passage MRR. No system achieves 0.68 MRR in D5.1-v2.",
+      "status": "FIXED",
+      "fix": "Replaced with accurate D5.1-v2 figures: Archipelago concept resolution 68.4% accuracy (26/38), BM25 passage MRR=0.75, neural dense MRR=0.75, Graph-Assisted MRR=0.4865 (heuristic).",
+      "files_changed": ["docs/sigir/FIVE_MINUTE_WALKTHROUGH.md"],
+      "evidence": "research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json > experiment_a_concept_resolution > archipelago_resolver > concept_resolution_accuracy_supported: 0.6842"
+    },
+    {
+      "id": "ISS-03",
+      "severity": "P0",
+      "category": "stale_scientific_claims",
+      "title": "FIVE_MINUTE_WALKTHROUGH.md claimed 1.0 relationship-direction accuracy with USES/CONTRASTS_WITH",
+      "description": "Wrap-up listed 'Relationship-direction correctness distinguishing USES, REQUIRES, and CONTRASTS_WITH (1.0 accuracy)'. D5.1-v2 relationship audit: precision=0.0, recall=0.0, F1=0.0 over assessable relational queries. USES, CONTRASTS_WITH, and APPLIES_TO predicates are absent from the runtime graph schema.",
+      "status": "FIXED",
+      "fix": "Replaced with accurate disclosure: graph has RELATED/REQUIRES/UNLOCKS. 13/18 relational queries have predicates absent from the graph. No USES or CONTRASTS_WITH edges in deployed runtime.",
+      "files_changed": ["docs/sigir/FIVE_MINUTE_WALKTHROUGH.md"],
+      "evidence": "research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json > relationship_prediction_evaluation > precision_over_all_surfaced_triples: 0.0, predicate_absent_in_graph: 13"
+    },
+    {
+      "id": "ISS-04",
+      "severity": "P0",
+      "category": "stale_scientific_claims",
+      "title": "FIVE_MINUTE_WALKTHROUGH.md claimed 'independently reproducible'",
+      "description": "The document stated the system is 'live, deployed, and independently reproducible'. No independent reproduction has been conducted. Qrels are algorithmic (not human-verified); citation grounding audit was performed by the primary author only.",
+      "status": "FIXED",
+      "fix": "Removed 'independently reproducible' claim. Added honest disclosure of qrel provenance (ALGORITHMIC_RULE_BASED_CANDIDATE) and citation grounding status (29% strict precision, single annotator).",
+      "files_changed": ["docs/sigir/FIVE_MINUTE_WALKTHROUGH.md"],
+      "evidence": "research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json > metadata > qrel_provenance; citation_grounding_audit.json > audit_metadata > independent_peer_review: false"
+    },
+    {
+      "id": "ISS-05",
+      "severity": "P0",
+      "category": "stale_scientific_claims",
+      "title": "FIVE_MINUTE_WALKTHROUGH.md referenced stale d5_evaluation_results.json instead of d5_1_evaluation_results_v2.json",
+      "description": "Evaluation References table pointed to d5_evaluation_results.json (legacy, pre-D5.1 audit). Current authoritative source is d5_1_evaluation_results_v2.json.",
+      "status": "FIXED",
+      "fix": "Updated reference to d5_1_evaluation_results_v2.json.",
+      "files_changed": ["docs/sigir/FIVE_MINUTE_WALKTHROUGH.md"],
+      "evidence": "File: research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json exists and is the D5.3-A source commit."
+    },
+    {
+      "id": "ISS-06",
+      "severity": "P0",
+      "category": "stale_scientific_claims",
+      "title": "DEMO_SCENARIOS.md checklist referenced USES edge in verification step",
+      "description": "Line 135: 'Confirm self_attention is connected via USES'. USES is absent from the runtime graph schema. The deployed engine uses RELATED, REQUIRES, UNLOCKS.",
+      "status": "FIXED",
+      "fix": "Updated to: 'Confirm self_attention is connected via RELATED or REQUIRES (not USES — absent from runtime schema)'.",
+      "files_changed": ["docs/sigir/DEMO_SCENARIOS.md"],
+      "evidence": "research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json > relationship_prediction_evaluation > graph_predicates_available: [RELATED, REQUIRES, UNLOCKS]"
+    },
+    {
+      "id": "ISS-07",
+      "severity": "P1",
+      "category": "citation_quality",
+      "title": "Citation grounding: 9/24 irrelevant or spurious citations across 5 audited queries",
+      "description": "The citation grounding audit (citation_grounding_audit.json) of 5 representative queries (Q01, Q08, Q21, Q23, Q39) found: 7/24 fully supported, 6/24 partially supported, 9/24 irrelevant or spurious, 1/24 unassessable. Strict precision: 29.2%. This is caused by over-broad concept-neighborhood retrieval returning topically adjacent but not claim-supporting passages.",
+      "status": "DISCLOSED",
+      "fix": "No ranking-score tuning against held-out queries. Limitation disclosed in RELIABILITY_GATE_REPORT.md and in demo script notes. Deterministic citation filtering (require passage contains anchor concept name token) is a candidate fix for the development set.",
+      "files_changed": ["docs/sigir/RELIABILITY_GATE_REPORT.md"],
+      "evidence": "research/d5_sigir_evaluation/citation_grounding_audit.json > overall_audit_statistics > claim_support_breakdown"
+    },
+    {
+      "id": "ISS-08",
+      "severity": "P1",
+      "category": "authenticated_workflow",
+      "title": "Authenticated chat, PDF reader, and workbook export workflows not independently browser-verified",
+      "description": "The D7.0/D7.1 probes confirm that guarded endpoints correctly reject anonymous callers, and that public endpoints (readiness, library snapshot, Koha, Crossref, DOI, arXiv) are live. However, the full authenticated flow (login -> chat -> citation -> reader) has not been verified with live browser session screenshots.",
+      "status": "BLOCKED",
+      "fix": "Requires authorized test-account credentials (Supabase email/password) for the hosted deployment. No credentials are available to this automated runner. Browser verification steps are documented in docs/sigir/FIVE_MINUTE_WALKTHROUGH.md. Verdict: BLOCKED — cannot claim browser-verified authenticated flow without credentials.",
+      "files_changed": [],
+      "evidence": "WF1-03 to WF1-05: BLOCKED_BY_AUTH (expected). WF1-01 (readiness) PASS. No authenticated session token available in automated runner."
+    },
+    {
+      "id": "ISS-09",
+      "severity": "P1",
+      "category": "stale_mrr_in_scenario2",
+      "title": "FIVE_MINUTE_WALKTHROUGH.md had stale MRR figures from D5.0 (0.5476 / 0.5750)",
+      "description": "Scenario 2 Turn 5 cited 'Neural Dense (0.5476 MRR) and BM25 (0.5750 MRR)'. These are D5.0/D5.1 figures. D5.1-v2 has BM25 MRR=0.75 and Snowflake neural MRR=0.75.",
+      "status": "FIXED",
+      "fix": "Updated to D5.1-v2 figures with provenance attribution to d5_1_evaluation_results_v2.json.",
+      "files_changed": ["docs/sigir/FIVE_MINUTE_WALKTHROUGH.md"],
+      "evidence": "research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json > experiment_b_passage_retrieval"
+    }
+  ],
+  "summary": {
+    "total_issues": 9,
+    "FIXED": 7,
+    "BLOCKED": 1,
+    "DISCLOSED": 1,
+    "open_P0": 0,
+    "open_P1": 2
+  }
+}

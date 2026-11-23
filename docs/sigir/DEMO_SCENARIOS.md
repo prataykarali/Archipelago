@@ -132,7 +132,7 @@ Demonstrate Archipelago's scientific integrity by proving that out-of-domain or 
 When presenting at the SIGIR Demonstration booth:
 
 1. [x] **Verify Scenario 1:** Run `What is Transformer?` $\rightarrow$ Confirm Vaswani 2017 citation on Page 2 and green `Passage located · Grounded` badge.
-2. [x] **Verify Scenario 1 Direction:** Inspect graph $\rightarrow$ Confirm `self_attention` is connected via `USES`, not inverted prerequisite.
+2. [x] **Verify Scenario 1 Direction:** Inspect graph → Confirm `self_attention` is connected via `RELATED` or `REQUIRES` (not `USES` — that predicate is absent from the runtime schema).
 3. [x] **Verify Scenario 2:** Run `What is Retrieval-Augmented Generation?` $\rightarrow$ Confirm Lewis 2020 citation on Page 1/4 and DPR dual-encoder discussion.
 4. [x] **Verify Scenario 3:** Run `Explain Spanner TrueTime and its prerequisites.` $\rightarrow$ Confirm honest abstention banner and zero invented graph nodes.
 5. [x] **Verify Latency:** Confirm trace latency remains under 200 ms across all queries on local host and under 1.5 s on production.

@@ -1,7 +1,14 @@
 {
   "metadata": {
-    "title": "Archipelago D7.0 Cross-System Source & Link Integrity Audit",
-    "audit_timestamp_utc": "2026-11-23T01:08:28.637910+00:00",
+    "title": "Archipelago D7.1 Cross-System Source & Link Integrity Audit",
+    "audit_version": "D7.1",
+    "audit_timestamp_utc": "2026-11-23T01:27:25.885699+00:00",
+    "verdict_semantics": {
+      "PASS": "HTTP status in expected_pass set; no unexpected auth block.",
+      "FAIL": "HTTP status unexpected, including unexpected 401/403.",
+      "BLOCKED_BY_AUTH": "401/403 on a probe with expect_auth_block=True. Confirms the auth gate fires. NOT a functional end-to-end PASS.",
+      "UNVERIFIED": "Connection error or timeout; could not obtain a response."
+    },
     "target_deployments": {
       "inference_app": "https://archipelago-blond.vercel.app",
       "research_app": "https://archipelago-librarian.vercel.app",
@@ -9,11 +16,12 @@
       "pearson_viewer": "https://ebooks.elibrary.in.pearson.com"
     },
     "summary": {
-      "total": 23,
+      "total_probes": 23,
       "PASS": 14,
       "BLOCKED_BY_AUTH": 9,
       "FAIL": 0,
-      "UNVERIFIED": 0
+      "UNVERIFIED": 0,
+      "note": "BLOCKED_BY_AUTH counts confirm auth gate enforcement on guarded endpoints. They are NOT end-to-end functional PASSes. Only PASS probes demonstrate reachable, functioning service endpoints."
     }
   },
   "probes": [
@@ -21,7 +29,7 @@
       "probe_id": "WF1-01",
       "workflow_id": "wf1_academic_chat",
       "workflow_name": "Academic Chat",
-      "input_or_query": "/api/readiness",
+      "input_or_query": "/api/readiness (public health check)",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/api/readiness",
       "http_method": "GET",
@@ -32,13 +40,14 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 550 bytes.",
       "code_location": "host_inference/hostapp/routes/static.py:readiness",
-      "latency_ms": 424.58
+      "latency_ms": 5970.77,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF1-02",
       "workflow_id": "wf1_academic_chat",
       "workflow_name": "Academic Chat",
-      "input_or_query": "/chat",
+      "input_or_query": "/chat page (public landing)",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/chat",
       "http_method": "GET",
@@ -49,13 +58,14 @@
       "verdict": "PASS",
       "details": "HTTP 302 as expected. Body size: 221 bytes.",
       "code_location": "host_inference/hostapp/routes/pages.py:chat_page",
-      "latency_ms": 735.62
+      "latency_ms": 512.64,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF1-03",
       "workflow_id": "wf1_academic_chat",
       "workflow_name": "Academic Chat",
-      "input_or_query": "POST /api/chat (What is Transformer?)",
+      "input_or_query": "POST /api/chat \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/api/chat",
       "http_method": "POST",
@@ -64,15 +74,16 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"detail\":\"A Supabase session is required.\",\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_inference/hostapp/middleware.py:_guard",
-      "latency_ms": 375.16
+      "latency_ms": 471.1,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF1-04",
       "workflow_id": "wf1_academic_chat",
       "workflow_name": "Academic Chat",
-      "input_or_query": "GET /api/page-view (Vaswani 2017)",
+      "input_or_query": "GET /api/page-view (Vaswani 2017) \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/api/page-view?doc_id=papers/Vaswani2017_Attention_Is_All_You_Need.pdf&page=2&format=json",
       "http_method": "GET",
@@ -81,15 +92,16 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"detail\":\"A Supabase session is required.\",\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_inference/hostapp/middleware.py:_guard",
-      "latency_ms": 394.89
+      "latency_ms": 894.91,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF1-05",
       "workflow_id": "wf1_academic_chat",
       "workflow_name": "Academic Chat",
-      "input_or_query": "GET /read",
+      "input_or_query": "GET /read (Vaswani 2017) \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/read?doc=papers/Vaswani2017_Attention_Is_All_You_Need.pdf&page=2",
       "http_method": "GET",
@@ -98,15 +110,16 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"detail\":\"A Supabase session is required.\",\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_inference/hostapp/middleware.py:_guard",
-      "latency_ms": 392.92
+      "latency_ms": 417.4,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF1-06",
       "workflow_id": "wf1_academic_chat",
       "workflow_name": "Academic Chat",
-      "input_or_query": "HuggingFace Private Dataset Stream",
+      "input_or_query": "HuggingFace private dataset stream \u2014 auth gate confirmation",
       "user_role": "server-side (no token)",
       "target_url": "https://huggingface.co/datasets/Prataykarali/Library_books/resolve/main/papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
       "http_method": "GET",
@@ -115,9 +128,10 @@
       "response_content_type": "text/plain; charset=utf-8",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: Invalid username or password.",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_inference/hostapp/routes/reader.py:hosted_paper",
-      "latency_ms": 452.1
+      "latency_ms": 404.69,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF2-01",
@@ -134,7 +148,8 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 65769 bytes.",
       "code_location": "archipelago/scholarly/discovery/openalex_adapter.py",
-      "latency_ms": 2247.39
+      "latency_ms": 1973.75,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF2-02",
@@ -149,9 +164,10 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "PASS",
-      "details": "HTTP 200 as expected. Body size: 28237 bytes.",
+      "details": "HTTP 200 as expected. Body size: 28235 bytes.",
       "code_location": "archipelago/scholarly/discovery/crossref_adapter.py",
-      "latency_ms": 1098.27
+      "latency_ms": 918.51,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF2-03",
@@ -168,7 +184,8 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 7442 bytes.",
       "code_location": "archipelago/scholarly/discovery/arxiv_adapter.py",
-      "latency_ms": 240.48
+      "latency_ms": 214.49,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF2-04",
@@ -185,13 +202,14 @@
       "verdict": "PASS",
       "details": "HTTP 302 as expected. Body size: 173 bytes.",
       "code_location": "archipelago/scholarly/discovery/canonicalizer.py",
-      "latency_ms": 520.76
+      "latency_ms": 374.82,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF3-01",
       "workflow_id": "wf3_research_persistence",
       "workflow_name": "Research Persistence",
-      "input_or_query": "GET /api/research/topics",
+      "input_or_query": "GET /api/research/topics \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-librarian.vercel.app/api/research/topics",
       "http_method": "GET",
@@ -200,15 +218,16 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_research/app.py:before_request",
-      "latency_ms": 509.26
+      "latency_ms": 1305.34,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF4-01",
       "workflow_id": "wf4_library_opac",
       "workflow_name": "Library and OPAC",
-      "input_or_query": "GET /api/library/data",
+      "input_or_query": "GET /api/library/data (public snapshot)",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/api/library/data",
       "http_method": "GET",
@@ -219,13 +238,14 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 626022 bytes.",
       "code_location": "host_inference/hostapp/routes/library.py:library_data",
-      "latency_ms": 1891.86
+      "latency_ms": 3808.36,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF4-02",
       "workflow_id": "wf4_library_opac",
       "workflow_name": "Library and OPAC",
-      "input_or_query": "GET /api/library/koha",
+      "input_or_query": "GET /api/library/koha (public snapshot)",
       "user_role": "anonymous",
       "target_url": "https://archipelago-librarian.vercel.app/api/library/koha",
       "http_method": "GET",
@@ -236,13 +256,14 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 660508 bytes.",
       "code_location": "host_research/app.py:koha_snapshot",
-      "latency_ms": 2037.58
+      "latency_ms": 1404.65,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF4-03",
       "workflow_id": "wf4_library_opac",
       "workflow_name": "Library and OPAC",
-      "input_or_query": "Koha OPAC Detail biblionumber=1868",
+      "input_or_query": "Koha OPAC Detail biblionumber=1868 (live institutional)",
       "user_role": "anonymous",
       "target_url": "https://uemk-opac.l2c2.co.in/cgi-bin/koha/opac-detail.pl?biblionumber=1868",
       "http_method": "GET",
@@ -253,13 +274,14 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 96317 bytes.",
       "code_location": "host_research/opac_live.py:lookup_book",
-      "latency_ms": 2170.96
+      "latency_ms": 2075.55,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF4-04",
       "workflow_id": "wf4_library_opac",
       "workflow_name": "Library and OPAC",
-      "input_or_query": "Koha OPAC Detail biblionumber=1910",
+      "input_or_query": "Koha OPAC Detail biblionumber=1910 (live institutional)",
       "user_role": "anonymous",
       "target_url": "https://uemk-opac.l2c2.co.in/cgi-bin/koha/opac-detail.pl?biblionumber=1910",
       "http_method": "GET",
@@ -270,13 +292,14 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 87846 bytes.",
       "code_location": "host_research/opac_live.py:lookup_book",
-      "latency_ms": 1628.39
+      "latency_ms": 1848.28,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF4-05",
       "workflow_id": "wf4_library_opac",
       "workflow_name": "Library and OPAC",
-      "input_or_query": "Koha OPAC Search q=algorithms",
+      "input_or_query": "Koha OPAC Search q=algorithms (live institutional)",
       "user_role": "anonymous",
       "target_url": "https://uemk-opac.l2c2.co.in/cgi-bin/koha/opac-search.pl?q=algorithms",
       "http_method": "GET",
@@ -287,13 +310,14 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 271965 bytes.",
       "code_location": "host_research/opac_live.py:search_books",
-      "latency_ms": 6592.49
+      "latency_ms": 6697.97,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF4-06",
       "workflow_id": "wf4_library_opac",
       "workflow_name": "Library and OPAC",
-      "input_or_query": "GET /api/library/opac/live (Staff Route)",
+      "input_or_query": "GET /api/library/opac/live (staff route) \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-librarian.vercel.app/api/library/opac/live?biblionumber=1868",
       "http_method": "GET",
@@ -302,15 +326,16 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_research/app.py:library_opac_live",
-      "latency_ms": 427.09
+      "latency_ms": 491.61,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF5-01",
       "workflow_id": "wf5_digital_books",
       "workflow_name": "Digital Books",
-      "input_or_query": "GET /open/0911f00b-bb44-4092-a534-d9250d2578ba",
+      "input_or_query": "GET /open/<pearson-id> \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/open/0911f00b-bb44-4092-a534-d9250d2578ba?page=1",
       "http_method": "GET",
@@ -319,16 +344,17 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"detail\":\"A Supabase session is required.\",\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_inference/hostapp/middleware.py:_guard",
-      "latency_ms": 466.6
+      "latency_ms": 478.91,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF5-02",
       "workflow_id": "wf5_digital_books",
       "workflow_name": "Digital Books",
-      "input_or_query": "Pearson eLibrary Direct Viewer URL",
-      "user_role": "anonymous (institutional subscription)",
+      "input_or_query": "Pearson eLibrary viewer origin (pre-subscription handoff)",
+      "user_role": "anonymous (institutional subscription required for content)",
       "target_url": "https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?version=1.0.317.1&subscriptionId=35f75a06-07b5-4be6-93c9-d6449a30d88a#book/0911f00b-bb44-4092-a534-d9250d2578ba/page/1",
       "http_method": "GET",
       "http_status": 200,
@@ -338,13 +364,14 @@
       "verdict": "PASS",
       "details": "HTTP 200 as expected. Body size: 7647 bytes.",
       "code_location": "host_inference/remote_cache.py:pearson_page_url",
-      "latency_ms": 401.29
+      "latency_ms": 334.23,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF6-01",
       "workflow_id": "wf6_consistency",
       "workflow_name": "Cross-System Consistency",
-      "input_or_query": "GET /api/catalog/all",
+      "input_or_query": "GET /api/catalog/all \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/api/catalog/all",
       "http_method": "GET",
@@ -353,15 +380,16 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"detail\":\"A Supabase session is required.\",\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_inference/hostapp/middleware.py:_guard",
-      "latency_ms": 423.78
+      "latency_ms": 440.94,
+      "expect_auth_block": true
     },
     {
       "probe_id": "WF7-01",
       "workflow_id": "wf7_negative_security",
       "workflow_name": "Negative and Security Cases",
-      "input_or_query": "GET /.env (Blocked dotfile)",
+      "input_or_query": "GET /.env (blocked dotfile)",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/.env",
       "http_method": "GET",
@@ -372,13 +400,14 @@
       "verdict": "PASS",
       "details": "HTTP 404 as expected. Body size: 22 bytes.",
       "code_location": "host_inference/hostapp/middleware.py:_is_blocked_dotfile_or_artifact",
-      "latency_ms": 922.75
+      "latency_ms": 378.68,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF7-02",
       "workflow_id": "wf7_negative_security",
       "workflow_name": "Negative and Security Cases",
-      "input_or_query": "GET /cache/query_quota.sqlite3 (Blocked DB)",
+      "input_or_query": "GET /cache/query_quota.sqlite3 (blocked internal DB)",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/cache/query_quota.sqlite3",
       "http_method": "GET",
@@ -389,13 +418,14 @@
       "verdict": "PASS",
       "details": "HTTP 404 as expected. Body size: 22 bytes.",
       "code_location": "host_inference/hostapp/middleware.py:_is_blocked_dotfile_or_artifact",
-      "latency_ms": 362.92
+      "latency_ms": 381.06,
+      "expect_auth_block": false
     },
     {
       "probe_id": "WF7-03",
       "workflow_id": "wf7_negative_security",
       "workflow_name": "Negative and Security Cases",
-      "input_or_query": "GET /open/invalid_book_id@@! (Malformed ID)",
+      "input_or_query": "GET /open/invalid_book_id@@! (malformed ID) \u2014 auth gate confirmation",
       "user_role": "anonymous",
       "target_url": "https://archipelago-blond.vercel.app/open/invalid_book_id@@!",
       "http_method": "GET",
@@ -404,9 +434,10 @@
       "response_content_type": "application/json",
       "freshness": "LIVE",
       "verdict": "BLOCKED_BY_AUTH",
-      "details": "HTTP 401 authentication gate triggered: {\"detail\":\"A Supabase session is required.\",\"error\":\"unauthorized\"}",
+      "details": "HTTP 401 \u2014 auth gate confirmed for anonymous caller. This probe validates boundary enforcement, not end-to-end function.",
       "code_location": "host_inference/hostapp/middleware.py:_guard",
-      "latency_ms": 394.96
+      "latency_ms": 420.33,
+      "expect_auth_block": true
     }
   ]
 }

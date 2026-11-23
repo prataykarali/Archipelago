@@ -91,8 +91,10 @@ and transformer sequence-to-sequence foundations.
 - Citations to Karpukhin et al. 2020 (DPR paper) and Lewis et al. 2020 (RAG paper)
 - The evidence passage explains DPR's learned dense representations
   versus BM25's lexical matching
-- Our controlled evaluation reflects these IR trade-offs on the held-out test set:
-  Neural Dense (0.5476 MRR) and BM25 (0.5750 MRR), compared to Graph-Assisted (0.4865 MRR)
+- Controlled evaluation on the held-out set (D5.1-v2, algorithmic qrels, not human-verified):
+  BM25 (MRR=0.75, nDCG@5=0.6415), Snowflake-Arctic neural dense (MRR=0.75, nDCG@5=0.6524),
+  Feature-Hashed Vector (MRR=0.28), Graph-Assisted (MRR=0.4865 — heuristic decay scores, not learned).
+  Source: `research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json`.
 
 **Key claim:** The system grounds comparative IR methodology in dual original
 literature citations rather than unverified contrastive graph edges.
@@ -123,14 +125,19 @@ critical scientific integrity property.
 
 Summarize the three contributions demonstrated:
 
-1. **Structured concept resolution** with verified provenance
-   (MRR 0.68, 2.6× BM25)
-2. **Relationship-direction correctness** distinguishing USES, REQUIRES,
-   and CONTRASTS_WITH (1.0 accuracy)
-3. **Honest abstention** for unsupported topics (1.0 precision)
+1. **Structured concept resolution** — Archipelago resolver: 68.4% concept-resolution
+   accuracy on supported queries (26/38 hits), vs BM25 at 42.1% and Snowflake neural at
+   36.8%. Source: D5.1-v2, Experiment A.
+2. **Knowledge graph traversal** — Graph surfaces `RELATED`, `REQUIRES`, `UNLOCKS` edges.
+   `USES`, `CONTRASTS_WITH`, and `APPLIES_TO` are absent from the runtime schema; 13/18
+   relational queries have predicates absent from the graph (D5.1-v2 relationship audit).
+3. **Honest abstention** for unsupported topics — 12 out-of-corpus queries return zero
+   citations and zero fabricated graph edges (D5.3-A verified).
 
-Note that this is a **Demonstrations Track** submission — the system is
-live, deployed, and independently reproducible.
+Note that this is a **Demonstrations Track** submission — the system is live and deployed.
+Passage qrels are algorithmically generated (not human-verified); citation grounding has
+29% strict precision across 24 audited citations (7/24 fully supported, 9/24 irrelevant or
+spurious). An independent annotation pass has not yet been completed.
 
 ---
 
@@ -151,7 +158,7 @@ live, deployed, and independently reproducible.
 | Artifact | Path |
 |----------|------|
 | Full evaluation report | `research/d5_sigir_evaluation/D5_EVALUATION_REPORT.md` |
-| Results data | `research/d5_sigir_evaluation/d5_evaluation_results.json` |
+| Results data | `research/d5_sigir_evaluation/d5_1_evaluation_results_v2.json` |
 | Graph slice | `research/d5_sigir_evaluation/d5_graph_slice.json` |
 | Human reviews | `research/d5_sigir_evaluation/human_review_records.json` |
 | Benchmark script | `scripts/benchmarks/d5_retrieval_benchmark.py` |
