@@ -18,7 +18,7 @@ from ..config import (
     SESSION_COOKIE_NAME,
 )
 from ..context import AppContext
-from ..security import is_safe_redirect_target
+from ..security import auth_failure_code, is_safe_redirect_target
 
 PRODUCTION_ENVS = {"production", "prod"}
 ALLOWLISTED_REDIRECT_ORIGINS = ("https://archipelago-librarian.vercel.app",)
@@ -63,13 +63,18 @@ def _set_session_cookies(response: Response, token: str, csrf_token: str) -> Non
         )
 
 
-def _logout_response(ctx: AppContext) -> Response:
+def _logout_response(ctx: AppContext) -> Response | tuple[Response, int]:
     header = request.headers.get("Authorization", "")
     bearer = header.removeprefix("Bearer ").strip() if header.startswith("Bearer ") else ""
     cookie_token = request.cookies.get(SESSION_COOKIE_NAME, "").strip()
-    for tok in {bearer, cookie_token}:
-        if tok:
-            ctx.auth.end_session(tok)
+    try:
+        for tok in {bearer, cookie_token}:
+            if tok:
+                ctx.auth.end_session(tok)
+    except RuntimeError:
+        return _set_private_no_store(
+            jsonify({"error": "unavailable", "detail": "Session revocation is unavailable."})
+        ), 503
     is_secure = _is_secure_cookie()
     response = jsonify({"authenticated": False, "logged_out": True})
     response.delete_cookie(
@@ -234,9 +239,10 @@ def register(app: Flask, ctx: AppContext) -> None:
             )
         principal, error = ctx.auth.principal()
         if principal is None:
+            reason = auth_failure_code(error)
             return _set_private_no_store(
-                jsonify({"authenticated": False, "detail": error})
-            ), 401
+                jsonify({"authenticated": False, "detail": error, "reason": reason})
+            ), 503 if reason == "upstream_unavailable" else 401
         csrf_for = getattr(ctx.auth, "csrf_token_for", None)
         csrf_token = csrf_for(principal.get("token", "")) if callable(csrf_for) else ""
         return _set_private_no_store(

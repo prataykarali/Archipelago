@@ -108,6 +108,12 @@ export async function postChatRequest(inputVal, signal, options = { synthesis: t
 
     if (!response.ok) {
         const problem = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+            const err = new Error(problem.detail || 'Sign in to send your question.');
+            err.status = 401;
+            err.reason = problem.reason || 'unauthorized';
+            throw err;
+        }
         if (response.status === 429) {
             const resetText = formatQuotaResetTime(problem.reset_at, problem.retry_after);
             const message = problem.detail

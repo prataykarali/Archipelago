@@ -22,7 +22,7 @@ from .context import AppContext
 from .log_redaction import redact
 from .research_access import ResearchCapability, allowed, audit_action
 from .runtime_state import begin_request, end_request, is_shutting_down
-from .security import SAFE_METHODS, is_allowed_handoff_origin
+from .security import SAFE_METHODS, auth_failure_code, is_allowed_handoff_origin
 
 OPTIONS_NO_CONTENT = 204
 SHUTDOWN_RETRY_AFTER_SEC = 5
@@ -67,9 +67,7 @@ def _is_blocked_dotfile_or_artifact(path: str) -> bool:
     if any(seg.startswith(".") or seg.endswith("~") for seg in segments):
         return True
     lowered = path.lower()
-    if "stripped_backup" in lowered or lowered.endswith(_BLOCKED_SUFFIXES):
-        return True
-    return False
+    return "stripped_backup" in lowered or lowered.endswith(_BLOCKED_SUFFIXES)
 
 
 def _origin_from_url(value: str) -> str:
@@ -86,9 +84,10 @@ def _is_trusted_request_origin(origin: str, path: str) -> bool:
     host_origin = request.host_url.rstrip("/")
     if cleaned in ALLOWED_ORIGINS or cleaned == host_origin:
         return True
-    if path in {"/api/auth/handoff-ticket", "/api/auth/handoff-redeem"} and is_allowed_handoff_origin(cleaned):
-        return True
-    return False
+    return path in {
+        "/api/auth/handoff-ticket",
+        "/api/auth/handoff-redeem",
+    } and is_allowed_handoff_origin(cleaned)
 
 
 def _research_capability(path: str, method: str) -> ResearchCapability:
@@ -178,9 +177,9 @@ def _check_csrf(ctx: AppContext, path: str):
         verify_fn = getattr(ctx.auth, "verify_csrf_token", None)
         csrf_valid = False
         if csrf_header:
-            if callable(verify_fn) and verify_fn(cookie_token, csrf_header):
-                csrf_valid = True
-            elif csrf_cookie and hmac.compare_digest(csrf_cookie, csrf_header):
+            if (callable(verify_fn) and verify_fn(cookie_token, csrf_header)) or (
+                csrf_cookie and hmac.compare_digest(csrf_cookie, csrf_header)
+            ):
                 csrf_valid = True
             else:
                 return jsonify(
@@ -190,7 +189,9 @@ def _check_csrf(ctx: AppContext, path: str):
             path == "/api/auth/session" and request.method == "DELETE"
         )
         has_custom_header = bool(request.headers.get("X-Requested-With", "").strip())
-        if not is_logout and not (csrf_valid or has_custom_header or origin_trusted or referer_trusted):
+        if not is_logout and not (
+            csrf_valid or has_custom_header or origin_trusted or referer_trusted
+        ):
             return jsonify(
                 {
                     "error": "forbidden",
@@ -258,12 +259,12 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
                 ), 403
         # Protect all PDF and reader route aliases when authentication is enabled.
         # An alternate path must never bypass the normal private-library guard.
-        if _is_protected_api(path) or (
-            ctx.auth.required() and _is_protected_reader_path(path)
-        ):
+        if _is_protected_api(path) or (ctx.auth.required() and _is_protected_reader_path(path)):
             principal, error = ctx.auth.principal()
             if principal is None:
-                return jsonify({"error": "unauthorized", "detail": error}), 401
+                return jsonify(
+                    {"error": "unauthorized", "detail": error, "reason": auth_failure_code(error)}
+                ), 401
             request.archipelago_principal = principal  # type: ignore[attr-defined]
         if path.startswith("/api/chat"):
             return _apply_limit(ctx.limiter.check_chat())
@@ -305,11 +306,15 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
             response.headers["X-Queries-Remaining"] = str(quota["remaining"])
             response.headers["X-Queries-Used"] = str(quota["used"])
         origin = request.headers.get("Origin", "").strip()
-        if origin and origin != "*" and (
-            origin in ALLOWED_ORIGINS
-            or (
-                request.path in {"/api/auth/handoff-ticket", "/api/auth/handoff-redeem"}
-                and is_allowed_handoff_origin(origin)
+        if (
+            origin
+            and origin != "*"
+            and (
+                origin in ALLOWED_ORIGINS
+                or (
+                    request.path in {"/api/auth/handoff-ticket", "/api/auth/handoff-redeem"}
+                    and is_allowed_handoff_origin(origin)
+                )
             )
         ):
             response.headers["Access-Control-Allow-Origin"] = origin

@@ -271,7 +271,7 @@ def multi_hop_reasoning(
         re.search(r"\b(paths?|prerequisites?|unlocks?|graph edges?|topolog\w*)\b", query, re.I)
     )
     if connected_pairs and show_path_details:
-        explanation_lines.append("\n**Verified Graph Relationships:**")
+        explanation_lines.append("\n**Stored Graph Relationships (edge claims pending review):**")
         for l1, l2, hops, chain in connected_pairs:
             relation_desc = (
                 "a direct stored edge" if hops == 1 else f"a {hops}-hop stored graph path"

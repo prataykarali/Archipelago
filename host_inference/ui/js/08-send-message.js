@@ -17,7 +17,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
 
         // Main Send Function
         async function sendMessage() {
-            if (state.isGenerating) return;
+            if (state.isGenerating || window.archipelagoChatAuthChecking) return;
             if (state.quotaLimitedUntil && Date.now() < state.quotaLimitedUntil) return;
             if (typeof dismissGraphChoiceModal === 'function') {
                 dismissGraphChoiceModal();
@@ -26,6 +26,20 @@ import { resetChatUi } from './08-stream-cleanup.js';
             const inputEl = document.getElementById('chat-input');
             const inputVal = (inputEl ? inputEl.value : '').trim();
             if (!inputVal) return;
+
+            window.archipelagoChatAuthChecking = true;
+            try {
+                const session = await window.archipelagoVerifyChatSession();
+                if (!session.authenticated) {
+                    window.archipelagoPromptChatSignIn(inputVal, session.reason);
+                    return;
+                }
+            } catch (error) {
+                window.archipelagoPromptChatSignIn(inputVal, error?.reason || 'upstream_unavailable');
+                return;
+            } finally {
+                window.archipelagoChatAuthChecking = false;
+            }
 
             // Increment request sequence to guard against race conditions or out-of-order streams
             state.currentQuerySequence = (state.currentQuerySequence || 0) + 1;
@@ -416,6 +430,13 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 }
 
             } catch (err) {
+                if (err && err.status === 401) {
+                    const draftEl = document.getElementById('chat-input');
+                    if (draftEl && !draftEl.value.trim()) draftEl.value = inputVal;
+                    window.archipelagoPromptChatSignIn(inputVal, err.reason);
+                    (msgEl?.closest('.assistant-row') || msgEl?.closest('.flex.w-full'))?.remove();
+                    return;
+                }
                 if (err && err.status === 429) {
                     const draftEl = document.getElementById('chat-input');
                     if (draftEl && !draftEl.value.trim()) {

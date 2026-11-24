@@ -88,7 +88,9 @@ def synthesis(engine, cid: str) -> str:
     if formula and re.search(r"\b(equation|formula|math|derive|how|explain)\b", query, re.I):
         lines.extend(["", "**How it works.**", formula])
     if re.search(r"\b(prerequisite|learning path|roadmap|before|after|connect)\b", query, re.I):
-        lines.extend(["", "**Verified learning path.**", lineage(graph, cid)])
+        lines.extend(
+            ["", "**Catalog learning path (edge claims pending review).**", lineage(graph, cid)]
+        )
     link = engine.pearson_line(cid)
     if link:
         lines.extend(["", link])

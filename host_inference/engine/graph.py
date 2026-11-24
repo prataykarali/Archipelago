@@ -23,6 +23,7 @@ from .evidence_selection import (
     score_source_for_concept,
     verify_chunk_provenance,
 )
+from .graph_semantics import corrected_summary, quarantine_reason
 from .source_resolution import (
     SOURCE_CAT_PEARSON,
     SOURCE_CAT_TOC_INDEX,
@@ -72,6 +73,7 @@ class LibraryGraph:
             node.get("id"): node.get("sources") or [] for node in viz_nodes if node.get("id")
         }
         for cid, node in self.nodes.items():
+            node["summary"] = corrected_summary(cid, str(node.get("summary") or ""))
             if not node.get("sources"):
                 if sources_by_id.get(cid):
                     node["sources"] = sources_by_id[cid]
@@ -80,10 +82,15 @@ class LibraryGraph:
         self.out: dict[str, list[tuple[str, str]]] = {}
         self.inn: dict[str, list[tuple[str, str]]] = {}
         self.edge_records: dict[tuple[str, str, str], dict] = {}
+        self.quarantined_edges: list[dict] = []
         for edge in raw.get("edges") or []:
             src, dst = edge.get("from_id"), edge.get("to_id")
             kind = edge.get("edge_type") or edge.get("relation") or "RELATED"
             if not src or not dst or src not in self.nodes or dst not in self.nodes:
+                continue
+            reason = quarantine_reason(edge)
+            if reason:
+                self.quarantined_edges.append({**edge, "quarantine_reason": reason})
                 continue
             self.out.setdefault(src, []).append((kind, dst))
             self.inn.setdefault(dst, []).append((kind, src))

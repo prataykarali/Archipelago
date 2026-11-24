@@ -9,6 +9,7 @@ from __future__ import annotations
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
 import json
+import os
 import re
 import time
 from uuid import UUID
@@ -18,7 +19,7 @@ from engine.citations import (
     infer_synthesis_mode,
     validate_response_citations,
 )
-from engine.llm import provider_config
+from engine.llm import provider_config as provider_config
 from engine.reply_templates import (
     list_reply_templates,
     select_reply_template,
@@ -28,10 +29,10 @@ from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
 
 from ..context import AppContext
-from ..user_traffic import clear_user_traffic, record_user_action
 from ..conversation import contextual_query
 from ..research_chat import enrich_with_research
 from ..research_run_chat import is_research_request, research_chat_reply
+from ..user_traffic import clear_user_traffic, record_user_action
 
 # Query hygiene: strip null bytes and ASCII control characters, keep whitespace.
 CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -62,6 +63,8 @@ def _sanitize_history(raw_history: object) -> list[dict[str, str]]:
         if content:
             cleaned.append({"role": role, "content": content[:MAX_HISTORY_CONTENT_CHARS]})
     return cleaned
+
+
 _STUDY_PLAN_ASK_RE = re.compile(
     r"\b(reading\s+order|study\s+plan|roadmap|learning\s+path|prerequisite)\b",
     re.I,
@@ -129,7 +132,9 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
     principal = getattr(request, "archipelago_principal", None)
     if not principal or not principal.get("id"):
         return None
-    if not run_id_arg and re.search(r"\b(books?|library|opac|koha|holdings?|catalog)\b", query, re.I):
+    if not run_id_arg and re.search(
+        r"\b(books?|library|opac|koha|holdings?|catalog)\b", query, re.I
+    ):
         return None
     if not run_id_arg and not is_research_request(query, True):
         return None
@@ -196,31 +201,39 @@ def _research_run_reply(body: dict, query: str, history: object) -> str | None:
     for p in papers[:8]:
         pid = p.get("paper_id") or p.get("title") or ""
         if pid:
-            research_edges.append({"from": anchor_concept["id"], "to": pid, "relation": "HAS_PAPER"})
+            research_edges.append(
+                {"from": anchor_concept["id"], "to": pid, "relation": "HAS_PAPER"}
+            )
         for author in (p.get("authors") or [])[:2]:
             name = str(author.get("name") if isinstance(author, dict) else author).strip()
             if name and f"author:{name}" not in seen_entities and len(research_entities) < 8:
                 seen_entities.add(f"author:{name}")
-                research_entities.append({
-                    "id": f"author:{name}",
-                    "label": name,
-                    "name": name,
-                    "summary": f"Author in {topic_label}",
-                    "concept_type": "author",
-                    "difficulty": "AUTHORED_BY",
-                })
-                research_edges.append({"from": pid, "to": f"author:{name}", "relation": "AUTHORED_BY"})
+                research_entities.append(
+                    {
+                        "id": f"author:{name}",
+                        "label": name,
+                        "name": name,
+                        "summary": f"Author in {topic_label}",
+                        "concept_type": "author",
+                        "difficulty": "AUTHORED_BY",
+                    }
+                )
+                research_edges.append(
+                    {"from": pid, "to": f"author:{name}", "relation": "AUTHORED_BY"}
+                )
         venue = str(p.get("venue") or p.get("source") or "").strip()
         if venue and f"venue:{venue}" not in seen_entities and len(research_entities) < 8:
             seen_entities.add(f"venue:{venue}")
-            research_entities.append({
-                "id": f"venue:{venue}",
-                "label": venue,
-                "name": venue,
-                "summary": f"Publication venue/source in {topic_label}",
-                "concept_type": "venue",
-                "difficulty": "PUBLISHED_IN",
-            })
+            research_entities.append(
+                {
+                    "id": f"venue:{venue}",
+                    "label": venue,
+                    "name": venue,
+                    "summary": f"Publication venue/source in {topic_label}",
+                    "concept_type": "venue",
+                    "difficulty": "PUBLISHED_IN",
+                }
+            )
             research_edges.append({"from": pid, "to": f"venue:{venue}", "relation": "PUBLISHED_IN"})
 
     payload = {
@@ -350,8 +363,13 @@ def register(app: Flask, ctx: AppContext) -> None:
             answer_fn = getattr(ctx.engine, "answer", None)
             prepared = answer_fn(resolved_query) if callable(answer_fn) else {}
             t_eng_end = time.perf_counter()
-            principal_role = str((getattr(request, "archipelago_principal", None) or {}).get("role") or "").lower()
-            is_research_staff = principal_role in _RESEARCH_STAFF_ROLES or not getattr(ctx.auth, "required", lambda: True)()
+            principal_role = str(
+                (getattr(request, "archipelago_principal", None) or {}).get("role") or ""
+            ).lower()
+            is_research_staff = (
+                principal_role in _RESEARCH_STAFF_ROLES
+                or not getattr(ctx.auth, "required", lambda: True)()
+            )
             should_enrich = (
                 bool(prepared)
                 and is_research_staff
@@ -382,6 +400,45 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         logger = current_app.logger
 
+        def annotate_trace(metadata: dict, *, timing: dict[str, float]) -> None:
+            """Attach measured execution facts without asserting claim entailment."""
+            citations = metadata.get("citations") or []
+            trace = metadata.setdefault("trace", {})
+            if not isinstance(trace, dict):
+                trace = {}
+                metadata["trace"] = trace
+            model = metadata.get("model") or {}
+            trace.update(
+                intent=prepared.get("route") or "unknown",
+                synthesis_mode=metadata.get("synthesis_mode") or "unknown",
+                provider=metadata.get("provider") or "deterministic",
+                model=model.get("model") if isinstance(model, dict) else "",
+                cache_status="miss_no_reuse",
+                release_sha=(
+                    os.environ.get("ARCHIPELAGO_RELEASE_SHA")
+                    or os.environ.get("VERCEL_GIT_COMMIT_SHA")
+                    or "unknown"
+                ),
+                graph_revision=getattr(
+                    getattr(ctx.engine, "graph", None), "graph_version", "unknown"
+                ),
+                source_document_ids=sorted(
+                    {
+                        str(c.get("doc_id"))
+                        for c in citations
+                        if isinstance(c, dict) and c.get("doc_id")
+                    }
+                ),
+                passage_ids=sorted(
+                    {
+                        str(c.get("canonical_passage_id"))
+                        for c in citations
+                        if isinstance(c, dict) and c.get("canonical_passage_id")
+                    }
+                ),
+                stage_timings_ms=timing,
+            )
+
         def generate():
             ttft_ms = None
             t_stream_start = None
@@ -404,6 +461,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                         "ttft_ms": ttft_ms,
                         "total_ms": ttft_ms,
                     }
+                    annotate_trace(payload, timing=payload["stage_timings_ms"])
                     yield json.dumps(payload) + STREAM_MARKER
                     clean_text, _removed = validate_response_citations(
                         str(prepared.get("text") or ""),
@@ -416,10 +474,9 @@ def register(app: Flask, ctx: AppContext) -> None:
                     options = {"previous_answer": previous_answer, "prepared": prepared_for_stream}
                     if template_id:
                         options["reply_template_id"] = template_id
-                    elif (
-                        prepared.get("route") in _CONCEPTUAL_ROUTES
-                        and not _STUDY_PLAN_ASK_RE.search(resolved_query)
-                    ):
+                    elif prepared.get(
+                        "route"
+                    ) in _CONCEPTUAL_ROUTES and not _STUDY_PLAN_ASK_RE.search(resolved_query):
                         auto_tpl = select_reply_template(
                             resolved_query, str(prepared.get("route") or "")
                         )
@@ -463,6 +520,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                                     "provider_ttft_ms": prov_ttft,
                                     "ttft_ms": now_ms,
                                 }
+                                annotate_trace(meta, timing=meta["stage_timings_ms"])
                             yield json.dumps(meta) + STREAM_MARKER + rest
                             continue
                         if ttft_ms is None:
@@ -478,9 +536,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             finally:
                 t_end = time.perf_counter()
                 provider_stream_ms = (
-                    round((t_end - t_stream_start) * 1000, 1)
-                    if t_stream_start is not None
-                    else 0.0
+                    round((t_end - t_stream_start) * 1000, 1) if t_stream_start is not None else 0.0
                 )
                 logger.info(
                     "[CHAT_TIMING] route=%s research_ms=%.1f engine_ms=%.1f enrich_ms=%.1f provider_ms=%.1f ttft_ms=%.1f total_ms=%.1f",
@@ -553,7 +609,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "unauthorized"}), 401
         raw_body = request.get_json(silent=True)
         body = raw_body if isinstance(raw_body, dict) else {}
-        session_id = CONTROL_CHARS.sub("", str(body.get("session_id") or request.args.get("session_id") or "")).strip()[:128] or None
+        session_id = (
+            CONTROL_CHARS.sub(
+                "", str(body.get("session_id") or request.args.get("session_id") or "")
+            ).strip()[:128]
+            or None
+        )
         user_id = str(principal["id"])
         removed_events = clear_user_traffic(user_id=user_id, session_id=session_id)
         quiz_conn_fn = getattr(ctx.limiter, "_quota_connection", None)
@@ -573,7 +634,9 @@ def register(app: Flask, ctx: AppContext) -> None:
         """Build a staged learning roadmap from the concept graph."""
         raw_body = request.get_json(silent=True) if request.method == "POST" else None
         body = raw_body if isinstance(raw_body, dict) else {}
-        topic = CONTROL_CHARS.sub("", str(body.get("topic") or request.args.get("topic") or "")).strip()
+        topic = CONTROL_CHARS.sub(
+            "", str(body.get("topic") or request.args.get("topic") or "")
+        ).strip()
         if not topic:
             return jsonify({"error": "A topic is required to build a roadmap."}), 400
         if len(topic) > MAX_QUERY_CHARS:
@@ -588,7 +651,9 @@ def register(app: Flask, ctx: AppContext) -> None:
         """Build a short practice quiz from the concept graph."""
         raw_body = request.get_json(silent=True) if request.method == "POST" else None
         body = raw_body if isinstance(raw_body, dict) else {}
-        topic = CONTROL_CHARS.sub("", str(body.get("topic") or request.args.get("topic") or "")).strip()
+        topic = CONTROL_CHARS.sub(
+            "", str(body.get("topic") or request.args.get("topic") or "")
+        ).strip()
         if not topic:
             return jsonify({"error": "A topic is required to build a quiz."}), 400
         if len(topic) > MAX_QUERY_CHARS:

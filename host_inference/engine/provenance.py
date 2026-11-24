@@ -277,19 +277,19 @@ def build_grounding_trace(
             prov_status = PROVENANCE_METADATA_ONLY
             mode = "Graph-Assisted Traversal (OKF + Source-Linked Metadata)"
     elif anchor_id:
-        badge = "OKF structure resolved · No direct passage"
+        badge = "Concept resolved · No direct passage"
         state = "partial"
         detail = "no_direct_passage"
         prov_status = PROVENANCE_NO_PASSAGE
         mode = "Graph-Assisted Traversal (OKF Only)"
     elif cites_count > 0:
-        badge = "No Verified Graph Match · Lexical literature fallback"
+        badge = "No graph match · Citation present; claim support unassessed"
         state = "general"
         detail = "no_graph_match"
         prov_status = PROVENANCE_NONE
         mode = "Lexical Literature Retrieval (Unindexed Concept)"
     else:
-        badge = "No Verified Graph Match · Clean abstention"
+        badge = "No graph match or cited passage"
         state = "unmatched"
         detail = "no_graph_match"
         prov_status = PROVENANCE_NONE
@@ -301,13 +301,17 @@ def build_grounding_trace(
         "concept_label": anchor_label,
         "graph_hops": hops,
         "retrieval_mode": mode,
-        "provider": provider or "Deterministic Rule-Based OKF Fallback",
+        "provider": provider or "pending",
         "grounded_passages": cites_count,
         "grounding_status": state,
         "grounding_detail": detail,
         "grounding_badge": badge,
         "provenance_status": prov_status,
         "claim_support_status": CLAIM_SUPPORT_NOT_ASSESSED,
+        "reader_page_verified": False,
+        "explanation_status": "general_explanation"
+        if route == "GENERAL_EXPLANATION"
+        else "route_specific",
         "latency_s": latency_s,
         "latency_ms": latency_ms,
     }

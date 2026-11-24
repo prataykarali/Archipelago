@@ -143,11 +143,13 @@ def _extract_page_labels(doc: Any) -> dict[str, int]:
     """
     label_map: dict[str, int] = {}
     try:
-        labels = doc.get_page_labels()
-        if labels:
-            for i, label in enumerate(labels):
-                if label and label.strip():
-                    label_map[label.strip()] = i + 1  # 1-indexed PDF page
+        # get_page_labels() returns label *rules*, not one label per page.
+        # Page.get_label() resolves those rules to the label shown by a PDF reader.
+        if doc.get_page_labels():
+            for index in range(doc.page_count):
+                label = doc[index].get_label().strip()
+                if label:
+                    label_map[label] = index + 1
     except Exception:
         logging.getLogger(__name__).exception("Could not read PDF page labels")
     return label_map

@@ -102,8 +102,13 @@ def _load_hf_repo_map() -> tuple[list[str], dict[str, str]]:
         if _HF_PATHS_CACHE[1] and (now - _HF_PATHS_CACHE[0]) < _HF_PATHS_TTL_SEC:
             return list(_HF_PATHS_CACHE[1]), dict(_HF_PATHS_CACHE[2])
 
-    lib_repo = os.environ.get("HF_LIBRARY_REPO", DEFAULT_LIBRARY_REPO).strip() or DEFAULT_LIBRARY_REPO
-    graph_repo = os.environ.get("ARCHIPELAGO_SCHOLARLY_HF_REPO", DEFAULT_GRAPHIER_REPO).strip() or DEFAULT_GRAPHIER_REPO
+    lib_repo = (
+        os.environ.get("HF_LIBRARY_REPO", DEFAULT_LIBRARY_REPO).strip() or DEFAULT_LIBRARY_REPO
+    )
+    graph_repo = (
+        os.environ.get("ARCHIPELAGO_SCHOLARLY_HF_REPO", DEFAULT_GRAPHIER_REPO).strip()
+        or DEFAULT_GRAPHIER_REPO
+    )
     token = os.environ.get("HF_TOKEN", "").strip()
 
     path_to_repo: dict[str, str] = {}
@@ -200,7 +205,9 @@ def resolve_hf_source(value: str) -> tuple[str, str]:
     if len(target_slug) >= 5:
         for p in paths:
             p_slug = _norm_slug(p)
-            if p_slug == target_slug or (len(p_slug) >= 6 and (target_slug in p_slug or p_slug in target_slug)):
+            if p_slug == target_slug or (
+                len(p_slug) >= 6 and (target_slug in p_slug or p_slug in target_slug)
+            ):
                 return path_to_repo[p], p
 
     return "", ""
@@ -251,6 +258,39 @@ class Catalog:
                         "page": int(source.get("page_number") or 1),
                         "text": text,
                         "tokens": _tokens(text),
+                    }
+                )
+        candidate_index = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES", "").strip()
+        if candidate_index:
+            self._load_candidate_passages(Path(candidate_index))
+
+    def _load_candidate_passages(self, index_path: Path) -> None:
+        """Add rights-approved, deterministic PDF body chunks to catalog retrieval."""
+        if not index_path.is_file():
+            return
+        with index_path.open(encoding="utf-8") as source:
+            for line in source:
+                try:
+                    passage = json.loads(line)
+                    doc_id = str(passage["doc_id"])
+                    page = int(passage["page_number"])
+                    text = str(passage["text"])
+                except (ValueError, KeyError, TypeError):
+                    continue
+                if page < 1 or not doc_id or not text.strip():
+                    continue
+                self.passages.append(
+                    {
+                        "concept_id": "",
+                        "doc_id": doc_id,
+                        "page": page,
+                        "text": text,
+                        "tokens": _tokens(text),
+                        "passage_id": str(passage.get("passage_id") or ""),
+                        "printed_page": passage.get("printed_page"),
+                        "pdf_page_index": passage.get("pdf_page_index"),
+                        "text_offset_start": passage.get("text_offset_start"),
+                        "text_offset_end": passage.get("text_offset_end"),
                     }
                 )
 
@@ -345,7 +385,12 @@ class Catalog:
                 "label": f"[S1: {item['path'].split('/')[-1]}{f', #page={page}' if page else ''}]",
                 "doc_id": item["path"],
                 "page_number": page,
-                "printed_page": None,
+                "printed_page": passage.get("printed_page") if passage else None,
+                "passage_id": passage.get("passage_id") if passage else None,
+                "chunk_id": passage.get("passage_id") if passage else None,
+                "pdf_page_index": passage.get("pdf_page_index") if passage else None,
+                "text_offset_start": passage.get("text_offset_start") if passage else None,
+                "text_offset_end": passage.get("text_offset_end") if passage else None,
                 "url": url,
                 "pdf_url": url,
             },

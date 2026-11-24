@@ -43,6 +43,7 @@ from .config import (
     RATE_WINDOW_SEC,
 )
 from .runtime_state import hosted_runtime, runtime_rpc
+from .session_store import session_action, verified_session_ids
 
 SUPABASE_USER_TIMEOUT_SEC = 10
 SUPABASE_PROFILE_TIMEOUT_SEC = 8
@@ -59,6 +60,27 @@ QUERY_WINDOW_SECONDS = 3600
 MAX_TRACKED_SESSIONS = 4096
 MAX_TRACKED_BUCKETS = 4096
 MAX_TOKEN_LENGTH = 4096
+
+AUTH_FAILURE_CODES = (
+    ("jwt token expired", "jwt_expired"),
+    ("revoked", "revoked_credentials"),
+    ("maximum lifetime", "absolute_expired"),
+    ("inactivity", "idle_expired"),
+    ("identity verification is unavailable", "upstream_unavailable"),
+    ("durable session verification is unavailable", "upstream_unavailable"),
+    ("session is required", "missing_session"),
+    ("could not be verified", "invalid_credentials"),
+)
+
+
+def auth_failure_code(error: str | None) -> str:
+    """Return a stable public reason without exposing a bearer token."""
+    lowered = (error or "").lower()
+    for phrase, code in AUTH_FAILURE_CODES:
+        if phrase in lowered:
+            return code
+    return "unauthorized"
+
 
 _USER_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 _CONTROL_OR_SPACE_RE = re.compile(r"[\x00-\x20\x7f]")
@@ -102,13 +124,17 @@ def is_safe_redirect_target(
     if parsed.username or parsed.password:
         return False
     if target.startswith("/"):
-        if target.startswith("//") or "://" in parsed.path or parsed.scheme or parsed.netloc:
-            return False
-        return True
+        return not (
+            target.startswith("//") or "://" in parsed.path or parsed.scheme or parsed.netloc
+        )
     if parsed.scheme in {"http", "https"} and parsed.netloc:
         origin = f"{parsed.scheme}://{parsed.netloc}"
         allowed = set(allowlisted_origins)
-        if origin in allowed and (not parsed.path or parsed.path.startswith("/")) and not parsed.path.startswith("//"):
+        if (
+            origin in allowed
+            and (not parsed.path or parsed.path.startswith("/"))
+            and not parsed.path.startswith("//")
+        ):
             return True
     return False
 
@@ -141,6 +167,33 @@ def _is_rejected_jwt_or_token(token: str) -> bool:
         if not alg or alg == "none":
             return True
     return False
+
+
+def _is_expired_jwt(token: str) -> bool:
+    """Use unsigned JWT claims only to reject an already expired token."""
+    if token.count(".") != 2:
+        return False
+    try:
+        payload = token.split(".")[1]
+        padded = payload + "=" * (-len(payload) % 4)
+        claims = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")))
+        expiry = claims.get("exp") if isinstance(claims, dict) else None
+        return isinstance(expiry, (int, float)) and time.time() >= expiry
+    except (ValueError, UnicodeError):
+        return False
+
+
+def _jwt_claims(token: str) -> dict:
+    """Read untrusted claims for identifiers; callers must verify the token."""
+    if token.count(".") != 2:
+        return {}
+    try:
+        payload = token.split(".")[1]
+        padded = payload + "=" * (-len(payload) % 4)
+        result = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")))
+        return result if isinstance(result, dict) else {}
+    except (ValueError, UnicodeError):
+        return {}
 
 
 def _format_iso_utc(timestamp: float) -> str:
@@ -202,7 +255,10 @@ class AuthGuard:
         """Derive a per-session CSRF token bound to ``token``."""
         if not token:
             return ""
-        secret = os.getenv("ARCHIPELAGO_CSRF_SECRET", "").strip() or _PROCESS_CSRF_KEY
+        secret = os.getenv("ARCHIPELAGO_CSRF_SECRET", "").strip()
+        if hosted_runtime() and not secret:
+            raise RuntimeError("Shared CSRF secret is not configured")
+        secret = secret or _PROCESS_CSRF_KEY
         return hmac.new(secret.encode("utf-8"), token.encode("utf-8"), hashlib.sha256).hexdigest()
 
     def verify_csrf_token(self, token: str, candidate: str) -> bool:
@@ -214,8 +270,25 @@ class AuthGuard:
 
     def is_revoked(self, token: str) -> bool:
         """Return True if ``token`` has been logged out or invalidated."""
-        if not token:
+        if not token or _is_rejected_jwt_or_token(token) or _is_expired_jwt(token):
             return True
+        if hosted_runtime():
+            try:
+                claims = _jwt_claims(token)
+                user_id = str(claims.get("sub") or "")
+                ids = verified_session_ids(token, user_id)
+                if ids is None:
+                    return True
+                result = session_action(
+                    "check",
+                    *ids,
+                    idle_seconds=int(self._idle_timeout_seconds()),
+                    max_age_seconds=int(self._absolute_lifetime_seconds()),
+                    passive=True,
+                )
+                return result["status"] != "active"
+            except RuntimeError:
+                return True
         token_id = hashlib.sha256(token.encode()).hexdigest()
         scope = _runtime_scope()
         with self._lock, _SHARED_LOCK:
@@ -223,6 +296,16 @@ class AuthGuard:
 
     def rotate_session(self, token: str, previous_token: str = "") -> str:
         """Rotate session tracking on login or privilege change and return a CSRF token."""
+        if hosted_runtime():
+            if not token:
+                return ""
+            # principal() has verified and registered the new token first.
+            if previous_token and previous_token != token:
+                current_id = _jwt_claims(token).get("session_id")
+                previous_id = _jwt_claims(previous_token).get("session_id")
+                if current_id != previous_id:
+                    self.end_session(previous_token)
+            return self.csrf_token_for(token)
         if previous_token and previous_token != token:
             self.end_session(previous_token)
         if not token:
@@ -240,6 +323,29 @@ class AuthGuard:
     def end_session(self, token: str) -> None:
         """Invalidate the current bearer token locally and across instances after logout."""
         if token:
+            if hosted_runtime():
+                url, key = self.supabase()
+                try:
+                    verified = requests.get(
+                        f"{url}/auth/v1/user",
+                        headers={"apikey": key, "Authorization": f"Bearer {token}"},
+                        timeout=SUPABASE_USER_TIMEOUT_SEC,
+                    )
+                    if verified.status_code != 200:
+                        return
+                    user_id = str(verified.json().get("id") or "")
+                    ids = verified_session_ids(token, user_id)
+                    if ids is None:
+                        return
+                    session_action(
+                        "revoke",
+                        *ids,
+                        idle_seconds=int(self._idle_timeout_seconds()),
+                        max_age_seconds=int(self._absolute_lifetime_seconds()),
+                    )
+                except (requests.RequestException, ValueError) as exc:
+                    raise RuntimeError("Durable session revocation unavailable") from exc
+                return
             token_id = hashlib.sha256(token.encode()).hexdigest()
             scope = _runtime_scope()
             with self._lock, _SHARED_LOCK:
@@ -304,7 +410,11 @@ class AuthGuard:
     ) -> tuple[dict | None, str | None]:
         """Atomically redeem a single-use handoff ticket once for its bound origin."""
         cleaned_ticket = (ticket or "").strip()
-        if not cleaned_ticket or len(cleaned_ticket) > 256 or _CONTROL_OR_SPACE_RE.search(cleaned_ticket):
+        if (
+            not cleaned_ticket
+            or len(cleaned_ticket) > 256
+            or _CONTROL_OR_SPACE_RE.search(cleaned_ticket)
+        ):
             return None, "Handoff ticket is invalid, expired, or already used."
         ticket_id = hashlib.sha256(cleaned_ticket.encode("utf-8")).hexdigest()
         now = time.monotonic()
@@ -360,6 +470,71 @@ class AuthGuard:
             return header.removeprefix("Bearer ").strip()
         return request.cookies.get("archipelago_token", "").strip()
 
+    def _hosted_principal(self, token: str, url: str, key: str) -> tuple[dict | None, str | None]:
+        """Verify identity and atomically check shared session state on every request."""
+        headers = {"apikey": key, "Authorization": f"Bearer {token}"}
+        try:
+            user_response = requests.get(
+                f"{url}/auth/v1/user", headers=headers, timeout=SUPABASE_USER_TIMEOUT_SEC
+            )
+            if user_response.status_code != 200:
+                return None, "Your Supabase session could not be verified."
+            user_payload = user_response.json()
+            user_id = str(user_payload.get("id") or "") if isinstance(user_payload, dict) else ""
+            ids = verified_session_ids(token, user_id)
+            if ids is None:
+                return None, "Your Supabase session could not be verified."
+            profile_response = requests.get(
+                f"{url}/rest/v1/profiles",
+                params={"select": "username,role", "id": f"eq.{user_id}"},
+                headers=headers,
+                timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
+            )
+            if profile_response.status_code != 200:
+                return None, "Supabase identity verification is unavailable."
+            profiles = profile_response.json()
+        except (requests.RequestException, ValueError):
+            return None, "Supabase identity verification is unavailable."
+        if (
+            not isinstance(profiles, list)
+            or len(profiles) != 1
+            or not isinstance(profiles[0], dict)
+        ):
+            return None, "Your account does not have an assigned Archipelago role."
+        role = str(profiles[0].get("role") or "")
+        if role not in AUTH_ROLES:
+            return None, "Your account role is not permitted in Archipelago."
+        operation = (
+            "register"
+            if request.path == "/api/auth/session" and request.method == "POST"
+            else "check"
+        )
+        try:
+            result = session_action(
+                operation,
+                *ids,
+                idle_seconds=int(self._idle_timeout_seconds()),
+                max_age_seconds=int(self._absolute_lifetime_seconds()),
+                passive=self._is_background_poll(),
+            )
+        except RuntimeError:
+            return None, "Durable session verification is unavailable."
+        status = result["status"]
+        if status != "active":
+            messages = {
+                "idle_expired": "This session expired after inactivity. Sign in again.",
+                "absolute_expired": "This session reached its maximum lifetime. Sign in again.",
+                "revoked_credentials": "This session has been revoked. Sign in again.",
+                "missing_session": "A Supabase session is required.",
+            }
+            return None, messages[status]
+        return {
+            "id": user_id,
+            "role": role,
+            "username": profiles[0].get("username") or "",
+            "token": token,
+        }, None
+
     def principal(self) -> tuple[dict | None, str | None]:
         """Return ``(principal, error)``.
 
@@ -376,6 +551,10 @@ class AuthGuard:
             return None, "A Supabase session is required."
         if _is_rejected_jwt_or_token(token):
             return None, "Your Supabase session could not be verified."
+        if _is_expired_jwt(token):
+            return None, "Your JWT token expired. Sign in again."
+        if hosted_runtime():
+            return self._hosted_principal(token, url, key)
         token_id = hashlib.sha256(token.encode()).hexdigest()
         now = time.monotonic()
         idle_timeout = self._idle_timeout_seconds()
@@ -393,10 +572,11 @@ class AuthGuard:
                 self._last_activity.pop(token_id, None)
                 self._session_started.pop(token_id, None)
                 self._principal_cache.pop(token_id, None)
-                return (
-                    None,
-                    "Your session timed out after five minutes of inactivity. Sign in again.",
-                )
+                if is_revoked:
+                    return None, "This session has been revoked. Sign in again."
+                if abs_expired:
+                    return None, "This session reached its maximum lifetime. Sign in again."
+                return None, "This session expired after inactivity. Sign in again."
             cached = self._principal_cache.get(token_id)
             if cached is not None and (now - cached[1]) < PRINCIPAL_CACHE_TTL_SECONDS:
                 if not is_poll or token_id not in self._last_activity:
@@ -436,7 +616,11 @@ class AuthGuard:
             profiles = profile_response.json()
         except ValueError:
             return None, "Your Supabase session could not be verified."
-        if not isinstance(profiles, list) or len(profiles) != 1 or not isinstance(profiles[0], dict):
+        if (
+            not isinstance(profiles, list)
+            or len(profiles) != 1
+            or not isinstance(profiles[0], dict)
+        ):
             return None, "Your account does not have an assigned Archipelago role."
         role = str(profiles[0].get("role") or "")
         if role not in AUTH_ROLES:
@@ -567,9 +751,7 @@ class RateLimiter:
                 limited_now = used >= HOURLY_QUERY_LIMIT
                 reset_ts = (oldest_at + QUERY_WINDOW_SECONDS) if oldest_at is not None else None
                 retry_after = (
-                    max(1, math.ceil(reset_ts - now))
-                    if limited_now and reset_ts is not None
-                    else 0
+                    max(1, math.ceil(reset_ts - now)) if limited_now and reset_ts is not None else 0
                 )
                 return True, {
                     "limited": True,
@@ -648,7 +830,9 @@ class RateLimiter:
                 "retry_after": retry_after,
                 "reset_at": _format_iso_utc(reset_ts),
             }
-        reset_at = _format_iso_utc(oldest_at + QUERY_WINDOW_SECONDS) if oldest_at is not None else None
+        reset_at = (
+            _format_iso_utc(oldest_at + QUERY_WINDOW_SECONDS) if oldest_at is not None else None
+        )
         return {
             "limited": False,
             "limit": HOURLY_QUERY_LIMIT,
@@ -662,7 +846,9 @@ class RateLimiter:
     @staticmethod
     def client_ip() -> str:
         """Extract the client IP without trusting client-spoofable forwarding headers."""
-        trust_proxy = bool(os.environ.get("VERCEL")) or os.environ.get("ARCHIPELAGO_TRUST_PROXY") == "1"
+        trust_proxy = (
+            bool(os.environ.get("VERCEL")) or os.environ.get("ARCHIPELAGO_TRUST_PROXY") == "1"
+        )
         if trust_proxy:
             for header in CLIENT_IP_HEADERS:
                 value = request.headers.get(header)
