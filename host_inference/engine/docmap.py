@@ -10,6 +10,11 @@ from __future__ import annotations
 
 HF_DOC_MAP = {
     "doc_lora_low_rank_adaptation_of_large": "papers/Hu2021_LoRA.pdf",
+    "doc_attention_is_all_you_need": "papers/Vaswani2017_Attention_Is_All_You_Need.pdf",
+    "doc_bert_pre_training_of_deep_bidirectional": "papers/Devlin2018_BERT.pdf",
+    "doc_direct_preference_optimization_your_language": "papers/Rafailov2023_DPO.pdf",
+    "doc_vllm_efficient_memory_management_for": "papers/Kwon2023_vLLM.pdf",
+    "doc_mathematics_for_machine_learning": "textbooks/Deisenroth_Math_For_ML.pdf",
     "hu2021_lora.pdf": "papers/Hu2021_LoRA.pdf",
     "lora_paper": "papers/Hu2021_LoRA.pdf",
     "dettmers2023_qlora.pdf": "papers/Dettmers2023_QLoRA.pdf",

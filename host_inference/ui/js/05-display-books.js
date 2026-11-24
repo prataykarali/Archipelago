@@ -1,19 +1,69 @@
 // Auto-split from ui/chat/index.html — 05-display-books.js
 // Feature module 6 of 22.
 import { state } from './00-state.js';
-import { CATALOG_55, DOM_SECTIONS, getCategory, getDocCollection } from './04-start-new-chat.js';
+import { CATALOG_55, DOM_SECTIONS, getCategory, getDocCollection, setActiveDomainFilter } from './04-start-new-chat.js';
 import { openBookOrUnavailable } from './06-open-book-or-unavailable.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_HOST } from './00-current-origin.js';
+
+function renderAllDomainsDrawer(allDocs) {
+    const listEl = document.getElementById('all-domains-list');
+    if (!listEl) return;
+
+    const counts = {};
+    DOM_SECTIONS.forEach(sec => { counts[sec.key] = 0; });
+    allDocs.forEach(doc => {
+        if (state.currentTypeFilter !== 'all') {
+            const col = getDocCollection(doc);
+            if (state.currentTypeFilter === 'library_pearson' && col !== 'library_pearson') return;
+            if (state.currentTypeFilter === 'open_source' && col !== 'open_source') return;
+        }
+        const domKey = doc.dom || getCategory(doc.id, doc.title);
+        if (Object.prototype.hasOwnProperty.call(counts, domKey)) {
+            counts[domKey] += 1;
+        }
+    });
+
+    listEl.innerHTML = '';
+    DOM_SECTIONS.forEach(sec => {
+        const count = counts[sec.key] || 0;
+        const active = state.currentFilter === sec.key;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('data-domain-key', sec.key);
+        btn.className = active
+            ? 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-accentPurple/30 text-white border border-accentPurple/50 text-[11px] font-bold transition-all text-left'
+            : 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 border border-transparent text-[11px] font-medium transition-all text-left';
+        btn.innerHTML = `
+            <span class="flex items-center gap-2 truncate">
+                <img src="${sec.btn}" class="w-3.5 h-3.5 object-contain shrink-0" alt="">
+                <span class="truncate">${escapeHTML(sec.label)}</span>
+            </span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-gray-300 font-mono shrink-0">${count}</span>
+        `;
+        btn.onclick = () => {
+            setActiveDomainFilter(sec.key);
+            const drawer = document.getElementById('all-domains-drawer');
+            const toggleBtn = document.getElementById('all-domains-toggle-btn');
+            const chev = document.getElementById('all-domains-chevron');
+            if (drawer) drawer.classList.add('hidden');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+            if (chev) chev.style.transform = '';
+        };
+        listEl.appendChild(btn);
+    });
+}
 
 function displayBooks() {
     const container = document.getElementById('books-list');
     const countEl = document.getElementById('books-count');
     if (!container) return;
 
+    const allDocs = Object.keys(state.GLOBAL_DOC_MAP).map(k => state.GLOBAL_DOC_MAP[k]);
+    renderAllDomainsDrawer(allDocs);
+
     const entries = [];
-    Object.keys(state.GLOBAL_DOC_MAP).forEach(k => {
-        const doc = state.GLOBAL_DOC_MAP[k];
+    allDocs.forEach(doc => {
         if (state.currentFilter !== 'all' && doc.dom !== state.currentFilter) return;
         if (state.currentTypeFilter !== 'all') {
             const col = getDocCollection(doc);
@@ -27,7 +77,7 @@ function displayBooks() {
 
     if (countEl) countEl.textContent = `(${entries.length} docs)`;
     if (!entries.length) {
-        container.innerHTML = '<p class="text-xs text-gray-500 italic p-2">No docs match filter.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-500 italic p-2">No indexed books or papers match this domain/type filter yet.</p>';
         return;
     }
 
@@ -51,11 +101,19 @@ function displayBooks() {
         qList.className = "space-y-2";
         citations.forEach(cite => {
             const title = cite.doc_title || cite.title || (cite.doc_id ? cite.doc_id.split('/').pop() : 'Cited Resource');
-            const page = cite.page_number || cite.printed_page || 1;
-            const hfUrl = cite.hf_url || (cite.doc_id && cite.doc_id.endsWith('.pdf') ? `https://huggingface.co/datasets/Prataykarali/Library_books/blob/main/${cite.doc_id}` : null);
-            const openUrl = cite.url || cite.reader_url || `/read/${encodeURIComponent(cite.doc_id || '')}?page=${page}#page=${page}`;
+            const rawPage = Number(cite.page_number || cite.printed_page);
+            const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
+            const isPearson = Boolean(cite.is_pearson || cite.source_category === 'pearson_catalogue_only' || (cite.url && String(cite.url).startsWith('/open/')));
+            const isTocOnly = cite.source_category === 'toc_index_only_textbook' || cite.source_type === 'toc_index_only';
+            const isResolvable = cite.reader_resolvable !== false && !cite.withdrawn && Boolean(cite.url || cite.reader_url);
+            const openUrl = isResolvable ? (cite.url || cite.reader_url || '') : '';
             const shelfLoc = cite.shelf || (cite.call_number ? `Shelf: ${cite.call_number}` : (cite.location || null));
-            const isPearson = !!(cite.is_pearson || (cite.book_id && !isNaN(Number(cite.book_id))));
+
+            const actionHtml = openUrl
+                ? (isPearson
+                    ? `<a href="${escapeHTML(openUrl)}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 border border-amber-400/40 font-semibold flex items-center gap-1 transition-colors"><i class="fa-solid fa-building-columns text-[9px]"></i> Open in Pearson</a>`
+                    : `<a href="${escapeHTML(openUrl)}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-accentPurple/25 hover:bg-accentPurple/40 text-purple-200 border border-accentPurple/40 font-semibold flex items-center gap-1 transition-colors"><i class="fa-solid fa-book-open text-[9px]"></i> ${page ? 'Open Exact Page' : 'Open Reader'}</a>`)
+                : `<span class="px-2 py-0.5 rounded bg-white/10 text-gray-400 border border-white/15 font-semibold">${isTocOnly ? 'TOC / Index Only' : 'Metadata Only'}</span>`;
 
             const cCard = document.createElement('div');
             cCard.className = "p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-accentPurple/50 transition-all text-xs space-y-1.5";
@@ -64,22 +122,13 @@ function displayBooks() {
                     <div class="font-bold text-gray-100 hover:text-white flex-1 leading-snug">
                         ${escapeHTML(title)}
                     </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
-                        p. ${page}
-                    </span>
+                    ${page && !isPearson ? `<span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">p. ${page}</span>` : ''}
                 </div>
                 <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[10px]">
-                    <a href="${openUrl}" target="_blank" class="px-2 py-0.5 rounded bg-accentPurple/25 hover:bg-accentPurple/40 text-purple-200 border border-accentPurple/40 font-semibold flex items-center gap-1 transition-colors">
-                        <i class="fa-solid fa-book-open text-[9px]"></i> Open Exact Page
-                    </a>
-                    ${hfUrl ? `
-                        <a href="${hfUrl}" target="_blank" class="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 font-semibold flex items-center gap-1 transition-colors">
-                            <i class="fa-solid fa-cube text-[9px]"></i> HF Dataset
-                        </a>
-                    ` : ''}
+                    ${actionHtml}
                     ${isPearson ? `
                         <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
-                            🏛️ Pearson
+                            🏛️ Pearson (${escapeHTML(cite.book_type || 'catalogue')})
                         </span>
                     ` : ''}
                     ${shelfLoc ? `
@@ -124,13 +173,17 @@ function displayBooks() {
             const hasPdf = !!(doc.pdf && /\.(pdf|md)$/i.test(doc.pdf));
             btn.onclick = () => openBookOrUnavailable({
                 id: doc.id,
-                book_id: doc.id,
+                book_id: doc.book_id || doc.id,
                 isbn: doc.isbn,
                 title: doc.title,
                 authors: doc.authors || 'Corpus Document',
                 type: doc.cat || 'paper',
                 year: doc.year || 2025,
                 pdf: hasPdf ? doc.pdf : null,
+                open_url: doc.open_url || '',
+                is_pearson: Boolean(doc.is_pearson || doc.collection === 'library_pearson'),
+                book_type: doc.book_type || 'pdf',
+                page_verified: Boolean(doc.page_verified),
                 topics: doc.topics || []
             });
             
@@ -163,20 +216,23 @@ function displayBooks() {
 }
 
 async function renderBookStack() {
+    // Seed initial fallback from CATALOG_55 only until /api/catalog/all responds.
     CATALOG_55.forEach(doc => {
+        const mappedDom = getCategory(doc.id, doc.title);
         state.GLOBAL_DOC_MAP[doc.id] = {
             id: doc.id,
             title: doc.title,
             authors: doc.authors,
             year: doc.year,
             cat: doc.cat,
-            dom: doc.dom || getCategory(doc.id),
+            dom: mappedDom,
             pdf: doc.pdf,
+            open_url: doc.pdf && /\.pdf$/i.test(doc.pdf) ? `/read?doc=${encodeURIComponent(doc.pdf)}` : '',
             topics: doc.topics,
             pages: []
         };
     });
-    
+
     displayBooks();
 
     try {
@@ -184,20 +240,32 @@ async function renderBookStack() {
         if (res.ok) {
             const data = await res.json();
             const docs = data.documents || data || [];
-            docs.forEach(doc => {
-                state.GLOBAL_DOC_MAP[doc.id] = {
-                    id: doc.id,
-                    title: doc.title,
-                    authors: doc.authors,
-                    year: doc.year,
-                    cat: doc.cat,
-                    dom: getCategory(doc.id),
-                    pdf: doc.pdf,
-                    topics: doc.topics,
-                    pages: []
-                };
-            });
-            displayBooks();
+            if (Array.isArray(docs) && docs.length > 0) {
+                // Replace with authoritative server-side catalog (40 Pearson + 43 HF open-access sources)
+                // so zero dead stub entries appear and every item redirects cleanly.
+                state.GLOBAL_DOC_MAP = {};
+                docs.forEach(doc => {
+                    state.GLOBAL_DOC_MAP[doc.id] = {
+                        id: doc.id,
+                        book_id: doc.book_id || doc.id,
+                        isbn: doc.isbn || '',
+                        title: doc.title,
+                        authors: doc.authors,
+                        year: doc.year,
+                        cat: doc.cat,
+                        dom: doc.dom || getCategory(doc.id, doc.title),
+                        collection: doc.collection || (doc.is_pearson ? 'library_pearson' : 'open_source'),
+                        is_pearson: Boolean(doc.is_pearson),
+                        book_type: doc.book_type || 'pdf',
+                        page_verified: Boolean(doc.page_verified),
+                        open_url: doc.open_url || '',
+                        pdf: doc.pdf || '',
+                        topics: doc.topics || [],
+                        pages: []
+                    };
+                });
+                displayBooks();
+            }
         }
     } catch (err) {
         console.error("Failed to load catalog from API:", err);

@@ -178,13 +178,18 @@ function startNewChat() {
 window._graphNeighborhood = state._graphNeighborhood;
 
 const DOM_SECTIONS = [
-    { key: 'dbms', label: 'DBMS & Data Systems', btn: '/ui/assets/book_btn.png', color: 'text-amber-400 border-amber-400/30 bg-amber-400/10' },
-    { key: 'os', label: 'Operating Systems (OSTEP)', btn: '/ui/assets/note_btn.png', color: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' },
-    { key: 'dl', label: 'Deep Learning & LLMs', btn: '/ui/assets/brain_btn2.png', color: 'text-cyan-300 border-cyan-400/30 bg-cyan-400/10' },
-    { key: 'math', label: 'Mathematics & Algorithms', btn: '/ui/assets/settings_btn.png', color: 'text-purple-300 border-purple-400/30 bg-purple-400/10' },
-    { key: 'peft', label: 'Fine-Tuning, RAG & Agents', btn: '/ui/assets/flash_card_btn.png', color: 'text-pink-400 border-pink-400/30 bg-pink-400/10' },
-    { key: 'gnn', label: 'Graph Neural Nets & GenAI', btn: '/ui/assets/graph_btn.png', color: 'text-indigo-400 border-indigo-400/30 bg-indigo-400/10' },
-    { key: 'syllabi', label: 'Syllabi & Course Notes', btn: '/ui/assets/note_btn2.png', color: 'text-yellow-300 border-yellow-400/30 bg-yellow-400/10' }
+    { key: 'os', label: 'Operating Systems', btn: '/ui/assets/note_btn.png', color: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' },
+    { key: 'dbms', label: 'Database Systems', btn: '/ui/assets/book_btn.png', color: 'text-amber-400 border-amber-400/30 bg-amber-400/10' },
+    { key: 'dsa', label: 'Data Structures & Algorithms', btn: '/ui/assets/settings_btn.png', color: 'text-orange-300 border-orange-400/30 bg-orange-400/10' },
+    { key: 'net', label: 'Computer Networks', btn: '/ui/assets/network_btn.png', color: 'text-sky-300 border-sky-400/30 bg-sky-400/10' },
+    { key: 'cmp', label: 'Compilers & Languages', btn: '/ui/assets/flash_card_btn.png', color: 'text-fuchsia-300 border-fuchsia-400/30 bg-fuchsia-400/10' },
+    { key: 'aut', label: 'Automata & Computation', btn: '/ui/assets/graph_btn.png', color: 'text-violet-300 border-violet-400/30 bg-violet-400/10' },
+    { key: 'math', label: 'Mathematics for Computing', btn: '/ui/assets/settings_btn.png', color: 'text-purple-300 border-purple-400/30 bg-purple-400/10' },
+    { key: 'prob', label: 'Probability & Statistics', btn: '/ui/assets/flash_card_btn.png', color: 'text-pink-400 border-pink-400/30 bg-pink-400/10' },
+    { key: 'sec', label: 'Information Security', btn: '/ui/assets/search_btn.png', color: 'text-rose-400 border-rose-400/30 bg-rose-400/10' },
+    { key: 'ai', label: 'AI & Machine Learning', btn: '/ui/assets/brain_btn2.png', color: 'text-cyan-300 border-cyan-400/30 bg-cyan-400/10' },
+    { key: 'se', label: 'Software Engineering', btn: '/ui/assets/library_btn.png', color: 'text-teal-300 border-teal-400/30 bg-teal-400/10' },
+    { key: 'coa', label: 'Computer Architecture', btn: '/ui/assets/note_btn2.png', color: 'text-yellow-300 border-yellow-400/30 bg-yellow-400/10' }
 ];
 
 const CATALOG_55 = [
@@ -286,18 +291,47 @@ function getDocCollection(doc) {
     return 'open_source';
 }
 
-function getCategory(docId) {
-    for (let i = 0; i < CATALOG_55.length; i++) {
-        if (CATALOG_55[i].id === docId || CATALOG_55[i].pdf === docId) return CATALOG_55[i].dom;
+function getCategory(docId, titleOrDomain) {
+    const validKeys = new Set(DOM_SECTIONS.map(s => s.key));
+    if (titleOrDomain && validKeys.has(String(titleOrDomain))) {
+        return String(titleOrDomain);
     }
-    const lower = (docId || '').toLowerCase();
-    if (lower.indexOf('dbms') !== -1 || lower.indexOf('database') !== -1) return 'dbms';
-    if (lower.indexOf('ostep') !== -1 || lower.indexOf('operating') !== -1) return 'os';
-    if (lower.indexOf('math') !== -1 || lower.indexOf('algorithm') !== -1) return 'math';
-    if (lower.indexOf('lora') !== -1 || lower.indexOf('rag') !== -1 || lower.indexOf('peft') !== -1) return 'peft';
-    if (lower.indexOf('graph') !== -1 || lower.indexOf('gan') !== -1 || lower.indexOf('vae') !== -1) return 'gnn';
-    if (lower.indexOf('syllabus') !== -1 || lower.indexOf('notes') !== -1) return 'syllabi';
-    return 'dl';
+    const lower = `${docId || ''} ${titleOrDomain || ''}`.toLowerCase();
+    if (lower.includes('ostep') || lower.includes('operating system')) return 'os';
+    if (lower.includes('dbms') || lower.includes('database') || lower.includes('web technology') || lower.includes('web development') || lower.includes('html5')) return 'dbms';
+    if (lower.includes('algorithm') || lower.includes('data structure') || lower.includes('programming in c') || lower.includes('clrs') || lower.includes('weiss')) return 'dsa';
+    if (lower.includes('cryptography') || lower.includes('network security') || lower.includes('constitutionalai')) return 'sec';
+    if (lower.includes('computer networks') || lower.includes('computer communications') || lower.includes('wireless') || lower.includes('iot fundamentals')) return 'net';
+    if (lower.includes('compiler') || lower.includes('outlines') || lower.includes('willard2023')) return 'cmp';
+    if (lower.includes('automata') || lower.includes('formal language') || lower.includes('turing')) return 'aut';
+    if (lower.includes('probability') || lower.includes('statistics') || lower.includes('kingma2013') || lower.includes('ho2020')) return 'prob';
+    if (lower.includes('deisenroth') || lower.includes('math') || lower.includes('signal processing') || lower.includes('image processing') || lower.includes('quantitative')) return 'math';
+    if (lower.includes('software engineering') || lower.includes('computer fundamentals') || lower.includes('objective english') || lower.includes('general knowledge')) return 'se';
+    if (lower.includes('computer system architecture') || lower.includes('computer organization') || lower.includes('digital logic') || lower.includes('digital design') || lower.includes('microcontroller') || lower.includes('electronic devices') || lower.includes('electrical engineering') || lower.includes('op-amps')) return 'coa';
+    return 'ai';
+}
+
+function setActiveDomainFilter(filterKey) {
+    const f = filterKey || 'all';
+    state.currentFilter = f;
+    const booksFilter = document.getElementById('books-filter');
+    if (booksFilter) {
+        booksFilter.querySelectorAll('button[data-filter]').forEach(b => {
+            const active = b.getAttribute('data-filter') === f;
+            b.className = active
+                ? 'px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all'
+                : 'px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all';
+        });
+    }
+    const toggleBtn = document.getElementById('all-domains-toggle-btn');
+    if (toggleBtn) {
+        const match = DOM_SECTIONS.find(s => s.key === f);
+        const labelSpan = toggleBtn.querySelector('span');
+        if (labelSpan) {
+            labelSpan.textContent = match ? match.label : `All Domains (${DOM_SECTIONS.length})`;
+        }
+    }
+    displayBooks();
 }
 
 function setupFilterButtons() {
@@ -308,15 +342,34 @@ function setupFilterButtons() {
         newFilter.addEventListener('click', (e) => {
             const btn = e.target.closest('button');
             if (!btn) return;
-            const f = btn.getAttribute('data-filter') || 'all';
-            state.currentFilter = f;
-            newFilter.querySelectorAll('button').forEach(b => {
-                const active = b.getAttribute('data-filter') === f;
-                b.className = active 
-                    ? 'px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all'
-                    : 'px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all';
-            });
-            displayBooks();
+            setActiveDomainFilter(btn.getAttribute('data-filter') || 'all');
+        });
+    }
+
+    const toggleBtn = document.getElementById('all-domains-toggle-btn');
+    const drawer = document.getElementById('all-domains-drawer');
+    const chevron = document.getElementById('all-domains-chevron');
+    if (toggleBtn && drawer) {
+        const newToggle = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggle, toggleBtn);
+        newToggle.addEventListener('click', () => {
+            const isHidden = drawer.classList.toggle('hidden');
+            newToggle.setAttribute('aria-expanded', String(!isHidden));
+            const chev = document.getElementById('all-domains-chevron');
+            if (chev) chev.style.transform = isHidden ? '' : 'rotate(180deg)';
+        });
+        if (chevron) chevron.style.transform = '';
+    }
+
+    const resetBtn = document.getElementById('all-domains-reset-btn');
+    if (resetBtn) {
+        const newReset = resetBtn.cloneNode(true);
+        resetBtn.parentNode.replaceChild(newReset, resetBtn);
+        newReset.addEventListener('click', () => {
+            setActiveDomainFilter('all');
+            if (drawer) drawer.classList.add('hidden');
+            const tb = document.getElementById('all-domains-toggle-btn');
+            if (tb) tb.setAttribute('aria-expanded', 'false');
         });
     }
 
@@ -331,13 +384,13 @@ function setupFilterButtons() {
             state.currentTypeFilter = f;
             newTypeFilter.querySelectorAll('button').forEach(b => {
                 const active = b.getAttribute('data-type-filter') === f;
-                b.className = active 
-                    ? 'flex-1 px-2.5 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all'
-                    : 'flex-1 px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all';
+                b.className = active
+                    ? 'flex-1 px-2.5 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center'
+                    : 'flex-1 px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center';
             });
             displayBooks();
         });
     }
 }
 
-export { CATALOG_55, DOM_SECTIONS, getCategory, getDocCollection, setupFilterButtons, startNewChat };
+export { CATALOG_55, DOM_SECTIONS, getCategory, getDocCollection, setActiveDomainFilter, setupFilterButtons, startNewChat };

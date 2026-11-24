@@ -156,7 +156,7 @@ import { state } from './00-state.js';
             showPearsonCredentialToast();
         }
 
-        // Dynamically load full Pearson manifest with all slugs and doc_ ids
+        // Dynamically load full Pearson manifest with all slugs and doc_ ids (no subscriptionId stored client-side).
         fetch('/data/catalogs/pearson_bookshelf.json').then(r => r.json()).then(data => {
             if (data && data.books) {
                 for (const b of data.books) {
@@ -164,7 +164,6 @@ import { state } from './00-state.js';
                         id: b.id,
                         slug: b.slug || '',
                         type: b.book_type || 'pdf',
-                        sub: b.subscription_id || 'debf3e10-c27c-469a-a2aa-8a30c919db91',
                         isbn: b.isbn || '',
                         title: b.title,
                         author: b.author || ''
@@ -231,38 +230,28 @@ import { state } from './00-state.js';
 
         function citationPageUrl(citation) {
             if (!citation || typeof citation !== 'object') return '';
-            let rawPage = Number(citation.page_number ?? citation.page);
-            let page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
-            if (!Number.isFinite(page) || page < 1) page = 1;
+            if (citation.reader_resolvable === false || citation.withdrawn) return '';
+            const rawPage = Number(citation.page_number ?? citation.page);
+            const verifiedPage = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
 
-            const directUrl = citation.reader_url || citation.url || citation.pdf_url || '';
-
-            // The hosted PDF route resolves a filename; /read?doc=papers/... can
-            // encode the folder twice and fail in the reader on Vercel.
-            if (typeof directUrl === 'string' && directUrl.startsWith('/read?')) {
-                const docId = String(citation.doc_id || citation.document_id || '');
-                const filename = docId.split('/').pop();
-                if (filename && filename.toLowerCase().endsWith('.pdf')) {
-                    return `/papers/${encodeURIComponent(filename)}${page ? `#page=${page}` : ''}`;
-                }
-            }
+            const directUrl = citation.open_url || citation.reader_url || citation.url || citation.pdf_url || '';
 
             if (typeof directUrl === 'string' && (directUrl.startsWith('/open/') || directUrl.startsWith('/read?'))) {
                 return directUrl;
             }
             if (typeof directUrl === 'string' && (directUrl.startsWith('/papers/') || directUrl.includes('/papers/'))) {
                 const clean = directUrl.split('#')[0];
-                return `${clean}${page ? `#page=${page}` : ''}`;
+                return `${clean}${verifiedPage ? `#page=${verifiedPage}` : ''}`;
             }
 
             // 1. Direct Pearson URL already present
             if (typeof directUrl === 'string' && directUrl.includes('pearson.com')) {
-                // Reader URLs carry the book in their hash. Appending /page after
-                // a query string produces a white Pearson viewer.
                 return directUrl;
             }
 
-            // 2. Identify Pearson book from catalog using any candidate ID or title
+            // 2. Identify Pearson book from catalog — always route through server /open/<book_id>
+            // so subscriptionId stays server-side, pdf vs reflowable is handled cleanly, and
+            // unverified page numbers are never invented.
             const candidates = [
                 citation.book_id,
                 citation.doc_id,
@@ -282,19 +271,13 @@ import { state } from './00-state.js';
             const isPearson = Boolean(pEntry || citation.is_pearson || citation.subscription_id || citation.source === 'pearson');
 
             if (isPearson) {
-                const subId = (pEntry && pEntry.sub) || citation.subscription_id;
                 const bId = (pEntry && pEntry.id) || citation.book_id;
-                // Never guess an identifier: without a real book id we would link
-                // the reader to an unrelated book, so fall through to the
-                // internal page-view reader instead of fabricating a URL.
-                if (!subId || !bId) {
-                    if (directUrl) return directUrl;
-                    return '';
+                if (!bId) {
+                    return directUrl || '';
                 }
-                const bType = (pEntry && pEntry.type) || citation.book_type || 'pdf';
-                const viewer = bType === 'reflowable' ? 'index.html' : 'pdfviewer.html';
-                const pagePart = page ? `/page/${page}` : '';
-                return `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1&subscriptionId=${subId}#book/${bId}${pagePart}`;
+                const bType = String((pEntry && pEntry.type) || citation.book_type || 'pdf').toLowerCase();
+                const usePage = Boolean(citation.page_verified === true && bType === 'pdf' && verifiedPage);
+                return `/open/${encodeURIComponent(bId)}${usePage ? `?page=${verifiedPage}` : ''}`;
             }
 
             // 3. Saved research URLs are document-level unless a real page was verified.
@@ -313,12 +296,12 @@ import { state } from './00-state.js';
                 canonicalDoc = HF_CANONICAL_DOCS[baseName];
             } else if (HF_CANONICAL_DOCS[cleanDoc.toLowerCase()]) {
                 canonicalDoc = HF_CANONICAL_DOCS[cleanDoc.toLowerCase()];
-            } else if (!canonicalDoc.startsWith('papers/') && !canonicalDoc.startsWith('textbooks/') && !canonicalDoc.startsWith('archipelago-books-cs/')) {
+            } else if (!canonicalDoc.startsWith('papers/') && !canonicalDoc.startsWith('textbooks/') && !canonicalDoc.startsWith('archipelago-books-cs/') && !canonicalDoc.startsWith('books/')) {
                 canonicalDoc = '';
             }
 
             if (canonicalDoc) {
-                return `/read?doc=${encodeURIComponent(canonicalDoc)}${page ? `&page=${page}` : ''}`;
+                return `/read?doc=${encodeURIComponent(canonicalDoc)}${verifiedPage ? `&page=${verifiedPage}` : ''}`;
             }
 
             return '';

@@ -254,6 +254,7 @@ def build_reader_url(book_or_uuid: dict[str, Any] | str, page: int = 1) -> str:
     Returns:
         Full Pearson reader URL with #book/{uuid}/page/{page} fragment.
     """
+    import os
     import re
 
     matched_book = None
@@ -263,20 +264,23 @@ def build_reader_url(book_or_uuid: dict[str, Any] | str, page: int = 1) -> str:
         catalog = _load_pearson_catalog()
         matched_book = _fuzzy_match_book(catalog, str(book_or_uuid), str(book_or_uuid), None)
 
+    book_type = str((matched_book or {}).get("book_type") or "pdf").strip().lower()
     if matched_book and matched_book.get("reader_base_url"):
         base_url = _with_reader_version(matched_book["reader_base_url"])
     elif matched_book:
         b_id = matched_book.get("id")
-        sub_id = matched_book.get("subscription_id") or "debf3e10-c27c-469a-a2aa-8a30c919db91"
-        book_type = matched_book.get("book_type", "pdf")
-        base_url = _reader_url(str(b_id), str(sub_id), str(book_type))
+        sub_id = matched_book.get("subscription_id") or os.environ.get("PEARSON_SUBSCRIPTION_ID", "")
+        base_url = _reader_url(str(b_id), str(sub_id), book_type)
     else:
-        import os
-
-        sub_id = os.environ.get("PEARSON_SUBSCRIPTION_ID", "debf3e10-c27c-469a-a2aa-8a30c919db91")
-        base_url = _reader_url(str(book_or_uuid), str(sub_id))
+        raw_id = str(book_or_uuid or "").strip()
+        if not re.match(r"^[0-9a-fA-F-]{8,}$", raw_id):
+            return ""
+        sub_id = os.environ.get("PEARSON_SUBSCRIPTION_ID", "")
+        base_url = _reader_url(raw_id, str(sub_id), book_type)
 
     clean_base = re.sub(r"/page/\d+", "", base_url)
+    if book_type == "reflowable":
+        return clean_base
     if page and int(page) >= 1:
         return f"{clean_base}/page/{int(page)}"
     return clean_base

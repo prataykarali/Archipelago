@@ -26,6 +26,7 @@ from .provenance import (
     norm_text_hash,
     verify_chunk_provenance,
 )
+from .source_resolution import is_hf_resolvable_doc, is_toc_or_index_doc
 from .text import tokens
 from .withdrawal import is_citable_source, withdrawn_documents
 
@@ -43,6 +44,9 @@ SOURCE_OVERLAP_WEIGHT = 10
 SOURCE_LATER_PAGE_BONUS = 2
 CANONICAL_PAPER_BONUS = 50
 UNIQUE_CHUNK_BONUS = 15
+HF_RESOLVABLE_BONUS = 30
+UNRESOLVABLE_DOC_PENALTY = -30
+TOC_INDEX_DOC_PENALTY = -50
 RAW_UPLOAD_PENALTY = -25
 LOW_SIGNAL_PENALTY = -40
 # Additional passages beyond rank 1 must have direct lexical relevance.
@@ -52,6 +56,11 @@ TEXT_DEDUP_PREFIX_LEN = 160
 
 _INDEX_ENTRY_RE = re.compile(r"\b[a-z][a-z\s-]{2,30},\s*\d+(?:[\u2013-]\d+)?")
 _BIB_YEAR_RE = re.compile(r"\((?:19|20)\d{2}[a-z]?\)")
+_FRONTMATTER_RE = re.compile(
+    r"(?:book:\s*about the authors|chapter file:\s*about-the-authors|"
+    r"contents\s*/\s*section headings:|table of contents\b)",
+    re.I,
+)
 
 # Primary paper doc_id hints for foundational concepts so canonical primary
 # sources outrank secondary passing mentions on the same concept node.
@@ -85,6 +94,8 @@ def is_low_signal_passage(text: str) -> bool:
         single_word = sum(1 for line in lines if len(line.split()) == 1)
         if (single_word / len(lines)) >= SINGLE_WORD_LINE_RATIO:
             return True
+    if _FRONTMATTER_RE.search(cleaned):
+        return True
     if len(_INDEX_ENTRY_RE.findall(cleaned)) >= INDEX_ENTRY_MIN_HITS:
         return True
     return len(_BIB_YEAR_RE.findall(cleaned)) >= BIB_YEAR_MIN_HITS
@@ -119,6 +130,12 @@ def score_source_for_concept(
     total += _primary_paper_bonus(cid, raw_doc, canonical_doc)
     if CANONICAL_CHUNK_RE.match(chunk_id) and not canonical_doc.startswith("upload_"):
         total += UNIQUE_CHUNK_BONUS
+    if is_toc_or_index_doc(raw_doc) or is_toc_or_index_doc(canonical_doc):
+        total += TOC_INDEX_DOC_PENALTY
+    elif is_hf_resolvable_doc(canonical_doc) or is_hf_resolvable_doc(raw_doc):
+        total += HF_RESOLVABLE_BONUS
+    else:
+        total += UNRESOLVABLE_DOC_PENALTY
     if canonical_doc.startswith("upload_"):
         total += RAW_UPLOAD_PENALTY
     if is_low_signal_passage(passage):

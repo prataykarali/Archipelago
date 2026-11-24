@@ -60,6 +60,13 @@ def inventory_cards_for_concept(
         if key in seen:
             continue
         seen.add(key)
+        external_id = str(record.get("external_id") or "").strip()
+        is_pearson = str(record.get("publisher") or "").strip().lower() == "pearson elibrary"
+        safe_reader_url = (
+            f"/open/{external_id}"
+            if is_pearson and external_id
+            else str(record.get("reader_base_url") or "")
+        )
         cards.append(
             {
                 "concept_id": node_id,
@@ -67,10 +74,12 @@ def inventory_cards_for_concept(
                 "author": record.get("author", ""),
                 "isbn": record.get("isbn", ""),
                 "publisher": record.get("publisher", ""),
+                "book_id": external_id,
+                "book_type": str(record.get("book_type") or "pdf").strip().lower(),
                 "resource_type": "institutional_e_book",
                 "match": score,
                 "confidence": confidence,
-                "reader_url": str(record.get("reader_base_url") or ""),
+                "reader_url": safe_reader_url,
             }
         )
         if len(cards) >= MAX_CARDS:

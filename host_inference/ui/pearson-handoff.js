@@ -75,9 +75,13 @@
         }
 
         const book = await response.json();
+        const isReflowable = String(book.book_type || '').toLowerCase() === 'reflowable';
+        const viewer = isReflowable ? 'index.html' : 'pdfviewer.html';
+        const pageSuffix = isReflowable ? '' : `/page/${targetPage}`;
         document.getElementById('book-title').textContent = book.title || 'Pearson Digital Textbook';
-        document.getElementById('book-author').textContent = (book.author || 'Pearson Education') + ` · Page ${targetPage}`;
-        const defaultPearsonUrl = `https://ebooks.elibrary.in.pearson.com/wr/pdfviewer.html?version=1.0.317.1#book/${bookId}/page/${targetPage}`;
+        document.getElementById('book-author').textContent =
+          (book.author || 'Pearson Education') + (isReflowable ? ' · Reflowable eBook (page unverified)' : ` · Requested Page ${targetPage} (unverified)`);
+        const defaultPearsonUrl = `https://ebooks.elibrary.in.pearson.com/wr/${viewer}?version=1.0.317.1#book/${bookId}${pageSuffix}`;
         let safePearsonUrl = defaultPearsonUrl;
         if (typeof book.reader_url === 'string') {
           try {

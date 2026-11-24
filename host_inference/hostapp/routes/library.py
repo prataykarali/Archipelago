@@ -35,28 +35,76 @@ DATASET_BOOK = {
     "desc": "Opens the dataset file at the indexed page.",
 }
 
-CATALOG_AUTHOR = "Research Dataset"
+CATALOG_AUTHOR = "Open Access (HF Library_books)"
 CATALOG_YEAR = 2024
 CATALOG_FALLBACK_AUTHORS = "Pearson Education"
 CATALOG_FALLBACK_YEAR = 2024
 
+CANONICAL_DOMAINS: tuple[tuple[str, str], ...] = (
+    ("os", "Operating Systems"),
+    ("dbms", "Database Systems"),
+    ("dsa", "Data Structures & Algorithms"),
+    ("net", "Computer Networks"),
+    ("cmp", "Compilers & Languages"),
+    ("aut", "Automata & Computation"),
+    ("math", "Mathematics for Computing"),
+    ("prob", "Probability & Statistics"),
+    ("sec", "Information Security"),
+    ("ai", "AI & Machine Learning"),
+    ("se", "Software Engineering"),
+    ("coa", "Computer Architecture"),
+)
+_DOMAIN_LABELS: dict[str, str] = dict(CANONICAL_DOMAINS)
+
 
 def _dataset_domain(path: str) -> str:
     lower = path.lower()
-    if PAPER_MARKER in f"/{path}" or (lower.endswith(".pdf") and "/" not in path):
+    if PAPER_MARKER in f"/{path}" or (
+        lower.endswith(".pdf") and "ostep" not in lower and "deisenroth" not in lower and "textbooks/" not in lower
+    ):
         return "Paper"
     return "Textbook"
 
 
-def _catalog_document_domain(title_or_path: str) -> str:
-    lower = title_or_path.lower()
-    if "database" in lower:
-        return "dbms"
-    if "operating" in lower:
+def _catalog_document_domain(title_or_path: str, domain_hint: str = "") -> str:
+    """Map any library document onto one of the 12 canonical CS/AI domains."""
+    title_low = (title_or_path or "").lower()
+    combined = f"{title_low} {(domain_hint or '').lower()}"
+    if any(k in title_low for k in ("ostep", "operating system", "paging", "virtual memory")):
         return "os"
-    if "math" in lower:
+    if any(k in title_low for k in ("database", "dbms", "sql", "web technology", "web development", "html5")):
+        return "dbms"
+    if any(k in title_low for k in ("algorithm", "data structure", "programming in c")):
+        return "dsa"
+    if any(k in title_low for k in ("cryptography", "network security", "constitutionalai")):
+        return "sec"
+    if any(k in title_low for k in ("computer networks", "computer communications", "wireless", "iot fundamentals")):
+        return "net"
+    if any(k in title_low for k in ("compiler", "outlines", "willard2023")):
+        return "cmp"
+    if any(k in combined for k in ("automata", "formal language", "turing")):
+        return "aut"
+    if any(k in title_low for k in ("probability", "statistics", "kingma2013", "ho2020")):
+        return "prob"
+    if any(k in title_low for k in ("deisenroth", "math", "signal processing", "image processing", "quantitative")):
         return "math"
-    return "dl"
+    if any(k in title_low for k in ("software engineering", "computer fundamentals", "objective english", "general knowledge")):
+        return "se"
+    if any(
+        k in title_low
+        for k in (
+            "computer system architecture",
+            "computer organization",
+            "digital logic",
+            "digital design",
+            "microcontroller",
+            "electronic devices",
+            "electrical engineering",
+            "op-amps",
+        )
+    ):
+        return "coa"
+    return "ai"
 
 
 def register(app: Flask, ctx: AppContext) -> None:
@@ -100,6 +148,16 @@ def register(app: Flask, ctx: AppContext) -> None:
             else "unavailable"
         )
         if manifest.get("ebook_shelf"):
+            placeholder_titles = {
+                "Chapter 1: Foundations & Architecture",
+                "Chapter 2: Core Concepts & Practice",
+                "Chapter 3: Advanced Topics",
+            }
+            for item in manifest["ebook_shelf"]:
+                if isinstance(item, dict) and isinstance(item.get("toc"), list):
+                    titles = {str(t.get("title") or "") for t in item["toc"] if isinstance(t, dict)}
+                    if titles and titles.issubset(placeholder_titles):
+                        item["toc"] = [{"title": "TOC not indexed (catalogue-only metadata)", "page": None}]
             manifest["holdings"] = rows
             manifest["holdings_stats"] = inventory_stats(rows)
             manifest["holdings_status"] = holdings_status
@@ -188,33 +246,78 @@ def register(app: Flask, ctx: AppContext) -> None:
                 continue
             existing.add(book_id)
             title = book.get("title") or ""
+            dom_key = _catalog_document_domain(title, str(book.get("domain") or ""))
+            book_type = str(book.get("book_type") or "pdf").strip().lower()
             docs.append(
                 {
                     "id": book_id,
+                    "book_id": book_id,
+                    "isbn": book.get("isbn") or "",
                     "title": title,
                     "authors": book.get("author") or CATALOG_FALLBACK_AUTHORS,
                     "year": book.get("year", CATALOG_FALLBACK_YEAR),
                     "cat": "textbook",
-                    "dom": _catalog_document_domain(title),
-                    "pdf": book_id,
+                    "dom": dom_key,
+                    "dom_label": _DOMAIN_LABELS.get(dom_key, "AI & Machine Learning"),
+                    "collection": "library_pearson",
+                    "is_pearson": True,
+                    "book_type": book_type,
+                    "page_verified": False,
+                    "source_category": "pearson_catalogue_only",
+                    "open_url": f"/open/{book_id}",
+                    "pdf": "",
                     "topics": [book.get("domain")] if book.get("domain") else [PEARSON_DOMAIN],
                 }
             )
-        for path in load_hf_paths():
-            if path in existing:
+        seen_hf_basenames: set[str] = set()
+        # Prefer canonical structured paths (`books/papers/...`, `books/textbooks/...`, `archipelago-books-cs/...`)
+        # over bare root mirror copies so each open-access source appears cleanly once.
+        hf_paths_sorted = sorted(
+            load_hf_paths(),
+            key=lambda p: (0 if "/" in p else 1, p.lower()),
+        )
+        for path in hf_paths_sorted:
+            if "librarian_uploads/" in path.lower():
+                continue
+            base = path.rsplit("/", 1)[-1].lower()
+            if path in existing or base in seen_hf_basenames:
                 continue
             existing.add(path)
-            is_paper = PAPER_MARKER in f"/{path}" or path.lower().endswith(".pdf")
+            seen_hf_basenames.add(base)
+            is_textbook = (
+                "ostep" in path.lower()
+                or "deisenroth" in path.lower()
+                or "textbooks/" in path.lower()
+            )
+            dom_key = _catalog_document_domain(path)
             docs.append(
                 {
                     "id": path,
                     "title": hf_title(path),
                     "authors": CATALOG_AUTHOR,
                     "year": CATALOG_YEAR,
-                    "cat": "paper" if is_paper else "textbook",
-                    "dom": _catalog_document_domain(path),
+                    "cat": "textbook" if is_textbook else "paper",
+                    "dom": dom_key,
+                    "dom_label": _DOMAIN_LABELS.get(dom_key, "AI & Machine Learning"),
+                    "collection": "open_source",
+                    "is_pearson": False,
+                    "book_type": "pdf",
+                    "page_verified": False,
+                    "source_category": (
+                        "oa_full_text_textbook" if is_textbook else "oa_research_paper"
+                    ),
+                    "open_url": paper_url(path, None),
                     "pdf": path,
-                    "topics": ["Research Paper"],
+                    "topics": ["Open Textbook" if is_textbook else "Open Research Paper"],
                 }
             )
-        return jsonify({"documents": docs, "total": len(docs)})
+        domain_counts = {key: 0 for key, _ in CANONICAL_DOMAINS}
+        for d in docs:
+            dk = d.get("dom") or "ai"
+            if dk in domain_counts:
+                domain_counts[dk] += 1
+        domains_summary = [
+            {"key": key, "label": label, "count": domain_counts[key]}
+            for key, label in CANONICAL_DOMAINS
+        ]
+        return jsonify({"documents": docs, "total": len(docs), "domains": domains_summary})

@@ -19,6 +19,7 @@ from functools import lru_cache
 import json
 import logging
 from pathlib import Path
+import re
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -94,6 +95,7 @@ def _normalise(book: dict[str, Any]) -> dict[str, Any]:
         "available_copies": 0,
         "barcodes": [],
         "page_count": int(book.get("page_count") or 0),
+        "book_type": str(book.get("book_type") or "pdf").strip().lower(),
         "subscription_id": str(book.get("subscription_id") or "").strip(),
         "reader_base_url": str(book.get("reader_base_url") or "").strip(),
         "external_id": str(book.get("id") or "").strip(),
@@ -188,11 +190,17 @@ def catalogue_size() -> int:
 
 
 def reader_link(record: dict[str, Any], page: int = 1) -> str:
-    """Deep link into the Pearson reader for a catalogue record."""
-    base = str(record.get("reader_base_url") or "")
+    """Deep link into the Pearson reader for a catalogue record without double-hash fragments."""
+    base = str(record.get("reader_base_url") or "").strip()
     if not base:
         return ""
-    return f"{base}#page={page}" if page > 1 else base
+    book_type = str(record.get("book_type") or "pdf").strip().lower()
+    if "#book/" in base:
+        clean_base = re.sub(r"/page/\d+$", "", base)
+        if book_type == "reflowable" or page <= 1:
+            return clean_base
+        return f"{clean_base}/page/{int(page)}"
+    return f"{base}#page={int(page)}" if page > 1 else base
 
 
 __all__ = [
