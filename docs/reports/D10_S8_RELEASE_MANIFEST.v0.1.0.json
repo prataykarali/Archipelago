@@ -144,13 +144,17 @@
   "status": "engineering_hold",
   "release_blockers": [
     "Research Staging Supabase project edokbtmhztkhndmxetpy is not accessible through the connected Supabase account; publishable key, secret key, database URL, migration verification, and private passage upload remain pending.",
-    "The supplied Hugging Face token has write access; a read-only token scoped to the approved private datasets is required.",
     "Hosted candidate passages, durable sessions, live provider, auth, and acceptance checks remain unverified."
   ],
   "production_secrets_configured": [
     "ARCHIPELAGO_CSRF_SECRET",
+    "HF_TOKEN",
     "XKIRO_API_KEY"
   ],
+  "hf_token_verified": {
+    "role": "read",
+    "approved_dataset_revisions_accessible": true
+  },
   "supabase": {
     "durable_storage_configured": false,
     "migration_verified_applied": false,
