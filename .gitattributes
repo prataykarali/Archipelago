@@ -46,4 +46,9 @@ host_inference/ui_assets/*.png -filter -diff -merge -text
 host_inference/ui_assets/*.jpg -filter -diff -merge -text
 host_inference/ui_assets/*.jpeg -filter -diff -merge -text
 host_inference/ui_assets/*.mp4 -filter -diff -merge -text
+host_inference/ui/assets/research_archipelago_v2.png -filter -diff -merge -text
+host_inference/ui/assets/library_vortex_poster.jpg -filter -diff -merge -text
+host_inference/ui/assets/landing_vortex_poster.jpg -filter -diff -merge -text
+host_inference/ui/assets/landing_hero_curious.jpg -filter -diff -merge -text
+host_inference/ui/assets/intro_archi.jpeg -filter -diff -merge -text
 *.ttf filter=lfs diff=lfs merge=lfs -text
