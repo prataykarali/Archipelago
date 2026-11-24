@@ -4,7 +4,7 @@ import "./password_visibility.js";
 const API_PREFIX = "/api/";
 const LOGIN_PATH = "/login";
 // Pages anyone may read without signing in.
-const OPEN_PATHS = new Set(["/", "/landing", "/library"]);
+const OPEN_PATHS = new Set(["/", "/landing", "/library", "/chat", "/research"]);
 const IDLE_TIMEOUT_MS = 3600000;
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
 const STAFF_ROUTES = new Set(["/chat", "/library", "/graph", "/research"]);
@@ -340,7 +340,7 @@ window.archipelagoRequireSession = async () => {
     }
   } catch (_) {}
   window.archipelagoClearClientStorage({ includeHistory: false });
-  if (OPEN_PATHS.has(window.location.pathname.replace(/\/$/, "") || "/")) return null;
+  if (OPEN_PATHS.has(window.location.pathname.replace(/\/$/, "") || "/") || window.location.pathname.startsWith("/research")) return null;
   const next = encodeURIComponent(window.location.pathname + window.location.search);
   window.location.replace(`${LOGIN_PATH}?next=${next}`);
   return null;
