@@ -19,16 +19,11 @@ TEXTBOOK_DOMAIN = "Textbooks & Course Material"
 HOLDINGS_DOMAIN = "Central Library Holdings"
 
 _PEARSON_DEMO_TOC = [
-    {"title": "Chapter 1: Foundations & Architecture", "page": 1},
-    {"title": "Chapter 2: Core Concepts & Practice", "page": 35},
-    {"title": "Chapter 3: Advanced Topics", "page": 90},
+    {"title": "TOC not indexed (catalogue-only metadata)", "page": None},
 ]
 
 _PAPER_DEMO_TOC = [
-    {"title": "1. Abstract & Motivation", "page": 1},
-    {"title": "2. Formulation & Architecture", "page": 3},
-    {"title": "3. Experiments & Results", "page": 6},
-    {"title": "4. Conclusions & Future Work", "page": 10},
+    {"title": "TOC not indexed", "page": None},
 ]
 
 

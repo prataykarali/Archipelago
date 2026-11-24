@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from . import catalogue, compose, diagnostics, ingestion_view, inventory
 from .constants import (
@@ -40,6 +41,7 @@ from .routing_constants import (
     SOURCE_LOOKUP_RE,
     WHERE_IS_RE,
 )
+from .source_answer_fixes import source_grounded_os_reply
 
 RESEARCH_INTENT_RE = re.compile(r"\b(research|papers?|studies|literature|evidence|gaps?)\b", re.I)
 ACADEMIC_DOMAIN_RE = re.compile(
@@ -149,18 +151,26 @@ def _is_domain_incompatible(graph, query: str, cid: str) -> bool:
     q_lower = (query or "").lower()
     if cid == "translation" and _OS_MEMORY_CONTEXT_RE.search(query or ""):
         return True
-    if cid == "tree" and re.search(r"\b(avl|binary\s+search|bst|red[-\s]?black|syntax\s+tree|b[-\s]?tree|b\+)\b", q_lower):
+    if cid == "tree" and re.search(
+        r"\b(avl|binary\s+search|bst|red[-\s]?black|syntax\s+tree|b[-\s]?tree|b\+)\b", q_lower
+    ):
         return True
     if cid == "context" and re.search(r"\b(context[-\s]?free|cfl|cfg)\b", q_lower):
         return True
     node = graph.nodes.get(cid) or {}
     label = str(node.get("label") or "").lower()
     summary = str(node.get("summary") or "").lower()
-    if label == "translation" and "natural language" in summary and _OS_MEMORY_CONTEXT_RE.search(query or ""):
+    if (
+        label == "translation"
+        and "natural language" in summary
+        and _OS_MEMORY_CONTEXT_RE.search(query or "")
+    ):
         return True
-    if label == "tree" and "decision tree" in summary and re.search(r"\b(avl|binary\s+search|bst|b[-\s]?tree)\b", q_lower):
-        return True
-    return False
+    return bool(
+        label == "tree"
+        and "decision tree" in summary
+        and re.search(r"\b(avl|binary\s+search|bst|b[-\s]?tree)\b", q_lower)
+    )
 
 
 def _normalize_query_for_graph(query: str) -> str:
@@ -277,21 +287,32 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         clean_query,
         flags=re.I,
     )
+
     def _split_fused(match: re.Match[str]) -> str:
         pfx, sfx = match.group(1), match.group(2)
         if (
             (graph and sfx.lower() in getattr(graph, "nodes", {}))
             or ACADEMIC_DOMAIN_RE.search(sfx)
-            or sfx.lower() in ("deadlock", "deadlocks", "transformer", "transformers", "compiler", "compilers", "paging")
+            or sfx.lower()
+            in (
+                "deadlock",
+                "deadlocks",
+                "transformer",
+                "transformers",
+                "compiler",
+                "compilers",
+                "paging",
+            )
         ):
             return f"{pfx} {sfx}"
         return match.group(0)
 
-    clean_query = re.sub(r"\b(is|what|the|about|explain)([a-z]{3,})\b", _split_fused, clean_query, flags=re.I)
-    if (
-        classify_query_intent(clean_query) == IntentCategory.CAPABILITY_INQUIRY
-        or _CAPABILITY_BROAD_RE.search(clean_query)
-    ):
+    clean_query = re.sub(
+        r"\b(is|what|the|about|explain)([a-z]{3,})\b", _split_fused, clean_query, flags=re.I
+    )
+    if classify_query_intent(
+        clean_query
+    ) == IntentCategory.CAPABILITY_INQUIRY or _CAPABILITY_BROAD_RE.search(clean_query):
         concept_count = len(getattr(graph, "nodes", {}) or {})
         text = (
             "Here is what **Archipelago** currently covers:\n\n"
@@ -319,7 +340,9 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             },
         )
     prior_match = re.search(r"\([Ee]arlier user topics?:\s*(.+?)\)", query or "")
-    prior_topics = [t.strip() for t in prior_match.group(1).split(";") if t.strip()] if prior_match else []
+    prior_topics = (
+        [t.strip() for t in prior_match.group(1).split(";") if t.strip()] if prior_match else []
+    )
     shelf_query = clean_query
     if prior_topics and re.search(r"\b(?:this|that|the)\s+book\b", clean_query, re.I):
         shelf_query = re.sub(
@@ -395,9 +418,13 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     # and answered with a book page instead of a traversal path.
     learning_request = bool(DIAG_RE.search(clean_query))
     relational_request = bool(RELATE_RE.search(clean_query))
-    prereq_request = bool(re.search(r"\b(?:prereq|prereqs|prerequisite|prerequisites)\b", clean_query, re.I))
+    prereq_request = bool(
+        re.search(r"\b(?:prereq|prereqs|prerequisite|prerequisites)\b", clean_query, re.I)
+    )
     explain_request = bool(
-        re.search(r"\b(?:explain|what\s+(?:is|are)|define|how\s+do|how\s+does)\b", clean_query, re.I)
+        re.search(
+            r"\b(?:explain|what\s+(?:is|are)|define|how\s+do|how\s+does)\b", clean_query, re.I
+        )
     )
     book_about_request = bool(
         re.search(
@@ -531,6 +558,10 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     if _CATALOG_AVAILABILITY_RE.search(clean_query):
         return self._route_shelf_query(shelf_query, best_score)
 
+    source_reply = source_grounded_os_reply(graph, self.catalog, clean_query)
+    if source_reply is not None:
+        return source_reply
+
     special_book = special_book_reply(clean_query)
     if special_book is not None:
         return special_book
@@ -567,7 +598,11 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                 "currently indexed as standalone nodes in the local catalog. This explanation uses "
                 "general foundational knowledge rather than local catalog citations.",
                 None,
-                {"hide_graph": True, "score": max(best_score, 0.8), "reason": "academic_general_not_indexed"},
+                {
+                    "hide_graph": True,
+                    "score": max(best_score, 0.8),
+                    "reason": "academic_general_not_indexed",
+                },
             )
         primary = reasoning["indexed_concepts"][0].cid if reasoning["indexed_concepts"] else None
         return (
@@ -602,7 +637,9 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                             or graph.related(primary)
                         )
                     )
-                    or re.search(r"\b(prerequisites?|roadmap|learning path|study plan)\b", query, re.I)
+                    or re.search(
+                        r"\b(prerequisites?|roadmap|learning path|study plan)\b", query, re.I
+                    )
                 ),
                 "intent_category": IntentCategory.MULTI_CONCEPT.value,
             },
@@ -614,11 +651,17 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         if inventory.match_confidence(title_score) != "none":
             return self._route_shelf_query(shelf_query, best_score)
 
-    if re.search(r"\b(?:number\s+of\s+issues|journal\s+issues?|how\s+many\s+issues|recent\s+publications?|clg\s+works?|college\s+(?:works?|publications?)|institutional\s+publications?)\b", clean_query, re.I):
+    if re.search(
+        r"\b(?:number\s+of\s+issues|journal\s+issues?|how\s+many\s+issues|recent\s+publications?|clg\s+works?|college\s+(?:works?|publications?)|institutional\s+publications?)\b",
+        clean_query,
+        re.I,
+    ):
         manifest = _load_library_manifest()
         holdings = list(manifest.get("holdings") or [])
         journals = list(manifest.get("journal_issues") or [])
-        total_issues = sum(int(j.get("Issues") or j.get("issues") or 1) for j in journals if isinstance(j, dict)) or len(journals)
+        total_issues = sum(
+            int(j.get("Issues") or j.get("issues") or 1) for j in journals if isinstance(j, dict)
+        ) or len(journals)
         lines = [
             "**College Library OPAC — Journal Issues & Institutional Holdings**",
             "",
@@ -718,7 +761,9 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             )
         )
         if _is_compare and _academic_compare:
-            known_ids = [cid for cid in (left_id, right_id, *anchors[:2]) if cid and cid in graph.nodes]
+            known_ids = [
+                cid for cid in (left_id, right_id, *anchors[:2]) if cid and cid in graph.nodes
+            ]
             known_ids = list(dict.fromkeys(known_ids))
             parts = [compose.synthesis(self, cid) for cid in known_ids[:2]]
             draft = "\n\n".join(parts) if parts else ""
@@ -900,14 +945,57 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     )
 
 
-_QUERY_STOPWORDS = frozenset({
-    "show", "me", "suggest", "recommend", "list", "find", "which", "what", "are", "is",
-    "the", "a", "an", "any", "some", "books", "book", "textbooks", "textbook", "papers",
-    "paper", "preprints", "preprint", "articles", "article", "about", "on", "for",
-    "explain", "explaining", "in", "of", "and", "or", "to", "library", "catalog",
-    "uem", "uemk", "university", "campus", "college", "institute", "institution",
-    "opac", "koha", "holdings",
-})
+_QUERY_STOPWORDS = frozenset(
+    {
+        "show",
+        "me",
+        "suggest",
+        "recommend",
+        "list",
+        "find",
+        "which",
+        "what",
+        "are",
+        "is",
+        "the",
+        "a",
+        "an",
+        "any",
+        "some",
+        "books",
+        "book",
+        "textbooks",
+        "textbook",
+        "papers",
+        "paper",
+        "preprints",
+        "preprint",
+        "articles",
+        "article",
+        "about",
+        "on",
+        "for",
+        "explain",
+        "explaining",
+        "in",
+        "of",
+        "and",
+        "or",
+        "to",
+        "library",
+        "catalog",
+        "uem",
+        "uemk",
+        "university",
+        "campus",
+        "college",
+        "institute",
+        "institution",
+        "opac",
+        "koha",
+        "holdings",
+    }
+)
 
 
 def _load_library_manifest() -> dict:
@@ -1017,7 +1105,8 @@ def _catalog_books_reply(
     holdings = list(manifest.get("holdings") or [])
 
     raw_query_tokens = [
-        t for t in re.findall(r"[a-z0-9]+", clean_query.lower())
+        t
+        for t in re.findall(r"[a-z0-9]+", clean_query.lower())
         if len(t) >= 2 and t not in _QUERY_STOPWORDS
     ]
 
@@ -1036,9 +1125,8 @@ def _catalog_books_reply(
                 score += 15
 
         for et in terms:
-            if et not in raw_query_tokens:
-                if et in t_tokens:
-                    score += 10
+            if et not in raw_query_tokens and et in t_tokens:
+                score += 10
         return score
 
     matched: list[tuple[int, str, str, str, str]] = []
@@ -1063,7 +1151,9 @@ def _catalog_books_reply(
             seen_titles.add(key)
             item_id = str(item.get("id") or "")
             source = "Pearson eBook" if item.get("isPearson") else "Cloud Reader PDF"
-            link = str(item.get("reader_url") or (f"/open/{item_id}?page=1" if item_id else "/library"))
+            link = str(
+                item.get("reader_url") or (f"/open/{item_id}?page=1" if item_id else "/library")
+            )
             matched.append((sc, title, str(item.get("author") or "—"), source, link))
 
     for item in pearson_fallback:
@@ -1127,7 +1217,9 @@ def _catalog_books_reply(
         if papers_hit is not None and papers_hit[1]:
             lines.append(papers_hit[1])
         else:
-            lines.append("- *No offline preprints currently indexed; browse live scholarly discovery via [/research](/research) for current research publications.*")
+            lines.append(
+                "- *No offline preprints currently indexed; browse live scholarly discovery via [/research](/research) for current research publications.*"
+            )
 
     return (
         "LIBRARY_LOOKUP",
@@ -1182,7 +1274,11 @@ def _indexed_papers_reply(
             for ev in node.get("evidence") or []:
                 doc_id = str(ev.get("doc_id") or "")
                 basename = doc_id.rsplit("/", 1)[-1].lower()
-                if doc_id.startswith("papers/") and doc_id not in seen_ids and basename not in seen_names:
+                if (
+                    doc_id.startswith("papers/")
+                    and doc_id not in seen_ids
+                    and basename not in seen_names
+                ):
                     seen_ids.add(doc_id)
                     seen_names.add(basename)
                     label = str(node.get("label") or cid)
@@ -1198,7 +1294,9 @@ def _indexed_papers_reply(
     for _, title, link in matched[:6]:
         lines.append(f"- **{title}** — [Open in Reader]({link})")
     lines.append("")
-    lines.append("*Source: Indexed Archipelago paper repository (Hugging Face / Graph evidence). Live external literature search is available on `/research`.*")
+    lines.append(
+        "*Source: Indexed Archipelago paper repository (Hugging Face / Graph evidence). Live external literature search is available on `/research`.*"
+    )
     return (
         "RESEARCH_TOPIC",
         "\n".join(lines),

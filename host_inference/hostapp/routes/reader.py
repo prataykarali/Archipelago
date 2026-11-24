@@ -83,13 +83,18 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         book = _find_pearson_book(doc_id)
         if book is not None:
-            pearson_url = pearson_page_url(book, page)
+            raw_page_arg = request.args.get("page") or data.get("page")
+            pearson_page = page if raw_page_arg not in (None, "") else None
+            pearson_url = pearson_page_url(book, pearson_page)
             if not _wants_json():
-                return redirect(f"/open/{book.get('id')}?page={page}")
+                suffix = f"?page={pearson_page}" if pearson_page else ""
+                return redirect(f"/open/{book.get('id')}{suffix}")
             return jsonify(
                 {
                     "doc_id": book.get("id"),
-                    "page": page,
+                    "page": pearson_page,
+                    "page_verified": False,
+                    "book_type": book.get("book_type", "pdf"),
                     "title": book.get("title"),
                     "pdf_url": pearson_url,
                     "url": pearson_url,
@@ -98,7 +103,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             )
 
         mapped = _hf_doc_path(doc_id) or doc_id
-        clean_doc = mapped.lstrip("/").replace("papers/", "")
+        verified_hf = resolve_hf_path(mapped) or resolve_hf_path(doc_id)
+        if not verified_hf:
+            return jsonify(
+                {"error": "not_found", "detail": "This document is not a reader-backed dataset file."}
+            ), 404
+        clean_doc = verified_hf.lstrip("/").removeprefix("papers/")
         target = f"/read?doc={quote(doc_id, safe='')}&page={page}#page={page}"
         if not _wants_json():
             return redirect(target)
@@ -106,7 +116,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             {
                 "doc_id": doc_id,
                 "page": page,
-                "title": hf_title(mapped) if mapped else "Document",
+                "title": hf_title(verified_hf) if verified_hf else "Document",
                 "pdf_url": f"/papers/{clean_doc}",
                 "url": target,
                 "is_pearson": False,
@@ -136,13 +146,17 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         book = _find_pearson_book(clean_id)
         if book is not None:
+            raw_page_arg = request.args.get("page")
+            pearson_page = page if raw_page_arg not in (None, "") else None
             return jsonify(
                 {
                     "id": book.get("id"),
                     "title": book.get("title", ""),
                     "author": book.get("author", "Pearson Education"),
                     "provider": "pearson",
-                    "reader_url": pearson_page_url(book, page),
+                    "book_type": book.get("book_type", "pdf"),
+                    "page_verified": False,
+                    "reader_url": pearson_page_url(book, pearson_page),
                     "page_count": book.get("page_count", 0),
                 }
             )
@@ -269,10 +283,13 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify(
                 {"error": "not_found", "detail": "That title is not in the Pearson catalog."}
             ), 404
-        try:
-            page = max(MIN_PAGE, int(request.args.get("page") or 1))
-        except (ValueError, TypeError):
-            page = MIN_PAGE
+        raw_page_arg = request.args.get("page")
+        pearson_page: int | None = None
+        if raw_page_arg not in (None, ""):
+            try:
+                pearson_page = max(MIN_PAGE, int(raw_page_arg))
+            except (ValueError, TypeError):
+                pearson_page = None
         if request.args.get("direct") == "1":
-            return redirect(pearson_page_url(book, page), code=302)
+            return redirect(pearson_page_url(book, pearson_page), code=302)
         return send_from_directory(UI, "pearson-handoff.html")

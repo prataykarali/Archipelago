@@ -424,6 +424,8 @@ class Engine:
         plan = build_reply_plan(query, route, payload, reply_template_id)
         payload["reply_plan"] = plan
         payload["reply_template"] = plan["primary_template"]
+        trace = payload.setdefault("trace", {})
+        trace["template_id"] = plan["primary_template"]["id"]
 
         can_polish = route in POLISHABLE_ROUTES or (
             bool(result.get("research_overlay"))
@@ -435,6 +437,12 @@ class Engine:
             payload["synthesis_mode"] = "verified_deterministic"
             payload["provider"] = ""
             payload["model"] = {"provider": "deterministic", "model": ""}
+            trace.update(
+                provider="deterministic",
+                model="",
+                synthesis_mode=payload["synthesis_mode"],
+                template_influenced=False,
+            )
             yield json.dumps(payload) + "\n[STREAM_START]\n"
             yield grounded_text
             return
@@ -458,7 +466,9 @@ class Engine:
         if reply_detail == "expanded":
             concept_context = expanded_concept_context(payload)
             if concept_context:
-                safe_text += "\n\nVerified concept context:\n" + concept_context
+                safe_text += (
+                    "\n\nIndexed concept context (edge claims pending review):\n" + concept_context
+                )
         link_lines = [
             line for line in grounded_text.splitlines() if line.startswith(CITATION_LINE_PREFIXES)
         ]
@@ -510,6 +520,12 @@ class Engine:
             payload["synthesis_mode"] = "provider_unavailable_fallback"
             payload["provider"] = "unavailable"
             payload["model"] = {"provider": "unavailable", "model": ""}
+            trace.update(
+                provider="unavailable",
+                model="",
+                synthesis_mode=payload["synthesis_mode"],
+                template_influenced=False,
+            )
             payload["logs"].append(
                 {"step": "AI provider", "status": "error", "details": "No live reply received"}
             )
@@ -524,6 +540,12 @@ class Engine:
         )
         payload["provider"] = selected["provider"]
         payload["model"] = {"provider": selected["provider"], "model": selected["model"]}
+        trace.update(
+            provider=selected["provider"],
+            model=selected["model"],
+            synthesis_mode=payload["synthesis_mode"],
+            template_influenced=bool(reply_detail == "expanded" or reply_template_id),
+        )
         payload["logs"].append(
             {"step": selected["provider"], "status": "ok", "details": selected["model"]}
         )

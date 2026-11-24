@@ -1,0 +1,55 @@
+from_id,edge_type,to_id,relation,source,quarantine_reason,review_status
+deep_learning,REQUIRES,retrieval_augmented_generation,requires,papers/Lewis2020_RAG.pdf:chunk_028,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+long_short_term_memory,REQUIRES,retrieval_augmented_generation,requires,papers/Yao2022_ReAct.pdf:chunk_028,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+language_model,REQUIRES,rag,requires,papers/Lewis2020_RAG.pdf:chunk_037,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+large_language_model,REQUIRES,retrieval_augmented_generation,requires,papers/Lewis2020_RAG.pdf:chunk_057,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+gpt_2,REQUIRES,rag,requires,papers/Lewis2020_RAG.pdf:chunk_037,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,REQUIRES,vector,requires,papers/Edge2024_GraphRAG.pdf:chunk_007,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+community_summary,REQUIRES,retrieval_augmented_generation,requires,papers/Edge2024_GraphRAG.pdf:chunk_022,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+global_sensemaking,REQUIRES,retrieval_augmented_generation,requires,papers/Edge2024_GraphRAG.pdf:chunk_023,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+negative_passage,REQUIRES,retrieval_augmented_generation,requires,papers/Karpukhin2020_DPR.pdf:chunk_027,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+reasoning_over_context,REQUIRES,retrieval_augmented_generation,requires,papers/Yao2022_ReAct.pdf:chunk_014,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+inner_monologue,REQUIRES,retrieval_augmented_generation,requires,papers/Yao2022_ReAct.pdf:chunk_032,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+gpt,UNLOCKS,retrieval_augmented_generation,enables,papers/Willard2023_Outlines.pdf:chunk_011,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+triviaqa,UNLOCKS,rag,enables,papers/Lewis2020_RAG.pdf:chunk_019,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+triviaqa,UNLOCKS,retrieval_augmented_generation,enables,papers/Lewis2020_RAG.pdf:chunk_019,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,reasoning_over_context,enables,papers/Yao2022_ReAct.pdf:chunk_014,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,retrieval,enables,papers/Lewis2020_RAG.pdf:chunk_022,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,large_language_model_serving,enables,papers/Edge2024_GraphRAG.pdf:chunk_002,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,longer_context,enables,papers/Karpukhin2020_DPR.pdf:chunk_015,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,generative_adversarial_network,enables,papers/Lewis2020_RAG.pdf:chunk_024,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,global_sensemaking,enables,papers/Edge2024_GraphRAG.pdf:chunk_023,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,feature_based_approach,enables,papers/Yao2022_ReAct.pdf:chunk_018,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,gpt_2,enables,papers/Lewis2020_RAG.pdf:chunk_037,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,large_language_model,enables,papers/Karpukhin2020_DPR.pdf:chunk_009,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,language_model,enables,papers/Lewis2020_RAG.pdf:chunk_037,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,long_short_term_memory,enables,papers/Yao2022_ReAct.pdf:chunk_018,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,knowledge_graph,enables,papers/Lewis2020_RAG.pdf:chunk_019,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+retrieval_augmented_generation,UNLOCKS,deep_learning,enables,papers/Ouyang2022_InstructGPT.pdf:chunk_018,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+adversarial_nets,UNLOCKS,rag,enables,papers/Lewis2020_RAG.pdf:chunk_019,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+vector_embeddings,UNLOCKS,retrieval_augmented_generation,enables,papers/Karpukhin2020_DPR.pdf:chunk_014,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+natural_questions,UNLOCKS,rag,enables,papers/Lewis2020_RAG.pdf:chunk_019,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+natural_questions,UNLOCKS,retrieval_augmented_generation,enables,papers/Lewis2020_RAG.pdf:chunk_019,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+rag,UNLOCKS,large_language_model_serving,enables,papers/Edge2024_GraphRAG.pdf:chunk_002,Dependency direction or prerequisite semantics lack claim-level review,pending_human_review
+deep_learning,RELATED,retrieval_augmented_generation,part_of,papers/Karpukhin2020_DPR.pdf:chunk_022,Extracted related subtype lacks claim-level semantic review,pending_human_review
+long_short_term_memory,RELATED,retrieval_augmented_generation,uses,papers/Yao2022_ReAct.pdf:chunk_028,Extracted related subtype lacks claim-level semantic review,pending_human_review
+language_model,RELATED,rag,part_of,papers/Lewis2020_RAG.pdf:chunk_037,Extracted related subtype lacks claim-level semantic review,pending_human_review
+large_language_model,RELATED,retrieval_augmented_generation,uses,papers/Lewis2020_RAG.pdf:chunk_057,Extracted related subtype lacks claim-level semantic review,pending_human_review
+gpt_2,RELATED,rag,part_of,papers/Lewis2020_RAG.pdf:chunk_037,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,gpt_4,uses,papers/Dettmers2023_QLoRA.pdf:chunk_007,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,vector,part_of,papers/Edge2024_GraphRAG.pdf:chunk_007,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,global_sensemaking,uses,papers/Edge2024_GraphRAG.pdf:chunk_023,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,deep_learning,uses,papers/Ouyang2022_InstructGPT.pdf:chunk_018,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,longer_context,uses,papers/Karpukhin2020_DPR.pdf:chunk_015,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,fine_tuning,contrasts_with,papers/Karpukhin2020_DPR.pdf:chunk_028,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,negative_passage,uses,papers/Karpukhin2020_DPR.pdf:chunk_027,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,vector_rag,uses,papers/Lewis2020_RAG.pdf:chunk_024,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,gpt_2,uses,papers/Lewis2020_RAG.pdf:chunk_037,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,reasoning_over_context,uses,papers/Yao2022_ReAct.pdf:chunk_014,Extracted related subtype lacks claim-level semantic review,pending_human_review
+retrieval_augmented_generation,RELATED,inner_monologue,contrasts_with,papers/Yao2022_ReAct.pdf:chunk_032,Extracted related subtype lacks claim-level semantic review,pending_human_review
+vector_rag,RELATED,retrieval_augmented_generation,part_of,papers/Lewis2020_RAG.pdf:chunk_024,Extracted related subtype lacks claim-level semantic review,pending_human_review
+community_summary,RELATED,retrieval_augmented_generation,part_of,papers/Edge2024_GraphRAG.pdf:chunk_022,Extracted related subtype lacks claim-level semantic review,pending_human_review
+global_sensemaking,RELATED,retrieval_augmented_generation,part_of,papers/Edge2024_GraphRAG.pdf:chunk_023,Extracted related subtype lacks claim-level semantic review,pending_human_review
+vector_embeddings,RELATED,retrieval_augmented_generation,uses,papers/Karpukhin2020_DPR.pdf:chunk_014,Extracted related subtype lacks claim-level semantic review,pending_human_review
+dpr,RELATED,retrieval_augmented_generation,uses,papers/Karpukhin2020_DPR.pdf:chunk_029,Extracted related subtype lacks claim-level semantic review,pending_human_review
+reasoning_over_context,RELATED,retrieval_augmented_generation,part_of,papers/Yao2022_ReAct.pdf:chunk_014,Extracted related subtype lacks claim-level semantic review,pending_human_review

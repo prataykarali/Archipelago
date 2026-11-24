@@ -77,7 +77,7 @@ Inspector
         <!-- Validated OKF Key Relationships -->
         <div class="space-y-1.5 text-xs">
             <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col gap-1">
-                <span class="text-[9px] font-bold text-accentPurple uppercase tracking-wider">↑ REQUIRES (Validated Prerequisites)</span>
+                <span class="text-[9px] font-bold text-accentPurple uppercase tracking-wider">↑ REQUIRES (Indexed Relationships; Review Pending)</span>
                 <div id="okf-rel-requires" class="flex flex-wrap gap-1">
                     <span class="text-[10px] text-gray-500 italic">None indexed</span>
                 </div>
@@ -115,27 +115,43 @@ Inspector
 <!-- ── Books pane (Stack of Books) ── -->
 <div id="inspector-pane-books" class="hidden flex-1 flex flex-col gap-3 px-4 py-3 overflow-y-auto" role="tabpanel">
     <div class="flex flex-col gap-3 flex-1 min-h-0">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2">
             <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
                 <i class="fa-solid fa-book-open text-amber-400 text-sm"></i>
                 Stack of Books
             </span>
-            <span id="books-count" class="text-xs text-gray-400 font-mono"></span>
+            <div class="flex items-center gap-2">
+                <button type="button" id="all-domains-toggle-btn"
+                    class="px-2 py-1 rounded-lg bg-accentPurple/20 hover:bg-accentPurple/35 text-accentPurple border border-accentPurple/40 text-[10px] font-bold flex items-center gap-1 transition-all"
+                    aria-expanded="false" aria-controls="all-domains-drawer" title="Browse all 12 academic domains">
+                    <i class="fa-solid fa-layer-group text-[9px]"></i>
+                    <span>All Domains (12)</span>
+                    <i id="all-domains-chevron" class="fa-solid fa-chevron-down text-[8px] transition-transform"></i>
+                </button>
+                <span id="books-count" class="text-xs text-gray-400 font-mono"></span>
+            </div>
+        </div>
+        <!-- Interactive All Domains (12) Drawer -->
+        <div id="all-domains-drawer" class="hidden p-2 rounded-xl bg-slate-900/90 border border-accentPurple/30 space-y-1.5" role="region" aria-label="All 12 academic domains">
+            <div class="flex items-center justify-between px-1 pb-1 border-b border-white/10">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-accentPurple">Browse All 12 Domains</span>
+                <button type="button" id="all-domains-reset-btn" data-filter="all" class="text-[10px] text-gray-400 hover:text-white font-semibold">Show All</button>
+            </div>
+            <div id="all-domains-list" class="grid grid-cols-1 gap-1 max-h-56 overflow-y-auto pr-0.5"></div>
         </div>
         <div id="books-filter" class="flex flex-wrap gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold">
-            <button data-filter="all" class="px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all">All</button>
-            <button data-filter="dbms" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DBMS</button>
-            <button data-filter="os" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">OS</button>
-            <button data-filter="dl" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DL</button>
-            <button data-filter="math" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Math</button>
-            <button data-filter="peft" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">RAG/FT</button>
-            <button data-filter="gnn" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">GNN</button>
-            <button data-filter="syllabi" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Syllabi</button>
+            <button type="button" data-filter="all" class="px-2.5 py-1 rounded bg-accentPurple/30 text-accentPurple border border-accentPurple/35 transition-all">All</button>
+            <button type="button" data-filter="ai" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">AI/ML</button>
+            <button type="button" data-filter="os" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">OS</button>
+            <button type="button" data-filter="dbms" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DBMS</button>
+            <button type="button" data-filter="dsa" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">DSA</button>
+            <button type="button" data-filter="net" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Networks</button>
+            <button type="button" data-filter="math" class="px-2.5 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all">Math</button>
         </div>
         <div id="type-filter" class="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold mt-1">
-            <button data-type-filter="open_source" class="flex-1 px-2 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center" title="Peer-reviewed arXiv papers and open-access textbooks">🌐 Open Access</button>
-            <button data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Library Holdings</button>
-            <button data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center">All Docs</button>
+            <button type="button" data-type-filter="all" class="flex-1 px-2 py-1 rounded bg-accentCyan/30 text-accentCyan border border-accentCyan/35 transition-all text-center">All Docs</button>
+            <button type="button" data-type-filter="open_source" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Peer-reviewed arXiv papers and open-access textbooks">🌐 Open Access</button>
+            <button type="button" data-type-filter="library_pearson" class="flex-1 px-2 py-1 rounded bg-white/5 text-gray-400 hover:text-gray-200 transition-all text-center" title="Curated textbooks from Pearson eLibrary and Central Library holdings">🏛️ Pearson</button>
         </div>
         <div id="books-list" class="flex-1 flex flex-col gap-2 overflow-y-auto pr-1"></div>
     </div>
@@ -223,4 +239,3 @@ Back to Chat
 </div>
 </div>
 </div>
-

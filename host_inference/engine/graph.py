@@ -12,7 +12,6 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import re
-from urllib.parse import quote
 
 import numpy as np
 
@@ -23,6 +22,12 @@ from .evidence_selection import (
     build_chunk_provenance_index,
     score_source_for_concept,
     verify_chunk_provenance,
+)
+from .graph_semantics import corrected_summary, quarantine_reason
+from .source_resolution import (
+    SOURCE_CAT_PEARSON,
+    SOURCE_CAT_TOC_INDEX,
+    resolve_source_target,
 )
 from .text import embed
 from .withdrawal import best_live_source, withdrawal_notice_for_doc, withdrawn_documents
@@ -68,6 +73,7 @@ class LibraryGraph:
             node.get("id"): node.get("sources") or [] for node in viz_nodes if node.get("id")
         }
         for cid, node in self.nodes.items():
+            node["summary"] = corrected_summary(cid, str(node.get("summary") or ""))
             if not node.get("sources"):
                 if sources_by_id.get(cid):
                     node["sources"] = sources_by_id[cid]
@@ -76,10 +82,15 @@ class LibraryGraph:
         self.out: dict[str, list[tuple[str, str]]] = {}
         self.inn: dict[str, list[tuple[str, str]]] = {}
         self.edge_records: dict[tuple[str, str, str], dict] = {}
+        self.quarantined_edges: list[dict] = []
         for edge in raw.get("edges") or []:
             src, dst = edge.get("from_id"), edge.get("to_id")
             kind = edge.get("edge_type") or edge.get("relation") or "RELATED"
             if not src or not dst or src not in self.nodes or dst not in self.nodes:
+                continue
+            reason = quarantine_reason(edge)
+            if reason:
+                self.quarantined_edges.append({**edge, "quarantine_reason": reason})
                 continue
             self.out.setdefault(src, []).append((kind, dst))
             self.inn.setdefault(dst, []).append((kind, src))
@@ -255,34 +266,40 @@ class LibraryGraph:
             if override_raw_doc not in retired and override_canonical_doc not in retired:
                 source, all_withdrawn = source_override, False
         raw_page = (source or {}).get("page_number")
-        page = int(raw_page) if raw_page and not all_withdrawn else None
+        raw_page_int = int(raw_page) if raw_page and not all_withdrawn else None
         chunk_id = (source or {}).get("chunk_id")
         raw_doc_id = str((source or {}).get("doc_id") or "")
         doc_id = hf_doc_path(raw_doc_id)
         if not doc_id and not all_withdrawn and cid in FORMULAS:
             _formula, filename, _formula_page = FORMULAS[cid]
             doc_id = f"papers/{filename}"
-        name = (source or {}).get("title") or (doc_id.split("/")[-1] if doc_id else "")
-        is_broken_textbook = doc_id.startswith("textbooks/")
-        hf_url = (
-            f"/read?doc={quote(doc_id, safe='')}"
-            if source and doc_id and not is_broken_textbook and not all_withdrawn
-            else ""
+        raw_title = str((source or {}).get("title") or "").strip()
+        resolved = resolve_source_target(
+            raw_doc_id=raw_doc_id,
+            canonical_doc_id=doc_id,
+            page_number=raw_page_int if source else None,
+            title=raw_title,
+            all_withdrawn=bool(all_withdrawn),
         )
-        if hf_url and page:
-            hf_url += f"&page={page}"
-        if is_broken_textbook:
-            page = None
-        label = (
-            f"[S{index}: {name}{f', #page={page}' if page else ''}]"
-            if name and hf_url
-            else (
-                f"[S{index}: {name} (reference metadata only)]"
-                if name and is_broken_textbook and not all_withdrawn
-                else ""
-            )
-        )
-        doc_title = (source or {}).get("title") or ""
+        source_category = str(resolved["source_category"])
+        source_type = str(resolved["source_type"])
+        reader_resolvable = bool(resolved["reader_resolvable"])
+        page = resolved["page_number"]
+        hf_url = str(resolved["url"] or "") if source else ""
+        name = resolved["resolved_title"] or (doc_id.split("/")[-1] if doc_id else "")
+
+        if not name or all_withdrawn:
+            label = ""
+        elif source_category == SOURCE_CAT_PEARSON and hf_url:
+            label = f"[S{index}: {name} (Pearson catalogue-only — institutional login)]"
+        elif source_category == SOURCE_CAT_TOC_INDEX:
+            label = f"[S{index}: {name} (TOC/index metadata only)]"
+        elif hf_url:
+            label = f"[S{index}: {name}{f', #page={page}' if page else ''}]"
+        else:
+            label = f"[S{index}: {name} (source unavailable — metadata only)]"
+
+        doc_title = resolved["resolved_title"] or raw_title
         authors = (source or {}).get("authors") or ""
         if "FlashAttention" in doc_id or "upload_cb7badb2" in raw_doc_id:
             if not doc_title:
@@ -301,19 +318,20 @@ class LibraryGraph:
             text_passage=passage_text,
             all_withdrawn=bool(all_withdrawn),
             chunk_index=self._chunk_provenance_index,
+            source_category=source_category,
+            reader_resolvable=reader_resolvable,
         )
         return {
             "label": label,
             "evidence_id": f"S{index}",
-            "source_type": (
-                "withdrawn"
-                if all_withdrawn
-                else (
-                    "ingested_pdf"
-                    if source and page and hf_url
-                    else ("catalog_metadata" if is_broken_textbook else "metadata_only")
-                )
-            ),
+            "source_type": source_type,
+            "source_category": source_category,
+            "reader_resolvable": reader_resolvable,
+            "page_verified": bool(resolved["page_verified"]),
+            "is_pearson": bool(resolved["is_pearson"]),
+            "book_id": str(resolved["book_id"] or ""),
+            "book_type": str(resolved["book_type"] or ""),
+            "hf_path": str(resolved["hf_path"] or ""),
             "concept_id": cid,
             "doc_id": doc_id,
             "chunk_id": chunk_id,
@@ -338,11 +356,7 @@ class LibraryGraph:
             "retrieved_at": (source or {}).get("retrieved_at"),
             "verification_status": provenance["verification_status"],
             "status_level": provenance["status_level"],
-            "access_status": (
-                "Available"
-                if hf_url and not all_withdrawn
-                else ("Catalog reference only" if is_broken_textbook else "Unavailable")
-            ),
+            "access_status": str(resolved["access_status"]),
         }
 
     def citation(self, cid: str, index: int = 1) -> str:

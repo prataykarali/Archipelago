@@ -82,6 +82,8 @@ def verify_chunk_provenance(
     text_passage: str,
     all_withdrawn: bool,
     chunk_index: dict[tuple[str, str], set[str]] | None = None,
+    source_category: str = "",
+    reader_resolvable: bool = True,
 ) -> dict[str, Any]:
     """Verify canonical ``chunk_id`` uniqueness and return provenance metadata."""
     del raw_doc_id  # Retained in signature for caller traceability.
@@ -94,15 +96,55 @@ def verify_chunk_provenance(
             status_level="withdrawn",
         )
 
-    is_textbook = canonical_doc_id.startswith("textbooks/")
-    if is_textbook or not hf_url or not (text_passage or "").strip():
+    cid = str(chunk_id or "").strip()
+    if UPLOAD_CHUNK_RE.match(cid):
+        return _provenance_record(
+            canonical_passage_id=None,
+            provenance_status=PROVENANCE_CHUNK_UNMATCHED,
+            chunk_provenance_match="upload_chunk_unmatched",
+            verification_status="Passage located — canonical chunk unmatched",
+            status_level="chunk_unmatched",
+        )
+
+    non_fulltext_categories = {
+        "toc_index_only_textbook",
+        "pearson_catalogue_only",
+        "missing_or_unsupported_source",
+    }
+    if source_category in non_fulltext_categories or not reader_resolvable:
+        is_textbook_ref = canonical_doc_id.startswith("textbooks/")
+        status_msg = (
+            "TOC/index metadata only — full text not indexed"
+            if source_category == "toc_index_only_textbook"
+            else (
+                "Pearson catalogue-only — institutional login required"
+                if source_category == "pearson_catalogue_only"
+                else (
+                    "Source linked — not independently audited"
+                    if is_textbook_ref
+                    else "Source unavailable — metadata only"
+                )
+            )
+        )
+        return _provenance_record(
+            canonical_passage_id=None,
+            provenance_status=PROVENANCE_METADATA_ONLY,
+            chunk_provenance_match="unmatched_metadata_only",
+            verification_status=status_msg,
+            status_level="source_linked",
+        )
+
+    is_unverified_textbook = (
+        canonical_doc_id.startswith("textbooks/") and source_category != "oa_full_text_textbook"
+    )
+    if is_unverified_textbook or not hf_url or not (text_passage or "").strip():
         return _provenance_record(
             canonical_passage_id=None,
             provenance_status=PROVENANCE_METADATA_ONLY,
             chunk_provenance_match="unmatched_metadata_only",
             verification_status=(
                 "Source linked — not independently audited"
-                if is_textbook
+                if is_unverified_textbook
                 else "Metadata only — unverified"
             ),
             status_level="source_linked",
@@ -191,16 +233,21 @@ def build_grounding_trace(
     has_provenance_verified = any(
         c.get("provenance_status") == PROVENANCE_VERIFIED
         and c.get("source_type") == "ingested_pdf"
+        and c.get("reader_resolvable", True)
         and c.get("url")
         and not c.get("withdrawn")
-        and not str(c.get("doc_id", "")).startswith("textbooks/")
         for c in valid_cites
     )
     has_unmatched_pdf = any(
-        c.get("source_type") == "ingested_pdf"
-        and c.get("url")
+        (
+            c.get("provenance_status") == PROVENANCE_CHUNK_UNMATCHED
+            or (
+                c.get("source_type") == "ingested_pdf"
+                and c.get("reader_resolvable", True)
+                and c.get("url")
+            )
+        )
         and not c.get("withdrawn")
-        and not str(c.get("doc_id", "")).startswith("textbooks/")
         for c in valid_cites
     )
 
@@ -230,19 +277,19 @@ def build_grounding_trace(
             prov_status = PROVENANCE_METADATA_ONLY
             mode = "Graph-Assisted Traversal (OKF + Source-Linked Metadata)"
     elif anchor_id:
-        badge = "OKF structure resolved · No direct passage"
+        badge = "Concept resolved · No direct passage"
         state = "partial"
         detail = "no_direct_passage"
         prov_status = PROVENANCE_NO_PASSAGE
         mode = "Graph-Assisted Traversal (OKF Only)"
     elif cites_count > 0:
-        badge = "No Verified Graph Match · Lexical literature fallback"
+        badge = "No graph match · Citation present; claim support unassessed"
         state = "general"
         detail = "no_graph_match"
         prov_status = PROVENANCE_NONE
         mode = "Lexical Literature Retrieval (Unindexed Concept)"
     else:
-        badge = "No Verified Graph Match · Clean abstention"
+        badge = "No graph match or cited passage"
         state = "unmatched"
         detail = "no_graph_match"
         prov_status = PROVENANCE_NONE
@@ -254,13 +301,17 @@ def build_grounding_trace(
         "concept_label": anchor_label,
         "graph_hops": hops,
         "retrieval_mode": mode,
-        "provider": provider or "Deterministic Rule-Based OKF Fallback",
+        "provider": provider or "pending",
         "grounded_passages": cites_count,
         "grounding_status": state,
         "grounding_detail": detail,
         "grounding_badge": badge,
         "provenance_status": prov_status,
         "claim_support_status": CLAIM_SUPPORT_NOT_ASSESSED,
+        "reader_page_verified": False,
+        "explanation_status": "general_explanation"
+        if route == "GENERAL_EXPLANATION"
+        else "route_specific",
         "latency_s": latency_s,
         "latency_ms": latency_ms,
     }

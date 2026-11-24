@@ -60,25 +60,32 @@ def source_links(record: dict, book: dict | None, page: int = 1) -> str:
     Pearson shelf record (``None`` when no physical/e-book copy matches).
     """
     page_n = int(record["page_number"]) if record.get("page_number") else None
+    page_verified = bool(record.get("page_verified", bool(page_n)))
     lines: list[str] = []
-    if record.get("url"):
+    if record.get("url") and record.get("reader_resolvable", True):
         name = (record.get("doc_id") or "paper").split("/")[-1]
         raw_title = record.get("doc_title") or record.get("title") or name
         title = human_paper_title(str(raw_title), name)
         source_url = record["url"]
-        if page_n and name.lower().endswith(".pdf") and source_url.startswith("/read?"):
-            source_url = f"/papers/{quote(name, safe='')}#page={page_n}"
-        page_label = f" — p. {page_n}" if page_n else ""
-        lines.append(f"[{title}{page_label}]({source_url})")
+        if source_url.startswith("/open/"):
+            lines.append(f"[{title} (Pearson institutional access)]({source_url})")
+        else:
+            if page_n and name.lower().endswith(".pdf") and source_url.startswith("/read?"):
+                source_url = f"/papers/{quote(name, safe='')}#page={page_n}"
+            page_label = f" — p. {page_n}" if page_n else ""
+            lines.append(f"[{title}{page_label}]({source_url})")
     if not book:
+        return "\n".join(lines)
+    if record.get("is_pearson") and record.get("book_id") == book.get("id"):
         return "\n".join(lines)
     page_count = int(book.get("page_count") or 0)
     if page_count and page_n and page_n > page_count:
         return "\n".join(lines)
     href = f"/open/{book.get('id')}"
-    if page_n:
+    book_type = str(book.get("book_type") or "pdf").strip().lower()
+    if page_n and page_verified and book_type == "pdf":
         href += f"?page={page_n}"
     btitle = book.get("title") or "Pearson Textbook"
-    page_label = f" — page {page_n}" if page_n else ""
+    page_label = f" — page {page_n}" if (page_n and page_verified and book_type == "pdf") else ""
     lines.append(f"[{btitle}{page_label}]({href})")
     return "\n".join(lines)

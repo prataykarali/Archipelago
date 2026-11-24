@@ -82,6 +82,17 @@ def ingest_document(path: str, max_pages: int | None = None) -> list[dict[str, A
         chunk["doc_title"] = title
         chunk["edition"] = edition
         chunk["page_label_map"] = page_label_map
+        if ext == ".pdf":
+            physical_page = chunk.get("page_number")
+            chunk["pdf_page_index"] = physical_page - 1 if isinstance(physical_page, int) else None
+            chunk["printed_page"] = next(
+                (
+                    label
+                    for label, mapped_page in (page_label_map or {}).items()
+                    if mapped_page == physical_page
+                ),
+                None,
+            )
 
     return chunks
 

@@ -1,0 +1,652 @@
+query_id,domain,query,response_text,runtime_revision,graph_revision,source_doc_ids,passage_ids,source_pages,provider,synthesis_mode,technical_test_flags,browser_redirect_result,auth_result,human_concept_correct,human_answer_correct,human_evidence_sufficient,human_edge_direction_correct,human_source_redirect_verified,human_notes
+D10-OS-A,Operating Systems,What is virtual memory paging in operating systems?,"**Virtual Memory.** A memory management architecture that provides an idealized, private address space for each process, decoupling logical program addresses from physical DRAM addresses via page tables and memory management unit (MMU) hardware. [S1: archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf, PDF p.1](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F06_Address_Spaces.pdf&page=1)
+
+[06 Address Spaces — p. 1](/papers/06_Address_Spaces.pdf#page=1)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Computer System Architecture, Revised 3/e** (closest indexed match)
+  Author: Mano
+  ISBN: `9789332576131`
+  [Open with institutional access](/open/747cb926-c317-4041-9bdd-3ea98e246607)
+* **Operating System Concepts (The Dinosaur Book)** (closest indexed match)
+  Author: Abraham Silberschatz, Peter B. Galvin, Greg Gagne
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf, PDF p.1](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F06_Address_Spaces.pdf&page=1)
+- [S2: archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf, PDF p.2](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F06_Address_Spaces.pdf&page=2)
+- [S3: archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf, PDF p.3](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F06_Address_Spaces.pdf&page=3)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf,virtual_memory_seed_001 | virtual_memory_seed_002 | virtual_memory_seed_003,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf#page=1 | archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf#page=2 | archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf#page=3,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-OS-B,Operating Systems,How does base-and-bounds hardware address translation relocate a process address space?,"**Base-and-bounds address translation.** Hardware adds the base register to a process's virtual address to relocate it in physical memory. The bounds register checks whether the virtual address is within the process's allowed address space; an out-of-bounds access traps. The OSTEP textbook explains this on [PDF page 7](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F07_Address_Translation.pdf&page=7) [S1: archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf, PDF p.7](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F07_Address_Translation.pdf&page=7).
+
+**Sources:**
+- [S1: archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf, PDF p.7](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F07_Address_Translation.pdf&page=7)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf,38d81af0ae91:p7:c0,archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf#page=7,none,offline_deterministic_draft,route=BOOK_PAGE; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-OS-C,Operating Systems,What concepts are prerequisites for understanding paging and address translation?,"Here is what the available evidence shows about **Paging** and **Address Translation**.
+• **Paging**: Paging divides virtual address spaces into fixed-size pages mapped to physical page frames via a page table. It simplifies free-space management versus variable-size segmentation and is foundational for virtual memory (OSTEP, Three Easy Pieces — Paging). [S1: archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf, PDF p.3](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F08_Paging.pdf&page=3)
+• **Address Translation** is indexed, but has no supported definition in this record.
+
+**Stored Graph Relationships (edge claims pending review):**
+• **Paging** and **Address Translation** have a 2-hop stored graph path: (Paging) -[REQUIRES]-> (Virtual Memory) → (Virtual Memory) -[REQUIRES]-> (Address Translation). These edges record graph structure; the source documents for the endpoints do not by themselves verify every edge.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Operating Systems: Three Easy Pieces (OSTEP)**
+  Author: Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau
+* **Operating System Concepts (The Dinosaur Book)** (closest indexed match)
+  Author: Abraham Silberschatz, Peter B. Galvin, Greg Gagne
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf, PDF p.3](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F08_Paging.pdf&page=3)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf,paging_seed_003,archipelago-books-cs/ostep_three_easy_pieces/08_Paging.pdf#page=3,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-DB-A,Database Systems,What is Third Normal Form (3NF) in relational database design?,"**Relational Database.** A database system founded on E.F. Codd's relational model where data is structured into relations (tables) of tuples (rows) and attributes (columns), manipulated declaratively via relational calculus, relational algebra, and SQL. [S1: Database System Concepts (7th Edition) (source unavailable — metadata only)]
+
+[Fundamentals of Database System, 7e](/open/4268f15e-ac2c-40dd-bd12-aca2f02dd0ae)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Fundamentals of Database System, 7e** (closest indexed match)
+  Author: Elmasri
+  ISBN: `9789354490934`
+  [Open with institutional access](/open/4268f15e-ac2c-40dd-bd12-aca2f02dd0ae)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Database System Concepts (7th Edition) (source unavailable — metadata only)]
+- [S2: silberschatz_3nf_card.txt (source unavailable — metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,pilot/silberschatz_3nf_card.txt | textbooks/database_system_concepts_silberschatz.pdf,third_normal_form_seed_001,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-DB-B,Database Systems,How does a B+ tree clustered index support range scans in a relational DBMS?,"**B+ Tree.** A self-balancing search tree used in database index engines where all record pointers and keys are stored in leaf nodes linked sequentially for efficient range scans, while internal nodes store only routing keys for O(log N) searches. [S1: Database Management Systems (3rd Edition) (source unavailable — metadata only)]
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Fundamentals of Database System, 7e** (closest indexed match)
+  Author: Elmasri
+  ISBN: `9789354490934`
+  [Open with institutional access](/open/4268f15e-ac2c-40dd-bd12-aca2f02dd0ae)
+* **Computer Networks, 6/e** (closest indexed match)
+  Author: Andrew S. Tanenbaum
+  ISBN: `9789356063259`
+  [Open with institutional access](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Database Management Systems (3rd Edition) (source unavailable — metadata only)]
+- [S2: Index_2019_Data-Science.pdf (TOC/index metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,data_science_2019/Index_2019_Data-Science.pdf | textbooks/database_management_systems_ramakrishnan.pdf,chunk_017,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-DB-C,Database Systems,What prerequisites are needed before learning ACID transaction concurrency control?,"**ACID Properties.** The fundamental transaction guarantees required by relational database management systems: Atomicity (all or nothing), Consistency (preserves schema invariants), Isolation (serializable execution), and Durability (persistence across crashes).
+
+**Catalog learning path (edge claims pending review).**
+Database Transaction $\xrightarrow{REQUIRES}$ ACID Properties ACID Properties $\xrightarrow{UNLOCKS}$ Two Phase Locking
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Database Management Systems**
+  Author: Raghu Ramakrishnan, Johannes Gehrke
+* **Fundamentals of Database System, 7e** (closest indexed match)
+  Author: Elmasri
+  ISBN: `9789354490934`
+  [Open with institutional access](/open/4268f15e-ac2c-40dd-bd12-aca2f02dd0ae)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Database System Concepts (7th Edition) (source unavailable — metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,textbooks/database_system_concepts_silberschatz.pdf,,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-DSA-A,Data Structures & Algorithms,What is dynamic programming in algorithm design?,"**Dynamic Programming.** An algorithmic approach using recursive function calls with memoization or tabulation to optimize solutions. [S1: Introduction to the Design and Analysis of Algorithms (Pearson catalogue-only)](/open/f47c71e0-034c-4b91-9b53-1ff0d76cbd14)
+
+[Introduction to the Design and Analysis of Algorithms (Pearson institutional access)](/open/f47c71e0-034c-4b91-9b53-1ff0d76cbd14)
+[Digital Design: With an Introduction to the Verilog HDL, VHDL, and System Verilog, 6e](/open/5c175398-00ee-42ed-8c84-790432275047)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Problem Solving and Programming in C: A Computational Thinking Approach** (closest indexed match)
+  Author: S. Sridhar
+  ISBN: `9789367131381`
+  [Open with institutional access](/open/abd2bed3-ed87-49ea-8569-9d98e0fe3b04)
+* **Design and Analysis of Algorithms 2/e** (closest indexed match)
+  Author: Dave
+  ISBN: `9789332520158`
+  [Open with institutional access](/open/1f233760-bb8f-4deb-9f39-8214567ba561)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Introduction to the Design and Analysis of Algorithms (Pearson catalogue-only)](/open/f47c71e0-034c-4b91-9b53-1ff0d76cbd14)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,doc_introduction_to_the_design_and,doc_introduction_to_the_design_and_p283_2,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-DSA-B,Data Structures & Algorithms,How does Dijkstra's shortest-path algorithm use a priority queue to relax graph edges?,**Priority Queue Mechanics.** Priority Queue Mechanics is a fundamental concept.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-DSA-C,Data Structures & Algorithms,What data structures are prerequisites for graph shortest-path algorithms?,"**Data.** Data is something measurable that can be analyzed to uncover insights.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Data and Computer Communications** (closest indexed match)
+  Author: Stallings
+  ISBN: `9781322144320`
+  [Open with institutional access](/open/3997a85b-296c-4f53-97f1-70a429979ad6)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: About-the-Authors_2019_Data-Science.pdf (TOC/index metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,data_science_2019/About-the-Authors_2019_Data-Science.pdf,About-the-Authors_2019_Data-Science__structure,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-NET-A,Computer Networks,What is the TCP three-way handshake and congestion control?,"Here is what the available evidence shows about **TCP three-way handshake** and **TCP Congestion Control**.
+• **TCP Congestion Control**: The end-to-end congestion management mechanisms in TCP (Slow Start, Congestion Avoidance, Fast Retransmit, and Fast Recovery) that adaptively throttle transmission rate based on observed network congestion. [S1: Computer Networks, 6/e (Pearson catalogue-only)](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+
+**Coverage Limitations:**
+• **TCP three-way handshake** is not indexed in the current catalog. No bridge or relationship has been fabricated.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Cryptography and Network Security: Principles and Practice, 8/e** (closest indexed match)
+  Author: William Stallings
+  ISBN: `9789357054911`
+  [Open with institutional access](/open/d85d2a24-da6c-48af-84d8-aa1782607117)
+* **Computer Networks, 6/e** (closest indexed match)
+  Author: Andrew S. Tanenbaum
+  ISBN: `9789356063259`
+  [Open with institutional access](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Computer Networks, 6/e (Pearson catalogue-only)](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,textbooks/computer_networks_tanenbaum.pdf,,,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-NET-B,Computer Networks,How does the OSI Data Link Layer frame packets over the Physical Layer?,"**OSI Model.** The 7-layer Open Systems Interconnection conceptual architectural framework (Physical, Data Link, Network, Transport, Session, Presentation, Application) defining standardized boundaries and encapsulation for networked communication. [S1: Computer Networks, 6/e (Pearson catalogue-only)](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+
+[Computer Networks, 6/e (Pearson institutional access)](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **PIC Microcontroller and Embedded Systems Using Assembly and C for PIC18, 2e** (closest indexed match)
+  Author: Mazidi
+  ISBN: `9789354496622`
+  [Open with institutional access](/open/13ddfc73-f7ee-4ab8-8cf3-e5c4a4bcfdbf)
+* **Computer Networks, 6/e** (closest indexed match)
+  Author: Andrew S. Tanenbaum
+  ISBN: `9789356063259`
+  [Open with institutional access](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Computer Networks, 6/e (Pearson catalogue-only)](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+- [S2: About-the-Authors_2019_Data-Science.pdf (TOC/index metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,data_science_2019/About-the-Authors_2019_Data-Science.pdf | textbooks/computer_networks_tanenbaum.pdf,About-the-Authors_2019_Data-Science__structure,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-NET-C,Computer Networks,How do the Physical Layer and Data Link Layer relate to network routing?,"Here is what the available evidence shows about **Physical Layer**, **Data Link Layer**, and **network routing**.
+• **Data Link Layer** is indexed, but the selected source passage does not verify its stored summary, so I cannot use that summary as a sourced definition.
+
+**Coverage Limitations:**
+• **Physical Layer** appears in retrieved text passages, but has no verified concept node in the active graph.
+• **network routing** is not indexed in the current catalog. No bridge or relationship has been fabricated.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Data and Computer Communications** (closest indexed match)
+  Author: Stallings
+  ISBN: `9781322144320`
+  [Open with institutional access](/open/3997a85b-296c-4f53-97f1-70a429979ad6)
+
+Physical holdings and circulation status are not verified by this e-book export.",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,doc_computer_networks_6_e,doc_computer_networks_6_e_p42_1,doc_computer_networks_6_e#page=42,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-CMP-A,Compilers & Languages,What is lexical analysis in a compiler?,"**Lexical Analysis.** The first phase of a compiler (tokenization / scanning) that converts an input source program character stream into a sequence of meaningful tokens according to regular expression patterns, stripping whitespace and comments.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Design and Analysis of Algorithms 2/e** (closest indexed match)
+  Author: Dave
+  ISBN: `9789332520158`
+  [Open with institutional access](/open/1f233760-bb8f-4deb-9f39-8214567ba561)
+* **Compilers Principles, Techniques, and Tools, 2e** (closest indexed match)
+  Author: Aho
+  ISBN: `9789332576216`
+  [Open with institutional access](/open/1be5d3be-5808-4768-b4bf-03664c75c6c3)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Compilers Principles, Techniques, and Tools, 2e (Pearson catalogue-only)](/open/1be5d3be-5808-4768-b4bf-03664c75c6c3)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,textbooks/compilers_principles_techniques_tools_aho.pdf,,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-CMP-B,Compilers & Languages,How does LALR bottom-up parsing construct a syntax tree from tokens?,"**Syntax Analysis.** The parsing phase of a compiler that receives the token sequence from lexical analysis and validates it against the grammatical productions of a Context-Free Grammar, producing a hierarchical parse tree or Abstract Syntax Tree. [S1: Compilers Principles, Techniques, and Tools, 2e (Pearson catalogue-only)](/open/1be5d3be-5808-4768-b4bf-03664c75c6c3)
+
+[Compilers Principles, Techniques, and Tools, 2e (Pearson institutional access)](/open/1be5d3be-5808-4768-b4bf-03664c75c6c3)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Design and Analysis of Algorithms 2/e** (closest indexed match)
+  Author: Dave
+  ISBN: `9789332520158`
+  [Open with institutional access](/open/1f233760-bb8f-4deb-9f39-8214567ba561)
+* **Compilers Principles, Techniques, and Tools, 2e** (closest indexed match)
+  Author: Aho
+  ISBN: `9789332576216`
+  [Open with institutional access](/open/1be5d3be-5808-4768-b4bf-03664c75c6c3)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Compilers Principles, Techniques, and Tools, 2e (Pearson catalogue-only)](/open/1be5d3be-5808-4768-b4bf-03664c75c6c3)
+- [S2: Compilers Principles, Techniques, and Tools, 2e (Pearson catalogue-only)](/open/1be5d3be-5808-4768-b4bf-03664c75c6c3)
+- [S3: papers/Willard2023_Outlines.pdf, PDF p.4](/read?doc=papers%2FWillard2023_Outlines.pdf&page=4)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,doc_compilers_principles_techniques_and_tools | papers/Willard2023_Outlines.pdf | textbooks/compilers_principles_techniques_tools_aho.pdf,chunk_006 | doc_compilers_principles_techniques_and_tools_p192_1,papers/Willard2023_Outlines.pdf#page=4,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-CMP-C,Compilers & Languages,What compiler phases are prerequisites for intermediate code generation and optimization?,"Here is what the available evidence shows about **Generation Phase** and **Direct Preference Optimization**.
+• **Generation Phase** is indexed, but the selected source passage does not verify its stored summary, so I cannot use that summary as a sourced definition.
+• **Direct Preference Optimization**: DPO is a preference-based reinforcement learning method that uses a reward model to evaluate generations, allowing for precise alignment of language models with human preferences. [S1: papers/Rafailov2023_DPO.pdf, PDF p.1](/read?doc=papers%2FRafailov2023_DPO.pdf&page=1)
+
+**Stored Graph Relationships (edge claims pending review):**
+• **Generation Phase** and **Direct Preference Optimization** have a 3-hop stored graph path: (GPT) <-[RELATED]- (Generation Phase) → (GPT) -[UNLOCKS]-> (PPO) → (PPO) -[RELATED]-> (Direct Preference Optimization). These edges record graph structure; the source documents for the endpoints do not by themselves verify every edge.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Operating System Concepts (The Dinosaur Book)** (closest indexed match)
+  Author: Abraham Silberschatz, Peter B. Galvin, Greg Gagne
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Rafailov2023_DPO.pdf, PDF p.1](/read?doc=papers%2FRafailov2023_DPO.pdf&page=1)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Rafailov2023_DPO.pdf,chunk_002,papers/Rafailov2023_DPO.pdf#page=1,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-AUT-A,Automata & Computation,What is a deterministic finite automaton (DFA)?,"**Deterministic Finite Automaton.** A 5-tuple abstract state machine (Q, Sigma, delta, q0, F) recognizing regular languages, characterized by having exactly one deterministic state transition for each state-symbol pair with no epsilon transitions.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Digital Design: With an Introduction to the Verilog HDL, VHDL, and System Verilog, 6e** (closest indexed match)
+  Author: Mano
+  ISBN: `9789390325849`
+  [Open with institutional access](/open/5c175398-00ee-42ed-8c84-790432275047)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Introduction to Automata Theory, Languages, and Computation (source unavailable — metadata only)]
+- [S2: papers/Willard2023_Outlines.pdf, PDF p.5](/read?doc=papers%2FWillard2023_Outlines.pdf&page=5)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Willard2023_Outlines.pdf | textbooks/introduction_to_automata_theory_hopcroft.pdf,chunk_008,papers/Willard2023_Outlines.pdf#page=5,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-AUT-B,Automata & Computation,How does the pumping lemma prove that a language is not regular?,**How does the pumping lemma prove that a language is not regular** is a foundational academic topic that is not currently indexed as a standalone concept node in the local catalog. This explanation uses general foundational knowledge rather than local catalog citations.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GENERAL_EXPLANATION; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-AUT-C,Automata & Computation,How do finite automata and context-free grammars relate to Turing machines?,"Here is what the available evidence shows about **Finite Automata**, **Context-Free Grammar**, and **Turing Machine**.
+• **Finite Automata** is indexed, but has no supported definition in this record.
+• **Context-Free Grammar**: A generative language model using a context-free grammar for producing valid sentence structure. [S1: papers/Willard2023_Outlines.pdf, PDF p.1](/read?doc=papers%2FWillard2023_Outlines.pdf&page=1)
+• **Turing Machine**: The foundational mathematical model of computation consisting of an infinite tape, a read/write head, and a state register governed by transition functions, defining the boundary of algorithmic computability and the Church-Turing thesis. [S2: Introduction to Automata Theory, Languages, and Computation (source unavailable — metadata only)]
+
+**Unconnected Concepts:**
+• **Finite Automata** and **Turing Machine** have no structural traversal path within 5 hops in the active catalog.
+• **Context-Free Grammar** and **Turing Machine** have no structural traversal path within 5 hops in the active catalog.
+
+**Sources:**
+- [S1: papers/Willard2023_Outlines.pdf, PDF p.1](/read?doc=papers%2FWillard2023_Outlines.pdf&page=1)
+- [S2: Introduction to Automata Theory, Languages, and Computation (source unavailable — metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Willard2023_Outlines.pdf | textbooks/introduction_to_automata_theory_hopcroft.pdf,chunk_001,papers/Willard2023_Outlines.pdf#page=1,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-MTH-A,Mathematics for Computing,What is Singular Value Decomposition (SVD) in linear algebra?,"**Linear Algebra.** Indexed catalog concept.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Op-amps and Linear Integrated Circuits** (closest indexed match)
+  Author: Ramakant A. Gayakwad
+  ISBN: `9789390325443`
+  [Open with institutional access](/open/a7092059-a110-4714-b276-4aa16971e888)
+
+Physical holdings and circulation status are not verified by this e-book export.",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-MTH-B,Mathematics for Computing,How do eigenvalues and eigenvectors diagonalize a symmetric matrix?,"**Eigenvalues And Eigenvectors.** For a square matrix A, a non-zero vector v is an eigenvector and scalar lambda is its eigenvalue when A v = lambda v: applying the linear transformation A only scales v by lambda without changing its direction. Eigenvalues are found by solving the characteristic equation det(A - lambda I) = 0, and each eigenvector spans an invariant subspace used in PCA, spectral clustering, and stability analysis.
+
+**Sources:**
+- [S1: papers/Kipf2016_GCN.pdf, PDF p.2](/read?doc=papers%2FKipf2016_GCN.pdf&page=2)
+- [S2: papers/Krizhevsky2012_AlexNet.pdf, PDF p.6](/read?doc=papers%2FKrizhevsky2012_AlexNet.pdf&page=6)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Kipf2016_GCN.pdf | papers/Krizhevsky2012_AlexNet.pdf,chunk_006 | chunk_019,papers/Kipf2016_GCN.pdf#page=2 | papers/Krizhevsky2012_AlexNet.pdf#page=6,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-MTH-C,Mathematics for Computing,What linear algebra concepts are prerequisites for Principal Component Analysis (PCA)?,"**Principal Component Analysis.** PCA reduces dimensionality by finding new axes in data that maximize variance, independent of the original axes.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Design and Analysis of Algorithms 2/e** (closest indexed match)
+  Author: Dave
+  ISBN: `9789332520158`
+  [Open with institutional access](/open/1f233760-bb8f-4deb-9f39-8214567ba561)
+* **Data Structures and Algorithm Analysis in C++/Java** (closest indexed match)
+  Author: Mark Allen Weiss
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Index_2015_Predictive-Analytics-and-Data-Mining.pdf (TOC/index metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,predictive_analytics_and_data_mining_2015/Index_2015_Predictive-Analytics-and-Data-Mining.pdf,chunk_009,,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-PRB-A,Probability & Statistics,What is Bayes' theorem in probability theory?,"**Bayes' Theorem.** A foundational probability theorem stating P(A|B) = P(B|A)P(A) / P(B), providing the principled mathematical basis for Bayesian inference, Maximum A Posteriori (MAP) estimation, and generative probabilistic modeling in machine learning. [S1: papers/Rafailov2023_DPO.pdf, PDF p.6](/read?doc=papers%2FRafailov2023_DPO.pdf&page=6)
+
+[DPO (Rafailov et al., 2023) — p. 6](/papers/Rafailov2023_DPO.pdf#page=6)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Data and Computer Communications** (closest indexed match)
+  Author: Stallings
+  ISBN: `9781322144320`
+  [Open with institutional access](/open/3997a85b-296c-4f53-97f1-70a429979ad6)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Rafailov2023_DPO.pdf, PDF p.6](/read?doc=papers%2FRafailov2023_DPO.pdf&page=6)
+- [S2: papers/Goodfellow2014_GAN.pdf, PDF p.2](/read?doc=papers%2FGoodfellow2014_GAN.pdf&page=2)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Goodfellow2014_GAN.pdf | papers/Rafailov2023_DPO.pdf,chunk_007 | chunk_019,papers/Goodfellow2014_GAN.pdf#page=2 | papers/Rafailov2023_DPO.pdf#page=6,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-PRB-B,Probability & Statistics,How does Maximum Likelihood Estimation (MLE) estimate Gaussian distribution parameters?,"**Maximum Likelihood Estimation.** A statistical method that estimates parameters of a probabilistic model by maximizing the likelihood function of observed sample data, forming the statistical underpinning of cross-entropy loss minimization in supervised machine learning. [S1: papers/Rafailov2023_DPO.pdf, PDF p.5](/read?doc=papers%2FRafailov2023_DPO.pdf&page=5)
+
+[DPO (Rafailov et al., 2023) — p. 5](/papers/Rafailov2023_DPO.pdf#page=5)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Data and Computer Communications** (closest indexed match)
+  Author: Stallings
+  ISBN: `9781322144320`
+  [Open with institutional access](/open/3997a85b-296c-4f53-97f1-70a429979ad6)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Rafailov2023_DPO.pdf, PDF p.5](/read?doc=papers%2FRafailov2023_DPO.pdf&page=5)
+- [S2: papers/Goodfellow2014_GAN.pdf, PDF p.1](/read?doc=papers%2FGoodfellow2014_GAN.pdf&page=1)
+- [S3: papers/Kingma2013_VAE.pdf, PDF p.1](/read?doc=papers%2FKingma2013_VAE.pdf&page=1)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Goodfellow2014_GAN.pdf | papers/Kingma2013_VAE.pdf | papers/Rafailov2023_DPO.pdf,chunk_003 | chunk_005 | chunk_015,papers/Goodfellow2014_GAN.pdf#page=1 | papers/Kingma2013_VAE.pdf#page=1 | papers/Rafailov2023_DPO.pdf#page=5,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-PRB-C,Probability & Statistics,What probability concepts are prerequisites for Kullback-Leibler divergence and variational inference?,"Here is what the available evidence shows about **Probability** and **Variational Inference**.
+• **Probability** is indexed, but the selected source passage does not verify its stored summary, so I cannot use that summary as a sourced definition.
+• **Variational Inference**: Variational inference generalizes Bayesian inference to unconstrained parameters by minimizing the evidence on an underlying parameter posterior using variational representations. [S1: papers/Kingma2013_VAE.pdf, PDF p.2](/read?doc=papers%2FKingma2013_VAE.pdf&page=2)
+
+**Stored Graph Relationships (edge claims pending review):**
+• **Probability** and **Variational Inference** have a 3-hop stored graph path: (Probability) -[UNLOCKS]-> (Adversarial Nets) → (Adversarial Nets) -[UNLOCKS]-> (Neural Network) → (Neural Network) -[UNLOCKS]-> (Variational Inference). These edges record graph structure; the source documents for the endpoints do not by themselves verify every edge.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **A First Course in Probability, 9e** (closest indexed match)
+  Author: Ross
+  ISBN: `9789353948009`
+  [Open with institutional access](/open/c992b5c9-2b18-42eb-a5b3-f89742314258)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Kingma2013_VAE.pdf, PDF p.2](/read?doc=papers%2FKingma2013_VAE.pdf&page=2)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Kingma2013_VAE.pdf,chunk_008,papers/Kingma2013_VAE.pdf#page=2,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-SEC-A,Information Security,What is public-key cryptography in RSA?,**What is public-key cryptography in RSA** is a foundational academic topic that is not currently indexed as a standalone concept node in the local catalog. This explanation uses general foundational knowledge rather than local catalog citations.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GENERAL_EXPLANATION; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-SEC-B,Information Security,How does a real-time network intrusion detection system (NIDS) combine ANN and dynamic graphs?,"Here is what the available evidence shows about **a real-time network intrusion detection system (NIDS) combine ANN** and **Dynamic Graph**.
+• **Dynamic Graph**: A graph representation updated in real-time based on active connections and user interactions, capturing the evolving communication topology. [S1: Real-time network security: Integrating ANN and dynamic graph-based.pdf (source unavailable — metadata only)]
+
+**Coverage Limitations:**
+• **a real-time network intrusion detection system (NIDS) combine ANN** is not indexed in the current catalog. No bridge or relationship has been fabricated.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Design and Analysis of Algorithms 2/e** (closest indexed match)
+  Author: Dave
+  ISBN: `9789332520158`
+  [Open with institutional access](/open/1f233760-bb8f-4deb-9f39-8214567ba561)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: Real-time network security: Integrating ANN and dynamic graph-based.pdf (source unavailable — metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Real-time network security: Integrating ANN and dynamic graph-based.pdf,chunk_031,,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-SEC-C,Information Security,What cryptographic primitives are prerequisites for TLS handshake authentication?,**What cryptographic primitives are prerequisites for TLS handshake authentication** is a foundational academic topic that is not currently indexed as a standalone concept node in the local catalog. This explanation uses general foundational knowledge rather than local catalog citations.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GENERAL_EXPLANATION; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-AI-A,AI & Machine Learning,What is Direct Preference Optimization (DPO) for language model alignment?,"**Direct Preference Optimization.** DPO is a preference-based reinforcement learning method that uses a reward model to evaluate generations, allowing for precise alignment of language models with human preferences. [S1: papers/Rafailov2023_DPO.pdf, PDF p.2](/read?doc=papers%2FRafailov2023_DPO.pdf&page=2)
+
+[DPO (Rafailov et al., 2023) — p. 2](/papers/Rafailov2023_DPO.pdf#page=2)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Digital Design: With an Introduction to the Verilog HDL, VHDL, and System Verilog, 6e** (closest indexed match)
+  Author: Mano
+  ISBN: `9789390325849`
+  [Open with institutional access](/open/5c175398-00ee-42ed-8c84-790432275047)
+* **Artificial Intelligence: A Modern Approach, 4/e** (closest indexed match)
+  Author: Stuart J. Russell
+  ISBN: `9789356063488`
+  [Open with institutional access](/open/2be79d29-39cc-41a0-a068-e2a8821c309e)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Rafailov2023_DPO.pdf, PDF p.2](/read?doc=papers%2FRafailov2023_DPO.pdf&page=2)
+- [S2: papers/Rafailov2023_DPO.pdf, PDF p.1](/read?doc=papers%2FRafailov2023_DPO.pdf&page=1)
+- [S3: papers/Rafailov2023_DPO.pdf, PDF p.10](/read?doc=papers%2FRafailov2023_DPO.pdf&page=10)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Rafailov2023_DPO.pdf,chunk_002 | chunk_007 | chunk_034,papers/Rafailov2023_DPO.pdf#page=1 | papers/Rafailov2023_DPO.pdf#page=10 | papers/Rafailov2023_DPO.pdf#page=2,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-AI-B,AI & Machine Learning,How do Graph Attention Networks (GAT) compute attention coefficients over neighbor nodes?,"**Attention Mechanism.** A neural computational module calculating dynamic alignment weights over input states, allowing the model to selectively focus on salient contextual features. [S1: papers/Velickovic2017_GAT.pdf, PDF p.8](/read?doc=papers%2FVelickovic2017_GAT.pdf&page=8)
+
+**How it works.**
+$\mathrm{Attention}(Q,K,V) = \mathrm{softmax}(QK^{\top}/\sqrt{d_k})V$ [S1: papers/Velickovic2017_GAT.pdf, PDF p.8](/read?doc=papers%2FVelickovic2017_GAT.pdf&page=8)
+
+[GAT (Velickovic et al., 2017) — p. 8](/papers/Velickovic2017_GAT.pdf#page=8)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Computer System Architecture, Revised 3/e** (closest indexed match)
+  Author: Mano
+  ISBN: `9789332576131`
+  [Open with institutional access](/open/747cb926-c317-4041-9bdd-3ea98e246607)
+* **Artificial Intelligence: A Modern Approach, 4/e** (closest indexed match)
+  Author: Stuart J. Russell
+  ISBN: `9789356063488`
+  [Open with institutional access](/open/2be79d29-39cc-41a0-a068-e2a8821c309e)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Velickovic2017_GAT.pdf, PDF p.8](/read?doc=papers%2FVelickovic2017_GAT.pdf&page=8)
+- [S2: papers/Vaswani2017_Attention_Is_All_You_Need.pdf, PDF p.1](/read?doc=papers%2FVaswani2017_Attention_Is_All_You_Need.pdf&page=1)
+- [S3: papers/Bahdanau2014_Attention.pdf, PDF p.4](/read?doc=papers%2FBahdanau2014_Attention.pdf&page=4)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Bahdanau2014_Attention.pdf | papers/Vaswani2017_Attention_Is_All_You_Need.pdf | papers/Velickovic2017_GAT.pdf,chunk_002 | chunk_010 | chunk_026,papers/Bahdanau2014_Attention.pdf#page=4 | papers/Vaswani2017_Attention_Is_All_You_Need.pdf#page=1 | papers/Velickovic2017_GAT.pdf#page=8,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-AI-C,AI & Machine Learning,What concepts are prerequisites for Denoising Diffusion Probabilistic Models (DDPM)?,"**Diffusion Probabilistic Model.** A parameterized Markov chain trained using variational inference to produce samples matching the data after finite noise addition. [S1: papers/Ho2020_DDPM.pdf, PDF p.2](/read?doc=papers%2FHo2020_DDPM.pdf&page=2)
+
+[DDPM (Ho et al., 2020) — p. 2](/papers/Ho2020_DDPM.pdf#page=2)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Data Structures Using C, 1e** (closest indexed match)
+  Author: Tenenbaum
+  ISBN: `9789353948849`
+  [Open with institutional access](/open/cd11c0a0-5e5f-43ca-b555-f6155505a1e5)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Ho2020_DDPM.pdf, PDF p.2](/read?doc=papers%2FHo2020_DDPM.pdf&page=2)
+- [S2: papers/Ho2020_DDPM.pdf, PDF p.1](/read?doc=papers%2FHo2020_DDPM.pdf&page=1)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Ho2020_DDPM.pdf,chunk_002 | chunk_004,papers/Ho2020_DDPM.pdf#page=1 | papers/Ho2020_DDPM.pdf#page=2,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-SE-A,Software Engineering,What is Agile software development and iterative sprint planning?,"Here is what the available evidence shows about **Agile software development** and **iterative sprint planning**.
+
+**Coverage Limitations:**
+• **Agile software development** is not indexed in the current catalog. No bridge or relationship has been fabricated.
+• **iterative sprint planning** is not indexed in the current catalog. No bridge or relationship has been fabricated.",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-SE-B,Software Engineering,How does requirements engineering validate functional versus non-functional specifications?,Neither **How does requirements engineering validate functional** nor **non-functional specifications** are indexed in the catalog graph. No relationship or bridge can be verified without evidence.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=DISCONNECTED; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-SE-C,Software Engineering,What software engineering phases are prerequisites for integration testing and continuous delivery?,**What software engineering phases are prerequisites for integration testing and continuous delivery** covers foundational academic concepts that are not currently indexed as standalone nodes in the local catalog. This explanation uses general foundational knowledge rather than local catalog citations.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GENERAL_EXPLANATION; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-COA-A,Computer Architecture,What is instruction pipelining in CPU architecture?,**What is instruction pipelining in CPU architecture** is a foundational academic topic that is not currently indexed as a standalone concept node in the local catalog. This explanation uses general foundational knowledge rather than local catalog citations.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GENERAL_EXPLANATION; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-COA-B,Computer Architecture,How do data hazards and branch prediction affect five-stage RISC pipeline throughput?,"Here is what the available evidence shows about **Data** and **branch prediction affect five-stage RISC pipeline throughput**.
+• **Data** is indexed, but the selected source passage does not verify its stored summary, so I cannot use that summary as a sourced definition.
+
+**Coverage Limitations:**
+• **branch prediction affect five-stage RISC pipeline throughput** is not indexed in the current catalog. No bridge or relationship has been fabricated.
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Data and Computer Communications** (closest indexed match)
+  Author: Stallings
+  ISBN: `9781322144320`
+  [Open with institutional access](/open/3997a85b-296c-4f53-97f1-70a429979ad6)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: About-the-Authors_2019_Data-Science.pdf (TOC/index metadata only)]",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,data_science_2019/About-the-Authors_2019_Data-Science.pdf,About-the-Authors_2019_Data-Science__structure,,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+D10-COA-C,Computer Architecture,What computer architecture concepts are prerequisites for cache coherence protocols?,**What computer architecture concepts are prerequisites for cache coherence protocols** is a foundational academic topic that is not currently indexed as a standalone concept node in the local catalog. This explanation uses general foundational knowledge rather than local catalog citations.,722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GENERAL_EXPLANATION; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+S4-TRANSFORMER,AI & Machine Learning,"What is the Transformer architecture, and how is it different from BERT and GPT?","**Transformer** and **BERT** share a 2-hop structural bridge in the catalog graph.
+
+**Traversal chain.** Transformer $\xrightarrow{REQUIRES}$ Attention Mechanism Attention Mechanism $\xrightarrow{UNLOCKS}$ BERT
+
+**Document evidence.** [S1: papers/Vaswani2017_Attention_Is_All_You_Need.pdf, PDF p.9](/read?doc=papers%2FVaswani2017_Attention_Is_All_You_Need.pdf&page=9) [S2: Devlin2018_BERT.pdf, #page=1]
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Computer System Architecture, Revised 3/e** (closest indexed match)
+  Author: Mano
+  ISBN: `9789332576131`
+  [Open with institutional access](/open/747cb926-c317-4041-9bdd-3ea98e246607)
+* **Artificial Intelligence: A Modern Approach, 4/e** (closest indexed match)
+  Author: Stuart J. Russell
+  ISBN: `9789356063488`
+  [Open with institutional access](/open/2be79d29-39cc-41a0-a068-e2a8821c309e)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Vaswani2017_Attention_Is_All_You_Need.pdf, PDF p.9](/read?doc=papers%2FVaswani2017_Attention_Is_All_You_Need.pdf&page=9)
+- [S2: papers/Vaswani2017_Attention_Is_All_You_Need.pdf, PDF p.1](/read?doc=papers%2FVaswani2017_Attention_Is_All_You_Need.pdf&page=1)
+- [S3: papers/Vaswani2017_Attention_Is_All_You_Need.pdf, PDF p.2](/read?doc=papers%2FVaswani2017_Attention_Is_All_You_Need.pdf&page=2)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Vaswani2017_Attention_Is_All_You_Need.pdf,chunk_002 | chunk_008 | chunk_029,papers/Vaswani2017_Attention_Is_All_You_Need.pdf#page=1 | papers/Vaswani2017_Attention_Is_All_You_Need.pdf#page=2 | papers/Vaswani2017_Attention_Is_All_You_Need.pdf#page=9,none,offline_deterministic_draft,route=RELATION; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+S4-LORA,AI & Machine Learning,How does LoRA reduce trainable parameters for a 1024 by 1024 weight matrix at rank 8?,"**Low-Rank Adaptation.** Parameter-efficient fine-tuning (PEFT) method (Hu et al., 2021) that freezes pre-trained backbone weights and injects trainable rank-decomposition matrices (W0 + B x A) into dense attention layers, dramatically reducing trainable parameters without adding inference latency. [S1: papers/Hu2021_LoRA.pdf, PDF p.9](/read?doc=papers%2FHu2021_LoRA.pdf&page=9)
+
+[LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021) — p. 9](/papers/Hu2021_LoRA.pdf#page=9)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Artificial Intelligence: A Modern Approach, 4/e** (closest indexed match)
+  Author: Stuart J. Russell
+  ISBN: `9789356063488`
+  [Open with institutional access](/open/2be79d29-39cc-41a0-a068-e2a8821c309e)
+* **Computer Networks, 6/e** (closest indexed match)
+  Author: Andrew S. Tanenbaum
+  ISBN: `9789356063259`
+  [Open with institutional access](/open/0fcd531f-3ba1-495e-9c9e-b43b034b88d9)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Hu2021_LoRA.pdf, PDF p.9](/read?doc=papers%2FHu2021_LoRA.pdf&page=9)
+- [S2: papers/Hu2021_LoRA.pdf, PDF p.10](/read?doc=papers%2FHu2021_LoRA.pdf&page=10)
+- [S3: papers/Hu2021_LoRA.pdf, PDF p.1](/read?doc=papers%2FHu2021_LoRA.pdf&page=1)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Hu2021_LoRA.pdf,chunk_002 | chunk_027 | chunk_030,papers/Hu2021_LoRA.pdf#page=1 | papers/Hu2021_LoRA.pdf#page=10 | papers/Hu2021_LoRA.pdf#page=9,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+S4-PAGING,Operating Systems,Does every virtual memory page fault require disk I/O?,"**Virtual Memory.** A memory management architecture that provides an idealized, private address space for each process, decoupling logical program addresses from physical DRAM addresses via page tables and memory management unit (MMU) hardware. [S1: 07_Address_Translation.pdf, #page=2]
+
+[07 Address Translation — p. 2](/papers/07_Address_Translation.pdf#page=2)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **Computer System Architecture, Revised 3/e** (closest indexed match)
+  Author: Mano
+  ISBN: `9789332576131`
+  [Open with institutional access](/open/747cb926-c317-4041-9bdd-3ea98e246607)
+* **Operating System Concepts (The Dinosaur Book)** (closest indexed match)
+  Author: Abraham Silberschatz, Peter B. Galvin, Greg Gagne
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf, PDF p.2](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F06_Address_Spaces.pdf&page=2)
+- [S2: archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf, PDF p.2](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F07_Address_Translation.pdf&page=2)
+- [S3: archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf, PDF p.1](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F06_Address_Spaces.pdf&page=1)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf | archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf,virtual_memory_seed_001 | virtual_memory_seed_002 | virtual_memory_seed_005,archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf#page=1 | archipelago-books-cs/ostep_three_easy_pieces/06_Address_Spaces.pdf#page=2 | archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf#page=2,none,offline_deterministic_draft,route=GRAPH_SYNTHESIS; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+S4-OSTEP-ADDR,Operating Systems,Where does OSTEP explain base-and-bounds address translation?,"**Base-and-bounds address translation.** Hardware adds the base register to a process's virtual address to relocate it in physical memory. The bounds register checks whether the virtual address is within the process's allowed address space; an out-of-bounds access traps. The OSTEP textbook explains this on [PDF page 7](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F07_Address_Translation.pdf&page=7) [S1: archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf, PDF p.7](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F07_Address_Translation.pdf&page=7).
+
+**Sources:**
+- [S1: archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf, PDF p.7](/read?doc=archipelago-books-cs%2Fostep_three_easy_pieces%2F07_Address_Translation.pdf&page=7)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf,38d81af0ae91:p7:c0,archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf#page=7,none,offline_deterministic_draft,route=BOOK_PAGE; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+S4-RAG,AI & Machine Learning,"What is retrieval-augmented generation, and does retrieval guarantee factual support?","Here is what the available evidence shows about **Retrieval-Augmented Generation** and **Retrieval**.
+• **Retrieval-Augmented Generation**: A method that retrieves relevant documents from an external knowledge source and uses them to augment an LLM, enabling answer generation without access to the LLM's parameters. [S1: papers/Lewis2020_RAG.pdf, PDF p.5](/read?doc=papers%2FLewis2020_RAG.pdf&page=5)
+• **Retrieval**: Retrieval: A process using a query generator and retriever to find relevant documents in an external knowledge source to support a language model's generation. [S2: papers/Lewis2020_RAG.pdf, PDF p.3](/read?doc=papers%2FLewis2020_RAG.pdf&page=3)
+
+---
+
+### Institutional e-books
+
+Relevant licensed digital reading from the institutional catalogue:
+
+* **General Knowledge Manual 2026** (closest indexed match)
+  Author: Showick Thorpe
+  ISBN: `9789367132708`
+  [Open with institutional access](/open/45fcc161-f4de-49ee-b013-2159cdcd8794)
+* **Artificial Intelligence: A Modern Approach, 4/e** (closest indexed match)
+  Author: Stuart J. Russell
+  ISBN: `9789356063488`
+  [Open with institutional access](/open/2be79d29-39cc-41a0-a068-e2a8821c309e)
+
+Physical holdings and circulation status are not verified by this e-book export.
+
+**Sources:**
+- [S1: papers/Lewis2020_RAG.pdf, PDF p.5](/read?doc=papers%2FLewis2020_RAG.pdf&page=5)
+- [S2: papers/Lewis2020_RAG.pdf, PDF p.3](/read?doc=papers%2FLewis2020_RAG.pdf&page=3)",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,papers/Lewis2020_RAG.pdf,chunk_009 | chunk_019,papers/Lewis2020_RAG.pdf#page=3 | papers/Lewis2020_RAG.pdf#page=5,none,offline_deterministic_draft,route=MULTI_CONCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,
+S4-SPANNER,Distributed Systems,What is Spanner TrueTime?,"That topic falls outside the current scope of this library assistant. My indexed corpus strictly covers Computer Science, Artificial Intelligence, Database Systems, and Mathematics for Machine Learning. Please consult the general university catalog or your department librarian.",722b0c58c7fc4d4432da7ada515a7270fba463b3,9818ac0e8fd3,,,,none,offline_deterministic_draft,route=GUARDRAIL_INTERCEPT; offline_structure_only; human_correctness_ungraded,not_tested,not_tested_offline,,,,,,

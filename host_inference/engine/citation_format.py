@@ -22,11 +22,15 @@ def citation_link(record: dict) -> str:
     if not label:
         return ""
     url = _safe_link(record.get("url") or record.get("pdf_url"))
-    if record.get("withdrawn") or not url:
+    if record.get("withdrawn") or not url or record.get("reader_resolvable") is False:
         return label
     title = str(record.get("doc_title") or record.get("title") or record.get("doc_id") or "Source")
     page = record.get("page_number")
-    page_text = f", PDF p.{page}" if isinstance(page, int) and page > 0 else ""
+    is_pearson = bool(record.get("is_pearson") or url.startswith("/open/"))
+    if is_pearson:
+        page_text = " (Pearson catalogue-only)"
+    else:
+        page_text = f", PDF p.{page}" if isinstance(page, int) and page > 0 else ""
     eid = record.get("evidence_id") or re.match(r"\[(S\d+):", label)
     if isinstance(eid, re.Match):
         eid = eid.group(1)

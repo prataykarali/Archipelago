@@ -1,0 +1,37 @@
+query_id,domain,question_type,query,expected_reference_note
+D10-OS-A,Operating Systems,A_definition,What is virtual memory paging in operating systems?,OSTEP ch. 08 Paging / Stallings OS
+D10-OS-B,Operating Systems,B_technical_evidence,How does base-and-bounds hardware address translation relocate a process address space?,OSTEP ch. 07 Address Translation
+D10-OS-C,Operating Systems,C_prereq_relation,What concepts are prerequisites for understanding paging and address translation?,OSTEP ch. 06-08 prereq chain
+D10-DB-A,Database Systems,A_definition,What is Third Normal Form (3NF) in relational database design?,Silberschatz / Elmasri 7e / silberschatz_3nf_card
+D10-DB-B,Database Systems,B_technical_evidence,How does a B+ tree clustered index support range scans in a relational DBMS?,Silberschatz / Elmasri 7e
+D10-DB-C,Database Systems,C_prereq_relation,What prerequisites are needed before learning ACID transaction concurrency control?,DBMS prereq graph
+D10-DSA-A,Data Structures & Algorithms,A_definition,What is dynamic programming in algorithm design?,CLRS / Levitin / Dave
+D10-DSA-B,Data Structures & Algorithms,B_technical_evidence,How does Dijkstra's shortest-path algorithm use a priority queue to relax graph edges?,CLRS / Levitin
+D10-DSA-C,Data Structures & Algorithms,C_prereq_relation,What data structures are prerequisites for graph shortest-path algorithms?,DSA prereq graph
+D10-NET-A,Computer Networks,A_definition,What is the TCP three-way handshake and congestion control?,Tanenbaum 6e / Stallings
+D10-NET-B,Computer Networks,B_technical_evidence,How does the OSI Data Link Layer frame packets over the Physical Layer?,doc_computer_networks_6_e / Tanenbaum
+D10-NET-C,Computer Networks,C_prereq_relation,How do the Physical Layer and Data Link Layer relate to network routing?,Networks prereq graph
+D10-CMP-A,Compilers & Languages,A_definition,What is lexical analysis in a compiler?,Aho Dragon Book 2e
+D10-CMP-B,Compilers & Languages,B_technical_evidence,How does LALR bottom-up parsing construct a syntax tree from tokens?,Aho Dragon Book 2e
+D10-CMP-C,Compilers & Languages,C_prereq_relation,What compiler phases are prerequisites for intermediate code generation and optimization?,Compilers prereq graph
+D10-AUT-A,Automata & Computation,A_definition,What is a deterministic finite automaton (DFA)?,Hopcroft-Motwani-Ullman
+D10-AUT-B,Automata & Computation,B_technical_evidence,How does the pumping lemma prove that a language is not regular?,Hopcroft-Motwani-Ullman
+D10-AUT-C,Automata & Computation,C_prereq_relation,How do finite automata and context-free grammars relate to Turing machines?,Automata prereq graph
+D10-MTH-A,Mathematics for Computing,A_definition,What is Singular Value Decomposition (SVD) in linear algebra?,Deisenroth Math for ML
+D10-MTH-B,Mathematics for Computing,B_technical_evidence,How do eigenvalues and eigenvectors diagonalize a symmetric matrix?,Deisenroth Math for ML
+D10-MTH-C,Mathematics for Computing,C_prereq_relation,What linear algebra concepts are prerequisites for Principal Component Analysis (PCA)?,Math->ML prereq graph
+D10-PRB-A,Probability & Statistics,A_definition,What is Bayes' theorem in probability theory?,Ross Probability 9e / Pattern Recognition
+D10-PRB-B,Probability & Statistics,B_technical_evidence,How does Maximum Likelihood Estimation (MLE) estimate Gaussian distribution parameters?,Deisenroth / Pattern Recognition
+D10-PRB-C,Probability & Statistics,C_prereq_relation,What probability concepts are prerequisites for Kullback-Leibler divergence and variational inference?,Kingma2013_VAE / Prob prereq graph
+D10-SEC-A,Information Security,A_definition,What is public-key cryptography in RSA?,Stallings Cryptography 8e
+D10-SEC-B,Information Security,B_technical_evidence,How does a real-time network intrusion detection system (NIDS) combine ANN and dynamic graphs?,Real-time network security paper
+D10-SEC-C,Information Security,C_prereq_relation,What cryptographic primitives are prerequisites for TLS handshake authentication?,Security prereq graph
+D10-AI-A,AI & Machine Learning,A_definition,What is Direct Preference Optimization (DPO) for language model alignment?,Rafailov2023_DPO.pdf
+D10-AI-B,AI & Machine Learning,B_technical_evidence,How do Graph Attention Networks (GAT) compute attention coefficients over neighbor nodes?,Velickovic2017_GAT.pdf
+D10-AI-C,AI & Machine Learning,C_prereq_relation,What concepts are prerequisites for Denoising Diffusion Probabilistic Models (DDPM)?,Ho2020_DDPM.pdf / Kingma2013_VAE.pdf
+D10-SE-A,Software Engineering,A_definition,What is Agile software development and iterative sprint planning?,Sommerville SE 10e
+D10-SE-B,Software Engineering,B_technical_evidence,How does requirements engineering validate functional versus non-functional specifications?,Sommerville SE 10e
+D10-SE-C,Software Engineering,C_prereq_relation,What software engineering phases are prerequisites for integration testing and continuous delivery?,SE prereq graph
+D10-COA-A,Computer Architecture,A_definition,What is instruction pipelining in CPU architecture?,Mano / Stallings COA
+D10-COA-B,Computer Architecture,B_technical_evidence,How do data hazards and branch prediction affect five-stage RISC pipeline throughput?,Mano / Stallings COA
+D10-COA-C,Computer Architecture,C_prereq_relation,What computer architecture concepts are prerequisites for cache coherence protocols?,COA prereq graph

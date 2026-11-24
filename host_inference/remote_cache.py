@@ -119,15 +119,18 @@ def hydrate() -> dict[str, str]:
     }
 
 
-def pearson_page_url(book: dict, page: int = 1) -> str:
-    """Exact Pearson reader URL: viewer + version + subscription + #book/{id}/page/{n}."""
-    page_n = max(1, int(page or 1))
-    if book.get("page_count") and int(book["page_count"]) > 1:
-        page_n = min(page_n, int(book["page_count"]))
-    viewer = "pdfviewer.html" if str(book.get("book_type") or "").lower() == "pdf" else "index.html"
+def pearson_page_url(book: dict, page: int | None = None) -> str:
+    """Exact Pearson reader URL: viewer + version + subscription + #book/{id}[/page/{n}]."""
+    is_pdf = str(book.get("book_type") or "pdf").strip().lower() == "pdf"
+    viewer = "pdfviewer.html" if is_pdf else "index.html"
     sub = str(book.get("subscription_id") or "").strip()
     sub_query = f"&subscriptionId={sub}" if sub else ""
-    page_part = f"/page/{page_n}"
+    page_part = ""
+    if is_pdf and page is not None:
+        page_n = max(1, int(page))
+        if book.get("page_count") and int(book["page_count"]) > 1:
+            page_n = min(page_n, int(book["page_count"]))
+        page_part = f"/page/{page_n}"
     return f"https://ebooks.elibrary.in.pearson.com/wr/{viewer}?version=1.0.317.1{sub_query}#book/{book.get('id')}{page_part}"
 
 
@@ -139,15 +142,17 @@ def public_book(book: dict) -> dict:
         "author": book.get("author") or "Institutional collection",
         "year": "",
         "domain": book.get("domain") or "CS & AI",
-        "desc": "Institutional e-book. Open opens the exact Pearson page for your library login.",
+        "desc": "Institutional e-book (catalogue-only metadata). Opens official Pearson reader for your library login.",
         "isbn": book.get("isbn") or "",
         "isPearson": True,
+        "book_type": str(book.get("book_type") or "pdf").strip().lower(),
+        "page_verified": False,
         "page_count": book.get("page_count") or 1,
         "primaryColor": "#1d4ed8",
         "accentColor": "#93c5fd",
         "pdfUrl": "",
-        "open_url": f"/open/{book.get('id')}?page=1",
-        "reader_base_url": f"/open/{book.get('id')}?page=1",
+        "open_url": f"/open/{book.get('id')}",
+        "reader_base_url": f"/open/{book.get('id')}",
     }
 
 
