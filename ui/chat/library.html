@@ -117,11 +117,15 @@
   <!-- Fullscreen Cinematic Butterfly Video Background (Fully Visible) -->
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
     <video
-      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260717_120352_eb988725-1351-43b3-8095-16e4a1005e3d.mp4"
+      id="library-bg-video"
+      src="/ui/assets/library_vortex.mp4"
+      poster="/ui/assets/library_vortex_poster.jpg"
       autoplay
       loop
       muted
       playsinline
+      webkit-playsinline
+      preload="auto"
       class="w-full h-full object-cover opacity-80"
     ></video>
     <!-- Soft Vignette Gradient -->
@@ -1121,6 +1125,40 @@
     if (refreshBtn) refreshBtn.addEventListener('click', loadJobs);
     if (role === 'librarian' || role === 'administrator') loadJobs();
   })();
+  </script>
+  <script>
+    (function keepLibraryVideoPlaying() {
+      const video = document.getElementById('library-bg-video');
+      if (!video) return;
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      const tryPlay = () => {
+        const p = video.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            const wake = () => {
+              video.play().catch(() => {});
+              ['click', 'touchstart', 'scroll', 'keydown'].forEach(evt => {
+                window.removeEventListener(evt, wake, { capture: true });
+              });
+            };
+            ['click', 'touchstart', 'scroll', 'keydown'].forEach(evt => {
+              window.addEventListener(evt, wake, { capture: true, passive: true });
+            });
+          });
+        }
+      };
+      video.addEventListener('pause', () => { if (!document.hidden) tryPlay(); });
+      video.addEventListener('stalled', tryPlay);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) tryPlay(); });
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryPlay);
+      } else {
+        tryPlay();
+      }
+      tryPlay();
+    })();
   </script>
 </body>
 </html>
