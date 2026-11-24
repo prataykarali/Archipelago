@@ -32,14 +32,46 @@ GPT_CORRECTION = (
     "Transformer model family pretrained with causal next-token prediction, "
     "not masked language modeling."
 )
+SUMMARY_CORRECTIONS: dict[str, tuple[str, str]] = {
+    "transformer": (TRANSFORMER_CONFLATION, TRANSFORMER_CORRECTION),
+    "gpt": (GPT_CONFLATION, GPT_CORRECTION),
+    "gpt_2": (
+        "GPT-2, the second generation of GPT, is a left-to-right language model using a "
+        "Transformer decoder architecture with 1234 tokens.",
+        "GPT-2 is a unidirectional, autoregressive Transformer decoder language model "
+        "(1,024-token context window) pretrained with causal next-token prediction on "
+        "WebText (Radford et al., 2019).",
+    ),
+    "bm25": (
+        "A bidirectional search engine that evaluates text passages using masked "
+        "language modeling on the BM25 corpus.",
+        "BM25 (Okapi BM25) is a probabilistic bag-of-words lexical retrieval ranking "
+        "function based on term frequency saturation, inverse document frequency, and "
+        "document-length normalization (Robertson & Zaragoza, 2009).",
+    ),
+    "dpr": (
+        "DPR: A retrieval-prompt generation model using masked language modeling on "
+        "text pairs, extracting factual knowledge for question answering.",
+        "Dense Passage Retrieval (DPR) uses a dual-encoder architecture (separate "
+        "BERT-based question and passage encoders) trained with contrastive in-batch "
+        "and hard negatives to retrieve passages by maximum inner-product search "
+        "(Karpukhin et al., 2020).",
+    ),
+    "transformer_encoder": (
+        "The Transformer encoder is a sequence-to-sequence neural network using masked "
+        "language modeling and next-token prediction.",
+        "The Transformer encoder is a stack of bidirectional multi-head self-attention "
+        "and position-wise feed-forward layers that maps an input token sequence to "
+        "contextualized continuous representations (Vaswani et al., 2017).",
+    ),
+}
 
 
 def corrected_summary(concept_id: str, summary: str) -> str:
     """Replace only known contaminated extraction summaries without mutating okf_graph.json."""
-    if concept_id == "transformer" and summary == TRANSFORMER_CONFLATION:
-        return TRANSFORMER_CORRECTION
-    if concept_id == "gpt" and summary == GPT_CONFLATION:
-        return GPT_CORRECTION
+    pair = SUMMARY_CORRECTIONS.get(concept_id)
+    if pair is not None and summary == pair[0]:
+        return pair[1]
     return summary
 
 

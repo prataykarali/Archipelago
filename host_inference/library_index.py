@@ -264,19 +264,52 @@ class Catalog:
         self.candidate_passages_info: dict[str, object] = {
             "loaded": False,
             "count": 0,
+            "document_count": 0,
             "sha256": None,
             "expected_sha256": None,
             "checksum_verified": False,
+            "source": None,
         }
         candidate_index = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES", "").strip()
         if candidate_index and candidate_index not in {"0", "false", "none"}:
-            self._load_candidate_passages(Path(candidate_index))
+            self._load_candidate_passages(Path(candidate_index), source="env_path")
         elif not candidate_index and not os.environ.get("PYTEST_CURRENT_TEST"):
             default_cache = HERE / "cache" / "d10_candidate_passages.jsonl"
             if default_cache.is_file():
-                self._load_candidate_passages(default_cache)
+                self._load_candidate_passages(default_cache, source="local_cache")
+            else:
+                self._load_remote_candidate_passages()
 
-    def _load_candidate_passages(self, index_path: Path) -> None:
+    def _load_remote_candidate_passages(self) -> None:
+        """Fetch the checksum-verified passage index from private staging Supabase Storage."""
+        storage_object = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_STORAGE", "").strip()
+        if not storage_object:
+            return
+        url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+        key = (
+            os.environ.get("SUPABASE_SECRET_KEY", "").strip()
+            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+        )
+        if not url or not key:
+            return
+        cache_path = Path("/tmp/archipelago_d10_candidate_passages.jsonl")
+        if not cache_path.is_file():
+            try:
+                resp = requests.get(
+                    f"{url}/storage/v1/object/{storage_object.lstrip('/')}",
+                    headers={"apikey": key, "Authorization": f"Bearer {key}"},
+                    timeout=15,
+                )
+                if resp.status_code != 200 or not resp.content:
+                    self.candidate_passages_info["error"] = f"remote_http_{resp.status_code}"
+                    return
+                cache_path.write_bytes(resp.content)
+            except (requests.RequestException, OSError):
+                self.candidate_passages_info["error"] = "remote_fetch_failed"
+                return
+        self._load_candidate_passages(cache_path, source="supabase_storage")
+
+    def _load_candidate_passages(self, index_path: Path, *, source: str = "local") -> None:
         """Add rights-approved, deterministic PDF body chunks to catalog retrieval."""
         if not index_path.is_file():
             return
@@ -297,14 +330,21 @@ class Catalog:
             self.candidate_passages_info = {
                 "loaded": False,
                 "count": 0,
+                "document_count": 0,
                 "sha256": actual_sha,
                 "expected_sha256": expected_sha,
                 "checksum_verified": False,
+                "source": source,
                 "error": "checksum_mismatch",
             }
             return
         loaded_count = 0
-        for line in raw_bytes.decode("utf-8", errors="replace").splitlines():
+        loaded_docs: set[str] = set()
+        # Split strictly on LF (\n) so PDF form-feeds (\x0c) or Unicode line separators
+        # inside JSON strings are never misinterpreted as JSONL record boundaries.
+        for line in raw_bytes.decode("utf-8", errors="replace").split("\n"):
+            if not line.strip():
+                continue
             try:
                 passage = json.loads(line)
                 doc_id = str(passage["doc_id"])
@@ -329,12 +369,15 @@ class Catalog:
                 }
             )
             loaded_count += 1
+            loaded_docs.add(doc_id)
         self.candidate_passages_info = {
             "loaded": loaded_count > 0,
             "count": loaded_count,
+            "document_count": len(loaded_docs),
             "sha256": actual_sha,
             "expected_sha256": expected_sha or None,
             "checksum_verified": bool(expected_sha and actual_sha == expected_sha),
+            "source": source,
         }
 
     def match_hf(self, query: str) -> tuple[dict | None, int]:

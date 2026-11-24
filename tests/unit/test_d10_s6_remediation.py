@@ -25,6 +25,16 @@ def test_gpt_summary_corrected_and_frozen_graph_preserved():
     assert "not masked language modeling" in gpt_summary.lower()
     assert "uses masked language modeling" not in gpt_summary.lower()
 
+    # D10-S7 demo-critical semantic overrides
+    assert "1,024" in graph.nodes["gpt_2"]["summary"]
+    assert "1234" not in graph.nodes["gpt_2"]["summary"]
+    assert "probabilistic" in graph.nodes["bm25"]["summary"].lower()
+    assert "masked language modeling" not in graph.nodes["bm25"]["summary"].lower()
+    assert "dual-encoder" in graph.nodes["dpr"]["summary"].lower()
+    assert "masked language modeling" not in graph.nodes["dpr"]["summary"].lower()
+    assert "self-attention" in graph.nodes["transformer_encoder"]["summary"].lower()
+    assert "masked language modeling" not in graph.nodes["transformer_encoder"]["summary"].lower()
+
 
 def test_durable_session_rpc_renamed_to_avoid_table_collision():
     from hostapp.session_store import SESSION_RPC_NAME
