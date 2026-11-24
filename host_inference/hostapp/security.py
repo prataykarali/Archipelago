@@ -108,6 +108,8 @@ def is_allowed_handoff_origin(origin: str) -> bool:
     cleaned = origin.strip()
     if not cleaned or cleaned == "*" or _CONTROL_CHAR_RE.search(cleaned):
         return False
+    if os.getenv("VERCEL"):
+        return cleaned in ALLOWED_ORIGINS
     return cleaned in ALLOWED_ORIGINS or bool(_LIBRARIAN_ORIGIN_RE.fullmatch(cleaned))
 
 

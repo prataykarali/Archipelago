@@ -62,11 +62,16 @@ RATE_WINDOW_SEC = 60.0
 
 ALLOWED_ORIGINS = frozenset(
     {
+        "http://localhost:5152",
+        "http://127.0.0.1:5152",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    }
+    if os.getenv("VERCEL")
+    else {
         "https://archipelago.antideploy.com",
         "https://archipelago-2.antideploy.com",
         "https://archipelago3.antideploy.com",
-        "https://archipelago-librarian.vercel.app",
-        "https://archipelago-blond.vercel.app",
         "http://localhost:5152",
         "http://127.0.0.1:5152",
         "http://localhost:8080",

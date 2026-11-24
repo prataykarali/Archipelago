@@ -32,6 +32,8 @@ from pathlib import Path
 import shutil
 import tempfile
 
+from hf_revision import dataset_revision
+
 logger = logging.getLogger(__name__)
 
 #: Where each corpus artifact lives inside the Hugging Face dataset repo, mapped
@@ -87,7 +89,7 @@ def _hf_download(repo_id: str, filename: str, destination: Path, token: str) -> 
     because the deployed image should not require the hub package for one file.
     """
     endpoint = os.environ.get(HF_ENDPOINT_ENV, HF_ENDPOINT_DEFAULT).rstrip("/")
-    url = f"{endpoint}/datasets/{repo_id}/resolve/main/{filename}"
+    url = f"{endpoint}/datasets/{repo_id}/resolve/{dataset_revision(repo_id)}/{filename}"
     destination.parent.mkdir(parents=True, exist_ok=True)
 
     try:

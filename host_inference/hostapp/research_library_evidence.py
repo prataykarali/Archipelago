@@ -8,6 +8,7 @@ import os
 import re
 from typing import Any
 
+from hf_revision import dataset_revision
 import requests
 
 LIBRARY_REPO_DEFAULT = "Prataykarali/Library_books"
@@ -23,7 +24,7 @@ CATALOG_CACHE_JOBS = 32
 def _read_job_catalog(repo: str, job_id: str, token: str) -> tuple[dict[str, Any], ...]:
     """Fetch one immutable job file once per warm server process."""
     path = f"catalogs/research_papers/{job_id}.jsonl"
-    url = f"https://huggingface.co/datasets/{repo}/resolve/main/{path}"
+    url = f"https://huggingface.co/datasets/{repo}/resolve/{dataset_revision(repo)}/{path}"
     with requests.get(
         url,
         headers={"Authorization": f"Bearer {token}"},

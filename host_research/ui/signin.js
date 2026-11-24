@@ -1,4 +1,4 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/+esm";
 import "./password_visibility.js";
 
 const status = document.querySelector("#login-status");
@@ -66,93 +66,12 @@ document.querySelector("#login-form").addEventListener("submit", async (event) =
   location.replace(next);
 });
 
-const HANDOFF_STATE_KEY = 'archipelago_handoff_state';
-let activeHandoffPopup = null;
-
-function generateHandoffState() {
-  const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-document.querySelector('#continue-session').addEventListener('click', () => {
-  status.textContent = 'Checking your main Archipelago session…';
-  const state = generateHandoffState();
-  sessionStorage.setItem(HANDOFF_STATE_KEY, state);
-  const bridge = new URL('https://archipelago-blond.vercel.app/session-bridge.html');
-  bridge.searchParams.set('target', location.origin);
-  bridge.searchParams.set('state', state);
-  activeHandoffPopup = window.open(bridge.href, 'archipelago-session', 'width=560,height=360');
-  if (!activeHandoffPopup) {
-    sessionStorage.removeItem(HANDOFF_STATE_KEY);
-    status.textContent = 'Allow the Archipelago session window, then try again.';
+document.querySelector('#continue-session').addEventListener('click', async () => {
+  status.textContent = 'Checking this research site session…';
+  const response = await fetch('/api/auth/me', { cache: 'no-store', credentials: 'same-origin' });
+  if (response.ok) {
+    location.replace(next);
+  } else {
+    status.textContent = 'Please sign in with your research account.';
   }
-});
-
-window.addEventListener('message', async (event) => {
-  if (event.origin !== 'https://archipelago-blond.vercel.app') return;
-  if (activeHandoffPopup && event.source !== activeHandoffPopup) return;
-  const msgType = event.data?.type;
-  if (msgType !== 'archipelago-session-v2' && msgType !== 'archipelago-session-v1') return;
-
-  const expectedState = sessionStorage.getItem(HANDOFF_STATE_KEY);
-  sessionStorage.removeItem(HANDOFF_STATE_KEY);
-  activeHandoffPopup = null;
-
-  if (!expectedState || typeof event.data?.state !== 'string' || event.data.state !== expectedState) {
-    status.textContent = 'Session handoff state verification failed. Please try again.';
-    return;
-  }
-
-  let accessToken = null;
-  if (typeof event.data.ticket === 'string' && event.data.ticket.length >= 16) {
-    try {
-      const redeemResp = await fetch('/api/auth/handoff-redeem', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-        body: JSON.stringify({ ticket: event.data.ticket, state: expectedState, nonce: expectedState }),
-        cache: 'no-store',
-      });
-      if (redeemResp.ok) {
-        const redeemed = await redeemResp.json();
-        accessToken = typeof redeemed?.access_token === 'string' ? redeemed.access_token : null;
-        if (redeemed?.authenticated && !accessToken) {
-          location.replace(next);
-          return;
-        }
-      }
-    } catch (_) {}
-  }
-
-  if (!accessToken && typeof event.data.access_token === 'string') {
-    accessToken = event.data.access_token;
-  }
-  if (!accessToken) {
-    status.textContent = 'Session handoff failed. Please sign in here.';
-    return;
-  }
-
-  const response = await fetch('/api/auth/me', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    if (supabase) await supabase.auth.signOut();
-    status.textContent = 'This account cannot access the staff space.';
-    return;
-  }
-  try {
-    await fetch('/api/auth/session', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ access_token: accessToken }),
-    });
-  } catch (_) {}
-  location.replace(next);
 });

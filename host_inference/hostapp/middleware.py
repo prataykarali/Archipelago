@@ -54,7 +54,7 @@ CONTENT_SECURITY_POLICY = (
     "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
     "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; "
-    "connect-src 'self' https://spllaastejfwclllfndp.supabase.co https://esm.sh https://archipelago-librarian.vercel.app; "
+    "connect-src 'self' https://edokbtmhztkhndmxetpy.supabase.co https://esm.sh; "
     "frame-src 'self' https://ebooks.elibrary.in.pearson.com https://elibrary.in.pearson.com https://huggingface.co; "
     "worker-src 'self' blob: https://cdnjs.cloudflare.com"
 )

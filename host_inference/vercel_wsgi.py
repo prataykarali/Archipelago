@@ -11,6 +11,8 @@ from hostapp.runtime_state import install_shutdown_handlers
 
 MINIMUM_LIVE_CONCEPTS = 520
 MINIMUM_LIVE_PEARSON_BOOKS = 40
+RESEARCH_SUPABASE_URL = "https://edokbtmhztkhndmxetpy.supabase.co"
+RESEARCH_PROJECT_ID = "edokbtmhztkhndmxetpy"
 _SAFE_SHA_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
 
@@ -25,6 +27,14 @@ def resolve_release_sha() -> str:
 
 def create_vercel_app() -> Flask:
     """Build the app only with the existing full Supabase corpus."""
+    if (
+        os.environ.get("VERCEL")
+        and os.environ.get("SUPABASE_URL", "").rstrip("/") != RESEARCH_SUPABASE_URL
+    ):
+        raise RuntimeError("Release blocked: Supabase project is not Research Staging")
+    research_dsn = os.environ.get("ARCHIPELAGO_RESEARCH_DATABASE_URL", "")
+    if os.environ.get("VERCEL") and research_dsn and RESEARCH_PROJECT_ID not in research_dsn:
+        raise RuntimeError("Release blocked: research database URL is not staging scoped")
     os.environ["ARCHIPELAGO_ENV"] = "production"
     install_shutdown_handlers()
     context = build_context()

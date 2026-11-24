@@ -77,7 +77,9 @@ def _fetch_hf_repo_pdfs(repo: str, token: str) -> list[str]:
     """Fetch recursive PDF paths from a Hugging Face dataset repo."""
     if not repo:
         return []
-    url = f"https://huggingface.co/api/datasets/{repo}/tree/main?recursive=true"
+    from hf_revision import dataset_revision
+
+    url = f"https://huggingface.co/api/datasets/{repo}/tree/{dataset_revision(repo)}?recursive=true"
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     try:
         resp = requests.get(url, headers=headers, timeout=_HF_TREE_TIMEOUT_SEC)
@@ -317,7 +319,9 @@ class Catalog:
         actual_sha = hashlib.sha256(raw_bytes).hexdigest()
         expected_sha = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_SHA256", "").strip().lower()
         if not expected_sha:
-            manifest_path = HERE.parent / "docs" / "reports" / "D10_S4_CANDIDATE_PASSAGE_MANIFEST.json"
+            manifest_path = (
+                HERE.parent / "docs" / "reports" / "D10_S4_CANDIDATE_PASSAGE_MANIFEST.json"
+            )
             if manifest_path.is_file():
                 try:
                     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))

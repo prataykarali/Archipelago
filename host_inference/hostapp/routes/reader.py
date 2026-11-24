@@ -13,6 +13,7 @@ from urllib.parse import quote, unquote
 
 from engine import _hf_doc_path
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
+from hf_revision import dataset_revision
 from library_index import hf_title, resolve_hf_path, resolve_hf_source
 from remote_cache import load_books, pearson_page_url
 import requests
@@ -23,7 +24,9 @@ from ..user_traffic import record_user_action
 
 READER_PAGE_FILE = "reader.html"
 HF_REPO_NAME = os.environ.get("HF_LIBRARY_REPO", "Prataykarali/Library_books")
-HF_DATASET_RESOLVE_BASE = f"https://huggingface.co/datasets/{HF_REPO_NAME}/resolve/main"
+HF_DATASET_RESOLVE_BASE = (
+    f"https://huggingface.co/datasets/{HF_REPO_NAME}/resolve/{dataset_revision(HF_REPO_NAME)}"
+)
 HF_STREAM_CHUNK_BYTES = 65536
 HF_STREAM_TIMEOUT_SEC = 12
 MIN_PAGE = 1
@@ -106,7 +109,10 @@ def register(app: Flask, ctx: AppContext) -> None:
         verified_hf = resolve_hf_path(mapped) or resolve_hf_path(doc_id)
         if not verified_hf:
             return jsonify(
-                {"error": "not_found", "detail": "This document is not a reader-backed dataset file."}
+                {
+                    "error": "not_found",
+                    "detail": "This document is not a reader-backed dataset file.",
+                }
             ), 404
         clean_doc = verified_hf.lstrip("/").removeprefix("papers/")
         target = f"/read?doc={quote(doc_id, safe='')}&page={page}#page={page}"
@@ -133,9 +139,20 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/api/reader/info/<path:resource_id>")
     def reader_info_api(resource_id: str = ""):
         """Metadata inspection endpoint for reader.html."""
-        raw_id = resource_id or request.args.get("doc") or request.args.get("id") or request.args.get("doc_id") or ""
+        raw_id = (
+            resource_id
+            or request.args.get("doc")
+            or request.args.get("id")
+            or request.args.get("doc_id")
+            or ""
+        )
         clean_id = unquote(str(raw_id)).removeprefix("book/").strip()
-        if len(clean_id) > MAX_DOC_ID_LEN or "\x00" in clean_id or ".." in clean_id or "\\" in clean_id:
+        if (
+            len(clean_id) > MAX_DOC_ID_LEN
+            or "\x00" in clean_id
+            or ".." in clean_id
+            or "\\" in clean_id
+        ):
             return jsonify({"error": "bad_request", "detail": "Invalid resource identifier."}), 400
         if clean_id:
             record_user_action("reader_open", clean_id)
@@ -231,7 +248,9 @@ def register(app: Flask, ctx: AppContext) -> None:
             if key in seen_verified:
                 continue
             seen_verified.add(key)
-            resolve_base = f"https://huggingface.co/datasets/{key[0]}/resolve/main"
+            resolve_base = (
+                f"https://huggingface.co/datasets/{key[0]}/resolve/{dataset_revision(key[0])}"
+            )
             encoded_path = quote(verified, safe="/")
             try:
                 response = requests.get(

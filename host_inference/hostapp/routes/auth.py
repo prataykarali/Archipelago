@@ -21,7 +21,7 @@ from ..context import AppContext
 from ..security import auth_failure_code, is_safe_redirect_target
 
 PRODUCTION_ENVS = {"production", "prod"}
-ALLOWLISTED_REDIRECT_ORIGINS = ("https://archipelago-librarian.vercel.app",)
+ALLOWLISTED_REDIRECT_ORIGINS: tuple[str, ...] = ()
 
 
 def _is_secure_cookie() -> bool:
@@ -135,9 +135,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             ), 400
         principal, error = ctx.auth.principal()
         if principal is None:
-            return _set_private_no_store(
-                jsonify({"error": "unauthorized", "detail": error})
-            ), 401
+            return _set_private_no_store(jsonify({"error": "unauthorized", "detail": error})), 401
         existing_cookie = request.cookies.get(SESSION_COOKIE_NAME, "").strip()
         rotate = getattr(ctx.auth, "rotate_session", None)
         csrf_token = (
@@ -173,9 +171,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             ), 403
         body = request.get_json(silent=True)
         body_dict = body if isinstance(body, dict) else {}
-        target_origin = str(
-            body_dict.get("target_origin") or body_dict.get("target") or ""
-        ).strip()
+        target_origin = str(body_dict.get("target_origin") or body_dict.get("target") or "").strip()
         nonce = str(body_dict.get("nonce") or body_dict.get("state") or "").strip()
         issue = getattr(ctx.auth, "issue_handoff_ticket", None)
         if not callable(issue):
@@ -207,9 +203,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             ), 503
         principal, error = redeem(ticket, origin=caller_origin, nonce=nonce)
         if principal is None:
-            return _set_private_no_store(
-                jsonify({"error": "unauthorized", "detail": error})
-            ), 401
+            return _set_private_no_store(jsonify({"error": "unauthorized", "detail": error})), 401
         existing_cookie = request.cookies.get(SESSION_COOKIE_NAME, "").strip()
         rotate = getattr(ctx.auth, "rotate_session", None)
         csrf_token = (

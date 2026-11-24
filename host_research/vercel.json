@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {"app.py": {"maxDuration": 300, "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,**/__pycache__/**,**/*.pyc,AUDIT.md,**/AUDIT.md,**/*.bak*,**/*.stripped_backup*}"}},
-  "crons": [
-    {"path": "/api/research/intake/scheduled", "schedule": "0 3 * * *"},
-    {"path": "/api/library/koha/scheduled", "schedule": "30 3 * * *"}
-  ]
+  "functions": {
+    "app.py": {
+      "maxDuration": 300,
+      "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,**/__pycache__/**,**/*.pyc,AUDIT.md,**/AUDIT.md,**/*.bak*,**/*.stripped_backup*}"
+    }
+  }
 }

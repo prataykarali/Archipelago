@@ -427,9 +427,13 @@ class Engine:
         trace = payload.setdefault("trace", {})
         trace["template_id"] = plan["primary_template"]["id"]
 
-        can_polish = route in POLISHABLE_ROUTES or (
-            bool(result.get("research_overlay"))
-            and (reply_detail == "expanded" or bool(reply_template_id))
+        grounding_status = trace.get("grounding_status")
+        can_polish = grounding_status in (None, "verified") and (
+            route in POLISHABLE_ROUTES
+            or (
+                bool(result.get("research_overlay"))
+                and (reply_detail == "expanded" or bool(reply_template_id))
+            )
         )
         config = provider_config() if can_polish else None
 

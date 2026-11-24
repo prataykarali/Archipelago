@@ -11,6 +11,7 @@ from typing import Any
 
 from flask import Flask, jsonify
 from flask.typing import ResponseReturnValue
+from hf_revision import dataset_revision
 import requests
 
 from ..config import HOST_ROOT
@@ -38,9 +39,7 @@ def _snapshot() -> tuple[dict[str, Any] | None, str]:
     repo = os.environ.get("ARCHIPELAGO_SCHOLARLY_HF_REPO", DEFAULT_REPO).strip()
     if not REPO_PATTERN.fullmatch(repo):
         repo = DEFAULT_REPO
-    url = (
-        f"https://huggingface.co/datasets/{repo}/resolve/main/catalogs/live_scholarly_manifest.json"
-    )
+    url = f"https://huggingface.co/datasets/{repo}/resolve/{dataset_revision(repo)}/catalogs/live_scholarly_manifest.json"
     headers: dict[str, str] = {}
     token = os.environ.get("HF_TOKEN", "").strip()
     if token:

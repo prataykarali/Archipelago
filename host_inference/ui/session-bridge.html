@@ -7,10 +7,8 @@
   try {
     const candidate = new URL(requestedTarget);
     const referrer = document.referrer ? new URL(document.referrer) : null;
-    const librarianHost = candidate.hostname === 'archipelago-librarian.vercel.app'
-      || candidate.hostname === 'archipelago-blond.vercel.app'
-      || /^archipelago-librarian-[a-z0-9-]+-shinaura\.vercel\.app$/.test(candidate.hostname);
-    if (candidate.protocol === 'https:' && librarianHost && (!referrer || candidate.origin === referrer.origin)) {
+    if (candidate.protocol === 'https:' && candidate.origin === location.origin
+        && (!referrer || candidate.origin === referrer.origin)) {
       target = candidate.origin;
     }
   } catch (_) {}

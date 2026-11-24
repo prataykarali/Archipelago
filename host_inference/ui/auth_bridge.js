@@ -23,7 +23,7 @@ let lastPassiveCheckAt = 0;
 async function loadSupabaseCreateClient() {
   try {
     const mod = await Promise.race([
-      import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"),
+      import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/+esm"),
       new Promise((_, reject) => setTimeout(() => reject(new Error("supabase-cdn-timeout")), SUPABASE_CDN_TIMEOUT_MS)),
     ]);
     return mod?.createClient || null;

@@ -1,4 +1,4 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/+esm";
 
 const AUTH_CHANNEL_NAME = "archipelago_auth_channel";
 const LOGOUT_STORAGE_KEY = "archipelago_logout_broadcast";
@@ -181,7 +181,7 @@ window.archipelagoAuthorizePage = async (roles) => {
   const principal = await response.json();
   syncActivePrincipal(principal);
   if (!roles.includes(principal.role)) {
-    location.replace("https://archipelago-blond.vercel.app/library");
+    location.replace("/library");
     return null;
   }
   return principal;

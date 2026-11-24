@@ -25,6 +25,9 @@ from storage import close_storage_resources, revoke_token, topic_inventory, veri
 from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 
 app = Flask(__name__, static_folder=None)
+RESEARCH_SUPABASE_URL = "https://edokbtmhztkhndmxetpy.supabase.co"
+if os.getenv("VERCEL") and os.getenv("SUPABASE_URL", "").rstrip("/") != RESEARCH_SUPABASE_URL:
+    raise RuntimeError("Research service requires Supabase Research Staging")
 DAILY_TOPICS = (
     "optical character recognition",
     "distributed database transactions",
@@ -38,7 +41,6 @@ MAX_REQUEST_BYTES = 2_097_152
 PROXY_TIMEOUT_SECONDS = 120
 REDIRECT_MIN_STATUS = 300
 REDIRECT_MAX_STATUS = 400
-ORIGINAL_RESEARCH_ORIGIN = "https://archipelago-blond.vercel.app"
 RATE_LIMIT_WINDOW_SECONDS = 60.0
 RATE_LIMIT_MAX_READS = 120
 RATE_LIMIT_MAX_MUTATIONS = 30
@@ -196,10 +198,7 @@ def _rate_limited(bucket_scope: str, limit: int) -> bool:
 
 def _allowed_origins() -> set[str]:
     """Return explicit allowlisted HTTPS browser origins."""
-    origins = {
-        ORIGINAL_RESEARCH_ORIGIN,
-        "https://archipelago-librarian.vercel.app",
-    }
+    origins: set[str] = set()
     configured = os.getenv("ARCHIPELAGO_FRONTEND_ORIGIN", "").strip().rstrip("/")
     if configured and configured != "*" and configured.startswith("https://"):
         origins.add(configured)
@@ -210,10 +209,15 @@ def _allowed_origins() -> set[str]:
 
 
 def research_backend_origin() -> str:
-    """Allow a server-configured Vercel preview origin without user-controlled URLs."""
+    """Use this deployment's private inference binding on Vercel."""
+    bound = os.getenv("INFERENCE_SERVICE_URL", "").strip().rstrip("/")
+    if bound:
+        return bound
+    if os.getenv("VERCEL"):
+        raise ValueError("missing_inference_service_binding")
     candidate = os.getenv("ARCHIPELAGO_RESEARCH_ORIGIN", "").strip().rstrip("/")
     if not candidate:
-        return ORIGINAL_RESEARCH_ORIGIN
+        raise ValueError("missing_research_origin")
     parsed = urlsplit(candidate)
     if (
         parsed.scheme != "https"
@@ -314,7 +318,7 @@ def browser_origin(response: Response) -> Response:
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
         "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
         "img-src 'self' data: blob: https:; "
-        "connect-src 'self' https://spllaastejfwclllfndp.supabase.co wss://spllaastejfwclllfndp.supabase.co https://archipelago-blond.vercel.app https://archipelago-librarian.vercel.app https://huggingface.co https://*.hf.space; "
+        "connect-src 'self' https://edokbtmhztkhndmxetpy.supabase.co wss://edokbtmhztkhndmxetpy.supabase.co https://huggingface.co https://*.hf.space; "
         "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
     )
     response.headers.setdefault("Cache-Control", "private, no-store")
@@ -450,6 +454,14 @@ def librarian_page(section: str = "overview") -> Response | tuple[object, int]:
     return send_from_directory(UI, "librarian.html")
 
 
+@app.get("/librarian-assets/<name>")
+def librarian_asset(name: str) -> Response | tuple[object, int]:
+    """Serve the research service's own librarian scripts and stylesheet."""
+    if name not in {"auth_bridge.js", "librarian.js", "librarian.css"}:
+        return jsonify({"error": "not_found"}), 404
+    return send_from_directory(UI, name)
+
+
 @app.route("/api/librarian/<record_type>", methods=["GET", "POST"])
 def librarian_records(record_type: str) -> tuple[object, int]:
     """Read staff notes; restrict changes to librarians and administrators."""
@@ -555,7 +567,9 @@ def library_opac_live() -> tuple[object, int]:
                         "results": matches,
                         "is_live": False,
                         "source_kind": "dated_koha_export",
-                        "source_updated_at": snapshot.get("source_updated_at") if snapshot else None,
+                        "source_updated_at": snapshot.get("source_updated_at")
+                        if snapshot
+                        else None,
                         "stale": snapshot.get("stale", True) if snapshot else True,
                         "notice": "Live OPAC unavailable; showing dated Koha export snapshot (not verified live availability).",
                     }

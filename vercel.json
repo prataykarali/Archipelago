@@ -1,0 +1,44 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "inference": {
+      "root": "host_inference",
+      "framework": "flask",
+      "entrypoint": "app.py",
+      "functions": {
+        "app.py": {
+          "maxDuration": 300,
+          "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,.git/**,AUDIT.md,**/AUDIT.md,**/*.sqlite3,**/*.bak,**/*stripped_backup*,**/__pycache__/**,**/*.pyc}"
+        }
+      }
+    },
+    "research": {
+      "root": "host_research",
+      "framework": "flask",
+      "entrypoint": "app.py",
+      "functions": {
+        "app.py": {
+          "maxDuration": 300,
+          "excludeFiles": "{.env,.env.*,**/.env,**/.env.*,**/__pycache__/**,**/*.pyc,AUDIT.md,**/AUDIT.md,**/*.bak*,**/*.stripped_backup*}"
+        }
+      },
+      "bindings": [
+        {
+          "type": "service",
+          "service": "inference",
+          "format": "url",
+          "env": "INFERENCE_SERVICE_URL"
+        }
+      ]
+    }
+  },
+  "rewrites": [
+    { "source": "/librarian-assets/(.*)", "destination": { "service": "research" } },
+    { "source": "/librarian", "destination": { "service": "research" } },
+    { "source": "/librarian/(.*)", "destination": { "service": "research" } },
+    { "source": "/api/librarian/(.*)", "destination": { "service": "research" } },
+    { "source": "/api/library/koha", "destination": { "service": "research" } },
+    { "source": "/api/library/opac/live", "destination": { "service": "research" } },
+    { "source": "/(.*)", "destination": { "service": "inference" } }
+  ]
+}
