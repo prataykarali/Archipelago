@@ -6,6 +6,7 @@ One concern: cross-cutting request policy, registered once against the Flask app
 from __future__ import annotations
 
 import hmac
+import os
 from urllib.parse import urlsplit
 
 from flask import Flask, jsonify, request
@@ -21,7 +22,7 @@ from .config import (
 from .context import AppContext
 from .log_redaction import redact
 from .research_access import ResearchCapability, allowed, audit_action
-from .runtime_state import begin_request, end_request, is_shutting_down
+from .runtime_state import begin_request, end_request, is_shutting_down, runtime_release_sha
 from .security import SAFE_METHODS, auth_failure_code, is_allowed_handoff_origin
 
 OPTIONS_NO_CONTENT = 204
@@ -338,8 +339,17 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         response.headers["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), payment=()"
         )
-        response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
+        csp = CONTENT_SECURITY_POLICY
+        supabase_origin = _origin_from_url(os.getenv("SUPABASE_URL", ""))
+        if supabase_origin and supabase_origin not in csp:
+            csp = csp.replace(
+                "connect-src 'self'",
+                f"connect-src 'self' {supabase_origin}",
+                1,
+            )
+        response.headers["Content-Security-Policy"] = csp
         response.headers["X-Archipelago-Mode"] = "inference-only"
+        response.headers["X-Archipelago-Release"] = runtime_release_sha()
         return response
 
     @app.errorhandler(400)

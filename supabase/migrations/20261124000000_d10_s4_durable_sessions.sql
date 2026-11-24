@@ -16,7 +16,7 @@ alter table public.archipelago_runtime_sessions enable row level security;
 revoke all on public.archipelago_runtime_sessions from public, anon, authenticated;
 grant select, insert, update on public.archipelago_runtime_sessions to service_role;
 
-create or replace function public.archipelago_runtime_session(
+create or replace function public.archipelago_runtime_session_rpc(
     p_operation text,
     p_session_id uuid,
     p_user_id uuid,
@@ -105,7 +105,7 @@ begin
 end;
 $$;
 
-revoke all on function public.archipelago_runtime_session(text, uuid, uuid, integer, integer, boolean)
+revoke all on function public.archipelago_runtime_session_rpc(text, uuid, uuid, integer, integer, boolean)
     from public, anon, authenticated;
-grant execute on function public.archipelago_runtime_session(text, uuid, uuid, integer, integer, boolean)
+grant execute on function public.archipelago_runtime_session_rpc(text, uuid, uuid, integer, integer, boolean)
     to service_role;

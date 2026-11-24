@@ -9,7 +9,7 @@ import uuid
 
 from .runtime_state import runtime_rpc
 
-SESSION_RPC_NAME = "archipelago_runtime_session"
+SESSION_RPC_NAME = "archipelago_runtime_session_rpc"
 SESSION_ID_CLAIM = "session_id"
 USER_ID_CLAIM = "sub"
 

@@ -9,12 +9,13 @@ from __future__ import annotations
 import importlib.util
 import os
 
-from flask import Flask, jsonify, make_response, redirect, request, send_from_directory
+from flask import Flask, jsonify, make_response, redirect, send_from_directory
 
 from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
 from ..context import AppContext
 from ..page_fragments import assembled_page
 from ..research_pages import PAGE_DETAILS, render_research_page
+from ..runtime_state import runtime_release_sha
 from ..security import is_safe_redirect_target
 from .ingest import _worker_available
 
@@ -109,8 +110,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             {
                 "ok": True,
                 "mode": "inference-only",
+                "release_sha": runtime_release_sha(),
                 "concepts": concepts,
                 "graph_version": getattr(graph, "graph_version", "unknown"),
+                "candidate_passages": getattr(
+                    getattr(ctx.engine, "catalog", None), "candidate_passages_info", None
+                ),
                 "corpus": {
                     "concepts": concepts,
                     "full": source == "full",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -260,39 +261,81 @@ class Catalog:
                         "tokens": _tokens(text),
                     }
                 )
+        self.candidate_passages_info: dict[str, object] = {
+            "loaded": False,
+            "count": 0,
+            "sha256": None,
+            "expected_sha256": None,
+            "checksum_verified": False,
+        }
         candidate_index = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES", "").strip()
-        if candidate_index:
+        if candidate_index and candidate_index not in {"0", "false", "none"}:
             self._load_candidate_passages(Path(candidate_index))
+        elif not candidate_index and not os.environ.get("PYTEST_CURRENT_TEST"):
+            default_cache = HERE / "cache" / "d10_candidate_passages.jsonl"
+            if default_cache.is_file():
+                self._load_candidate_passages(default_cache)
 
     def _load_candidate_passages(self, index_path: Path) -> None:
         """Add rights-approved, deterministic PDF body chunks to catalog retrieval."""
         if not index_path.is_file():
             return
-        with index_path.open(encoding="utf-8") as source:
-            for line in source:
+        raw_bytes = index_path.read_bytes()
+        actual_sha = hashlib.sha256(raw_bytes).hexdigest()
+        expected_sha = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_SHA256", "").strip().lower()
+        if not expected_sha:
+            manifest_path = HERE.parent / "docs" / "reports" / "D10_S4_CANDIDATE_PASSAGE_MANIFEST.json"
+            if manifest_path.is_file():
                 try:
-                    passage = json.loads(line)
-                    doc_id = str(passage["doc_id"])
-                    page = int(passage["page_number"])
-                    text = str(passage["text"])
-                except (ValueError, KeyError, TypeError):
-                    continue
-                if page < 1 or not doc_id or not text.strip():
-                    continue
-                self.passages.append(
-                    {
-                        "concept_id": "",
-                        "doc_id": doc_id,
-                        "page": page,
-                        "text": text,
-                        "tokens": _tokens(text),
-                        "passage_id": str(passage.get("passage_id") or ""),
-                        "printed_page": passage.get("printed_page"),
-                        "pdf_page_index": passage.get("pdf_page_index"),
-                        "text_offset_start": passage.get("text_offset_start"),
-                        "text_offset_end": passage.get("text_offset_end"),
-                    }
-                )
+                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                    manifest_sha = str(manifest.get("passage_index_sha256") or "").strip().lower()
+                    if manifest_sha and actual_sha == manifest_sha:
+                        expected_sha = manifest_sha
+                except (OSError, ValueError):
+                    pass
+        if expected_sha and actual_sha != expected_sha:
+            self.candidate_passages_info = {
+                "loaded": False,
+                "count": 0,
+                "sha256": actual_sha,
+                "expected_sha256": expected_sha,
+                "checksum_verified": False,
+                "error": "checksum_mismatch",
+            }
+            return
+        loaded_count = 0
+        for line in raw_bytes.decode("utf-8", errors="replace").splitlines():
+            try:
+                passage = json.loads(line)
+                doc_id = str(passage["doc_id"])
+                page = int(passage["page_number"])
+                text = str(passage["text"])
+            except (ValueError, KeyError, TypeError):
+                continue
+            if page < 1 or not doc_id or not text.strip():
+                continue
+            self.passages.append(
+                {
+                    "concept_id": "",
+                    "doc_id": doc_id,
+                    "page": page,
+                    "text": text,
+                    "tokens": _tokens(text),
+                    "passage_id": str(passage.get("passage_id") or ""),
+                    "printed_page": passage.get("printed_page"),
+                    "pdf_page_index": passage.get("pdf_page_index"),
+                    "text_offset_start": passage.get("text_offset_start"),
+                    "text_offset_end": passage.get("text_offset_end"),
+                }
+            )
+            loaded_count += 1
+        self.candidate_passages_info = {
+            "loaded": loaded_count > 0,
+            "count": loaded_count,
+            "sha256": actual_sha,
+            "expected_sha256": expected_sha or None,
+            "checksum_verified": bool(expected_sha and actual_sha == expected_sha),
+        }
 
     def match_hf(self, query: str) -> tuple[dict | None, int]:
         wanted = _tokens(query)

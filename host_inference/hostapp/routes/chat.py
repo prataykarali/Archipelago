@@ -9,7 +9,6 @@ from __future__ import annotations
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
 import json
-import os
 import re
 import time
 from uuid import UUID
@@ -32,6 +31,7 @@ from ..context import AppContext
 from ..conversation import contextual_query
 from ..research_chat import enrich_with_research
 from ..research_run_chat import is_research_request, research_chat_reply
+from ..runtime_state import runtime_release_sha
 from ..user_traffic import clear_user_traffic, record_user_action
 
 # Query hygiene: strip null bytes and ASCII control characters, keep whitespace.
@@ -408,17 +408,41 @@ def register(app: Flask, ctx: AppContext) -> None:
                 trace = {}
                 metadata["trace"] = trace
             model = metadata.get("model") or {}
+            cited_ids = sorted(
+                {
+                    str(
+                        c.get("canonical_passage_id")
+                        or c.get("passage_id")
+                        or c.get("chunk_id")
+                    )
+                    for c in citations
+                    if isinstance(c, dict)
+                    and (
+                        c.get("canonical_passage_id")
+                        or c.get("passage_id")
+                        or c.get("chunk_id")
+                    )
+                }
+            )
+            raw_retrieved = (
+                prepared.get("retrieved_passage_ids")
+                or metadata.get("retrieved_passage_ids")
+                or []
+            )
+            retrieved_ids = sorted(
+                {
+                    str(pid)
+                    for pid in list(raw_retrieved) + cited_ids
+                    if pid
+                }
+            )
             trace.update(
                 intent=prepared.get("route") or "unknown",
                 synthesis_mode=metadata.get("synthesis_mode") or "unknown",
                 provider=metadata.get("provider") or "deterministic",
                 model=model.get("model") if isinstance(model, dict) else "",
                 cache_status="miss_no_reuse",
-                release_sha=(
-                    os.environ.get("ARCHIPELAGO_RELEASE_SHA")
-                    or os.environ.get("VERCEL_GIT_COMMIT_SHA")
-                    or "unknown"
-                ),
+                release_sha=runtime_release_sha(),
                 graph_revision=getattr(
                     getattr(ctx.engine, "graph", None), "graph_version", "unknown"
                 ),
@@ -429,13 +453,9 @@ def register(app: Flask, ctx: AppContext) -> None:
                         if isinstance(c, dict) and c.get("doc_id")
                     }
                 ),
-                passage_ids=sorted(
-                    {
-                        str(c.get("canonical_passage_id"))
-                        for c in citations
-                        if isinstance(c, dict) and c.get("canonical_passage_id")
-                    }
-                ),
+                passage_ids=cited_ids,
+                cited_passage_ids=cited_ids,
+                retrieved_passage_ids=retrieved_ids,
                 stage_timings_ms=timing,
             )
 

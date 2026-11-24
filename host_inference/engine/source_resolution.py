@@ -250,7 +250,7 @@ def resolve_source_target(
         "hf_repo": "",
         "hf_path": "",
         "resolved_title": title,
-        "access_status": "Source unavailable (metadata only)",
+        "access_status": "Unavailable",
     }
 
 

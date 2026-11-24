@@ -23,12 +23,23 @@ TRANSFORMER_CORRECTION = (
     "decoder generates outputs autoregressively. BERT's masked-language-model "
     "training and GPT-style next-token pretraining are later model-specific choices."
 )
+GPT_CONFLATION = (
+    "GPT stands for GPT-3, a generative pre-trained transformer model that uses "
+    "masked language modeling and next-token prediction to generate language."
+)
+GPT_CORRECTION = (
+    "GPT (Generative Pre-trained Transformer) is an autoregressive decoder-only "
+    "Transformer model family pretrained with causal next-token prediction, "
+    "not masked language modeling."
+)
 
 
 def corrected_summary(concept_id: str, summary: str) -> str:
-    """Replace only the known contaminated Transformer summary."""
+    """Replace only known contaminated extraction summaries without mutating okf_graph.json."""
     if concept_id == "transformer" and summary == TRANSFORMER_CONFLATION:
         return TRANSFORMER_CORRECTION
+    if concept_id == "gpt" and summary == GPT_CONFLATION:
+        return GPT_CORRECTION
     return summary
 
 

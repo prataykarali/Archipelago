@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import atexit
 from collections.abc import Callable
+from functools import lru_cache
 import os
+from pathlib import Path
 import re
 import signal
+import subprocess
 import threading
 import time
 from typing import Any
@@ -166,6 +169,36 @@ def install_shutdown_handlers() -> None:
             pass
 
 
+@lru_cache(maxsize=1)
+def _git_head_sha() -> str:
+    """Resolve local git HEAD once for non-Vercel provenance reporting."""
+    repo_root = Path(__file__).resolve().parents[2]
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(repo_root),
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+        sha = (proc.stdout or "").strip()
+        if proc.returncode == 0 and len(sha) >= 7:
+            return sha
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return ""
+
+
+def runtime_release_sha() -> str:
+    """Return the active runtime release SHA from env or local git HEAD."""
+    for key in ("ARCHIPELAGO_RELEASE_SHA", "ARCHIPELAGO_RELEASE", "VERCEL_GIT_COMMIT_SHA"):
+        value = os.environ.get(key, "").strip()
+        if value:
+            return value
+    return _git_head_sha() or "unknown"
+
+
 def hosted_runtime() -> bool:
     """Use durable runtime state on ephemeral Vercel instances."""
     return bool(os.environ.get("VERCEL"))
@@ -206,5 +239,6 @@ __all__ = [
     "on_shutdown",
     "register_shutdown_callback",
     "reset_shutdown_state",
+    "runtime_release_sha",
     "runtime_rpc",
 ]

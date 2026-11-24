@@ -14,9 +14,11 @@ const ACTIVE_PRINCIPAL_KEY = "archipelago_active_principal_id";
 const AUTH_CONFIG_CACHE_KEY = "archipelago_auth_config_v1";
 const AUTH_ME_CACHE_KEY = "archipelago_me_cache_v1";
 const AUTH_CONFIG_TTL_MS = 600000;
-const AUTH_ME_TTL_MS = 120000;
+const PASSIVE_RECHECK_INTERVAL_MS = 60000;
+const PASSIVE_RECHECK_MIN_GAP_MS = 15000;
 const SUPABASE_CDN_TIMEOUT_MS = 3500;
 let cachedAccessToken = "";
+let lastPassiveCheckAt = 0;
 
 async function loadSupabaseCreateClient() {
   try {
@@ -30,24 +32,49 @@ async function loadSupabaseCreateClient() {
   }
 }
 
-function readCachedMe() {
-  try {
-    const raw = sessionStorage.getItem(AUTH_ME_CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && parsed.ts && (Date.now() - parsed.ts) < AUTH_ME_TTL_MS && parsed.principal?.authenticated) {
-      return parsed.principal;
-    }
-  } catch (_) {}
-  return null;
-}
-
 function writeCachedMe(principal) {
   try {
     if (principal && principal.authenticated) {
       sessionStorage.setItem(AUTH_ME_CACHE_KEY, JSON.stringify({ ts: Date.now(), principal }));
     } else {
       sessionStorage.removeItem(AUTH_ME_CACHE_KEY);
+    }
+  } catch (_) {}
+}
+
+function clearVisibleAuthenticatedUi() {
+  window.archipelagoUserId = null;
+  writeCachedMe(null);
+  document.querySelector("#archipelago-role-navigation")?.remove();
+  window.updateHeaderAuthProfile?.();
+}
+
+async function passiveSessionRecheck({ force = false } = {}) {
+  if (isHandlingLogout || isPageUnloading || document.visibilityState === "hidden") return;
+  const now = Date.now();
+  if (!force && now - lastPassiveCheckAt < PASSIVE_RECHECK_MIN_GAP_MS) return;
+  lastPassiveCheckAt = now;
+  try {
+    const { config } = await window.archipelagoAuthReady;
+    if (!config || config.required === false) return;
+    const hasVisibleAuthUi = Boolean(
+      window.archipelagoUserId ||
+      document.querySelector("#archipelago-role-navigation") ||
+      sessionStorage.getItem(AUTH_ME_CACHE_KEY)
+    );
+    if (!hasVisibleAuthUi) return;
+    const response = await fetch("/api/auth/me", {
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { "X-Session-Passive": "1" },
+    });
+    if (response.status === 401) {
+      clearVisibleAuthenticatedUi();
+    } else if (response.ok) {
+      const result = await response.json().catch(() => null);
+      if (result && result.authenticated === false && result.open !== true) {
+        clearVisibleAuthenticatedUi();
+      }
     }
   } catch (_) {}
 }
@@ -72,7 +99,23 @@ function handleGracefulPageShutdown(event) {
 
 window.addEventListener("pagehide", handleGracefulPageShutdown);
 window.addEventListener("beforeunload", handleGracefulPageShutdown);
-window.addEventListener("pageshow", () => { isPageUnloading = false; });
+window.addEventListener("pageshow", () => {
+  isPageUnloading = false;
+  passiveSessionRecheck({ force: true });
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    passiveSessionRecheck({ force: true });
+  }
+});
+window.addEventListener("focus", () => {
+  passiveSessionRecheck();
+});
+window.setInterval(() => {
+  if (document.visibilityState === "visible") {
+    passiveSessionRecheck();
+  }
+}, PASSIVE_RECHECK_INTERVAL_MS);
 
 function readCookie(name) {
   const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)"));
@@ -322,9 +365,7 @@ window.archipelagoVerifyChatSession = async () => {
     return result;
   }
   if (response.status === 401) {
-    writeCachedMe(null);
-    document.querySelector("#archipelago-role-navigation")?.remove();
-    window.updateHeaderAuthProfile?.();
+    clearVisibleAuthenticatedUi();
     return { authenticated: false, reason: result.reason || "unauthorized" };
   }
   const error = new Error("Session verification is unavailable. Please try again.");

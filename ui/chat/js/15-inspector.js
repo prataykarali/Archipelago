@@ -43,7 +43,7 @@ function _sourceCategory(cite) {
         return { label: 'Restricted Library Holding', icon: 'fa-building-columns', color: 'text-amber-400', badgeCls: 'bg-amber-500/20 border-amber-500/35 text-amber-300' };
     }
     if (cat.includes('graph') || cat.includes('okf')) {
-        return { label: 'Verified OKF Graph Evidence', icon: 'fa-diagram-project', color: 'text-accentPurple', badgeCls: 'bg-accentPurple/20 border-accentPurple/35 text-accentPurple' };
+        return { label: 'Indexed Graph Reference', icon: 'fa-diagram-project', color: 'text-accentPurple', badgeCls: 'bg-accentPurple/20 border-accentPurple/35 text-accentPurple' };
     }
     if (cat.includes('open') || cat.includes('arxiv') || cat.includes('paper')) {
         return { label: 'Open-Access Paper', icon: 'fa-globe', color: 'text-accentCyan', badgeCls: 'bg-cyan-500/20 border-cyan-500/35 text-cyan-300' };
@@ -139,7 +139,7 @@ function populateTrace(trace) {
         container.innerHTML = '<div class="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 text-center text-xs text-gray-400 italic">No trace telemetry captured yet.</div>';
         return;
     }
-    const latencyStr = trace.latency_s != null ? `${trace.latency_s} s` : (trace.latency_ms != null ? `${trace.latency_ms} ms` : '0.42 s');
+    const latencyStr = trace.stage_timings_ms?.total_ms != null ? `${trace.stage_timings_ms.total_ms} ms` : 'Pending completion';
     const passagesStr = `${trace.grounded_passages || 0} cited passage${(trace.grounded_passages || 0) === 1 ? '' : 's'}`;
     const hopsStr = `${trace.graph_hops || 0} hop${(trace.graph_hops || 0) === 1 ? '' : 's'}`;
 
@@ -147,11 +147,22 @@ function populateTrace(trace) {
         _traceRow('Routed Intent', trace.intent || 'GENERAL_EXPLANATION', 'fa-route', 'text-accentPurple'),
         _traceRow('Resolved Concept', trace.concept_label || trace.concept_id || 'None (Fallback)', 'fa-circle-nodes', 'text-accentCyan'),
         _traceRow('Graph Hops', hopsStr, 'fa-arrows-split-up-and-left', 'text-amber-400'),
-        _traceRow('Retrieval Mode', trace.retrieval_mode || 'Graph-Assisted Traversal', 'fa-magnifying-glass-chart', 'text-accentPink'),
-        _traceRow('Execution Provider', trace.provider || 'Deterministic OKF Fallback', 'fa-microchip', 'text-emerald-400'),
+        _traceRow('Retrieval Mode', trace.retrieval_mode || 'Unknown', 'fa-magnifying-glass-chart', 'text-accentPink'),
+        _traceRow('Generation Mode', trace.synthesis_mode || 'Unknown', 'fa-wand-magic-sparkles', 'text-emerald-400'),
+        _traceRow('Execution Provider', trace.provider || 'Unknown', 'fa-microchip', 'text-emerald-400'),
+        _traceRow('Model', trace.model || 'None', 'fa-robot', 'text-emerald-400'),
+        _traceRow('Response Cache', trace.cache_status || 'Unknown', 'fa-box-archive', 'text-sky-400'),
+        _traceRow('Release / Graph', `${trace.release_sha || 'Unknown'} / ${trace.graph_revision || 'Unknown'}`, 'fa-code-commit', 'text-slate-300'),
+        _traceRow('Source Documents', (trace.source_document_ids || []).join(', ') || 'None', 'fa-book', 'text-slate-300'),
+        _traceRow('Passage IDs', (trace.passage_ids || []).join(', ') || 'None', 'fa-paragraph', 'text-slate-300'),
+        _traceRow('Retrieval Time', trace.stage_timings_ms?.evidence_retrieval_ms != null ? `${trace.stage_timings_ms.evidence_retrieval_ms} ms` : 'Unknown', 'fa-magnifying-glass', 'text-slate-300'),
+        _traceRow('Provider TTFT', trace.stage_timings_ms?.provider_ttft_ms != null ? `${trace.stage_timings_ms.provider_ttft_ms} ms` : 'Unknown', 'fa-stopwatch', 'text-slate-300'),
+        _traceRow('Template', trace.template_id ? `${trace.template_id} (${trace.template_influenced ? 'used' : 'not used'})` : 'None', 'fa-file-lines', 'text-slate-300'),
         _traceRow('Evidence Coverage', passagesStr, 'fa-file-lines', 'text-sky-400'),
         _traceRow('Measured Latency', latencyStr, 'fa-stopwatch', 'text-amber-300'),
-        _traceRow('Grounding Status', trace.grounding_detail || trace.grounding_status || 'unmatched', 'fa-shield-halved', 'text-emerald-400'),
+        _traceRow('Passage Provenance', trace.provenance_status || 'Unknown', 'fa-shield-halved', 'text-emerald-400'),
+        _traceRow('Claim Support', trace.claim_support_status || 'Not assessed', 'fa-circle-question', 'text-amber-300'),
+        _traceRow('Reader Page', trace.reader_page_verified ? 'Verified' : 'Not verified', 'fa-book-open', 'text-amber-300'),
     ];
     container.innerHTML = `<div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex flex-col">${rows.join('')}</div>`;
 }
@@ -164,12 +175,12 @@ function renderGroundingBadge(trace) {
     const c = BADGE_COLORS[st] || BADGE_COLORS.unmatched;
     const hops = trace.graph_hops || 0;
     const passages = trace.grounded_passages || 0;
-    const latency = trace.latency_s != null ? `${trace.latency_s} s` : '0.42 s';
+    const latency = trace.stage_timings_ms?.total_ms != null ? `${trace.stage_timings_ms.total_ms} ms` : '';
 
     const parts = [];
     if (passages > 0) parts.push(`${passages} cited passage${passages > 1 ? 's' : ''}`);
     if (hops > 0) parts.push(`${hops} graph hop${hops > 1 ? 's' : ''}`);
-    parts.push(latency);
+    if (latency) parts.push(latency);
 
     return `<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${c.bg} border ${c.border} text-[10px] font-mono font-bold ${c.text} mb-2 w-fit select-none shadow-sm" title="${_escHTML(trace.grounding_badge || '')}">
         <span class="w-1.5 h-1.5 rounded-full ${c.dot}"></span>

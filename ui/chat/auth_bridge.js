@@ -5,7 +5,7 @@ const API_PREFIX = "/api/";
 const LOGIN_PATH = "/login";
 // Pages anyone may read without signing in.
 const OPEN_PATHS = new Set(["/", "/landing", "/library", "/chat", "/research"]);
-const IDLE_TIMEOUT_MS = 3600000;
+const CHAT_DRAFT_KEY = "archipelago_pending_chat_draft";
 const STUDENT_ROUTES = new Set(["/chat", "/library"]);
 const STAFF_ROUTES = new Set(["/chat", "/library", "/graph", "/research"]);
 const AUTH_CHANNEL_NAME = "archipelago_auth_channel";
@@ -14,9 +14,11 @@ const ACTIVE_PRINCIPAL_KEY = "archipelago_active_principal_id";
 const AUTH_CONFIG_CACHE_KEY = "archipelago_auth_config_v1";
 const AUTH_ME_CACHE_KEY = "archipelago_me_cache_v1";
 const AUTH_CONFIG_TTL_MS = 600000;
-const AUTH_ME_TTL_MS = 120000;
+const PASSIVE_RECHECK_INTERVAL_MS = 60000;
+const PASSIVE_RECHECK_MIN_GAP_MS = 15000;
 const SUPABASE_CDN_TIMEOUT_MS = 3500;
 let cachedAccessToken = "";
+let lastPassiveCheckAt = 0;
 
 async function loadSupabaseCreateClient() {
   try {
@@ -30,24 +32,49 @@ async function loadSupabaseCreateClient() {
   }
 }
 
-function readCachedMe() {
-  try {
-    const raw = sessionStorage.getItem(AUTH_ME_CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && parsed.ts && (Date.now() - parsed.ts) < AUTH_ME_TTL_MS && parsed.principal?.authenticated) {
-      return parsed.principal;
-    }
-  } catch (_) {}
-  return null;
-}
-
 function writeCachedMe(principal) {
   try {
     if (principal && principal.authenticated) {
       sessionStorage.setItem(AUTH_ME_CACHE_KEY, JSON.stringify({ ts: Date.now(), principal }));
     } else {
       sessionStorage.removeItem(AUTH_ME_CACHE_KEY);
+    }
+  } catch (_) {}
+}
+
+function clearVisibleAuthenticatedUi() {
+  window.archipelagoUserId = null;
+  writeCachedMe(null);
+  document.querySelector("#archipelago-role-navigation")?.remove();
+  window.updateHeaderAuthProfile?.();
+}
+
+async function passiveSessionRecheck({ force = false } = {}) {
+  if (isHandlingLogout || isPageUnloading || document.visibilityState === "hidden") return;
+  const now = Date.now();
+  if (!force && now - lastPassiveCheckAt < PASSIVE_RECHECK_MIN_GAP_MS) return;
+  lastPassiveCheckAt = now;
+  try {
+    const { config } = await window.archipelagoAuthReady;
+    if (!config || config.required === false) return;
+    const hasVisibleAuthUi = Boolean(
+      window.archipelagoUserId ||
+      document.querySelector("#archipelago-role-navigation") ||
+      sessionStorage.getItem(AUTH_ME_CACHE_KEY)
+    );
+    if (!hasVisibleAuthUi) return;
+    const response = await fetch("/api/auth/me", {
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { "X-Session-Passive": "1" },
+    });
+    if (response.status === 401) {
+      clearVisibleAuthenticatedUi();
+    } else if (response.ok) {
+      const result = await response.json().catch(() => null);
+      if (result && result.authenticated === false && result.open !== true) {
+        clearVisibleAuthenticatedUi();
+      }
     }
   } catch (_) {}
 }
@@ -72,7 +99,23 @@ function handleGracefulPageShutdown(event) {
 
 window.addEventListener("pagehide", handleGracefulPageShutdown);
 window.addEventListener("beforeunload", handleGracefulPageShutdown);
-window.addEventListener("pageshow", () => { isPageUnloading = false; });
+window.addEventListener("pageshow", () => {
+  isPageUnloading = false;
+  passiveSessionRecheck({ force: true });
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    passiveSessionRecheck({ force: true });
+  }
+});
+window.addEventListener("focus", () => {
+  passiveSessionRecheck();
+});
+window.setInterval(() => {
+  if (document.visibilityState === "visible") {
+    passiveSessionRecheck();
+  }
+}, PASSIVE_RECHECK_INTERVAL_MS);
 
 function readCookie(name) {
   const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)"));
@@ -307,20 +350,74 @@ window.archipelagoAuthReady = (async () => {
   return { config, supabase };
 })();
 
-window.archipelagoRequireSession = async () => {
-  const cached = readCachedMe();
-  if (cached) {
-    window.archipelagoUserId = cached.id || cached.user_id;
-    syncActivePrincipal(cached);
-    // Revalidate in background without blocking page switch
-    fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" })
-      .then(r => (r.ok ? r.json() : null))
-      .then(p => { if (p?.authenticated) writeCachedMe(p); })
-      .catch(() => {});
-    return { user: cached };
+window.archipelagoVerifyChatSession = async () => {
+  await window.archipelagoAuthReady;
+  const response = await fetch("/api/auth/me", {
+    cache: "no-store",
+    credentials: "same-origin",
+    headers: { "X-Session-Passive": "1" },
+  });
+  const result = await response.json().catch(() => ({}));
+  if (response.ok && result.open === true) return { authenticated: true };
+  if (response.ok && result.authenticated === true) {
+    writeCachedMe(result);
+    syncActivePrincipal(result);
+    return result;
   }
+  if (response.status === 401) {
+    clearVisibleAuthenticatedUi();
+    return { authenticated: false, reason: result.reason || "unauthorized" };
+  }
+  const error = new Error("Session verification is unavailable. Please try again.");
+  error.reason = "upstream_unavailable";
+  throw error;
+};
+
+window.archipelagoPromptChatSignIn = (draft, reason = "unauthorized") => {
+  if (draft) sessionStorage.setItem(CHAT_DRAFT_KEY, draft);
+  const input = document.getElementById("chat-input");
+  if (input && draft && !input.value.trim()) input.value = draft;
+  let prompt = document.getElementById("archipelago-chat-sign-in-prompt");
+  if (!prompt) {
+    prompt = document.createElement("div");
+    prompt.id = "archipelago-chat-sign-in-prompt";
+    prompt.setAttribute("role", "alert");
+    input?.parentElement?.insertAdjacentElement("beforebegin", prompt);
+  }
+  const messages = {
+    idle_expired: "Your session expired after inactivity. Sign in to send your question.",
+    absolute_expired: "Your session reached its maximum lifetime. Sign in to send your question.",
+    jwt_expired: "Your sign-in token expired. Sign in to send your question.",
+    revoked_credentials: "Your session was revoked. Sign in to send your question.",
+    upstream_unavailable: "Session verification is unavailable. Your question is saved; please try again.",
+  };
+  prompt.textContent = messages[reason] || "Sign in to send your question.";
+  if (reason !== "upstream_unavailable") {
+    const link = document.createElement("a");
+    link.href = "/login?next=%2Fchat";
+    link.textContent = " Sign in";
+    prompt.appendChild(link);
+  }
+};
+
+if (window.location.pathname === "/chat") {
+  window.archipelagoAuthReady.then(async () => {
+    const draft = sessionStorage.getItem(CHAT_DRAFT_KEY);
+    if (!draft) return;
+    try {
+      const verified = await window.archipelagoVerifyChatSession();
+      if (!verified.authenticated) return;
+      const input = document.getElementById("chat-input");
+      if (input && !input.value.trim()) input.value = draft;
+      sessionStorage.removeItem(CHAT_DRAFT_KEY);
+    } catch (_) {}
+  });
+}
+
+window.archipelagoRequireSession = async () => {
   const { config, supabase } = await window.archipelagoAuthReady;
-  if (!config?.required) return null;
+  if (config?.required === false) return null;
+  let verificationUnavailable = false;
   try {
     let session = null;
     if (supabase) {
@@ -329,6 +426,7 @@ window.archipelagoRequireSession = async () => {
       if (session?.access_token) cachedAccessToken = session.access_token;
     }
     const response = await fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" });
+    if (response.status >= 500) verificationUnavailable = true;
     if (response.ok) {
       const principal = await response.json();
       if (principal?.authenticated) {
@@ -338,7 +436,8 @@ window.archipelagoRequireSession = async () => {
         return session || { user: principal };
       }
     }
-  } catch (_) {}
+  } catch (_) { verificationUnavailable = true; }
+  if (verificationUnavailable) return null;
   window.archipelagoClearClientStorage({ includeHistory: false });
   if (OPEN_PATHS.has(window.location.pathname.replace(/\/$/, "") || "/") || window.location.pathname.startsWith("/research")) return null;
   const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -346,36 +445,17 @@ window.archipelagoRequireSession = async () => {
   return null;
 };
 
-if (["/chat", "/graph"].includes(window.location.pathname.replace(/\/$/, "")) || window.location.pathname.startsWith('/research')) {
-  let idleTimer;
-  const expire = async () => {
-    const next = encodeURIComponent(window.location.pathname + window.location.search);
-    await window.archipelagoLogout({ redirectUrl: `/login?timeout=1&next=${next}` });
-  };
-  const resetIdle = () => {
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(expire, IDLE_TIMEOUT_MS);
-  };
-  for (const eventName of ['pointerdown', 'keydown', 'touchstart', 'scroll', 'wheel']) {
-    window.addEventListener(eventName, resetIdle, { passive: true });
-  }
-  resetIdle();
-}
-
 window.archipelagoAuthorizePage = async (allowedRoles) => {
-  const cached = readCachedMe();
-  if (cached) {
-    syncActivePrincipal(cached);
-    if (!allowedRoles.includes(cached.role)) {
-      window.location.replace("/chat");
-      return null;
-    }
-    return cached;
-  }
   const { config, supabase } = await window.archipelagoAuthReady;
   if (!config.required) return null;
 
-  const response = await fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" });
+  let response;
+  try {
+    response = await fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" });
+  } catch (_) {
+    return null;
+  }
+  if (response.status >= 500) return null;
   if (!response.ok) {
     window.archipelagoClearClientStorage({ includeHistory: false });
     try { if (supabase) await supabase.auth.signOut(); } catch (_) {}
@@ -404,8 +484,8 @@ window.archipelagoRouteForRole = (role, requestedPath) => {
 };
 
 window.archipelagoMountNavigation = async () => {
-  let principal = readCachedMe();
-  if (!principal) {
+  let principal = null;
+  {
     await window.archipelagoAuthReady;
     try {
       const response = await fetch("/api/auth/me", { credentials: "same-origin" });
