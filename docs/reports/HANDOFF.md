@@ -439,3 +439,11 @@ Built: the 09:00 Asia/Kolkata daily cycle, durable source evidence across extern
 Verified: 35 focused S4 tests passed; changed-module Ruff lint passed; systemd units verified; two isolated daily cycles ended with zero jobs and unchanged records on the repeat. The graph's actual pre-staging SHA differs from the plan while counts match. See `docs/reports/S4_ACADEMIC_AUTOMATION.md` for evidence and limits.
 
 Next pair: obtain independent librarian approval for review-ready job `bd817e5d-dc41-4965-8cbc-3e48bc4eb0fe`; then publish, capture post-swap graph counts and hashes, verify chat citations and idempotency, and retain a browser screenshot. Keep timers disabled until explicitly enabled by the operator. Do not touch S5 research files or load another Ollama model.
+
+## 2026-11-24 — D10-S4 candidate stabilization
+
+Built: isolated candidate branch `d10-s4-stabilization` at code SHA `722b0c58c7fc4d4432da7ada515a7270fba463b3`; shared hosted auth session RPC and draft-preserving client flow; truthful provider/cache Inspector trace; runtime quarantine of 54 questionable graph edges; source-correct OSTEP base-and-bounds answer; deterministic 43-document, 3,025-passage local PDF index with exact page metadata. The original checkout and unrelated UI were untouched. The nine required reports and worksheets are in `docs/reports/`.
+
+Verified: 113 selected unit/integration/security tests passed (three documented baseline/scope-conflict assertions deselected); local loopback readiness and indexed OSTEP chat returned 200; Chrome opened original OSTEP, LoRA and RAG PDF pages; 36 offline diagnostics were compared against baseline code. The repository-wide quality gate still fails on preexisting debt. No deployment, migration application or benchmark overwrite occurred.
+
+Deferred for the next pair: apply the auth migration only in approved staging, attach the checksum-verified passage index, capture authenticated two-instance and provider/cache network evidence, verify application reader page redirects and Pearson book-level access, obtain human claim-support grades and independent review. The candidate verdict is HOLD in `docs/reports/D10_S4_FINAL_GO_HOLD.md`.
