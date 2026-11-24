@@ -114,11 +114,15 @@ async function recoverPendingSearch() {
         if (submit) submit.disabled = false;
         return;
       }
-      await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
+      const run = await s5Json(`/api/research/intelligence/runs/${job.run_id}`);
       activeRunId = job.run_id;
       saveResearchState();
       clearPendingSearch();
-      location.assign(`/research/papers?run=${encodeURIComponent(job.run_id)}`);
+      if (submit) submit.disabled = false;
+      showRun(run);
+      const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
+      if (status) status.textContent = `Done — loaded ${(run.papers || []).length} papers from ${liveCount} live provider(s).`;
+      void loadRecentRuns(true);
       return;
     }
   } catch (error) {
@@ -407,6 +411,10 @@ async function loadRecentRuns(force = false) {
         link.textContent = `${run.topic || 'Untitled topic'} · ${String(run.created_at || '').slice(0, 10)}`;
         list.append(link);
       }
+      const browsing = location.pathname.replace(/\/$/, '') === '/research/papers';
+      if (!browsing && recent.length && !activeRunId && !pendingSearch() && !restoreInFlight && s5('intelligence-results')?.hidden) {
+        void restoreRun(recent[0].run_id);
+      }
     } catch (error) { status.textContent = `Could not load saved topics: ${error.message}`; }
     finally { recentRunsInFlight = null; }
   })();
@@ -444,7 +452,6 @@ window.addEventListener('load', async () => {
   const browsing = location.pathname.replace(/\/$/, '') === '/research/papers';
   const linkedRun = new URLSearchParams(location.search).get('run');
   if (browsing && !validRunId(linkedRun)) { location.replace('/research'); return; }
-  if (!browsing && validRunId(linkedRun)) { location.replace(`/research/papers?run=${encodeURIComponent(linkedRun)}`); return; }
   if (browsing) document.body.classList.add('research-browse-mode');
   if (!await window.archipelagoResearchReady) return;
   const savedRunId = restoreResearchForm();
@@ -456,7 +463,8 @@ window.addEventListener('load', async () => {
     s5('intelligence-results').hidden = true;
     const searchUrl = new URLSearchParams(location.search);
     searchUrl.delete('run');
-    history.replaceState(null, '', `${location.pathname}?${searchUrl.toString()}`);
+    const cleanQuery = searchUrl.toString();
+    history.replaceState(null, '', cleanQuery ? `${location.pathname}?${cleanQuery}` : location.pathname);
     const requestId = crypto.randomUUID();
     payload.client_request_id = requestId;
     sessionStorage.setItem(S5_PENDING_KEY, JSON.stringify({ request_id: requestId, topic: payload.topic, started_at: Date.now() }));
@@ -474,7 +482,11 @@ window.addEventListener('load', async () => {
       clearPendingSearch();
       activeRunId = run.run_id;
       saveResearchState();
-      location.assign(`/research/papers?run=${encodeURIComponent(run.run_id)}`);
+      showRun(run);
+      const liveCount = (run.sources || []).filter(s => s.status === 'live').length;
+      s5('intelligence-status').textContent = `Done — loaded ${(run.papers || []).length} papers from ${liveCount} live provider(s).`;
+      void loadRecentRuns(true);
+      s5('intelligence-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     } catch (error) {
       if (error.httpStatus) {
@@ -491,15 +503,15 @@ window.addEventListener('load', async () => {
   });
   void loadRecentRuns();
   if (pendingSearch()) void recoverPendingSearch();
-  else if (savedRunId && browsing) void restoreRun(savedRunId);
+  else if (savedRunId) void restoreRun(savedRunId);
 });
 
 function resumePapersIfNeeded() {
   isUnloading = false;
-  const browsing = location.pathname.replace(/\/$/, '') === '/research/papers';
   const linkedRun = new URLSearchParams(location.search).get('run');
-  if (browsing && validRunId(linkedRun) && s5('intelligence-results')?.hidden && !restoreInFlight) {
-    void restoreRun(linkedRun);
+  const targetRun = validRunId(linkedRun) ? linkedRun : (validRunId(activeRunId) ? activeRunId : restoreResearchForm());
+  if (validRunId(targetRun) && s5('intelligence-results')?.hidden && !restoreInFlight) {
+    void restoreRun(targetRun);
   }
 }
 

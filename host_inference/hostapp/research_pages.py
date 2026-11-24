@@ -24,7 +24,7 @@ PAGE_SCRIPTS = {
 }
 SHELL = UI / "research_shell.html"
 FRAGMENTS = UI / "research_pages"
-ASSET_VERSION = "20261122stages4"
+ASSET_VERSION = "20261124ui1"
 
 
 def render_research_page(page: str) -> Response:
@@ -32,7 +32,13 @@ def render_research_page(page: str) -> Response:
     title, subtitle = PAGE_DETAILS[page]
     shell = SHELL.read_text(encoding="utf-8")
     fragment = (FRAGMENTS / f"{page}.html").read_text(encoding="utf-8")
-    scripts: list[str] = []
+    scripts: list[str] = (
+        [
+            '<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js" defer></script>'
+        ]
+        if page == "topics"
+        else []
+    )
     scripts.extend(
         f'<script src="/{name}?v={ASSET_VERSION}" defer></script>' for name in PAGE_SCRIPTS[page]
     )
