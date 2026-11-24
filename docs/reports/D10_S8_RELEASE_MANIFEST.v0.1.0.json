@@ -79,7 +79,7 @@
   "git": {
     "branch": "sigir/demo-2027",
     "candidate_base_sha": "b949d65b9b2d503dd997b25cebba8b365d5242a1",
-    "deployed_sha": "075f74680929676de30b84ad471b0f2aa4a2b2e2",
+    "deployed_sha": "2233a065113d054cd0052325041fc7abbe383ad6",
     "repository": "prataykarali/Archipelago"
   },
   "hosted_acceptance": {
@@ -150,11 +150,12 @@
     "url": "https://edokbtmhztkhndmxetpy.supabase.co"
   },
   "vercel": {
-    "deployment_id": "dpl_DTXvjjs2ZpweCWUvZt4g8ViSgnwy",
+    "deployment_id": "dpl_6uWsqC11DANGrBdxRkNTXDsD48nt",
     "deployment_protection": "vercel_authentication",
-    "deployment_url": "https://archipelago-sigir-nbocgb2c4-sigir1.vercel.app",
-    "domain_promoted": false,
+    "deployment_url": "https://archipelago-sigir-3lnyvmoz2-sigir1.vercel.app",
+    "domain_promoted": true,
     "project": "archipelago-sigir",
+    "project_domain": "https://archipelago-sigir.vercel.app",
     "project_id": "prj_BjRCpNfUItbG8BO26CIQbPhP1oi9",
     "services": [
       "inference",
