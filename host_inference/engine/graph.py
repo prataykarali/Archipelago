@@ -17,6 +17,7 @@ import numpy as np
 
 from .academic_sources import ACADEMIC_SOURCES_BY_ID
 from .constants import ALIASES, FORMULAS
+from .corpus_titles import clean_bibliographic_title
 from .docmap import hf_doc_path
 from .evidence_selection import (
     build_chunk_provenance_index,
@@ -300,6 +301,8 @@ class LibraryGraph:
             label = f"[S{index}: {name} (source unavailable — metadata only)]"
 
         doc_title = resolved["resolved_title"] or raw_title
+        if not resolved["is_pearson"] and (doc_id or doc_title):
+            doc_title = clean_bibliographic_title(doc_id, doc_title)
         authors = (source or {}).get("authors") or ""
         if "FlashAttention" in doc_id or "upload_cb7badb2" in raw_doc_id:
             if not doc_title:

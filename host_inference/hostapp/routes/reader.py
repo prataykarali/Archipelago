@@ -12,6 +12,8 @@ import re
 from urllib.parse import quote, unquote
 
 from engine import _hf_doc_path
+from engine.access_profile import is_open_access_profile
+from engine.corpus_titles import clean_bibliographic_title
 from flask import Flask, current_app, jsonify, redirect, request, send_from_directory
 from hf_revision import dataset_revision
 from library_index import hf_title, resolve_hf_path, resolve_hf_source
@@ -53,6 +55,8 @@ def _wants_json() -> bool:
 
 def _find_pearson_book(doc_id: str) -> dict | None:
     """Match a Pearson shelf record by id, slug, ISBN or title fragment."""
+    if is_open_access_profile():
+        return None
     for book in load_books():
         if doc_id in (book.get("id") or "", book.get("slug") or "", book.get("isbn") or ""):
             return book
@@ -122,7 +126,9 @@ def register(app: Flask, ctx: AppContext) -> None:
             {
                 "doc_id": doc_id,
                 "page": page,
-                "title": hf_title(verified_hf) if verified_hf else "Document",
+                "title": clean_bibliographic_title(verified_hf, hf_title(verified_hf))
+                if verified_hf
+                else "Document",
                 "pdf_url": f"/papers/{clean_doc}",
                 "url": target,
                 "is_pearson": False,
@@ -189,9 +195,9 @@ def register(app: Flask, ctx: AppContext) -> None:
         clean_target = target_path.lstrip("/")
         pdf_route = f"/papers/{clean_target.removeprefix('papers/').lstrip('/')}"
         title_guess = (
-            hf_title(clean_target)
+            clean_bibliographic_title(clean_target, hf_title(clean_target))
             if clean_target
-            else clean_id.split("/")[-1].replace(".pdf", "").replace("_", " ").title()
+            else clean_bibliographic_title(clean_id)
         )
         return jsonify(
             {
@@ -290,6 +296,13 @@ def register(app: Flask, ctx: AppContext) -> None:
     @app.get("/open/book/<book_id>")
     def open_pearson(book_id: str):
         """Show the Pearson sign-in handoff for an indexed title."""
+        if is_open_access_profile():
+            return jsonify(
+                {
+                    "error": "unavailable_in_open_access",
+                    "detail": "Institutional e-book redirects are disabled in open-access mode.",
+                }
+            ), 404
         # Citations and legacy links may carry the `book/` prefix.
         clean_id = (book_id or "").strip()
         if clean_id.startswith("book/"):

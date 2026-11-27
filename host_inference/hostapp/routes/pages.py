@@ -9,6 +9,7 @@ from __future__ import annotations
 import importlib.util
 import os
 
+from engine.access_profile import active_access_profile, is_open_access_profile
 from flask import Flask, jsonify, make_response, redirect, send_from_directory
 
 from ..config import AUTH_GATED_PAGES, ELEVATED_ROLES, PAGE_FILES, UI
@@ -106,10 +107,13 @@ def register(app: Flask, ctx: AppContext) -> None:
         source = getattr(graph, "corpus_source", None) or (
             "fixture" if concepts < FULL_CORPUS_MIN_CONCEPTS else "full"
         )
+        open_only = is_open_access_profile()
         return jsonify(
             {
                 "ok": True,
                 "mode": "inference-only",
+                "access_profile": active_access_profile(),
+                "open_access_only": open_only,
                 "release_sha": runtime_release_sha(),
                 "concepts": concepts,
                 "graph_version": getattr(graph, "graph_version", "unknown"),
@@ -121,7 +125,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "full": source == "full",
                     "source": source,
                 },
-                "pearson_books": len(ctx.engine.books),
+                "pearson_books": 0 if open_only else len(ctx.engine.books),
                 "cache": ctx.engine.cache_info.get("source"),
                 "ingestion": _worker_available(),
                 "research_intake": {

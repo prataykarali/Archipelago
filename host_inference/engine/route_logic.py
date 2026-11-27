@@ -4,16 +4,23 @@ from __future__ import annotations
 
 import re
 from typing import Any
+from urllib.parse import quote
 
 from . import catalogue, compose, diagnostics, ingestion_view, inventory
+from .access_profile import is_institutional_card, is_open_access_profile, is_pearson_url
 from .constants import (
     CODE_MESSAGE,
     HIJACK_MESSAGE,
     KILL_SWITCH,
-    OOD_MESSAGE,
     PASSING_MENTIONS,
-    UNINDEXED_CURRICULUM_MESSAGE,
 )
+from .conversational import (
+    build_capability_reply,
+    build_conversational_reply,
+    build_unsupported_reply,
+    classify_conversational_intent,
+)
+from .corpus_titles import clean_bibliographic_title
 from .intent import IntentCategory, classify_query_intent
 from .multi_hop import extract_concept_mentions, multi_hop_reasoning
 from .patterns import (
@@ -252,26 +259,11 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             },
         )
 
-    # ── Conversational greetings ──────────────────────────────────────
-    _GREETING_RE = re.compile(
-        r"^(h(i|ey|ello|owdy)|good\s*(morning|afternoon|evening|day)|"
-        r"yo\b|sup\b|what'?s?\s*up|who are you|help|what can you do|"
-        r"thanks?|thank\s*you|bye|goodbye|see ya)[\s?!.]*$",
-        re.I,
-    )
-    if _GREETING_RE.match(query):
-        text = (
-            "Hello! I'm **Archipelago**, your AI academic knowledge assistant. "
-            "I can explain concepts across Computer Science (Operating Systems, DBMS, "
-            "Data Structures & Algorithms, Networks, Compilers, Theory of Computation, "
-            "Mathematics, and AI/ML), show prerequisite roadmaps, check institutional "
-            "library catalog holdings and OPAC availability, look up research papers, "
-            "and verify citations with exact page provenance.\n\n"
-            "Try asking about **Operating Systems** (context switches, semaphores, deadlocks), "
-            "**Database Systems** (B+ trees, ACID, 3NF), **Algorithms** (BFS vs DFS), "
-            "**Computer Networks** (TCP congestion control), or **AI & Deep Learning** (Transformers, BERT, LoRA, RAG)!"
-        )
-        return "GREETING", text, None, {"hide_graph": True, "reason": "greeting"}
+    # ── Deterministic conversational intents (zero external LLM calls) ────────
+    conv_intent = classify_conversational_intent(query)
+    if conv_intent is not None:
+        conv_route, conv_text, conv_extra = build_conversational_reply(graph, conv_intent)
+        return conv_route, conv_text, None, conv_extra
 
     clean_query = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
     # Normalize common fused question tokens (e.g. "what isdeadlock" -> "what is deadlock", "whatis" -> "what is")
@@ -313,30 +305,16 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     if classify_query_intent(
         clean_query
     ) == IntentCategory.CAPABILITY_INQUIRY or _CAPABILITY_BROAD_RE.search(clean_query):
-        concept_count = len(getattr(graph, "nodes", {}) or {})
-        text = (
-            "Here is what **Archipelago** currently covers:\n\n"
-            "- **Academic domains:** Computer Science (Operating Systems, Database Systems, "
-            "Data Structures & Algorithms, Computer Networks, Compilers, Theory of Computation), "
-            "Mathematics for Machine Learning, and AI & Deep Learning.\n"
-            "- **Indexed books & PDFs:** Selected CS/AI textbooks and lecture PDFs with exact page-level citations.\n"
-            f"- **Knowledge graph:** `{concept_count}` indexed concepts (concept nodes, not textbooks) "
-            "linked by prerequisite, unlocks, and related-concept edges.\n"
-            "- **Research Intelligence:** Saved scholarly paper collections, citation networks, and "
-            "bibliometric runs (kept separate from the academic concept graph).\n"
-            "- **Institutional library catalogue:** Live UEM Kolkata OPAC lookup with authorized "
-            "Koha export snapshot fallback for physical holdings.\n"
-            "- **Interactive learning:** Concept topology graphs, prerequisite roadmaps, and adaptive diagnostic quizzes."
-        )
         return (
             "CAPABILITY_INQUIRY",
-            text,
+            build_capability_reply(graph),
             None,
             {
                 "hide_graph": True,
                 "reason": "capability_inquiry",
                 "score": 1.0,
                 "intent_category": IntentCategory.CAPABILITY_INQUIRY.value,
+                "conversational_intent": "capability",
             },
         )
     prior_match = re.search(r"\([Ee]arlier user topics?:\s*(.+?)\)", query or "")
@@ -791,8 +769,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         if not left_ok and not right_ok:
             return (
                 "DISCONNECTED",
-                f"Neither **{left_text.strip(' ?.')}** nor **{right_text.strip(' ?.')}** are indexed in the catalog graph. "
-                "No relationship or bridge can be verified without evidence.",
+                build_unsupported_reply(graph, query, reason="both_missing"),
                 None,
                 {"score": best_score, "reason": "both_missing", "hide_graph": True},
             )
@@ -833,10 +810,10 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         # off-topic". Both are below the similarity threshold, but only the
         # second deserves a scope deflection.
         if DIAG_RE.search(query):
-            subject = inventory.extract_title(query) or "That topic"
+            subject = inventory.extract_title(query) or query
             return (
                 "CURRICULUM_UNINDEXED",
-                UNINDEXED_CURRICULUM_MESSAGE.format(subject=subject),
+                build_unsupported_reply(graph, subject, reason="curriculum_not_indexed"),
                 None,
                 {"hide_graph": True, "score": best_score, "reason": "curriculum_not_indexed"},
             )
@@ -846,9 +823,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                 return papers_hit
             return (
                 "RESEARCH_UNVERIFIED",
-                "I cannot verify findings or research gaps for this topic from the currently "
-                "indexed sources. Try a narrower paper, method, or dataset, or ask the "
-                "librarian to add relevant research records.",
+                build_unsupported_reply(graph, query, reason="research_not_indexed"),
                 None,
                 {"hide_graph": True, "score": best_score, "reason": "research_not_indexed"},
             )
@@ -863,7 +838,7 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             )
         return (
             "GUARDRAIL_INTERCEPT",
-            OOD_MESSAGE,
+            build_unsupported_reply(graph, query, reason="cosine_below_0.75"),
             None,
             {
                 "hide_graph": True,
@@ -1056,11 +1031,32 @@ def _extract_topic_terms(query: str) -> list[str]:
 def _institutional_eresources_reply() -> tuple[str, str, None, dict]:
     """Return verified institutional e-resources, Pearson digital library, and OPAC links."""
     manifest = _load_library_manifest()
+    hf_paths = list(manifest.get("hf_paths") or [])
+    if is_open_access_profile():
+        lines = [
+            "**Open-Access Corpus Resources**",
+            "",
+            f"- **Archipelago Cloud Reader:** {len(hf_paths)} open-access textbooks and research "
+            "papers available via `/library` and `/read`.",
+            "",
+            "*Note: This deployment runs in open-access mode (`ARCHIPELAGO_ACCESS_PROFILE=open_access`). "
+            "Institutional Pearson eLibrary and campus OPAC portals are excluded.*",
+        ]
+        return (
+            "LIBRARY_LOOKUP",
+            "\n".join(lines),
+            None,
+            {
+                "hide_graph": True,
+                "reason": "open_access_resources",
+                "score": 1.0,
+                "intent_category": IntentCategory.LIBRARY_LOOKUP.value,
+            },
+        )
     shelf = list(manifest.get("ebook_shelf") or [])
     pearson_books = [b for b in shelf if b.get("isPearson")]
     if not pearson_books:
         pearson_books = catalogue.load_catalogue()
-    hf_paths = list(manifest.get("hf_paths") or [])
     holdings = list(manifest.get("holdings") or [])
     journals = list(manifest.get("journal_issues") or [])
 
@@ -1099,10 +1095,11 @@ def _catalog_books_reply(
             if len(part) >= 2 and part not in terms:
                 terms.append(part)
 
+    open_only = is_open_access_profile()
     manifest = _load_library_manifest()
     shelf = list(manifest.get("ebook_shelf") or [])
-    pearson_fallback = catalogue.load_catalogue()
-    holdings = list(manifest.get("holdings") or [])
+    pearson_fallback = [] if open_only else catalogue.load_catalogue()
+    holdings = [] if open_only else list(manifest.get("holdings") or [])
 
     raw_query_tokens = [
         t
@@ -1135,6 +1132,8 @@ def _catalog_books_reply(
     for item in shelf:
         if item.get("isPaper"):
             continue
+        if open_only and is_institutional_card(item):
+            continue
         title = str(item.get("title") or "").strip()
         if not title:
             continue
@@ -1151,9 +1150,14 @@ def _catalog_books_reply(
             seen_titles.add(key)
             item_id = str(item.get("id") or "")
             source = "Pearson eBook" if item.get("isPearson") else "Cloud Reader PDF"
-            link = str(
-                item.get("reader_url") or (f"/open/{item_id}?page=1" if item_id else "/library")
+            default_link = (
+                f"/read?doc={quote(item_id, safe='')}&page=1"
+                if (open_only and item_id)
+                else (f"/open/{item_id}?page=1" if item_id else "/library")
             )
+            link = str(item.get("reader_url") or default_link)
+            if open_only and is_pearson_url(link):
+                continue
             matched.append((sc, title, str(item.get("author") or "—"), source, link))
 
     for item in pearson_fallback:
@@ -1248,19 +1252,24 @@ def _indexed_papers_reply(
     seen_ids: set[str] = set()
     seen_names: set[str] = set()
 
+    open_only = is_open_access_profile()
     for item in shelf:
         item_id = str(item.get("id") or "")
         is_paper = bool(item.get("isPaper")) or item_id.startswith("papers/")
-        if not is_paper:
+        if not is_paper or (open_only and is_institutional_card(item)):
             continue
-        title = str(item.get("title") or item_id).strip()
+        title = clean_bibliographic_title(item_id, str(item.get("title") or item_id).strip())
         basename = item_id.rsplit("/", 1)[-1].lower()
         blob = f"{title} {item_id} {item.get('author', '')} {item.get('desc', '')}"
         sc = sum(1 for t in terms if t in blob.lower())
         if sc > 0 and item_id not in seen_ids and basename not in seen_names:
             seen_ids.add(item_id)
             seen_names.add(basename)
-            link = str(item.get("reader_url") or f"/open/{item_id}?page=1")
+            raw_link = str(item.get("reader_url") or "")
+            if open_only and (not raw_link or is_pearson_url(raw_link)):
+                link = f"/read?doc={quote(item_id, safe='')}&page=1"
+            else:
+                link = raw_link or f"/open/{item_id}?page=1"
             matched.append((sc, title, link))
 
     # Also check graph nodes whose evidence references indexed papers (e.g. vllm -> Kwon2023_vLLM.pdf).
@@ -1283,8 +1292,14 @@ def _indexed_papers_reply(
                     seen_names.add(basename)
                     label = str(node.get("label") or cid)
                     summary = str(node.get("summary") or "").strip()
-                    title = f"{doc_id.rsplit('/', 1)[-1]} ({label}: {summary[:140]})"
-                    matched.append((sc + 1, title, f"/open/{doc_id}?page=1"))
+                    clean_doc_title = clean_bibliographic_title(doc_id)
+                    title = f"{clean_doc_title} ({label}: {summary[:140]})"
+                    paper_link = (
+                        f"/read?doc={quote(doc_id, safe='')}&page=1"
+                        if open_only
+                        else f"/open/{doc_id}?page=1"
+                    )
+                    matched.append((sc + 1, title, paper_link))
 
     if not matched:
         return None

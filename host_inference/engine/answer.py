@@ -25,6 +25,7 @@ from . import (
     route_logic,
     telemetry,
 )
+from .access_profile import is_open_access_profile, strip_institutional_payload
 from .citation_format import citation_link, link_answer_sources
 from .constants import (
     CITATION_LINE_PREFIXES,
@@ -32,6 +33,7 @@ from .constants import (
 )
 from .contract import contract_for, graph_decision
 from .evidence_selection import build_grounding_trace, select_evidence_citations
+from .followups import build_follow_up_questions
 from .graph import LibraryGraph
 from .links import source_links
 from .llm import fallback_config, last_provider_error, provider_config, stream_completion
@@ -100,6 +102,8 @@ class Engine:
 
     def best_book(self, cid: str) -> dict | None:
         """Match a Pearson copy only when the retrieved document title is that book."""
+        if is_open_access_profile():
+            return None
         record = self.graph.cite_record(cid, getattr(self.graph, "_query", ""))
         stem = re.sub(r"\.pdf$", "", (record.get("doc_id") or "").split("/")[-1].lower())
         stem = stem.replace("_", " ").replace("-", " ")
@@ -202,6 +206,8 @@ class Engine:
 
         if extra.get("intent_category"):
             payload["intent_category"] = extra["intent_category"]
+        if extra.get("conversational_intent"):
+            payload["conversational_intent"] = extra["conversational_intent"]
         if extra.get("multi_hop"):
             payload["multi_hop"] = extra["multi_hop"]
 
@@ -213,7 +219,7 @@ class Engine:
         # Contract type 5 carries its projection alongside the reply text.
         if extra.get("projection"):
             payload.update(extra["projection"])
-        shelf_record = extra.get("inventory") or {}
+        shelf_record = {} if is_open_access_profile() else (extra.get("inventory") or {})
         if shelf_record.get("title"):
             payload["inventory"] = [
                 {
@@ -365,6 +371,15 @@ class Engine:
         if notices:
             payload["withdrawn_notice"] = notices[0]
             payload["text_override"] = notices[0]
+
+        strip_institutional_payload(payload)
+        payload["follow_up_questions"] = build_follow_up_questions(
+            graph,
+            payload,
+            query,
+            route,
+            reason=str(extra.get("reason") or ""),
+        )
 
         # Populate instrumentation trace & grounding status for SIGIR Demo Inspector
         latency_s = round(time.perf_counter() - start_time, 2)

@@ -21,6 +21,8 @@ from urllib.parse import quote
 from library_index import resolve_hf_source
 from remote_cache import load_books
 
+from .access_profile import is_open_access_profile
+
 # Canonical 5-type source categories.
 SOURCE_CAT_OA_PAPER = "oa_research_paper"
 SOURCE_CAT_OA_TEXTBOOK = "oa_full_text_textbook"
@@ -203,8 +205,11 @@ def resolve_source_target(
         }
 
     # Type D: Official Pearson institutional catalogue-only textbook.
-    pearson_book = match_pearson_book(raw_doc_id, title) or match_pearson_book(
-        canonical_doc_id, title
+    # Excluded completely under the SIGIR open-access profile.
+    pearson_book = (
+        None
+        if is_open_access_profile()
+        else (match_pearson_book(raw_doc_id, title) or match_pearson_book(canonical_doc_id, title))
     )
     if pearson_book is not None:
         book_id = str(pearson_book.get("id") or "").strip()

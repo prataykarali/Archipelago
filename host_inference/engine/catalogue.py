@@ -22,6 +22,8 @@ from pathlib import Path
 import re
 from typing import Any
 
+from .access_profile import is_open_access_profile
+
 logger = logging.getLogger(__name__)
 
 # Searched in order; the first readable file wins. Host-relative paths only, so
@@ -107,9 +109,12 @@ def load_catalogue() -> list[dict[str, Any]]:
     """Every catalogue record, de-duplicated on title+ISBN.
 
     Cached: the export is static for the life of a deployment, and this is read
-    on the shelf-routing path of every query.
+    on the shelf-routing path of every query.  Returns an empty tuple under the
+    ``open_access`` profile so institutional Pearson records are never surfaced.
     """
-    return _load_catalogue_cached()
+    if is_open_access_profile():
+        return []
+    return list(_load_catalogue_cached())
 
 
 @lru_cache(maxsize=1)
