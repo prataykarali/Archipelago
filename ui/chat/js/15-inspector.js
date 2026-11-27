@@ -185,9 +185,16 @@ function renderGroundingBadge(trace) {
         verified_deterministic: 'Deterministic · Evidence-Backed',
         provider_unavailable_fallback: 'Provider Unavailable · Grounded Fallback',
     };
+    const streamStatusLabels = {
+        truncated_token_limit: 'Truncated (Token Limit)',
+        incomplete_stream: 'Incomplete Stream',
+        timed_out: 'Timed Out',
+        cancelled: 'Cancelled',
+        stream_error: 'Stream Error',
+    };
     const parts = [];
-    if (trace.stream_status === 'incomplete_stream') {
-        parts.push('Incomplete Stream');
+    if (trace.stream_status && streamStatusLabels[trace.stream_status]) {
+        parts.push(streamStatusLabels[trace.stream_status]);
     } else if (trace.intent === 'OUT_OF_DOMAIN' || trace.intent === 'UNSUPPORTED' || trace.grounding_status === 'abstained') {
         parts.push('Abstention');
     } else if (trace.synthesis_mode && modeLabels[trace.synthesis_mode]) {

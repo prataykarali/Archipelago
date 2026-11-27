@@ -34,7 +34,13 @@ from .contract import contract_for, graph_decision
 from .evidence_selection import build_grounding_trace, select_evidence_citations
 from .graph import LibraryGraph
 from .links import source_links
-from .llm import fallback_config, last_provider_error, provider_config, stream_completion
+from .llm import (
+    fallback_config,
+    last_provider_error,
+    last_stream_outcome,
+    provider_config,
+    stream_completion,
+)
 from .nodes import node_public
 from .reply_evidence import expanded_concept_context
 from .reply_plan import build_reply_plan
@@ -573,11 +579,30 @@ class Engine:
             for tok in stream:
                 yielded_len += len(tok)
                 yield tok
+        outcome = last_stream_outcome()
         mid_stream_err = last_provider_error()
-        if mid_stream_err:
-            err_kind = str(mid_stream_err.get("error_type") or "stream_interrupted")
+        outcome_status = str((outcome or {}).get("status") or "")
+        if outcome_status == "truncated_token_limit":
+            fr = str((outcome or {}).get("finish_reason") or "length")
+            yield f"\n[STREAM_TRUNCATED:{fr}]\n"
             yield (
-                "\n\n> **Incomplete stream:** live synthesis was interrupted "
+                "\n\n> **Response truncated (token limit reached):** "
+                "the provider stopped before completing the answer; showing partial response received."
+            )
+            return
+        if (
+            outcome_status
+            in {"incomplete_eof", "stream_interrupted_timeout", "stream_interrupted"}
+            or outcome_status.startswith("provider_")
+            or mid_stream_err
+        ):
+            err_kind = (
+                outcome_status
+                or str((mid_stream_err or {}).get("error_type") or "stream_interrupted")
+            )
+            yield f"\n[STREAM_INCOMPLETE:{err_kind}]\n"
+            yield (
+                "\n\n> **Incomplete stream:** live synthesis ended unexpectedly "
                 f"(`{err_kind}`) before completion."
             )
             return

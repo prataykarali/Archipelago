@@ -7,7 +7,24 @@ import { setLibrarianThinking } from './00-current-origin.js';
 export function resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, checkUserScroll }) {
                 window.clearTimeout(responseTimeoutId);
                 if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
-                if (chatMsgs) chatMsgs.removeEventListener('scroll', checkUserScroll);
+                if (state.activeResponseTimeoutId) {
+                    window.clearTimeout(state.activeResponseTimeoutId);
+                    state.activeResponseTimeoutId = null;
+                }
+                if (state.activeStreamIdleTimeoutId) {
+                    window.clearTimeout(state.activeStreamIdleTimeoutId);
+                    state.activeStreamIdleTimeoutId = null;
+                }
+                if (state.activeTypewriter) {
+                    try { state.activeTypewriter.stop(); } catch (_) {}
+                    state.activeTypewriter = null;
+                }
+                if (chatMsgs && checkUserScroll) chatMsgs.removeEventListener('scroll', checkUserScroll);
+                if (state.activeScrollTarget && state.activeScrollHandler) {
+                    try { state.activeScrollTarget.removeEventListener('scroll', state.activeScrollHandler); } catch (_) {}
+                }
+                state.activeScrollTarget = null;
+                state.activeScrollHandler = null;
                 state.isGenerating = false;
                 try { window.isGenerating = false; } catch (_) {}
                 window.archipelagoChatAuthChecking = false;

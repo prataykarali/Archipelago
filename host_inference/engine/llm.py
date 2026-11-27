@@ -15,6 +15,7 @@ the fallback chain disabled rather than merely unused.
 
 from __future__ import annotations
 
+import codecs
 from collections.abc import Iterator
 import json
 import logging
@@ -31,11 +32,22 @@ from .reply_templates import reply_template_guidance
 logger = logging.getLogger(__name__)
 _last_error_local = threading.local()
 
+_NORMAL_FINISH_REASONS = frozenset({"stop", "end_turn", "complete"})
+_TRUNCATED_FINISH_REASONS = frozenset({"length", "max_tokens"})
+_ERROR_FINISH_REASONS = frozenset({"error", "content_filter"})
+SSE_CHUNK_BYTES = 1024
+
 
 def last_provider_error() -> dict[str, object] | None:
     """Return structured metadata for the most recent provider failure on this thread."""
     err = getattr(_last_error_local, "error", None)
     return dict(err) if isinstance(err, dict) else None
+
+
+def last_stream_outcome() -> dict[str, object] | None:
+    """Return structured completion/truncation/EOF metadata for the latest stream."""
+    out = getattr(_last_error_local, "outcome", None)
+    return dict(out) if isinstance(out, dict) else None
 
 
 def _record_provider_error(
@@ -215,10 +227,13 @@ def stream_completion(
     """Stream one provider; an empty stream lets the caller report failure honestly."""
     resp = None
     _last_error_local.error = None
+    _last_error_local.outcome = None
     t_start = time.perf_counter()
     active_model = config["model"]
     timeout_pair = (STREAM_CONNECT_TIMEOUT_SECONDS, STREAM_READ_TIMEOUT_SECONDS)
     yielded_any = False
+    saw_done = False
+    finish_reason: str | None = None
     try:
         _pace_provider_call()
         system_prompt = "\n\n".join(
@@ -285,63 +300,182 @@ def stream_completion(
                 timeout=timeout_pair,
             )
         if resp.status_code != 200:
+            latency_ms = (time.perf_counter() - t_start) * 1000
             _record_provider_error(
                 config["provider"],
                 active_model,
                 f"http_{resp.status_code}",
                 status_code=resp.status_code,
-                latency_ms=(time.perf_counter() - t_start) * 1000,
+                latency_ms=latency_ms,
             )
+            _last_error_local.outcome = {
+                "provider": config["provider"],
+                "model": active_model,
+                "status": f"http_{resp.status_code}",
+                "finish_reason": None,
+                "saw_done": False,
+                "yielded_any": False,
+                "latency_ms": round(latency_ms, 1),
+            }
             resp.close()
             return
-        for line in resp.iter_lines():
-            if not line:
+
+        # Incremental UTF-8 + newline SSE parser across arbitrary network chunk boundaries.
+        decoder = codecs.getincrementaldecoder("utf-8")("replace")
+        sse_buf = ""
+
+        def _iter_sse_lines() -> Iterator[str]:
+            nonlocal sse_buf
+            iter_content = getattr(resp, "iter_content", None)
+            if callable(iter_content):
+                for raw_chunk in iter_content(chunk_size=SSE_CHUNK_BYTES):
+                    if not raw_chunk:
+                        continue
+                    text_chunk = (
+                        raw_chunk
+                        if isinstance(raw_chunk, str)
+                        else decoder.decode(raw_chunk, final=False)
+                    )
+                    sse_buf += text_chunk
+                    while "\n" in sse_buf:
+                        line_out, sse_buf = sse_buf.split("\n", 1)
+                        yield line_out.rstrip("\r")
+                tail = decoder.decode(b"", final=True)
+                if tail:
+                    sse_buf += tail
+                if sse_buf:
+                    yield sse_buf.rstrip("\r")
+                    sse_buf = ""
+            else:
+                for raw_line in resp.iter_lines():
+                    if not raw_line:
+                        continue
+                    yield (
+                        raw_line
+                        if isinstance(raw_line, str)
+                        else raw_line.decode("utf-8", errors="replace")
+                    )
+
+        for line_str in _iter_sse_lines():
+            if not line_str or not line_str.startswith("data:"):
                 continue
-            line_str = line.decode("utf-8", errors="replace")
-            if not line_str.startswith("data: "):
+            data_part = line_str[len("data:") :].strip()
+            if not data_part:
                 continue
-            data_part = line_str[len("data: ") :].strip()
             if data_part == "[DONE]":
+                saw_done = True
                 break
             try:
                 chunk = json.loads(data_part)
-                delta = chunk["choices"][0]["delta"].get("content", "")
+                choice = (chunk.get("choices") or [{}])[0]
+                if isinstance(choice, dict):
+                    fr = choice.get("finish_reason")
+                    if isinstance(fr, str) and fr.strip():
+                        finish_reason = fr.strip().lower()
+                    delta = (choice.get("delta") or {}).get("content", "")
+                else:
+                    delta = ""
             except Exception:
                 continue
             if delta:
                 yielded_any = True
                 yield delta
+
+        latency_ms = (time.perf_counter() - t_start) * 1000
         if not yielded_any:
+            status = "empty_stream"
             _record_provider_error(
                 config["provider"],
                 active_model,
-                "empty_stream",
+                status,
                 status_code=200,
-                latency_ms=(time.perf_counter() - t_start) * 1000,
+                latency_ms=latency_ms,
             )
-        else:
-            logger.info(
-                "[LLM_PROVIDER] provider=%s model=%s status=ok latency_ms=%.1f",
+        elif finish_reason in _TRUNCATED_FINISH_REASONS:
+            status = "truncated_token_limit"
+            _record_provider_error(
                 config["provider"],
                 active_model,
-                (time.perf_counter() - t_start) * 1000,
+                status,
+                status_code=200,
+                latency_ms=latency_ms,
             )
+        elif finish_reason in _ERROR_FINISH_REASONS:
+            status = f"provider_{finish_reason}"
+            _record_provider_error(
+                config["provider"],
+                active_model,
+                status,
+                status_code=200,
+                latency_ms=latency_ms,
+            )
+        elif not saw_done and finish_reason not in _NORMAL_FINISH_REASONS:
+            status = "incomplete_eof"
+            _record_provider_error(
+                config["provider"],
+                active_model,
+                status,
+                status_code=200,
+                latency_ms=latency_ms,
+            )
+        else:
+            status = "complete"
+            logger.info(
+                "[LLM_PROVIDER] provider=%s model=%s status=%s finish_reason=%s saw_done=%s latency_ms=%.1f",
+                config["provider"],
+                active_model,
+                status,
+                finish_reason,
+                saw_done,
+                latency_ms,
+            )
+        _last_error_local.outcome = {
+            "provider": config["provider"],
+            "model": active_model,
+            "status": status,
+            "finish_reason": finish_reason,
+            "saw_done": saw_done,
+            "yielded_any": yielded_any,
+            "latency_ms": round(latency_ms, 1),
+        }
         resp.close()
     except requests.Timeout:
+        latency_ms = (time.perf_counter() - t_start) * 1000
+        err_kind = "stream_interrupted_timeout" if yielded_any else "timeout"
         _record_provider_error(
             config["provider"],
             active_model,
-            "stream_interrupted_timeout" if yielded_any else "timeout",
-            latency_ms=(time.perf_counter() - t_start) * 1000,
+            err_kind,
+            latency_ms=latency_ms,
         )
+        _last_error_local.outcome = {
+            "provider": config["provider"],
+            "model": active_model,
+            "status": err_kind,
+            "finish_reason": finish_reason,
+            "saw_done": saw_done,
+            "yielded_any": yielded_any,
+            "latency_ms": round(latency_ms, 1),
+        }
         return
     except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
+        latency_ms = (time.perf_counter() - t_start) * 1000
+        err_kind = "stream_interrupted" if yielded_any else type(exc).__name__
         _record_provider_error(
             config["provider"],
             active_model,
-            "stream_interrupted" if yielded_any else type(exc).__name__,
-            latency_ms=(time.perf_counter() - t_start) * 1000,
+            err_kind,
+            latency_ms=latency_ms,
         )
+        _last_error_local.outcome = {
+            "provider": config["provider"],
+            "model": active_model,
+            "status": err_kind,
+            "finish_reason": finish_reason,
+            "saw_done": saw_done,
+            "yielded_any": yielded_any,
+            "latency_ms": round(latency_ms, 1),
+        }
         return
     finally:
         if resp is not None:

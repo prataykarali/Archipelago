@@ -11,6 +11,7 @@ import { populatePipeline } from './10-populate-pipeline.js';
 import { updateBookStackForQuery } from './05-display-books.js';
 import { saveSession } from './20--compact-history.js';
 import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream-support.js';
+import { extractStreamStatusMarkers, splitSafeStreamChunk } from './stream-markers.js';
 import { postChatRequest } from './08-send-request.js';
 import { handleStreamError } from './08-stream-error.js';
 import { resetChatUi } from './08-stream-cleanup.js';
@@ -107,12 +108,14 @@ import { resetChatUi } from './08-stream-cleanup.js';
             const responseTimeoutId = window.setTimeout(() => {
                 state.currentAbortController?.abort('The response timed out.');
             }, Math.max(CHAT_RESPONSE_TIMEOUT_MS, STREAM_HARD_TIMEOUT_MS));
+            state.activeResponseTimeoutId = responseTimeoutId;
             let streamIdleTimeoutId = null;
             const armStreamIdleWatchdog = () => {
                 if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
                 streamIdleTimeoutId = window.setTimeout(() => {
                     state.currentAbortController?.abort('Stream idle timeout — no tokens received.');
                 }, STREAM_IDLE_TIMEOUT_MS);
+                state.activeStreamIdleTimeoutId = streamIdleTimeoutId;
             };
             armStreamIdleWatchdog();
 
@@ -135,6 +138,8 @@ import { resetChatUi } from './08-stream-cleanup.js';
             };
             if (chatMsgs) {
                 chatMsgs.addEventListener('scroll', checkUserScroll, { passive: true });
+                state.activeScrollTarget = chatMsgs;
+                state.activeScrollHandler = checkUserScroll;
             }
 
             try {
@@ -161,6 +166,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 let bubbleFinalized = false;
 
                 const paintAssistant = (text) => {
+                    if (thisQuerySequence !== state.currentQuerySequence) return;
                     if (!cleanedIndicator) {
                         msgEl.innerHTML = '';
                         cleanedIndicator = true;
@@ -188,10 +194,11 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 }, {
                     speed: 4,
                     onLiveChange: (live) => {
-                        if (!msgEl) return;
+                        if (!msgEl || thisQuerySequence !== state.currentQuerySequence) return;
                         msgEl.classList.toggle('is-live-streaming', !!live);
                     }
                 });
+                state.activeTypewriter = typewriter;
 
                 // liveRewriteMode / rewriteBuffer / staticStreamBuffer hoisted above try.
 
@@ -253,6 +260,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 };
 
                 const _finishStreamUi = () => {
+                    if (thisQuerySequence !== state.currentQuerySequence) return;
                     typewriter.flush();
                     finalizeStreamedBubble();
                     setModelStatus(false);
@@ -263,9 +271,18 @@ import { resetChatUi } from './08-stream-cleanup.js';
                     setLibrarianThinking(false);
                 };
 
-                const consumeTextChunk = (chunk) => {
-                    if (!chunk) return;
-                    let rest = chunk;
+                const consumeTextChunk = (rawChunk) => {
+                    if (!rawChunk || thisQuerySequence !== state.currentQuerySequence) return;
+                    const { cleaned, streamStatus, streamReason } = extractStreamStatusMarkers(rawChunk);
+                    if (streamStatus && window._lastChatMetadata?.trace) {
+                        window._lastChatMetadata.trace.stream_status = streamStatus;
+                        if (streamReason) window._lastChatMetadata.trace.stream_reason = streamReason;
+                        if (typeof window.populateInspector === 'function') {
+                            window.populateInspector(window._lastChatMetadata);
+                        }
+                    }
+                    let rest = cleaned;
+                    if (!rest) return;
                     while (rest.length) {
                         // Prefer earliest control marker in this buffer slice.
                         const markers = [
@@ -374,6 +391,12 @@ import { resetChatUi } from './08-stream-cleanup.js';
                     armStreamIdleWatchdog();
                     if (done) {
                         if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
+                        buffer += decoder.decode();
+                        if (buffer) {
+                            const { ready } = splitSafeStreamChunk(buffer, { finalFlush: true });
+                            if (ready) consumeTextChunk(ready);
+                            buffer = '';
+                        }
                         if (!bubbleFinalized) {
                             typewriter.flush();
                         }
@@ -382,10 +405,6 @@ import { resetChatUi } from './08-stream-cleanup.js';
                             cleanedIndicator = true;
                             const wrap = msgEl.closest('.msg-bubble-wrap');
                             if (wrap) wrap.classList.remove('is-thinking');
-                        }
-                        if (buffer) {
-                            consumeTextChunk(buffer);
-                            buffer = '';
                         }
                         // Always re-finalize only if not already finalized (or if buffer above flushed)
                         if (!bubbleFinalized || !document.getElementById(`interactive-zone-${assistantMsgId}`)) {
@@ -431,8 +450,9 @@ import { resetChatUi } from './08-stream-cleanup.js';
                     }
 
                     if (metadataParsed && buffer) {
-                        consumeTextChunk(buffer);
-                        buffer = '';
+                        const { ready, remainder } = splitSafeStreamChunk(buffer, { finalFlush: false });
+                        buffer = remainder;
+                        if (ready) consumeTextChunk(ready);
                     }
                 }
 
@@ -447,6 +467,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 }
 
             } catch (err) {
+                if (thisQuerySequence !== state.currentQuerySequence) return;
                 if (err && err.status === 401) {
                     const draftEl = document.getElementById('chat-input');
                     if (draftEl && !draftEl.value.trim()) draftEl.value = inputVal;

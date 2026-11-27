@@ -261,28 +261,63 @@ state.currentMode = mode;
         window.setSendButtonState = setSendButtonState;
 
         function stopGeneration() {
+            state.userCancelledSequence = state.currentQuerySequence || 0;
+            state.currentQuerySequence = (state.currentQuerySequence || 0) + 1;
+
+            if (state.activeTypewriter) {
+                try { state.activeTypewriter.stop(); } catch (_) {}
+                state.activeTypewriter = null;
+            }
+            if (state.activeResponseTimeoutId) {
+                window.clearTimeout(state.activeResponseTimeoutId);
+                state.activeResponseTimeoutId = null;
+            }
+            if (state.activeStreamIdleTimeoutId) {
+                window.clearTimeout(state.activeStreamIdleTimeoutId);
+                state.activeStreamIdleTimeoutId = null;
+            }
+            if (state.activeScrollTarget && state.activeScrollHandler) {
+                try { state.activeScrollTarget.removeEventListener('scroll', state.activeScrollHandler); } catch (_) {}
+                state.activeScrollTarget = null;
+                state.activeScrollHandler = null;
+            }
             if (state.currentAbortController) {
-                try { state.currentAbortController.abort(); } catch (_) {}
+                try { state.currentAbortController.abort('USER_CANCELLED'); } catch (_) {}
                 state.currentAbortController = null;
             }
             if (state.currentAssistantRow) {
                 const msgBody = state.currentAssistantRow.querySelector('[id^="msg-body-"]');
                 if (msgBody) {
-                    msgBody.classList.remove('ai-typewriter-cursor');
+                    msgBody.classList.remove('ai-typewriter-cursor', 'is-live-streaming');
                     const wrap = msgBody.closest('.msg-bubble-wrap');
                     if (wrap) wrap.classList.remove('is-thinking');
-                    if (!msgBody.textContent.trim() || msgBody.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
+                    const hasThinkingOnly = Boolean(
+                        !msgBody.textContent.trim()
+                        || msgBody.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')
+                    );
+                    if (hasThinkingOnly) {
                         try { state.currentAssistantRow.remove(); } catch (_) {}
+                    } else {
+                        if (window._lastChatMetadata?.trace) {
+                            window._lastChatMetadata.trace.stream_status = 'cancelled';
+                            if (typeof window.populateInspector === 'function') {
+                                window.populateInspector(window._lastChatMetadata);
+                            }
+                        }
+                        if (!msgBody.querySelector('.stream-abort-note')) {
+                            const note = document.createElement('div');
+                            note.className = 'stream-abort-note text-amber-300/90 text-xs mt-2 opacity-80';
+                            note.textContent = 'Generation cancelled by user — showing partial response received.';
+                            msgBody.appendChild(note);
+                        }
                     }
                 }
                 state.currentAssistantRow = null;
             }
             document.querySelectorAll('.model-reply-status').forEach(el => {
-                el.classList.remove('is-visible');
-                el.dataset.active = '0';
-                el.hidden = true;
+                try { el.remove(); } catch (_) {}
             });
-            document.querySelectorAll('.msg-bubble-wrap.is-thinking, .ai-typewriter-cursor').forEach(el => {
+            document.querySelectorAll('.msg-bubble-wrap.is-thinking, .ai-typewriter-cursor, .is-live-streaming').forEach(el => {
                 el.classList.remove('is-thinking', 'ai-typewriter-cursor', 'is-live-streaming');
                 if (!el.textContent.trim() || el.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
                     const row = el.closest('.assistant-row') || el.closest('#chat-messages > div') || el.closest('.flex');
@@ -292,10 +327,19 @@ state.currentMode = mode;
 
             state.isGenerating = false;
             try { window.isGenerating = false; } catch (_) {}
+            window.archipelagoChatAuthChecking = false;
             _updateGlowState(false);
             setSendButtonState('send');
             setLibrarianThinking(false);
 
+            const sendBtn = document.getElementById('send-btn');
+            if (sendBtn) {
+                sendBtn.removeAttribute('aria-busy');
+                const quotaBlocked = Boolean(state.quotaLimitedUntil && Date.now() < state.quotaLimitedUntil);
+                sendBtn.disabled = quotaBlocked;
+                sendBtn.classList.toggle('opacity-50', quotaBlocked);
+                sendBtn.classList.toggle('pointer-events-none', quotaBlocked);
+            }
             const inputEl = document.getElementById('chat-input');
             if (inputEl) {
                 inputEl.disabled = false;

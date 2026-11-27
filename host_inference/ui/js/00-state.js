@@ -13,6 +13,12 @@ export const state = {
   _graphNeighborhood: { anchor: null, prereqs: [], unlocks: [], related: [] },
   currentAbortController: null,
   currentAssistantRow: null,
+  activeTypewriter: null,
+  activeResponseTimeoutId: null,
+  activeStreamIdleTimeoutId: null,
+  activeScrollTarget: null,
+  activeScrollHandler: null,
+  userCancelledSequence: 0,
   quotaLimitedUntil: 0,
   quotaTimerId: null,
 };

@@ -14,9 +14,18 @@ export function handleStreamError(err, context) {
                     || (assistantText && assistantText.trim())
                     || (rewriteBuffer && rewriteBuffer.trim())
                     || '';
-                const aborted = !!(err && (err.name === 'AbortError' || /aborted|BodyStreamBuffer/i.test(String(err.message || err))));
+                const errStr = String(err?.message || err || '');
+                const isCancelled = errStr === 'USER_CANCELLED' || /USER_CANCELLED/i.test(errStr);
+                const isTimedOut = /timed out|timeout/i.test(errStr);
+                const aborted = !!(err && (isCancelled || isTimedOut || err.name === 'AbortError' || /aborted|BodyStreamBuffer/i.test(errStr)));
+                const terminalStatus = isCancelled
+                    ? 'cancelled'
+                    : (isTimedOut ? 'timed_out' : (aborted ? 'incomplete_stream' : 'stream_error'));
                 if (partial) {
                     try { if (typewriter && typeof typewriter.flush === 'function') typewriter.flush(); } catch (_) {}
+                    if (window._lastChatMetadata?.trace) {
+                        window._lastChatMetadata.trace.stream_status = terminalStatus;
+                    }
                     try {
                         if (typeof finalizeStreamedBubble === 'function') finalizeStreamedBubble();
                         else {
@@ -35,16 +44,17 @@ export function handleStreamError(err, context) {
                             );
                         } catch (__) {}
                     }
+                    if (window._lastChatMetadata && typeof window.populateInspector === 'function') {
+                        window.populateInspector(window._lastChatMetadata);
+                    }
                     if (aborted && msgEl && !msgEl.querySelector('.stream-abort-note')) {
-                        if (window._lastChatMetadata?.trace) {
-                            window._lastChatMetadata.trace.stream_status = 'incomplete_stream';
-                            if (typeof window.populateInspector === 'function') {
-                                window.populateInspector(window._lastChatMetadata);
-                            }
-                        }
                         const note = document.createElement('div');
                         note.className = 'stream-abort-note text-amber-300/90 text-xs mt-2 opacity-80';
-                        note.textContent = 'Incomplete stream — response interrupted before completion (showing partial text received).';
+                        note.textContent = isCancelled
+                            ? 'Generation cancelled by user — showing partial response received.'
+                            : (isTimedOut
+                                ? 'Stream timed out before completion — showing partial response received.'
+                                : 'Incomplete stream — response interrupted before completion (showing partial text received).');
                         msgEl.appendChild(note);
                     }
                     try {
@@ -67,7 +77,7 @@ export function handleStreamError(err, context) {
                         }
                     }
                     if (window._lastChatMetadata?.trace) {
-                        window._lastChatMetadata.trace.stream_status = aborted ? 'incomplete_stream' : 'stream_error';
+                        window._lastChatMetadata.trace.stream_status = terminalStatus;
                         if (typeof window.populateInspector === 'function') {
                             window.populateInspector(window._lastChatMetadata);
                         }
@@ -79,9 +89,13 @@ export function handleStreamError(err, context) {
                         draftEl.style.height = 'auto';
                         draftEl.style.height = Math.min(draftEl.scrollHeight, 200) + 'px';
                     }
-                    const why = aborted
-                        ? ((err.message && err.message !== 'The user aborted a request.') ? err.message : 'Incomplete stream — connection was interrupted. Your question was restored below so you can retry.')
-                        : (err && err.message ? err.message : 'An unexpected error occurred. Your question was restored below so you can retry.');
+                    const why = isCancelled
+                        ? 'Generation cancelled. Your question was restored below.'
+                        : (isTimedOut
+                            ? 'The response timed out before completion. Your question was restored below so you can retry.'
+                            : (aborted
+                                ? 'Incomplete stream — connection was interrupted. Your question was restored below so you can retry.'
+                                : (err && err.message ? err.message : 'An unexpected error occurred. Your question was restored below so you can retry.')));
                     if (msgEl) {
                         msgEl.textContent = why;
                     }
