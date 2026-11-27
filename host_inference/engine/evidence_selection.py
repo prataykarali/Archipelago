@@ -57,6 +57,8 @@ UNRESOLVABLE_DOC_PENALTY = -30
 TOC_INDEX_DOC_PENALTY = -50
 RAW_UPLOAD_PENALTY = -25
 LOW_SIGNAL_PENALTY = -40
+DOMAIN_MISMATCH_PENALTY = -120
+PAGING_INTRO_FLUFF_PENALTY = -45
 # Additional passages beyond rank 1 must have direct lexical relevance.
 EXTRA_PASSAGE_MIN_OVERLAP = 2
 SECONDARY_CONCEPT_MIN_OVERLAP = 2
@@ -65,8 +67,200 @@ TEXT_DEDUP_PREFIX_LEN = 160
 CATALOG_TOKEN_WEIGHT = 4
 CATALOG_CONCEPT_WEIGHT = 2
 CATALOG_PHRASE_BONUS = 12
-CATALOG_MIN_SCORE = 6
+CATALOG_MIN_SCORE = 8
+CATALOG_MIN_DISTINCTIVE_TOKENS = 2
 CATALOG_PASSAGE_CHAR_LIMIT = 700
+
+# Coarse academic domain tags for cross-domain pollution prevention.
+DOMAIN_OS = "OS"
+DOMAIN_DB = "DB"
+DOMAIN_DSA = "DSA"
+DOMAIN_NETWORKS = "NETWORKS"
+DOMAIN_ML_AI = "ML_AI"
+DOMAIN_MATH = "MATH"
+DOMAIN_COMPILERS = "COMPILERS"
+DOMAIN_PHYSICS_EE = "PHYSICS_EE"
+
+_DOMAIN_TEXT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        DOMAIN_OS,
+        re.compile(
+            r"\b(?:operating\s+systems?|ostep|virtual\s+memory|paging|page\s+tables?|page\s+faults?|"
+            r"page\s+frames?|page\s+replacement|address\s+translation|address\s+spaces?|\btlbs?\b|"
+            r"translation\s+lookaside|deadlocks?|semaphores?|mutex(?:es)?|cpu\s+scheduling|"
+            r"context\s+switch(?:ing)?|condition\s+variables?|segmentation|\braid\b|"
+            r"log[-\s]?structured\s+file\s+system|file\s+systems?|inodes?|syscalls?|thrashing)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_DB,
+        re.compile(
+            r"\b(?:dbms|databases?|\bsql\b|3nf|2nf|1nf|bcnf|third\s+normal\s+form|normal\s+forms?|"
+            r"normalization|acid\s+properties|\bacid\b|atomicity|durability|isolation\s+levels?|"
+            r"serializability|two[-\s]?phase\s+locking|write[-\s]?ahead\s+logging|"
+            r"relational\s+algebra|relational\s+databases?|b\+?\s*trees?|hash\s+indexing|"
+            r"foreign\s+keys?|candidate\s+keys?|primary\s+keys?|transitive\s+dependenc(?:y|ies)|"
+            r"silberschatz)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_DSA,
+        re.compile(
+            r"\b(?:data\s+structures?|arrays?|linked\s+lists?|priority\s+queues?|binary\s+heaps?|"
+            r"min[-\s]?heaps?|max[-\s]?heaps?|heapsort|quicksort|mergesort|hash\s+tables?|"
+            r"binary\s+search\s+trees?|avl\s+trees?|red[-\s]?black\s+trees?|"
+            r"breadth[-\s]?first|depth[-\s]?first|\bbfs\b|\bdfs\b|dijkstra|bellman[-\s]?ford|"
+            r"dynamic\s+programming|topological\s+sort|spanning\s+trees?|tries?|big[-\s]?o|"
+            r"asymptotic|amortized|clrs)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_NETWORKS,
+        re.compile(
+            r"\b(?:computer\s+networks?|networking|network\s+architecture|network\s+topology|"
+            r"protocol\s+stack|\btcp\b|\budp\b|\bosi\b|osi\s+model|"
+            r"congestion\s+control|slow\s+start|congestion\s+avoidance|fast\s+recovery|"
+            r"fast\s+retransmit|sliding\s+window|flow\s+control|\baimd\b|\bcwnd\b|tcp/ip|"
+            r"transport\s+layer|network\s+layer|data\s+link\s+layer|physical\s+layer|"
+            r"application\s+layer|packet\s+loss|three[-\s]?way\s+handshake|routing\s+protocols?|"
+            r"\bdns\b|\bhttp\b|sockets?|tanenbaum|ipsec)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_ML_AI,
+        re.compile(
+            r"\b(?:machine\s+learning|deep\s+learning|neural\s+networks?|transformers?|"
+            r"self[-\s]?attention|multi[-\s]?head\s+attention|flashattention|\bbert\b|gpt[-\s]?[234]?|"
+            r"\bllms?\b|\brag\b|retrieval[-\s]?augmented|graphrag|\blora\b|\bqlora\b|\bdpo\b|\brlhf\b|"
+            r"constitutional\s+ai|constitutional\s+principles?|react\s+agent|chain[-\s]?of[-\s]?thought|"
+            r"backpropagation|gradient\s+descent|diffusion|\bddpm\b|\bvaes?\b|autoencoders?|\bgans?\b|"
+            r"adversarial\s+nets?|\blstms?\b|\bcnns?\b|\brnns?\b|convnets?|alexnet|"
+            r"graph\s+attention|\bgat\b|\bgcn\b|\bvllm\b|pagedattention|kv\s+cach(?:e|ing)|"
+            r"\bbm25\b|\bdpr\b|dense\s+passage|word\s+embeddings?|fine[-\s]?tuning|"
+            r"in[-\s]?context\s+learning|reinforcement\s+learning|heuristic\s+search)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_MATH,
+        re.compile(
+            r"\b(?:linear\s+algebra|eigenvalues?|eigenvectors?|singular\s+value|\bsvd\b|"
+            r"matrix\s+decomposition|matrix\s+factorization|matrix\s+multiplication|determinants?|"
+            r"jacobian|hessian|bayes\s+theorem|bayesian|maximum\s+likelihood|"
+            r"probability\s+distributions?|variance|covariance|convex\s+optimization|"
+            r"constrained\s+optimization|lagrange\s+multipliers?|euler\s+totient|"
+            r"calculus|integrals?|derivatives?|kl\s+divergence|\bpca\b|principal\s+component)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_COMPILERS,
+        re.compile(
+            r"\b(?:compilers?|lexical\s+analysis|lexers?|syntax\s+analysis|parsers?|"
+            r"abstract\s+syntax\s+tree|context[-\s]?free\s+grammars?|\bdfa\b|\bnfa\b|"
+            r"turing\s+machines?|pumping\s+lemma|chomsky|register\s+allocation)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_PHYSICS_EE,
+        re.compile(
+            r"\b(?:modern\s+physics|wave\s+function|quantum\s+mechanics|schrodinger|"
+            r"digital\s+signal\s+processing|discrete\s+fourier|fourier\s+transform|nyquist)\b",
+            re.I,
+        ),
+    ),
+)
+
+_DOC_DOMAIN_HINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (DOMAIN_OS, ("ostep_three_easy_pieces", "06_address_spaces", "07_address_translation", "08_paging", "09_tlbs", "15_raid", "16_log_structured_fs", "operating_system")),
+    (DOMAIN_DB, ("silberschatz", "3nf", "database_system", "dbms")),
+    (DOMAIN_NETWORKS, ("computer_networks", "tanenbaum", "data_and_computer_communications")),
+    (DOMAIN_DSA, ("introduction_to_algorithms", "clrs")),
+    (DOMAIN_MATH, ("deisenroth", "math_for_ml")),
+    (
+        DOMAIN_ML_AI,
+        (
+            "vaswani", "devlin", "brown2020_gpt3", "yao2022_react", "velickovic2017_gat",
+            "dao2022_flashattention", "upload_cb7badb2", "bai2022_constitutionalai",
+            "kingma2013_vae", "goodfellow2014_gan", "hu2021_lora", "dettmers2023_qlora",
+            "lewis2020_rag", "edge2024_graphrag", "rafailov2023_dpo", "ouyang2022_instructgpt",
+            "wei2022_chainofthought", "ho2020_ddpm", "hochreiter1997_lstm", "kipf2016_gcn",
+            "krizhevsky2012_alexnet", "lecun1998_convnets", "karpukhin2020_dpr",
+            "bahdanau2014_attention", "willard2023_outlines", "rumelhart1986",
+            "kwon2023_vllm", "real-time network security", "data_science_2019",
+            "predictive_analytics", "knowledge_representation",
+        ),
+    ),
+    (DOMAIN_PHYSICS_EE, ("concepts_of_modern_physics", "digital_signal_processing")),
+)
+
+# Generic academic / operation tokens that must NOT alone trigger catalog citations.
+_GENERIC_QUERY_TOKENS = frozenset(
+    {
+        "explain", "compare", "contrast", "define", "describe", "derive", "demonstrate",
+        "calculate", "compute", "walk", "through", "show", "give", "provide", "include",
+        "example", "examples", "concrete", "worked", "simple", "brief", "detail", "step",
+        "difference", "differences", "versus", "between", "relation", "relationship",
+        "connect", "connected", "related", "their", "about", "using", "used", "work", "works",
+        "properties", "property", "model", "models", "layer", "layers", "form", "forms",
+        "control", "system", "systems", "method", "methods", "data", "table", "tables",
+        "state", "states", "action", "actions", "fast", "slow", "basic", "general",
+        "reliability", "recovery", "avoidance", "start", "order", "list", "lists", "binary",
+        "structure", "structures", "mechanics", "concept", "concepts", "operating",
+    }
+)
+
+_PAGING_QUERY_RE = re.compile(
+    r"\b(?:paging|page\s+tables?|page\s+frames?|page\s+faults?|page\s+replacement)\b", re.I
+)
+
+
+def infer_text_domains(text: str) -> set[str]:
+    """Infer coarse academic domains present in ``text``."""
+    raw = text or ""
+    if not raw.strip():
+        return set()
+    return {domain for domain, pat in _DOMAIN_TEXT_PATTERNS if pat.search(raw)}
+
+
+def infer_doc_domains(doc_id: str, concept_id: str = "", text: str = "") -> set[str]:
+    """Infer coarse academic domains for a candidate document/passage."""
+    doc_lower = (doc_id or "").lower()
+    found = {
+        domain
+        for domain, hints in _DOC_DOMAIN_HINTS
+        if any(hint in doc_lower for hint in hints)
+    }
+    if found:
+        return found
+    return infer_text_domains(f"{concept_id.replace('_', ' ')} {(text or '')[:400]}")
+
+
+def domains_compatible(
+    query_domains: set[str],
+    target_domains: set[str],
+    *,
+    allow_math_ml_bridge: bool = True,
+) -> bool:
+    """Return True when ``target_domains`` are compatible with ``query_domains``."""
+    if not query_domains or not target_domains:
+        return True
+    if query_domains & target_domains:
+        return True
+    return bool(
+        allow_math_ml_bridge
+        and query_domains <= {DOMAIN_MATH, DOMAIN_ML_AI}
+        and target_domains <= {DOMAIN_MATH, DOMAIN_ML_AI}
+    )
+
+
+def _distinctive_tokens(text: str) -> set[str]:
+    return {tok for tok in tokens(text) if tok not in _GENERIC_QUERY_TOKENS}
 
 _INDEX_ENTRY_RE = re.compile(r"\b[a-z][a-z\s-]{2,30},\s*\d+(?:[\u2013-]\d+)?")
 _BIB_YEAR_RE = re.compile(r"\((?:19|20)\d{2}[a-z]?\)")
@@ -145,6 +339,14 @@ def score_source_for_concept(
     if page > 1:
         total += SOURCE_LATER_PAGE_BONUS
     total += _primary_paper_bonus(cid, raw_doc, canonical_doc)
+    if (cid == "paging" or _PAGING_QUERY_RE.search(query or "")) and (
+        "06_address_spaces" in canonical_doc.lower() or "06_address_spaces" in raw_doc.lower()
+    ):
+        total += PAGING_INTRO_FLUFF_PENALTY
+    q_domains = infer_text_domains(f"{query} {cid.replace('_', ' ')} {concept_label}")
+    d_domains = infer_doc_domains(canonical_doc or raw_doc, cid, passage)
+    if not domains_compatible(q_domains, d_domains):
+        total += DOMAIN_MISMATCH_PENALTY
     if CANONICAL_CHUNK_RE.match(chunk_id) and not canonical_doc.startswith("upload_"):
         total += UNIQUE_CHUNK_BONUS
     if is_toc_or_index_doc(raw_doc) or is_toc_or_index_doc(canonical_doc):
@@ -193,10 +395,26 @@ def _ranked_live_sources(
         return [], True
 
     label = graph.label(cid)
-    non_low_signal = [
-        s for s in live if not is_low_signal_passage(str(s.get("text_passage") or ""))
+    q_domains = infer_text_domains(f"{query} {cid.replace('_', ' ')} {label}")
+    domain_ok = [
+        s
+        for s in live
+        if domains_compatible(
+            q_domains,
+            infer_doc_domains(
+                hf_doc_path(str(s.get("doc_id") or "")) or str(s.get("doc_id") or ""),
+                cid,
+                str(s.get("text_passage") or ""),
+            ),
+        )
     ]
-    pool = non_low_signal if non_low_signal else live
+    if not domain_ok:
+        return [], False
+
+    non_low_signal = [
+        s for s in domain_ok if not is_low_signal_passage(str(s.get("text_passage") or ""))
+    ]
+    pool = non_low_signal if non_low_signal else domain_ok
 
     canonical_pool = [
         s for s in pool if not hf_doc_path(str(s.get("doc_id") or "")).startswith("upload_")
@@ -253,31 +471,42 @@ def select_evidence_citations(
         return True
 
     primary_doc = ""
-    for rank_idx, (_score, overlap, src) in enumerate(scored_anchor):
+    is_paging_query = anchor_cid == "paging" or bool(_PAGING_QUERY_RE.search(query or ""))
+    for rank_idx, (total_score, overlap, src) in enumerate(scored_anchor):
         if len(collected) >= max_citations:
             break
         src_doc = hf_doc_path(str(src.get("doc_id") or ""))
+        if is_paging_query and "06_address_spaces" in src_doc.lower() and collected:
+            continue
         if rank_idx == 0:
             if _try_append(anchor_cid, src):
                 primary_doc = src_doc
             continue
-        if overlap < EXTRA_PASSAGE_MIN_OVERLAP:
+        if total_score < 0 or overlap < EXTRA_PASSAGE_MIN_OVERLAP:
             continue
         if PRIMARY_PAPER_HINTS.get(anchor_cid) and primary_doc and src_doc != primary_doc:
             continue
         _try_append(anchor_cid, src)
 
+    anchor_domains = infer_text_domains(
+        f"{query} {anchor_cid.replace('_', ' ')} {graph.label(anchor_cid)}"
+    )
     if collected and len(collected) < max_citations:
         for other_cid in graph.phrase_hits(query):
             if len(collected) >= max_citations:
                 break
             if other_cid == anchor_cid or other_cid not in graph.nodes:
                 continue
+            other_domains = infer_text_domains(
+                f"{other_cid.replace('_', ' ')} {graph.label(other_cid)}"
+            )
+            if not domains_compatible(anchor_domains, other_domains):
+                continue
             other_scored, other_withdrawn = _ranked_live_sources(graph, other_cid, query, retired)
             if other_withdrawn or not other_scored:
                 continue
             _score, overlap, src = other_scored[0]
-            if overlap >= SECONDARY_CONCEPT_MIN_OVERLAP:
+            if _score >= 0 and overlap >= SECONDARY_CONCEPT_MIN_OVERLAP:
                 _try_append(other_cid, src)
 
     return collected
@@ -285,7 +514,13 @@ def select_evidence_citations(
 
 def _query_bigrams(raw: str) -> list[str]:
     words = re.findall(r"[a-z0-9]{2,}", (raw or "").lower())
-    return [f"{words[idx]} {words[idx + 1]}" for idx in range(len(words) - 1)]
+    out: list[str] = []
+    for idx in range(len(words) - 1):
+        w1, w2 = words[idx], words[idx + 1]
+        if w1 in _GENERIC_QUERY_TOKENS and w2 in _GENERIC_QUERY_TOKENS:
+            continue
+        out.append(f"{w1} {w2}")
+    return out
 
 
 def _build_catalog_citation(
@@ -386,17 +621,25 @@ def select_catalog_passages(
     open_access_only: bool | None = None,
     chunk_index: dict[tuple[str, str], dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    """Rank indexed ``catalog.passages`` by lexical and bigram overlap when graph sources lack coverage."""
+    """Rank indexed ``catalog.passages`` with domain-aware lexical gating.
+
+    Returns ``[]`` honestly when no passage clears domain compatibility and
+    distinctive lexical relevance thresholds; never pads citations.
+    """
     passages = list(getattr(catalog, "passages", None) or [])
     if not passages or max_citations <= 0:
         return []
 
-    q_toks = set(tokens(query))
-    c_toks = set(tokens(f"{anchor_cid.replace('_', ' ')} {concept_label}"))
+    dq_toks = _distinctive_tokens(query)
+    dc_toks = _distinctive_tokens(f"{anchor_cid.replace('_', ' ')} {concept_label}")
+    q_toks = dq_toks if dq_toks else set(tokens(query))
+    c_toks = dc_toks if dc_toks else set(tokens(f"{anchor_cid.replace('_', ' ')} {concept_label}"))
     bigrams = list(dict.fromkeys(_query_bigrams(query) + _query_bigrams(concept_label)))
     if not (q_toks or c_toks or bigrams):
         return []
 
+    query_domains = infer_text_domains(f"{query} {anchor_cid.replace('_', ' ')} {concept_label}")
+    is_paging_query = anchor_cid == "paging" or bool(_PAGING_QUERY_RE.search(query or ""))
     retired = withdrawn_documents()
     oa_mode = is_open_access_profile() if open_access_only is None else open_access_only
     scored: list[tuple[int, dict[str, Any]]] = []
@@ -422,6 +665,12 @@ def select_catalog_passages(
         if is_low_signal_passage(text):
             continue
 
+        doc_domains = infer_doc_domains(
+            canon_doc or raw_doc, str(entry.get("concept_id") or ""), text
+        )
+        if not domains_compatible(query_domains, doc_domains):
+            continue
+
         doc_tokens = set(entry.get("tokens") or tokens(text))
         doc_lower = text.lower()
         q_overlap = len(q_toks & doc_tokens)
@@ -433,7 +682,19 @@ def select_catalog_passages(
             + phrase_hits * CATALOG_PHRASE_BONUS
         )
         score += _primary_paper_bonus(anchor_cid, raw_doc, canon_doc)
-        if score >= CATALOG_MIN_SCORE and (q_overlap >= 1 or phrase_hits >= 1):
+        if is_paging_query:
+            if "08_paging" in canon_doc.lower() or "08_paging" in raw_doc.lower():
+                score += CANONICAL_PAPER_BONUS
+            elif "06_address_spaces" in canon_doc.lower() or "06_address_spaces" in raw_doc.lower():
+                score += PAGING_INTRO_FLUFF_PENALTY
+
+        single_term_ok = len(q_toks) == 1 and q_overlap == 1 and bool(query_domains & doc_domains)
+        has_distinctive_match = (
+            phrase_hits >= 1
+            or q_overlap >= CATALOG_MIN_DISTINCTIVE_TOKENS
+            or single_term_ok
+        )
+        if score >= CATALOG_MIN_SCORE and has_distinctive_match:
             scored.append((score, entry))
 
     scored.sort(
@@ -467,6 +728,14 @@ def select_catalog_passages(
 
 __all__ = [
     "CLAIM_SUPPORT_NOT_ASSESSED",
+    "DOMAIN_COMPILERS",
+    "DOMAIN_DB",
+    "DOMAIN_DSA",
+    "DOMAIN_MATH",
+    "DOMAIN_ML_AI",
+    "DOMAIN_NETWORKS",
+    "DOMAIN_OS",
+    "DOMAIN_PHYSICS_EE",
     "MAX_ANCHOR_CITATIONS",
     "PRIMARY_PAPER_HINTS",
     "PROVENANCE_CHUNK_AMBIGUOUS",
@@ -478,6 +747,9 @@ __all__ = [
     "PROVENANCE_WITHDRAWN",
     "build_chunk_provenance_index",
     "build_grounding_trace",
+    "domains_compatible",
+    "infer_doc_domains",
+    "infer_text_domains",
     "is_low_signal_passage",
     "score_source_for_concept",
     "select_catalog_passages",

@@ -13,6 +13,7 @@ import re
 from typing import Any
 
 from .corpus_titles import clean_bibliographic_title
+from .evidence_selection import domains_compatible, infer_doc_domains, infer_text_domains
 from .suggestions import NON_AI_FALLBACK_SUGGESTION_COUNT, sample_fallback_questions
 
 MAX_FOLLOW_UP_QUESTIONS = 5
@@ -35,6 +36,56 @@ _UNSUPPORTED_REASONS = frozenset(
         "out_of_scope",
     }
 )
+_NOISE_FOLLOWUP_CIDS = frozenset({"fast", "memory_efficient", "data"})
+_INTERDISCIPLINARY_FOLLOWUP_BRIDGES: frozenset[frozenset[str]] = frozenset(
+    {
+        frozenset({"paging", "paged_attention"}),
+        frozenset({"paging", "vllm"}),
+        frozenset({"virtual_memory", "paged_attention"}),
+        frozenset({"priority_queue_mechanics", "heuristic_search"}),
+    }
+)
+
+
+def _node_domains(graph: Any, cid: str) -> set[str]:
+    if hasattr(graph, "node_domains"):
+        return set(graph.node_domains(cid))
+    node = (getattr(graph, "nodes", None) or {}).get(cid) or {}
+    label = str(node.get("label") or node.get("name") or cid)
+    summary = str(node.get("summary") or "")
+    return infer_text_domains(f"{cid.replace('_', ' ')} {label} {summary[:300]}")
+
+
+def _neighbor_is_domain_consistent(graph: Any, anchor_cid: str, neighbor_cid: str) -> bool:
+    """Reject noise unigrams and cross-domain lexical-noise neighbors in follow-ups."""
+    if neighbor_cid in _NOISE_FOLLOWUP_CIDS:
+        return False
+    if frozenset({anchor_cid, neighbor_cid}) in _INTERDISCIPLINARY_FOLLOWUP_BRIDGES:
+        return True
+    anchor_doms = _node_domains(graph, anchor_cid)
+    neighbor_doms = _node_domains(graph, neighbor_cid)
+    return domains_compatible(anchor_doms, neighbor_doms)
+
+
+def _citation_is_domain_consistent(
+    graph: Any, anchor_cid: str, anchor_label: str, cite: dict[str, Any]
+) -> bool:
+    """Ensure citation-based follow-ups only reference domain-consistent retrieved sources."""
+    if cite.get("withdrawn"):
+        return False
+    doc_id = str(cite.get("doc_id") or "").strip()
+    raw_title = str(cite.get("doc_title") or cite.get("title") or "").strip()
+    if not doc_id and not raw_title:
+        return False
+    anchor_doms = _node_domains(graph, anchor_cid) | infer_text_domains(
+        f"{anchor_cid.replace('_', ' ')} {anchor_label}"
+    )
+    doc_doms = infer_doc_domains(
+        doc_id or raw_title,
+        str(cite.get("concept_id") or ""),
+        f"{raw_title} {str(cite.get('text_passage') or '')[:300]}",
+    )
+    return domains_compatible(anchor_doms, doc_doms)
 
 
 def _norm(text: str) -> str:
@@ -96,46 +147,62 @@ def build_follow_up_questions(
     anchor_pair = _valid_concept_label(graph, payload.get("anchor_concept"))
     if anchor_pair is not None:
         anchor_cid, anchor_label = anchor_pair
+        if anchor_cid in _NOISE_FOLLOWUP_CIDS:
+            return sample_fallback_questions(graph, count=NON_AI_FALLBACK_SUGGESTION_COUNT)
 
-        # 1. Prerequisite neighbors (neutral exploratory phrasing — never claims verification).
+        # 1. Prerequisite neighbors (domain-consistent, neutral exploratory phrasing).
         for pre in payload.get("prerequisites") or []:
             pair = _valid_concept_label(graph, pre)
-            if pair and pair[0] != anchor_cid:
+            if (
+                pair
+                and pair[0] != anchor_cid
+                and _neighbor_is_domain_consistent(graph, anchor_cid, pair[0])
+            ):
                 _push(f"How does {pair[1]} connect to {anchor_label}?")
                 break
 
-        # 2. Unlocks / next-topic neighbors (exploratory phrasing).
+        # 2. Unlocks / next-topic neighbors (domain-consistent exploratory phrasing).
         for unl in payload.get("unlocks") or []:
             pair = _valid_concept_label(graph, unl)
-            if pair and pair[0] != anchor_cid:
+            if (
+                pair
+                and pair[0] != anchor_cid
+                and _neighbor_is_domain_consistent(graph, anchor_cid, pair[0])
+            ):
                 _push(f"Explore next concept: {pair[1]}")
                 break
 
-        # 3. Related neighbors (comparison phrasing).
+        # 3. Related neighbors (domain-consistent comparison phrasing).
         for rel in payload.get("related_concepts") or []:
             pair = _valid_concept_label(graph, rel)
-            if pair and pair[0] != anchor_cid:
+            if (
+                pair
+                and pair[0] != anchor_cid
+                and _neighbor_is_domain_consistent(graph, anchor_cid, pair[0])
+            ):
                 _push(f"Compare {anchor_label} and {pair[1]}")
                 break
 
-        # 4. Evidence-grounded source follow-up (only from non-withdrawn retrieved citations).
+        # 4. Evidence-grounded source follow-up (only from domain-consistent, non-withdrawn citations).
         for cite in payload.get("citations") or []:
-            if not isinstance(cite, dict) or cite.get("withdrawn"):
+            if not isinstance(cite, dict) or not _citation_is_domain_consistent(
+                graph, anchor_cid, anchor_label, cite
+            ):
                 continue
             doc_id = str(cite.get("doc_id") or "").strip()
             raw_title = str(cite.get("doc_title") or cite.get("title") or "").strip()
-            if not doc_id and not raw_title:
-                continue
             short_title = _truncate_title(clean_bibliographic_title(doc_id, raw_title))
             if short_title:
                 _push(f"What does {short_title} say about {anchor_label}?")
                 break
 
-        # 5. Anchor-focused comprehension / example follow-up.
-        _push(f"Walk through a concrete example of {anchor_label}")
-        _push(f"Quiz me on {anchor_label}")
+        # 5. Anchor-focused comprehension / example follow-up (respecting user intent).
+        if "example" not in norm_query:
+            _push(f"Walk through a concrete example of {anchor_label}")
+        if "quiz" not in norm_query:
+            _push(f"Quiz me on {anchor_label}")
 
-        # Fill remaining slots from additional valid neighbors if available.
+        # Fill remaining slots from additional valid, domain-consistent neighbors if available.
         for group_key, prefix in (
             ("prerequisites", "Review foundational concept: "),
             ("unlocks", "Explain "),
@@ -143,7 +210,11 @@ def build_follow_up_questions(
         ):
             for neighbor in payload.get(group_key) or []:
                 pair = _valid_concept_label(graph, neighbor)
-                if pair and pair[0] != anchor_cid:
+                if (
+                    pair
+                    and pair[0] != anchor_cid
+                    and _neighbor_is_domain_consistent(graph, anchor_cid, pair[0])
+                ):
                     _push(f"{prefix}{pair[1]}")
 
     return suggestions[:MAX_FOLLOW_UP_QUESTIONS]

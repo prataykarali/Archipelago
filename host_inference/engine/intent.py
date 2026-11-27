@@ -174,6 +174,152 @@ _CONCEPT_LEARNING_PATTERNS = [
     ),
 ]
 
+# ── Query Operation vs. Academic Concept Separation ───────────────────────────
+
+# Follow-on imperative/question clauses after a sentence boundary (?, ., ;).
+_TRAILING_SENTENCE_OP_RE = re.compile(
+    r"(?<=[\?\.;])\s+(?:and\s+)?(?:"
+    r"explain|describe|compare|contrast|derive|demonstrate|calculate|compute|"
+    r"give|show|provide|include|illustrate|walk\s+through|list|discuss|"
+    r"summarize|define|outline|state|use|also|please"
+    r")\b.*$",
+    re.I,
+)
+
+# Trailing pedagogical/operation modifier clauses attached to a concept query.
+_TRAILING_OPERATION_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        "with_example",
+        re.compile(
+            r"(?:,\s*|\s+)(?:(?:and\s+)?(?:give|show|provide|include|use|walk\s+through)\s+|with\s+)"
+            r"(?:a\s+|an\s+|some\s+|one\s+)?"
+            r"(?:concrete\s+|worked\s+|simple\s+|brief\s+|short\s+|clear\s+|practical\s+|real[- ]world\s+)?"
+            r"examples?(?:\s+(?:for\s+each|of\s+(?:it|them|this|how\b.*)))?\s*[\?\.\!]*$",
+            re.I,
+        ),
+    ),
+    (
+        "step_by_step",
+        re.compile(
+            r"(?:,\s*|\s+)(?:in\s+a\s+)?step[- ]by[- ]step(?:\s+(?:manner|way|walkthrough|guide|explanation))?\s*[\?\.\!]*$",
+            re.I,
+        ),
+    ),
+    (
+        "in_detail",
+        re.compile(
+            r"(?:,\s*|\s+)(?:in\s+(?:detail|simple\s+terms|plain\s+english|brief)|briefly|clearly|concisely)\s*[\?\.\!]*$",
+            re.I,
+        ),
+    ),
+    (
+        "explain_aspect",
+        re.compile(
+            r"(?:,\s*|\s+)(?:and\s+)?(?:explain|describe|compare|discuss|illustrate|demonstrate|calculate|derive)\s+"
+            r"(?:their|its|the)\s+(?:reliability|performance|trade[- ]?offs?|differences?|complexity|use\s+cases?|pros\s+and\s+cons|advantages?|disadvantages?|behavior|behaviour|working|mechanism|mechanics)\b.*$",
+            re.I,
+        ),
+    ),
+)
+
+_LEADING_OPERATION_RE = re.compile(
+    r"^(?:please\s+)?(?:can\s+you\s+|could\s+you\s+|would\s+you\s+)?"
+    r"(?:(?:explain|compare|contrast|derive|demonstrate|calculate|compute|"
+    r"describe|define|summarize|illustrate|walk\s+through|tell\s+me\s+about|"
+    r"teach\s+me\s+about|show\s+me|give\s+me)\s+)+",
+    re.I,
+)
+
+# Standalone fragments that represent requested operations rather than academic concepts.
+_OPERATION_FRAGMENT_RE = re.compile(
+    r"^(?:"
+    r"(?:with\s+)?(?:a\s+|an\s+|the\s+|some\s+|concrete\s+|worked\s+|simple\s+|brief\s+|short\s+|clear\s+|practical\s+)*examples?"
+    r"|step[- ]by[- ]step(?:\s+(?:explanation|walkthrough|guide|derivation|calculation))?"
+    r"|(?:in\s+)?detail|simple\s+terms|plain\s+english|brief(?:ly)?"
+    r"|(?:their|its)\s+(?:reliability|performance|trade[- ]?offs?|differences?|complexity|use\s+cases?|pros\s+and\s+cons|working|mechanism)"
+    r"|(?:explain|compare|contrast|derive|demonstrate|calculate|compute|describe|define|illustrate|give|show|provide|include)\b.*"
+    r")$",
+    re.I,
+)
+
+
+def strip_requested_operations(query: str) -> tuple[str, list[str]]:
+    """Separate academic concept text from requested operations and example clauses.
+
+    Returns ``(concept_clause, operations)`` where ``concept_clause`` preserves
+    comparative/relational frames (e.g. ``difference between TCP and UDP``) while
+    removing trailing follow-on sentences and pedagogical modifiers such as
+    ``with an example``, ``step by step``, or ``? Explain their reliability``.
+    """
+    raw = re.sub(r"\s*\([Ee]arlier user topics?:.*?\)", "", query or "").strip()
+    if not raw:
+        return "", []
+
+    operations: list[str] = []
+    clause = raw
+
+    # 1. Strip follow-on imperative/question sentences after ?, ., or ;.
+    trailing_match = _TRAILING_SENTENCE_OP_RE.search(clause)
+    if trailing_match:
+        operations.append("follow_on_instruction")
+        clause = clause[: trailing_match.start()].strip()
+
+    # 2. Iteratively strip trailing pedagogical modifier clauses (e.g. "with an example").
+    changed = True
+    while changed:
+        changed = False
+        for op_name, pattern in _TRAILING_OPERATION_PATTERNS:
+            m = pattern.search(clause)
+            if m and m.start() > 0:
+                candidate = clause[: m.start()].strip(" ,;")
+                if candidate:
+                    if op_name not in operations:
+                        operations.append(op_name)
+                    clause = candidate
+                    changed = True
+
+    # 3. Record leading operation verb without destroying comparison/relation frames.
+    lead_match = _LEADING_OPERATION_RE.match(clause)
+    if lead_match:
+        lead_text = lead_match.group(0).strip().lower()
+        for verb in ("explain", "compare", "contrast", "derive", "demonstrate", "calculate", "compute", "define", "describe"):
+            if re.search(rf"\b{verb}\b", lead_text) and verb not in operations:
+                operations.append(verb)
+
+    return clause.strip(), operations
+
+
+def extract_clean_concept_clause(query: str) -> str:
+    """Return the primary academic concept clause with operation modifiers stripped."""
+    clause, _ops = strip_requested_operations(query)
+    return clause or (query or "").strip()
+
+
+def clean_concept_fragment(fragment: str) -> str:
+    """Clean one extracted concept candidate by stripping trailing clauses and modifiers."""
+    text = (fragment or "").strip()
+    if not text:
+        return ""
+    # Strip any trailing sentence after ? or . or ; (e.g. "UDP? Explain their reliability").
+    text = re.split(r"[\?\.;]\s+", text, maxsplit=1)[0].strip()
+    # Strip trailing operation modifiers.
+    text, _ops = strip_requested_operations(text)
+    # Strip leading determiners and dangling punctuation (preserve balanced parens like "(3NF)").
+    text = re.sub(r"^(?:the|an|a)\s+", "", text, flags=re.I).strip(" ?.,!;:")
+    if text.endswith(")") and text.count(")") > text.count("("):
+        text = text.rstrip(")").strip()
+    if text.startswith("(") and text.count("(") > text.count(")"):
+        text = text.lstrip("(").strip()
+    return text
+
+
+def is_operation_fragment(fragment: str) -> bool:
+    """Return True when ``fragment`` is a requested operation rather than an academic concept."""
+    cleaned = re.sub(r"\s+", " ", (fragment or "").strip(" ?.,!;:()[]")).strip()
+    if not cleaned:
+        return True
+    return bool(_OPERATION_FRAGMENT_RE.match(cleaned))
+
 
 def classify_query_intent(
     query: str,

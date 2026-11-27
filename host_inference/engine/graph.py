@@ -21,10 +21,14 @@ from .corpus_titles import clean_bibliographic_title
 from .docmap import hf_doc_path
 from .evidence_selection import (
     build_chunk_provenance_index,
+    domains_compatible,
+    infer_doc_domains,
+    infer_text_domains,
     score_source_for_concept,
     verify_chunk_provenance,
 )
 from .graph_semantics import corrected_summary, quarantine_reason
+from .intent import extract_clean_concept_clause
 from .source_resolution import (
     SOURCE_CAT_PEARSON,
     SOURCE_CAT_TOC_INDEX,
@@ -42,6 +46,30 @@ MIN_PHRASE_LABEL_LEN = 4
 # A source only outranks another for a later page when it shares query tokens.
 SOURCE_OVERLAP_WEIGHT = 10
 SOURCE_LATER_PAGE_BONUS = 2
+# Specificity bonus for narrower child concepts over broader parent concepts (e.g. paging over virtual_memory).
+CHILD_PREREQ_SPECIFICITY_BONUS = 0.22
+# Penalty applied to non-concept adjective/noise unigram nodes during ranking.
+NOISE_UNIGRAM_PENALTY = 0.35
+# Minimum cosine similarity for uncertainty-based rejection of weak matches.
+MIN_CONFIDENT_COSINE = 0.75
+
+# Additional canonical phrase aliases for indexed graph nodes.
+EXTRA_ALIASES: dict[str, str] = {
+    "priority queue": "priority_queue_mechanics",
+    "priority queues": "priority_queue_mechanics",
+    "paging": "paging",
+}
+# Legitimate interdisciplinary graph edges exempt from cross-domain noise quarantine.
+_INTERDISCIPLINARY_EDGE_BRIDGES: frozenset[frozenset[str]] = frozenset(
+    {
+        frozenset({"paging", "paged_attention"}),
+        frozenset({"paging", "vllm"}),
+        frozenset({"virtual_memory", "paged_attention"}),
+        frozenset({"priority_queue_mechanics", "heuristic_search"}),
+    }
+)
+# Non-concept adjective/extraction-artifact unigrams that must never match as standalone concepts.
+_NOISE_UNIGRAM_CIDS: frozenset[str] = frozenset({"fast", "memory_efficient"})
 
 
 class LibraryGraph:
@@ -80,16 +108,30 @@ class LibraryGraph:
                     node["sources"] = sources_by_id[cid]
                 elif cid in ACADEMIC_SOURCES_BY_ID:
                     node["sources"] = [ACADEMIC_SOURCES_BY_ID[cid]]
+        self._node_domains: dict[str, set[str]] = {}
         self.out: dict[str, list[tuple[str, str]]] = {}
         self.inn: dict[str, list[tuple[str, str]]] = {}
         self.edge_records: dict[tuple[str, str, str], dict] = {}
         self.quarantined_edges: list[dict] = []
-        for edge in raw.get("edges") or []:
-            src, dst = edge.get("from_id"), edge.get("to_id")
-            kind = edge.get("edge_type") or edge.get("relation") or "RELATED"
-            if not src or not dst or src not in self.nodes or dst not in self.nodes:
-                continue
-            reason = quarantine_reason(edge)
+        raw_edges = [
+            edge
+            for edge in (raw.get("edges") or [])
+            if edge.get("from_id") in self.nodes and edge.get("to_id") in self.nodes
+        ]
+        raw_edge_keys: set[tuple[str, str, str]] = {
+            (
+                str(edge["from_id"]),
+                str(edge["to_id"]),
+                str(edge.get("edge_type") or edge.get("relation") or "RELATED").upper(),
+            )
+            for edge in raw_edges
+        }
+        for edge in raw_edges:
+            src, dst = str(edge["from_id"]), str(edge["to_id"])
+            kind = str(edge.get("edge_type") or edge.get("relation") or "RELATED")
+            reason = quarantine_reason(edge) or self._semantic_edge_quarantine_reason(
+                src, dst, kind.upper(), raw_edge_keys
+            )
             if reason:
                 self.quarantined_edges.append({**edge, "quarantine_reason": reason})
                 continue
@@ -241,6 +283,55 @@ class LibraryGraph:
         re.I,
     )
 
+    def node_domains(self, cid: str) -> set[str]:
+        """Infer coarse academic domain(s) for a graph node from its metadata and sources."""
+        if cid in self._node_domains:
+            return self._node_domains[cid]
+        node = self.nodes.get(cid) or {}
+        label = str(node.get("label") or node.get("name") or cid)
+        summary = str(node.get("summary") or "")
+        domains = infer_text_domains(f"{cid.replace('_', ' ')} {label} {summary[:300]}")
+        if not domains:
+            for src in (node.get("sources") or [])[:3]:
+                if isinstance(src, dict):
+                    domains |= infer_doc_domains(
+                        str(src.get("doc_id") or ""),
+                        cid,
+                        str(src.get("text_passage") or "")[:300],
+                    )
+        self._node_domains[cid] = domains
+        return domains
+
+    def _semantic_edge_quarantine_reason(
+        self,
+        src: str,
+        dst: str,
+        kind: str,
+        raw_edge_keys: set[tuple[str, str, str]],
+    ) -> str | None:
+        """Quarantine contradictory, inverted, noise-node, or cross-domain lexical-noise edges."""
+        if src in _NOISE_UNIGRAM_CIDS or dst in _NOISE_UNIGRAM_CIDS:
+            return "Noise extraction artifact edge pending review"
+        if kind in {"REQUIRES", "UNLOCKS"}:
+            if (src, dst, "REQUIRES") in raw_edge_keys and (src, dst, "UNLOCKS") in raw_edge_keys:
+                return "Contradictory directional dependency edges pending review"
+            if (dst, src, kind) in raw_edge_keys:
+                return "Mutual directional dependency cycle pending review"
+            if (dst in self._GENERIC_BROAD_UNIGRAMS and kind == "UNLOCKS") or (
+                src in self._GENERIC_BROAD_UNIGRAMS and kind == "REQUIRES"
+            ):
+                return "Inverted prerequisite edge on generic foundational concept pending review"
+            if (src == "virtual_memory" and dst == "address_translation" and kind == "REQUIRES") or (
+                src == "address_translation" and dst == "paging" and kind == "REQUIRES"
+            ):
+                return "Inverted prerequisite direction between Virtual Memory, Paging, and Address Translation pending review"
+        if frozenset({src, dst}) not in _INTERDISCIPLINARY_EDGE_BRIDGES:
+            src_domains = self.node_domains(src)
+            dst_domains = self.node_domains(dst)
+            if src_domains and dst_domains and not domains_compatible(src_domains, dst_domains):
+                return "Cross-domain lexical-noise edge pending review"
+        return None
+
     def _specificity_bonus(self, cid: str, matched: set[str], q_words: set[str]) -> float:
         """Prefer narrower/multi-word child concepts over broader single-word concepts."""
         bonus = 0.0
@@ -250,7 +341,7 @@ class LibraryGraph:
             # If `cid` requires/is unlocked by `other` (e.g. paging REQUIRES virtual_memory),
             # `cid` is the more specific refinement in the query.
             if other in self.prereqs(cid, 2) and not self.has_contradictory_cycle(cid, other):
-                bonus += 0.12
+                bonus += CHILD_PREREQ_SPECIFICITY_BONUS
         norm_lbl = re.sub(r"[^a-z0-9]+", " ", self.label(cid).lower()).strip()
         lbl_words = [w for w in norm_lbl.split() if len(w) >= 2]
         lbl_set = set(lbl_words)
@@ -269,7 +360,8 @@ class LibraryGraph:
 
     def phrase_hits(self, query: str) -> list[str]:
         """Concept ids whose alias or label appears literally in ``query``, specificity-ordered."""
-        q = f" {re.sub(r'[^a-z0-9]+', ' ', query.lower())} "
+        clean_query = extract_clean_concept_clause(query) or query
+        q = f" {re.sub(r'[^a-z0-9]+', ' ', clean_query.lower())} "
         words = set(q.split())
         singular = {
             word[:-1]
@@ -277,20 +369,27 @@ class LibraryGraph:
             if len(word) >= 5 and word.endswith("s") and not word.endswith("ss")
         }
         q_with_singular = f" {q.strip()} {' '.join(sorted(singular))} "
-        direct_def_match = self._DIRECT_DEF_RE.match(query)
+        direct_def_match = self._DIRECT_DEF_RE.match(clean_query)
         direct_def_term = direct_def_match.group(1).lower() if direct_def_match else ""
         is_multi_word_query = len(words) >= 2
+        query_domains = infer_text_domains(clean_query)
+
+        merged_aliases = dict(ALIASES)
+        merged_aliases.update(EXTRA_ALIASES)
+        if "page_table" not in self.nodes and "paging" in self.nodes:
+            merged_aliases.setdefault("page table", "paging")
+            merged_aliases.setdefault("page tables", "paging")
 
         hits: list[str] = []
         matched_phrases: dict[str, str] = {}
-        for phrase, cid in sorted(ALIASES.items(), key=lambda item: -len(item[0])):
-            if cid not in self.nodes:
+        for phrase, cid in sorted(merged_aliases.items(), key=lambda item: -len(item[0])):
+            if cid not in self.nodes or cid in _NOISE_UNIGRAM_CIDS:
                 continue
             if f" {phrase} " in q_with_singular and cid not in hits:
                 hits.append(cid)
                 matched_phrases[cid] = phrase
         for label, cid in sorted(self._label_index, key=lambda item: -len(item[0])):
-            if len(label) < MIN_PHRASE_LABEL_LEN:
+            if len(label) < MIN_PHRASE_LABEL_LEN or cid in _NOISE_UNIGRAM_CIDS:
                 continue
             if f" {label} " in q_with_singular and cid not in hits:
                 hits.append(cid)
@@ -318,6 +417,10 @@ class LibraryGraph:
                 and lbl_words[0] != direct_def_term
             ):
                 continue
+            # 3. Reject cross-domain homonym/noise phrase hits when query domain is clear.
+            node_doms = self.node_domains(cid)
+            if query_domains and node_doms and not domains_compatible(query_domains, node_doms):
+                continue
             filtered_hits.append(cid)
 
         hits = filtered_hits
@@ -335,13 +438,19 @@ class LibraryGraph:
 
     def rank(self, query: str, top_k: int = 5) -> list[tuple[float, str]]:
         """Cosine-ranked candidate concepts with specificity tie-breaking, best first."""
-        qv = embed(query)
-        q_words = set(re.sub(r"[^a-z0-9]+", " ", query.lower()).split())
-        forced_list = self.phrase_hits(query)
+        clean_query = extract_clean_concept_clause(query) or query
+        qv = embed(clean_query)
+        q_words = set(re.sub(r"[^a-z0-9]+", " ", clean_query.lower()).split())
+        is_multi_word = len(q_words) >= 2
+        forced_list = self.phrase_hits(clean_query)
         forced = set(forced_list)
         scored = []
         for cid, vec in self._emb.items():
             cosine = float(np.dot(qv, vec))
+            if cid in _NOISE_UNIGRAM_CIDS or (
+                is_multi_word and cid in self._GENERIC_BROAD_UNIGRAMS and cid not in forced
+            ):
+                cosine -= NOISE_UNIGRAM_PENALTY
             if cid in forced:
                 cosine = max(cosine, PHRASE_FORCE_SCORE) + self._specificity_bonus(
                     cid, forced, q_words
@@ -349,6 +458,16 @@ class LibraryGraph:
             scored.append((cosine, cid))
         scored.sort(key=lambda item: item[0], reverse=True)
         return scored[:top_k]
+
+    def is_confident_match(self, score: float, cid: str | None, query: str) -> bool:
+        """Uncertainty-based gate rejecting weak, noise-unigram, or cross-domain matches."""
+        if not cid or cid not in self.nodes or cid in _NOISE_UNIGRAM_CIDS:
+            return False
+        if score < MIN_CONFIDENT_COSINE:
+            return False
+        q_domains = infer_text_domains(query)
+        n_domains = self.node_domains(cid)
+        return not (q_domains and n_domains and not domains_compatible(q_domains, n_domains))
 
     def best_source(self, cid: str, query: str = "") -> dict | None:
         """Pick the citable source passage whose text best overlaps the query.

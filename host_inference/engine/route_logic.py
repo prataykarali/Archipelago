@@ -21,7 +21,14 @@ from .conversational import (
     classify_conversational_intent,
 )
 from .corpus_titles import clean_bibliographic_title
-from .intent import IntentCategory, classify_query_intent
+from .evidence_selection import domains_compatible, infer_text_domains
+from .intent import (
+    IntentCategory,
+    classify_query_intent,
+    clean_concept_fragment,
+    extract_clean_concept_clause,
+    is_operation_fragment,
+)
 from .multi_hop import extract_concept_mentions, multi_hop_reasoning
 from .patterns import (
     AUTH_RE,
@@ -151,9 +158,20 @@ _OS_MEMORY_CONTEXT_RE = re.compile(
 )
 
 
+_DATA_STRUCTURE_CONTEXT_RE = re.compile(
+    r"\b(?:data\s+structures?|arrays?|linked\s+lists?|stacks?|queues?|heaps?|binary\s+heaps?|"
+    r"priority\s+queues?|hash\s+tables?)\b",
+    re.I,
+)
+
+
 def _is_domain_incompatible(graph, query: str, cid: str) -> bool:
-    """Reject cross-domain homonym matches (e.g. OS address translation -> NLP Translation)."""
+    """Reject cross-domain homonym matches and noise unigram extraction artifacts."""
     q_lower = (query or "").lower()
+    if cid in {"fast", "memory_efficient"} and "flashattention" not in q_lower:
+        return True
+    if cid == "data" and _DATA_STRUCTURE_CONTEXT_RE.search(q_lower):
+        return True
     if cid == "translation" and _OS_MEMORY_CONTEXT_RE.search(query or ""):
         return True
     if cid == "tree" and re.search(
@@ -171,11 +189,15 @@ def _is_domain_incompatible(graph, query: str, cid: str) -> bool:
         and _OS_MEMORY_CONTEXT_RE.search(query or "")
     ):
         return True
-    return bool(
+    if (
         label == "tree"
         and "decision tree" in summary
         and re.search(r"\b(avl|binary\s+search|bst|b[-\s]?tree)\b", q_lower)
-    )
+    ):
+        return True
+    q_domains = infer_text_domains(query or "")
+    node_domains = graph.node_domains(cid) if hasattr(graph, "node_domains") else set()
+    return bool(q_domains and node_domains and not domains_compatible(q_domains, node_domains))
 
 
 def _normalize_query_for_graph(query: str) -> str:
@@ -545,7 +567,18 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         re.I,
     )
     concept_query = _RESOURCE_CLAUSE_RE.sub("", clean_query).strip() or clean_query
-    extracted_concepts = extract_concept_mentions(concept_query, known_graph=graph)
+    concept_query = extract_clean_concept_clause(concept_query)
+    if re.search(r"\([^)]*,[^)]*\)", concept_query) and hits:
+        without_paren_list = re.sub(r"\s*\([^)]*,[^)]*\)", "", concept_query).strip()
+        if without_paren_list and graph.phrase_hits(without_paren_list):
+            concept_query = without_paren_list
+    raw_extracted = extract_concept_mentions(concept_query, known_graph=graph)
+    extracted_concepts: list[str] = []
+    for frag in raw_extracted:
+        cleaned_frag = clean_concept_fragment(frag)
+        if cleaned_frag and not is_operation_fragment(cleaned_frag):
+            extracted_concepts.append(cleaned_frag)
+    extracted_concepts = list(dict.fromkeys(extracted_concepts))
     is_compare_or_relate = bool(RELATE_RE.search(clean_query)) or any(
         token in clean_query.lower() for token in COMPARE_CUES
     )
@@ -687,11 +720,20 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
             {"score": max(best_score, 0.8), "reason": "cross_domain"},
         )
 
-    pair = compose.split_pair(query)
+    pair_query = extract_clean_concept_clause(clean_query)
+    pair = compose.split_pair(pair_query)
     if pair:
-        left_text, right_text = pair
+        left_text = clean_concept_fragment(pair[0])
+        right_text = clean_concept_fragment(pair[1])
+        if is_operation_fragment(left_text) or is_operation_fragment(right_text):
+            pair = None
+    if pair:
         left_id, left_ok = compose.resolve_fragment(self, left_text)
         right_id, right_ok = compose.resolve_fragment(self, right_text)
+        if left_ok and left_id and _is_domain_incompatible(graph, clean_query, left_id):
+            left_id, left_ok = None, False
+        if right_ok and right_id and _is_domain_incompatible(graph, clean_query, right_id):
+            right_id, right_ok = None, False
         if left_ok and right_ok and left_id != right_id:
             if any(token in query.lower() for token in COMPARE_CUES):
                 return (
