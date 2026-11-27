@@ -4,6 +4,7 @@ import { _nodeId, _nodeLabel, _nodeSummary, selectGraphNode } from './10-populat
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { _initGraphRipple } from './18--init-graph-ripple.js';
 import { storageKey } from './storage-key.js';
+import { buildDeduplicatedTopology, resolveLabelPositions } from './11a-topology-layout.js';
 
         function populateTopology(anchor, prereqs, unlocks, related, isReset = false) {
             const placeholder = document.getElementById('topology-placeholder');
@@ -98,39 +99,17 @@ import { storageKey } from './storage-key.js';
                 `;
                 svgElement.appendChild(defs);
 
-                const nodes = [];
-                nodes.push({
-                    id: _nodeId(activeAnchor, 'anchor'),
-                    label: _nodeLabel(activeAnchor),
-                    summary: _nodeSummary(activeAnchor),
-                    x: cx, y: cy, type: 'anchor', data: activeAnchor
-                });
-
-                const preX = Math.max(64, cx - Math.min(cx - 48, large ? 200 : 130));
-                const unX = Math.min(w - 64, cx + Math.min(w - cx - 48, large ? 200 : 130));
-                const pN = Math.max(safePrereqs.length, 1);
-                const uN = Math.max(safeUnlocks.length, 1);
-                safePrereqs.forEach((p, i) => {
-                    const y = (h / (pN + 1)) * (i + 1);
-                    nodes.push({ id: _nodeId(p, 'p'+i), label: _nodeLabel(p), summary: _nodeSummary(p), x: preX, y, type: 'prereq', data: p });
-                });
-                safeUnlocks.forEach((u, i) => {
-                    const y = (h / (uN + 1)) * (i + 1);
-                    nodes.push({ id: _nodeId(u, 'u'+i), label: _nodeLabel(u), summary: _nodeSummary(u), x: unX, y, type: 'unlock', data: u });
-                });
-                safeRelated.forEach((r, i) => {
-                    const top = i % 2 === 0;
-                    const slot = Math.floor(i / 2);
-                    const xOff = (slot - 0.25) * (large ? 70 : 48);
-                    nodes.push({
-                        id: _nodeId(r, 'r'+i),
-                        label: _nodeLabel(r),
-                        summary: _nodeSummary(r),
-                        x: cx + xOff + (top ? -20 : 20),
-                        y: top ? Math.max(18, cy - (large ? 62 : 48)) : Math.min(h - 18, cy + (large ? 62 : 48)),
-                        type: 'related',
-                        data: r
-                    });
+                const { nodes, edges } = buildDeduplicatedTopology({
+                    anchor: activeAnchor,
+                    prereqs: safePrereqs,
+                    unlocks: safeUnlocks,
+                    related: safeRelated,
+                    getNodeId: _nodeId,
+                    getNodeLabel: _nodeLabel,
+                    getNodeSummary: _nodeSummary,
+                    width: w,
+                    height: h,
+                    large,
                 });
 
                 const colors = {
@@ -140,42 +119,64 @@ import { storageKey } from './storage-key.js';
                     related: { fill: 'rgba(245,158,11,0.28)', stroke: '#fbbf24', glow: '#f59e0b', edge: 'rgba(251,191,36,0.7)' }
                 };
 
-                // Edges
-                nodes.forEach(n => {
-                    if (n.type === 'anchor') return;
+                // Edges (supports multi-relation edges on deduplicated nodes without duplicate circles)
+                edges.forEach((edge) => {
+                    const n = edge.node;
+                    const relType = edge.type;
+                    const curveBias = (edge.relationIndex || 0) * 18;
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     let d, marker = '', cls = '';
-                    if (n.type === 'prereq') {
-                        d = `M ${n.x} ${n.y} C ${(n.x + cx) / 2} ${n.y}, ${(n.x + cx) / 2} ${cy}, ${cx} ${cy}`;
+                    if (relType === 'prereq') {
+                        d = `M ${n.x} ${n.y} C ${(n.x + cx) / 2} ${n.y - curveBias}, ${(n.x + cx) / 2} ${cy - curveBias}, ${cx} ${cy}`;
                         marker = `url(#arr-pre-${sid})`;
                         cls = 'graph-edge-prereq';
-                    } else if (n.type === 'unlock') {
-                        d = `M ${cx} ${cy} C ${(cx + n.x) / 2} ${cy}, ${(cx + n.x) / 2} ${n.y}, ${n.x} ${n.y}`;
+                    } else if (relType === 'unlock') {
+                        d = `M ${cx} ${cy} C ${(cx + n.x) / 2} ${cy + curveBias}, ${(cx + n.x) / 2} ${n.y + curveBias}, ${n.x} ${n.y}`;
                         marker = `url(#arr-unl-${sid})`;
                         cls = 'graph-edge-unlock';
                     } else {
-                        d = `M ${cx} ${cy} Q ${(cx + n.x) / 2} ${(cy + n.y) / 2 + (n.y < cy ? -20 : 20)} ${n.x} ${n.y}`;
+                        const qShift = (n.y < cy ? -20 : 20) + curveBias;
+                        d = `M ${cx} ${cy} Q ${(cx + n.x) / 2} ${(cy + n.y) / 2 + qShift} ${n.x} ${n.y}`;
                         cls = 'graph-edge-related';
                     }
                     path.setAttribute('d', d);
                     path.setAttribute('fill', 'none');
-                    path.setAttribute('stroke', colors[n.type].edge);
-                    path.setAttribute('stroke-width', n.type === 'related' ? '1.6' : '2.2');
+                    path.setAttribute('stroke', colors[relType].edge);
+                    path.setAttribute('stroke-width', relType === 'related' ? '1.6' : '2.2');
                     path.setAttribute('filter', `url(#neon-${sid})`);
                     if (marker) path.setAttribute('marker-end', marker);
                     path.setAttribute('class', cls);
-                    if (n.type === 'related') path.setAttribute('stroke-dasharray', '3 5');
+                    if (relType === 'related') path.setAttribute('stroke-dasharray', '3 5');
                     svgElement.appendChild(path);
                 });
 
-                // Nodes
-                nodes.forEach(n => {
-                    const c = colors[n.type];
+                const charW = large ? 7.2 : 6.0;
+                const labelSpecs = nodes.map((n) => {
                     const r = n.type === 'anchor' ? (large ? 18 : 14) : (large ? 12 : 10);
+                    const raw = n.label || n.id || '';
+                    const short = raw.length > 26 ? raw.slice(0, 25) + '…' : raw;
+                    return {
+                        node: n,
+                        short,
+                        radius: r,
+                        x: n.x,
+                        y: n.y,
+                        textWidth: short.length * charW,
+                    };
+                });
+                const placedLabels = resolveLabelPositions(labelSpecs, w, h);
+
+                // Nodes (deduplicated by canonical concept ID)
+                placedLabels.forEach((spec) => {
+                    const n = spec.node;
+                    const c = colors[n.type];
+                    const r = spec.radius;
                     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                     g.setAttribute('class', 'graph-node-group');
                     g.setAttribute('data-node-id', n.id);
+                    g.setAttribute('data-canonical-id', n.canonicalId);
                     g.setAttribute('data-node-type', n.type);
+                    g.setAttribute('data-relations', (n.relations || [n.type]).join(','));
                     g.style.color = c.stroke;
                     g.style.cursor = 'pointer';
                     g.addEventListener('click', (ev) => {
@@ -220,36 +221,26 @@ import { storageKey } from './storage-key.js';
                     inner.setAttribute('opacity', '0.95');
                     g.appendChild(inner);
 
-                    const short = (n.label || n.id || '').length > 28 ? (n.label || n.id).slice(0, 27) + '…' : (n.label || n.id || '');
                     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    const charW = large ? 7.2 : 6.0;
-                    const textW = short.length * charW;
-                    const halfW = textW / 2;
-                    let clampedX = n.x;
-                    if (clampedX - halfW < 8) clampedX = 8 + halfW;
-                    if (clampedX + halfW > w - 8) clampedX = w - 8 - halfW;
-                    text.setAttribute('x', clampedX);
-
-                    let textY = n.y + r + 14;
-                    if (textY > h - 6) textY = n.y - r - 6;
-                    text.setAttribute('y', textY);
+                    text.setAttribute('x', spec.labelX);
+                    text.setAttribute('y', spec.labelY);
                     text.setAttribute('text-anchor', 'middle');
                     text.setAttribute('fill', '#e5e7eb');
                     text.setAttribute('font-size', large ? '12px' : '10.5px');
-                    text.setAttribute('font-weight', '700');
-                    text.setAttribute('font-family', "system-ui, -apple-system, sans-serif");
-                    text.textContent = short;
+                    text.setAttribute('font-weight', '600');
+                    text.setAttribute('font-family', "Inter, system-ui, -apple-system, sans-serif");
+                    text.textContent = spec.short;
                     g.appendChild(text);
 
                     const badge = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                     badge.setAttribute('class', 'graph-node-badge');
-                    badge.setAttribute('x', n.x);
-                    badge.setAttribute('y', n.y + r + 26);
+                    badge.setAttribute('x', spec.labelX);
+                    badge.setAttribute('y', Math.min(h - 2, spec.labelY + 12));
                     badge.setAttribute('text-anchor', 'middle');
                     badge.setAttribute('fill', c.stroke);
-                    badge.setAttribute('font-size', '9.5px');
+                    badge.setAttribute('font-size', '9px');
                     badge.setAttribute('font-weight', '600');
-                    badge.setAttribute('font-family', "'Brigend', sans-serif");
+                    badge.setAttribute('font-family', "Inter, system-ui, -apple-system, sans-serif");
                     badge.textContent = n.type === 'anchor' ? '● TARGET' : n.type === 'prereq' ? '↑ REQUIRES' : n.type === 'unlock' ? '↓ UNLOCKS' : '◈ RELATED';
                     badge.style.opacity = n.type === 'anchor' ? '1' : '0';
                     badge.style.transition = 'opacity 0.2s';

@@ -241,60 +241,86 @@ function setMode(mode) {
 state.currentMode = mode;
 }
 
-        function setSendButtonState(state) {
+        function setSendButtonState(nextState) {
             const btn = document.getElementById('send-btn');
             const icon = document.getElementById('send-btn-icon');
             if (!btn) return;
-            if (state === 'stop') {
+            if (nextState === 'stop') {
+                btn.dataset.sendState = 'stop';
                 btn.className = 'w-10 h-10 rounded-lg bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-all duration-200 shadow-md shadow-rose-600/30 z-20 cursor-pointer pointer-events-auto';
                 if (icon) icon.className = 'fa-solid fa-stop text-sm';
                 btn.title = 'Stop generating response';
+                btn.setAttribute('aria-label', 'Stop generating response');
                 btn.disabled = false;
             } else {
+                btn.dataset.sendState = 'send';
+                btn.removeAttribute('aria-busy');
                 btn.className = 'w-10 h-10 rounded-lg bg-accentPurple text-white hover:bg-accentPurple/80 flex items-center justify-center transition-all duration-200 shadow-md shadow-accentPurple/20 z-20 cursor-pointer pointer-events-auto';
                 if (icon) icon.className = 'fa-solid fa-arrow-up text-sm';
                 btn.title = 'Send message';
-                btn.disabled = false;
+                btn.setAttribute('aria-label', 'Send message');
+                const quotaBlocked = Boolean(state.quotaLimitedUntil && Date.now() < state.quotaLimitedUntil);
+                btn.disabled = quotaBlocked;
             }
         }
 
         window.setSendButtonState = setSendButtonState;
 
         function stopGeneration() {
+            // Advance query sequence so any late stream chunk is ignored immediately.
+            state.currentQuerySequence = (state.currentQuerySequence || 0) + 1;
+            if (state.activeTypewriter) {
+                try { state.activeTypewriter.stop(); } catch (_) {}
+                state.activeTypewriter = null;
+            }
+            if (state.activeStreamReader) {
+                try {
+                    const cancelPromise = state.activeStreamReader.cancel();
+                    if (cancelPromise && typeof cancelPromise.catch === 'function') {
+                        cancelPromise.catch(() => {});
+                    }
+                } catch (_) {}
+                state.activeStreamReader = null;
+            }
             if (state.currentAbortController) {
-                try { state.currentAbortController.abort(); } catch (_) {}
+                try { state.currentAbortController.abort('Generation stopped by user.'); } catch (_) {}
                 state.currentAbortController = null;
             }
             if (state.currentAssistantRow) {
-                const msgBody = state.currentAssistantRow.querySelector('[id^="msg-body-"]');
-                if (msgBody) {
-                    msgBody.classList.remove('ai-typewriter-cursor');
-                    const wrap = msgBody.closest('.msg-bubble-wrap');
-                    if (wrap) wrap.classList.remove('is-thinking');
-                    if (!msgBody.textContent.trim() || msgBody.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
-                        try { state.currentAssistantRow.remove(); } catch (_) {}
+                try {
+                    const msgBody = state.currentAssistantRow.querySelector('[id^="msg-body-"]');
+                    if (msgBody) {
+                        msgBody.classList.remove('ai-typewriter-cursor', 'is-live-streaming');
+                        const wrap = msgBody.closest('.msg-bubble-wrap');
+                        if (wrap) wrap.classList.remove('is-thinking');
+                        if (!msgBody.textContent.trim() || msgBody.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
+                            state.currentAssistantRow.remove();
+                        }
                     }
-                }
+                } catch (_) {}
                 state.currentAssistantRow = null;
             }
-            document.querySelectorAll('.model-reply-status').forEach(el => {
-                el.classList.remove('is-visible');
-                el.dataset.active = '0';
-                el.hidden = true;
-            });
-            document.querySelectorAll('.msg-bubble-wrap.is-thinking, .ai-typewriter-cursor').forEach(el => {
-                el.classList.remove('is-thinking', 'ai-typewriter-cursor', 'is-live-streaming');
-                if (!el.textContent.trim() || el.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
-                    const row = el.closest('.assistant-row') || el.closest('#chat-messages > div') || el.closest('.flex');
-                    if (row) { try { row.remove(); } catch (_) {} }
-                }
-            });
+            try {
+                document.querySelectorAll('.model-reply-status').forEach(el => {
+                    el.classList.remove('is-visible');
+                    el.dataset.active = '0';
+                    el.hidden = true;
+                });
+                document.querySelectorAll('.msg-bubble-wrap.is-thinking, .ai-typewriter-cursor, .is-live-streaming').forEach(el => {
+                    el.classList.remove('is-thinking', 'ai-typewriter-cursor', 'is-live-streaming');
+                    if (!el.textContent.trim() || el.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
+                        const row = el.closest('.assistant-row') || el.closest('#chat-messages > div') || el.closest('.flex');
+                        if (row) { try { row.remove(); } catch (_) {} }
+                    }
+                });
+            } catch (_) {}
 
             state.isGenerating = false;
             try { window.isGenerating = false; } catch (_) {}
-            _updateGlowState(false);
+            window.archipelagoChatAuthChecking = false;
+            try { _updateGlowState(false); } catch (_) {}
             setSendButtonState('send');
-            setLibrarianThinking(false);
+            try { setLibrarianThinking(false); } catch (_) {}
 
             const inputEl = document.getElementById('chat-input');
             if (inputEl) {
@@ -310,7 +336,13 @@ state.currentMode = mode;
                 e.preventDefault();
                 e.stopPropagation();
             }
-            if (state.isGenerating) {
+            const btn = document.getElementById('send-btn');
+            const icon = document.getElementById('send-btn-icon');
+            const isStopVisual = Boolean(
+                (btn && btn.dataset && btn.dataset.sendState === 'stop')
+                || (icon && icon.classList && icon.classList.contains('fa-stop'))
+            );
+            if (state.isGenerating || isStopVisual) {
                 stopGeneration();
             } else {
                 sendMessage();

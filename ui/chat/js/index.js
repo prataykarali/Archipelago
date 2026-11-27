@@ -23,7 +23,10 @@ import './18--init-graph-ripple.js';
 import './19-draw-horizontal-svg.js';
 import './20--compact-history.js';
 import './21-generate-roadmap.js';
+import { loadWelcomeSuggestions } from './22-welcome-suggestions.js';
+import './23-followups-export.js';
 import './expose.js';
+loadWelcomeSuggestions();
 await window.archipelagoAuthReady;
 await window.archipelagoRequireSession();
 if (window.matchMedia('(max-width: 768px)').matches) {

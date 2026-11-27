@@ -4,6 +4,7 @@ import { state } from './00-state.js';
 import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-highlights.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_CONTRACT } from './00-current-origin.js';
+import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
 
         function wrapLibraryInventorySection(messageBody, metadata) {
             if (!messageBody) return;
@@ -273,6 +274,10 @@ import { API_CONTRACT } from './00-current-origin.js';
             try {
                 const response = await fetch(API_CONTRACT.health);
                 if (response.ok) {
+                    try {
+                        const readinessData = await response.json();
+                        applyCorpusProfileUi(readinessData);
+                    } catch (_) {}
                     if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50";
                     if (statusText) statusText.textContent = "Online";
                     if (statusContainer) {

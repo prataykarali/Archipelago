@@ -10,7 +10,7 @@
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Marked.js (Markdown renderer) & KaTeX (Math renderer) -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@18.3.0/lib/marked.umd.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -42,6 +42,7 @@
     <link rel="stylesheet" href="/styles/12a-workspace-tokens-layout.css">
     <link rel="stylesheet" href="/styles/12b-workspace-chat-cards.css">
     <link rel="stylesheet" href="/styles/12c-workspace-inspector.css">
+    <link rel="stylesheet" href="/styles/13-d11-b-ux-readability.css">
     <link rel="icon" type="image/svg+xml" href="/assets/v2/favicon.svg">
 
 <!-- MASTER FONT OVERRIDE FOR AURELLIS AND BRIGEND ONLY -->
@@ -263,69 +264,8 @@
                             <p id="welcome-subtitle" class="typewriter-cursor mt-2.5 mx-auto leading-relaxed"></p>
                         </div>
 
-                        <!-- 4+7. DepthParallaxWords + hover-3d — Suggested Prompts -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full max-w-4xl text-left mt-1" id="suggest-grid">
-
-                            <button onclick="autoPrompt('How do compilers transform source code into machine instructions?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPurple/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/brain_btn2.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Brain">
-                                <span class="depth-word-target leading-snug">Compiler stages and machine code</span>
-                            </button>
-
-                            <button onclick="autoPrompt('Explain the main components of retrieval augmented generation (RAG)')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPink/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Search">
-                                <span class="depth-word-target leading-snug">Explain the main components of RAG</span>
-                            </button>
-
-                            <button onclick="autoPrompt('Compare B-Trees and LSM-Trees in database storage engines.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentCyan/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/network_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Network">
-                                <span class="depth-word-target leading-snug">B-Trees vs LSM-Trees</span>
-                            </button>
-
-                            <button onclick="autoPrompt('Compare TCP Reno and BBR congestion control in high-throughput networks.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-indigo-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/brain_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Attention">
-                                <span class="depth-word-target leading-snug">TCP Reno vs BBR</span>
-                            </button>
-
-                            <button onclick="autoPrompt('How do DBMS buffer pools optimize query retrieval in Silberschatz?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-amber-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Book">
-                                <span class="depth-word-target leading-snug">DBMS buffer pools in Silberschatz</span>
-                            </button>
-
-                            <button onclick="autoPrompt('Explain virtual memory paging vs segmentation in OSTEP.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-emerald-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/note_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Note">
-                                <span class="depth-word-target leading-snug">Virtual memory paging vs segmentation</span>
-                            </button>
-
-                            <button onclick="autoPrompt('Explain singular value decomposition and its relation to eigenvalues.')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-indigo-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/graph_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Graph">
-                                <span class="depth-word-target leading-snug">SVD and eigenvalues</span>
-                            </button>
-
-                            <button onclick="autoPrompt('What are the risks of branch prediction and speculative execution in computer architecture?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-rose-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/flash_card_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Flashcard">
-                                <span class="depth-word-target leading-snug">Branch prediction and speculation</span>
-                            </button>
-
-                            <button onclick="autoPrompt('What are the library hours and weekend issue rules?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-emerald-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/library_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Hours">
-                                <span class="depth-word-target leading-snug">Library hours &amp; weekend rules</span>
-                            </button>
-
-                            <button onclick="autoPrompt('What e-resource portals does the central library provide?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-sky-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/search_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="E-resources">
-                                <span class="depth-word-target leading-snug">E-resource portals (IEEE, Pearson…)</span>
-                            </button>
-
-                            <button onclick="autoPrompt('How do I access Pearson eLibrary textbooks?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-amber-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/book_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Pearson">
-                                <span class="depth-word-target leading-snug">Pearson eLibrary — read from library</span>
-                            </button>
-
-                            <button onclick="autoPrompt('How does the Linux Completely Fair Scheduler choose processes to run?')" class="hover-3d-card p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-sky-400/50 hover:bg-slate-800 text-xs text-gray-200 font-medium transition-all duration-200 flex items-start gap-3 group">
-                                <img src="/ui/assets/settings_btn.png" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform flex-shrink-0" alt="Compare">
-                                <span class="depth-word-target leading-snug">Linux CFS process scheduling</span>
-                            </button>
-                        </div>
+                        <!-- D11-B-UX: Clean dark-purple welcome card with numbered knowledge areas & shuffled suggestions -->
+                        <section id="welcome-suggestions-card" class="welcome-suggestions-card" aria-label="Knowledge areas and suggested questions"></section>
                     </div>
 
                 </div>

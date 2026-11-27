@@ -17,7 +17,7 @@ const MAX_COLORS = 10;
 const DEFAULT_COLORS = ["#c4a0ff", "#ffffff", "#a78bfa"];
 const DEFAULT_BG = "#090514";
 const DEFAULT_FREQUENCY = 1.4;
-const DEFAULT_SPEED = 4;
+const DEFAULT_SPEED = 1.2;
 const DEFAULT_CELL_SIZE = 34;
 const DEFAULT_GAMMA = 6;
 const DEFAULT_PALETTE_BIAS = -3;
@@ -449,7 +449,14 @@ export function mountChromaticWaves(hostEl, options = {}) {
 
   doResize();
   renderOnce();
-  rafId = requestAnimationFrame(update);
+  const prefersReducedMotion = Boolean(
+    typeof window !== "undefined"
+    && window.matchMedia
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  if (!prefersReducedMotion) {
+    rafId = requestAnimationFrame(update);
+  }
   requestAnimationFrame(() => bgEl.classList.add("is-ready"));
 
   const destroy = () => {
