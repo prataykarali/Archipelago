@@ -16,9 +16,9 @@ const AUTH_ME_CACHE_KEY = "archipelago_me_cache_v1";
 const AUTH_CONFIG_TTL_MS = 600000;
 const PASSIVE_RECHECK_INTERVAL_MS = 60000;
 const PASSIVE_RECHECK_MIN_GAP_MS = 15000;
-const PASSIVE_CHECK_TIMEOUT_MS = 6000;
-const VERIFY_SESSION_TIMEOUT_MS = 8000;
-const RECENT_SESSION_GRACE_MS = 30000;
+const PASSIVE_CHECK_TIMEOUT_MS = 12000;
+const VERIFY_SESSION_TIMEOUT_MS = 15000;
+const RECENT_SESSION_GRACE_MS = 300000;
 const USER_KEEPALIVE_MIN_GAP_MS = 120000;
 const SUPABASE_CDN_TIMEOUT_MS = 3500;
 let cachedAccessToken = "";
@@ -436,6 +436,15 @@ window.archipelagoVerifyChatSession = async ({ force = false } = {}) => {
   ) {
     window.archipelagoClearChatSignInPrompt?.();
     return lastVerifiedPrincipal;
+  }
+  if (
+    !force &&
+    (window.archipelagoUserId || document.querySelector("#user-profile-badge"))
+  ) {
+    // Active UI session present: let POST /api/chat enforce server-side auth & revocation directly
+    // (08-send-message.js handles 401 cleanly while preserving the unsent question).
+    window.archipelagoClearChatSignInPrompt?.();
+    return { authenticated: true, deferredToServer: true };
   }
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), VERIFY_SESSION_TIMEOUT_MS);
