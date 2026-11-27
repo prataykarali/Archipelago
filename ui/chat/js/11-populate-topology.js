@@ -4,7 +4,7 @@ import { _nodeId, _nodeLabel, _nodeSummary, selectGraphNode } from './10-populat
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { _initGraphRipple } from './18--init-graph-ripple.js';
 import { storageKey } from './storage-key.js';
-import { buildDeduplicatedTopology, resolveLabelPositions } from './11a-topology-layout.js';
+import { buildArrowMarkerDefs, buildDeduplicatedTopology, computeEdgeEndpoints, resolveLabelPositions } from './11a-topology-layout.js';
 
         function populateTopology(anchor, prereqs, unlocks, related, isReset = false) {
             const placeholder = document.getElementById('topology-placeholder');
@@ -77,25 +77,14 @@ import { buildDeduplicatedTopology, resolveLabelPositions } from './11a-topology
 
                 const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
                 defs.innerHTML = `
-                    <filter id="neon-${sid}" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="3.2" result="b"/>
+                    <filter id="neon-${sid}" filterUnits="userSpaceOnUse" x="0" y="0" width="${w}" height="${h}">
+                        <feGaussianBlur stdDeviation="2.6" result="b"/>
                         <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                     <linearGradient id="grad-anchor-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#8b5cf6"/>
                     </linearGradient>
-                    <linearGradient id="grad-pre-${sid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#6366f1"/>
-                    </linearGradient>
-                    <linearGradient id="grad-unl-${sid}" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#06b6d4"/>
-                    </linearGradient>
-                    <marker id="arr-pre-${sid}" viewBox="0 0 10 10" refX="18" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-                        <path d="M0,1 L10,5 L0,9 Z" fill="#c084fc"/>
-                    </marker>
-                    <marker id="arr-unl-${sid}" viewBox="0 0 10 10" refX="18" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-                        <path d="M0,1 L10,5 L0,9 Z" fill="#22d3ee"/>
-                    </marker>
+                    ${buildArrowMarkerDefs(sid, { size: large ? 9 : 8, prereqColor: '#c084fc', unlockColor: '#22d3ee', relatedColor: '#fbbf24' })}
                 `;
                 svgElement.appendChild(defs);
 
@@ -113,11 +102,14 @@ import { buildDeduplicatedTopology, resolveLabelPositions } from './11a-topology
                 });
 
                 const colors = {
-                    anchor:  { fill: `url(#grad-anchor-${sid})`, stroke: '#c4b5fd', glow: '#8b5cf6', edge: `url(#grad-unl-${sid})` },
-                    prereq:  { fill: 'rgba(168,85,247,0.35)', stroke: '#c084fc', glow: '#a855f7', edge: `url(#grad-pre-${sid})` },
-                    unlock:  { fill: 'rgba(6,182,212,0.35)', stroke: '#22d3ee', glow: '#06b6d4', edge: `url(#grad-unl-${sid})` },
-                    related: { fill: 'rgba(245,158,11,0.28)', stroke: '#fbbf24', glow: '#f59e0b', edge: 'rgba(251,191,36,0.7)' }
+                    anchor:  { fill: `url(#grad-anchor-${sid})`, stroke: '#c4b5fd', glow: '#8b5cf6', edge: '#22d3ee' },
+                    prereq:  { fill: 'rgba(168,85,247,0.35)', stroke: '#c084fc', glow: '#a855f7', edge: '#c084fc' },
+                    unlock:  { fill: 'rgba(6,182,212,0.35)', stroke: '#22d3ee', glow: '#06b6d4', edge: '#22d3ee' },
+                    related: { fill: 'rgba(245,158,11,0.28)', stroke: '#fbbf24', glow: '#f59e0b', edge: '#fbbf24' }
                 };
+
+                const anchorRadius = large ? 18 : 14;
+                const peerRadius = large ? 12 : 10;
 
                 // Edges (supports multi-relation edges on deduplicated nodes without duplicate circles)
                 edges.forEach((edge) => {
@@ -125,28 +117,43 @@ import { buildDeduplicatedTopology, resolveLabelPositions } from './11a-topology
                     const relType = edge.type;
                     const curveBias = (edge.relationIndex || 0) * 18;
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    let d, marker = '', cls = '';
+                    let d, marker = '', cls = '', fromId = '', toId = '';
                     if (relType === 'prereq') {
-                        d = `M ${n.x} ${n.y} C ${(n.x + cx) / 2} ${n.y - curveBias}, ${(n.x + cx) / 2} ${cy - curveBias}, ${cx} ${cy}`;
+                        const { sx, sy, ex, ey } = computeEdgeEndpoints(n.x, n.y, cx, cy, peerRadius, anchorRadius, 5);
+                        d = `M ${sx} ${sy} C ${(sx + ex) / 2} ${sy - curveBias}, ${(sx + ex) / 2} ${ey - curveBias}, ${ex} ${ey}`;
                         marker = `url(#arr-pre-${sid})`;
                         cls = 'graph-edge-prereq';
+                        fromId = n.id;
+                        toId = _nodeId(activeAnchor, 'anchor');
                     } else if (relType === 'unlock') {
-                        d = `M ${cx} ${cy} C ${(cx + n.x) / 2} ${cy + curveBias}, ${(cx + n.x) / 2} ${n.y + curveBias}, ${n.x} ${n.y}`;
+                        const { sx, sy, ex, ey } = computeEdgeEndpoints(cx, cy, n.x, n.y, anchorRadius, peerRadius, 5);
+                        d = `M ${sx} ${sy} C ${(sx + ex) / 2} ${sy + curveBias}, ${(sx + ex) / 2} ${ey + curveBias}, ${ex} ${ey}`;
                         marker = `url(#arr-unl-${sid})`;
                         cls = 'graph-edge-unlock';
+                        fromId = _nodeId(activeAnchor, 'anchor');
+                        toId = n.id;
                     } else {
-                        const qShift = (n.y < cy ? -20 : 20) + curveBias;
-                        d = `M ${cx} ${cy} Q ${(cx + n.x) / 2} ${(cy + n.y) / 2 + qShift} ${n.x} ${n.y}`;
+                        const { sx, sy, ex, ey } = computeEdgeEndpoints(cx, cy, n.x, n.y, anchorRadius, peerRadius, 5);
+                        const qShift = (n.y < cy ? -18 : 18) + curveBias;
+                        d = `M ${sx} ${sy} Q ${(sx + ex) / 2} ${(sy + ey) / 2 + qShift} ${ex} ${ey}`;
+                        marker = `url(#arr-rel-${sid})`;
                         cls = 'graph-edge-related';
+                        fromId = _nodeId(activeAnchor, 'anchor');
+                        toId = n.id;
                     }
                     path.setAttribute('d', d);
                     path.setAttribute('fill', 'none');
                     path.setAttribute('stroke', colors[relType].edge);
-                    path.setAttribute('stroke-width', relType === 'related' ? '1.6' : '2.2');
-                    path.setAttribute('filter', `url(#neon-${sid})`);
+                    path.setAttribute('stroke-opacity', relType === 'related' ? '0.82' : '0.94');
+                    path.setAttribute('stroke-width', relType === 'related' ? '1.7' : '2.2');
+                    path.setAttribute('stroke-linecap', 'round');
                     if (marker) path.setAttribute('marker-end', marker);
                     path.setAttribute('class', cls);
-                    if (relType === 'related') path.setAttribute('stroke-dasharray', '3 5');
+                    path.setAttribute('data-edge-type', relType);
+                    path.setAttribute('data-from', fromId);
+                    path.setAttribute('data-to', toId);
+                    path.setAttribute('data-review-status', 'review_pending');
+                    if (relType === 'related') path.setAttribute('stroke-dasharray', '4 4');
                     svgElement.appendChild(path);
                 });
 

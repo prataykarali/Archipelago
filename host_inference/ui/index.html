@@ -43,6 +43,7 @@
     <link rel="stylesheet" href="/styles/12b-workspace-chat-cards.css">
     <link rel="stylesheet" href="/styles/12c-workspace-inspector.css">
     <link rel="stylesheet" href="/styles/13-d11-b-ux-readability.css">
+    <link rel="stylesheet" href="/styles/14-d12-ui-3d.css">
     <link rel="icon" type="image/svg+xml" href="/assets/v2/favicon.svg">
 
 <!-- MASTER FONT OVERRIDE FOR AURELLIS AND BRIGEND ONLY -->
@@ -237,11 +238,11 @@
                 <div id="chat-stage" class="flex-1 min-h-0">
                 <!-- Fixed librarian + concept graph under her (never covers chat bubbles) -->
                 <aside id="sticky-avatar-dock" aria-hidden="true">
+                    <span class="avatar-label">AI Librarian</span>
                     <div class="avatar-shell" id="sticky-avatar" data-avatar>
                         <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="metadata"></video>
                         <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="none"></video>
                     </div>
-                    <span class="avatar-label">AI Librarian</span>
                     <div id="bottom-svg-map-container" class="hidden" title="Concept neighborhood">
                         <svg id="bottom-svg-map" class="w-full h-full"></svg>
                     </div>
@@ -253,9 +254,12 @@
                     <!-- Welcome State -->
                     <div id="welcome-container" class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center text-center py-3 md:py-5 gap-4">
 
-                        <div class="avatar-shell welcome-avatar" id="welcome-avatar" data-avatar>
-                            <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="metadata"></video>
-                            <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="none"></video>
+                        <div class="welcome-avatar-stack">
+                            <span class="avatar-label welcome-avatar-label">AI Librarian</span>
+                            <div class="avatar-shell welcome-avatar" id="welcome-avatar" data-avatar>
+                                <video data-avatar-clip="hi" class="avatar-clip" src="/ui/assets/library_hi.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="metadata"></video>
+                                <video data-avatar-clip="think" class="avatar-clip is-hidden" src="/ui/assets/library_think.mp4" poster="/ui/assets/library_avatar_poster.jpg" muted playsinline webkit-playsinline preload="none"></video>
+                            </div>
                         </div>
 
                         <!-- 2+3. ShineText + TypewriterText -->

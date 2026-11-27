@@ -17,7 +17,7 @@ const MAX_COLORS = 10;
 const DEFAULT_COLORS = ["#c4a0ff", "#ffffff", "#a78bfa"];
 const DEFAULT_BG = "#090514";
 const DEFAULT_FREQUENCY = 1.4;
-const DEFAULT_SPEED = 1.2;
+const DEFAULT_SPEED = 2.0;
 const DEFAULT_CELL_SIZE = 34;
 const DEFAULT_GAMMA = 6;
 const DEFAULT_PALETTE_BIAS = -3;
@@ -454,7 +454,21 @@ export function mountChromaticWaves(hostEl, options = {}) {
     && window.matchMedia
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
-  if (!prefersReducedMotion) {
+  const onVisibilityChange = () => {
+    if (destroyed || prefersReducedMotion) return;
+    if (typeof document !== "undefined" && document.hidden) {
+      isPlaying = false;
+      if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
+    } else if (!isPlaying) {
+      isPlaying = true;
+      lastTime = 0;
+      rafId = requestAnimationFrame(update);
+    }
+  };
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", onVisibilityChange);
+  }
+  if (!prefersReducedMotion && (typeof document === "undefined" || !document.hidden)) {
     rafId = requestAnimationFrame(update);
   }
   requestAnimationFrame(() => bgEl.classList.add("is-ready"));
@@ -466,6 +480,9 @@ export function mountChromaticWaves(hostEl, options = {}) {
     if (rafId != null) cancelAnimationFrame(rafId);
     rafId = null;
     window.removeEventListener("resize", scheduleResize);
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    }
     if (resizeObserver) {
       try {
         resizeObserver.disconnect();

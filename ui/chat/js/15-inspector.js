@@ -37,22 +37,37 @@ function switchInspectorTab(tabId) {
 // ── Evidence tab ────────────────────────────────────────────────────────────
 
 function _sourceCategory(cite) {
+    const kind = String(cite.source_kind || '').toLowerCase().trim();
+    if (kind === 'metadata_only_record') {
+        return { label: 'Metadata-Only Record', icon: 'fa-tag', color: 'text-amber-300', badgeCls: 'bg-amber-500/20 border-amber-400/40 text-amber-200', kind };
+    }
+    if (kind === 'unavailable_document') {
+        return { label: 'Unavailable Document', icon: 'fa-file-circle-xmark', color: 'text-rose-300', badgeCls: 'bg-rose-500/20 border-rose-400/40 text-rose-200', kind };
+    }
+    if (kind === 'institutional_licensed') {
+        return { label: 'Institutional Licensed', icon: 'fa-building-columns', color: 'text-amber-400', badgeCls: 'bg-amber-500/20 border-amber-500/35 text-amber-300', kind };
+    }
+    if (kind === 'verified_full_text_passage') {
+        return { label: 'Verified Full-Text Passage', icon: 'fa-circle-check', color: 'text-emerald-300', badgeCls: 'bg-emerald-500/20 border-emerald-400/40 text-emerald-200', kind };
+    }
     const cat = (cite.source_category || cite.category || cite.type || '').toLowerCase();
     const isPearson = Boolean(cite.is_pearson || cite.subscription_id || (cite.book_id && !isNaN(Number(cite.book_id))));
     if (isPearson || cat.includes('library') || cat.includes('pearson') || cat.includes('restricted')) {
-        return { label: 'Restricted Library Holding', icon: 'fa-building-columns', color: 'text-amber-400', badgeCls: 'bg-amber-500/20 border-amber-500/35 text-amber-300' };
+        return { label: 'Restricted Library Holding', icon: 'fa-building-columns', color: 'text-amber-400', badgeCls: 'bg-amber-500/20 border-amber-500/35 text-amber-300', kind: 'institutional_licensed' };
     }
     if (cat.includes('graph') || cat.includes('okf')) {
-        return { label: 'Indexed Graph Reference', icon: 'fa-diagram-project', color: 'text-accentPurple', badgeCls: 'bg-accentPurple/20 border-accentPurple/35 text-accentPurple' };
+        return { label: 'Indexed Graph Reference', icon: 'fa-diagram-project', color: 'text-accentPurple', badgeCls: 'bg-accentPurple/20 border-accentPurple/35 text-accentPurple', kind: '' };
     }
     if (cat.includes('open') || cat.includes('arxiv') || cat.includes('paper')) {
-        return { label: 'Open-Access Paper', icon: 'fa-globe', color: 'text-accentCyan', badgeCls: 'bg-cyan-500/20 border-cyan-500/35 text-cyan-300' };
+        return { label: 'Open-Access Paper', icon: 'fa-globe', color: 'text-accentCyan', badgeCls: 'bg-cyan-500/20 border-cyan-500/35 text-cyan-300', kind: '' };
     }
-    return { label: 'Canonical Research Reference', icon: 'fa-file-lines', color: 'text-gray-400', badgeCls: 'bg-white/10 border-white/15 text-gray-300' };
+    return { label: 'Canonical Research Reference', icon: 'fa-file-lines', color: 'text-gray-400', badgeCls: 'bg-white/10 border-white/15 text-gray-300', kind: '' };
 }
 
 function _renderCitation(cite, index) {
     const cat = _sourceCategory(cite);
+    const sourceKind = String(cite.source_kind || '').toLowerCase().trim();
+    const isNonReadableRecord = sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document';
     const title = typeof citationTitle === 'function'
         ? citationTitle(cite, 'Untitled Resource')
         : (cite.title || cite.doc_title || cite.label || cite.doc_id || 'Untitled Resource');
@@ -61,15 +76,21 @@ function _renderCitation(cite, index) {
     const isbn = cite.isbn || '';
     const edition = cite.edition || cite.venue || '';
     const pageNum = cite.page_number || cite.page || '';
-    const page = pageNum ? `p. ${pageNum}` : '';
+    const page = pageNum && !isNonReadableRecord ? `p. ${pageNum}` : '';
     const passage = cite.text_passage || cite.passage || cite.snippet || '';
     const docId = cite.doc_id || cite.document_id || '';
-    const readerUrl = typeof citationPageUrl === 'function' ? citationPageUrl(cite) : '';
+    const rawReaderUrl = (!isNonReadableRecord && typeof citationPageUrl === 'function') ? citationPageUrl(cite) : '';
+    const readerUrl = (rawReaderUrl && !/^\/chat(?:[?#]|$)/i.test(rawReaderUrl.trim())) ? rawReaderUrl : '';
     const truncPassage = passage.length > 240 ? passage.substring(0, 240) + '…' : passage;
+    const recordNotice = sourceKind === 'metadata_only_record'
+        ? 'Catalog / metadata record only — no full-text reader link.'
+        : sourceKind === 'unavailable_document'
+            ? 'Full-text document unavailable in this corpus.'
+            : '';
 
     return `
         <div class="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-accentPurple/50 transition-all cursor-pointer group shadow-sm"
-             id="evidence-cite-${index}" data-cite-index="${index}" onclick="scrollToEvidence(${index})">
+             id="evidence-cite-${index}" data-cite-index="${index}" data-source-kind="${_escHTML(sourceKind)}" onclick="scrollToEvidence(${index})">
             <div class="flex items-start gap-2.5">
                 <span class="mt-0.5 w-5 h-5 rounded-full bg-accentPurple/25 text-accentPurple text-[10px] font-black flex items-center justify-center shrink-0 border border-accentPurple/40">[${index + 1}]</span>
                 <div class="flex-1 min-w-0">
@@ -92,7 +113,9 @@ function _renderCitation(cite, index) {
                             <span class="text-accentPurple font-bold mr-1">“</span>${_escHTML(truncPassage)}<span class="text-accentPurple font-bold ml-1">”</span>
                         </div>
                     ` : ''}
-                    ${readerUrl ? `
+                    ${recordNotice ? `
+                        <div class="mt-2 pt-1.5 border-t border-slate-700/50 text-[10px] text-slate-400 italic">${_escHTML(recordNotice)}</div>
+                    ` : readerUrl ? `
                         <div class="mt-2.5 flex items-center justify-between pt-1.5 border-t border-slate-700/50">
                             <a href="${_escHTML(readerUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-accentPurple/20 hover:bg-accentPurple/35 text-purple-200 border border-accentPurple/40 text-[10px] font-semibold transition-all">
@@ -171,12 +194,39 @@ function populateTrace(trace) {
 
 // ── Grounding status bar (above each assistant chat answer) ─────────────────
 
-function renderGroundingBadge(trace) {
+const CONVERSATIONAL_INTENTS = new Set([
+    'GREETING', 'THANKS', 'HELP', 'CONVERSATIONAL', 'CAPABILITIES', 'SMALL_TALK', 'CHAT_HELP',
+]);
+
+function renderGroundingBadge(trace, metadata = null) {
     if (!trace) return '';
-    const st = trace.grounding_status || 'unmatched';
+    const rawCitations = Array.isArray(metadata?.citations)
+        ? metadata.citations
+        : Array.isArray(trace.citations)
+            ? trace.citations
+            : [];
+    const verifiedCitations = rawCitations.filter((cite) => {
+        if (!cite || typeof cite !== 'object') return false;
+        const kind = String(cite.source_kind || '').toLowerCase().trim();
+        return kind !== 'metadata_only_record' && kind !== 'unavailable_document';
+    });
+    const explicitNotEvidenceBacked = metadata?.evidence_backed === false || trace.evidence_backed === false;
+    const hasCitationEvidence = metadata
+        ? verifiedCitations.length > 0
+        : (verifiedCitations.length > 0 || Number(trace.grounded_passages || 0) > 0);
+    const isEvidenceBacked = !explicitNotEvidenceBacked && hasCitationEvidence;
+
+    const intentUpper = String(trace.intent || '').toUpperCase().trim();
+    const isConversational = CONVERSATIONAL_INTENTS.has(intentUpper)
+        || String(trace.synthesis_mode || '').toLowerCase() === 'conversational';
+    const isAbstention = intentUpper === 'OUT_OF_DOMAIN' || intentUpper === 'UNSUPPORTED' || trace.grounding_status === 'abstained';
+
+    const st = isEvidenceBacked
+        ? (trace.grounding_status || 'verified')
+        : (isConversational ? 'general' : isAbstention ? 'unmatched' : 'general');
     const c = BADGE_COLORS[st] || BADGE_COLORS.unmatched;
     const hops = trace.graph_hops || 0;
-    const passages = trace.grounded_passages || 0;
+    const passages = isEvidenceBacked ? (Number(trace.grounded_passages || 0) || verifiedCitations.length) : 0;
     const latency = trace.stage_timings_ms?.total_ms != null ? `${trace.stage_timings_ms.total_ms} ms` : '';
 
     const modeLabels = {
@@ -195,16 +245,22 @@ function renderGroundingBadge(trace) {
     const parts = [];
     if (trace.stream_status && streamStatusLabels[trace.stream_status]) {
         parts.push(streamStatusLabels[trace.stream_status]);
-    } else if (trace.intent === 'OUT_OF_DOMAIN' || trace.intent === 'UNSUPPORTED' || trace.grounding_status === 'abstained') {
-        parts.push('Abstention');
+    } else if (isConversational && !isEvidenceBacked) {
+        parts.push('Conversational');
+    } else if (isAbstention) {
+        parts.push(isEvidenceBacked ? 'Abstention' : 'Abstention · No Source Passages');
+    } else if (!isEvidenceBacked) {
+        parts.push('General Explanation · No Source Passages');
     } else if (trace.synthesis_mode && modeLabels[trace.synthesis_mode]) {
         parts.push(modeLabels[trace.synthesis_mode]);
+    } else {
+        parts.push('Evidence-Backed');
     }
-    if (passages > 0) parts.push(`${passages} cited passage${passages > 1 ? 's' : ''}`);
+    if (passages > 0 && isEvidenceBacked) parts.push(`${passages} cited passage${passages > 1 ? 's' : ''}`);
     if (hops > 0) parts.push(`${hops} graph hop${hops > 1 ? 's' : ''}`);
     if (latency) parts.push(latency);
 
-    return `<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${c.bg} border ${c.border} text-[10px] font-mono font-bold ${c.text} mb-2 w-fit select-none shadow-sm" title="${_escHTML(trace.grounding_badge || '')}">
+    return `<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${c.bg} border ${c.border} text-[10px] font-mono font-bold ${c.text} mb-2 w-fit select-none shadow-sm" data-evidence-backed="${isEvidenceBacked ? 'true' : 'false'}" title="${_escHTML(trace.grounding_badge || parts[0] || '')}">
         <span class="w-1.5 h-1.5 rounded-full ${c.dot}"></span>
         <span>${_escHTML(parts.join(' · '))}</span>
     </div>`;
@@ -292,16 +348,21 @@ function scrollToEvidence(index) {
 
 function _escHTML(str) {
     if (!str) return '';
-    const d = document.createElement('div');
-    d.textContent = String(str);
-    return d.innerHTML;
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // ── Global exports ──────────────────────────────────────────────────────────
 
-window.switchInspectorTab = switchInspectorTab;
-window.populateInspector = populateInspector;
-window.scrollToEvidence = scrollToEvidence;
-window.renderGroundingBadge = renderGroundingBadge;
+if (typeof window !== 'undefined') {
+    window.switchInspectorTab = switchInspectorTab;
+    window.populateInspector = populateInspector;
+    window.scrollToEvidence = scrollToEvidence;
+    window.renderGroundingBadge = renderGroundingBadge;
+}
 
-export { populateEvidence, populateInspector, populateTrace, renderGroundingBadge, scrollToEvidence, switchInspectorTab, updateRetrievalModeIndicator };
+export { _renderCitation, _sourceCategory, populateEvidence, populateInspector, populateTrace, renderGroundingBadge, scrollToEvidence, switchInspectorTab, updateRetrievalModeIndicator };

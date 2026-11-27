@@ -199,7 +199,7 @@ function renderWelcomeSuggestionsCard(areas, questions) {
     const areasHtml = visibleAreas
         .map((area, idx) => `
             <li class="welcome-area-item">
-                <span class="welcome-area-index">${idx + 1}.</span>
+                <span class="welcome-area-index">${idx + 1})</span>
                 <span class="welcome-area-label">${_escapeText(area)}</span>
             </li>
         `)

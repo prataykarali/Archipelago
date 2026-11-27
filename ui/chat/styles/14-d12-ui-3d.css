@@ -1,0 +1,254 @@
+/* D12 Section 7: 3D Aesthetic Restoration, Glowing Avatar, Chromatic Depth & Honest Citation Tags
+ * Loaded after 13-d11-b-ux-readability.css to restore the iconic 0e590851 3D visual identity
+ * while preserving D11-A.4 readable workspace typography, compact Inspector, and evidence export bar.
+ */
+
+/* ── 1. Ensure Technical Headings (B+ Tree, C++, O(log n)) Use Readable Sans Font Everywhere ── */
+#pipeline-panel h1,
+#pipeline-panel h2,
+#pipeline-panel h3,
+#pipeline-panel h4,
+#graph-node-title,
+.assistant-answer-prose h1,
+.assistant-answer-prose h2,
+.assistant-answer-prose h3,
+.assistant-answer-prose h4,
+.assistant-answer-prose h5,
+.assistant-answer-prose h6,
+#welcome-suggestions-card h1,
+#welcome-suggestions-card h2,
+#welcome-suggestions-card h3,
+#welcome-suggestions-card h4,
+.concept-visualize-card h1,
+.concept-visualize-card h2,
+.concept-visualize-card h3,
+.concept-visualize-card h4 {
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif) !important;
+  letter-spacing: -0.01em !important;
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+}
+
+/* ── 2. Restored Luminous Chromatic Wave + Subtle 3D Dot-Matrix Depth Background ── */
+#chromatic-waves-bg {
+  opacity: 0.56 !important;
+  filter: saturate(0.95) contrast(1.04) !important;
+  pointer-events: none !important;
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+#chromatic-waves-bg canvas {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Subtle dot-grid atmospheric depth behind chat stage without obstructing prose contrast */
+#chat-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle at 50% 18%, rgba(139, 92, 246, 0.16) 0%, rgba(15, 23, 42, 0) 56%),
+    radial-gradient(rgba(196, 181, 253, 0.14) 1px, transparent 1px);
+  background-size: 100% 100%, 26px 26px;
+  mask-image: radial-gradient(ellipse 85% 80% at 50% 35%, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.25));
+  -webkit-mask-image: radial-gradient(ellipse 85% 80% at 50% 35%, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.25));
+}
+
+/* Keep assistant message bubbles ultra-readable over the 3D animated background */
+.chat-bubble {
+  background: rgba(15, 20, 38, 0.88) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* ── 3. Centered, Moderately Enlarged Animated Librarian Avatar + Clean Label Above ── */
+.welcome-avatar-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.welcome-avatar-label,
+#sticky-avatar-dock .avatar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+  color: #e9d5ff !important;
+  background: rgba(88, 28, 135, 0.36);
+  border: 1px solid rgba(196, 160, 255, 0.38);
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.22);
+  margin: 0 !important;
+}
+
+#welcome-avatar.welcome-avatar {
+  --avatar-size: 6.25rem !important;
+  width: 6.25rem !important;
+  height: 6.25rem !important;
+  border: 2.5px solid rgba(196, 160, 255, 0.92) !important;
+  box-shadow:
+    0 0 0 2px rgba(139, 92, 246, 0.35),
+    0 0 22px rgba(168, 85, 247, 0.52),
+    0 0 44px rgba(139, 92, 246, 0.28),
+    inset 0 0 12px rgba(0, 0, 0, 0.35) !important;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+  transform: translateZ(0);
+}
+
+#welcome-avatar.welcome-avatar:hover {
+  transform: translateY(-2px) scale(1.03) translateZ(0);
+}
+
+/* Sticky dock during active chat: label cleanly above moderately sized glowing ring */
+#sticky-avatar-dock {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  align-self: flex-start !important;
+  margin: 0.65rem 0 0 0.85rem !important;
+  padding: 0.55rem 0.65rem !important;
+  gap: 0.45rem !important;
+  width: auto !important;
+  max-width: 7.25rem !important;
+  flex: 0 0 auto !important;
+  border-radius: 1.125rem !important;
+  background: linear-gradient(160deg, rgba(28, 19, 54, 0.82), rgba(15, 23, 42, 0.86)) !important;
+  border: 1px solid rgba(167, 139, 250, 0.34) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 28px rgba(7, 4, 18, 0.42), 0 0 20px rgba(139, 92, 246, 0.16) !important;
+}
+
+#sticky-avatar-dock .avatar-shell {
+  --avatar-size: 4rem !important;
+  width: 4rem !important;
+  height: 4rem !important;
+  border: 2px solid rgba(196, 160, 255, 0.9) !important;
+  box-shadow:
+    0 0 0 1.5px rgba(139, 92, 246, 0.35),
+    0 0 16px rgba(168, 85, 247, 0.48),
+    0 0 30px rgba(139, 92, 246, 0.22) !important;
+}
+
+#sticky-avatar-dock .avatar-shell.is-thinking,
+#welcome-avatar.welcome-avatar.is-thinking {
+  border-color: rgba(244, 114, 182, 0.95) !important;
+  box-shadow:
+    0 0 0 2px rgba(236, 72, 153, 0.42),
+    0 0 22px rgba(236, 72, 153, 0.55),
+    0 0 42px rgba(236, 72, 153, 0.28) !important;
+}
+
+@media (max-width: 767px) {
+  #welcome-avatar.welcome-avatar {
+    --avatar-size: 5.25rem !important;
+    width: 5.25rem !important;
+    height: 5.25rem !important;
+  }
+  #sticky-avatar-dock {
+    display: none !important;
+  }
+}
+
+/* ── 4. 3D Glassmorphic Welcome Card & Interactive Depth Pills ── */
+.welcome-suggestions-card {
+  position: relative;
+  background: linear-gradient(155deg, rgba(36, 24, 68, 0.78) 0%, rgba(16, 14, 36, 0.86) 100%) !important;
+  border: 1px solid rgba(196, 181, 253, 0.28) !important;
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow:
+    0 18px 46px rgba(7, 4, 20, 0.55),
+    0 0 36px rgba(139, 92, 246, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+  transform: perspective(1000px) translateZ(0);
+  transition: transform 0.22s ease-out, box-shadow 0.22s ease-out, border-color 0.22s ease-out;
+}
+
+.welcome-suggestions-card:hover {
+  border-color: rgba(196, 181, 253, 0.42) !important;
+  box-shadow:
+    0 22px 54px rgba(7, 4, 20, 0.62),
+    0 0 44px rgba(139, 92, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+.welcome-question-pill {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(20, 14, 42, 0.52)) !important;
+  border: 1px solid rgba(196, 181, 253, 0.22) !important;
+  box-shadow: 0 4px 14px rgba(7, 4, 20, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateZ(0);
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.welcome-question-pill:hover {
+  transform: translateY(-2px) translateZ(0);
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.24), rgba(30, 22, 58, 0.68)) !important;
+  border-color: rgba(196, 181, 253, 0.54) !important;
+  box-shadow: 0 10px 24px rgba(139, 92, 246, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* ── 5. Honest Citation & Source-Kind Pills (Non-Clickable Metadata / Unavailable) ── */
+.evidence-pill-metadata-only,
+.evidence-pill-unavailable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: default;
+  user-select: text;
+}
+
+.evidence-pill-metadata-only {
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.38);
+  color: #fde68a !important;
+  -webkit-text-fill-color: #fde68a !important;
+}
+
+.evidence-pill-unavailable {
+  background: rgba(244, 63, 94, 0.14);
+  border: 1px solid rgba(251, 113, 133, 0.38);
+  color: #fecdd3 !important;
+  -webkit-text-fill-color: #fecdd3 !important;
+}
+
+/* ── 6. Graph SVG Arrow & Edge Visibility Safeguard ── */
+#sidebar-svg-map,
+[id^="svg-horizontal-"] {
+  overflow: visible;
+}
+
+.graph-edge-prereq,
+.graph-edge-unlock,
+.graph-edge-related {
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  opacity: 0.94;
+}
+
+/* ── 7. Reduced Motion Accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+  #chromatic-waves-bg {
+    display: none !important;
+  }
+  #welcome-avatar.welcome-avatar:hover,
+  .welcome-question-pill:hover,
+  .welcome-suggestions-card {
+    transform: none !important;
+  }
+}
