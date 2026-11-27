@@ -22,6 +22,8 @@ import { _initGraphRipple, scrollInChatGraph, selectHorizontalNode } from './18-
 import { drawHorizontalSVG } from './19-draw-horizontal-svg.js';
 import { _compactHistory, _writeSessions, clearAllSessions, closeRoadmapModal, deleteSession, flashShareBtn, loadSession, loadSharedChat, renderChatHistory, saveSession, shareChat } from './20--compact-history.js';
 import { generateQuiz, generateRoadmap } from './21-generate-roadmap.js';
+import { applyCorpusProfileUi, loadWelcomeSuggestions, shuffleWelcomeSuggestions } from './22-welcome-suggestions.js';
+import { buildSanitizedEvidenceBundle, downloadEvidenceBundle, renderEvidenceExportBar, renderFollowUpChips } from './23-followups-export.js';
 
 const api = {
   API_CONTRACT,
@@ -66,10 +68,12 @@ const api = {
   advanceAdaptiveStep,
   appendEvidenceRail,
   appendMessage,
+  applyCorpusProfileUi,
   autoPrompt,
   buildAvatarClipsHtml,
   buildAvatarHtml,
   buildPagePdfUrl,
+  buildSanitizedEvidenceBundle,
   checkConnection,
   chooseGraphExperience,
   citationPageUrl,
@@ -82,6 +86,7 @@ const api = {
   deleteSession,
   dismissGraphChoiceModal,
   displayBooks,
+  downloadEvidenceBundle,
   drawHorizontalSVG,
   drawPersonalizedSVG,
   escapeHTML,
@@ -103,6 +108,7 @@ const api = {
   isPanelOpen,
   loadSession,
   loadSharedChat,
+  loadWelcomeSuggestions,
   openBookOrUnavailable,
   openPageViewerModal,
   openPrerequisiteRemediationReader,
@@ -118,6 +124,8 @@ const api = {
   renderBookStack,
   renderChatHistory,
   renderCurriculumPaths,
+  renderEvidenceExportBar,
+  renderFollowUpChips,
   renderGraphExperiencePrompt,
   renderHorizontalGraphCard,
   renderMarkdownSafely,
@@ -143,6 +151,7 @@ const api = {
   showGraphChoiceModal,
   showPearsonCredentialToast,
   showStickyAvatar,
+  shuffleWelcomeSuggestions,
   startNewChat,
   startPersonalizedQnA,
   stopGeneration,

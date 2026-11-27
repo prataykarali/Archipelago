@@ -14,6 +14,8 @@ import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream
 import { postChatRequest } from './08-send-request.js';
 import { handleStreamError } from './08-stream-error.js';
 import { resetChatUi } from './08-stream-cleanup.js';
+import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
+import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-export.js';
 
         // Main Send Function
         async function sendMessage() {
@@ -126,6 +128,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
             let rewriteBuffer = '';
             let liveRewriteMode = false;
             let typewriter = null;
+            let reader = null;
             let finalizeStreamedBubble = null;
             const chatMsgs = document.getElementById('chat-messages');
             const checkUserScroll = () => {
@@ -140,7 +143,8 @@ import { resetChatUi } from './08-stream-cleanup.js';
             try {
                 const response = await postChatRequest(inputVal, state.currentAbortController.signal, { synthesis: true });
 
-                const reader = response.body.getReader();
+                reader = response.body.getReader();
+                state.activeStreamReader = reader;
                 const decoder = new TextDecoder();
 
                 // Remove typing dots when the first text comes in
@@ -192,6 +196,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
                         msgEl.classList.toggle('is-live-streaming', !!live);
                     }
                 });
+                state.activeTypewriter = typewriter;
 
                 // liveRewriteMode / rewriteBuffer / staticStreamBuffer hoisted above try.
 
@@ -239,6 +244,16 @@ import { resetChatUi } from './08-stream-cleanup.js';
                         // Always re-mount paper cards after markdown paint.
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
+                        if (finalText && finalText.trim()) {
+                            renderEvidenceExportBar(msgEl, assistantMsgId, {
+                                query: inputVal,
+                                answerText: finalText,
+                                metadata: window._lastChatMetadata,
+                            });
+                        }
+                        if (window._lastChatMetadata) {
+                            renderFollowUpChips(msgEl, assistantMsgId, window._lastChatMetadata);
+                        }
                     }
                     if (window._lastChatMetadata) {
                         // Graph, Evidence, and Trace are displayed in the right-side Inspector panel.
@@ -253,14 +268,14 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 };
 
                 const _finishStreamUi = () => {
-                    typewriter.flush();
-                    finalizeStreamedBubble();
+                    try { typewriter.flush(); } catch (_) {}
+                    try { finalizeStreamedBubble(); } catch (_) {}
                     setModelStatus(false);
                     state.isGenerating = false;
                     try { window.isGenerating = false; } catch (_) {}
-                    _updateGlowState(false);
+                    try { _updateGlowState(false); } catch (_) {}
                     setSendButtonState('send');
-                    setLibrarianThinking(false);
+                    try { setLibrarianThinking(false); } catch (_) {}
                 };
 
                 const consumeTextChunk = (chunk) => {
@@ -415,6 +430,7 @@ import { resetChatUi } from './08-stream-cleanup.js';
                             try {
                                 const metadata = JSON.parse(metaStr);
                                 window._lastChatMetadata = metadata;
+                                applyCorpusProfileUi(metadata);
                                 populatePipeline(metadata);
                                 populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
                                 if (typeof window.populateInspector === 'function') {
@@ -471,7 +487,14 @@ import { resetChatUi } from './08-stream-cleanup.js';
                 if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
                 if (chatMsgs) chatMsgs.removeEventListener('scroll', checkUserScroll);
                 if (thisQuerySequence === state.currentQuerySequence) {
-                    resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, checkUserScroll });
+                    resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, checkUserScroll, typewriter, reader });
+                } else {
+                    if (typewriter && typeof typewriter.stop === 'function') {
+                        try { typewriter.stop(); } catch (_) {}
+                    }
+                    if (!state.isGenerating) {
+                        setSendButtonState('send');
+                    }
                 }
             }
         }

@@ -1,0 +1,185 @@
+// D11-B-UX: Pure graph node deduplication by canonical concept ID
+// and collision-free SVG label placement for topology rendering.
+
+function canonicalConceptId(item, fallback = '') {
+    if (!item) return String(fallback || '').toLowerCase();
+    if (typeof item === 'string') {
+        return item.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || String(fallback || '').toLowerCase();
+    }
+    const raw = item.canonical_id || item.concept_id || item.id || item.label || item.name || fallback || '';
+    return String(raw).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || String(fallback || '').toLowerCase();
+}
+
+function buildDeduplicatedTopology({
+    anchor,
+    prereqs = [],
+    unlocks = [],
+    related = [],
+    getNodeId,
+    getNodeLabel,
+    getNodeSummary,
+    width = 300,
+    height = 160,
+    large = false,
+}) {
+    const idOf = typeof getNodeId === 'function' ? getNodeId : (n, fb) => (typeof n === 'string' ? n : (n?.id || n?.label || fb));
+    const labelOf = typeof getNodeLabel === 'function' ? getNodeLabel : (n) => (typeof n === 'string' ? n : (n?.label || n?.name || n?.id || ''));
+    const summaryOf = typeof getNodeSummary === 'function' ? getNodeSummary : (n) => (typeof n === 'object' && n ? (n.summary || n.description || '') : '');
+
+    const cx = width / 2;
+    const cy = height / 2 + (large ? 4 : 0);
+
+    const nodeMap = new Map();
+    const edges = [];
+    const seenEdgeKeys = new Set();
+
+    const anchorCanon = canonicalConceptId(anchor, 'anchor');
+    const anchorNode = {
+        canonicalId: anchorCanon,
+        id: idOf(anchor, 'anchor'),
+        label: labelOf(anchor),
+        summary: summaryOf(anchor),
+        x: cx,
+        y: cy,
+        type: 'anchor',
+        relations: ['anchor'],
+        data: anchor,
+    };
+    nodeMap.set(anchorCanon, anchorNode);
+
+    const buckets = { prereq: [], unlock: [], related: [] };
+
+    const ingest = (items, relType, prefix) => {
+        (items || []).forEach((item, idx) => {
+            if (!item) return;
+            const canon = canonicalConceptId(item, `${prefix}_${idx}`);
+            if (!canon || canon === anchorCanon) return;
+
+            let node = nodeMap.get(canon);
+            if (!node) {
+                node = {
+                    canonicalId: canon,
+                    id: idOf(item, `${prefix}${idx}`),
+                    label: labelOf(item),
+                    summary: summaryOf(item),
+                    x: cx,
+                    y: cy,
+                    type: relType,
+                    relations: [relType],
+                    data: item,
+                };
+                nodeMap.set(canon, node);
+                buckets[relType].push(node);
+            } else if (!node.relations.includes(relType)) {
+                node.relations.push(relType);
+            }
+
+            const edgeKey = `${canon}:${relType}`;
+            if (!seenEdgeKeys.has(edgeKey)) {
+                seenEdgeKeys.add(edgeKey);
+                edges.push({
+                    targetCanonicalId: canon,
+                    type: relType,
+                    relationIndex: node.relations.indexOf(relType),
+                });
+            }
+        });
+    };
+
+    ingest(prereqs, 'prereq', 'p');
+    ingest(unlocks, 'unlock', 'u');
+    ingest(related, 'related', 'r');
+
+    // Position each unique node cleanly by its primary role bucket
+    const preX = Math.max(64, cx - Math.min(cx - 48, large ? 200 : 130));
+    const unX = Math.min(width - 64, cx + Math.min(width - cx - 48, large ? 200 : 130));
+
+    const pN = Math.max(buckets.prereq.length, 1);
+    buckets.prereq.forEach((node, i) => {
+        node.x = preX;
+        node.y = (height / (pN + 1)) * (i + 1);
+    });
+
+    const uN = Math.max(buckets.unlock.length, 1);
+    buckets.unlock.forEach((node, i) => {
+        node.x = unX;
+        node.y = (height / (uN + 1)) * (i + 1);
+    });
+
+    buckets.related.forEach((node, i) => {
+        const top = i % 2 === 0;
+        const slot = Math.floor(i / 2);
+        const xOff = (slot - 0.25) * (large ? 76 : 54);
+        node.x = Math.max(48, Math.min(width - 48, cx + xOff + (top ? -22 : 22)));
+        node.y = top
+            ? Math.max(22, cy - (large ? 64 : 50))
+            : Math.min(height - 22, cy + (large ? 64 : 50));
+    });
+
+    const nodes = Array.from(nodeMap.values());
+    const resolvedEdges = edges.map((edge) => ({
+        ...edge,
+        node: nodeMap.get(edge.targetCanonicalId),
+    })).filter((edge) => Boolean(edge.node));
+
+    return { nodes, edges: resolvedEdges, cx, cy };
+}
+
+function resolveLabelPositions(labelSpecs, width, height) {
+    const padX = 8;
+    const minY = 12;
+    const maxY = Math.max(minY + 12, height - 6);
+    const labelH = 14;
+    const placed = [];
+
+    const overlaps = (a, b) => !(
+        a.x2 + 4 < b.x1
+        || a.x1 - 4 > b.x2
+        || a.y2 + 2 < b.y1
+        || a.y1 - 2 > b.y2
+    );
+
+    return (labelSpecs || []).map((spec) => {
+        const halfW = Math.max(12, spec.textWidth / 2);
+        let x = spec.x;
+        if (x - halfW < padX) x = padX + halfW;
+        if (x + halfW > width - padX) x = width - padX - halfW;
+
+        const baseBelow = spec.y + spec.radius + 14;
+        const baseAbove = spec.y - spec.radius - 6;
+        const candidates = [
+            baseBelow <= maxY ? baseBelow : baseAbove,
+            baseAbove >= minY ? baseAbove : baseBelow,
+            baseBelow + labelH,
+            baseAbove - labelH,
+            baseBelow + labelH * 2,
+            baseAbove - labelH * 2,
+        ].map((cy) => Math.max(minY, Math.min(maxY, cy)));
+
+        let chosenY = candidates[0];
+        for (const candY of candidates) {
+            const box = {
+                x1: x - halfW,
+                x2: x + halfW,
+                y1: candY - labelH + 3,
+                y2: candY + 3,
+            };
+            if (!placed.some((p) => overlaps(box, p))) {
+                chosenY = candY;
+                placed.push(box);
+                return { ...spec, labelX: x, labelY: chosenY };
+            }
+        }
+
+        // Fallback: keep clamped candidate and record box
+        placed.push({
+            x1: x - halfW,
+            x2: x + halfW,
+            y1: chosenY - labelH + 3,
+            y2: chosenY + 3,
+        });
+        return { ...spec, labelX: x, labelY: chosenY };
+    });
+}
+
+export { buildDeduplicatedTopology, canonicalConceptId, resolveLabelPositions };
