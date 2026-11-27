@@ -139,9 +139,11 @@ PROVIDER_MODEL_ENV = {"xkiro": "XKIRO_MODEL", "nvidia": "NVIDIA_MODEL"}
 PROVIDER_BASE_URL = {"xkiro": XKIRO_DEFAULT_BASE_URL, "nvidia": NVIDIA_BASE_URL}
 PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
 
-STREAM_CONNECT_TIMEOUT_SECONDS = 8
-STREAM_FIRST_TOKEN_TIMEOUT_SECONDS = 15
-STREAM_READ_TIMEOUT_SECONDS = 25
+STREAM_CONNECT_TIMEOUT_SECONDS = 6
+STREAM_FIRST_TOKEN_TIMEOUT_SECONDS = 10
+STREAM_READ_TIMEOUT_SECONDS = 12
+STREAM_TOTAL_DEADLINE_SECONDS = 25
+PRE_FIRST_TOKEN_BUDGET_SECONDS = 12.0
 STREAM_TIMEOUT_SECONDS = 25
 COMPLETE_TIMEOUT_SECONDS = 25
 # Gentle spacing so a burst of polish calls does not trip provider rate limits.
@@ -216,6 +218,20 @@ def complete(config: ProviderConfig, text: str) -> str:
     return str(response.json()["choices"][0]["message"]["content"]).strip()
 
 
+def _tighten_socket_timeout(resp: object, remaining_sec: float) -> None:
+    """Tighten underlying urllib3 socket timeout so a stalled read cannot exceed deadline."""
+    try:
+        raw = getattr(resp, "raw", None)
+        fp = getattr(raw, "_fp", None)
+        sock = getattr(getattr(fp, "fp", None), "raw", None)
+        if sock is not None and hasattr(sock, "_sock") and sock._sock is not None:
+            sock._sock.settimeout(max(0.5, remaining_sec))
+        elif fp is not None and hasattr(fp, "settimeout"):
+            fp.settimeout(max(0.5, remaining_sec))
+    except Exception:
+        logger.debug("Socket timeout tightening skipped for mock or closed stream")
+
+
 def stream_completion(
     config: ProviderConfig,
     text: str,
@@ -224,17 +240,52 @@ def stream_completion(
     reply_template_id: str = "",
     reply_detail: str = "standard",
     reply_plan: dict | None = None,
+    *,
+    first_token_deadline: float | None = None,
+    total_deadline: float | None = None,
 ) -> Iterator[str]:
-    """Stream one provider; an empty stream lets the caller report failure honestly."""
+    """Stream one provider under strict pre-first-token and total-stream deadlines."""
     resp = None
     _last_error_local.error = None
     _last_error_local.outcome = None
     t_start = time.perf_counter()
+    ft_deadline = (
+        first_token_deadline
+        if first_token_deadline is not None
+        else (t_start + STREAM_FIRST_TOKEN_TIMEOUT_SECONDS)
+    )
+    tot_deadline = (
+        total_deadline
+        if total_deadline is not None
+        else (t_start + STREAM_TOTAL_DEADLINE_SECONDS)
+    )
     active_model = config["model"]
-    timeout_pair = (STREAM_CONNECT_TIMEOUT_SECONDS, STREAM_FIRST_TOKEN_TIMEOUT_SECONDS)
+    rem_init = min(ft_deadline, tot_deadline) - t_start
+    if rem_init <= 0.5:
+        _record_provider_error(
+            config["provider"],
+            active_model,
+            "first_token_timeout",
+            latency_ms=0.0,
+        )
+        _last_error_local.outcome = {
+            "provider": config["provider"],
+            "model": active_model,
+            "status": "first_token_timeout",
+            "finish_reason": None,
+            "saw_done": False,
+            "yielded_any": False,
+            "latency_ms": 0.0,
+        }
+        return
+    timeout_pair = (
+        min(STREAM_CONNECT_TIMEOUT_SECONDS, max(1.0, rem_init)),
+        min(STREAM_FIRST_TOKEN_TIMEOUT_SECONDS, max(1.0, rem_init)),
+    )
     yielded_any = False
     saw_done = False
     timed_out_pre_first_token = False
+    timed_out_mid_stream = False
     finish_reason: str | None = None
     try:
         _pace_provider_call()
@@ -359,9 +410,18 @@ def stream_completion(
                     )
 
         for line_str in _iter_sse_lines():
-            if not yielded_any and (time.perf_counter() - t_start) > STREAM_FIRST_TOKEN_TIMEOUT_SECONDS:
+            now = time.perf_counter()
+            if not yielded_any and now >= ft_deadline:
                 timed_out_pre_first_token = True
                 break
+            if now >= tot_deadline:
+                if yielded_any:
+                    timed_out_mid_stream = True
+                else:
+                    timed_out_pre_first_token = True
+                break
+            remaining = (ft_deadline - now) if not yielded_any else (tot_deadline - now)
+            _tighten_socket_timeout(resp, min(STREAM_READ_TIMEOUT_SECONDS, remaining))
             if not line_str or not line_str.startswith("data:"):
                 continue
             data_part = line_str[len("data:") :].strip()
@@ -389,6 +449,15 @@ def stream_completion(
         latency_ms = (time.perf_counter() - t_start) * 1000
         if not yielded_any:
             status = "first_token_timeout" if timed_out_pre_first_token else "empty_stream"
+            _record_provider_error(
+                config["provider"],
+                active_model,
+                status,
+                status_code=200,
+                latency_ms=latency_ms,
+            )
+        elif timed_out_mid_stream:
+            status = "stream_deadline_exceeded"
             _record_provider_error(
                 config["provider"],
                 active_model,

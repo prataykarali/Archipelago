@@ -485,6 +485,8 @@ def register(app: Flask, ctx: AppContext) -> None:
                 intent=prepared.get("route") or "unknown",
                 synthesis_mode=metadata.get("synthesis_mode") or "unknown",
                 provider=metadata.get("provider") or "deterministic",
+                provider_status=metadata.get("provider_status"),
+                fallback_reason=metadata.get("fallback_reason"),
                 model=model.get("model") if isinstance(model, dict) else "",
                 cache_status="miss_no_reuse",
                 release_sha=runtime_release_sha(),
@@ -509,7 +511,9 @@ def register(app: Flask, ctx: AppContext) -> None:
             t_stream_start = None
             research_ms = round((t_after_research - t_req_start) * 1000, 1)
             engine_ms = round((t_eng_end - t_eng_start) * 1000, 1)
+            ev_ms = prepared.get("evidence_retrieval_ms")
             enrich_ms = round((t_enrich_end - t_eng_end) * 1000, 1) if should_enrich else None
+            request_deadline = t_req_start + 28.0
             payload = dict(prepared.get("payload") or {})
             canonical_citations = assign_canonical_citations(payload.get("citations"))
             if canonical_citations:
@@ -517,11 +521,14 @@ def register(app: Flask, ctx: AppContext) -> None:
             try:
                 if prepared.get("research_overlay") and not custom_reply:
                     payload["synthesis_mode"] = infer_synthesis_mode(prepared, payload)
+                    payload.setdefault("provider_status", "not_invoked")
+                    payload.setdefault("fallback_reason", None)
                     ttft_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
                     payload["stage_timings_ms"] = {
                         "research_run_ms": research_ms,
                         "intent_and_graph_ms": engine_ms,
-                        "evidence_retrieval_ms": enrich_ms,
+                        "evidence_retrieval_ms": ev_ms,
+                        "research_enrichment_ms": enrich_ms,
                         "provider_ttft_ms": None,
                         "ttft_ms": ttft_ms,
                         "total_ms": ttft_ms,
@@ -536,7 +543,11 @@ def register(app: Flask, ctx: AppContext) -> None:
                 else:
                     prepared_for_stream = dict(prepared)
                     prepared_for_stream["payload"] = payload
-                    options = {"previous_answer": previous_answer, "prepared": prepared_for_stream}
+                    options = {
+                        "previous_answer": previous_answer,
+                        "prepared": prepared_for_stream,
+                        "request_deadline": request_deadline,
+                    }
                     if template_id:
                         options["reply_template_id"] = template_id
                     elif prepared.get(
@@ -556,7 +567,11 @@ def register(app: Flask, ctx: AppContext) -> None:
                     try:
                         stream_iter = ctx.engine.stream_chat(resolved_query, **options)
                     except TypeError:
-                        stream_iter = ctx.engine.stream_chat(resolved_query)
+                        options.pop("request_deadline", None)
+                        try:
+                            stream_iter = ctx.engine.stream_chat(resolved_query, **options)
+                        except TypeError:
+                            stream_iter = ctx.engine.stream_chat(resolved_query)
                     for chunk in stream_iter:
                         if STREAM_MARKER in chunk:
                             head, rest = chunk.split(STREAM_MARKER, 1)
@@ -587,13 +602,31 @@ def register(app: Flask, ctx: AppContext) -> None:
                                 meta["stage_timings_ms"] = {
                                     "research_run_ms": research_ms,
                                     "intent_and_graph_ms": engine_ms,
-                                    "evidence_retrieval_ms": enrich_ms,
+                                    "evidence_retrieval_ms": ev_ms,
+                                    "research_enrichment_ms": enrich_ms,
                                     "provider_ttft_ms": prov_ttft,
                                     "ttft_ms": now_ms,
                                 }
                                 annotate_trace(meta, timing=meta["stage_timings_ms"])
                             yield json.dumps(meta) + STREAM_MARKER + rest
                             continue
+                        if "[STREAM_META:" in chunk:
+                            try:
+                                prefix, tail = chunk.split("[STREAM_META:", 1)
+                                json_str, suffix = tail.split("]", 1)
+                                tmeta = json.loads(json_str)
+                                tmeta["total_ms"] = round((time.perf_counter() - t_req_start) * 1000, 1)
+                                tmeta["provider_stream_ms"] = (
+                                    round((time.perf_counter() - t_stream_start) * 1000, 1)
+                                    if t_stream_start is not None
+                                    else None
+                                )
+                                tmeta["evidence_retrieval_ms"] = ev_ms
+                                yield f"{prefix}[STREAM_META:{json.dumps(tmeta)}]{suffix}"
+                                continue
+                            except Exception:
+                                yield chunk
+                                continue
                         if ttft_ms is None:
                             ttft_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
                         if "[" in chunk and active_citations is not None:

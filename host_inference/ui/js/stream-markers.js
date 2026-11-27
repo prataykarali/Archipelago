@@ -1,6 +1,7 @@
 // Incremental stream control-marker parser safe across arbitrary network chunk boundaries.
 const MARKER_TAIL_GUARD = 48;
 const STREAM_STATUS_RE = /\[(STREAM_TRUNCATED|STREAM_INCOMPLETE):([a-zA-Z0-9_-]+)\]/g;
+const STREAM_META_RE = /\[STREAM_META:(\{[^\n]*\})\]/g;
 
 /**
  * Split ``incoming`` into a safe-to-consume prefix and a trailing guard slice
@@ -31,12 +32,27 @@ export function splitSafeStreamChunk(buffered, { finalFlush = false } = {}) {
 export function extractStreamStatusMarkers(text) {
     let streamStatus = null;
     let streamReason = null;
-    const cleaned = String(text || '').replace(STREAM_STATUS_RE, (_m, kind, reason) => {
+    let terminalMeta = null;
+    let cleaned = String(text || '').replace(STREAM_STATUS_RE, (_m, kind, reason) => {
         streamStatus = kind === 'STREAM_TRUNCATED' ? 'truncated_token_limit' : 'incomplete_stream';
         streamReason = reason || '';
         return '';
     });
-    return { cleaned, streamStatus, streamReason };
+    cleaned = cleaned.replace(STREAM_META_RE, (_m, jsonStr) => {
+        try {
+            terminalMeta = JSON.parse(jsonStr);
+            if (window && window._lastChatMetadata && terminalMeta) {
+                Object.assign(window._lastChatMetadata, terminalMeta);
+                if (typeof window.populateInspector === 'function') {
+                    window.populateInspector(window._lastChatMetadata);
+                }
+            }
+        } catch (_err) {
+            // Ignore malformed terminal metadata frame
+        }
+        return '';
+    });
+    return { cleaned, streamStatus, streamReason, terminalMeta };
 }
 
 /**

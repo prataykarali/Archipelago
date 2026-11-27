@@ -21,19 +21,20 @@ FIND = re.compile(
 )
 ORDINALS = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "last": -1}
 COLLECTION = re.compile(
-    r"\b(collected|these (works|papers)|this (research )?collection|that paper|the (first|second|third|"
-    r"fourth|fifth|last) paper|(?:last|latest|recent|saved|previous)\s+(?:\d+\s+)?(?:research\s+)?(?:papers?|runs?|searches?)|"
+    r"\b(collected|these (works|papers)|this (research )?collection|my (research )?(collection|runs?|monitors?)|"
+    r"that paper|the (first|second|third|fourth|fifth|last) paper|"
+    r"(?:last|latest|recent|saved|previous)\s+(?:\d+\s+)?(?:research\s+)?(?:papers?|runs?|searches?|monitors?)|"
     r"that author|the author|authors?|h-index|i10|journals?|conferences?|"
-    r"venues?|citation relationships?|cit(?:es|ations?)|methods?|datasets?|export|excel|workbook|"
-    r"new papers|monitor|monitoring|providers?|results?|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
-    r"duplicat(?:ed|es)|external|discuss|mention|cover|rank(?:ing|ed)?|compare|best|relevan\w*|quantiz\w*|low[- ]memory|inference)\b",
+    r"venues?|citation relationships?|cit(?:es|ations?)|export|excel|workbook|spreadsheet|"
+    r"new papers|topic monitors?|monitoring|arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|"
+    r"duplicat(?:ed|es))\b",
     re.I,
 )
 RESEARCH_WORDS = re.compile(
     r"\b(papers?|authors?|h-index|i10|journals?|conferences?|venues?|abstracts?|"
-    r"collection|collected|monitoring|providers?|results?|research methods?|citation relationships?|datasets?|"
-    r"arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|duplicat(?:ed|es)|citations?|"
-    r"discuss|mention|quantiz\w*|low[- ]memory|inference)\b",
+    r"collection|collected|runs?|monitors?|monitoring|research methods?|citation relationships?|citations?|"
+    r"export|excel|xlsx|workbook|spreadsheet|"
+    r"arxiv|dblp|openaire|datacite|opencitations|pubmed|europe pmc|duplicat(?:ed|es))\b",
     re.I,
 )
 EXPORT = re.compile(r"\b(export|excel|xlsx|workbook|spreadsheet|download)\b", re.I)

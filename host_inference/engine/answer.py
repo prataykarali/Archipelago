@@ -41,6 +41,8 @@ from .followups import build_follow_up_questions
 from .graph import LibraryGraph
 from .links import source_links
 from .llm import (
+    PRE_FIRST_TOKEN_BUDGET_SECONDS,
+    STREAM_TOTAL_DEADLINE_SECONDS,
     fallback_config,
     last_provider_error,
     last_stream_outcome,
@@ -156,20 +158,26 @@ class Engine:
         initial_cites = extra.get("citations") or (
             [extra["citation"]] if extra.get("citation") else []
         )
-        if not initial_cites and anchor_ok:
-            initial_cites = select_evidence_citations(graph, anchor, query)
+        evidence_retrieval_ms: float | None = None
         if anchor_ok and (
             not initial_cites or not any(c.get("url") for c in initial_cites if isinstance(c, dict))
         ):
-            catalog_cites = select_catalog_passages(
-                self.catalog,
-                query,
-                concept_label=graph.label(anchor),
-                anchor_cid=anchor or "",
-                chunk_index=getattr(graph, "_chunk_provenance_index", None),
-            )
-            if catalog_cites:
-                initial_cites = catalog_cites
+            t_ev_start = time.perf_counter()
+            if not initial_cites:
+                initial_cites = select_evidence_citations(graph, anchor, query)
+            if not initial_cites or not any(
+                c.get("url") for c in initial_cites if isinstance(c, dict)
+            ):
+                catalog_cites = select_catalog_passages(
+                    self.catalog,
+                    query,
+                    concept_label=graph.label(anchor),
+                    anchor_cid=anchor or "",
+                    chunk_index=getattr(graph, "_chunk_provenance_index", None),
+                )
+                if catalog_cites:
+                    initial_cites = catalog_cites
+            evidence_retrieval_ms = round((time.perf_counter() - t_ev_start) * 1000, 1)
 
         payload = {
             "anchor_concept": node_public(graph.nodes[anchor]) if anchor_ok else None,
@@ -455,6 +463,7 @@ class Engine:
             "anchor": anchor,
             "extra": extra,
             "intent_category": extra.get("intent_category") or route,
+            "evidence_retrieval_ms": evidence_retrieval_ms,
         }
 
     def stream_chat(
@@ -464,8 +473,15 @@ class Engine:
         prepared: dict | None = None,
         reply_template_id: str = "",
         reply_detail: str = "standard",
+        request_deadline: float | None = None,
     ):
-        """Stream a provider answer for grounded questions and report failures."""
+        """Stream a provider answer under a bounded end-to-end deadline."""
+        t_stream_entry = time.perf_counter()
+        deadline = (
+            request_deadline
+            if request_deadline is not None
+            else (t_stream_entry + STREAM_TOTAL_DEADLINE_SECONDS)
+        )
         result = prepared if prepared is not None else self.answer(query)
         route = result["route"]
         grounded_text = result["text"]
@@ -489,15 +505,30 @@ class Engine:
         if not can_polish:
             payload["synthesis_mode"] = "verified_deterministic"
             payload["provider"] = ""
+            payload["provider_status"] = "not_invoked"
+            payload["fallback_reason"] = None
             payload["model"] = {"provider": "deterministic", "model": ""}
             trace.update(
                 provider="deterministic",
+                provider_status="not_invoked",
+                fallback_reason=None,
                 model="",
                 synthesis_mode=payload["synthesis_mode"],
                 template_influenced=False,
             )
             yield json.dumps(payload) + "\n[STREAM_START]\n"
             yield grounded_text
+            yield (
+                "\n[STREAM_META:"
+                + json.dumps(
+                    {
+                        "provider_status": "not_invoked",
+                        "fallback_reason": None,
+                        "stream_status": "complete",
+                    }
+                )
+                + "]\n"
+            )
             return
 
         safe_text = redact_for_model(grounded_text)
@@ -542,30 +573,68 @@ class Engine:
         selected = None
         first_token = None
         stream = None
-        max_wait_sec = 20.0
         wait_started = time.perf_counter()
+        rem_total = max(0.05, deadline - wait_started)
+        ft_deadline = wait_started + min(PRE_FIRST_TOKEN_BUDGET_SECONDS, rem_total * 0.6)
         candidates = (config, fallback_config(config)) if config else ()
         for candidate in candidates:
             if candidate is None:
                 continue
-            if (time.perf_counter() - wait_started) >= max_wait_sec:
+            if time.perf_counter() >= ft_deadline:
                 break
-            if reply_detail == "expanded" or reply_template_id:
-                attempt = iter(
-                    stream_completion(
-                        candidate,
-                        safe_text,
-                        query,
-                        previous_answer,
-                        plan["primary_template"]["id"],
-                        reply_detail,
-                        reply_plan=plan,
+            try:
+                if reply_detail == "expanded" or reply_template_id:
+                    attempt = iter(
+                        stream_completion(
+                            candidate,
+                            safe_text,
+                            query,
+                            previous_answer,
+                            plan["primary_template"]["id"],
+                            reply_detail,
+                            reply_plan=plan,
+                            first_token_deadline=ft_deadline,
+                            total_deadline=deadline,
+                        )
                     )
-                )
-            elif previous_answer:
-                attempt = iter(stream_completion(candidate, safe_text, query, previous_answer))
-            else:
-                attempt = iter(stream_completion(candidate, safe_text, query))
+                elif previous_answer:
+                    attempt = iter(
+                        stream_completion(
+                            candidate,
+                            safe_text,
+                            query,
+                            previous_answer,
+                            first_token_deadline=ft_deadline,
+                            total_deadline=deadline,
+                        )
+                    )
+                else:
+                    attempt = iter(
+                        stream_completion(
+                            candidate,
+                            safe_text,
+                            query,
+                            first_token_deadline=ft_deadline,
+                            total_deadline=deadline,
+                        )
+                    )
+            except TypeError:
+                if reply_detail == "expanded" or reply_template_id:
+                    attempt = iter(
+                        stream_completion(
+                            candidate,
+                            safe_text,
+                            query,
+                            previous_answer,
+                            plan["primary_template"]["id"],
+                            reply_detail,
+                            reply_plan=plan,
+                        )
+                    )
+                elif previous_answer:
+                    attempt = iter(stream_completion(candidate, safe_text, query, previous_answer))
+                else:
+                    attempt = iter(stream_completion(candidate, safe_text, query))
             first = next(attempt, None)
             if first:
                 selected = candidate
@@ -575,18 +644,23 @@ class Engine:
 
         if selected is None:
             provider_err = last_provider_error()
-            err_reason = str((provider_err or {}).get("error_type") or "unavailable")
+            err_reason = (
+                "provider_not_configured"
+                if config is None
+                else str((provider_err or {}).get("error_type") or "unavailable")
+            )
+            prov_status = "not_configured" if config is None else "unavailable"
             has_evidence = bool(payload.get("citations")) and bool(payload.get("anchor_concept"))
             payload["synthesis_mode"] = "provider_unavailable_fallback"
             payload["provider"] = "unavailable"
-            payload["provider_status"] = "unavailable"
+            payload["provider_status"] = prov_status
             payload["fallback_reason"] = err_reason
             payload["provider_unavailable"] = True
             payload["provider_error"] = err_reason
             payload["model"] = {"provider": "unavailable", "model": ""}
             trace.update(
                 provider="unavailable",
-                provider_status="unavailable",
+                provider_status=prov_status,
                 fallback_reason=err_reason,
                 model="",
                 synthesis_mode=payload["synthesis_mode"],
@@ -621,6 +695,17 @@ class Engine:
                     f"(`{err_reason}`): the local corpus has insufficient indexed evidence to "
                     "answer this question deterministically without live synthesis."
                 )
+            yield (
+                "\n[STREAM_META:"
+                + json.dumps(
+                    {
+                        "provider_status": prov_status,
+                        "fallback_reason": err_reason,
+                        "stream_status": "fallback_grounded" if has_evidence else "abstained",
+                    }
+                )
+                + "]\n"
+            )
             return
 
         payload["synthesis_mode"] = (
@@ -629,9 +714,15 @@ class Engine:
             else f"{selected['provider']}_fallback"
         )
         payload["provider"] = selected["provider"]
+        payload["provider_status"] = "streaming"
+        payload["fallback_reason"] = (
+            "primary_provider_failover" if selected["provider"] != "xkiro" else None
+        )
         payload["model"] = {"provider": selected["provider"], "model": selected["model"]}
         trace.update(
             provider=selected["provider"],
+            provider_status="streaming",
+            fallback_reason=payload["fallback_reason"],
             model=selected["model"],
             synthesis_mode=payload["synthesis_mode"],
             template_influenced=bool(reply_detail == "expanded" or reply_template_id),
@@ -643,14 +734,22 @@ class Engine:
         streamed_chunks: list[str] = [first_token]
         yielded_len = len(first_token)
         yield first_token
+        hit_stream_deadline = False
         if stream is not None:
             for tok in stream:
+                if time.perf_counter() >= deadline:
+                    hit_stream_deadline = True
+                    break
                 streamed_chunks.append(tok)
                 yielded_len += len(tok)
                 yield tok
         outcome = last_stream_outcome()
         mid_stream_err = last_provider_error()
-        outcome_status = str((outcome or {}).get("status") or "")
+        outcome_status = (
+            "stream_deadline_exceeded"
+            if hit_stream_deadline
+            else str((outcome or {}).get("status") or "")
+        )
         if outcome_status == "truncated_token_limit":
             fr = str((outcome or {}).get("finish_reason") or "length")
             yield f"\n[STREAM_TRUNCATED:{fr}]\n"
@@ -658,10 +757,27 @@ class Engine:
                 "\n\n> **Response truncated (token limit reached):** "
                 "the provider stopped before completing the answer; showing partial response received."
             )
+            yield (
+                "\n[STREAM_META:"
+                + json.dumps(
+                    {
+                        "provider_status": "truncated_token_limit",
+                        "fallback_reason": payload["fallback_reason"],
+                        "stream_status": "truncated_token_limit",
+                        "finish_reason": fr,
+                    }
+                )
+                + "]\n"
+            )
             return
         if (
             outcome_status
-            in {"incomplete_eof", "stream_interrupted_timeout", "stream_interrupted"}
+            in {
+                "incomplete_eof",
+                "stream_interrupted_timeout",
+                "stream_interrupted",
+                "stream_deadline_exceeded",
+            }
             or outcome_status.startswith("provider_")
             or mid_stream_err
         ):
@@ -673,6 +789,17 @@ class Engine:
             yield (
                 "\n\n> **Incomplete stream:** live synthesis ended unexpectedly "
                 f"(`{err_kind}`) before completion."
+            )
+            yield (
+                "\n[STREAM_META:"
+                + json.dumps(
+                    {
+                        "provider_status": err_kind,
+                        "fallback_reason": err_kind,
+                        "stream_status": "incomplete_stream",
+                    }
+                )
+                + "]\n"
             )
             return
         if yielded_len < 80 and grounded_text:
@@ -691,6 +818,18 @@ class Engine:
             yield "\n\n**Sources:**\n" + "\n".join(source_lines)
         if link_lines:
             yield "\n\n" + "\n".join(link_lines)
+        yield (
+            "\n[STREAM_META:"
+            + json.dumps(
+                {
+                    "provider_status": "complete",
+                    "fallback_reason": payload["fallback_reason"],
+                    "stream_status": "complete",
+                    "finish_reason": (outcome or {}).get("finish_reason"),
+                }
+            )
+            + "]\n"
+        )
 
     def _route_shelf_query(
         self, query: str, best_score: float

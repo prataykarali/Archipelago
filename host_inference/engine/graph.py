@@ -198,8 +198,51 @@ class LibraryGraph:
         b_reqs = {dst for kind, dst in self.out.get(b, []) if kind == "REQUIRES"}
         return b in a_reqs and a in b_reqs
 
+    _GENERIC_BROAD_UNIGRAMS = frozenset(
+        {
+            "data",
+            "tree",
+            "syntax",
+            "token",
+            "layer",
+            "model",
+            "system",
+            "method",
+            "graph",
+            "network",
+            "sequence",
+            "feature",
+            "function",
+            "structure",
+            "state",
+            "text",
+            "time",
+            "space",
+            "value",
+            "input",
+            "output",
+            "score",
+            "error",
+            "loss",
+            "number",
+            "table",
+            "node",
+            "edge",
+            "path",
+            "code",
+            "query",
+            "index",
+            "vector",
+            "matrix",
+        }
+    )
+    _DIRECT_DEF_RE = re.compile(
+        r"^\s*(?:what\s+(?:is|are)\s+(?:a|an|the)?\s*|define\s+(?:a|an|the)?\s*|explain\s+(?:a|an|the)?\s*)([a-z0-9]+)\s*\??\s*$",
+        re.I,
+    )
+
     def _specificity_bonus(self, cid: str, matched: set[str], q_words: set[str]) -> float:
-        """Prefer narrower/child concepts over broader parent concepts when both match."""
+        """Prefer narrower/multi-word child concepts over broader single-word concepts."""
         bonus = 0.0
         for other in matched:
             if other == cid:
@@ -209,9 +252,17 @@ class LibraryGraph:
             if other in self.prereqs(cid, 2) and not self.has_contradictory_cycle(cid, other):
                 bonus += 0.12
         norm_lbl = re.sub(r"[^a-z0-9]+", " ", self.label(cid).lower()).strip()
-        lbl_words = {w for w in norm_lbl.split() if len(w) >= 2}
-        if lbl_words:
-            bonus += 0.06 * (len(lbl_words & q_words) / len(lbl_words))
+        lbl_words = [w for w in norm_lbl.split() if len(w) >= 2]
+        lbl_set = set(lbl_words)
+        if lbl_set:
+            if len(lbl_set) >= 2:
+                # Multi-word domain concepts are inherently more specific than single words.
+                bonus += 0.08 * min(3, len(lbl_set) - 1)
+                bonus += 0.06 * (len(lbl_set & q_words) / len(lbl_set))
+            elif next(iter(lbl_set)) in self._GENERIC_BROAD_UNIGRAMS:
+                bonus -= 0.08
+            else:
+                bonus += 0.04 * (len(lbl_set & q_words) / len(lbl_set))
         if (self.nodes.get(cid) or {}).get("sources"):
             bonus += 0.03
         return bonus
@@ -226,17 +277,50 @@ class LibraryGraph:
             if len(word) >= 5 and word.endswith("s") and not word.endswith("ss")
         }
         q_with_singular = f" {q.strip()} {' '.join(sorted(singular))} "
-        hits = []
+        direct_def_match = self._DIRECT_DEF_RE.match(query)
+        direct_def_term = direct_def_match.group(1).lower() if direct_def_match else ""
+        is_multi_word_query = len(words) >= 2
+
+        hits: list[str] = []
+        matched_phrases: dict[str, str] = {}
         for phrase, cid in sorted(ALIASES.items(), key=lambda item: -len(item[0])):
             if cid not in self.nodes:
                 continue
             if f" {phrase} " in q_with_singular and cid not in hits:
                 hits.append(cid)
+                matched_phrases[cid] = phrase
         for label, cid in sorted(self._label_index, key=lambda item: -len(item[0])):
             if len(label) < MIN_PHRASE_LABEL_LEN:
                 continue
             if f" {label} " in q_with_singular and cid not in hits:
                 hits.append(cid)
+                matched_phrases[cid] = label
+
+        # 1. Suppress single-word hits subsumed by a longer multi-word matched phrase
+        #    (e.g. "data" inside "data link layer").
+        multi_phrases = [p for p in matched_phrases.values() if " " in p.strip()]
+        filtered_hits: list[str] = []
+        for cid in hits:
+            phrase = matched_phrases.get(cid, "").strip()
+            lbl_words = [
+                w
+                for w in re.sub(r"[^a-z0-9]+", " ", self.label(cid).lower()).split()
+                if len(w) >= 2
+            ]
+            if " " not in phrase and any(f" {phrase} " in f" {mp} " for mp in multi_phrases):
+                continue
+            # 2. Do not force-boost ultra-broad generic unigrams inside multi-word technical queries
+            #    unless the user is directly asking to define that unigram.
+            if (
+                is_multi_word_query
+                and len(lbl_words) == 1
+                and lbl_words[0] in self._GENERIC_BROAD_UNIGRAMS
+                and lbl_words[0] != direct_def_term
+            ):
+                continue
+            filtered_hits.append(cid)
+
+        hits = filtered_hits
         matched_set = set(hits)
         q_words = words | singular
         orig_order = {cid: idx for idx, cid in enumerate(hits)}
