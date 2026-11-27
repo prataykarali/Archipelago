@@ -7,6 +7,12 @@ document for the UI.
 
 from __future__ import annotations
 
+from engine.access_profile import (
+    active_access_profile,
+    is_institutional_card,
+    is_open_access_profile,
+)
+from engine.corpus_titles import clean_bibliographic_title
 from flask import Flask, current_app, jsonify, request
 from library_index import hf_title, load_hf_paths, paper_url
 from library_inventory import inventory_stats, load_inventory
@@ -147,33 +153,42 @@ def register(app: Flask, ctx: AppContext) -> None:
             if existing
             else "unavailable"
         )
+        open_only = is_open_access_profile()
         if manifest.get("ebook_shelf"):
             placeholder_titles = {
                 "Chapter 1: Foundations & Architecture",
                 "Chapter 2: Core Concepts & Practice",
                 "Chapter 3: Advanced Topics",
             }
+            if open_only:
+                manifest["ebook_shelf"] = [
+                    item
+                    for item in manifest["ebook_shelf"]
+                    if not is_institutional_card(item)
+                ]
             for item in manifest["ebook_shelf"]:
                 if isinstance(item, dict) and isinstance(item.get("toc"), list):
                     titles = {str(t.get("title") or "") for t in item["toc"] if isinstance(t, dict)}
                     if titles and titles.issubset(placeholder_titles):
                         item["toc"] = [{"title": "TOC not indexed (catalogue-only metadata)", "page": None}]
-            manifest["holdings"] = rows
-            manifest["holdings_stats"] = inventory_stats(rows)
-            manifest["holdings_status"] = holdings_status
-            if opac:
+            manifest["holdings"] = [] if open_only else rows
+            manifest["holdings_stats"] = inventory_stats([] if open_only else rows)
+            manifest["holdings_status"] = "open_access_excluded" if open_only else holdings_status
+            manifest["access_profile"] = active_access_profile()
+            manifest["open_access_only"] = open_only
+            if opac and not open_only:
                 manifest["opac_daily"] = opac.get("opac_daily")
                 manifest["koha_source_updated_at"] = opac.get("source_updated_at")
                 manifest["koha_stale"] = opac.get("stale")
             return jsonify(manifest)
 
-        ebooks = [public_book(book) for book in load_books()]
+        ebooks = [] if open_only else [public_book(book) for book in load_books()]
         for path in load_hf_paths():
             item = dict(DATASET_BOOK)
             item.update(
                 {
                     "id": path,
-                    "title": hf_title(path),
+                    "title": clean_bibliographic_title(path, hf_title(path)),
                     "domain": _dataset_domain(path),
                     "open_url": paper_url(path, 1),
                     "reader_base_url": paper_url(path, 1),
@@ -182,14 +197,22 @@ def register(app: Flask, ctx: AppContext) -> None:
             ebooks.append(item)
         return jsonify(
             {
+                "access_profile": active_access_profile(),
+                "open_access_only": open_only,
                 "ebook_shelf": ebooks,
-                "ebook_stats": f"{len(ebooks)} institutional e-books · passwords are not shown",
-                "holdings": rows,
-                "holdings_stats": inventory_stats(rows),
-                "holdings_status": holdings_status,
-                "opac_daily": opac.get("opac_daily") if opac else None,
-                "koha_source_updated_at": opac.get("source_updated_at") if opac else None,
-                "koha_stale": opac.get("stale") if opac else None,
+                "ebook_stats": (
+                    f"{len(ebooks)} open-access documents"
+                    if open_only
+                    else f"{len(ebooks)} institutional e-books · passwords are not shown"
+                ),
+                "holdings": [] if open_only else rows,
+                "holdings_stats": inventory_stats([] if open_only else rows),
+                "holdings_status": "open_access_excluded" if open_only else holdings_status,
+                "opac_daily": (opac.get("opac_daily") if opac and not open_only else None),
+                "koha_source_updated_at": (
+                    opac.get("source_updated_at") if opac and not open_only else None
+                ),
+                "koha_stale": (opac.get("stale") if opac and not open_only else None),
                 "journal_issues": [],
                 "subject_counts": [],
             }
@@ -238,9 +261,10 @@ def register(app: Flask, ctx: AppContext) -> None:
 
     @app.get("/api/catalog/all")
     def catalog_all():
+        open_only = is_open_access_profile()
         docs = []
         existing = set()
-        for book in load_books():
+        for book in ([] if open_only else load_books()):
             book_id = book.get("id")
             if not book_id or book_id in existing:
                 continue
@@ -293,7 +317,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             docs.append(
                 {
                     "id": path,
-                    "title": hf_title(path),
+                    "title": clean_bibliographic_title(path, hf_title(path)),
                     "authors": CATALOG_AUTHOR,
                     "year": CATALOG_YEAR,
                     "cat": "textbook" if is_textbook else "paper",
@@ -320,4 +344,12 @@ def register(app: Flask, ctx: AppContext) -> None:
             {"key": key, "label": label, "count": domain_counts[key]}
             for key, label in CANONICAL_DOMAINS
         ]
-        return jsonify({"documents": docs, "total": len(docs), "domains": domains_summary})
+        return jsonify(
+            {
+                "access_profile": active_access_profile(),
+                "open_access_only": open_only,
+                "documents": docs,
+                "total": len(docs),
+                "domains": domains_summary,
+            }
+        )

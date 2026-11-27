@@ -5,6 +5,7 @@ import { CATALOG_55, DOM_SECTIONS, getCategory, getDocCollection, setActiveDomai
 import { openBookOrUnavailable } from './06-open-book-or-unavailable.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_HOST } from './00-current-origin.js';
+import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
 
 function renderAllDomainsDrawer(allDocs) {
     const listEl = document.getElementById('all-domains-list');
@@ -12,9 +13,11 @@ function renderAllDomainsDrawer(allDocs) {
 
     const counts = {};
     DOM_SECTIONS.forEach(sec => { counts[sec.key] = 0; });
+    const openAccessOnly = Boolean(typeof window !== 'undefined' && window.ARCHIPELAGO_OPEN_ACCESS_ONLY);
     allDocs.forEach(doc => {
+        const col = getDocCollection(doc);
+        if (openAccessOnly && col === 'library_pearson') return;
         if (state.currentTypeFilter !== 'all') {
-            const col = getDocCollection(doc);
             if (state.currentTypeFilter === 'library_pearson' && col !== 'library_pearson') return;
             if (state.currentTypeFilter === 'open_source' && col !== 'open_source') return;
         }
@@ -62,11 +65,13 @@ function displayBooks() {
     const allDocs = Object.keys(state.GLOBAL_DOC_MAP).map(k => state.GLOBAL_DOC_MAP[k]);
     renderAllDomainsDrawer(allDocs);
 
+    const openAccessOnly = Boolean(typeof window !== 'undefined' && window.ARCHIPELAGO_OPEN_ACCESS_ONLY);
     const entries = [];
     allDocs.forEach(doc => {
+        const col = getDocCollection(doc);
+        if (openAccessOnly && col === 'library_pearson') return;
         if (state.currentFilter !== 'all' && doc.dom !== state.currentFilter) return;
         if (state.currentTypeFilter !== 'all') {
-            const col = getDocCollection(doc);
             if (state.currentTypeFilter === 'library_pearson' && col !== 'library_pearson') return;
             if (state.currentTypeFilter === 'open_source' && col !== 'open_source') return;
             if (state.currentTypeFilter === 'paper' && doc.cat !== 'paper') return;
@@ -239,6 +244,7 @@ async function renderBookStack() {
         const res = await fetch(API_HOST + '/api/catalog/all');
         if (res.ok) {
             const data = await res.json();
+            applyCorpusProfileUi(data);
             const docs = data.documents || data || [];
             if (Array.isArray(docs) && docs.length > 0) {
                 // Replace with authoritative server-side catalog (40 Pearson + 43 HF open-access sources)

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 
+from engine.access_profile import active_access_profile, is_open_access_profile
 from flask import Flask, Response, jsonify, request
 
 from ..config import (
@@ -122,6 +123,8 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "publishableKey": key if configured else None,
                     "chatUrl": None,
                     "graphUrl": None,
+                    "access_profile": active_access_profile(),
+                    "open_access_only": is_open_access_profile(),
                 }
             )
         )
