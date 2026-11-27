@@ -157,6 +157,7 @@ import { state } from './00-state.js';
         }
 
         // Dynamically load full Pearson manifest with all slugs and doc_ ids (no subscriptionId stored client-side).
+        if (typeof window !== 'undefined' && typeof fetch === 'function') {
         fetch('/data/catalogs/pearson_bookshelf.json').then(r => r.json()).then(data => {
             if (data && data.books) {
                 for (const b of data.books) {
@@ -176,6 +177,7 @@ import { state } from './00-state.js';
                 }
             }
         }).catch(() => {});
+        }
 
         const HF_DATASET_BASE = 'https://huggingface.co/datasets/Prataykarali/Library_books/blob/b0561c76a4c5a7a8cb1fe3bd91b389280d504cbd';
 
@@ -228,13 +230,22 @@ import { state } from './00-state.js';
             return null;
         }
 
+        function _isSelfChatUrl(url) {
+            if (typeof url !== 'string') return false;
+            const trimmed = url.trim().toLowerCase();
+            return trimmed === '/chat' || trimmed.startsWith('/chat?') || trimmed.startsWith('/chat#') || /^https?:\/\/[^/]+\/chat(?:[?#]|$)/.test(trimmed);
+        }
+
         function citationPageUrl(citation) {
             if (!citation || typeof citation !== 'object') return '';
+            const sourceKind = String(citation.source_kind || '').toLowerCase().trim();
+            if (sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document') return '';
             if (citation.reader_resolvable === false || citation.withdrawn) return '';
             const rawPage = Number(citation.page_number ?? citation.page);
             const verifiedPage = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
 
             const directUrl = citation.open_url || citation.reader_url || citation.url || citation.pdf_url || '';
+            if (_isSelfChatUrl(directUrl)) return '';
 
             if (typeof directUrl === 'string' && (directUrl.startsWith('/open/') || directUrl.startsWith('/read?'))) {
                 return directUrl;
@@ -319,14 +330,16 @@ import { state } from './00-state.js';
             const deduped = [];
             const seenDocs = new Set();
             for (const citation of rawCitations) {
-                const href = citationPageUrl(citation);
-                if (!href) continue;
+                const sourceKind = String(citation.source_kind || '').toLowerCase().trim();
+                const isNonClickableTag = sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document';
+                const href = isNonClickableTag ? '' : citationPageUrl(citation);
+                if (!href && !isNonClickableTag) continue;
                 const docKey = String(
-                    citation.doc_id || citation.document_id || citation.book_id || citation.url || href.split('#')[0].split('&page=')[0]
+                    citation.doc_id || citation.document_id || citation.book_id || citation.title || citation.url || (href ? href.split('#')[0].split('&page=')[0] : '')
                 ).toLowerCase().split('/').pop();
                 if (seenDocs.has(docKey)) continue;
                 seenDocs.add(docKey);
-                deduped.push({ citation, href });
+                deduped.push({ citation, href, sourceKind });
                 if (deduped.length >= 5) break;
             }
             messageBody.setAttribute("data-evidence-count", String(deduped.length));
@@ -341,10 +354,21 @@ import { state } from './00-state.js';
             const linksWrap = document.createElement('div');
             linksWrap.className = 'flex flex-wrap items-center gap-2';
             rail.appendChild(linksWrap);
-            deduped.forEach(({ citation, href }, index) => {
+            deduped.forEach(({ citation, href, sourceKind }, index) => {
                 const rawPage = Number(citation.page_number ?? citation.page);
                 const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                 const title = citationTitle(citation, `Source ${index + 1}`);
+                if (sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document') {
+                    const tag = document.createElement('span');
+                    const isUnavailable = sourceKind === 'unavailable_document';
+                    tag.className = isUnavailable ? 'evidence-pill-unavailable' : 'evidence-pill-metadata-only';
+                    tag.dataset.sourceKind = sourceKind;
+                    tag.textContent = isUnavailable
+                        ? `${title} · Unavailable Document`
+                        : `${title} · Metadata-Only Record`;
+                    linksWrap.appendChild(tag);
+                    return;
+                }
                 if (citation.source_type === 'research_paper' || citation.source_type === 'scholarly_source') {
                     const card = document.createElement('details');
                     card.className = 'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200';

@@ -182,4 +182,53 @@ function resolveLabelPositions(labelSpecs, width, height) {
     });
 }
 
-export { buildDeduplicatedTopology, canonicalConceptId, resolveLabelPositions };
+function computeEdgeEndpoints(x1, y1, x2, y2, r1 = 10, r2 = 14, pad = 4) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.hypot(dx, dy);
+    if (!Number.isFinite(dist) || dist <= 1e-3) {
+        return { sx: x1, sy: y1, ex: x2, ey: y2 };
+    }
+    const ux = dx / dist;
+    const uy = dy / dist;
+    const maxTrim = Math.max(0, dist - 6);
+    const startTrim = Math.min(r1 + 2, maxTrim * 0.45);
+    const endTrim = Math.min(r2 + pad, maxTrim * 0.55);
+    return {
+        sx: Number((x1 + ux * startTrim).toFixed(2)),
+        sy: Number((y1 + uy * startTrim).toFixed(2)),
+        ex: Number((x2 - ux * endTrim).toFixed(2)),
+        ey: Number((y2 - uy * endTrim).toFixed(2)),
+    };
+}
+
+function buildArrowMarkerDefs(
+    sid,
+    {
+        size = 8,
+        prereqColor = '#c084fc',
+        unlockColor = '#22d3ee',
+        relatedColor = '#fbbf24',
+    } = {},
+) {
+    const mk = (id, color) => (
+        `<marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" `
+        + `markerWidth="${size}" markerHeight="${size}" markerUnits="userSpaceOnUse" `
+        + `orient="auto" overflow="visible">`
+        + `<path d="M 0 1.2 L 9.5 5 L 0 8.8 L 2.2 5 Z" fill="${color}" stroke="${color}" stroke-width="0.6" stroke-linejoin="round"/>`
+        + `</marker>`
+    );
+    return [
+        mk(`arr-pre-${sid}`, prereqColor),
+        mk(`arr-unl-${sid}`, unlockColor),
+        mk(`arr-rel-${sid}`, relatedColor),
+    ].join('\n');
+}
+
+export {
+    buildArrowMarkerDefs,
+    buildDeduplicatedTopology,
+    canonicalConceptId,
+    computeEdgeEndpoints,
+    resolveLabelPositions,
+};

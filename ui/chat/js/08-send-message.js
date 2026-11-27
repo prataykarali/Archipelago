@@ -238,7 +238,7 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
                         if (window._lastChatMetadata?.trace && typeof window.renderGroundingBadge === 'function') {
                             const badgeWrapId = `grounding-badge-${assistantMsgId}`;
                             if (!document.getElementById(badgeWrapId)) {
-                                const badgeHtml = window.renderGroundingBadge(window._lastChatMetadata.trace);
+                                const badgeHtml = window.renderGroundingBadge(window._lastChatMetadata.trace, window._lastChatMetadata);
                                 if (badgeHtml) {
                                     const wrap = document.createElement('div');
                                     wrap.id = badgeWrapId;

@@ -1,6 +1,7 @@
 // Auto-split from ui/chat/index.html — 19-draw-horizontal-svg.js
 // Feature module 20 of 22.
 import { _nodeId, _nodeLabel, _nodeSummary } from './10-populate-pipeline.js';
+import { buildArrowMarkerDefs, computeEdgeEndpoints } from './11a-topology-layout.js';
 import { selectHorizontalNode } from './18--init-graph-ripple.js';
 
         function drawHorizontalSVG(svgElement, anchor, prereqs, unlocks, related, cardId, metadata) {
@@ -35,8 +36,8 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
             const sid = `hsvg-${cardId}`;
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
             defs.innerHTML = `
-                <filter id="neon-${sid}" x="-80%" y="-80%" width="260%" height="260%">
-                    <feGaussianBlur stdDeviation="3.5" result="b"/>
+                <filter id="neon-${sid}" filterUnits="userSpaceOnUse" x="0" y="0" width="${w}" height="${h}">
+                    <feGaussianBlur stdDeviation="3.0" result="b"/>
                     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                 </filter>
                 <!-- Warm Gold for Target Anchor -->
@@ -55,15 +56,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 <linearGradient id="grad-related-${sid}" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stop-color="#ffe4e6"/><stop offset="60%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#be123c"/>
                 </linearGradient>
-                <marker id="arr-pre-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M0,1 L10,5 L0,9 Z" fill="#818cf8"/>
-                </marker>
-                <marker id="arr-unl-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M0,1 L10,5 L0,9 Z" fill="#10b981"/>
-                </marker>
-                <marker id="arr-rel-${sid}" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M0,1 L10,5 L0,9 Z" fill="#f43f5e"/>
-                </marker>
+                ${buildArrowMarkerDefs(sid, { size: 10, prereqColor: '#818cf8', unlockColor: '#10b981', relatedColor: '#f43f5e' })}
             `;
             svgElement.appendChild(defs);
 
@@ -211,22 +204,31 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 });
             }
 
-            // Draw Smooth Animated Edges
+            // Draw Smooth Directed Edges (trimmed to node perimeter so arrows are never hidden or clipped)
             edgesToDraw.forEach(edge => {
                 const u = edge.u;
                 const v = edge.v;
+                const rU = u.type === 'anchor' ? 16 : 11;
+                const rV = v.type === 'anchor' ? 16 : 11;
+                const { sx, sy, ex, ey } = computeEdgeEndpoints(u.x, u.y, v.x, v.y, rU, rV, 6);
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                const midX = (u.x + v.x) / 2;
-                const midY = (u.y + v.y) / 2;
-                const d = `M ${u.x} ${u.y} Q ${midX} ${midY} ${v.x} ${v.y}`;
+                const midX = (sx + ex) / 2;
+                const midY = (sy + ey) / 2;
+                const d = `M ${sx} ${sy} Q ${midX} ${midY} ${ex} ${ey}`;
                 const marker = edge.type === 'prereq' ? `url(#arr-pre-${sid})` : (edge.type === 'unlock' ? `url(#arr-unl-${sid})` : `url(#arr-rel-${sid})`);
                 path.setAttribute('d', d);
                 path.setAttribute('fill', 'none');
                 path.setAttribute('stroke', colors[edge.type].edge);
-                path.setAttribute('stroke-width', edge.type === 'related' ? '1.5' : '2.2');
-                path.setAttribute('filter', `url(#neon-${sid})`);
+                path.setAttribute('stroke-opacity', edge.type === 'related' ? '0.84' : '0.94');
+                path.setAttribute('stroke-width', edge.type === 'related' ? '1.8' : '2.4');
+                path.setAttribute('stroke-linecap', 'round');
                 if (marker) path.setAttribute('marker-end', marker);
                 path.setAttribute('class', `graph-edge-${edge.type}`);
+                path.setAttribute('data-edge-type', edge.type);
+                path.setAttribute('data-from', u.id);
+                path.setAttribute('data-to', v.id);
+                path.setAttribute('data-review-status', 'review_pending');
+                if (edge.type === 'related') path.setAttribute('stroke-dasharray', '4 4');
                 svgElement.appendChild(path);
             });
 
@@ -305,7 +307,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 badge.setAttribute('fill', c.stroke);
                 badge.setAttribute('font-size', '10px');
                 badge.setAttribute('font-weight', '700');
-                badge.setAttribute('font-family', "'Brigend', sans-serif");
+                badge.setAttribute('font-family', "Inter, system-ui, -apple-system, sans-serif");
                 badge.textContent = n.type === 'anchor' ? '🎯 TARGET' : n.type === 'prereq' ? '↑ REQUIRES' : n.type === 'unlock' ? '↓ UNLOCKS' : '◈ CONNECTS';
                 g.appendChild(badge);
 

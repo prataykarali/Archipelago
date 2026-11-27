@@ -282,6 +282,17 @@ import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-h
             return template.innerHTML;
         }
 
+        function normalizeTechnicalMarkdown(text) {
+            return String(text || '')
+                .replace(/\r\n/g, '\n')
+                .replace(/\u00ad/g, '')
+                .replace(/&#43;|&#x2b;/gi, '+')
+                .replace(/(\w)[\u2010\u2011\u2012\u2013\u2014\u2212](\w)/g, '$1-$2')
+                .replace(/[^\S\n]+([.,;!?])/g, '$1')
+                .replace(/[^\S\n]{2,}/g, ' ')
+                .replace(/\n{3,}/g, '\n\n');
+        }
+
         function renderMarkdownSafely(target, text, citations = null) {
             let processedText = String(text || '');
             if (Array.isArray(window._lastChatMetadata?.research_sources) && window._lastChatMetadata.research_sources.length) {
@@ -336,14 +347,7 @@ import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-h
             });
             // Clean up spaces / soft hyphens / weird mid-word en-dashes from model output.
             // CRITICAL: never collapse newlines — that destroys markdown structure.
-            processedText = processedText
-                .replace(/\r\n/g, '\n')
-                .replace(/\u00ad/g, '')                 // soft hyphens
-                // Normalize fancy unicode dashes mid-word to ASCII hyphen (keep compounds)
-                .replace(/(\w)[\u2010\u2011\u2012\u2013\u2014\u2212](\w)/g, '$1-$2')
-                .replace(/[^\S\n]+([.,;!?])/g, '$1')
-                .replace(/[^\S\n]{2,}/g, ' ')
-                .replace(/\n{3,}/g, '\n\n')
+            processedText = normalizeTechnicalMarkdown(processedText)
                 // Drop trailing model notes that look like metadata noise
                 .replace(/\n*---+\s*Note:[\s\S]*$/i, '')
                 .replace(/\n*Note:\s*The provided text confirms[\s\S]*$/i, '');
@@ -416,4 +420,4 @@ import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-h
             }
         }
 
-export { _glowWrap, _hideWelcomeWithTransition, _isGenDesc, _updateGlowState, escapeHTML, renderMarkdownSafely, sanitizeMarkdown };
+export { _glowWrap, _hideWelcomeWithTransition, _isGenDesc, _updateGlowState, escapeHTML, normalizeTechnicalMarkdown, renderMarkdownSafely, sanitizeMarkdown };
