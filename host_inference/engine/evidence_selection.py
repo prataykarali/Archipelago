@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .access_profile import is_open_access_profile, is_pearson_url
+from .corpus_titles import clean_bibliographic_title
 from .docmap import hf_doc_path
 from .provenance import (
     CANONICAL_CHUNK_RE,
@@ -26,7 +28,13 @@ from .provenance import (
     norm_text_hash,
     verify_chunk_provenance,
 )
-from .source_resolution import is_hf_resolvable_doc, is_toc_or_index_doc
+from .source_resolution import (
+    SOURCE_CAT_PEARSON,
+    SOURCE_CAT_TOC_INDEX,
+    is_hf_resolvable_doc,
+    is_toc_or_index_doc,
+    resolve_source_target,
+)
 from .text import tokens
 from .withdrawal import is_citable_source, withdrawn_documents
 
@@ -53,6 +61,12 @@ LOW_SIGNAL_PENALTY = -40
 EXTRA_PASSAGE_MIN_OVERLAP = 2
 SECONDARY_CONCEPT_MIN_OVERLAP = 2
 TEXT_DEDUP_PREFIX_LEN = 160
+# Direct catalog passage scoring when graph node sources are absent or weak.
+CATALOG_TOKEN_WEIGHT = 4
+CATALOG_CONCEPT_WEIGHT = 2
+CATALOG_PHRASE_BONUS = 12
+CATALOG_MIN_SCORE = 6
+CATALOG_PASSAGE_CHAR_LIMIT = 700
 
 _INDEX_ENTRY_RE = re.compile(r"\b[a-z][a-z\s-]{2,30},\s*\d+(?:[\u2013-]\d+)?")
 _BIB_YEAR_RE = re.compile(r"\((?:19|20)\d{2}[a-z]?\)")
@@ -81,6 +95,9 @@ PRIMARY_PAPER_HINTS: dict[str, tuple[str, ...]] = {
     "kv_cache": ("kwon",),
     "paged_attention": ("kwon",),
     "graph_rag": ("edge2024",),
+    "paging": ("08_paging",),
+    "tlb": ("09_tlbs",),
+    "address_translation": ("07_address_translation",),
 }
 
 
@@ -250,7 +267,7 @@ def select_evidence_citations(
             continue
         _try_append(anchor_cid, src)
 
-    if len(collected) < max_citations:
+    if collected and len(collected) < max_citations:
         for other_cid in graph.phrase_hits(query):
             if len(collected) >= max_citations:
                 break
@@ -263,6 +280,188 @@ def select_evidence_citations(
             if overlap >= SECONDARY_CONCEPT_MIN_OVERLAP:
                 _try_append(other_cid, src)
 
+    return collected
+
+
+def _query_bigrams(raw: str) -> list[str]:
+    words = re.findall(r"[a-z0-9]{2,}", (raw or "").lower())
+    return [f"{words[idx]} {words[idx + 1]}" for idx in range(len(words) - 1)]
+
+
+def _build_catalog_citation(
+    entry: dict[str, Any],
+    anchor_cid: str,
+    index: int,
+    chunk_index: dict[tuple[str, str], dict[str, Any]] | None,
+) -> dict[str, Any]:
+    raw_doc_id = str(entry.get("doc_id") or "").strip()
+    doc_id = hf_doc_path(raw_doc_id)
+    page_val = entry.get("page")
+    page_int = int(page_val) if isinstance(page_val, int) and page_val > 0 else 1
+    chunk_id = str(entry.get("passage_id") or entry.get("chunk_id") or "").strip() or None
+    resolved = resolve_source_target(
+        raw_doc_id=raw_doc_id,
+        canonical_doc_id=doc_id,
+        page_number=page_int,
+        title="",
+        all_withdrawn=False,
+    )
+    source_category = str(resolved["source_category"])
+    source_type = str(resolved["source_type"])
+    reader_resolvable = bool(resolved["reader_resolvable"])
+    page = resolved["page_number"]
+    hf_url = str(resolved["url"] or "")
+    doc_title = resolved["resolved_title"] or (doc_id.split("/")[-1] if doc_id else "")
+    if not resolved["is_pearson"] and (doc_id or doc_title):
+        doc_title = clean_bibliographic_title(doc_id, doc_title)
+    if not doc_title:
+        label = ""
+    elif source_category == SOURCE_CAT_PEARSON and hf_url:
+        label = f"[S{index}: {doc_title} (Pearson catalogue-only — institutional login)]"
+    elif source_category == SOURCE_CAT_TOC_INDEX:
+        label = f"[S{index}: {doc_title} (TOC/index metadata only)]"
+    elif hf_url:
+        label = f"[S{index}: {doc_title}{f', #page={page}' if page else ''}]"
+    else:
+        label = f"[S{index}: {doc_title} (source unavailable — metadata only)]"
+
+    passage_text = str(entry.get("text") or "")[:CATALOG_PASSAGE_CHAR_LIMIT]
+    provenance = verify_chunk_provenance(
+        raw_doc_id=raw_doc_id,
+        canonical_doc_id=doc_id,
+        chunk_id=chunk_id,
+        page_number=page,
+        hf_url=hf_url,
+        text_passage=passage_text,
+        all_withdrawn=False,
+        chunk_index=chunk_index,
+        source_category=source_category,
+        reader_resolvable=reader_resolvable,
+    )
+    return {
+        "label": label,
+        "evidence_id": f"S{index}",
+        "source_type": source_type,
+        "source_category": source_category,
+        "reader_resolvable": reader_resolvable,
+        "page_verified": bool(resolved["page_verified"]),
+        "is_pearson": bool(resolved["is_pearson"]),
+        "book_id": str(resolved["book_id"] or ""),
+        "book_type": str(resolved["book_type"] or ""),
+        "hf_path": str(resolved["hf_path"] or ""),
+        "concept_id": str(entry.get("concept_id") or anchor_cid),
+        "doc_id": doc_id,
+        "chunk_id": chunk_id,
+        "canonical_passage_id": provenance["canonical_passage_id"],
+        "provenance_status": provenance["provenance_status"],
+        "chunk_provenance_match": provenance["chunk_provenance_match"],
+        "claim_support_status": provenance["claim_support_status"],
+        "doc_title": doc_title,
+        "authors": "",
+        "page_number": page,
+        "printed_page": entry.get("printed_page"),
+        "pdf_url": hf_url,
+        "url": hf_url,
+        "withdrawn": False,
+        "notice": "",
+        "text_passage": passage_text,
+        "passage": passage_text,
+        "section": None,
+        "doi": None,
+        "publication_year": None,
+        "source_provider": None,
+        "retrieved_at": None,
+        "verification_status": provenance["verification_status"],
+        "status_level": provenance["status_level"],
+        "access_status": str(resolved["access_status"]),
+    }
+
+
+def select_catalog_passages(
+    catalog: Any,
+    query: str,
+    concept_label: str = "",
+    anchor_cid: str = "",
+    max_citations: int = MAX_ANCHOR_CITATIONS,
+    open_access_only: bool | None = None,
+    chunk_index: dict[tuple[str, str], dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Rank indexed ``catalog.passages`` by lexical and bigram overlap when graph sources lack coverage."""
+    passages = list(getattr(catalog, "passages", None) or [])
+    if not passages or max_citations <= 0:
+        return []
+
+    q_toks = set(tokens(query))
+    c_toks = set(tokens(f"{anchor_cid.replace('_', ' ')} {concept_label}"))
+    bigrams = list(dict.fromkeys(_query_bigrams(query) + _query_bigrams(concept_label)))
+    if not (q_toks or c_toks or bigrams):
+        return []
+
+    retired = withdrawn_documents()
+    oa_mode = is_open_access_profile() if open_access_only is None else open_access_only
+    scored: list[tuple[int, dict[str, Any]]] = []
+
+    for entry in passages:
+        if not isinstance(entry, dict):
+            continue
+        raw_doc = str(entry.get("doc_id") or "").strip()
+        if not raw_doc:
+            continue
+        canon_doc = hf_doc_path(raw_doc)
+        if not is_citable_source({"doc_id": raw_doc}, retired):
+            continue
+        if is_toc_or_index_doc(raw_doc) or is_toc_or_index_doc(canon_doc):
+            continue
+        if oa_mode and (
+            is_pearson_url(raw_doc)
+            or "pearson" in raw_doc.lower()
+            or "pearson" in canon_doc.lower()
+        ):
+            continue
+        text = str(entry.get("text") or "")
+        if is_low_signal_passage(text):
+            continue
+
+        doc_tokens = set(entry.get("tokens") or ()) or tokens(text)
+        doc_lower = text.lower()
+        q_overlap = len(q_toks & doc_tokens)
+        c_overlap = len(c_toks & doc_tokens)
+        phrase_hits = sum(1 for bg in bigrams if bg in doc_lower)
+        score = (
+            q_overlap * CATALOG_TOKEN_WEIGHT
+            + c_overlap * CATALOG_CONCEPT_WEIGHT
+            + phrase_hits * CATALOG_PHRASE_BONUS
+        )
+        score += _primary_paper_bonus(anchor_cid, raw_doc, canon_doc)
+        if score >= CATALOG_MIN_SCORE and (q_overlap >= 1 or phrase_hits >= 1):
+            scored.append((score, entry))
+
+    scored.sort(
+        key=lambda item: (
+            -item[0],
+            str(item[1].get("doc_id") or ""),
+            int(item[1].get("page") or 0),
+            str(item[1].get("passage_id") or ""),
+        )
+    )
+
+    collected: list[dict[str, Any]] = []
+    seen_keys: set[tuple[str, str]] = set()
+    seen_texts: set[str] = set()
+    for _score, entry in scored:
+        if len(collected) >= max_citations:
+            break
+        rec = _build_catalog_citation(entry, anchor_cid, len(collected) + 1, chunk_index)
+        dkey = _dedup_key(rec)
+        tfp = _text_fingerprint(rec)
+        if dkey in seen_keys or (tfp and tfp in seen_texts):
+            continue
+        if oa_mode and rec.get("is_pearson"):
+            continue
+        seen_keys.add(dkey)
+        if tfp:
+            seen_texts.add(tfp)
+        collected.append(rec)
     return collected
 
 
@@ -281,6 +480,7 @@ __all__ = [
     "build_grounding_trace",
     "is_low_signal_passage",
     "score_source_for_concept",
+    "select_catalog_passages",
     "select_evidence_citations",
     "verify_chunk_provenance",
 ]

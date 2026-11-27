@@ -445,7 +445,7 @@ def register(app: Flask, ctx: AppContext) -> None:
 
         logger = current_app.logger
 
-        def annotate_trace(metadata: dict, *, timing: dict[str, float]) -> None:
+        def annotate_trace(metadata: dict, *, timing: dict[str, float | None]) -> None:
             """Attach measured execution facts without asserting claim entailment."""
             citations = metadata.get("citations") or []
             trace = metadata.setdefault("trace", {})
@@ -509,7 +509,7 @@ def register(app: Flask, ctx: AppContext) -> None:
             t_stream_start = None
             research_ms = round((t_after_research - t_req_start) * 1000, 1)
             engine_ms = round((t_eng_end - t_eng_start) * 1000, 1)
-            enrich_ms = round((t_enrich_end - t_eng_end) * 1000, 1)
+            enrich_ms = round((t_enrich_end - t_eng_end) * 1000, 1) if should_enrich else None
             payload = dict(prepared.get("payload") or {})
             canonical_citations = assign_canonical_citations(payload.get("citations"))
             if canonical_citations:
@@ -522,7 +522,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                         "research_run_ms": research_ms,
                         "intent_and_graph_ms": engine_ms,
                         "evidence_retrieval_ms": enrich_ms,
-                        "provider_ttft_ms": 0.0,
+                        "provider_ttft_ms": None,
                         "ttft_ms": ttft_ms,
                         "total_ms": ttft_ms,
                     }
@@ -572,10 +572,16 @@ def register(app: Flask, ctx: AppContext) -> None:
                             if meta or prepared.get("synthesis_mode") or meta_citations:
                                 meta["synthesis_mode"] = infer_synthesis_mode(prepared, meta)
                             now_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
+                            provider_name = str(meta.get("provider") or "").strip().lower()
+                            live_provider = provider_name not in {
+                                "",
+                                "deterministic",
+                                "unavailable",
+                            }
                             prov_ttft = (
                                 round((time.perf_counter() - t_stream_start) * 1000, 1)
-                                if t_stream_start is not None
-                                else 0.0
+                                if (live_provider and t_stream_start is not None)
+                                else None
                             )
                             if meta:
                                 meta["stage_timings_ms"] = {
@@ -608,7 +614,7 @@ def register(app: Flask, ctx: AppContext) -> None:
                     prepared.get("route"),
                     research_ms,
                     engine_ms,
-                    enrich_ms,
+                    enrich_ms if enrich_ms is not None else 0.0,
                     provider_stream_ms,
                     ttft_ms if ttft_ms is not None else (t_end - t_req_start) * 1000,
                     (t_end - t_req_start) * 1000,

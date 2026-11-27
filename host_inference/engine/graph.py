@@ -101,7 +101,13 @@ class LibraryGraph:
         self._label_index = []
         for cid, node in self.nodes.items():
             label = (node.get("label") or node.get("name") or cid).strip()
-            self._label_index.append((label.lower(), cid))
+            norm_label = re.sub(r"[^a-z0-9]+", " ", label.lower()).strip()
+            if norm_label:
+                self._label_index.append((norm_label, cid))
+            no_paren = re.sub(r"\([^)]*\)", " ", label.lower())
+            norm_no_paren = re.sub(r"[^a-z0-9]+", " ", no_paren).strip()
+            if norm_no_paren and norm_no_paren != norm_label:
+                self._label_index.append((norm_no_paren, cid))
             self._label_index.append((cid.replace("_", " "), cid))
 
     def _blob(self, node: dict) -> str:
@@ -186,8 +192,32 @@ class LibraryGraph:
                 queue.append((nxt, step))
         return None
 
+    def has_contradictory_cycle(self, a: str, b: str) -> bool:
+        """Return True when ``a`` and ``b`` mutually require each other."""
+        a_reqs = {dst for kind, dst in self.out.get(a, []) if kind == "REQUIRES"}
+        b_reqs = {dst for kind, dst in self.out.get(b, []) if kind == "REQUIRES"}
+        return b in a_reqs and a in b_reqs
+
+    def _specificity_bonus(self, cid: str, matched: set[str], q_words: set[str]) -> float:
+        """Prefer narrower/child concepts over broader parent concepts when both match."""
+        bonus = 0.0
+        for other in matched:
+            if other == cid:
+                continue
+            # If `cid` requires/is unlocked by `other` (e.g. paging REQUIRES virtual_memory),
+            # `cid` is the more specific refinement in the query.
+            if other in self.prereqs(cid, 2) and not self.has_contradictory_cycle(cid, other):
+                bonus += 0.12
+        norm_lbl = re.sub(r"[^a-z0-9]+", " ", self.label(cid).lower()).strip()
+        lbl_words = {w for w in norm_lbl.split() if len(w) >= 2}
+        if lbl_words:
+            bonus += 0.06 * (len(lbl_words & q_words) / len(lbl_words))
+        if (self.nodes.get(cid) or {}).get("sources"):
+            bonus += 0.03
+        return bonus
+
     def phrase_hits(self, query: str) -> list[str]:
-        """Concept ids whose alias or label appears literally in ``query``."""
+        """Concept ids whose alias or label appears literally in ``query``, specificity-ordered."""
         q = f" {re.sub(r'[^a-z0-9]+', ' ', query.lower())} "
         words = set(q.split())
         singular = {
@@ -207,17 +237,31 @@ class LibraryGraph:
                 continue
             if f" {label} " in q_with_singular and cid not in hits:
                 hits.append(cid)
+        matched_set = set(hits)
+        q_words = words | singular
+        orig_order = {cid: idx for idx, cid in enumerate(hits)}
+        hits.sort(
+            key=lambda cid: (
+                self._specificity_bonus(cid, matched_set, q_words),
+                -orig_order[cid],
+            ),
+            reverse=True,
+        )
         return hits
 
     def rank(self, query: str, top_k: int = 5) -> list[tuple[float, str]]:
-        """Cosine-ranked candidate concepts, best first."""
+        """Cosine-ranked candidate concepts with specificity tie-breaking, best first."""
         qv = embed(query)
-        forced = set(self.phrase_hits(query))
+        q_words = set(re.sub(r"[^a-z0-9]+", " ", query.lower()).split())
+        forced_list = self.phrase_hits(query)
+        forced = set(forced_list)
         scored = []
         for cid, vec in self._emb.items():
             cosine = float(np.dot(qv, vec))
             if cid in forced:
-                cosine = max(cosine, PHRASE_FORCE_SCORE)
+                cosine = max(cosine, PHRASE_FORCE_SCORE) + self._specificity_bonus(
+                    cid, forced, q_words
+                )
             scored.append((cosine, cid))
         scored.sort(key=lambda item: item[0], reverse=True)
         return scored[:top_k]

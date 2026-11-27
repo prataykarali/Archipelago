@@ -32,7 +32,11 @@ from .constants import (
     HERE,
 )
 from .contract import contract_for, graph_decision
-from .evidence_selection import build_grounding_trace, select_evidence_citations
+from .evidence_selection import (
+    build_grounding_trace,
+    select_catalog_passages,
+    select_evidence_citations,
+)
 from .followups import build_follow_up_questions
 from .graph import LibraryGraph
 from .links import source_links
@@ -43,6 +47,7 @@ from .llm import (
     provider_config,
     stream_completion,
 )
+from .math_guard import audit_worked_address_translation
 from .nodes import node_public
 from .reply_evidence import expanded_concept_context
 from .reply_plan import build_reply_plan
@@ -120,7 +125,7 @@ class Engine:
         best_score = 0
         for book in self.books:
             title = (book.get("title") or "").lower()
-            score = sum(1 for tok in tokens if tok in title)
+            score = sum(1 for tok in tokens if re.search(rf"\b{re.escape(tok)}\b", title))
             if score > best_score:
                 best, best_score = book, score
         return best if best_score >= BOOK_TITLE_MIN_OVERLAP else None
@@ -153,6 +158,18 @@ class Engine:
         )
         if not initial_cites and anchor_ok:
             initial_cites = select_evidence_citations(graph, anchor, query)
+        if anchor_ok and (
+            not initial_cites or not any(c.get("url") for c in initial_cites if isinstance(c, dict))
+        ):
+            catalog_cites = select_catalog_passages(
+                self.catalog,
+                query,
+                concept_label=graph.label(anchor),
+                anchor_cid=anchor or "",
+                chunk_index=getattr(graph, "_chunk_provenance_index", None),
+            )
+            if catalog_cites:
+                initial_cites = catalog_cites
 
         payload = {
             "anchor_concept": node_public(graph.nodes[anchor]) if anchor_ok else None,
@@ -341,6 +358,17 @@ class Engine:
             ):
                 if scored_cids:
                     cites = select_evidence_citations(graph, scored_cids[0][1], query)
+                    if cites:
+                        payload["citations"] = cites
+                if not payload.get("citations"):
+                    anchor_obj = payload.get("anchor_concept") or {}
+                    cites = select_catalog_passages(
+                        self.catalog,
+                        query,
+                        concept_label=str(anchor_obj.get("label") or ""),
+                        anchor_cid=str(anchor_obj.get("id") or ""),
+                        chunk_index=getattr(graph, "_chunk_provenance_index", None),
+                    )
                     if cites:
                         payload["citations"] = cites
                 if not payload.get("inventory"):
@@ -588,10 +616,12 @@ class Engine:
             {"step": selected["provider"], "status": "ok", "details": selected["model"]}
         )
         yield json.dumps(payload) + "\n[STREAM_START]\n"
+        streamed_chunks: list[str] = [first_token]
         yielded_len = len(first_token)
         yield first_token
         if stream is not None:
             for tok in stream:
+                streamed_chunks.append(tok)
                 yielded_len += len(tok)
                 yield tok
         outcome = last_stream_outcome()
@@ -623,6 +653,9 @@ class Engine:
             return
         if yielded_len < 80 and grounded_text:
             yield "\n\n" + grounded_text
+        math_note = audit_worked_address_translation("".join(streamed_chunks))
+        if math_note:
+            yield math_note
         source_lines = list(
             dict.fromkeys(
                 f"- {citation_link(citation)}"

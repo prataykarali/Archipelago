@@ -157,14 +157,14 @@ function populateTrace(trace) {
         _traceRow('Release / Graph', `${trace.release_sha || 'Unknown'} / ${trace.graph_revision || 'Unknown'}`, 'fa-code-commit', 'text-slate-300'),
         _traceRow('Source Documents', (trace.source_document_ids || []).join(', ') || 'None', 'fa-book', 'text-slate-300'),
         _traceRow('Passage IDs', (trace.passage_ids || []).join(', ') || 'None', 'fa-paragraph', 'text-slate-300'),
-        _traceRow('Retrieval Time', trace.stage_timings_ms?.evidence_retrieval_ms != null ? `${trace.stage_timings_ms.evidence_retrieval_ms} ms` : 'Unknown', 'fa-magnifying-glass', 'text-slate-300'),
-        _traceRow('Provider TTFT', trace.stage_timings_ms?.provider_ttft_ms != null ? `${trace.stage_timings_ms.provider_ttft_ms} ms` : 'Unknown', 'fa-stopwatch', 'text-slate-300'),
+        _traceRow('Retrieval Time', trace.stage_timings_ms?.evidence_retrieval_ms != null ? `${trace.stage_timings_ms.evidence_retrieval_ms} ms` : 'Not reported', 'fa-magnifying-glass', 'text-slate-300'),
+        _traceRow('Provider TTFT', trace.stage_timings_ms?.provider_ttft_ms != null ? `${trace.stage_timings_ms.provider_ttft_ms} ms` : 'Not reported', 'fa-stopwatch', 'text-slate-300'),
         _traceRow('Template', trace.template_id ? `${trace.template_id} (${trace.template_influenced ? 'used' : 'not used'})` : 'None', 'fa-file-lines', 'text-slate-300'),
         _traceRow('Evidence Coverage', passagesStr, 'fa-file-lines', 'text-sky-400'),
         _traceRow('Measured Latency', latencyStr, 'fa-stopwatch', 'text-amber-300'),
         _traceRow('Passage Provenance', trace.provenance_status || 'Unknown', 'fa-shield-halved', 'text-emerald-400'),
         _traceRow('Claim Support', trace.claim_support_status || 'Not assessed', 'fa-circle-question', 'text-amber-300'),
-        _traceRow('Reader Page', trace.reader_page_verified ? 'Verified' : 'Not verified', 'fa-book-open', 'text-amber-300'),
+        _traceRow('Reader Page', trace.reader_page_verified ? 'Automatically checked' : 'Not checked', 'fa-book-open', 'text-amber-300'),
     ];
     container.innerHTML = `<div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex flex-col">${rows.join('')}</div>`;
 }
@@ -215,7 +215,7 @@ function renderGroundingBadge(trace) {
 function updateRetrievalModeIndicator(trace) {
     const el = document.getElementById('retrieval-mode-indicator');
     if (!el) return;
-    const mode = (trace && trace.retrieval_mode) ? trace.retrieval_mode : 'Graph-Assisted Traversal (OKF + Lexical Passages)';
+    const mode = (trace && trace.retrieval_mode) ? trace.retrieval_mode : 'Graph-Assisted Traversal (OKF + Provenance-Checked Passages; Graph Edges Review Pending)';
     el.textContent = mode;
     el.classList.remove('hidden');
 }

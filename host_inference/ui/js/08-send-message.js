@@ -11,7 +11,7 @@ import { populatePipeline } from './10-populate-pipeline.js';
 import { updateBookStackForQuery } from './05-display-books.js';
 import { saveSession } from './20--compact-history.js';
 import { SmoothTypewriterStream, _normText, _shouldReplaceFinal } from './stream-support.js';
-import { extractStreamStatusMarkers, splitSafeStreamChunk } from './stream-markers.js';
+import { extractStreamStatusMarkers, parseAndApplyStreamMetadata, splitSafeStreamChunk } from './stream-markers.js';
 import { postChatRequest } from './08-send-request.js';
 import { handleStreamError } from './08-stream-error.js';
 import { resetChatUi } from './08-stream-cleanup.js';
@@ -431,23 +431,9 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
                             const metaStr = buffer.substring(0, idx).trim();
                             buffer = buffer.substring(idx + '[STREAM_START]'.length).replace(/^\n+/, '');
                             metadataParsed = true;
-
-                            try {
-                                const metadata = JSON.parse(metaStr);
-                                window._lastChatMetadata = metadata;
-                                applyCorpusProfileUi(metadata);
-                                populatePipeline(metadata);
-                                populateTopology(metadata.anchor_concept, metadata.prerequisites, metadata.unlocks, metadata.related_concepts || metadata.related || []);
-                                if (typeof window.populateInspector === 'function') {
-                                    window.populateInspector(metadata);
-                                }
-                                if (typeof updateBookStackForQuery === 'function') {
-                                    updateBookStackForQuery(metadata);
-                                }
-                                // renderHorizontalGraphCard & roadmap_assessment deferred until typing finishes
-                            } catch (err) {
-                                console.error('Error parsing pipeline metadata:', err);
-                            }
+                            parseAndApplyStreamMetadata(metaStr, {
+                                applyCorpusProfileUi, populatePipeline, populateTopology, updateBookStackForQuery,
+                            });
                         }
                     }
 

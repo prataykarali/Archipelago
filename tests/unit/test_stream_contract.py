@@ -28,7 +28,12 @@ def _read_chat_ui() -> str:
 
 def _stream_client_source() -> str:
     source = _read_chat_ui()
-    start = source.index("const reader = response.body.getReader();")
+    marker = (
+        "const reader = response.body.getReader();"
+        if "const reader = response.body.getReader();" in source
+        else "reader = response.body.getReader();"
+    )
+    start = source.index(marker)
     end = source.index("// Add to conversational history", start)
     return source[start:end]
 
@@ -52,9 +57,10 @@ def test_stream_client_recognizes_metadata_delimiter() -> None:
 
     assert "'[STREAM_START]'" in client
     assert "const metaStr = buffer.substring(0, idx)" in client
-    assert "const metadata = JSON.parse(metaStr);" in client
+    assert "parseAndApplyStreamMetadata(" in client or "const metadata = JSON.parse(metaStr);" in client
     assert "metadataParsed = true;" in client
-    assert "consumeTextChunk(buffer);" in client
+    assert "splitSafeStreamChunk(buffer" in client
+    assert "consumeTextChunk(" in client
 
 
 def test_stream_done_frame_replaces_provisional_text() -> None:

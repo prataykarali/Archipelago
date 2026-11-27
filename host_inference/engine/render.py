@@ -16,18 +16,18 @@ def arrow(left: str, rel: str, right: str) -> str:
 
 
 def lineage(graph: LibraryGraph, cid: str) -> str:
-    """One-line ``prereq → node → unlock`` sequence, degrading gracefully."""
+    """One-line ``prereq --UNLOCKS--> node --UNLOCKS--> unlock`` sequence."""
     pres = graph.prereqs(cid, 1)[:LINEAGE_NEIGHBOURS]
     unl = graph.unlocks(cid, 1)[:LINEAGE_NEIGHBOURS]
     label = graph.label(cid)
     if pres and unl:
         return (
-            arrow(graph.label(pres[0]), "REQUIRES", label)
+            arrow(graph.label(pres[0]), "UNLOCKS", label)
             + " "
             + arrow(label, "UNLOCKS", graph.label(unl[0]))
         )
     if pres:
-        return arrow(graph.label(pres[0]), "REQUIRES", label)
+        return arrow(label, "REQUIRES", graph.label(pres[0]))
     if unl:
         return arrow(label, "UNLOCKS", graph.label(unl[0]))
     return f"{label} (indexed catalog node; no REQUIRES or UNLOCKS edge is stored)"

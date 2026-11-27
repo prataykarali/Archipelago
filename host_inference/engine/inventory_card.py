@@ -25,6 +25,37 @@ _SUBJECT_PROBES = (
 )
 
 
+_SUBJECT_DOMAIN_TERMS: dict[str, tuple[str, ...]] = {
+    "database system": ("database", "sql", "dbms", "elmasri", "korth", "silberschatz", "relational"),
+    "operating system": ("operating system", "ostep", "silberschatz", "tanenbaum", "kernel"),
+    "artificial intelligence machine learning": (
+        "artificial intelligence",
+        "machine learning",
+        "deep learning",
+        "neural",
+        "russell",
+        "norvig",
+        "goodfellow",
+    ),
+    "computer networks": ("network", "networks", "communications", "tanenbaum", "kurose", "stallings"),
+    "algorithms": ("algorithm", "algorithms", "cormen", "levitin", "dasgupta"),
+    "compilers": ("compiler", "compilers", "aho", "ullman"),
+}
+
+
+def _record_matches_subject(record: dict[str, Any], detected_subject: str | None) -> bool:
+    """Prevent weak cross-domain mismatches (e.g. DBMS or Digital Logic on OS queries)."""
+    if not detected_subject:
+        return True
+    allowed_terms = _SUBJECT_DOMAIN_TERMS.get(detected_subject, ())
+    if not allowed_terms:
+        return True
+    rec_text = " ".join(
+        str(record.get(k) or "") for k in ("title", "domain", "author")
+    ).lower()
+    return any(term in rec_text for term in allowed_terms)
+
+
 def inventory_cards_for_concept(
     node_id: str,
     node_name: str,
@@ -33,29 +64,31 @@ def inventory_cards_for_concept(
 ) -> list[dict[str, Any]]:
     """Digital catalogue records that plausibly teach ``node_id``.
 
-    Scored on the concept's name and summary, so a concept like "third normal
-    form" finds the database textbook whose summary mentions normalisation.
+    Enforces ``MIN_MATCH_TOKENS`` and subject compatibility so stray generic
+    words never attach unrelated textbooks.
     """
     from .inventory import best_record, match_confidence
 
     haystack = f"{node_name} {node_summary}".strip()
     hay_lower = haystack.lower()
     probes = [node_name, haystack]
+    detected_subject: str | None = None
     for cues, subject_probe in _SUBJECT_PROBES:
         if any(cue in hay_lower for cue in cues):
             probes.append(subject_probe)
+            if detected_subject is None:
+                detected_subject = subject_probe
 
     cards: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    # Try the full concept first, then progressively narrower / subject-level probes.
     for probe in probes:
         record, score = best_record(records, probe)
         confidence = match_confidence(score)
-        if record is None or (confidence == "none" and score < 1):
+        if record is None or score < MIN_MATCH_TOKENS or confidence == "none":
             continue
-        if confidence == "none":
-            confidence = "related"
+        if not _record_matches_subject(record, detected_subject):
+            continue
         key = str(record.get("isbn") or record.get("title") or "")
         if key in seen:
             continue

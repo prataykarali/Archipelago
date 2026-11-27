@@ -37,7 +37,6 @@ from .patterns import (
 )
 from .render import neighborhood_block
 from .route_research import research_topic_reply
-from .route_special_books import special_book_reply
 from .routing_constants import (
     ANCHOR_LIMIT,
     COMPARE_CUES,
@@ -48,7 +47,6 @@ from .routing_constants import (
     SOURCE_LOOKUP_RE,
     WHERE_IS_RE,
 )
-from .source_answer_fixes import source_grounded_os_reply
 
 RESEARCH_INTENT_RE = re.compile(r"\b(research|papers?|studies|literature|evidence|gaps?)\b", re.I)
 ACADEMIC_DOMAIN_RE = re.compile(
@@ -535,14 +533,6 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     )
     if _CATALOG_AVAILABILITY_RE.search(clean_query):
         return self._route_shelf_query(shelf_query, best_score)
-
-    source_reply = source_grounded_os_reply(graph, self.catalog, clean_query)
-    if source_reply is not None:
-        return source_reply
-
-    special_book = special_book_reply(clean_query)
-    if special_book is not None:
-        return special_book
 
     research_topic = research_topic_reply(self, query, anchors, best_id, best_score, hits)
     if research_topic is not None:

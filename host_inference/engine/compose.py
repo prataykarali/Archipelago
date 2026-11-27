@@ -97,13 +97,22 @@ def synthesis(engine, cid: str) -> str:
     return "\n".join(lines)
 
 
+def _step_relation_label(kind: str) -> str:
+    """Resolve forward vs inverse graph traversal step to canonical edge polarity."""
+    if kind == "inv-REQUIRES":
+        return "UNLOCKS"
+    if kind == "inv-UNLOCKS":
+        return "REQUIRES"
+    return "UNLOCKS" if "UNLOCKS" in kind else "REQUIRES"
+
+
 def relation(engine, a: str, b: str, path: list[tuple[str, str]]) -> str:
     """Render the dependency chain connecting two concepts."""
     graph = engine.graph
     rendered = []
     cursor = a
     for kind, nxt in path:
-        rel = "UNLOCKS" if "UNLOCKS" in kind else "REQUIRES"
+        rel = _step_relation_label(kind)
         rendered.append(arrow(graph.label(cursor), rel, graph.label(nxt)))
         cursor = nxt
     hops = len(path)

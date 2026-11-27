@@ -38,3 +38,34 @@ export function extractStreamStatusMarkers(text) {
     });
     return { cleaned, streamStatus, streamReason };
 }
+
+/**
+ * Parse the leading [STREAM_START] metadata JSON and hydrate pipeline/graph UI.
+ */
+export function parseAndApplyStreamMetadata(
+    metaStr,
+    { applyCorpusProfileUi, populatePipeline, populateTopology, updateBookStackForQuery },
+) {
+    try {
+        const metadata = JSON.parse(metaStr);
+        window._lastChatMetadata = metadata;
+        applyCorpusProfileUi(metadata);
+        populatePipeline(metadata);
+        populateTopology(
+            metadata.anchor_concept,
+            metadata.prerequisites,
+            metadata.unlocks,
+            metadata.related_concepts || metadata.related || [],
+        );
+        if (typeof window.populateInspector === 'function') {
+            window.populateInspector(metadata);
+        }
+        if (typeof updateBookStackForQuery === 'function') {
+            updateBookStackForQuery(metadata);
+        }
+        return metadata;
+    } catch (err) {
+        console.error('Error parsing pipeline metadata:', err);
+        return null;
+    }
+}
