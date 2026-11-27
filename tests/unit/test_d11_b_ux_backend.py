@@ -287,7 +287,7 @@ def test_capability_reply_uses_live_concept_count(
     monkeypatch.setenv(ACCESS_PROFILE_ENV, ACCESS_PROFILE_OPEN_ACCESS)
     reply = build_capability_reply(synthetic_engine.graph)
     assert f"`{len(synthetic_engine.graph.nodes)}`" in reply
-    assert "1." in reply
+    assert "1)" in reply
     assert "Pearson" not in reply
 
 
@@ -406,13 +406,13 @@ def test_unsupported_query_explains_limitation_and_lists_numbered_alternatives(
         reason="cosine_below_0.75",
     )
     assert "indexed corpus evidence" in reply.lower()
-    assert "1." in reply
+    assert "1)" in reply
     assert "Operating Systems" in reply or "Transformers" in reply
 
     result = synthetic_engine.answer("Best sourdough bread recipe for home ovens")
     assert result["route"] == "GUARDRAIL_INTERCEPT"
-    assert "1." in result["text"]
-    assert len(result["payload"]["follow_up_questions"]) >= MIN_SUGGESTION_COUNT
+    assert "1)" in result["text"]
+    assert 1 <= len(result["payload"]["follow_up_questions"]) <= 3
 
 
 # ── 5. SIGIR open-access-only profile vs UEM institutional default ────────────

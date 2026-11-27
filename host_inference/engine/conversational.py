@@ -54,16 +54,17 @@ def classify_conversational_intent(query: str) -> str | None:
     return None
 
 
-def _numbered_areas_block(graph: Any, *, limit: int = MAX_CAPABILITY_AREAS) -> str:
-    areas = discover_knowledge_areas(graph)[:limit]
+def _numbered_areas_block(graph: Any, *, limit: int | None = None) -> str:
+    all_areas = discover_knowledge_areas(graph)
+    areas = all_areas if limit is None else all_areas[:limit]
     if not areas:
-        return "1. Indexed academic concepts currently loaded in this workspace."
+        return "1) Indexed academic concepts currently loaded in this workspace."
     lines: list[str] = []
     for area in areas:
         samples = ", ".join(area.get("sample_concepts") or [])
         sample_suffix = f" (e.g., {samples})" if samples else ""
         lines.append(
-            f"{area['index']}. **{area['label']}** — "
+            f"{area['index']}) **{area['label']}** — "
             f"{area['concept_count']} indexed concepts{sample_suffix}"
         )
     return "\n".join(lines)
@@ -72,7 +73,7 @@ def _numbered_areas_block(graph: Any, *, limit: int = MAX_CAPABILITY_AREAS) -> s
 def build_conversational_reply(graph: Any, intent: str) -> tuple[str, str, dict[str, Any]]:
     """Build a fast deterministic reply with zero external LLM calls."""
     open_only = is_open_access_profile()
-    areas_block = _numbered_areas_block(graph, limit=MAX_UNSUPPORTED_ALTERNATIVES)
+    areas_block = _numbered_areas_block(graph, limit=None)
     concept_count = len(getattr(graph, "nodes", None) or {})
 
     if intent == "thanks":
@@ -188,7 +189,7 @@ def build_unsupported_reply(
             "and I will not fabricate sources or ungrounded claims."
         )
 
-    areas = discover_knowledge_areas(graph)[:MAX_UNSUPPORTED_ALTERNATIVES]
+    areas = discover_knowledge_areas(graph)
     if not areas:
         return intro
 
@@ -196,7 +197,7 @@ def build_unsupported_reply(
     for area in areas:
         samples = ", ".join(area.get("sample_concepts") or [])
         sample_str = f" — e.g., {samples}" if samples else ""
-        lines.append(f"{area['index']}. **{area['label']}**{sample_str}")
+        lines.append(f"{area['index']}) **{area['label']}**{sample_str}")
     return "\n".join(lines)
 
 

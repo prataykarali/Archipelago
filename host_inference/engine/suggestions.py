@@ -18,6 +18,8 @@ from .access_profile import active_access_profile, is_open_access_profile
 DEFAULT_SUGGESTION_COUNT = 5
 MIN_SUGGESTION_COUNT = 4
 MAX_SUGGESTION_COUNT = 5
+QUESTION_BANK_SIZE = 40
+NON_AI_FALLBACK_SUGGESTION_COUNT = 3
 MAX_SAMPLE_CONCEPTS = 4
 MIN_LABEL_LEN = 3
 MAX_LABEL_LEN = 60
@@ -365,6 +367,74 @@ def generate_starter_questions(
     return selected_questions
 
 
+def generate_question_bank(
+    graph: Any,
+    *,
+    size: int = QUESTION_BANK_SIZE,
+    seed: int = 42,
+) -> list[str]:
+    """Build a diverse 30-50 question bank grounded strictly in indexed concepts."""
+    nodes = getattr(graph, "nodes", None) or {}
+    open_only = is_open_access_profile()
+    rng = random.Random(seed)
+
+    by_area: dict[str, list[tuple[str, str]]] = {}
+    for cid, node in sorted(nodes.items()):
+        if not isinstance(node, dict) or not _node_is_supported(node, open_only=open_only):
+            continue
+        label = str(node.get("label") or node.get("name") or cid).strip()
+        doc_ids = " ".join(
+            str(s.get("doc_id") or "") for s in (node.get("sources") or []) if isinstance(s, dict)
+        )
+        area = _classify_text_area(f"{doc_ids} {label} {node.get('summary') or ''}") or "general"
+        by_area.setdefault(area, []).append((cid, label))
+
+    if not by_area:
+        return []
+
+    for area_items in by_area.values():
+        rng.shuffle(area_items)
+
+    bank: list[str] = []
+    seen_cids: set[str] = set()
+    area_keys = sorted(by_area.keys())
+    round_idx = 0
+    while len(bank) < size:
+        added_any = False
+        for area in area_keys:
+            items = by_area[area]
+            if round_idx < len(items):
+                cid, label = items[round_idx]
+                if cid not in seen_cids:
+                    seen_cids.add(cid)
+                    tpl = _QUESTION_TEMPLATES[(len(bank) + round_idx) % len(_QUESTION_TEMPLATES)]
+                    bank.append(tpl.format(label=label))
+                    added_any = True
+                    if len(bank) >= size:
+                        break
+        if not added_any:
+            break
+        round_idx += 1
+    return bank
+
+
+def sample_fallback_questions(
+    graph: Any,
+    *,
+    count: int = NON_AI_FALLBACK_SUGGESTION_COUNT,
+    seed: int | None = None,
+) -> list[str]:
+    """Sample up to ``count`` (max 3) questions from the generated 30-50 question bank."""
+    cap = max(1, min(NON_AI_FALLBACK_SUGGESTION_COUNT, int(count)))
+    bank = generate_question_bank(graph, size=QUESTION_BANK_SIZE)
+    if not bank:
+        return []
+    rng = random.Random(seed)
+    if len(bank) <= cap:
+        return list(bank)
+    return rng.sample(bank, cap)
+
+
 def build_suggestions_payload(
     graph: Any,
     *,
@@ -390,7 +460,11 @@ __all__ = [
     "DEFAULT_SUGGESTION_COUNT",
     "MAX_SUGGESTION_COUNT",
     "MIN_SUGGESTION_COUNT",
+    "NON_AI_FALLBACK_SUGGESTION_COUNT",
+    "QUESTION_BANK_SIZE",
     "build_suggestions_payload",
     "discover_knowledge_areas",
+    "generate_question_bank",
     "generate_starter_questions",
+    "sample_fallback_questions",
 ]

@@ -60,7 +60,10 @@ function renderFollowUpChips(msgEl, assistantMsgId, metadata) {
     const chipsHtml = questions
         .map((q) => `
             <button type="button" class="followup-chip" data-followup-query="${_escapeHtml(q)}">
-                <i class="fa-solid fa-sparkles followup-chip-icon" aria-hidden="true"></i>
+                <svg class="followup-chip-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="15 10 20 15 15 20"></polyline>
+                    <path d="M4 4v7a4 4 0 0 0 4 4h12"></path>
+                </svg>
                 <span>${_escapeHtml(q)}</span>
             </button>
         `)

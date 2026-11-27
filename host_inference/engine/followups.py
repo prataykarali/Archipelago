@@ -13,7 +13,7 @@ import re
 from typing import Any
 
 from .corpus_titles import clean_bibliographic_title
-from .suggestions import generate_starter_questions
+from .suggestions import NON_AI_FALLBACK_SUGGESTION_COUNT, sample_fallback_questions
 
 MAX_FOLLOW_UP_QUESTIONS = 5
 MAX_QUESTION_CHARS = 96
@@ -21,6 +21,9 @@ MAX_TITLE_SNIPPET_CHARS = 44
 
 _BLOCKED_ROUTES = frozenset({"EMPTY", "PERSONA_LOCK", "CODE_TRAP"})
 _CONVERSATIONAL_ROUTES = frozenset({"GREETING", "CAPABILITY_INQUIRY"})
+_NON_AI_FALLBACK_ROUTES = frozenset(
+    {"GREETING", "CAPABILITY_INQUIRY", "GUARDRAIL_INTERCEPT", "OUT_OF_SCOPE", "DISCONNECTED"}
+)
 _UNSUPPORTED_REASONS = frozenset(
     {
         "cosine_below_0.75",
@@ -28,6 +31,8 @@ _UNSUPPORTED_REASONS = frozenset(
         "research_not_indexed",
         "both_missing",
         "unsupported_intent",
+        "no_verified_concept_match",
+        "out_of_scope",
     }
 )
 
@@ -67,8 +72,12 @@ def build_follow_up_questions(
     if route in _BLOCKED_ROUTES or (route == "GUARDRAIL_INTERCEPT" and reason == "security_abuse_guardrail"):
         return []
 
-    if route in _CONVERSATIONAL_ROUTES or reason in _UNSUPPORTED_REASONS:
-        return generate_starter_questions(graph, count=MAX_FOLLOW_UP_QUESTIONS)[:MAX_FOLLOW_UP_QUESTIONS]
+    if (
+        route in _NON_AI_FALLBACK_ROUTES
+        or reason in _UNSUPPORTED_REASONS
+        or (route == "GENERAL_EXPLANATION" and not payload.get("anchor_concept"))
+    ):
+        return sample_fallback_questions(graph, count=NON_AI_FALLBACK_SUGGESTION_COUNT)
 
     norm_query = _norm(query)
     suggestions: list[str] = []
