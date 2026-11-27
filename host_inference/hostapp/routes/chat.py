@@ -13,6 +13,11 @@ import re
 import time
 from uuid import UUID
 
+from engine.access_profile import is_open_access_profile
+from engine.citation_format import (
+    has_verified_full_text_citations,
+    sanitize_citations,
+)
 from engine.citations import (
     assign_canonical_citations,
     infer_synthesis_mode,
@@ -50,6 +55,7 @@ STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
 STREAM_DONE_MARKER = "[STREAM_DONE]"
 TELEMETRY_NO_CONTENT = 204
+CHAT_REQUEST_DEADLINE_SECONDS = 24.0
 
 
 def _sanitize_history(raw_history: object) -> list[dict[str, str]]:
@@ -343,6 +349,8 @@ def register(app: Flask, ctx: AppContext) -> None:
         if reply_detail not in (None, "standard", "expanded"):
             return jsonify({"error": "invalid_reply_detail"}), 400
 
+        prior_auth_ms = getattr(request, "archipelago_auth_ms", None)
+        quota_ms = 0.0
         principal = getattr(request, "archipelago_principal", None)
         if principal and principal.get("id") and principal.get("role") == "student":
             request_id = body.get("request_id") or ""
@@ -351,11 +359,13 @@ def register(app: Flask, ctx: AppContext) -> None:
                     request_id = str(UUID(str(request_id)))
                 except ValueError:
                     return jsonify({"error": "invalid_request_id"}), 400
+            t_quota_start = time.perf_counter()
             try:
                 limited, quota = ctx.limiter.check_daily_chat(principal["id"], request_id)
             except Exception:
                 current_app.logger.exception("Unable to update account quota")
                 return jsonify({"error": "quota_unavailable"}), 503
+            quota_ms = round((time.perf_counter() - t_quota_start) * 1000, 1)
             if limited:
                 if quota.get("limit_reason") == "duplicate":
                     return jsonify(
@@ -506,40 +516,73 @@ def register(app: Flask, ctx: AppContext) -> None:
                 stage_timings_ms=timing,
             )
 
+        auth_ms = round(
+            (float(prior_auth_ms) if isinstance(prior_auth_ms, (int, float)) else 0.0) + quota_ms,
+            1,
+        )
+
         def generate():
             ttft_ms = None
+            ttft_visible_ms = None
             t_stream_start = None
+            live_provider_active = False
+            recorded_prov_ttft: float | None = None
             research_ms = round((t_after_research - t_req_start) * 1000, 1)
             engine_ms = round((t_eng_end - t_eng_start) * 1000, 1)
             ev_ms = prepared.get("evidence_retrieval_ms")
             enrich_ms = round((t_enrich_end - t_eng_end) * 1000, 1) if should_enrich else None
-            request_deadline = t_req_start + 28.0
+            request_deadline = t_req_start + CHAT_REQUEST_DEADLINE_SECONDS
+            oa_only = is_open_access_profile()
             payload = dict(prepared.get("payload") or {})
-            canonical_citations = assign_canonical_citations(payload.get("citations"))
-            if canonical_citations:
-                payload["citations"] = canonical_citations
+            sanitized_initial = sanitize_citations(
+                payload.get("citations"), open_access_only=oa_only
+            )
+            canonical_citations = assign_canonical_citations(sanitized_initial)
+            payload["citations"] = canonical_citations
+            payload["evidence_backed"] = has_verified_full_text_citations(canonical_citations)
             try:
                 if prepared.get("research_overlay") and not custom_reply:
                     payload["synthesis_mode"] = infer_synthesis_mode(prepared, payload)
                     payload.setdefault("provider_status", "not_invoked")
                     payload.setdefault("fallback_reason", None)
                     ttft_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
+                    ttft_visible_ms = ttft_ms
                     payload["stage_timings_ms"] = {
+                        "auth_ms": auth_ms,
                         "research_run_ms": research_ms,
                         "intent_and_graph_ms": engine_ms,
                         "evidence_retrieval_ms": ev_ms,
                         "research_enrichment_ms": enrich_ms,
                         "provider_ttft_ms": None,
+                        "ttft_visible_ms": ttft_visible_ms,
                         "ttft_ms": ttft_ms,
                         "total_ms": ttft_ms,
                     }
                     annotate_trace(payload, timing=payload["stage_timings_ms"])
+                    payload["trace"]["evidence_backed"] = payload["evidence_backed"]
                     yield json.dumps(payload) + STREAM_MARKER
                     clean_text, _removed = validate_response_citations(
                         str(prepared.get("text") or ""),
                         canonical_citations,
                     )
                     yield clean_text
+                    total_now = round((time.perf_counter() - t_req_start) * 1000, 1)
+                    yield (
+                        "\n[STREAM_META:"
+                        + json.dumps(
+                            {
+                                "provider_status": "not_invoked",
+                                "fallback_reason": None,
+                                "stream_status": "complete",
+                                "auth_ms": auth_ms,
+                                "evidence_retrieval_ms": ev_ms,
+                                "ttft_visible_ms": ttft_visible_ms,
+                                "provider_ttft_ms": None,
+                                "total_ms": total_now,
+                            }
+                        )
+                        + "]\n"
+                    )
                 else:
                     prepared_for_stream = dict(prepared)
                     prepared_for_stream["payload"] = payload
@@ -580,10 +623,14 @@ def register(app: Flask, ctx: AppContext) -> None:
                             except ValueError:
                                 yield chunk
                                 continue
-                            meta_citations = assign_canonical_citations(meta.get("citations"))
-                            if meta_citations:
-                                meta["citations"] = meta_citations
-                                active_citations = meta_citations
+                            raw_meta_cites = sanitize_citations(
+                                meta.get("citations"), open_access_only=oa_only
+                            )
+                            meta_citations = assign_canonical_citations(raw_meta_cites)
+                            meta["citations"] = meta_citations
+                            active_citations = meta_citations
+                            evidence_backed = has_verified_full_text_citations(meta_citations)
+                            meta["evidence_backed"] = evidence_backed
                             if meta or prepared.get("synthesis_mode") or meta_citations:
                                 meta["synthesis_mode"] = infer_synthesis_mode(prepared, meta)
                             now_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
@@ -593,21 +640,27 @@ def register(app: Flask, ctx: AppContext) -> None:
                                 "deterministic",
                                 "unavailable",
                             }
+                            live_provider_active = live_provider
                             prov_ttft = (
                                 round((time.perf_counter() - t_stream_start) * 1000, 1)
                                 if (live_provider and t_stream_start is not None)
                                 else None
                             )
+                            recorded_prov_ttft = prov_ttft
                             if meta:
                                 meta["stage_timings_ms"] = {
+                                    "auth_ms": auth_ms,
                                     "research_run_ms": research_ms,
                                     "intent_and_graph_ms": engine_ms,
                                     "evidence_retrieval_ms": ev_ms,
                                     "research_enrichment_ms": enrich_ms,
                                     "provider_ttft_ms": prov_ttft,
+                                    "ttft_visible_ms": now_ms,
                                     "ttft_ms": now_ms,
+                                    "total_ms": None,
                                 }
                                 annotate_trace(meta, timing=meta["stage_timings_ms"])
+                                meta["trace"]["evidence_backed"] = evidence_backed
                             yield json.dumps(meta) + STREAM_MARKER + rest
                             continue
                         if "[STREAM_META:" in chunk:
@@ -615,13 +668,26 @@ def register(app: Flask, ctx: AppContext) -> None:
                                 prefix, tail = chunk.split("[STREAM_META:", 1)
                                 json_str, suffix = tail.split("]", 1)
                                 tmeta = json.loads(json_str)
-                                tmeta["total_ms"] = round((time.perf_counter() - t_req_start) * 1000, 1)
+                                total_now = round((time.perf_counter() - t_req_start) * 1000, 1)
+                                tmeta["auth_ms"] = auth_ms
+                                tmeta["evidence_retrieval_ms"] = ev_ms
+                                tmeta["ttft_visible_ms"] = (
+                                    ttft_visible_ms if ttft_visible_ms is not None else total_now
+                                )
+                                tmeta["provider_ttft_ms"] = (
+                                    tmeta.get("provider_ttft_ms")
+                                    if (
+                                        live_provider_active
+                                        and tmeta.get("provider_ttft_ms") is not None
+                                    )
+                                    else (recorded_prov_ttft if live_provider_active else None)
+                                )
+                                tmeta["total_ms"] = total_now
                                 tmeta["provider_stream_ms"] = (
                                     round((time.perf_counter() - t_stream_start) * 1000, 1)
-                                    if t_stream_start is not None
+                                    if (live_provider_active and t_stream_start is not None)
                                     else None
                                 )
-                                tmeta["evidence_retrieval_ms"] = ev_ms
                                 yield f"{prefix}[STREAM_META:{json.dumps(tmeta)}]{suffix}"
                                 continue
                             except Exception:
@@ -629,6 +695,8 @@ def register(app: Flask, ctx: AppContext) -> None:
                                 continue
                         if ttft_ms is None:
                             ttft_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
+                        if ttft_visible_ms is None and chunk.strip():
+                            ttft_visible_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
                         if "[" in chunk and active_citations is not None:
                             chunk, _removed = validate_response_citations(chunk, active_citations)
                         yield chunk
@@ -643,19 +711,21 @@ def register(app: Flask, ctx: AppContext) -> None:
                     round((t_end - t_stream_start) * 1000, 1) if t_stream_start is not None else 0.0
                 )
                 logger.info(
-                    "[CHAT_TIMING] route=%s research_ms=%.1f engine_ms=%.1f enrich_ms=%.1f provider_ms=%.1f ttft_ms=%.1f total_ms=%.1f",
+                    "[CHAT_TIMING] route=%s auth_ms=%.1f research_ms=%.1f engine_ms=%.1f enrich_ms=%.1f provider_ms=%.1f ttft_visible_ms=%.1f total_ms=%.1f",
                     prepared.get("route"),
+                    auth_ms,
                     research_ms,
                     engine_ms,
                     enrich_ms if enrich_ms is not None else 0.0,
                     provider_stream_ms,
-                    ttft_ms if ttft_ms is not None else (t_end - t_req_start) * 1000,
+                    ttft_visible_ms if ttft_visible_ms is not None else (t_end - t_req_start) * 1000,
                     (t_end - t_req_start) * 1000,
                 )
 
         response = current_app.response_class(generate(), mimetype=STREAM_MIME)
         response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
         response.headers["Vary"] = "Authorization, Cookie"
+        response.headers["X-Accel-Buffering"] = "no"
         return response
 
     @app.get("/api/chat/diagnostic-mcqs")

@@ -45,8 +45,9 @@ from .config import (
 from .runtime_state import hosted_runtime, runtime_rpc
 from .session_store import session_action, verified_session_ids
 
-SUPABASE_USER_TIMEOUT_SEC = 10
-SUPABASE_PROFILE_TIMEOUT_SEC = 8
+# Bounded (connect_sec, read_sec) HTTP timeouts so auth/profile calls never stall 95s.
+SUPABASE_USER_TIMEOUT_SEC: tuple[float, float] = (3.0, 5.0)
+SUPABASE_PROFILE_TIMEOUT_SEC: tuple[float, float] = (3.0, 5.0)
 # Client IP headers set by Vercel's trusted edge proxy, never client-spoofable headers.
 CLIENT_IP_HEADERS = ("X-Vercel-Forwarded-For", "X-Real-IP")
 # The burst min-gap guards state-changing calls.  Idempotent reads must never be
@@ -571,11 +572,20 @@ class AuthGuard:
         }, None
 
     def principal(self) -> tuple[dict | None, str | None]:
-        """Return ``(principal, error)``.
+        """Return ``(principal, error)`` and record measured ``auth_ms`` on the request."""
+        t_auth_start = time.perf_counter()
+        try:
+            return self._resolve_principal()
+        finally:
+            try:
+                request.archipelago_auth_ms = round(  # type: ignore[attr-defined]
+                    (time.perf_counter() - t_auth_start) * 1000, 1
+                )
+            except RuntimeError:
+                pass
 
-        With auth disabled every caller is a read-only guest.  With auth enabled
-        the bearer token or session cookie must resolve to a permitted role.
-        """
+    def _resolve_principal(self) -> tuple[dict | None, str | None]:
+        """Resolve the calling principal from Supabase or guest mode."""
         if not self.required():
             return {"role": "student", "username": "guest", "token": ""}, None
         url, key = self.supabase()

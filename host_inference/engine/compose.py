@@ -15,10 +15,15 @@ from .compose_catalog import library_inventory_reply as library_inventory_reply
 from .compose_catalog import paper_lookup_reply as paper_lookup_reply
 from .constants import KILL_SWITCH, PORTALS, SCHEDULE, SHELF
 from .multi_hop import VERIFIED_CONCEPT_FOUNDATIONS
-from .render import arrow, lineage, neighborhood_block
+from .render import arrow, clean_reply_markdown, lineage, neighborhood_block, preserve_special_terms
 
 # Comparative matrix cells are trimmed to keep the table readable.
 MATRIX_CELL_CHARS = 180
+_BPLUS_FRAGMENT_RE = re.compile(r"\bb\+\s*[-\s]?trees?\b", re.I)
+_MECHANISM_OR_EXAMPLE_RE = re.compile(
+    r"\b(equation|formula|math|derive|how|explain|mechanism|relocate|translate|example|worked|calculate|compute)\b",
+    re.I,
+)
 
 
 def domain_pair(engine, query: str):
@@ -60,7 +65,9 @@ def split_pair(query: str):
 
 
 def resolve_fragment(engine, fragment: str) -> tuple[str | None, bool]:
-    """Resolve a query fragment to a known concept id (phrase hit, else cosine)."""
+    """Resolve a query fragment to a known concept id (preserving special terms like B+ Tree)."""
+    if _BPLUS_FRAGMENT_RE.search(fragment or "") and "b_plus_tree" in engine.graph.nodes:
+        return "b_plus_tree", True
     hits = engine.graph.phrase_hits(fragment)
     if hits:
         return hits[0], True
@@ -84,8 +91,9 @@ def synthesis(engine, cid: str) -> str:
     cite = graph.citation(cid)
     formula = graph.formula(cid)
     query = str(getattr(graph, "_query", ""))
-    lines = [f"**{graph.label(cid)}.** {summary} {cite}".strip()]
-    if formula and re.search(r"\b(equation|formula|math|derive|how|explain)\b", query, re.I):
+    label = preserve_special_terms(graph.label(cid), query)
+    lines = [f"**{label}.** {summary} {cite}".strip()]
+    if formula and _MECHANISM_OR_EXAMPLE_RE.search(query):
         lines.extend(["", "**How it works.**", formula])
     if re.search(r"\b(prerequisite|learning path|roadmap|before|after|connect)\b", query, re.I):
         lines.extend(
@@ -94,7 +102,7 @@ def synthesis(engine, cid: str) -> str:
     link = engine.pearson_line(cid)
     if link:
         lines.extend(["", link])
-    return "\n".join(lines)
+    return clean_reply_markdown("\n".join(lines), query)
 
 
 def _step_relation_label(kind: str) -> str:
@@ -132,8 +140,9 @@ def matrix(
 ) -> str:
     """Render the comparative matrix for two concepts."""
     graph = engine.graph
-    left = left_name or graph.label(a)
-    right = right_name or graph.label(b)
+    query = str(getattr(graph, "_query", ""))
+    left = preserve_special_terms(left_name or graph.label(a), query)
+    right = preserve_special_terms(right_name or graph.label(b), query)
 
     def cell(cid: str) -> str:
         return (graph.nodes[cid].get("summary") or graph.label(cid)).strip()[:MATRIX_CELL_CHARS]

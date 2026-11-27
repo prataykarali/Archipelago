@@ -26,7 +26,13 @@ from . import (
     telemetry,
 )
 from .access_profile import is_open_access_profile, strip_institutional_payload
-from .citation_format import citation_link, link_answer_sources
+from .citation_format import (
+    SOURCE_KIND_VERIFIED_FULL_TEXT,
+    citation_link,
+    has_verified_full_text_citations,
+    link_answer_sources,
+    sanitize_citations,
+)
 from .constants import (
     CITATION_LINE_PREFIXES,
     HERE,
@@ -51,6 +57,7 @@ from .llm import (
 )
 from .math_guard import audit_worked_address_translation
 from .nodes import node_public
+from .render import clean_reply_markdown
 from .reply_evidence import expanded_concept_context
 from .reply_plan import build_reply_plan
 from .routing_constants import (
@@ -92,6 +99,85 @@ from .routing_constants import (
 from .routing_constants import (
     WHERE_IS_RE as WHERE_IS_RE,
 )
+
+# Synthesis task cues and passage context caps.
+_TASK_SYNTHESIS_CUE_RE = re.compile(
+    r"\b(how\s+(?:does|do|is|are|can)|why\s+(?:does|do|is|are)|compare|versus|vs\.?|"
+    r"difference\s+between|distinguish|contrast|example|worked|walk\s+through|step[-\s]by[-\s]step|"
+    r"calculate|compute|derive|relocate|translate|mechanism|explain|prerequisite|prerequisites)\b",
+    re.I,
+)
+_WORKED_EXAMPLE_CUE_RE = re.compile(
+    r"\b(example|worked|walk\s+through|step[-\s]by[-\s]step|calculate|compute|trace|demonstrate|illustrate)\b",
+    re.I,
+)
+_SOURCES_PRESENT_RE = re.compile(r"(?:^|\n)(?:\*\*Sources:\*\*|#{1,4}\s+Sources\b)", re.I)
+_ABSTENTION_REASONS = frozenset({"both_missing", "unsupported", "out_of_domain"})
+_PARTIAL_GROUNDING_STATUSES = frozenset({"partial", "source_linked", "general"})
+MAX_CONTEXT_PASSAGES = 3
+MAX_CONTEXT_PASSAGE_CHARS = 500
+MIN_STREAMED_CHARS_BEFORE_DRAFT_APPEND = 80
+
+
+def _should_invoke_live_synthesis(
+    *,
+    query: str,
+    route: str,
+    result: dict,
+    payload: dict,
+    trace: dict,
+    reply_detail: str,
+    reply_template_id: str,
+) -> bool:
+    """Decide whether live LLM synthesis is authorized without overriding abstentions."""
+    if payload.get("withdrawn_notice"):
+        return False
+    extra = result.get("extra") if isinstance(result.get("extra"), dict) else {}
+    if str(extra.get("reason") or "") in _ABSTENTION_REASONS:
+        return False
+    route_allowed = route in POLISHABLE_ROUTES or (
+        bool(result.get("research_overlay"))
+        and (reply_detail == "expanded" or bool(reply_template_id))
+    )
+    if not route_allowed:
+        return False
+    grounding_status = trace.get("grounding_status")
+    if grounding_status in (None, "verified"):
+        return True
+    if grounding_status == "unmatched":
+        return False
+    if grounding_status in _PARTIAL_GROUNDING_STATUSES:
+        if result.get("research_overlay") and not (
+            reply_detail == "expanded" or bool(reply_template_id)
+        ):
+            return False
+        has_anchor = bool(payload.get("anchor_concept") or result.get("anchor"))
+        if has_anchor or route in {"MULTI_CONCEPT", "CROSS_DOMAIN", "RELATION"}:
+            return True
+        return bool(_TASK_SYNTHESIS_CUE_RE.search(query))
+    return False
+
+
+def _format_retrieved_passages(citations: list[dict]) -> str:
+    """Format sanitized retrieved passage excerpts for live synthesis grounding."""
+    snippets: list[str] = []
+    for cite in citations:
+        if not isinstance(cite, dict) or cite.get("withdrawn"):
+            continue
+        passage = str(cite.get("text_passage") or cite.get("passage") or "").strip()
+        if not passage:
+            continue
+        eid = str(cite.get("evidence_id") or "S?")
+        title = str(cite.get("doc_title") or cite.get("title") or cite.get("doc_id") or "Source")
+        kind = str(cite.get("source_kind") or "metadata_only_record")
+        page = cite.get("page_number")
+        page_note = f", p.{page}" if isinstance(page, int) and page > 0 else ""
+        snippets.append(
+            f"[{eid} | {kind} | {title}{page_note}]: {redact_for_model(passage[:MAX_CONTEXT_PASSAGE_CHARS])}"
+        )
+        if len(snippets) >= MAX_CONTEXT_PASSAGES:
+            break
+    return "\n".join(snippets)
 
 
 class Engine:
@@ -165,8 +251,12 @@ class Engine:
             t_ev_start = time.perf_counter()
             if not initial_cites:
                 initial_cites = select_evidence_citations(graph, anchor, query)
-            if not initial_cites or not any(
-                c.get("url") for c in initial_cites if isinstance(c, dict)
+            has_withdrawn_cite = any(
+                isinstance(c, dict) and c.get("withdrawn") for c in initial_cites
+            )
+            if not has_withdrawn_cite and (
+                not initial_cites
+                or not any(c.get("url") for c in initial_cites if isinstance(c, dict))
             ):
                 catalog_cites = select_catalog_passages(
                     self.catalog,
@@ -274,8 +364,9 @@ class Engine:
             ]
 
         # Attach matching institutional catalogue / inventory cards whenever
-        # relevant records exist for the concept or query topic.
-        if anchor_ok and decision.render:
+        # relevant records exist for the concept or query topic (never in open_access mode).
+        oa_only = is_open_access_profile()
+        if anchor_ok and decision.render and not oa_only:
             concept = graph.nodes[anchor]
             cards = inventory_card.attach_inventory(
                 payload,
@@ -284,7 +375,7 @@ class Engine:
                 str(concept.get("summary") or ""),
                 catalogue.load_catalogue(),
             )
-            if cards:
+            if cards and "### Institutional e-books" not in text:
                 text = text + "\n" + inventory_card.render_inventory_section(cards)
         elif route in {"GENERAL_EXPLANATION", "DISCONNECTED", "MULTI_CONCEPT"} and (
             not payload.get("anchor_concept")
@@ -379,7 +470,7 @@ class Engine:
                     )
                     if cites:
                         payload["citations"] = cites
-                if not payload.get("inventory"):
+                if not oa_only and not payload.get("inventory"):
                     cards = inventory_card.attach_inventory(
                         payload,
                         "general",
@@ -387,9 +478,9 @@ class Engine:
                         query,
                         catalogue.load_catalogue(),
                     )
-                    if cards:
+                    if cards and "### Institutional e-books" not in text:
                         text = text + "\n" + inventory_card.render_inventory_section(cards)
-            elif not payload.get("inventory_cards"):
+            elif not oa_only and not payload.get("inventory") and not payload.get("inventory_cards"):
                 cards = inventory_card.attach_inventory(
                     payload,
                     "general",
@@ -397,7 +488,7 @@ class Engine:
                     query,
                     catalogue.load_catalogue(),
                 )
-                if cards:
+                if cards and "### Institutional e-books" not in text:
                     text = text + "\n" + inventory_card.render_inventory_section(cards)
 
         # A citation whose only supporting document was withdrawn upstream must
@@ -415,6 +506,16 @@ class Engine:
             payload["text_override"] = notices[0]
 
         strip_institutional_payload(payload)
+        payload["citations"] = sanitize_citations(
+            payload.get("citations"), open_access_only=oa_only
+        )
+        evidence_backed = has_verified_full_text_citations(payload["citations"])
+        payload["evidence_backed"] = evidence_backed
+        payload["verified_citation_count"] = sum(
+            1
+            for c in payload["citations"]
+            if isinstance(c, dict) and c.get("source_kind") == SOURCE_KIND_VERIFIED_FULL_TEXT
+        )
         payload["follow_up_questions"] = build_follow_up_questions(
             graph,
             payload,
@@ -453,8 +554,9 @@ class Engine:
             latency_s=latency_s,
             latency_ms=latency_ms,
         )
+        payload["trace"]["evidence_backed"] = evidence_backed
 
-        text = link_answer_sources(text, payload["citations"])
+        text = clean_reply_markdown(link_answer_sources(text, payload["citations"]), query)
         return {
             "route": route,
             "contract": contract,
@@ -486,19 +588,28 @@ class Engine:
         route = result["route"]
         grounded_text = result["text"]
         payload = result["payload"]
+        oa_only = is_open_access_profile()
+        if isinstance(payload.get("citations"), list):
+            payload["citations"] = sanitize_citations(
+                payload["citations"], open_access_only=oa_only
+            )
+        evidence_backed = has_verified_full_text_citations(payload.get("citations"))
+        payload["evidence_backed"] = evidence_backed
         plan = build_reply_plan(query, route, payload, reply_template_id)
         payload["reply_plan"] = plan
         payload["reply_template"] = plan["primary_template"]
         trace = payload.setdefault("trace", {})
         trace["template_id"] = plan["primary_template"]["id"]
+        trace["evidence_backed"] = evidence_backed
 
-        grounding_status = trace.get("grounding_status")
-        can_polish = grounding_status in (None, "verified") and (
-            route in POLISHABLE_ROUTES
-            or (
-                bool(result.get("research_overlay"))
-                and (reply_detail == "expanded" or bool(reply_template_id))
-            )
+        can_polish = _should_invoke_live_synthesis(
+            query=query,
+            route=route,
+            result=result,
+            payload=payload,
+            trace=trace,
+            reply_detail=reply_detail,
+            reply_template_id=reply_template_id,
         )
         config = provider_config() if can_polish else None
 
@@ -525,6 +636,7 @@ class Engine:
                         "provider_status": "not_invoked",
                         "fallback_reason": None,
                         "stream_status": "complete",
+                        "provider_ttft_ms": None,
                     }
                 )
                 + "]\n"
@@ -532,6 +644,19 @@ class Engine:
             return
 
         safe_text = redact_for_model(grounded_text)
+        retrieved_passages = _format_retrieved_passages(payload.get("citations") or [])
+        if (
+            reply_detail != "expanded"
+            and SHORT_DEFINITION_RE.match(query)
+            and not _TASK_SYNTHESIS_CUE_RE.search(query)
+            and not retrieved_passages
+            and result.get("anchor")
+            and result["anchor"] in self.graph.nodes
+        ):
+            anchor_node = self.graph.nodes[result["anchor"]]
+            safe_text = redact_for_model(str(anchor_node.get("summary") or grounded_text))
+        if retrieved_passages:
+            safe_text += "\n\nRetrieved source passages:\n" + retrieved_passages
         if route in {"DISCONNECTED", "MULTI_CONCEPT"}:
             safe_text += (
                 "\n\nGuidance: Explain all requested concepts, their mathematical or conceptual "
@@ -544,9 +669,18 @@ class Engine:
                 "with a concise worked example where helpful. Label general foundational knowledge "
                 "clearly and never fabricate local textbook citations."
             )
-        if reply_detail != "expanded" and SHORT_DEFINITION_RE.match(query) and result["anchor"]:
-            anchor_node = self.graph.nodes[result["anchor"]]
-            safe_text = redact_for_model(str(anchor_node.get("summary") or grounded_text))
+        if _WORKED_EXAMPLE_CUE_RE.search(query):
+            safe_text += (
+                "\n\nGuidance: Include a concrete worked example or step-by-step calculation. "
+                "Explicitly label independently derived illustrative examples as "
+                "'Illustrative example (independently derived)' vs. source-supported claims."
+            )
+        if not evidence_backed:
+            safe_text += (
+                "\n\nGuidance: Zero verified full-text PDF passages were retrieved for this query "
+                "(only concept summary or metadata records exist). State this explicitly in a "
+                "brief Limitations note and never fabricate citations, page numbers, or links."
+            )
         if reply_detail == "expanded":
             concept_context = expanded_concept_context(payload)
             if concept_context:
@@ -562,12 +696,13 @@ class Engine:
                 for line in grounded_text.splitlines()
                 if line.startswith("[") and " Source: https://" in line
             )
-        source_ids = [result["anchor"]] if result.get("anchor") else []
-        source_ids.extend(
-            node["id"] for node in payload.get("prerequisites", [])[:2] if node.get("id")
-        )
-        for cid in dict.fromkeys(source_ids):
-            link_lines.extend(self.pearson_line(cid).splitlines())
+        if not oa_only:
+            source_ids = [result["anchor"]] if result.get("anchor") else []
+            source_ids.extend(
+                node["id"] for node in payload.get("prerequisites", [])[:2] if node.get("id")
+            )
+            for cid in dict.fromkeys(source_ids):
+                link_lines.extend(self.pearson_line(cid).splitlines())
         link_lines = list(dict.fromkeys(line for line in link_lines if line))
 
         selected = None
@@ -702,12 +837,14 @@ class Engine:
                         "provider_status": prov_status,
                         "fallback_reason": err_reason,
                         "stream_status": "fallback_grounded" if has_evidence else "abstained",
+                        "provider_ttft_ms": None,
                     }
                 )
                 + "]\n"
             )
             return
 
+        provider_ttft_ms = round((time.perf_counter() - wait_started) * 1000, 1)
         payload["synthesis_mode"] = (
             "xkiro_synthesis"
             if selected["provider"] == "xkiro"
@@ -765,6 +902,7 @@ class Engine:
                         "fallback_reason": payload["fallback_reason"],
                         "stream_status": "truncated_token_limit",
                         "finish_reason": fr,
+                        "provider_ttft_ms": provider_ttft_ms,
                     }
                 )
                 + "]\n"
@@ -797,14 +935,17 @@ class Engine:
                         "provider_status": err_kind,
                         "fallback_reason": err_kind,
                         "stream_status": "incomplete_stream",
+                        "provider_ttft_ms": provider_ttft_ms,
                     }
                 )
                 + "]\n"
             )
             return
-        if yielded_len < 80 and grounded_text:
+        emitted_text = "".join(streamed_chunks)
+        if yielded_len < MIN_STREAMED_CHARS_BEFORE_DRAFT_APPEND and grounded_text:
             yield "\n\n" + grounded_text
-        math_note = audit_worked_address_translation("".join(streamed_chunks))
+            emitted_text += "\n\n" + grounded_text
+        math_note = audit_worked_address_translation(emitted_text)
         if math_note:
             yield math_note
         source_lines = list(
@@ -814,10 +955,15 @@ class Engine:
                 if citation_link(citation)
             )
         )
-        if source_lines:
+        if source_lines and not _SOURCES_PRESENT_RE.search(emitted_text):
             yield "\n\n**Sources:**\n" + "\n".join(source_lines)
-        if link_lines:
-            yield "\n\n" + "\n".join(link_lines)
+        unique_link_lines = [
+            line
+            for line in link_lines
+            if line not in emitted_text and not any(line in s for s in source_lines)
+        ]
+        if unique_link_lines:
+            yield "\n\n" + "\n".join(unique_link_lines)
         yield (
             "\n[STREAM_META:"
             + json.dumps(
@@ -826,6 +972,7 @@ class Engine:
                     "fallback_reason": payload["fallback_reason"],
                     "stream_status": "complete",
                     "finish_reason": (outcome or {}).get("finish_reason"),
+                    "provider_ttft_ms": provider_ttft_ms,
                 }
             )
             + "]\n"
