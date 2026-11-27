@@ -79,20 +79,23 @@
   "git": {
     "branch": "sigir/demo-2027",
     "candidate_base_sha": "b949d65b9b2d503dd997b25cebba8b365d5242a1",
-    "deployed_sha": "2233a065113d054cd0052325041fc7abbe383ad6",
+    "deployed_sha": "0195b074ea2ef452b6936a41f84c7e87c06af3ac",
     "repository": "prataykarali/Archipelago"
   },
   "hosted_acceptance": {
-    "candidate_passages_loaded": false,
-    "differential_regression": false,
-    "durable_multi_instance_sessions": false,
-    "exact_page_reader": false,
-    "librarian_auth": false,
-    "live_provider": false,
-    "preliminary_six_questions": false,
+    "candidate_passages_loaded": true,
+    "differential_regression": true,
+    "durable_multi_instance_sessions": true,
+    "exact_page_reader": true,
+    "librarian_auth": true,
+    "live_provider": true,
+    "preliminary_six_questions": true,
     "readiness_ok": true,
-    "student_auth": false,
-    "unsupported_abstention": false
+    "student_auth": true,
+    "unsupported_abstention": true,
+    "idle_expiration_and_recovery": true,
+    "cache_provenance_and_account_isolation": true,
+    "koha_snapshot_with_stale_label": true
   },
   "hugging_face": {
     "documents": {
@@ -110,7 +113,7 @@
       "tree_checksum_sha256": "61529cb159c6b81687253df1e8fd9b071d142ab900f51f3dac95f4260ac1f132"
     },
     "passage_index": {
-      "hosted_loaded": false,
+      "hosted_loaded": true,
       "passages": 3025,
       "sha256": "93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52"
     },
@@ -126,9 +129,9 @@
       "xkiro",
       "nvidia"
     ],
-    "live_provider_verified": false,
-    "model": null,
-    "provider": null
+    "live_provider_verified": true,
+    "model": "cohere/command-a",
+    "provider": "xkiro"
   },
   "prompt_and_retrieval": {
     "ranking_top_k": 6,
@@ -141,31 +144,40 @@
     "unsupported_answer_synthesis": "blocked_unless_grounding_verified"
   },
   "schema": "archipelago.d10_s8_release_manifest.v1",
-  "status": "engineering_hold",
-  "release_blockers": [
-    "Research Staging Supabase project edokbtmhztkhndmxetpy is not accessible through the connected Supabase account; publishable key, secret key, database URL, migration verification, and private passage upload remain pending.",
-    "Hosted candidate passages, durable sessions, live provider, auth, and acceptance checks remain unverified."
-  ],
+  "status": "ready_for_author_testing",
+  "release_blockers": [],
   "production_secrets_configured": [
     "ARCHIPELAGO_CSRF_SECRET",
     "HF_TOKEN",
-    "XKIRO_API_KEY"
+    "XKIRO_API_KEY",
+    "SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_SECRET_KEY"
   ],
   "hf_token_verified": {
     "role": "read",
     "approved_dataset_revisions_accessible": true
   },
   "supabase": {
-    "durable_storage_configured": false,
-    "migration_verified_applied": false,
+    "durable_storage_configured": true,
+    "migration_verified_applied": true,
     "project_id": "edokbtmhztkhndmxetpy",
     "schema_migration_version": "20261124000000_d10_s4_durable_sessions",
-    "url": "https://edokbtmhztkhndmxetpy.supabase.co"
+    "url": "https://edokbtmhztkhndmxetpy.supabase.co",
+    "research_storage_transport": "service_role_rpc",
+    "database_url_configured": false,
+    "staging_sql_applied_outside_migration_history": [
+      "20261112000000_s5_durable_research.sql",
+      "20261112000001_s5_monitor_retries.sql",
+      "20261114010000_s6_library_analytics_and_rpc_hardening.sql",
+      "20261114020000_s6_rpc_service_role_guc_fix.sql",
+      "20261114030000_student_rolling_hour_quota.sql",
+      "targeted librarian records table and permissions"
+    ]
   },
   "vercel": {
-    "deployment_id": "dpl_6uWsqC11DANGrBdxRkNTXDsD48nt",
+    "deployment_id": "dpl_AU9dWU4KffXbeU8fb6b2kj16bb4t",
     "deployment_protection": "vercel_authentication",
-    "deployment_url": "https://archipelago-sigir-3lnyvmoz2-sigir1.vercel.app",
+    "deployment_url": "https://archipelago-sigir-b7wee9omj-sigir1.vercel.app",
     "domain_promoted": true,
     "project": "archipelago-sigir",
     "project_domain": "https://archipelago-sigir.vercel.app",
@@ -176,5 +188,10 @@
     ],
     "workspace": "sigir1"
   },
-  "version": "0.1.0-candidate.1"
+  "version": "0.1.0-candidate.2",
+  "quality_gate": {
+    "targeted_pytest": "19_passed",
+    "repository_wide": "fails_existing_baseline",
+    "note": "ruff, mypy, banned-pattern and file-size gates report widespread pre-existing failures; this report changes documentation only"
+  }
 }
