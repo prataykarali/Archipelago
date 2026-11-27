@@ -5,6 +5,9 @@ from __future__ import annotations
 import re
 from urllib.parse import urlparse
 
+from .access_profile import is_open_access_profile, is_pearson_url
+from .corpus_titles import clean_bibliographic_title
+
 
 def _safe_link(value: object) -> str:
     url = str(value or "").strip()
@@ -22,11 +25,15 @@ def citation_link(record: dict) -> str:
     if not label:
         return ""
     url = _safe_link(record.get("url") or record.get("pdf_url"))
+    is_pearson = bool(record.get("is_pearson") or is_pearson_url(url))
+    if is_open_access_profile() and is_pearson:
+        return ""
     if record.get("withdrawn") or not url or record.get("reader_resolvable") is False:
         return label
-    title = str(record.get("doc_title") or record.get("title") or record.get("doc_id") or "Source")
+    raw_title = str(record.get("doc_title") or record.get("title") or "")
+    doc_id = str(record.get("doc_id") or "")
+    title = raw_title if is_pearson and raw_title else clean_bibliographic_title(doc_id, raw_title)
     page = record.get("page_number")
-    is_pearson = bool(record.get("is_pearson") or url.startswith("/open/"))
     if is_pearson:
         page_text = " (Pearson catalogue-only)"
     else:

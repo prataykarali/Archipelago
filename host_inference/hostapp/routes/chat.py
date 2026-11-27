@@ -18,11 +18,16 @@ from engine.citations import (
     infer_synthesis_mode,
     validate_response_citations,
 )
+from engine.evidence_export import build_evidence_export, render_evidence_markdown
 from engine.llm import provider_config as provider_config
 from engine.reply_templates import (
     list_reply_templates,
     select_reply_template,
     valid_reply_template_id,
+)
+from engine.suggestions import (
+    DEFAULT_SUGGESTION_COUNT,
+    build_suggestions_payload,
 )
 from flask import Flask, current_app, jsonify, request
 from host_roadmap import build_quiz, build_roadmap
@@ -277,6 +282,44 @@ def register(app: Flask, ctx: AppContext) -> None:
     def chat_reply_templates():
         """List the packaged response formats for the chat UI."""
         return jsonify({"templates": list_reply_templates()})
+
+    @app.get("/api/chat/suggestions")
+    def chat_suggestions():
+        """Return dynamic numbered knowledge areas and shuffled starter questions."""
+        raw_count = request.args.get("count")
+        try:
+            count = int(raw_count) if raw_count is not None else DEFAULT_SUGGESTION_COUNT
+        except ValueError:
+            count = DEFAULT_SUGGESTION_COUNT
+        raw_seed = request.args.get("seed")
+        seed: int | None = None
+        if raw_seed is not None and raw_seed.strip():
+            try:
+                seed = int(raw_seed.strip())
+            except ValueError:
+                seed = None
+        graph = getattr(ctx.engine, "graph", None)
+        return jsonify(build_suggestions_payload(graph, count=count, seed=seed))
+
+    @app.post("/api/chat/export")
+    def chat_export_evidence():
+        """Build a credential-scrubbed per-query evidence export bundle."""
+        body = request.get_json(silent=True)
+        if not isinstance(body, dict):
+            return jsonify(
+                {"error": "invalid_payload", "detail": "Request body must be a JSON object"}
+            ), 400
+        raw_query = CONTROL_CHARS.sub("", str(body.get("query") or "")).strip()
+        raw_answer = CONTROL_CHARS.sub("", str(body.get("answer") or "")).strip()
+        metadata = body.get("metadata") if isinstance(body.get("metadata"), dict) else {}
+        bundle = build_evidence_export(raw_query, raw_answer, metadata)
+        fmt = str(body.get("format") or "json").strip().lower()
+        if fmt == "markdown":
+            resp = jsonify({"markdown": render_evidence_markdown(bundle), "bundle": bundle})
+        else:
+            resp = jsonify(bundle)
+        resp.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+        return resp
 
     @app.post("/api/chat")
     def api_chat():
