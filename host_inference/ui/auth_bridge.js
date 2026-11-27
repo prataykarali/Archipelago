@@ -16,9 +16,18 @@ const AUTH_ME_CACHE_KEY = "archipelago_me_cache_v1";
 const AUTH_CONFIG_TTL_MS = 600000;
 const PASSIVE_RECHECK_INTERVAL_MS = 60000;
 const PASSIVE_RECHECK_MIN_GAP_MS = 15000;
+const PASSIVE_CHECK_TIMEOUT_MS = 6000;
+const VERIFY_SESSION_TIMEOUT_MS = 8000;
+const RECENT_SESSION_GRACE_MS = 30000;
+const USER_KEEPALIVE_MIN_GAP_MS = 120000;
 const SUPABASE_CDN_TIMEOUT_MS = 3500;
 let cachedAccessToken = "";
 let lastPassiveCheckAt = 0;
+let passiveCheckInFlight = false;
+let lastKeepaliveAt = 0;
+let keepaliveInFlight = false;
+let lastVerifiedSessionAt = 0;
+let lastVerifiedPrincipal = null;
 
 async function loadSupabaseCreateClient() {
   try {
@@ -44,22 +53,41 @@ function writeCachedMe(principal) {
 
 function clearVisibleAuthenticatedUi() {
   window.archipelagoUserId = null;
+  lastVerifiedSessionAt = 0;
+  lastVerifiedPrincipal = null;
   writeCachedMe(null);
   document.querySelector("#archipelago-role-navigation")?.remove();
   window.updateHeaderAuthProfile?.();
 }
 
+window.archipelagoClearChatSignInPrompt = () => {
+  document.getElementById("archipelago-chat-sign-in-prompt")?.remove();
+};
+
+function recordVerifiedSession(principal) {
+  if (principal && principal.authenticated) {
+    lastVerifiedSessionAt = Date.now();
+    lastVerifiedPrincipal = principal;
+    writeCachedMe(principal);
+  }
+}
+
 async function passiveSessionRecheck({ force = false } = {}) {
   if (isHandlingLogout || isPageUnloading || document.visibilityState === "hidden") return;
+  if (passiveCheckInFlight) return;
   const now = Date.now();
   if (!force && now - lastPassiveCheckAt < PASSIVE_RECHECK_MIN_GAP_MS) return;
   lastPassiveCheckAt = now;
+  passiveCheckInFlight = true;
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), PASSIVE_CHECK_TIMEOUT_MS);
   try {
     const { config } = await window.archipelagoAuthReady;
     if (!config || config.required === false) return;
     const hasVisibleAuthUi = Boolean(
       window.archipelagoUserId ||
       document.querySelector("#archipelago-role-navigation") ||
+      document.querySelector("#user-profile-badge") ||
       sessionStorage.getItem(AUTH_ME_CACHE_KEY)
     );
     if (!hasVisibleAuthUi) return;
@@ -67,6 +95,7 @@ async function passiveSessionRecheck({ force = false } = {}) {
       cache: "no-store",
       credentials: "same-origin",
       headers: { "X-Session-Passive": "1" },
+      signal: controller.signal,
     });
     if (response.status === 401) {
       clearVisibleAuthenticatedUi();
@@ -74,9 +103,56 @@ async function passiveSessionRecheck({ force = false } = {}) {
       const result = await response.json().catch(() => null);
       if (result && result.authenticated === false && result.open !== true) {
         clearVisibleAuthenticatedUi();
+      } else if (result && result.authenticated === true) {
+        recordVerifiedSession(result);
+        window.archipelagoClearChatSignInPrompt?.();
       }
     }
-  } catch (_) {}
+  } catch (_) {
+  } finally {
+    window.clearTimeout(timer);
+    passiveCheckInFlight = false;
+  }
+}
+
+async function sendUserInteractionKeepalive() {
+  if (isHandlingLogout || isPageUnloading || document.visibilityState === "hidden") return;
+  if (keepaliveInFlight) return;
+  const now = Date.now();
+  if (now - lastKeepaliveAt < USER_KEEPALIVE_MIN_GAP_MS) return;
+  const hasSession = Boolean(
+    window.archipelagoUserId ||
+    document.querySelector("#user-profile-badge") ||
+    sessionStorage.getItem(AUTH_ME_CACHE_KEY)
+  );
+  if (!hasSession) return;
+  lastKeepaliveAt = now;
+  keepaliveInFlight = true;
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), PASSIVE_CHECK_TIMEOUT_MS);
+  try {
+    await window.archipelagoAuthReady;
+    const response = await fetch("/api/auth/keepalive", {
+      method: "POST",
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { "X-User-Interaction": "1" },
+      signal: controller.signal,
+    });
+    if (response.status === 401) {
+      clearVisibleAuthenticatedUi();
+    }
+  } catch (_) {
+  } finally {
+    window.clearTimeout(timer);
+    keepaliveInFlight = false;
+  }
+}
+
+for (const evtName of ["pointerdown", "keydown", "wheel"]) {
+  window.addEventListener(evtName, () => {
+    sendUserInteractionKeepalive();
+  }, { passive: true });
 }
 
 const authChannel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(AUTH_CHANNEL_NAME) : null;
@@ -350,27 +426,52 @@ window.archipelagoAuthReady = (async () => {
   return { config, supabase };
 })();
 
-window.archipelagoVerifyChatSession = async () => {
+window.archipelagoVerifyChatSession = async ({ force = false } = {}) => {
   await window.archipelagoAuthReady;
-  const response = await fetch("/api/auth/me", {
-    cache: "no-store",
-    credentials: "same-origin",
-    headers: { "X-Session-Passive": "1" },
-  });
-  const result = await response.json().catch(() => ({}));
-  if (response.ok && result.open === true) return { authenticated: true };
-  if (response.ok && result.authenticated === true) {
-    writeCachedMe(result);
-    syncActivePrincipal(result);
-    return result;
+  if (
+    !force &&
+    lastVerifiedPrincipal &&
+    lastVerifiedPrincipal.authenticated &&
+    (Date.now() - lastVerifiedSessionAt) < RECENT_SESSION_GRACE_MS
+  ) {
+    window.archipelagoClearChatSignInPrompt?.();
+    return lastVerifiedPrincipal;
   }
-  if (response.status === 401) {
-    clearVisibleAuthenticatedUi();
-    return { authenticated: false, reason: result.reason || "unauthorized" };
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), VERIFY_SESSION_TIMEOUT_MS);
+  try {
+    const response = await fetch("/api/auth/me", {
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { "X-Session-Passive": "1" },
+      signal: controller.signal,
+    });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok && result.open === true) {
+      window.archipelagoClearChatSignInPrompt?.();
+      return { authenticated: true };
+    }
+    if (response.ok && result.authenticated === true) {
+      recordVerifiedSession(result);
+      syncActivePrincipal(result);
+      window.archipelagoClearChatSignInPrompt?.();
+      return result;
+    }
+    if (response.status === 401) {
+      clearVisibleAuthenticatedUi();
+      return { authenticated: false, reason: result.reason || "unauthorized" };
+    }
+    const error = new Error("Session verification is unavailable. Please try again.");
+    error.reason = "upstream_unavailable";
+    throw error;
+  } catch (err) {
+    if (err && err.reason) throw err;
+    const error = new Error("Session verification timed out. Please try again.");
+    error.reason = "upstream_unavailable";
+    throw error;
+  } finally {
+    window.clearTimeout(timer);
   }
-  const error = new Error("Session verification is unavailable. Please try again.");
-  error.reason = "upstream_unavailable";
-  throw error;
 };
 
 window.archipelagoPromptChatSignIn = (draft, reason = "unauthorized") => {

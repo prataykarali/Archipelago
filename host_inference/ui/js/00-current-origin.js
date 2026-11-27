@@ -55,10 +55,10 @@
             }).join('\n');
         }
 
-const CHAT_RESPONSE_TIMEOUT_MS = 45000;
+const CHAT_RESPONSE_TIMEOUT_MS = 90000;
 
-        // Stream watchdogs: idle gap between chunks vs absolute wall-clock cap.
-        const STREAM_IDLE_TIMEOUT_MS = 45000;
+        // Stream watchdogs: idle gap between chunks (exceeds backend 45s provider timeout) vs wall-clock cap.
+        const STREAM_IDLE_TIMEOUT_MS = 75000;
 
         const STREAM_HARD_TIMEOUT_MS = 180000;
 

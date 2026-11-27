@@ -10,13 +10,21 @@ export function resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, 
                 if (chatMsgs) chatMsgs.removeEventListener('scroll', checkUserScroll);
                 state.isGenerating = false;
                 try { window.isGenerating = false; } catch (_) {}
+                window.archipelagoChatAuthChecking = false;
                 _updateGlowState(false);
                 setSendButtonState('send');
                 setLibrarianThinking(false);
                 state.currentAssistantRow = null;
                 state.currentAbortController = null;
+                document.querySelectorAll('.model-reply-status').forEach((el) => {
+                    try { el.remove(); } catch (_) {}
+                });
+                document.querySelectorAll('.msg-bubble-wrap.is-thinking, .ai-typewriter-cursor, .is-live-streaming').forEach((el) => {
+                    el.classList.remove('is-thinking', 'ai-typewriter-cursor', 'is-live-streaming');
+                });
                 const sendBtn = document.getElementById('send-btn');
                 if (sendBtn) {
+                    sendBtn.removeAttribute('aria-busy');
                     const quotaBlocked = Boolean(state.quotaLimitedUntil && Date.now() < state.quotaLimitedUntil);
                     sendBtn.disabled = quotaBlocked;
                     sendBtn.classList.toggle('opacity-50', quotaBlocked);

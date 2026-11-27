@@ -150,6 +150,8 @@ function populateTrace(trace) {
         _traceRow('Retrieval Mode', trace.retrieval_mode || 'Unknown', 'fa-magnifying-glass-chart', 'text-accentPink'),
         _traceRow('Generation Mode', trace.synthesis_mode || 'Unknown', 'fa-wand-magic-sparkles', 'text-emerald-400'),
         _traceRow('Execution Provider', trace.provider || 'Unknown', 'fa-microchip', 'text-emerald-400'),
+        ...(trace.provider_error ? [_traceRow('Provider Failure', trace.provider_error, 'fa-triangle-exclamation', 'text-amber-400')] : []),
+        ...(trace.stream_status ? [_traceRow('Stream Status', trace.stream_status, 'fa-wave-square', 'text-amber-400')] : []),
         _traceRow('Model', trace.model || 'None', 'fa-robot', 'text-emerald-400'),
         _traceRow('Response Cache', trace.cache_status || 'Unknown', 'fa-box-archive', 'text-sky-400'),
         _traceRow('Release / Graph', `${trace.release_sha || 'Unknown'} / ${trace.graph_revision || 'Unknown'}`, 'fa-code-commit', 'text-slate-300'),
@@ -177,7 +179,20 @@ function renderGroundingBadge(trace) {
     const passages = trace.grounded_passages || 0;
     const latency = trace.stage_timings_ms?.total_ms != null ? `${trace.stage_timings_ms.total_ms} ms` : '';
 
+    const modeLabels = {
+        xkiro_synthesis: 'Live Provider (XKIRO)',
+        nvidia_fallback: 'Live Provider (Fallback)',
+        verified_deterministic: 'Deterministic · Evidence-Backed',
+        provider_unavailable_fallback: 'Provider Unavailable · Grounded Fallback',
+    };
     const parts = [];
+    if (trace.stream_status === 'incomplete_stream') {
+        parts.push('Incomplete Stream');
+    } else if (trace.intent === 'OUT_OF_DOMAIN' || trace.intent === 'UNSUPPORTED' || trace.grounding_status === 'abstained') {
+        parts.push('Abstention');
+    } else if (trace.synthesis_mode && modeLabels[trace.synthesis_mode]) {
+        parts.push(modeLabels[trace.synthesis_mode]);
+    }
     if (passages > 0) parts.push(`${passages} cited passage${passages > 1 ? 's' : ''}`);
     if (hops > 0) parts.push(`${hops} graph hop${hops > 1 ? 's' : ''}`);
     if (latency) parts.push(latency);

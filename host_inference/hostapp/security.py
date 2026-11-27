@@ -325,6 +325,9 @@ class AuthGuard:
     def end_session(self, token: str) -> None:
         """Invalidate the current bearer token locally and across instances after logout."""
         if token:
+            token_id = hashlib.sha256(token.encode()).hexdigest()
+            with self._lock:
+                self._principal_cache.pop(token_id, None)
             if hosted_runtime():
                 url, key = self.supabase()
                 try:
@@ -474,43 +477,71 @@ class AuthGuard:
 
     def _hosted_principal(self, token: str, url: str, key: str) -> tuple[dict | None, str | None]:
         """Verify identity and atomically check shared session state on every request."""
-        headers = {"apikey": key, "Authorization": f"Bearer {token}"}
-        try:
-            user_response = requests.get(
-                f"{url}/auth/v1/user", headers=headers, timeout=SUPABASE_USER_TIMEOUT_SEC
-            )
-            if user_response.status_code != 200:
-                return None, "Your Supabase session could not be verified."
-            user_payload = user_response.json()
-            user_id = str(user_payload.get("id") or "") if isinstance(user_payload, dict) else ""
-            ids = verified_session_ids(token, user_id)
-            if ids is None:
-                return None, "Your Supabase session could not be verified."
-            profile_response = requests.get(
-                f"{url}/rest/v1/profiles",
-                params={"select": "username,role", "id": f"eq.{user_id}"},
-                headers=headers,
-                timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
-            )
-            if profile_response.status_code != 200:
-                return None, "Supabase identity verification is unavailable."
-            profiles = profile_response.json()
-        except (requests.RequestException, ValueError):
-            return None, "Supabase identity verification is unavailable."
-        if (
-            not isinstance(profiles, list)
-            or len(profiles) != 1
-            or not isinstance(profiles[0], dict)
-        ):
-            return None, "Your account does not have an assigned Archipelago role."
-        role = str(profiles[0].get("role") or "")
-        if role not in AUTH_ROLES:
-            return None, "Your account role is not permitted in Archipelago."
         operation = (
             "register"
             if request.path == "/api/auth/session" and request.method == "POST"
             else "check"
         )
+        token_id = hashlib.sha256(token.encode()).hexdigest()
+        now_mono = time.monotonic()
+        cached_entry: dict | None = None
+        if operation != "register":
+            with self._lock:
+                entry = self._principal_cache.get(token_id)
+                if entry is not None and (now_mono - entry[1]) < PRINCIPAL_CACHE_TTL_SECONDS:
+                    cached_entry = dict(entry[0])
+
+        if cached_entry is not None and cached_entry.get("session_id"):
+            ids = (str(cached_entry["session_id"]), str(cached_entry["id"]))
+            user_id = str(cached_entry["id"])
+            role = str(cached_entry["role"])
+            username = str(cached_entry.get("username") or "")
+        else:
+            headers = {"apikey": key, "Authorization": f"Bearer {token}"}
+            try:
+                user_response = requests.get(
+                    f"{url}/auth/v1/user", headers=headers, timeout=SUPABASE_USER_TIMEOUT_SEC
+                )
+                if user_response.status_code != 200:
+                    return None, "Your Supabase session could not be verified."
+                user_payload = user_response.json()
+                user_id = str(user_payload.get("id") or "") if isinstance(user_payload, dict) else ""
+                ids = verified_session_ids(token, user_id)
+                if ids is None:
+                    return None, "Your Supabase session could not be verified."
+                profile_response = requests.get(
+                    f"{url}/rest/v1/profiles",
+                    params={"select": "username,role", "id": f"eq.{user_id}"},
+                    headers=headers,
+                    timeout=SUPABASE_PROFILE_TIMEOUT_SEC,
+                )
+                if profile_response.status_code != 200:
+                    return None, "Supabase identity verification is unavailable."
+                profiles = profile_response.json()
+            except (requests.RequestException, ValueError):
+                return None, "Supabase identity verification is unavailable."
+            if (
+                not isinstance(profiles, list)
+                or len(profiles) != 1
+                or not isinstance(profiles[0], dict)
+            ):
+                return None, "Your account does not have an assigned Archipelago role."
+            role = str(profiles[0].get("role") or "")
+            if role not in AUTH_ROLES:
+                return None, "Your account role is not permitted in Archipelago."
+            username = str(profiles[0].get("username") or "")
+            with self._lock:
+                if len(self._principal_cache) >= MAX_TRACKED_SESSIONS:
+                    self._principal_cache.clear()
+                self._principal_cache[token_id] = (
+                    {
+                        "id": user_id,
+                        "role": role,
+                        "username": username,
+                        "session_id": ids[0],
+                    },
+                    now_mono,
+                )
         try:
             result = session_action(
                 operation,
@@ -523,6 +554,8 @@ class AuthGuard:
             return None, "Durable session verification is unavailable."
         status = result["status"]
         if status != "active":
+            with self._lock:
+                self._principal_cache.pop(token_id, None)
             messages = {
                 "idle_expired": "This session expired after inactivity. Sign in again.",
                 "absolute_expired": "This session reached its maximum lifetime. Sign in again.",
@@ -533,7 +566,7 @@ class AuthGuard:
         return {
             "id": user_id,
             "role": role,
-            "username": profiles[0].get("username") or "",
+            "username": username,
             "token": token,
         }, None
 

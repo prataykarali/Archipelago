@@ -60,12 +60,13 @@ export function applyQuotaCooldown(resetAt, retryAfter) {
             if (res.ok && quotaLabel) {
                 const quota = await res.json();
                 if (!quota.unrestricted && !quota.limited && Number(quota.retry_after || 0) <= 0) {
-                    quotaLabel.textContent = `Student chat queries: ${quota.used ?? 0} / 10 this hour`;
+                    const limit = Number(quota.limit || 10);
+                    quotaLabel.textContent = `Student chat queries: ${quota.used ?? 0} / ${limit} this hour`;
                 }
             }
         } catch (_) {
             if (quotaLabel) {
-                quotaLabel.textContent = 'Student chat queries: rolling 10 / hour window';
+                quotaLabel.textContent = 'Student chat queries: rolling hourly window';
             }
         }
     }, delayMs);
@@ -99,11 +100,17 @@ export async function postChatRequest(inputVal, signal, options = { synthesis: t
     const quotaLabel = document.getElementById('query-limit-status');
     const usedHeader = response.headers.get('X-Queries-Used');
     const remainingHeader = response.headers.get('X-Queries-Remaining');
+    const limitHeader = response.headers.get('X-Queries-Limit');
     if (quotaLabel && (usedHeader !== null || remainingHeader !== null)) {
+        const limit = limitHeader !== null
+            ? Number(limitHeader)
+            : (usedHeader !== null && remainingHeader !== null
+                ? Number(usedHeader) + Number(remainingHeader)
+                : 10);
         const used = usedHeader !== null
             ? Number(usedHeader)
-            : Math.max(0, 10 - Number(remainingHeader));
-        quotaLabel.textContent = `Student chat queries: ${used} / 10 this hour`;
+            : Math.max(0, limit - Number(remainingHeader));
+        quotaLabel.textContent = `Student chat queries: ${used} / ${limit} this hour`;
     }
 
     if (!response.ok) {

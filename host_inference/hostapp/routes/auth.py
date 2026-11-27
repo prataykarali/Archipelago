@@ -40,12 +40,23 @@ def _set_private_no_store(response: Response) -> Response:
     return response
 
 
+def _session_cookie_max_age() -> int:
+    raw = os.getenv("ARCHIPELAGO_SESSION_MAX_AGE_SECONDS", "").strip()
+    if raw:
+        try:
+            return max(60, int(float(raw)))
+        except ValueError:
+            pass
+    return SESSION_COOKIE_MAX_AGE
+
+
 def _set_session_cookies(response: Response, token: str, csrf_token: str) -> None:
     is_secure = _is_secure_cookie()
+    max_age = _session_cookie_max_age()
     response.set_cookie(
         SESSION_COOKIE_NAME,
         token,
-        max_age=SESSION_COOKIE_MAX_AGE,
+        max_age=max_age,
         httponly=True,
         secure=is_secure,
         samesite="Lax",
@@ -55,7 +66,7 @@ def _set_session_cookies(response: Response, token: str, csrf_token: str) -> Non
         response.set_cookie(
             CSRF_COOKIE_NAME,
             csrf_token,
-            max_age=SESSION_COOKIE_MAX_AGE,
+            max_age=max_age,
             httponly=False,
             secure=is_secure,
             samesite="Lax",
@@ -250,3 +261,20 @@ def register(app: Flask, ctx: AppContext) -> None:
                 }
             )
         )
+
+    @app.post("/api/auth/keepalive")
+    def auth_keepalive():
+        """Record genuine user interaction (never called by passive background timers)."""
+        if not ctx.auth.required():
+            return _set_private_no_store(jsonify({"authenticated": False, "open": True}))
+        if request.headers.get("X-User-Interaction", "").strip() != "1":
+            return _set_private_no_store(
+                jsonify({"error": "bad_request", "detail": "User interaction header required."})
+            ), 400
+        principal, error = ctx.auth.principal()
+        if principal is None:
+            reason = auth_failure_code(error)
+            return _set_private_no_store(
+                jsonify({"authenticated": False, "detail": error, "reason": reason})
+            ), 503 if reason == "upstream_unavailable" else 401
+        return _set_private_no_store(jsonify({"authenticated": True, "active": True}))

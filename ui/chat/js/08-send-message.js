@@ -28,17 +28,34 @@ import { resetChatUi } from './08-stream-cleanup.js';
             if (!inputVal) return;
 
             window.archipelagoChatAuthChecking = true;
+            const sendBtnCheck = document.getElementById('send-btn');
+            const sendIconCheck = document.getElementById('send-btn-icon');
+            if (sendBtnCheck) {
+                sendBtnCheck.setAttribute('aria-busy', 'true');
+                sendBtnCheck.title = 'Checking session…';
+            }
+            if (sendIconCheck) {
+                sendIconCheck.className = 'fa-solid fa-spinner fa-spin text-sm';
+            }
             try {
                 const session = await window.archipelagoVerifyChatSession();
                 if (!session.authenticated) {
                     window.archipelagoPromptChatSignIn(inputVal, session.reason);
                     return;
                 }
+                window.archipelagoClearChatSignInPrompt?.();
             } catch (error) {
                 window.archipelagoPromptChatSignIn(inputVal, error?.reason || 'upstream_unavailable');
                 return;
             } finally {
                 window.archipelagoChatAuthChecking = false;
+                if (sendBtnCheck) {
+                    sendBtnCheck.removeAttribute('aria-busy');
+                    sendBtnCheck.title = 'Send';
+                }
+                if (sendIconCheck && !state.isGenerating) {
+                    sendIconCheck.className = 'fa-solid fa-arrow-up text-sm';
+                }
             }
 
             // Increment request sequence to guard against race conditions or out-of-order streams
@@ -450,7 +467,12 @@ import { resetChatUi } from './08-stream-cleanup.js';
                     typewriter, finalizeStreamedBubble, inputVal
                 });
             } finally {
-                resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, checkUserScroll });
+                window.clearTimeout(responseTimeoutId);
+                if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
+                if (chatMsgs) chatMsgs.removeEventListener('scroll', checkUserScroll);
+                if (thisQuerySequence === state.currentQuerySequence) {
+                    resetChatUi({ responseTimeoutId, streamIdleTimeoutId, chatMsgs, checkUserScroll });
+                }
             }
         }
 

@@ -34,7 +34,7 @@ from .contract import contract_for, graph_decision
 from .evidence_selection import build_grounding_trace, select_evidence_citations
 from .graph import LibraryGraph
 from .links import source_links
-from .llm import fallback_config, provider_config, stream_completion
+from .llm import fallback_config, last_provider_error, provider_config, stream_completion
 from .nodes import node_public
 from .reply_evidence import expanded_concept_context
 from .reply_plan import build_reply_plan
@@ -521,19 +521,32 @@ class Engine:
                 break
 
         if selected is None:
+            provider_err = last_provider_error()
+            err_reason = str((provider_err or {}).get("error_type") or "unavailable")
             payload["synthesis_mode"] = "provider_unavailable_fallback"
             payload["provider"] = "unavailable"
+            payload["provider_unavailable"] = True
+            payload["provider_error"] = err_reason
             payload["model"] = {"provider": "unavailable", "model": ""}
             trace.update(
                 provider="unavailable",
                 model="",
                 synthesis_mode=payload["synthesis_mode"],
+                provider_error=err_reason,
                 template_influenced=False,
             )
             payload["logs"].append(
-                {"step": "AI provider", "status": "error", "details": "No live reply received"}
+                {
+                    "step": "AI provider",
+                    "status": "error",
+                    "details": f"Provider unavailable ({err_reason}); showing grounded draft",
+                }
             )
             yield json.dumps(payload) + "\n[STREAM_START]\n"
+            yield (
+                "> **Live AI synthesis unavailable** "
+                f"(`{err_reason}`) — showing grounded deterministic draft below.\n\n"
+            )
             yield grounded_text
             return
 
@@ -560,6 +573,14 @@ class Engine:
             for tok in stream:
                 yielded_len += len(tok)
                 yield tok
+        mid_stream_err = last_provider_error()
+        if mid_stream_err:
+            err_kind = str(mid_stream_err.get("error_type") or "stream_interrupted")
+            yield (
+                "\n\n> **Incomplete stream:** live synthesis was interrupted "
+                f"(`{err_kind}`) before completion."
+            )
+            return
         if yielded_len < 80 and grounded_text:
             yield "\n\n" + grounded_text
         source_lines = list(

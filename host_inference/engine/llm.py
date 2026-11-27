@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 import json
+import logging
 import os
 import threading
 import time
@@ -26,6 +27,42 @@ import requests
 
 from .reply_plan import plan_guidance
 from .reply_templates import reply_template_guidance
+
+logger = logging.getLogger(__name__)
+_last_error_local = threading.local()
+
+
+def last_provider_error() -> dict[str, object] | None:
+    """Return structured metadata for the most recent provider failure on this thread."""
+    err = getattr(_last_error_local, "error", None)
+    return dict(err) if isinstance(err, dict) else None
+
+
+def _record_provider_error(
+    provider: str,
+    model: str,
+    error_type: str,
+    *,
+    status_code: int | None = None,
+    latency_ms: float | None = None,
+) -> None:
+    """Store and log credential-free provider failure telemetry."""
+    entry: dict[str, object] = {
+        "provider": provider,
+        "model": model,
+        "error_type": error_type,
+        "status_code": status_code,
+        "latency_ms": round(latency_ms, 1) if latency_ms is not None else None,
+    }
+    _last_error_local.error = entry
+    logger.warning(
+        "[LLM_PROVIDER] provider=%s model=%s error=%s status=%s latency_ms=%s",
+        provider,
+        model,
+        error_type,
+        status_code,
+        entry["latency_ms"],
+    )
 
 
 class ProviderConfig(TypedDict):
@@ -90,6 +127,8 @@ PROVIDER_MODEL_ENV = {"xkiro": "XKIRO_MODEL", "nvidia": "NVIDIA_MODEL"}
 PROVIDER_BASE_URL = {"xkiro": XKIRO_DEFAULT_BASE_URL, "nvidia": NVIDIA_BASE_URL}
 PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
 
+STREAM_CONNECT_TIMEOUT_SECONDS = 10
+STREAM_READ_TIMEOUT_SECONDS = 45
 STREAM_TIMEOUT_SECONDS = 45
 COMPLETE_TIMEOUT_SECONDS = 45
 # Gentle spacing so a burst of polish calls does not trip provider rate limits.
@@ -173,8 +212,13 @@ def stream_completion(
     reply_detail: str = "standard",
     reply_plan: dict | None = None,
 ) -> Iterator[str]:
-    """Stream one provider; an empty stream lets the caller use grounded text."""
+    """Stream one provider; an empty stream lets the caller report failure honestly."""
     resp = None
+    _last_error_local.error = None
+    t_start = time.perf_counter()
+    active_model = config["model"]
+    timeout_pair = (STREAM_CONNECT_TIMEOUT_SECONDS, STREAM_READ_TIMEOUT_SECONDS)
+    yielded_any = False
     try:
         _pace_provider_call()
         system_prompt = "\n\n".join(
@@ -201,7 +245,7 @@ def stream_completion(
                 "Content-Type": "application/json",
             },
             json={
-                "model": config["model"],
+                "model": active_model,
                 "temperature": REPLY_TEMPERATURE,
                 "max_tokens": (
                     EXPANDED_REPLY_MAX_TOKENS if reply_detail == "expanded" else REPLY_MAX_TOKENS
@@ -214,10 +258,11 @@ def stream_completion(
                 ],
             },
             stream=True,
-            timeout=STREAM_TIMEOUT_SECONDS,
+            timeout=timeout_pair,
         )
-        if resp.status_code in {404, 410} and config["provider"] == "nvidia" and config["model"] != NVIDIA_ACTIVE_FALLBACK_MODEL:
+        if resp.status_code in {404, 410} and config["provider"] == "nvidia" and active_model != NVIDIA_ACTIVE_FALLBACK_MODEL:
             resp.close()
+            active_model = NVIDIA_ACTIVE_FALLBACK_MODEL
             resp = requests.post(
                 f"{config['base_url'].rstrip('/')}/chat/completions",
                 headers={
@@ -225,7 +270,7 @@ def stream_completion(
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": NVIDIA_ACTIVE_FALLBACK_MODEL,
+                    "model": active_model,
                     "temperature": REPLY_TEMPERATURE,
                     "max_tokens": (
                         EXPANDED_REPLY_MAX_TOKENS if reply_detail == "expanded" else REPLY_MAX_TOKENS
@@ -237,9 +282,16 @@ def stream_completion(
                     ],
                 },
                 stream=True,
-                timeout=STREAM_TIMEOUT_SECONDS,
+                timeout=timeout_pair,
             )
         if resp.status_code != 200:
+            _record_provider_error(
+                config["provider"],
+                active_model,
+                f"http_{resp.status_code}",
+                status_code=resp.status_code,
+                latency_ms=(time.perf_counter() - t_start) * 1000,
+            )
             resp.close()
             return
         for line in resp.iter_lines():
@@ -257,9 +309,39 @@ def stream_completion(
             except Exception:
                 continue
             if delta:
+                yielded_any = True
                 yield delta
+        if not yielded_any:
+            _record_provider_error(
+                config["provider"],
+                active_model,
+                "empty_stream",
+                status_code=200,
+                latency_ms=(time.perf_counter() - t_start) * 1000,
+            )
+        else:
+            logger.info(
+                "[LLM_PROVIDER] provider=%s model=%s status=ok latency_ms=%.1f",
+                config["provider"],
+                active_model,
+                (time.perf_counter() - t_start) * 1000,
+            )
         resp.close()
-    except (requests.RequestException, ValueError, KeyError, TypeError):
+    except requests.Timeout:
+        _record_provider_error(
+            config["provider"],
+            active_model,
+            "stream_interrupted_timeout" if yielded_any else "timeout",
+            latency_ms=(time.perf_counter() - t_start) * 1000,
+        )
+        return
+    except (requests.RequestException, ValueError, KeyError, TypeError) as exc:
+        _record_provider_error(
+            config["provider"],
+            active_model,
+            "stream_interrupted" if yielded_any else type(exc).__name__,
+            latency_ms=(time.perf_counter() - t_start) * 1000,
+        )
         return
     finally:
         if resp is not None:

@@ -36,9 +36,15 @@ export function handleStreamError(err, context) {
                         } catch (__) {}
                     }
                     if (aborted && msgEl && !msgEl.querySelector('.stream-abort-note')) {
+                        if (window._lastChatMetadata?.trace) {
+                            window._lastChatMetadata.trace.stream_status = 'incomplete_stream';
+                            if (typeof window.populateInspector === 'function') {
+                                window.populateInspector(window._lastChatMetadata);
+                            }
+                        }
                         const note = document.createElement('div');
                         note.className = 'stream-abort-note text-amber-300/90 text-xs mt-2 opacity-80';
-                        note.textContent = 'Generation stopped — showing the answer received so far.';
+                        note.textContent = 'Incomplete stream — response interrupted before completion (showing partial text received).';
                         msgEl.appendChild(note);
                     }
                     try {
@@ -52,12 +58,30 @@ export function handleStreamError(err, context) {
                         saveSession();
                     } catch (_) {}
                 } else {
-                    if (msgEl && msgEl.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
-                        msgEl.innerHTML = '';
+                    if (msgEl) {
+                        msgEl.classList.remove('ai-typewriter-cursor', 'is-live-streaming');
+                        const wrap = msgEl.closest('.msg-bubble-wrap');
+                        if (wrap) wrap.classList.remove('is-thinking');
+                        if (msgEl.querySelector('.typing-indicator, .thinking-orb-loader, .thinking-lightgrid')) {
+                            msgEl.innerHTML = '';
+                        }
+                    }
+                    if (window._lastChatMetadata?.trace) {
+                        window._lastChatMetadata.trace.stream_status = aborted ? 'incomplete_stream' : 'stream_error';
+                        if (typeof window.populateInspector === 'function') {
+                            window.populateInspector(window._lastChatMetadata);
+                        }
+                    }
+                    // Preserve unsent/unanswered question on recoverable error or timeout so user can retry.
+                    const draftEl = document.getElementById('chat-input');
+                    if (draftEl && inputVal && !draftEl.value.trim()) {
+                        draftEl.value = inputVal;
+                        draftEl.style.height = 'auto';
+                        draftEl.style.height = Math.min(draftEl.scrollHeight, 200) + 'px';
                     }
                     const why = aborted
-                        ? ((err.message && err.message !== 'The user aborted a request.') ? err.message : 'stream was interrupted')
-                        : (err && err.message ? err.message : 'unknown error');
+                        ? ((err.message && err.message !== 'The user aborted a request.') ? err.message : 'Incomplete stream — connection was interrupted. Your question was restored below so you can retry.')
+                        : (err && err.message ? err.message : 'An unexpected error occurred. Your question was restored below so you can retry.');
                     if (msgEl) {
                         msgEl.textContent = why;
                     }

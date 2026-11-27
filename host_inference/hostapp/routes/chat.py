@@ -324,15 +324,17 @@ def register(app: Flask, ctx: AppContext) -> None:
                 retry_after = int(quota.get("retry_after") or 1)
                 reset_at = quota.get("reset_at")
                 reset_label = _format_reset_time(reset_at, retry_after)
+                q_limit = int(quota.get("limit") or 10)
+                q_used = int(quota.get("used") or q_limit)
                 response = jsonify(
                     {
                         "error": "query_limit",
                         "detail": (
-                            f"Hourly chat limit reached (10/10). "
+                            f"Hourly chat limit reached ({q_used}/{q_limit}). "
                             f"You can ask another question after {reset_label}."
                         ),
-                        "used": quota.get("used", 10),
-                        "limit": quota.get("limit", 10),
+                        "used": q_used,
+                        "limit": q_limit,
                         "remaining": quota.get("remaining", 0),
                         "retry_after": retry_after,
                         "reset_at": reset_at,

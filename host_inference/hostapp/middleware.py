@@ -306,6 +306,8 @@ def register_middleware(app: Flask, ctx: AppContext) -> None:
         if quota:
             response.headers["X-Queries-Remaining"] = str(quota["remaining"])
             response.headers["X-Queries-Used"] = str(quota["used"])
+            if "limit" in quota:
+                response.headers["X-Queries-Limit"] = str(quota["limit"])
         origin = request.headers.get("Origin", "").strip()
         if (
             origin
