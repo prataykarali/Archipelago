@@ -194,6 +194,10 @@ def test_evidence_export_strips_all_credentials_and_formats_markdown() -> None:
     assert bundle["query"] == "Explain paging in OSTEP"
     assert "ostep:p1:c0" in bundle["passage_ids"]
     assert len(bundle["graph_edges"]) == 2
+    req_edge = next(e for e in bundle["graph_edges"] if e["relation"] == "REQUIRES")
+    assert req_edge["source"] == "paging"
+    assert req_edge["target"] == "virtual_memory"
+    assert "Paging --[REQUIRES]--> Virtual Memory" in result["md"]
     assert bundle["execution_trace"]["route"] == "CONCEPT_GRAPH"
     assert "## Citations" in result["md"]
     assert "## Graph Edges" in result["md"]

@@ -241,29 +241,16 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
                                 }
                             }
                         }
-                        // Always re-mount paper cards after markdown paint.
                         appendEvidenceRail(msgEl, window._lastChatMetadata);
                         wrapLibraryInventorySection(msgEl, window._lastChatMetadata);
                         if (finalText && finalText.trim()) {
-                            renderEvidenceExportBar(msgEl, assistantMsgId, {
-                                query: inputVal,
-                                answerText: finalText,
-                                metadata: window._lastChatMetadata,
-                            });
+                            renderEvidenceExportBar(msgEl, assistantMsgId, { query: inputVal, answerText: finalText, metadata: window._lastChatMetadata });
                         }
-                        if (window._lastChatMetadata) {
-                            renderFollowUpChips(msgEl, assistantMsgId, window._lastChatMetadata);
-                        }
+                        if (window._lastChatMetadata) renderFollowUpChips(msgEl, assistantMsgId, window._lastChatMetadata);
                     }
                     if (window._lastChatMetadata) {
-                        // Graph, Evidence, and Trace are displayed in the right-side Inspector panel.
-                        // Keep the main chat reply clean: Answer -> Resources card -> Generate Quiz button (if valid).
-                        if (firstFinalize && typeof updateBookStackForQuery === 'function') {
-                            updateBookStackForQuery(window._lastChatMetadata);
-                        }
-                        if (typeof renderQuizSectionCard === 'function' && window._lastChatMetadata.anchor_concept) {
-                            renderQuizSectionCard(assistantMsgId, window._lastChatMetadata);
-                        }
+                        if (firstFinalize && typeof updateBookStackForQuery === 'function') updateBookStackForQuery(window._lastChatMetadata);
+                        if (typeof renderQuizSectionCard === 'function' && window._lastChatMetadata.anchor_concept) renderQuizSectionCard(assistantMsgId, window._lastChatMetadata);
                     }
                 };
 

@@ -189,7 +189,7 @@ function buildSanitizedEvidenceBundle({ query = '', answerText = '', metadata = 
                 });
             }
         };
-        pushEdges(meta.prerequisites, 'REQUIRES', false);
+        pushEdges(meta.prerequisites, 'REQUIRES', true);
         pushEdges(meta.unlocks, 'UNLOCKS', true);
         pushEdges(meta.related_concepts || meta.related, 'RELATED', true);
     }
