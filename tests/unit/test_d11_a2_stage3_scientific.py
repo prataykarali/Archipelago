@@ -58,6 +58,30 @@ def test_f03_f07_generalizable_catalog_passage_retrieval() -> None:
     assert paging_cites
     assert any("08_paging" in str(c.get("doc_id") or "").lower() for c in paging_cites)
 
+    # Empty precomputed tokens list must still convert tokens(text) to set cleanly.
+    fake_catalog = type(
+        "FakeCat",
+        (),
+        {
+            "passages": [
+                {
+                    "doc_id": "archipelago-books-cs/ostep_three_easy_pieces/07_Address_Translation.pdf",
+                    "page": 7,
+                    "text": "Base and bounds hardware registers translate virtual addresses to physical memory.",
+                    "tokens": [],
+                    "passage_id": "38d81af0ae91:p7:c0",
+                }
+            ]
+        },
+    )()
+    empty_tok_cites = select_catalog_passages(
+        fake_catalog,
+        "How does base and bounds address translation work?",
+        concept_label="Address Translation",
+        anchor_cid="address_translation",
+    )
+    assert len(empty_tok_cites) == 1
+
 
 def test_f04_math_guard_flags_invalid_offset_and_accepts_valid_offset() -> None:
     bad = audit_worked_address_translation(

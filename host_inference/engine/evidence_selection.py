@@ -422,7 +422,7 @@ def select_catalog_passages(
         if is_low_signal_passage(text):
             continue
 
-        doc_tokens = set(entry.get("tokens") or ()) or tokens(text)
+        doc_tokens = set(entry.get("tokens") or tokens(text))
         doc_lower = text.lower()
         q_overlap = len(q_toks & doc_tokens)
         c_overlap = len(c_toks & doc_tokens)
