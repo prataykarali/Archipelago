@@ -139,10 +139,11 @@ PROVIDER_MODEL_ENV = {"xkiro": "XKIRO_MODEL", "nvidia": "NVIDIA_MODEL"}
 PROVIDER_BASE_URL = {"xkiro": XKIRO_DEFAULT_BASE_URL, "nvidia": NVIDIA_BASE_URL}
 PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
 
-STREAM_CONNECT_TIMEOUT_SECONDS = 10
-STREAM_READ_TIMEOUT_SECONDS = 45
-STREAM_TIMEOUT_SECONDS = 45
-COMPLETE_TIMEOUT_SECONDS = 45
+STREAM_CONNECT_TIMEOUT_SECONDS = 8
+STREAM_FIRST_TOKEN_TIMEOUT_SECONDS = 15
+STREAM_READ_TIMEOUT_SECONDS = 25
+STREAM_TIMEOUT_SECONDS = 25
+COMPLETE_TIMEOUT_SECONDS = 25
 # Gentle spacing so a burst of polish calls does not trip provider rate limits.
 COMPLETE_SPACING_SECONDS = 0.8
 _provider_lock = threading.Lock()
@@ -230,9 +231,10 @@ def stream_completion(
     _last_error_local.outcome = None
     t_start = time.perf_counter()
     active_model = config["model"]
-    timeout_pair = (STREAM_CONNECT_TIMEOUT_SECONDS, STREAM_READ_TIMEOUT_SECONDS)
+    timeout_pair = (STREAM_CONNECT_TIMEOUT_SECONDS, STREAM_FIRST_TOKEN_TIMEOUT_SECONDS)
     yielded_any = False
     saw_done = False
+    timed_out_pre_first_token = False
     finish_reason: str | None = None
     try:
         _pace_provider_call()
@@ -357,6 +359,9 @@ def stream_completion(
                     )
 
         for line_str in _iter_sse_lines():
+            if not yielded_any and (time.perf_counter() - t_start) > STREAM_FIRST_TOKEN_TIMEOUT_SECONDS:
+                timed_out_pre_first_token = True
+                break
             if not line_str or not line_str.startswith("data:"):
                 continue
             data_part = line_str[len("data:") :].strip()
@@ -383,7 +388,7 @@ def stream_completion(
 
         latency_ms = (time.perf_counter() - t_start) * 1000
         if not yielded_any:
-            status = "empty_stream"
+            status = "first_token_timeout" if timed_out_pre_first_token else "empty_stream"
             _record_provider_error(
                 config["provider"],
                 active_model,

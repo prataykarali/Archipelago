@@ -542,10 +542,14 @@ class Engine:
         selected = None
         first_token = None
         stream = None
+        max_wait_sec = 20.0
+        wait_started = time.perf_counter()
         candidates = (config, fallback_config(config)) if config else ()
         for candidate in candidates:
             if candidate is None:
                 continue
+            if (time.perf_counter() - wait_started) >= max_wait_sec:
+                break
             if reply_detail == "expanded" or reply_template_id:
                 attempt = iter(
                     stream_completion(
@@ -572,31 +576,51 @@ class Engine:
         if selected is None:
             provider_err = last_provider_error()
             err_reason = str((provider_err or {}).get("error_type") or "unavailable")
+            has_evidence = bool(payload.get("citations")) and bool(payload.get("anchor_concept"))
             payload["synthesis_mode"] = "provider_unavailable_fallback"
             payload["provider"] = "unavailable"
+            payload["provider_status"] = "unavailable"
+            payload["fallback_reason"] = err_reason
             payload["provider_unavailable"] = True
             payload["provider_error"] = err_reason
             payload["model"] = {"provider": "unavailable", "model": ""}
             trace.update(
                 provider="unavailable",
+                provider_status="unavailable",
+                fallback_reason=err_reason,
                 model="",
                 synthesis_mode=payload["synthesis_mode"],
                 provider_error=err_reason,
                 template_influenced=False,
+                **({} if has_evidence else {"grounding_status": "abstained"}),
             )
             payload["logs"].append(
                 {
                     "step": "AI provider",
                     "status": "error",
-                    "details": f"Provider unavailable ({err_reason}); showing grounded draft",
+                    "details": (
+                        f"Provider unavailable ({err_reason}); "
+                        + (
+                            "showing grounded draft"
+                            if has_evidence
+                            else "insufficient indexed evidence — abstaining"
+                        )
+                    ),
                 }
             )
             yield json.dumps(payload) + "\n[STREAM_START]\n"
-            yield (
-                "> **Live AI synthesis unavailable** "
-                f"(`{err_reason}`) — showing grounded deterministic draft below.\n\n"
-            )
-            yield grounded_text
+            if has_evidence:
+                yield (
+                    "> **Live AI synthesis unavailable** "
+                    f"(`{err_reason}`) — showing grounded deterministic draft below.\n\n"
+                )
+                yield grounded_text
+            else:
+                yield (
+                    "> **Live AI synthesis unavailable** "
+                    f"(`{err_reason}`): the local corpus has insufficient indexed evidence to "
+                    "answer this question deterministically without live synthesis."
+                )
             return
 
         payload["synthesis_mode"] = (

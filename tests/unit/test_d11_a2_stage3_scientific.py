@@ -125,3 +125,51 @@ def test_f08_no_cross_domain_pearson_books_on_os_queries(monkeypatch) -> None:
     monkeypatch.setenv("ARCHIPELAGO_ACCESS_PROFILE", "open_access")
     engine = Engine(FIXTURE_GRAPH)
     assert engine.best_book("paging") is None
+
+
+def test_c_bounded_provider_wait_and_honest_abstention_without_evidence(monkeypatch) -> None:
+    import json
+
+    from engine import answer as answer_mod
+    from engine import llm as llm_mod
+
+    assert llm_mod.STREAM_FIRST_TOKEN_TIMEOUT_SECONDS <= 20
+    assert llm_mod.STREAM_READ_TIMEOUT_SECONDS <= 30
+
+    engine = Engine(FIXTURE_GRAPH)
+    monkeypatch.setattr(
+        answer_mod,
+        "provider_config",
+        lambda: {"provider": "xkiro", "base_url": "https://xkiro.invalid", "key": "k", "model": "m"},
+    )
+    monkeypatch.setattr(answer_mod, "fallback_config", lambda _cfg: None)
+    monkeypatch.setattr(answer_mod, "stream_completion", lambda *a, **kw: iter([]))
+    monkeypatch.setattr(
+        answer_mod,
+        "last_provider_error",
+        lambda: {"provider": "xkiro", "error_type": "first_token_timeout"},
+    )
+
+    # Without anchor/citations on an unindexed query, provider unavailability must abstain honestly.
+    prepared_empty = {
+        "route": "GENERAL_EXPLANATION",
+        "text": "General explanation.",
+        "anchor": None,
+        "extra": {},
+        "payload": {"anchor_concept": None, "citations": [], "logs": []},
+    }
+    raw_empty = "".join(engine.stream_chat("What is a quantum Turing machine?", prepared=prepared_empty))
+    meta_empty = json.loads(raw_empty.split("\n[STREAM_START]\n", 1)[0])
+    body_empty = raw_empty.split("\n[STREAM_START]\n", 1)[1]
+    assert meta_empty["provider_status"] == "unavailable"
+    assert meta_empty["fallback_reason"] == "first_token_timeout"
+    assert meta_empty["trace"]["grounding_status"] == "abstained"
+    assert "insufficient indexed evidence" in body_empty.lower()
+
+    # With indexed anchor & citation, provider unavailability falls back to grounded draft.
+    prepared_grounded = engine.answer("How does virtual memory paging work?")
+    raw_grounded = "".join(engine.stream_chat("How does virtual memory paging work?", prepared=prepared_grounded))
+    meta_grounded = json.loads(raw_grounded.split("\n[STREAM_START]\n", 1)[0])
+    assert meta_grounded["synthesis_mode"] == "provider_unavailable_fallback"
+    assert meta_grounded["provider_status"] == "unavailable"
+    assert meta_grounded["fallback_reason"] == "first_token_timeout"
