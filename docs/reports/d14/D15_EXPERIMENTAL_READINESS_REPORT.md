@@ -1,0 +1,19 @@
+# D15 experimental readiness — provisional, locked
+
+**Status: not ready to unlock.** D14-N literature validation, contribution approval, candidate release parity, source rights, human review, and independent leakage review remain open. No D15 experiment or held-out 50-query benchmark was run in this final coder task. No novelty, retrieval superiority, or personalization claim is established.
+
+## Dense retrieval identity conflict
+
+The supplied earlier D15 report names `Snowflake/snowflake-arctic-embed-m`; the supplied D14.9 summary instead names `sentence-transformers/all-MiniLM-L6-v2`, revision `c9745ed0523f27c5e827d34ad1f609a3bde6f4c8`, 384 dimensions. Neither is the checked-in runtime default. At candidate SHA `6f1fa778`, `archipelago/inference/dense_retriever.py` sets runtime default to `BAAI/bge-small-en-v1.5` at `main` (384 dimensions), experimental profile to `Snowflake/snowflake-arctic-embed-m` at `fc74610d` (768 dimensions), and manifest recommendation to `Snowflake/snowflake-arctic-embed-m-v1.5` at `main` (768 dimensions). The V3 corpus manifest recommends Snowflake v1.5 and says `READY_FOR_EMBEDDING`; it does not prove a complete embedded V3 index exists. The author must approve one pinned baseline and reconcile these documents before experimental comparison. The MiniLM revision and any reported smoke test are claims in the supplied summary, not verified by local code or an artifact found here.
+
+## Implemented encoder behavior
+
+The code uses `SentenceTransformer` with local files only by default and explicit revision only if supplied. Query and passage strings are passed to the same `encode` method. Passages use their `text` (or `text_passage`) field; queries are supplied as query text. The constructor has an optional query prefix, but no profile is automatically applied as a prefix. SentenceTransformer performs model-specific tokenization and truncation; an exact tokenizer revision/max length is not pinned in this checkout. Embeddings are cast to float32 and L2-normalized (also after `normalize_embeddings=True`). Dense score is normalized-vector dot product, equivalent to cosine similarity. Hybrid retrieval combines BM25 and neural dense rankings with reciprocal rank fusion. If neural weights are unavailable, the encoder reports unavailable and the retriever uses lexical mode; feature-hashed vectors must not be described as neural dense retrieval. A cached matrix is valid only if its row count matches; its model provenance is not established by that count alone.
+
+## Resource and smoke-test limits
+
+The local source declares 384- or 768-dimensional profiles; no reproducible hardware benchmark, peak memory measurement, exact model snapshot checksum, full V3 embedding build trace, or hosted dense trace was found during this task. The supplied closure summary reports genuine neural dense readiness, but gives no reproducible smoke-test outputs in this checkout. CPU execution may be possible with cached weights; exact time and RAM requirements remain unmeasured. Do not silently substitute the runtime BGE profile, the claimed MiniLM revision, or historical feature-hashed comparators for the preregistered Snowflake baseline.
+
+## Locked evaluation contract
+
+Use matched conditions to separate corpus expansion, graph topology, lexical versus true neural dense retrieval, hybrid versus graph-assisted retrieval, retrieval versus answer synthesis, mechanical citation provenance versus human claim support, navigation usefulness, and coverage/abstention. Preserve the 731-item historical judgment pool. Any new pool must be versioned, blinded, and judged by humans. D14-N must establish literature understanding, a defensible gap and contribution, hypotheses, baselines, metrics, threats to validity, and primary-author approval. Paraphrase citation availability remains 3/6 in the reported local diagnostic, and does not establish claim correctness. All graph edges await human review.

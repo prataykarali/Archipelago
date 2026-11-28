@@ -1,0 +1,55 @@
+{
+  "schema": "archipelago.d14_9.final_coder_handover.v1",
+  "date": "2026-11-28",
+  "verdict": "REVISE",
+  "research_branch": "sigir/d14-recovery",
+  "candidate_git_sha_at_start": "6f1fa77864fa006c1519e465e9e7faf6f6836b42",
+  "baseline_git_sha": "d9f489a8537591146f43aa631f91f3c10c35184f",
+  "isolated_staging_url": "https://archipelago-sigir-670tlv38p-sigir1.vercel.app",
+  "deployed_release_sha_from_readiness": "fe8887c878e27f1770690236513f0f6c79c37d7c",
+  "vercel_project_id": "prj_BjRCpNfUItbG8BO26CIQbPhP1oi9",
+  "research_supabase_project_ref_from_vercel_binding": "edokbtmhztkhndmxetpy",
+  "hosted_runtime_corpus": {
+    "version": "corpus_v2_d10_3025",
+    "passages": 3025,
+    "documents": 43,
+    "sha256": "93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52",
+    "source": "supabase_storage",
+    "checksum_verified_by_runtime": true
+  },
+  "local_candidate_corpus": {
+    "version": "corpus_v3_d14",
+    "passages_from_manifest": 11768,
+    "documents_from_manifest": 68,
+    "domains_from_manifest": 12,
+    "sha256_verified_local": "6fe7f4d8cc27a91ebbf2e86c55267a661adf36f81425ed0cb7ab17c5f7ec4ffc",
+    "hosted_activation": false
+  },
+  "local_candidate_graph": {
+    "version": "graph_v2_d14",
+    "concepts": 631,
+    "edges": 1943,
+    "pending_review_edges": 1943,
+    "sha256_verified_local": "4f6861e6131cbccd7f60fa811492b20cba77fd1012acc7aecb9607f63c5c35ac"
+  },
+  "integrity": {
+    "protected_inventory_entries": 45,
+    "local_sha256_matches": 44,
+    "missing_paths": ["outputs/d11-a-author-diagnostic/D11_A_AUTHOR_DIAGNOSTIC_WORKSHEET.xlsx"],
+    "historical_human_annotation_rows_blank": 731,
+    "d14_graph_review_packet_120_rows_verified": false,
+    "heldout_50_executed": false,
+    "independent_leakage_audit_complete": false
+  },
+  "blocked_gates": [
+    "hosted V3 corpus parity",
+    "source-specific passage rights",
+    "authenticated browser verification",
+    "research Supabase administrative access",
+    "missing protected worksheet and D14 graph review packet",
+    "dense baseline identity reconciliation",
+    "independent leakage audit"
+  ],
+  "external_changes_made": false,
+  "protected_aliases_modified": false
+}

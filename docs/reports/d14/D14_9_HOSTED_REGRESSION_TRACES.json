@@ -1,0 +1,34 @@
+{
+  "schema": "archipelago.d14_9.hosted_observations.v1",
+  "date": "2026-11-28",
+  "deployment": "https://archipelago-sigir-670tlv38p-sigir1.vercel.app",
+  "transport": "vercel curl with authorized CLI deployment-protection bypass",
+  "not_an_authenticated_application_browser_test": true,
+  "observations": [
+    {
+      "method": "GET",
+      "path": "/api/readiness",
+      "result": "ok=true; corpus_v2_d10_3025; 3025 passages; 43 documents; sha256=93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52; source=supabase_storage; graph concepts=631; graph_version=4f6861e6131c; release_sha=fe8887c878e27f1770690236513f0f6c79c37d7c"
+    },
+    {
+      "method": "GET",
+      "path": "/api/chat/suggestions",
+      "result": "advertises corpus_v3_d14 and graph_v2_d14 with full graph SHA; contradicts readiness corpus"
+    },
+    {
+      "method": "GET",
+      "path": "/api/catalog/all",
+      "result": "unauthorized; missing_session"
+    },
+    {
+      "method": "POST",
+      "path": "/api/chat",
+      "result": "unauthorized; missing_session"
+    }
+  ],
+  "browser_observation": "Vercel You Need Access page; logged-in browser identity requires sigir1 team-owner approval",
+  "authenticated_chat_traces": [],
+  "retrieved_passage_ids_verified_against_v3": false,
+  "reader_navigation_verified": false,
+  "console_and_network_audit_complete": false
+}

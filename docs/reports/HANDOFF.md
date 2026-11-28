@@ -447,3 +447,11 @@ Built: isolated candidate branch `d10-s4-stabilization` at code SHA `722b0c58c7f
 Verified: 113 selected unit/integration/security tests passed (three documented baseline/scope-conflict assertions deselected); local loopback readiness and indexed OSTEP chat returned 200; Chrome opened original OSTEP, LoRA and RAG PDF pages; 36 offline diagnostics were compared against baseline code. The repository-wide quality gate still fails on preexisting debt. No deployment, migration application or benchmark overwrite occurred.
 
 Deferred for the next pair: apply the auth migration only in approved staging, attach the checksum-verified passage index, capture authenticated two-instance and provider/cache network evidence, verify application reader page redirects and Pearson book-level access, obtain human claim-support grades and independent review. The candidate verdict is HOLD in `docs/reports/D10_S4_FINAL_GO_HOLD.md`.
+
+## 2026-11-28 — D14.9 final single-coder handover
+
+Built: seven D14.9/D15 handover deliverables in `docs/reports/d14/`, with a REVISE verdict and a scoped rollback procedure. No candidate graph or corpus bytes, research staging data, protected alias, manuscript, or held-out benchmark were changed.
+
+Verified: isolated staging still retrieves 3,025 V2 passages while suggestions advertise V3; the local V3 corpus and V2 graph hashes match their manifests; unauthorized catalog/chat requests return `missing_session`; 44 of 45 protected inventory files match, with one worksheet absent. The browser lacks Vercel access, the connected Supabase account lacks the research project, and the worktree Kuzu database has no tables.
+
+Deferred to primary-author-controlled closure: research Supabase/Vercel access, document-specific source rights, versioned V3 staging activation, authenticated browser and passage-ID verification, recovery of the missing protected worksheet and 120-row review packet, dense baseline reconciliation, and independent leakage audit. D15 and the held-out 50-query benchmark remain locked.
