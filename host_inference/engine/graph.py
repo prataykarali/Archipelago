@@ -27,7 +27,15 @@ from .evidence_selection import (
     score_source_for_concept,
     verify_chunk_provenance,
 )
-from .graph_semantics import corrected_summary, quarantine_reason
+from .graph_semantics import (
+    ASSOCIATIVE_KINDS,
+    GRAPH_V1_ID,
+    PREREQ_IN_KINDS,
+    PREREQ_OUT_KINDS,
+    corrected_summary,
+    quarantine_reason,
+    resolve_graph_path,
+)
 from .intent import extract_clean_concept_clause
 from .source_resolution import (
     SOURCE_CAT_PEARSON,
@@ -75,11 +83,14 @@ _NOISE_UNIGRAM_CIDS: frozenset[str] = frozenset({"fast", "memory_efficient"})
 class LibraryGraph:
     """Queryable view over one exported concept graph."""
 
-    def __init__(self, path: Path):
-        source_bytes = path.read_bytes()
+    def __init__(self, path: Path, *, allow_env_override: bool = True):
+        resolved_path = resolve_graph_path(path, allow_env_override=allow_env_override)
+        self.graph_path = str(resolved_path)
+        source_bytes = resolved_path.read_bytes()
         raw = json.loads(source_bytes)
         self.graph_version = sha256(source_bytes).hexdigest()[:12]
-        self.last_sync = path.stat().st_mtime
+        self.graph_artifact_version = str(raw.get("graph_version_id") or GRAPH_V1_ID)
+        self.last_sync = resolved_path.stat().st_mtime
         # ``stats.fixture`` is stamped by scripts/build_corpus_fixture.py. Tracked
         # here so /api/readiness can say "this deployment is on the fallback
         # slice" rather than presenting a 59-concept graph as the whole library.
@@ -151,6 +162,10 @@ class LibraryGraph:
             if norm_no_paren and norm_no_paren != norm_label:
                 self._label_index.append((norm_no_paren, cid))
             self._label_index.append((cid.replace("_", " "), cid))
+            for alias in node.get("aliases") or []:
+                norm_alias = re.sub(r"[^a-z0-9]+", " ", str(alias).lower().replace("b+", "b plus")).strip()
+                if norm_alias:
+                    self._label_index.append((norm_alias, cid))
 
     def _blob(self, node: dict) -> str:
         label = node.get("label") or node.get("name") or node["id"]
@@ -162,17 +177,17 @@ class LibraryGraph:
         return node.get("label") or node.get("name") or cid
 
     def prereqs(self, cid: str, k: int = 2) -> list[str]:
-        """Outgoing REQUIRES plus incoming UNLOCKS (what enables this node)."""
-        found = self._walk(cid, k, outgoing=True, kinds={"REQUIRES"})
-        for item in self._walk(cid, k, outgoing=False, kinds={"UNLOCKS"}):
+        """Outgoing REQUIRES plus incoming UNLOCKS/ENABLES (never RELATED_TO)."""
+        found = self._walk(cid, k, outgoing=True, kinds=set(PREREQ_OUT_KINDS))
+        for item in self._walk(cid, k, outgoing=False, kinds=set(PREREQ_IN_KINDS)):
             if item not in found:
                 found.append(item)
         return found
 
     def unlocks(self, cid: str, k: int = 2) -> list[str]:
-        """Outgoing UNLOCKS plus reverse REQUIRES (what this node enables)."""
-        forward = self._walk(cid, k, outgoing=True, kinds={"UNLOCKS"})
-        reverse = self._walk(cid, k, outgoing=False, kinds={"REQUIRES"})
+        """Outgoing UNLOCKS/ENABLES plus reverse REQUIRES (what this node enables)."""
+        forward = self._walk(cid, k, outgoing=True, kinds=set(PREREQ_IN_KINDS))
+        reverse = self._walk(cid, k, outgoing=False, kinds=set(PREREQ_OUT_KINDS))
         seen = []
         for item in forward + reverse:
             if item not in seen and item != cid:
@@ -180,13 +195,13 @@ class LibraryGraph:
         return seen
 
     def related(self, cid: str, limit: int = 6) -> list[str]:
-        """RELATED neighbours in either direction, capped at ``limit``."""
+        """Associative neighbours (RELATED/RELATED_TO/USES/PART_OF/CONTRASTS_WITH), capped."""
         found = []
         for kind, other in self.out.get(cid, []):
-            if kind == "RELATED" and other not in found:
+            if kind in ASSOCIATIVE_KINDS and other not in found:
                 found.append(other)
         for kind, other in self.inn.get(cid, []):
-            if kind == "RELATED" and other not in found:
+            if kind in ASSOCIATIVE_KINDS and other not in found:
                 found.append(other)
         return found[:limit]
 
@@ -219,10 +234,10 @@ class LibraryGraph:
                 continue
             hops = []
             for kind, nxt in self.out.get(cur, []):
-                if kind in {"REQUIRES", "UNLOCKS"}:
+                if kind in {"REQUIRES", "UNLOCKS", "ENABLES"}:
                     hops.append((kind, nxt))
             for kind, nxt in self.inn.get(cur, []):
-                if kind in {"REQUIRES", "UNLOCKS"}:
+                if kind in {"REQUIRES", "UNLOCKS", "ENABLES"}:
                     hops.append((f"inv-{kind}", nxt))
             for kind, nxt in hops:
                 if nxt in visited:

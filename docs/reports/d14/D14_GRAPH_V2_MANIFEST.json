@@ -1,0 +1,53 @@
+{
+  "artifact_version_id": "graph_v2_d14",
+  "schema_version": "2.0.0-d14",
+  "graph_path": "host_inference/fixtures/okf_graph_v2_d14.json",
+  "graph_sha256": "33a6f7117acc9160e3a9dea99b04b159a355f8c2efa350c0b7d926d0da430774",
+  "parent_graph_id": "graph_v1_okf610",
+  "parent_graph_path": "host_inference/fixtures/okf_graph.json",
+  "parent_graph_sha256": "9818ac0e8fd30e2e94afef67677267c0dfde09e9b87e83be7a582cd8bae42f76",
+  "stats": {
+    "total_concepts": 631,
+    "total_edges": 1944,
+    "requires_edges": 264,
+    "enables_edges": 331,
+    "uses_edges": 153,
+    "part_of_edges": 176,
+    "related_to_edges": 921,
+    "contrasts_with_edges": 99
+  },
+  "diff_counts": {
+    "removed_artifact_nodes": 5,
+    "merged_duplicate_nodes": 5,
+    "added_curriculum_nodes": 31,
+    "updated_summaries": 87,
+    "removed_invalid_edges": 102,
+    "added_curated_edges": 66,
+    "cycle_breaks": 1
+  },
+  "domain_coverage": {
+    "Mathematics for Computing": 23,
+    "Probability & Statistics": 42,
+    "AI & Machine Learning": 122,
+    "Operating Systems": 27,
+    "Data Structures & Algorithms": 10,
+    "Database Systems": 15,
+    "Computer Networks": 34,
+    "Compilers & Languages": 12,
+    "Automata & Computation": 15,
+    "Information Security": 25,
+    "Software Engineering": 9,
+    "Computer Architecture": 11
+  },
+  "review_status_counts": {
+    "PENDING_REVIEW": 1944
+  },
+  "invariants": {
+    "v1_baseline_untouched": true,
+    "requires_dag_cycles": 0,
+    "combined_prereq_dag_cycles": 0,
+    "placeholder_summaries": 0,
+    "empty_summaries": 0,
+    "auto_promoted_human_verified_edges": 0
+  }
+}
