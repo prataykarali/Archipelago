@@ -171,27 +171,49 @@ import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
                     }
                     if (otherSources.length) {
                         const openAttr = otherSources.length <= 3 ? 'open' : '';
+                        const resolvableCount = otherSources.filter((c) => Boolean(citationPageUrl(c))).length;
+                        const headerHint = otherSources.length > 3
+                            ? 'Click to expand'
+                            : (resolvableCount > 0 ? 'Verified links' : 'Reference metadata');
                         html += `
                             <details class="sources-resources-details rounded-xl border border-sky-500/20 bg-sky-950/20 px-3 py-2" ${openAttr}>
                                 <summary class="cursor-pointer list-none flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-sky-400 select-none">
                                     <span class="flex items-center gap-2">
                                         <i class="fa-solid fa-layer-group text-sky-400"></i> Sources &amp; Resources (${otherSources.length})
                                     </span>
-                                    <span class="text-[11px] font-normal normal-case text-gray-400">${otherSources.length > 3 ? 'Click to expand' : 'Verified links'}</span>
+                                    <span class="text-[11px] font-normal normal-case text-gray-400">${headerHint}</span>
                                 </summary>
                                 <div class="mt-2.5 space-y-1.5">
                                     ${otherSources.map((c, i) => {
                                         const title = citationTitle(c, 'Resource');
-                                        const pageNum = c.page_number || c.page;
+                                        const rawPage = Number(c.page_number || c.page);
+                                        const pageNum = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                                         const badgeStr = c.evidence_id || `S${i+1}`;
+                                        const sourceKind = String(c.source_kind || '').toLowerCase().trim();
                                         const pageUrl = citationPageUrl(c);
+                                        const isPearsonUrl = typeof pageUrl === 'string' && (pageUrl.startsWith('/open/') || pageUrl.includes('pearson.com'));
+                                        let actionHtml;
+                                        if (pageUrl) {
+                                            const label = isPearsonUrl
+                                                ? (pageNum ? `Open Pearson p. ${pageNum}` : 'Open in Pearson ↗')
+                                                : (pageNum ? `Open page ${pageNum}` : 'Open source ↗');
+                                            actionHtml = `<a class="view-page-link shrink-0 whitespace-nowrap text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+                                        } else {
+                                            const tagClass = sourceKind === 'unavailable_document'
+                                                ? 'evidence-pill-unavailable'
+                                                : 'evidence-pill-metadata-only';
+                                            const tagText = sourceKind === 'unavailable_document'
+                                                ? 'Unavailable Document'
+                                                : (sourceKind === 'institutional_licensed' ? 'Institutional License' : 'Metadata-Only Record');
+                                            actionHtml = `<span class="${tagClass} shrink-0 whitespace-nowrap" data-source-kind="${escapeHTML(sourceKind || 'metadata_only_record')}">${tagText}</span>`;
+                                        }
                                         return `
                                             <div class="flex items-center justify-between gap-3 py-1.5 px-2.5 rounded-lg border border-white/10 bg-white/5 text-xs">
                                                 <div class="min-w-0 font-semibold text-gray-200 truncate">
                                                     <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 mr-1.5">${escapeHTML(badgeStr)}</span>
                                                     ${escapeHTML(title)}
                                                 </div>
-                                                <a class="view-page-link shrink-0 whitespace-nowrap text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>
+                                                ${actionHtml}
                                             </div>
                                         `;
                                     }).join('')}
