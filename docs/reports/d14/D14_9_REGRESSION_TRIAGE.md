@@ -13,6 +13,6 @@ The supplied closure summary reports baseline `d9f489a8` at 2,392 passed / 190 f
 | Protected inventory | 45/45 matching across two workspaces; D11-A worksheet matches registered SHA in original demo workspace | Worksheet is preserved, though absent from this worktree. |
 | D14 graph packet | 120-row packet not found in inspected workspaces | Human review handoff incomplete. |
 | Eight-query challenge | No specification or run artifact located; exposure status unknown | Do not call unseen or completed. |
-| Source-specific rights | 68-row audit: 64 quarantine, four conditional; two registered license mismatches | Unfiltered V3 upload prohibited. |
+| Source-specific rights | 68-row audit: 63 quarantine, one excluded, four conditional; four registered license mismatches | Unfiltered V3 upload prohibited. |
 
 The authorized 46-query development regression is documented only by the supplied prior report (46/46 HTTP 200, 33/36 diagnostic citation responses, 3/6 paraphrase citation responses, 2/2 out-of-coverage). No new 46-query run was made. The reserved eight-query challenge has no verifiable specification or completion record in the inspected workspaces and was not run. No held-out benchmark contents were opened.

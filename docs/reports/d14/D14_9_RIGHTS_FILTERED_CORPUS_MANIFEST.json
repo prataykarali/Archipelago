@@ -61,7 +61,6 @@
     "books/papers/Willard2023_Outlines.pdf",
     "books/papers/Yao2022_ReAct.pdf",
     "books/textbooks/Deisenroth_Math_For_ML.pdf",
-    "d14_oa/ai_ml/shalev_shwartz_understanding_ml.pdf",
     "d14_oa/automata_theory/critchlow_eck_foundations_of_computation.pdf",
     "d14_oa/automata_theory/maheshwari_smid_theory_of_computation.pdf",
     "d14_oa/compiler_design/crafting_interpreters_core.html",
@@ -86,5 +85,8 @@
     "d14_oa/software_engineering/twelve_factor_and_aosa_architecture.html"
   ],
   "conditions": "Attribution/license notices and source-specific conditions must be met before activation. Three of four sources are conditional; this subset lacks 12-domain coverage.",
-  "activation": false
+  "activation": false,
+  "excluded_doc_ids": [
+    "d14_oa/ai_ml/shalev_shwartz_understanding_ml.pdf"
+  ]
 }
