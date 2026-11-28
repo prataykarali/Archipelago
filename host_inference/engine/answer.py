@@ -55,11 +55,21 @@ from .llm import (
     provider_config,
     stream_completion,
 )
-from .math_guard import audit_worked_address_translation
+from .math_guard import (
+    CLAIM_STATUS_INCOMPLETE,
+    audit_scientific_response,
+    build_scientific_guard_guidance,
+    strip_unsupported_citations,
+    verify_claim_support,
+)
 from .nodes import node_public
 from .render import clean_reply_markdown
 from .reply_evidence import expanded_concept_context
-from .reply_plan import build_reply_plan
+from .reply_plan import (
+    EPISTEMIC_UNAVAILABLE,
+    build_reply_plan,
+    classify_epistemic_state,
+)
 from .routing_constants import (
     ANCHOR_LIMIT as ANCHOR_LIMIT,
 )
@@ -555,8 +565,18 @@ class Engine:
             latency_ms=latency_ms,
         )
         payload["trace"]["evidence_backed"] = evidence_backed
+        epistemic = classify_epistemic_state(payload, route, query)
+        payload["epistemic_state"] = epistemic["primary_state"]
+        payload["epistemic_contract"] = epistemic
+        payload["trace"]["epistemic_state"] = epistemic["primary_state"]
 
-        text = clean_reply_markdown(link_answer_sources(text, payload["citations"]), query)
+        linked_text = clean_reply_markdown(link_answer_sources(text, payload["citations"]), query)
+        text, stripped_markers = strip_unsupported_citations(linked_text, payload["citations"])
+        claim_support = verify_claim_support(text, payload["citations"], stream_status="complete")
+        if stripped_markers:
+            claim_support["stripped_unsupported_markers"] = stripped_markers
+        payload["claim_support"] = claim_support
+        payload["trace"]["claim_support_status"] = claim_support["status"]
         return {
             "route": route,
             "contract": contract,
@@ -598,9 +618,12 @@ class Engine:
         plan = build_reply_plan(query, route, payload, reply_template_id)
         payload["reply_plan"] = plan
         payload["reply_template"] = plan["primary_template"]
+        payload["epistemic_state"] = plan["epistemic_state"]
+        payload["epistemic_contract"] = plan["epistemic_contract"]
         trace = payload.setdefault("trace", {})
         trace["template_id"] = plan["primary_template"]["id"]
         trace["evidence_backed"] = evidence_backed
+        trace["epistemic_state"] = plan["epistemic_state"]
 
         can_polish = _should_invoke_live_synthesis(
             query=query,
@@ -614,6 +637,9 @@ class Engine:
         config = provider_config() if can_polish else None
 
         if not can_polish:
+            det_claim = payload.get("claim_support") or verify_claim_support(
+                grounded_text, payload.get("citations") or [], stream_status="complete"
+            )
             payload["synthesis_mode"] = "verified_deterministic"
             payload["provider"] = ""
             payload["provider_status"] = "not_invoked"
@@ -626,6 +652,7 @@ class Engine:
                 model="",
                 synthesis_mode=payload["synthesis_mode"],
                 template_influenced=False,
+                claim_support_status=det_claim["status"],
             )
             yield json.dumps(payload) + "\n[STREAM_START]\n"
             yield grounded_text
@@ -637,6 +664,9 @@ class Engine:
                         "fallback_reason": None,
                         "stream_status": "complete",
                         "provider_ttft_ms": None,
+                        "epistemic_state": plan["epistemic_state"],
+                        "claim_support_status": det_claim["status"],
+                        "validated": bool(det_claim["validated"]),
                     }
                 )
                 + "]\n"
@@ -681,6 +711,14 @@ class Engine:
                 "(only concept summary or metadata records exist). State this explicitly in a "
                 "brief Limitations note and never fabricate citations, page numbers, or links."
             )
+        safe_text += f"\n\nEpistemic state: {plan['epistemic_state']}."
+        sci_guidance = build_scientific_guard_guidance(
+            query,
+            evidence_backed=evidence_backed,
+            citations=payload.get("citations") or [],
+        )
+        if sci_guidance:
+            safe_text += "\n\nScientific verification guardrails:\n" + sci_guidance
         if reply_detail == "expanded":
             concept_context = expanded_concept_context(payload)
             if concept_context:
@@ -892,7 +930,7 @@ class Engine:
             yield f"\n[STREAM_TRUNCATED:{fr}]\n"
             yield (
                 "\n\n> **Response truncated (token limit reached):** "
-                "the provider stopped before completing the answer; showing partial response received."
+                "the provider stopped before completing the answer; showing partial unvalidated response."
             )
             yield (
                 "\n[STREAM_META:"
@@ -903,6 +941,9 @@ class Engine:
                         "stream_status": "truncated_token_limit",
                         "finish_reason": fr,
                         "provider_ttft_ms": provider_ttft_ms,
+                        "epistemic_state": EPISTEMIC_UNAVAILABLE,
+                        "claim_support_status": CLAIM_STATUS_INCOMPLETE,
+                        "validated": False,
                     }
                 )
                 + "]\n"
@@ -926,7 +967,7 @@ class Engine:
             yield f"\n[STREAM_INCOMPLETE:{err_kind}]\n"
             yield (
                 "\n\n> **Incomplete stream:** live synthesis ended unexpectedly "
-                f"(`{err_kind}`) before completion."
+                f"(`{err_kind}`) before completion; partial output is unvalidated."
             )
             yield (
                 "\n[STREAM_META:"
@@ -936,6 +977,9 @@ class Engine:
                         "fallback_reason": err_kind,
                         "stream_status": "incomplete_stream",
                         "provider_ttft_ms": provider_ttft_ms,
+                        "epistemic_state": EPISTEMIC_UNAVAILABLE,
+                        "claim_support_status": CLAIM_STATUS_INCOMPLETE,
+                        "validated": False,
                     }
                 )
                 + "]\n"
@@ -945,9 +989,25 @@ class Engine:
         if yielded_len < MIN_STREAMED_CHARS_BEFORE_DRAFT_APPEND and grounded_text:
             yield "\n\n" + grounded_text
             emitted_text += "\n\n" + grounded_text
-        math_note = audit_worked_address_translation(emitted_text)
-        if math_note:
-            yield math_note
+        sci_audit = audit_scientific_response(
+            emitted_text,
+            query=query,
+            citations=payload.get("citations") or [],
+            evidence_backed=evidence_backed,
+        )
+        if sci_audit["qualification_note"]:
+            yield sci_audit["qualification_note"]
+        claim_report = verify_claim_support(
+            emitted_text,
+            payload.get("citations") or [],
+            stream_status="complete",
+        )
+        if claim_report["unsupported_markers"]:
+            markers_str = ", ".join(claim_report["unsupported_markers"])
+            yield (
+                "\n\n> **Claim support notice:** inline citation marker(s) "
+                f"`{markers_str}` could not be verified against retrieved full-text passages."
+            )
         source_lines = list(
             dict.fromkeys(
                 f"- {citation_link(citation)}"
@@ -973,6 +1033,10 @@ class Engine:
                     "stream_status": "complete",
                     "finish_reason": (outcome or {}).get("finish_reason"),
                     "provider_ttft_ms": provider_ttft_ms,
+                    "epistemic_state": plan["epistemic_state"],
+                    "claim_support_status": claim_report["status"],
+                    "math_validation_passed": sci_audit["passed"],
+                    "validated": bool(claim_report["validated"] and sci_audit["passed"]),
                 }
             )
             + "]\n"

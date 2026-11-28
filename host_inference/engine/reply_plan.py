@@ -24,6 +24,63 @@ RESEARCH_REQUEST = re.compile(
 MAX_SECONDARY_TEMPLATES = 3
 SECONDARY_LAYOUT_CHARS = 350
 
+EPISTEMIC_DIRECTLY_SUPPORTED = "DIRECTLY_SUPPORTED"
+EPISTEMIC_INDEPENDENTLY_DERIVED = "INDEPENDENTLY_DERIVED_EXAMPLE"
+EPISTEMIC_GENERAL_KNOWLEDGE = "GENERAL_MODEL_KNOWLEDGE"
+EPISTEMIC_METADATA_ONLY = "METADATA_ONLY"
+EPISTEMIC_UNAVAILABLE = "UNAVAILABLE_OR_UNCERTAIN"
+_SOURCE_KIND_VERIFIED = "verified_full_text_passage"
+_SOURCE_KIND_METADATA = "metadata_only_record"
+_WORKED_EXAMPLE_RE = re.compile(
+    r"\b(example|worked|walk\s+through|step[-\s]by[-\s]step|calculate|compute|derive|illustrate)\b",
+    re.I,
+)
+
+
+def classify_epistemic_state(
+    payload: dict[str, Any], route: str, query: str = ""
+) -> dict[str, Any]:
+    """Classify the turn into the canonical 5-state epistemic contract."""
+    citations = [
+        item
+        for item in payload.get("citations", [])
+        if isinstance(item, dict) and not item.get("withdrawn")
+    ]
+    has_verified = bool(payload.get("evidence_backed")) or any(
+        item.get("source_kind") == _SOURCE_KIND_VERIFIED for item in citations
+    )
+    has_metadata_only = any(item.get("source_kind") == _SOURCE_KIND_METADATA for item in citations)
+    has_anchor = bool(payload.get("anchor_concept"))
+    wants_example = bool(_WORKED_EXAMPLE_RE.search(query or ""))
+
+    if route in {"OUT_OF_DOMAIN", "UNSUPPORTED", "WITHDRAWN"} or payload.get("withdrawn_notice"):
+        primary = EPISTEMIC_UNAVAILABLE
+    elif has_verified:
+        primary = EPISTEMIC_DIRECTLY_SUPPORTED
+    elif has_metadata_only:
+        primary = EPISTEMIC_METADATA_ONLY
+    elif has_anchor or route in {
+        "GENERAL_EXPLANATION",
+        "MULTI_CONCEPT",
+        "CROSS_DOMAIN",
+        "RELATION",
+    }:
+        primary = EPISTEMIC_GENERAL_KNOWLEDGE
+    else:
+        primary = EPISTEMIC_UNAVAILABLE
+
+    allowed_states = [primary]
+    if wants_example and primary != EPISTEMIC_UNAVAILABLE:
+        allowed_states.append(EPISTEMIC_INDEPENDENTLY_DERIVED)
+    if primary == EPISTEMIC_METADATA_ONLY:
+        allowed_states.append(EPISTEMIC_GENERAL_KNOWLEDGE)
+    return {
+        "primary_state": primary,
+        "allowed_states": list(dict.fromkeys(allowed_states)),
+        "evidence_backed": has_verified,
+        "metadata_only": has_metadata_only and not has_verified,
+    }
+
 
 def build_reply_plan(
     query: str, route: str, payload: dict[str, Any], template_id: str = ""
@@ -102,12 +159,15 @@ def build_reply_plan(
         blocks.append("digital_resources")
     if physical and RESOURCE_REQUEST.search(query):
         blocks.append("physical_holdings")
+    epistemic = classify_epistemic_state(payload, route, query)
     return {
         "primary_template": {"id": primary["id"], "name": primary["name"]},
         "secondary_templates": secondary_ids[:MAX_SECONDARY_TEMPLATES],
         "depth": depth,
         "evidence": evidence,
         "presentation": blocks,
+        "epistemic_state": epistemic["primary_state"],
+        "epistemic_contract": epistemic,
     }
 
 
@@ -121,12 +181,16 @@ def plan_guidance(plan: dict[str, Any]) -> str:
         f"{item['id']} {item['name']}: {item['reply_template'][:SECONDARY_LAYOUT_CHARS]}"
         for item in secondary
     )
+    epistemic_state = str(plan.get("epistemic_state") or EPISTEMIC_GENERAL_KNOWLEDGE)
     return (
-        f"Answer depth: {plan['depth']}. Start with a direct answer. "
+        f"Answer depth: {plan['depth']}. Primary epistemic state: {epistemic_state}. "
+        "Start with a direct answer. "
         f"Use optional supporting layouts only when their evidence is present:\n"
         f"{secondary_layouts or 'none'}\n"
         f"Present useful parts in this order: {', '.join(plan['presentation'])}. "
         f"Available evidence classes: {', '.join(plan['evidence']) or 'none'}. "
+        "Distinguish directly supported passage claims, independently derived examples, "
+        "general model knowledge, metadata-only records, and unavailable evidence. "
         "A brief fact needs one short paragraph; a normal explanation needs a mechanism and example; "
         "a deep request may use sections or a comparison table. Never pad for length. "
         "Keep physical holdings separate from digital books and do not infer live availability."

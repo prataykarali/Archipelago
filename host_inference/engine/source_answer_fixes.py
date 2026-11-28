@@ -61,12 +61,12 @@ def source_grounded_os_reply(
                 "pdf_url": url,
             }
             text = (
-                "**Base-and-bounds address translation.** Hardware adds the base register "
-                "to a process's virtual address to relocate it in physical memory. "
-                "The bounds register checks whether the virtual address is within the "
-                "process's allowed address space; an out-of-bounds access traps. "
-                f"The OSTEP textbook explains this on [PDF page {BASE_BOUNDS_PAGE}]({url}) "
-                f"{citation['label']}."
+                "**Base-and-bounds address translation.** Hardware translates a virtual address "
+                "by checking the half-open bounds interval `0 <= virtual_addr < bounds` and, when "
+                "in range, computing `physical_addr = base + virtual_addr`. An access with "
+                "`virtual_addr < 0` or `virtual_addr >= bounds` raises a hardware exception/trap. "
+                f"The OSTEP textbook (Chapter 15: Mechanism: Address Translation) explains this on "
+                f"[PDF page {BASE_BOUNDS_PAGE}]({url}) {citation['label']}."
             )
             return (
                 "BOOK_PAGE",
@@ -113,13 +113,15 @@ def source_grounded_os_reply(
             else " The indexed OSTEP paging passage is unavailable for this candidate."
         )
         text = (
-            "**Paging.** Virtual pages map to physical frames through a page table."
+            "**Paging.** Virtual pages map to physical frames through a page table, keeping the "
+            "low-order page offset bits unchanged between virtual and physical addresses."
             + source_line
-            + "\n\n**General explanation (not established by the cited introductory passage):** "
-            "A page fault means the current mapping cannot satisfy the access. "
-            "It does not always require disk I/O: a demand-zero fault can allocate and zero "
-            "a page, and a copy-on-write fault can create a private copy of a resident page. "
-            "Reading backing storage is needed only for faults whose required contents are not resident."
+            + "\n\n**General explanation (not directly established by the cited introductory passage):** "
+            "On a missing or invalid mapping, the hardware MMU/TLB detects the fault and raises a "
+            "trap, and the OS kernel's page-fault handler resolves it. A page fault does not always "
+            "require disk I/O: a demand-zero fault allocates and zeroes a fresh physical frame, and "
+            "a copy-on-write fault duplicates a resident frame on write. Reading from backing "
+            "storage is needed only when the faulted page's contents are not resident in memory."
         )
         return (
             "BOOK_PAGE",

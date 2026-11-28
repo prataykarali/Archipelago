@@ -1,0 +1,257 @@
+{
+  "schema_version": "d14.4-math-tests-v1",
+  "owner": "d14-synthesis-math",
+  "description": "Deterministic mathematical and structural verification test cases for Archipelago D14.4.",
+  "cases": [
+    {
+      "id": "MATH-GAT-SOFTMAX-PASS",
+      "defect_id": "D14-DEF-029",
+      "validator": "verify_softmax",
+      "inputs": {
+        "logits": [0.23, 0.19],
+        "claimed": [0.51, 0.49]
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-GAT-SOFTMAX-FAIL-REGRESSION",
+      "defect_id": "D14-DEF-029",
+      "validator": "verify_softmax",
+      "inputs": {
+        "logits": [0.23, 0.19],
+        "claimed": [0.55, 0.45]
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-GAT-DIMS-PASS",
+      "defect_id": "D14-DEF-029",
+      "validator": "verify_attention_concat_dims",
+      "inputs": {
+        "feature_dim": 2,
+        "attention_vec_dim": 4,
+        "concat_count": 2
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-GAT-DIMS-FAIL-REGRESSION",
+      "defect_id": "D14-DEF-029",
+      "validator": "verify_attention_concat_dims",
+      "inputs": {
+        "feature_dim": 2,
+        "attention_vec_dim": 2,
+        "concat_count": 2
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-MATVEC-PASS",
+      "defect_id": "D14-DEF-029",
+      "validator": "verify_matvec",
+      "inputs": {
+        "matrix": [[1.0, 2.0], [3.0, 4.0]],
+        "vector": [0.5, 1.0],
+        "claimed": [2.5, 5.5]
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-MATVEC-FAIL-DIM",
+      "defect_id": "D14-DEF-029",
+      "validator": "verify_matvec",
+      "inputs": {
+        "matrix": [[1.0, 2.0], [3.0, 4.0]],
+        "vector": [0.5, 1.0, 2.0],
+        "claimed": [2.5, 5.5]
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-GAUSSIAN-MLE-PASS",
+      "defect_id": "D14-DEF-031",
+      "validator": "verify_gaussian_mle",
+      "inputs": {
+        "samples": [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0],
+        "claimed_mu": 5.0,
+        "claimed_var": 4.0
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-GAUSSIAN-MLE-FAIL-UNBIASED",
+      "defect_id": "D14-DEF-031",
+      "validator": "verify_gaussian_mle",
+      "inputs": {
+        "samples": [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0],
+        "claimed_mu": 5.0,
+        "claimed_var": 4.5714
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-KL-DISCRETE-PASS",
+      "defect_id": "D14-DEF-032",
+      "validator": "verify_kl_discrete",
+      "inputs": {
+        "p": [0.5, 0.5],
+        "q": [0.25, 0.75],
+        "claimed": 0.143841
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-KL-DISCRETE-SUPPORT-INF",
+      "defect_id": "D14-DEF-032",
+      "validator": "verify_kl_discrete",
+      "inputs": {
+        "p": [0.5, 0.5],
+        "q": [1.0, 0.0],
+        "claimed": 0.5
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-KL-GAUSSIAN-1D-PASS",
+      "defect_id": "D14-DEF-032",
+      "validator": "verify_kl_gaussian_1d",
+      "inputs": {
+        "mu1": 0.0,
+        "sigma1": 1.0,
+        "mu2": 1.0,
+        "sigma2": 2.0,
+        "claimed": 0.443147
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-SVD-FULL-PASS",
+      "defect_id": "D14-DEF-034",
+      "validator": "verify_svd_dimensions",
+      "inputs": {
+        "m": 5,
+        "n": 3,
+        "u_shape": [5, 5],
+        "s_shape": [5, 3],
+        "vt_shape": [3, 3]
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-SVD-THIN-PASS",
+      "defect_id": "D14-DEF-034",
+      "validator": "verify_svd_dimensions",
+      "inputs": {
+        "m": 5,
+        "n": 3,
+        "u_shape": [5, 3],
+        "s_shape": [3, 3],
+        "vt_shape": [3, 3]
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-SVD-BAD-DIMS",
+      "defect_id": "D14-DEF-034",
+      "validator": "verify_svd_dimensions",
+      "inputs": {
+        "m": 5,
+        "n": 3,
+        "u_shape": [3, 3],
+        "s_shape": [5, 3],
+        "vt_shape": [5, 5]
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-PAGING-OFFSET-PASS",
+      "defect_id": "D14-DEF-035",
+      "validator": "verify_paging_offset",
+      "inputs": {
+        "virtual_addr": 74565,
+        "physical_addr": 287557,
+        "offset_bits": 12
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-PAGING-OFFSET-FAIL",
+      "defect_id": "D14-DEF-035",
+      "validator": "verify_paging_offset",
+      "inputs": {
+        "virtual_addr": 74565,
+        "physical_addr": 287558,
+        "offset_bits": 12
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-BASE-BOUNDS-IN-RANGE",
+      "defect_id": "D14-DEF-036",
+      "validator": "verify_base_and_bounds",
+      "inputs": {
+        "virtual_addr": 300,
+        "base": 32768,
+        "bounds": 4096,
+        "claimed_valid": true,
+        "claimed_pa": 33068
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-BASE-BOUNDS-UPPER-EXCLUSIVE-FAIL",
+      "defect_id": "D14-DEF-036",
+      "validator": "verify_base_and_bounds",
+      "inputs": {
+        "virtual_addr": 4096,
+        "base": 32768,
+        "bounds": 4096,
+        "claimed_valid": true,
+        "claimed_pa": 36864
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-CFG-LALR-PASS",
+      "defect_id": "D14-DEF-038",
+      "validator": "verify_cfg_production",
+      "inputs": {
+        "production": "T -> T * F"
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-CFG-LALR-FAIL-REGRESSION",
+      "defect_id": "D14-DEF-038",
+      "validator": "verify_cfg_production",
+      "inputs": {
+        "production": "F * F -> T"
+      },
+      "expected_passed": false
+    },
+    {
+      "id": "MATH-BAYES-POSTERIOR-PASS",
+      "defect_id": "D14-DEF-031",
+      "validator": "verify_bayes_posterior",
+      "inputs": {
+        "prior": 0.01,
+        "likelihood": 0.99,
+        "evidence": 0.0594,
+        "claimed": 0.166667
+      },
+      "expected_passed": true
+    },
+    {
+      "id": "MATH-BAYES-BASE-RATE-FAIL",
+      "defect_id": "D14-DEF-031",
+      "validator": "verify_bayes_posterior",
+      "inputs": {
+        "prior": 0.01,
+        "likelihood": 0.99,
+        "evidence": 0.0594,
+        "claimed": 0.99
+      },
+      "expected_passed": false
+    }
+  ]
+}
