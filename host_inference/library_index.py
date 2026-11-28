@@ -58,6 +58,47 @@ STOP = {
 }
 REQUESTED_PAGE_RE = re.compile(r"\b(?:page|p\.)\s*(\d+)\b", re.I)
 MAX_REQUESTED_PAGE = 10000
+CORPUS_V3_ID = "corpus_v3_d14"
+CORPUS_V2_ID = "corpus_v2_d10_3025"
+ENV_CORPUS_VERSION = "ARCHIPELAGO_CORPUS_VERSION"
+V3_PASSAGES_FILENAME = "d14_candidate_passages_v3.jsonl"
+V2_PASSAGES_FILENAME = "d10_candidate_passages.jsonl"
+V3_MANIFEST_REL = Path("docs") / "reports" / "d14" / "D14_CORPUS_V3_MANIFEST.json"
+V2_MANIFEST_REL = Path("docs") / "reports" / "D10_S4_CANDIDATE_PASSAGE_MANIFEST.json"
+V3_ARTIFACTS_REL = Path("data") / "artifacts" / "corpus_v3_d14" / V3_PASSAGES_FILENAME
+_V2_ALIASES = frozenset({CORPUS_V2_ID, "v2", "v2_d10", "d10", "d5-775"})
+
+
+def resolve_candidate_passages_path(here: Path = HERE) -> tuple[Path | None, str, str]:
+    """Resolve versioned candidate passages JSONL path, source label, and corpus version.
+
+    Defaults to ``corpus_v3_d14`` when available while preserving ``corpus_v2_d10_3025``
+    as an explicit rollback target via ``ARCHIPELAGO_CORPUS_VERSION=corpus_v2_d10_3025``.
+    """
+    env_path = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES", "").strip()
+    if env_path.lower() in {"0", "false", "none"}:
+        return None, "disabled", ""
+    if env_path:
+        path = Path(env_path)
+        ver = CORPUS_V3_ID if "v3" in path.name.lower() or "d14" in path.name.lower() else CORPUS_V2_ID
+        return path, "env_path", ver
+
+    env_version = os.environ.get(ENV_CORPUS_VERSION, "").strip().lower()
+    v2_cache = here / "cache" / V2_PASSAGES_FILENAME
+    if env_version in _V2_ALIASES:
+        return (v2_cache, "local_cache_v2", CORPUS_V2_ID) if v2_cache.is_file() else (None, "remote", CORPUS_V2_ID)
+
+    v3_candidates = (
+        (here.parent / V3_ARTIFACTS_REL, "local_v3_artifacts"),
+        (here / "cache" / V3_PASSAGES_FILENAME, "local_cache_v3"),
+    )
+    for candidate, src_label in v3_candidates:
+        if candidate.is_file():
+            return candidate, src_label, CORPUS_V3_ID
+
+    if v2_cache.is_file():
+        return v2_cache, "local_cache_v2", CORPUS_V2_ID
+    return None, "remote", env_version or CORPUS_V3_ID
 
 
 def requested_page(query: str) -> int | None:
@@ -272,16 +313,34 @@ class Catalog:
             "expected_sha256": None,
             "checksum_verified": False,
             "source": None,
+            "corpus_version": None,
         }
+        self._retriever_cache: tuple[int, object] | None = None
         candidate_index = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES", "").strip()
-        if candidate_index and candidate_index not in {"0", "false", "none"}:
-            self._load_candidate_passages(Path(candidate_index), source="env_path")
-        elif not candidate_index and not os.environ.get("PYTEST_CURRENT_TEST"):
-            default_cache = HERE / "cache" / "d10_candidate_passages.jsonl"
-            if default_cache.is_file():
-                self._load_candidate_passages(default_cache, source="local_cache")
-            else:
+        if candidate_index or not os.environ.get("PYTEST_CURRENT_TEST"):
+            resolved_path, resolved_src, resolved_ver = resolve_candidate_passages_path(HERE)
+            if resolved_path is not None:
+                self._load_candidate_passages(
+                    resolved_path, source=resolved_src, corpus_version=resolved_ver
+                )
+            elif resolved_src == "remote":
                 self._load_remote_candidate_passages()
+
+    def get_retriever(self) -> object | None:
+        """Return a lazily cached HybridPassageRetriever over ``self.passages``."""
+        count = len(self.passages)
+        if count == 0:
+            return None
+        if self._retriever_cache is not None and self._retriever_cache[0] == count:
+            return self._retriever_cache[1]
+        try:
+            from archipelago.inference.dense_retriever import HybridPassageRetriever
+        except ImportError:
+            return None
+        corpus_ver = str(self.candidate_passages_info.get("corpus_version") or CORPUS_V2_ID)
+        retriever = HybridPassageRetriever(self.passages, corpus_version=corpus_ver)
+        self._retriever_cache = (count, retriever)
+        return retriever
 
     def _load_remote_candidate_passages(self) -> None:
         """Fetch the checksum-verified passage index from private staging Supabase Storage."""
@@ -295,13 +354,14 @@ class Catalog:
         )
         if not url or not key:
             return
-        cache_path = Path("/tmp/archipelago_d10_candidate_passages.jsonl")
+        cache_key = hashlib.sha256(storage_object.encode("utf-8")).hexdigest()[:12]
+        cache_path = Path(f"/tmp/archipelago_candidate_passages_{cache_key}.jsonl")
         if not cache_path.is_file():
             try:
                 resp = requests.get(
                     f"{url}/storage/v1/object/{storage_object.lstrip('/')}",
                     headers={"apikey": key, "Authorization": f"Bearer {key}"},
-                    timeout=(3.0, 8.0),
+                    timeout=(3.0, 20.0),
                 )
                 if resp.status_code != 200 or not resp.content:
                     self.candidate_passages_info["error"] = f"remote_http_{resp.status_code}"
@@ -310,27 +370,36 @@ class Catalog:
             except (requests.RequestException, OSError):
                 self.candidate_passages_info["error"] = "remote_fetch_failed"
                 return
-        self._load_candidate_passages(cache_path, source="supabase_storage")
+        ver = CORPUS_V3_ID if "v3" in storage_object.lower() or "d14" in storage_object.lower() else CORPUS_V2_ID
+        self._load_candidate_passages(cache_path, source="supabase_storage", corpus_version=ver)
 
-    def _load_candidate_passages(self, index_path: Path, *, source: str = "local") -> None:
+    def _load_candidate_passages(
+        self, index_path: Path, *, source: str = "local", corpus_version: str = ""
+    ) -> None:
         """Add rights-approved, deterministic PDF body chunks to catalog retrieval."""
         if not index_path.is_file():
             return
         raw_bytes = index_path.read_bytes()
         actual_sha = hashlib.sha256(raw_bytes).hexdigest()
         expected_sha = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_SHA256", "").strip().lower()
+        detected_version = corpus_version
         if not expected_sha:
-            manifest_path = (
-                HERE.parent / "docs" / "reports" / "D10_S4_CANDIDATE_PASSAGE_MANIFEST.json"
-            )
-            if manifest_path.is_file():
+            for manifest_rel, ver_id in (
+                (V3_MANIFEST_REL, CORPUS_V3_ID),
+                (V2_MANIFEST_REL, CORPUS_V2_ID),
+            ):
+                manifest_path = HERE.parent / manifest_rel
+                if not manifest_path.is_file():
+                    continue
                 try:
                     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
                     manifest_sha = str(manifest.get("passage_index_sha256") or "").strip().lower()
                     if manifest_sha and actual_sha == manifest_sha:
                         expected_sha = manifest_sha
+                        detected_version = str(manifest.get("corpus_version") or ver_id)
+                        break
                 except (OSError, ValueError):
-                    pass
+                    continue
         if expected_sha and actual_sha != expected_sha:
             self.candidate_passages_info = {
                 "loaded": False,
@@ -340,6 +409,7 @@ class Catalog:
                 "expected_sha256": expected_sha,
                 "checksum_verified": False,
                 "source": source,
+                "corpus_version": detected_version or None,
                 "error": "checksum_mismatch",
             }
             return
@@ -359,9 +429,19 @@ class Catalog:
                 continue
             if page < 1 or not doc_id or not text.strip():
                 continue
+            rec_version = str(passage.get("corpus_version") or "").strip()
+            if rec_version and not detected_version:
+                detected_version = rec_version
+            concept_ids = passage.get("concept_ids")
+            primary_cid = (
+                str(concept_ids[0])
+                if isinstance(concept_ids, list) and concept_ids
+                else str(passage.get("concept_id") or "")
+            )
             self.passages.append(
                 {
-                    "concept_id": "",
+                    "concept_id": primary_cid,
+                    "concept_ids": list(concept_ids) if isinstance(concept_ids, list) else [],
                     "doc_id": doc_id,
                     "page": page,
                     "text": text,
@@ -371,6 +451,14 @@ class Catalog:
                     "pdf_page_index": passage.get("pdf_page_index"),
                     "text_offset_start": passage.get("text_offset_start"),
                     "text_offset_end": passage.get("text_offset_end"),
+                    "corpus_version": rec_version or detected_version or CORPUS_V2_ID,
+                    "domain": str(passage.get("domain") or ""),
+                    "secondary_domains": list(passage.get("secondary_domains") or []),
+                    "source_title": str(passage.get("source_title") or ""),
+                    "authors": str(passage.get("authors") or ""),
+                    "section_title": str(passage.get("section_title") or ""),
+                    "structural_class": str(passage.get("structural_class") or "BODY"),
+                    "quality_score": passage.get("quality_score"),
                 }
             )
             loaded_count += 1
@@ -383,7 +471,9 @@ class Catalog:
             "expected_sha256": expected_sha or None,
             "checksum_verified": bool(expected_sha and actual_sha == expected_sha),
             "source": source,
+            "corpus_version": detected_version or CORPUS_V2_ID,
         }
+        self._retriever_cache = None
 
     def match_hf(self, query: str) -> tuple[dict | None, int]:
         wanted = _tokens(query)

@@ -21,7 +21,11 @@ from .conversational import (
     classify_conversational_intent,
 )
 from .corpus_titles import clean_bibliographic_title
-from .evidence_selection import domains_compatible, infer_text_domains
+from .evidence_selection import (
+    domains_compatible,
+    infer_text_domains,
+    select_catalog_passages,
+)
 from .intent import (
     IntentCategory,
     classify_query_intent,
@@ -244,6 +248,48 @@ def _fallback_graph_hits(graph, query: str) -> list[str]:
     return [cid for _, cid in scored[:ANCHOR_LIMIT]]
 
 
+GRAPH_INDEPENDENT_SCORE = 0.85
+GRAPH_INDEPENDENT_EXCERPT_LIMIT = 360
+
+
+def _retrieve_graph_independent_passages(
+    engine: Any, query: str
+) -> tuple[list[dict[str, Any]], str]:
+    """Retrieve query-specific corpus passages even when no concept-graph node matches."""
+    catalog = getattr(engine, "catalog", None)
+    if catalog is None:
+        return [], ""
+    graph = getattr(engine, "graph", None)
+    cites = select_catalog_passages(
+        catalog,
+        query,
+        concept_label="",
+        anchor_cid="",
+        chunk_index=getattr(graph, "_chunk_provenance_index", None),
+    )
+    if not cites:
+        return [], ""
+    method = str(cites[0].get("retrieval_method") or "bm25_lexical")
+    return cites, method
+
+
+def _format_graph_independent_reply(query: str, cites: list[dict[str, Any]]) -> str:
+    """Format an honest passage-grounded reply when no standalone graph node exists."""
+    snippets: list[str] = []
+    for cite in cites[:2]:
+        excerpt = " ".join(str(cite.get("text_passage") or "").split())[
+            :GRAPH_INDEPENDENT_EXCERPT_LIMIT
+        ]
+        label = str(cite.get("label") or cite.get("doc_title") or "").strip()
+        if excerpt:
+            snippets.append(f"{excerpt} {label}".strip())
+    lead = (
+        f"**{query.strip(' ?.')}** is not indexed as a standalone concept node in the graph, "
+        "but relevant source passages were retrieved directly from the corpus:"
+    )
+    return "\n\n".join([lead, *snippets]) if snippets else lead
+
+
 def route(self, query: str) -> tuple[str, str, str | None, dict]:
     graph = self.graph
     if not query or len(query) < MIN_QUERY_LEN:
@@ -464,9 +510,11 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
         if not _is_domain_incompatible(graph, clean_query, cid)
     ]
     best_score, best_id = ranked[0] if ranked else (0.0, None)
+    multi_resolver = getattr(graph, "resolve_multi_concepts", None)
+    raw_hits = multi_resolver(clean_query) if callable(multi_resolver) else graph.phrase_hits(clean_query)
     hits = [
         cid
-        for cid in graph.phrase_hits(clean_query)
+        for cid in raw_hits
         if not _is_domain_incompatible(graph, clean_query, cid)
     ]
     if not hits and best_score < KILL_SWITCH:
@@ -593,6 +641,21 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
     ):
         reasoning = multi_hop_reasoning(self, clean_query, concept_mentions=extracted_concepts)
         if not reasoning["indexed_concepts"] and ACADEMIC_DOMAIN_RE.search(clean_query):
+            gi_cites, gi_method = _retrieve_graph_independent_passages(self, clean_query)
+            if gi_cites:
+                return (
+                    "GENERAL_EXPLANATION",
+                    _format_graph_independent_reply(clean_query, gi_cites),
+                    None,
+                    {
+                        "hide_graph": True,
+                        "score": max(best_score, GRAPH_INDEPENDENT_SCORE),
+                        "reason": "graph_independent_passage_retrieval",
+                        "citations": gi_cites,
+                        "retrieval_method": gi_method,
+                        "graph_independent_retrieval": True,
+                    },
+                )
             return (
                 "GENERAL_EXPLANATION",
                 f"**{clean_query.strip(' ?.')}** covers foundational academic concepts that are not "
@@ -858,6 +921,21 @@ def route(self, query: str) -> tuple[str, str, str | None, dict]:
                 build_unsupported_reply(graph, query, reason="research_not_indexed"),
                 None,
                 {"hide_graph": True, "score": best_score, "reason": "research_not_indexed"},
+            )
+        gi_cites, gi_method = _retrieve_graph_independent_passages(self, clean_query)
+        if gi_cites:
+            return (
+                "GENERAL_EXPLANATION",
+                _format_graph_independent_reply(clean_query, gi_cites),
+                None,
+                {
+                    "hide_graph": True,
+                    "score": max(best_score, GRAPH_INDEPENDENT_SCORE),
+                    "reason": "graph_independent_passage_retrieval",
+                    "citations": gi_cites,
+                    "retrieval_method": gi_method,
+                    "graph_independent_retrieval": True,
+                },
             )
         if ACADEMIC_DOMAIN_RE.search(query):
             return (

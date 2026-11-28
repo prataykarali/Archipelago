@@ -8,8 +8,10 @@ dependency path, best supporting source, citation record).
 from __future__ import annotations
 
 from collections import deque
+import csv
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import re
 
@@ -21,6 +23,7 @@ from .corpus_titles import clean_bibliographic_title
 from .docmap import hf_doc_path
 from .evidence_selection import (
     build_chunk_provenance_index,
+    canonical_domain_to_tag,
     domains_compatible,
     infer_doc_domains,
     infer_text_domains,
@@ -29,7 +32,11 @@ from .evidence_selection import (
 )
 from .graph_semantics import (
     ASSOCIATIVE_KINDS,
+    ENV_GRAPH_PATH,
+    ENV_GRAPH_VERSION,
+    GRAPH_V1_FILENAME,
     GRAPH_V1_ID,
+    GRAPH_V2_FILENAME,
     PREREQ_IN_KINDS,
     PREREQ_OUT_KINDS,
     corrected_summary,
@@ -78,10 +85,87 @@ _INTERDISCIPLINARY_EDGE_BRIDGES: frozenset[frozenset[str]] = frozenset(
 )
 # Non-concept adjective/extraction-artifact unigrams that must never match as standalone concepts.
 _NOISE_UNIGRAM_CIDS: frozenset[str] = frozenset({"fast", "memory_efficient"})
+# Broad umbrella concepts that must yield to narrower refinements when both appear.
+_BROAD_UMBRELLA_CONCEPTS: frozenset[str] = frozenset(
+    {
+        "linear_algebra",
+        "probability",
+        "probability_distribution",
+        "attention_mechanism",
+        "syntax_analysis",
+        "diffusion_model",
+        "diffusion_process",
+        "neural_network",
+        "machine_learning",
+        "deep_learning",
+        "software_engineering",
+        "cpu_architecture",
+        "virtual_memory",
+        "finite_automata",
+        "formal_languages",
+    }
+)
+BROAD_UMBRELLA_PENALTY = 0.28
+MIN_REGISTER_ALIAS_LEN = 2
+_V1_ROLLBACK_VERSIONS: frozenset[str] = frozenset({GRAPH_V1_ID, "v1", "okf610", "v1_okf610"})
+_ALIAS_REGISTER_REL = Path("docs") / "reports" / "d14" / "D14_CONCEPT_ALIAS_REGISTER.csv"
+_D14_ALIAS_CACHE: dict[str, str] | None = None
+
+
+def _norm_alias_phrase(text: str) -> str:
+    lowered = (text or "").lower().replace("b+", "b plus")
+    return re.sub(r"[^a-z0-9]+", " ", lowered).strip()
+
+
+def load_d14_alias_register() -> dict[str, str]:
+    """Load canonical D14 concept aliases from ``D14_CONCEPT_ALIAS_REGISTER.csv``."""
+    global _D14_ALIAS_CACHE
+    if _D14_ALIAS_CACHE is not None:
+        return dict(_D14_ALIAS_CACHE)
+    repo_root = Path(__file__).resolve().parents[2]
+    csv_path = repo_root / _ALIAS_REGISTER_REL
+    mapping: dict[str, str] = {}
+    if csv_path.is_file():
+        try:
+            with csv_path.open("r", encoding="utf-8", newline="") as handle:
+                for row in csv.DictReader(handle):
+                    cid = str(row.get("canonical_id") or "").strip()
+                    alias = _norm_alias_phrase(str(row.get("alias") or ""))
+                    if cid and len(alias) >= MIN_REGISTER_ALIAS_LEN and alias not in mapping:
+                        mapping[alias] = cid
+        except (OSError, csv.Error):
+            mapping = {}
+    _D14_ALIAS_CACHE = mapping
+    return dict(mapping)
+
+
+def resolve_runtime_graph_path(default_dir: Path | None = None) -> Path:
+    """Resolve the default runtime graph path (v2_d14 when available, v1 on rollback)."""
+    env_path = os.environ.get(ENV_GRAPH_PATH, "").strip()
+    if env_path:
+        return Path(env_path)
+    fixtures_dir = default_dir or (Path(__file__).resolve().parents[1] / "fixtures")
+    v1_path = fixtures_dir / GRAPH_V1_FILENAME
+    v2_path = fixtures_dir / GRAPH_V2_FILENAME
+    env_version = os.environ.get(ENV_GRAPH_VERSION, "").strip().lower()
+    if env_version in _V1_ROLLBACK_VERSIONS:
+        return v1_path
+    if v2_path.is_file():
+        return v2_path
+    return v1_path
 
 
 class LibraryGraph:
     """Queryable view over one exported concept graph."""
+
+    @classmethod
+    def load_default(cls, fallback_path: Path | None = None) -> LibraryGraph:
+        """Load the runtime concept graph (defaulting to ``okf_graph_v2_d14.json``)."""
+        default_dir = fallback_path.parent if fallback_path is not None else None
+        chosen = resolve_runtime_graph_path(default_dir)
+        if not chosen.is_file() and fallback_path is not None and fallback_path.is_file():
+            chosen = fallback_path
+        return cls(chosen, allow_env_override=False)
 
     def __init__(self, path: Path, *, allow_env_override: bool = True):
         resolved_path = resolve_graph_path(path, allow_env_override=allow_env_override)
@@ -152,19 +236,25 @@ class LibraryGraph:
         self._emb = {cid: embed(self._blob(node)) for cid, node in self.nodes.items()}
         self._chunk_provenance_index = build_chunk_provenance_index(self.nodes)
         self._label_index = []
+        self._node_aliases: dict[str, str] = {}
+        if self.graph_artifact_version != GRAPH_V1_ID:
+            for alias, cid in load_d14_alias_register().items():
+                if cid in self.nodes and cid not in _NOISE_UNIGRAM_CIDS:
+                    self._node_aliases.setdefault(alias, cid)
         for cid, node in self.nodes.items():
             label = (node.get("label") or node.get("name") or cid).strip()
-            norm_label = re.sub(r"[^a-z0-9]+", " ", label.lower()).strip()
+            norm_label = _norm_alias_phrase(label)
             if norm_label:
                 self._label_index.append((norm_label, cid))
             no_paren = re.sub(r"\([^)]*\)", " ", label.lower())
-            norm_no_paren = re.sub(r"[^a-z0-9]+", " ", no_paren).strip()
+            norm_no_paren = _norm_alias_phrase(no_paren)
             if norm_no_paren and norm_no_paren != norm_label:
                 self._label_index.append((norm_no_paren, cid))
             self._label_index.append((cid.replace("_", " "), cid))
             for alias in node.get("aliases") or []:
-                norm_alias = re.sub(r"[^a-z0-9]+", " ", str(alias).lower().replace("b+", "b plus")).strip()
-                if norm_alias:
+                norm_alias = _norm_alias_phrase(str(alias))
+                if len(norm_alias) >= MIN_REGISTER_ALIAS_LEN:
+                    self._node_aliases[norm_alias] = cid
                     self._label_index.append((norm_alias, cid))
 
     def _blob(self, node: dict) -> str:
@@ -303,9 +393,13 @@ class LibraryGraph:
         if cid in self._node_domains:
             return self._node_domains[cid]
         node = self.nodes.get(cid) or {}
+        domains: set[str] = set()
+        explicit_tag = canonical_domain_to_tag(str(node.get("domain") or ""))
+        if explicit_tag:
+            domains.add(explicit_tag)
         label = str(node.get("label") or node.get("name") or cid)
         summary = str(node.get("summary") or "")
-        domains = infer_text_domains(f"{cid.replace('_', ' ')} {label} {summary[:300]}")
+        domains |= infer_text_domains(f"{cid.replace('_', ' ')} {label} {summary[:300]}")
         if not domains:
             for src in (node.get("sources") or [])[:3]:
                 if isinstance(src, dict):
@@ -350,14 +444,21 @@ class LibraryGraph:
     def _specificity_bonus(self, cid: str, matched: set[str], q_words: set[str]) -> float:
         """Prefer narrower/multi-word child concepts over broader single-word concepts."""
         bonus = 0.0
+        ancestors = set(self.prereqs(cid, 2)) | set(
+            self._walk(cid, 2, outgoing=True, kinds={"REQUIRES", "PART_OF"})
+        )
         for other in matched:
             if other == cid:
                 continue
-            # If `cid` requires/is unlocked by `other` (e.g. paging REQUIRES virtual_memory),
-            # `cid` is the more specific refinement in the query.
-            if other in self.prereqs(cid, 2) and not self.has_contradictory_cycle(cid, other):
+            # If `cid` requires/is part_of `other` (e.g. paging REQUIRES virtual_memory,
+            # lalr PART_OF bottom_up_parsing PART_OF syntax_analysis), `cid` is more specific.
+            if other in ancestors and not self.has_contradictory_cycle(cid, other):
                 bonus += CHILD_PREREQ_SPECIFICITY_BONUS
-        norm_lbl = re.sub(r"[^a-z0-9]+", " ", self.label(cid).lower()).strip()
+        if cid in _BROAD_UMBRELLA_CONCEPTS and any(
+            other != cid and other not in _BROAD_UMBRELLA_CONCEPTS for other in matched
+        ):
+            bonus -= BROAD_UMBRELLA_PENALTY
+        norm_lbl = _norm_alias_phrase(self.label(cid))
         lbl_words = [w for w in norm_lbl.split() if len(w) >= 2]
         lbl_set = set(lbl_words)
         if lbl_set:
@@ -376,7 +477,8 @@ class LibraryGraph:
     def phrase_hits(self, query: str) -> list[str]:
         """Concept ids whose alias or label appears literally in ``query``, specificity-ordered."""
         clean_query = extract_clean_concept_clause(query) or query
-        q = f" {re.sub(r'[^a-z0-9]+', ' ', clean_query.lower())} "
+        norm_query = _norm_alias_phrase(clean_query)
+        q = f" {norm_query} "
         words = set(q.split())
         singular = {
             word[:-1]
@@ -389,7 +491,8 @@ class LibraryGraph:
         is_multi_word_query = len(words) >= 2
         query_domains = infer_text_domains(clean_query)
 
-        merged_aliases = dict(ALIASES)
+        merged_aliases = dict(self._node_aliases)
+        merged_aliases.update(ALIASES)
         merged_aliases.update(EXTRA_ALIASES)
         if "page_table" not in self.nodes and "paging" in self.nodes:
             merged_aliases.setdefault("page table", "paging")
@@ -418,7 +521,7 @@ class LibraryGraph:
             phrase = matched_phrases.get(cid, "").strip()
             lbl_words = [
                 w
-                for w in re.sub(r"[^a-z0-9]+", " ", self.label(cid).lower()).split()
+                for w in _norm_alias_phrase(self.label(cid)).split()
                 if len(w) >= 2
             ]
             if " " not in phrase and any(f" {phrase} " in f" {mp} " for mp in multi_phrases):
@@ -450,6 +553,15 @@ class LibraryGraph:
             reverse=True,
         )
         return hits
+
+    def resolve_multi_concepts(self, query: str, max_anchors: int = 6) -> list[str]:
+        """Resolve multiple domain-compatible concepts in ``query``, ordered by specificity."""
+        hits = self.phrase_hits(query)
+        if not hits:
+            return []
+        non_umbrella = [cid for cid in hits if cid not in _BROAD_UMBRELLA_CONCEPTS]
+        ordered = non_umbrella + [cid for cid in hits if cid in _BROAD_UMBRELLA_CONCEPTS]
+        return ordered[:max_anchors]
 
     def rank(self, query: str, top_k: int = 5) -> list[tuple[float, str]]:
         """Cosine-ranked candidate concepts with specificity tie-breaking, best first."""
