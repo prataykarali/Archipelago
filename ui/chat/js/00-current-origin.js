@@ -55,12 +55,12 @@
             }).join('\n');
         }
 
-const CHAT_RESPONSE_TIMEOUT_MS = 90000;
+const CHAT_RESPONSE_TIMEOUT_MS = 35000;
 
-        // Stream watchdogs: idle gap between chunks (exceeds backend 45s provider timeout) vs wall-clock cap.
-        const STREAM_IDLE_TIMEOUT_MS = 75000;
+        // Stream watchdogs: idle gap between chunks (aligned with 8s backend chunk read timeout) vs wall-clock cap.
+        const STREAM_IDLE_TIMEOUT_MS = 14000;
 
-        const STREAM_HARD_TIMEOUT_MS = 180000;
+        const STREAM_HARD_TIMEOUT_MS = 40000;
 
         // Cap history sent to the API so long chats stay under request size limits.
         const MAX_HISTORY_TURNS_SENT = 12;

@@ -147,7 +147,7 @@ PROVIDER_MODEL = {"xkiro": XKIRO_DEFAULT_MODEL, "nvidia": NVIDIA_DEFAULT_MODEL}
 
 STREAM_CONNECT_TIMEOUT_SECONDS = 5
 STREAM_FIRST_TOKEN_TIMEOUT_SECONDS = 8
-STREAM_READ_TIMEOUT_SECONDS = 10
+STREAM_READ_TIMEOUT_SECONDS = 8
 STREAM_TOTAL_DEADLINE_SECONDS = 24
 PRE_FIRST_TOKEN_BUDGET_SECONDS = 10.0
 STREAM_TIMEOUT_SECONDS = 24
@@ -229,15 +229,20 @@ def complete(config: ProviderConfig, text: str) -> str:
 
 
 def _tighten_socket_timeout(resp: object, remaining_sec: float) -> None:
-    """Tighten underlying urllib3 socket timeout so a stalled read cannot exceed deadline."""
+    """Tighten underlying urllib3 v2 / http.client socket timeout so a stalled read cannot exceed deadline."""
+    capped = max(0.5, remaining_sec)
     try:
         raw = getattr(resp, "raw", None)
+        conn = getattr(raw, "_connection", None)
+        conn_sock = getattr(conn, "sock", None) if conn is not None else None
+        if conn_sock is not None and hasattr(conn_sock, "settimeout"):
+            conn_sock.settimeout(capped)
         fp = getattr(raw, "_fp", None)
         sock = getattr(getattr(fp, "fp", None), "raw", None)
         if sock is not None and hasattr(sock, "_sock") and sock._sock is not None:
-            sock._sock.settimeout(max(0.5, remaining_sec))
+            sock._sock.settimeout(capped)
         elif fp is not None and hasattr(fp, "settimeout"):
-            fp.settimeout(max(0.5, remaining_sec))
+            fp.settimeout(capped)
     except Exception:
         logger.debug("Socket timeout tightening skipped for mock or closed stream")
 
