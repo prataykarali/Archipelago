@@ -78,8 +78,43 @@ DOMAIN_DSA = "DSA"
 DOMAIN_NETWORKS = "NETWORKS"
 DOMAIN_ML_AI = "ML_AI"
 DOMAIN_MATH = "MATH"
+DOMAIN_PROB_STATS = "PROB_STATS"
 DOMAIN_COMPILERS = "COMPILERS"
+DOMAIN_SECURITY = "SECURITY"
+DOMAIN_SWE = "SWE"
+DOMAIN_ARCH = "ARCH"
 DOMAIN_PHYSICS_EE = "PHYSICS_EE"
+
+# Canonical D14 12-domain string -> coarse domain tag mapping.
+CANONICAL_DOMAIN_MAP: dict[str, str] = {
+    "operating systems": DOMAIN_OS,
+    "database systems": DOMAIN_DB,
+    "data structures & algorithms": DOMAIN_DSA,
+    "computer networks": DOMAIN_NETWORKS,
+    "compiler design": DOMAIN_COMPILERS,
+    "compilers & languages": DOMAIN_COMPILERS,
+    "automata theory": DOMAIN_COMPILERS,
+    "automata & computation": DOMAIN_COMPILERS,
+    "mathematics for ml": DOMAIN_MATH,
+    "mathematics for computing": DOMAIN_MATH,
+    "probability & statistics": DOMAIN_PROB_STATS,
+    "information security": DOMAIN_SECURITY,
+    "ai & machine learning": DOMAIN_ML_AI,
+    "software engineering": DOMAIN_SWE,
+    "computer architecture": DOMAIN_ARCH,
+}
+
+_INTERDISCIPLINARY_DOMAIN_BRIDGES: tuple[frozenset[str], ...] = (
+    frozenset({DOMAIN_NETWORKS, DOMAIN_SECURITY}),
+    frozenset({DOMAIN_OS, DOMAIN_ARCH}),
+    frozenset({DOMAIN_COMPILERS, DOMAIN_DSA}),
+)
+
+
+def canonical_domain_to_tag(domain_name: str) -> str | None:
+    """Map a canonical D14 domain label to its coarse domain tag, or None."""
+    key = (domain_name or "").strip().lower()
+    return CANONICAL_DOMAIN_MAP.get(key)
 
 _DOMAIN_TEXT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
@@ -150,10 +185,21 @@ _DOMAIN_TEXT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         re.compile(
             r"\b(?:linear\s+algebra|eigenvalues?|eigenvectors?|singular\s+value|\bsvd\b|"
             r"matrix\s+decomposition|matrix\s+factorization|matrix\s+multiplication|determinants?|"
-            r"jacobian|hessian|bayes\s+theorem|bayesian|maximum\s+likelihood|"
-            r"probability\s+distributions?|variance|covariance|convex\s+optimization|"
-            r"constrained\s+optimization|lagrange\s+multipliers?|euler\s+totient|"
-            r"calculus|integrals?|derivatives?|kl\s+divergence|\bpca\b|principal\s+component)\b",
+            r"jacobian|hessian|convex\s+optimization|constrained\s+optimization|"
+            r"lagrange\s+multipliers?|euler\s+totient|calculus|integrals?|derivatives?|"
+            r"kl\s+divergence|\bpca\b|principal\s+component|orthogonal\s+projection|"
+            r"gram[-\s]?schmidt|vector\s+spaces?|cholesky)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_PROB_STATS,
+        re.compile(
+            r"\b(?:bayes(?:'s|\s+theorem)?|bayesian|maximum\s+likelihood|\bmle\b|"
+            r"gaussian\s+(?:distribution|mle|estimation)|normal\s+distribution|"
+            r"probability\s+distributions?|conditional\s+probability|posterior|prior|"
+            r"variance|covariance|central\s+limit|markov\s+chain|hypothesis\s+test(?:ing)?|"
+            r"random\s+variables?|expectation|log[-\s]?likelihood|bernoulli|poisson|binomial)\b",
             re.I,
         ),
     ),
@@ -161,8 +207,39 @@ _DOMAIN_TEXT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         DOMAIN_COMPILERS,
         re.compile(
             r"\b(?:compilers?|lexical\s+analysis|lexers?|syntax\s+analysis|parsers?|"
+            r"lalr|lr\(1\)|ll\(1\)|bottom[-\s]?up\s+pars(?:ing|er)|top[-\s]?down\s+pars(?:ing|er)|"
             r"abstract\s+syntax\s+tree|context[-\s]?free\s+grammars?|\bdfa\b|\bnfa\b|"
-            r"turing\s+machines?|pumping\s+lemma|chomsky|register\s+allocation)\b",
+            r"turing\s+machines?|pumping\s+lemma|chomsky|register\s+allocation|"
+            r"regular\s+languages?|finite\s+automata|decidability|halting\s+problem)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_SECURITY,
+        re.compile(
+            r"\b(?:cryptography|encryption|decryption|\brsa\b|\baes\b|\btls\b|\bssl\b|"
+            r"diffie[-\s]?hellman|public[-\s]?key|symmetric[-\s]?key|digital\s+signature|"
+            r"hash\s+functions?|sha[-\s]?256|authentication|access\s+control|cipher|"
+            r"modular\s+arithmetic|information\s+security|cybersecurity|tls\s+handshake)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_SWE,
+        re.compile(
+            r"\b(?:software\s+engineering|solid\s+principles?|design\s+patterns?|"
+            r"unit\s+test(?:ing)?|integration\s+test(?:ing)?|continuous\s+integration|"
+            r"agile|scrum|refactoring|version\s+control|software\s+architecture|"
+            r"dependency\s+inversion|liskov\s+substitution|single\s+responsibility)\b",
+            re.I,
+        ),
+    ),
+    (
+        DOMAIN_ARCH,
+        re.compile(
+            r"\b(?:computer\s+architecture|instruction\s+pipelin(?:e|ing)|pipeline\s+hazards?|"
+            r"cache\s+coherence|branch\s+prediction|superscalar|out[-\s]?of[-\s]?order|"
+            r"risc[-\s]?v|\bisa\b|instruction\s+set|alu|memory\s+hierarchy|mesi\s+protocol)\b",
             re.I,
         ),
     ),
@@ -178,10 +255,15 @@ _DOMAIN_TEXT_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 _DOC_DOMAIN_HINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
     (DOMAIN_OS, ("ostep_three_easy_pieces", "06_address_spaces", "07_address_translation", "08_paging", "09_tlbs", "15_raid", "16_log_structured_fs", "operating_system")),
-    (DOMAIN_DB, ("silberschatz", "3nf", "database_system", "dbms")),
-    (DOMAIN_NETWORKS, ("computer_networks", "tanenbaum", "data_and_computer_communications")),
-    (DOMAIN_DSA, ("introduction_to_algorithms", "clrs")),
-    (DOMAIN_MATH, ("deisenroth", "math_for_ml")),
+    (DOMAIN_DB, ("silberschatz", "3nf", "database_system", "dbms", "postgresql", "sqlite")),
+    (DOMAIN_NETWORKS, ("computer_networks", "tanenbaum", "data_and_computer_communications", "rfc793", "rfc9293", "peterson_davie", "dordal")),
+    (DOMAIN_DSA, ("introduction_to_algorithms", "clrs", "erickson", "open_data_structures", "morin")),
+    (DOMAIN_MATH, ("deisenroth", "math_for_ml", "linear_algebra", "strang", "boyd")),
+    (DOMAIN_PROB_STATS, ("probability", "statistics", "think_stats", "grinstead", "openintro", "downey")),
+    (DOMAIN_COMPILERS, ("compiler", "crafting_interpreters", "mogensen", "automata", "sipser", "kozen", "turing")),
+    (DOMAIN_SECURITY, ("cryptography", "rfc8446", "tls", "boneh", "shoup", "owasp", "nist", "infosec")),
+    (DOMAIN_SWE, ("software_engineering", "swebok", "clean_code", "pragmatic", "saasbook", "sommerville")),
+    (DOMAIN_ARCH, ("computer_architecture", "riscv", "patterson", "hennessy", "nand2tetris", "pipeline")),
     (
         DOMAIN_ML_AI,
         (
@@ -218,6 +300,7 @@ _GENERIC_QUERY_TOKENS = frozenset(
 _PAGING_QUERY_RE = re.compile(
     r"\b(?:paging|page\s+tables?|page\s+frames?|page\s+faults?|page\s+replacement)\b", re.I
 )
+_INTRO_DOC_RE = re.compile(r"(?:00_dialogue|06_address_spaces|preface|front_?matter)", re.I)
 
 
 def infer_text_domains(text: str) -> set[str]:
@@ -228,8 +311,25 @@ def infer_text_domains(text: str) -> set[str]:
     return {domain for domain, pat in _DOMAIN_TEXT_PATTERNS if pat.search(raw)}
 
 
-def infer_doc_domains(doc_id: str, concept_id: str = "", text: str = "") -> set[str]:
+def infer_doc_domains(
+    doc_id: str,
+    concept_id: str = "",
+    text: str = "",
+    explicit_domain: str = "",
+    secondary_domains: list[str] | tuple[str, ...] | None = None,
+) -> set[str]:
     """Infer coarse academic domains for a candidate document/passage."""
+    explicit_tags: set[str] = set()
+    if explicit_domain:
+        tag = canonical_domain_to_tag(explicit_domain)
+        if tag:
+            explicit_tags.add(tag)
+    for sec in secondary_domains or ():
+        tag = canonical_domain_to_tag(str(sec))
+        if tag:
+            explicit_tags.add(tag)
+    if explicit_tags:
+        return explicit_tags
     doc_lower = (doc_id or "").lower()
     found = {
         domain
@@ -252,11 +352,16 @@ def domains_compatible(
         return True
     if query_domains & target_domains:
         return True
-    return bool(
+    if (
         allow_math_ml_bridge
-        and query_domains <= {DOMAIN_MATH, DOMAIN_ML_AI}
-        and target_domains <= {DOMAIN_MATH, DOMAIN_ML_AI}
-    )
+        and query_domains <= {DOMAIN_MATH, DOMAIN_PROB_STATS, DOMAIN_ML_AI}
+        and target_domains <= {DOMAIN_MATH, DOMAIN_PROB_STATS, DOMAIN_ML_AI}
+    ):
+        return True
+    for bridge in _INTERDISCIPLINARY_DOMAIN_BRIDGES:
+        if (query_domains & bridge) and (target_domains & bridge):
+            return True
+    return False
 
 
 def _distinctive_tokens(text: str) -> set[str]:
@@ -523,22 +628,44 @@ def _query_bigrams(raw: str) -> list[str]:
     return out
 
 
+_MATH_EXPLANATORY_RE = re.compile(
+    r"(?:\b(?:posterior|prior|likelihood|log[-\s]?likelihood|gaussian|normal\s+distribution|"
+    r"covariance\s+matrix|eigenvector|eigenvalue|principal\s+component|variance|orthogonal|"
+    r"page\s+table|virtual\s+page\s+number|physical\s+frame|page\s+offset|vpn|pfn|"
+    r"defined\s+as|theorem|derivation)\b|[=∑∏∫≈])",
+    re.I,
+)
+_INTRO_SECTION_TITLE_RE = re.compile(
+    r"\b(?:table\s+of\s+contents|contents|references|bibliography|index|preface|"
+    r"acknowledg(?:e)?ments|about\s+the\s+authors|dialogue)\b",
+    re.I,
+)
+EXPLANATORY_PASSAGE_BONUS = 10
+INTRO_SECTION_PENALTY = -35
+NON_BODY_CLASS_PENALTY = -45
+HYBRID_RANK_WEIGHT = 20.0
+
+
 def _build_catalog_citation(
     entry: dict[str, Any],
     anchor_cid: str,
     index: int,
     chunk_index: dict[tuple[str, str], dict[str, Any]] | None,
+    *,
+    retrieval_method: str = "bm25_lexical",
+    retrieval_score: float | None = None,
 ) -> dict[str, Any]:
     raw_doc_id = str(entry.get("doc_id") or "").strip()
     doc_id = hf_doc_path(raw_doc_id)
     page_val = entry.get("page")
     page_int = int(page_val) if isinstance(page_val, int) and page_val > 0 else 1
     chunk_id = str(entry.get("passage_id") or entry.get("chunk_id") or "").strip() or None
+    entry_title = str(entry.get("source_title") or "").strip()
     resolved = resolve_source_target(
         raw_doc_id=raw_doc_id,
         canonical_doc_id=doc_id,
         page_number=page_int,
-        title="",
+        title=entry_title,
         all_withdrawn=False,
     )
     source_category = str(resolved["source_category"])
@@ -546,8 +673,8 @@ def _build_catalog_citation(
     reader_resolvable = bool(resolved["reader_resolvable"])
     page = resolved["page_number"]
     hf_url = str(resolved["url"] or "")
-    doc_title = resolved["resolved_title"] or (doc_id.split("/")[-1] if doc_id else "")
-    if not resolved["is_pearson"] and (doc_id or doc_title):
+    doc_title = entry_title or resolved["resolved_title"] or (doc_id.split("/")[-1] if doc_id else "")
+    if not resolved["is_pearson"] and not entry_title and (doc_id or doc_title):
         doc_title = clean_bibliographic_title(doc_id, doc_title)
     if not doc_title:
         label = ""
@@ -592,7 +719,7 @@ def _build_catalog_citation(
         "chunk_provenance_match": provenance["chunk_provenance_match"],
         "claim_support_status": provenance["claim_support_status"],
         "doc_title": doc_title,
-        "authors": "",
+        "authors": str(entry.get("authors") or ""),
         "page_number": page,
         "printed_page": entry.get("printed_page"),
         "pdf_url": hf_url,
@@ -601,7 +728,11 @@ def _build_catalog_citation(
         "notice": "",
         "text_passage": passage_text,
         "passage": passage_text,
-        "section": None,
+        "section": entry.get("section_title") or None,
+        "domain": str(entry.get("domain") or ""),
+        "corpus_version": str(entry.get("corpus_version") or ""),
+        "retrieval_method": retrieval_method,
+        "retrieval_score": retrieval_score,
         "doi": None,
         "publication_year": None,
         "source_provider": None,
@@ -610,6 +741,44 @@ def _build_catalog_citation(
         "status_level": provenance["status_level"],
         "access_status": str(resolved["access_status"]),
     }
+
+
+def _hybrid_scores_by_index(
+    catalog: Any,
+    passages: list[dict[str, Any]],
+    query: str,
+    allowed_indices: set[int],
+    top_k: int,
+) -> tuple[dict[int, float], str]:
+    """Run BM25 or genuine hybrid BM25+dense RRF over eligible passage indices."""
+    if not allowed_indices:
+        return {}, "bm25_lexical"
+    retriever = None
+    getter = getattr(catalog, "get_retriever", None)
+    if callable(getter):
+        retriever = getter()
+    if retriever is None:
+        try:
+            from archipelago.inference.dense_retriever import HybridPassageRetriever
+
+            retriever = HybridPassageRetriever(passages)
+        except ImportError:
+            return {}, "bm25_lexical"
+    result = retriever.retrieve(
+        query,
+        top_k=max(top_k * 6, 24),
+        allowed_indices=allowed_indices,
+    )
+    if not result.hits:
+        return {}, result.method
+    max_sc = max((h.score for h in result.hits), default=1.0) or 1.0
+    id_to_idx = {id(p): idx for idx, p in enumerate(passages)}
+    score_map: dict[int, float] = {}
+    for hit in result.hits:
+        idx = id_to_idx.get(id(hit.passage))
+        if idx is not None:
+            score_map[idx] = (hit.score / max_sc) * HYBRID_RANK_WEIGHT
+    return score_map, result.method
 
 
 def select_catalog_passages(
@@ -621,10 +790,11 @@ def select_catalog_passages(
     open_access_only: bool | None = None,
     chunk_index: dict[tuple[str, str], dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    """Rank indexed ``catalog.passages`` with domain-aware lexical gating.
+    """Rank indexed ``catalog.passages`` with domain-aware lexical + hybrid gating.
 
+    Works independently of whether a graph node exists (``anchor_cid=""``).
     Returns ``[]`` honestly when no passage clears domain compatibility and
-    distinctive lexical relevance thresholds; never pads citations.
+    distinctive relevance thresholds; never pads citations.
     """
     passages = list(getattr(catalog, "passages", None) or [])
     if not passages or max_citations <= 0:
@@ -642,9 +812,9 @@ def select_catalog_passages(
     is_paging_query = anchor_cid == "paging" or bool(_PAGING_QUERY_RE.search(query or ""))
     retired = withdrawn_documents()
     oa_mode = is_open_access_profile() if open_access_only is None else open_access_only
-    scored: list[tuple[int, dict[str, Any]]] = []
 
-    for entry in passages:
+    eligible: list[tuple[int, dict[str, Any], str, str, set[str]]] = []
+    for idx, entry in enumerate(passages):
         if not isinstance(entry, dict):
             continue
         raw_doc = str(entry.get("doc_id") or "").strip()
@@ -664,28 +834,53 @@ def select_catalog_passages(
         text = str(entry.get("text") or "")
         if is_low_signal_passage(text):
             continue
-
+        structural_cls = str(entry.get("structural_class") or "BODY").upper()
+        if structural_cls in {"TOC", "REFERENCES", "INDEX", "FRONT_MATTER"}:
+            continue
         doc_domains = infer_doc_domains(
-            canon_doc or raw_doc, str(entry.get("concept_id") or ""), text
+            canon_doc or raw_doc,
+            str(entry.get("concept_id") or ""),
+            text,
+            explicit_domain=str(entry.get("domain") or ""),
+            secondary_domains=entry.get("secondary_domains"),
         )
         if not domains_compatible(query_domains, doc_domains):
             continue
+        eligible.append((idx, entry, raw_doc, canon_doc, doc_domains))
 
+    if not eligible:
+        return []
+
+    allowed_indices = {idx for idx, *_ in eligible}
+    retrieval_query = f"{query} {concept_label}".strip()
+    hybrid_scores, retrieval_method = _hybrid_scores_by_index(
+        catalog, passages, retrieval_query, allowed_indices, max_citations
+    )
+
+    scored: list[tuple[float, dict[str, Any]]] = []
+    for idx, entry, raw_doc, canon_doc, doc_domains in eligible:
+        text = str(entry.get("text") or "")
         doc_tokens = set(entry.get("tokens") or tokens(text))
         doc_lower = text.lower()
         q_overlap = len(q_toks & doc_tokens)
         c_overlap = len(c_toks & doc_tokens)
         phrase_hits = sum(1 for bg in bigrams if bg in doc_lower)
-        score = (
+        score = float(
             q_overlap * CATALOG_TOKEN_WEIGHT
             + c_overlap * CATALOG_CONCEPT_WEIGHT
             + phrase_hits * CATALOG_PHRASE_BONUS
         )
-        score += _primary_paper_bonus(anchor_cid, raw_doc, canon_doc)
+        score += hybrid_scores.get(idx, 0.0)
+        score += float(_primary_paper_bonus(anchor_cid, raw_doc, canon_doc))
+        section_title = str(entry.get("section_title") or "")
+        if _INTRO_SECTION_TITLE_RE.search(section_title) or "00_dialogue" in raw_doc.lower():
+            score += INTRO_SECTION_PENALTY
+        if _MATH_EXPLANATORY_RE.search(text):
+            score += EXPLANATORY_PASSAGE_BONUS
         if is_paging_query:
             if "08_paging" in canon_doc.lower() or "08_paging" in raw_doc.lower():
                 score += CANONICAL_PAPER_BONUS
-            elif "06_address_spaces" in canon_doc.lower() or "06_address_spaces" in raw_doc.lower():
+            elif _INTRO_DOC_RE.search(canon_doc) or _INTRO_DOC_RE.search(raw_doc):
                 score += PAGING_INTRO_FLUFF_PENALTY
 
         single_term_ok = len(q_toks) == 1 and q_overlap == 1 and bool(query_domains & doc_domains)
@@ -693,6 +888,7 @@ def select_catalog_passages(
             phrase_hits >= 1
             or q_overlap >= CATALOG_MIN_DISTINCTIVE_TOKENS
             or single_term_ok
+            or (retrieval_method == "hybrid_bm25_dense_rrf" and idx in hybrid_scores and q_overlap >= 1)
         )
         if score >= CATALOG_MIN_SCORE and has_distinctive_match:
             scored.append((score, entry))
@@ -709,10 +905,17 @@ def select_catalog_passages(
     collected: list[dict[str, Any]] = []
     seen_keys: set[tuple[str, str]] = set()
     seen_texts: set[str] = set()
-    for _score, entry in scored:
+    for final_score, entry in scored:
         if len(collected) >= max_citations:
             break
-        rec = _build_catalog_citation(entry, anchor_cid, len(collected) + 1, chunk_index)
+        rec = _build_catalog_citation(
+            entry,
+            anchor_cid,
+            len(collected) + 1,
+            chunk_index,
+            retrieval_method=retrieval_method,
+            retrieval_score=round(final_score, 4),
+        )
         dkey = _dedup_key(rec)
         tfp = _text_fingerprint(rec)
         if dkey in seen_keys or (tfp and tfp in seen_texts):
@@ -727,7 +930,9 @@ def select_catalog_passages(
 
 
 __all__ = [
+    "CANONICAL_DOMAIN_MAP",
     "CLAIM_SUPPORT_NOT_ASSESSED",
+    "DOMAIN_ARCH",
     "DOMAIN_COMPILERS",
     "DOMAIN_DB",
     "DOMAIN_DSA",
@@ -736,6 +941,9 @@ __all__ = [
     "DOMAIN_NETWORKS",
     "DOMAIN_OS",
     "DOMAIN_PHYSICS_EE",
+    "DOMAIN_PROB_STATS",
+    "DOMAIN_SECURITY",
+    "DOMAIN_SWE",
     "MAX_ANCHOR_CITATIONS",
     "PRIMARY_PAPER_HINTS",
     "PROVENANCE_CHUNK_AMBIGUOUS",
@@ -747,6 +955,7 @@ __all__ = [
     "PROVENANCE_WITHDRAWN",
     "build_chunk_provenance_index",
     "build_grounding_trace",
+    "canonical_domain_to_tag",
     "domains_compatible",
     "infer_doc_domains",
     "infer_text_domains",
