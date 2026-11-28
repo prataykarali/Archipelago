@@ -35,7 +35,10 @@
   "integrity": {
     "protected_inventory_entries": 45,
     "local_sha256_matches": 44,
-    "missing_paths": ["outputs/d11-a-author-diagnostic/D11_A_AUTHOR_DIAGNOSTIC_WORKSHEET.xlsx"],
+    "cross_workspace_sha256_matches": 45,
+    "worksheet_location": "/home/pratay-karali/Desktop/archipelago-sigir-demo/outputs/d11-a-author-diagnostic/D11_A_AUTHOR_DIAGNOSTIC_WORKSHEET.xlsx",
+    "worksheet_sha256": "30ddfbee8b57c263beede4524fa9738b822a4fdfe762c96dfc66bdac6389df08",
+    "missing_paths_after_reconciliation": [],
     "historical_human_annotation_rows_blank": 731,
     "d14_graph_review_packet_120_rows_verified": false,
     "heldout_50_executed": false,
@@ -46,10 +49,17 @@
     "source-specific passage rights",
     "authenticated browser verification",
     "research Supabase administrative access",
-    "missing protected worksheet and D14 graph review packet",
+    "D14 graph review packet not located",
     "dense baseline identity reconciliation",
     "independent leakage audit"
   ],
+  "rights_audit": {
+    "candidate_documents_audited": 68,
+    "quarantined_documents": 64,
+    "conditional_documents": 4,
+    "filtered_review_subset_manifest": "docs/reports/d14/D14_9_RIGHTS_FILTERED_CORPUS_MANIFEST.json",
+    "filtered_review_subset_activated": false
+  },
   "external_changes_made": false,
   "protected_aliases_modified": false
 }
