@@ -1,9 +1,10 @@
 """Per-query structured evidence export helper with strict credential scrubbing.
 
 One concern: assemble a self-contained JSON or Markdown evidence bundle
-(answer, clean citations, canonical passage IDs, typed graph edges, and
-execution trace) while strictly stripping any credentials, bearer tokens,
-API keys, session cookies, or private auth headers.
+(answer, clean citations, 6-state evidence contract, canonical passage IDs,
+physical-vs-printed page provenance, typed graph edges, and execution trace)
+while strictly stripping any credentials, bearer tokens, API keys, session
+cookies, or private auth headers.
 """
 
 from __future__ import annotations
@@ -13,7 +14,13 @@ import re
 from typing import Any
 
 from .access_profile import active_access_profile, filter_open_access_citations
-from .corpus_titles import clean_bibliographic_title
+from .citation_format import sanitize_citations
+from .provenance import (
+    EVIDENCE_STATE_LABELS,
+    format_canonical_title,
+    resolve_page_provenance,
+    summarize_evidence_states,
+)
 
 EXPORT_SCHEMA_VERSION = "archipelago.evidence_export.v1"
 REDACTED_MARKER = "[REDACTED]"
@@ -55,10 +62,20 @@ _ALLOWED_CITATION_FIELDS = (
     "doc_title",
     "authors",
     "page_number",
+    "pdf_page",
     "printed_page",
+    "page_offset",
+    "page_display",
+    "pages_differ",
+    "ostep_chapter_number",
+    "ostep_local_file_number",
     "section",
     "chunk_id",
     "canonical_passage_id",
+    "evidence_state",
+    "evidence_state_label",
+    "source_kind",
+    "follow_up_eligible",
     "provenance_status",
     "claim_support_status",
     "verification_status",
@@ -66,6 +83,7 @@ _ALLOWED_CITATION_FIELDS = (
     "source_type",
     "access_status",
     "url",
+    "bibliographic_url",
     "text_passage",
     "withdrawn",
 )
@@ -151,16 +169,22 @@ def _extract_graph_edges(payload: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _normalize_citations(raw_citations: Any) -> list[dict[str, Any]]:
-    """Project citations onto safe public fields with clean bibliographic titles."""
+    """Project citations onto safe public fields with clean titles and 6-state contract."""
     if not isinstance(raw_citations, list):
         return []
     filtered = filter_open_access_citations([c for c in raw_citations if isinstance(c, dict)])
+    sanitized = sanitize_citations(filtered)
     cleaned: list[dict[str, Any]] = []
-    for cite in filtered:
+    for cite in sanitized:
         record = {k: cite.get(k) for k in _ALLOWED_CITATION_FIELDS if k in cite}
         doc_id = str(cite.get("doc_id") or "")
         raw_title = str(cite.get("doc_title") or cite.get("title") or "")
-        record["doc_title"] = clean_bibliographic_title(doc_id, raw_title)
+        record["doc_title"] = format_canonical_title(doc_id, raw_title)
+        prov = resolve_page_provenance(doc_id, cite.get("page_number"), cite.get("printed_page"))
+        record["pdf_page"] = prov["pdf_page"]
+        record["printed_page"] = prov["printed_page"]
+        record["page_display"] = prov["page_display"]
+        record["pages_differ"] = prov["pages_differ"]
         cleaned.append(scrub_sensitive_object(record))
     return cleaned
 
@@ -173,9 +197,14 @@ def build_evidence_export(
     """Build a credential-free structured evidence export bundle for one query."""
     meta = payload if isinstance(payload, dict) else {}
     citations = _normalize_citations(meta.get("citations"))
+    evidence_summary = summarize_evidence_states(citations)
 
     trace_raw = meta.get("trace") if isinstance(meta.get("trace"), dict) else {}
     trace = scrub_sensitive_object(trace_raw)
+    if isinstance(trace, dict):
+        trace["evidence_state"] = evidence_summary["turn_evidence_state"]
+        trace["evidence_state_label"] = evidence_summary["turn_evidence_state_label"]
+        trace["evidence_backed"] = evidence_summary["evidence_backed"]
 
     cited_ids = {
         str(c.get("canonical_passage_id") or c.get("chunk_id"))
@@ -215,6 +244,7 @@ def build_evidence_export(
         "answer": scrub_sensitive_text(str(answer or "").strip()),
         "route": route,
         "contract": contract,
+        "evidence_summary": evidence_summary,
         "anchor_concept": anchor_public,
         "citations": citations,
         "passage_ids": passage_ids,
@@ -225,12 +255,16 @@ def build_evidence_export(
 
 def render_evidence_markdown(bundle: dict[str, Any]) -> str:
     """Render a structured evidence bundle as readable Markdown."""
+    ev_summary = bundle.get("evidence_summary") or {}
+    turn_state = str(ev_summary.get("turn_evidence_state") or "UNAVAILABLE_DOCUMENT")
+    turn_label = EVIDENCE_STATE_LABELS.get(turn_state, turn_state)
     lines: list[str] = [
         "# Archipelago Evidence Export",
         "",
         f"- **Exported at:** {bundle.get('exported_at', '')}",
         f"- **Access profile:** `{bundle.get('access_profile', 'institutional')}`",
         f"- **Route:** `{bundle.get('route', 'unknown')}`",
+        f"- **Evidence state:** `{turn_state}` ({turn_label})",
         "",
         "## Query",
         "",
@@ -247,11 +281,16 @@ def render_evidence_markdown(bundle: dict[str, Any]) -> str:
     if citations:
         for cite in citations:
             title = cite.get("doc_title") or cite.get("doc_id") or "Source"
-            page = cite.get("page_number")
-            page_str = f", p. {page}" if page else ""
+            page_disp = cite.get("page_display") or (
+                f"PDF p. {cite['page_number']}" if cite.get("page_number") else ""
+            )
+            page_str = f", {page_disp}" if page_disp else ""
             pid = cite.get("canonical_passage_id") or cite.get("chunk_id") or "unmatched"
+            ev_state = cite.get("evidence_state") or "UNAVAILABLE_DOCUMENT"
             status = cite.get("provenance_status") or "unknown"
-            lines.append(f"- **{title}**{page_str} — passage `{pid}` ({status})")
+            lines.append(
+                f"- **{title}**{page_str} — state `{ev_state}` · passage `{pid}` ({status})"
+            )
     else:
         lines.append("- None")
 

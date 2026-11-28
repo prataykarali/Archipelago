@@ -9,10 +9,24 @@ from __future__ import annotations
 
 from engine.access_profile import (
     active_access_profile,
+    d14_canonical_oa_url,
     is_institutional_card,
     is_open_access_profile,
+    load_d14_source_registry,
 )
-from engine.corpus_titles import clean_bibliographic_title
+from engine.provenance import (
+    EVIDENCE_STATE_AUTHORIZED_EXTERNAL,
+    EVIDENCE_STATE_AVAILABLE_FULL_TEXT,
+    EVIDENCE_STATE_LABELS,
+    EVIDENCE_STATE_METADATA_ONLY,
+    SOURCE_KIND_INSTITUTIONAL,
+    SOURCE_KIND_LABELS,
+    SOURCE_KIND_METADATA_ONLY,
+    SOURCE_KIND_VERIFIED_FULL_TEXT,
+    format_canonical_title,
+    ostep_chapter_info,
+    resolve_page_provenance,
+)
 from flask import Flask, current_app, jsonify, request
 from library_index import hf_title, load_hf_paths, paper_url
 from library_inventory import inventory_stats, load_inventory
@@ -185,13 +199,21 @@ def register(app: Flask, ctx: AppContext) -> None:
         ebooks = [] if open_only else [public_book(book) for book in load_books()]
         for path in load_hf_paths():
             item = dict(DATASET_BOOK)
+            ostep = ostep_chapter_info(path) or {}
+            page_prov = resolve_page_provenance(path, 1)
             item.update(
                 {
                     "id": path,
-                    "title": clean_bibliographic_title(path, hf_title(path)),
+                    "title": format_canonical_title(path, hf_title(path)),
                     "domain": _dataset_domain(path),
                     "open_url": paper_url(path, 1),
                     "reader_base_url": paper_url(path, 1),
+                    "evidence_state": EVIDENCE_STATE_AVAILABLE_FULL_TEXT,
+                    "evidence_state_label": EVIDENCE_STATE_LABELS[
+                        EVIDENCE_STATE_AVAILABLE_FULL_TEXT
+                    ],
+                    "page_offset": page_prov["page_offset"],
+                    **ostep,
                 }
             )
             ebooks.append(item)
@@ -288,6 +310,13 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "book_type": book_type,
                     "page_verified": False,
                     "source_category": "pearson_catalogue_only",
+                    "source_kind": SOURCE_KIND_INSTITUTIONAL,
+                    "source_kind_label": SOURCE_KIND_LABELS[SOURCE_KIND_INSTITUTIONAL],
+                    "evidence_state": EVIDENCE_STATE_AUTHORIZED_EXTERNAL,
+                    "evidence_state_label": EVIDENCE_STATE_LABELS[
+                        EVIDENCE_STATE_AUTHORIZED_EXTERNAL
+                    ],
+                    "clickable": True,
                     "open_url": f"/open/{book_id}",
                     "pdf": "",
                     "topics": [book.get("domain")] if book.get("domain") else [PEARSON_DOMAIN],
@@ -314,10 +343,12 @@ def register(app: Flask, ctx: AppContext) -> None:
                 or "textbooks/" in path.lower()
             )
             dom_key = _catalog_document_domain(path)
+            ostep = ostep_chapter_info(path) or {}
+            page_prov = resolve_page_provenance(path, 1)
             docs.append(
                 {
                     "id": path,
-                    "title": clean_bibliographic_title(path, hf_title(path)),
+                    "title": format_canonical_title(path, hf_title(path)),
                     "authors": CATALOG_AUTHOR,
                     "year": CATALOG_YEAR,
                     "cat": "textbook" if is_textbook else "paper",
@@ -330,11 +361,91 @@ def register(app: Flask, ctx: AppContext) -> None:
                     "source_category": (
                         "oa_full_text_textbook" if is_textbook else "oa_research_paper"
                     ),
+                    "source_kind": SOURCE_KIND_VERIFIED_FULL_TEXT,
+                    "source_kind_label": SOURCE_KIND_LABELS[SOURCE_KIND_VERIFIED_FULL_TEXT],
+                    "evidence_state": EVIDENCE_STATE_AVAILABLE_FULL_TEXT,
+                    "evidence_state_label": EVIDENCE_STATE_LABELS[
+                        EVIDENCE_STATE_AVAILABLE_FULL_TEXT
+                    ],
+                    "clickable": True,
+                    "page_offset": page_prov["page_offset"],
                     "open_url": paper_url(path, None),
                     "pdf": path,
                     "topics": ["Open Textbook" if is_textbook else "Open Research Paper"],
+                    **ostep,
                 }
             )
+        for entry in load_d14_source_registry().values():
+            doc_id = str(entry.get("doc_id") or "").strip()
+            base = doc_id.rsplit("/", 1)[-1].lower() if doc_id else ""
+            if not doc_id or doc_id in existing or base in seen_hf_basenames:
+                continue
+            existing.add(doc_id)
+            if base:
+                seen_hf_basenames.add(base)
+            dom_key = _catalog_document_domain(entry["title"], entry["domain"])
+            if entry["is_approved_oa"]:
+                oa_url = (
+                    paper_url(doc_id, None)
+                    if entry["origin"] == "baseline_v2_hf_cache"
+                    else d14_canonical_oa_url(entry["source_id"])
+                )
+                if not oa_url:
+                    continue
+                docs.append(
+                    {
+                        "id": doc_id,
+                        "source_id": entry["source_id"],
+                        "title": entry["title"],
+                        "authors": entry["authors"] or CATALOG_AUTHOR,
+                        "year": CATALOG_YEAR,
+                        "cat": "textbook" if entry["source_format"] == "pdf" else "reference",
+                        "dom": dom_key,
+                        "dom_label": _DOMAIN_LABELS.get(dom_key, "AI & Machine Learning"),
+                        "collection": "corpus_v3_d14_oa",
+                        "is_pearson": False,
+                        "book_type": entry["source_format"],
+                        "page_verified": False,
+                        "source_category": "oa_full_text_textbook",
+                        "source_kind": SOURCE_KIND_VERIFIED_FULL_TEXT,
+                        "source_kind_label": SOURCE_KIND_LABELS[SOURCE_KIND_VERIFIED_FULL_TEXT],
+                        "evidence_state": EVIDENCE_STATE_AVAILABLE_FULL_TEXT,
+                        "evidence_state_label": EVIDENCE_STATE_LABELS[EVIDENCE_STATE_AVAILABLE_FULL_TEXT],
+                        "license_name": entry["license_name"],
+                        "license_url": entry["license_url"],
+                        "clickable": True,
+                        "open_url": oa_url,
+                        "pdf": doc_id if entry["source_format"] == "pdf" else "",
+                        "topics": [entry["domain"] or "Open Access"],
+                    }
+                )
+            elif entry["is_excluded_commercial"] and open_only:
+                docs.append(
+                    {
+                        "id": doc_id,
+                        "source_id": entry["source_id"],
+                        "title": entry["title"],
+                        "authors": entry["authors"] or CATALOG_FALLBACK_AUTHORS,
+                        "year": CATALOG_FALLBACK_YEAR,
+                        "cat": "textbook",
+                        "dom": dom_key,
+                        "dom_label": _DOMAIN_LABELS.get(dom_key, "AI & Machine Learning"),
+                        "collection": "excluded_commercial_metadata_only",
+                        "is_pearson": False,
+                        "book_type": "catalog_card",
+                        "page_verified": False,
+                        "source_category": "metadata_only_catalog_card",
+                        "source_kind": SOURCE_KIND_METADATA_ONLY,
+                        "source_kind_label": SOURCE_KIND_LABELS[SOURCE_KIND_METADATA_ONLY],
+                        "evidence_state": EVIDENCE_STATE_METADATA_ONLY,
+                        "evidence_state_label": EVIDENCE_STATE_LABELS[EVIDENCE_STATE_METADATA_ONLY],
+                        "clickable": False,
+                        "reader_resolvable": False,
+                        "open_url": "",
+                        "pdf": "",
+                        "topics": [entry["domain"] or "Metadata-Only Reference"],
+                    }
+                )
         domain_counts = {key: 0 for key, _ in CANONICAL_DOMAINS}
         for d in docs:
             dk = d.get("dom") or "ai"
