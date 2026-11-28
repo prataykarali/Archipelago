@@ -1,4 +1,5 @@
 // Personalized learning roadmaps: one visible, selectable step at a time.
+import { isNonReadableSourceKind, normalizeSourceKind } from './02--kw-highlights.js';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const STEP_WIDTH = 210;
 const GRAPH_HEIGHT = 230;
@@ -102,7 +103,14 @@ function selectPersonalizedNode(cardId, node, anchorLabel) {
     if (citation) citation.textContent = node.citation || '';
     if (!actions) return;
     actions.replaceChildren();
-    if (node.doc_id) {
+    if (isNonReadableSourceKind(node)) {
+        const sourceKind = normalizeSourceKind(node);
+        const tag = document.createElement('span');
+        tag.className = sourceKind === 'unavailable_document' ? 'evidence-pill-unavailable' : 'evidence-pill-metadata-only';
+        tag.dataset.sourceKind = sourceKind;
+        tag.textContent = sourceKind === 'unavailable_document' ? 'Unavailable Document' : 'Metadata-Only Record';
+        actions.appendChild(tag);
+    } else if (node.doc_id) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 font-bold text-xs cursor-pointer';

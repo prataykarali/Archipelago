@@ -4,7 +4,7 @@ import { _nodeId, _nodeLabel, _nodeSummary, selectGraphNode } from './10-populat
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { _initGraphRipple } from './18--init-graph-ripple.js';
 import { storageKey } from './storage-key.js';
-import { buildArrowMarkerDefs, buildDeduplicatedTopology, computeEdgeEndpoints, resolveLabelPositions } from './11a-topology-layout.js';
+import { buildArrowMarkerDefs, buildDeduplicatedTopology, clearStaleInspectorState, computeEdgeEndpoints, ensureSidebarEdgeLegend, renderTopologyPlaceholder, resolveLabelPositions } from './11a-topology-layout.js';
 
         function populateTopology(anchor, prereqs, unlocks, related, isReset = false) {
             const placeholder = document.getElementById('topology-placeholder');
@@ -12,16 +12,8 @@ import { buildArrowMarkerDefs, buildDeduplicatedTopology, computeEdgeEndpoints, 
             const bottomMapContainer = document.getElementById('bottom-svg-map-container');
 
             if (!anchor) {
-                if (placeholder) {
-                    placeholder.classList.remove('hidden');
-                    placeholder.innerHTML = `
-                        <div class="p-4 rounded-xl bg-white/5 border border-white/10 text-center flex flex-col items-center gap-2">
-                            <i class="fa-solid fa-circle-nodes text-gray-500 text-lg"></i>
-                            <p class="text-xs font-semibold text-gray-300">No Verified Graph Match</p>
-                            <p class="text-[10px] text-gray-400">Lexical and literature fallback executed without concept substitution.</p>
-                        </div>
-                    `;
-                }
+                clearStaleInspectorState(isReset);
+                renderTopologyPlaceholder(placeholder, isReset);
                 if (view) view.classList.add('hidden');
                 if (bottomMapContainer) {
                     bottomMapContainer.classList.add('hidden');
@@ -150,6 +142,7 @@ import { buildArrowMarkerDefs, buildDeduplicatedTopology, computeEdgeEndpoints, 
                     if (marker) path.setAttribute('marker-end', marker);
                     path.setAttribute('class', cls);
                     path.setAttribute('data-edge-type', relType);
+                    path.setAttribute('data-relation', relType === 'prereq' ? 'REQUIRES' : relType === 'unlock' ? 'UNLOCKS' : 'RELATED_TO');
                     path.setAttribute('data-from', fromId);
                     path.setAttribute('data-to', toId);
                     path.setAttribute('data-review-status', 'review_pending');
@@ -260,6 +253,7 @@ import { buildArrowMarkerDefs, buildDeduplicatedTopology, computeEdgeEndpoints, 
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     drawSVG(sidebarSvg, false);
+                    ensureSidebarEdgeLegend();
                     drawSVG(bottomSvg, false);
                     selectGraphNode(_nodeId(activeAnchor), 'anchor');
                     const sRipple = document.getElementById('sidebar-ripple-bg');
@@ -497,4 +491,4 @@ import { buildArrowMarkerDefs, buildDeduplicatedTopology, computeEdgeEndpoints, 
 
         window.dismissGraphChoiceModal = dismissGraphChoiceModal;
 
-export { dismissGraphChoiceModal, getOrCreateInteractiveZone, getOrCreateOkfNodesZone, getOrCreateQuizZone, populateTopology, renderOkfNodesCard, renderQuizSectionCard, showGraphChoiceModal, toggleGraphCardsSetting, toggleHorizontalGraphCard, updateGraphToggleUI };
+export { clearStaleInspectorState, dismissGraphChoiceModal, getOrCreateInteractiveZone, getOrCreateOkfNodesZone, getOrCreateQuizZone, populateTopology, renderOkfNodesCard, renderQuizSectionCard, showGraphChoiceModal, toggleGraphCardsSetting, toggleHorizontalGraphCard, updateGraphToggleUI };

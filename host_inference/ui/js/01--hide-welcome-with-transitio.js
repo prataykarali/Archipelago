@@ -30,8 +30,11 @@ import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-h
                     bulbs[i].className = 'sw-bulb' + (states[i] === 1 ? ' medium' : states[i] === 2 ? ' high' : '');
                 });
             }
-            setInterval(tick, 220);
+            const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             tick();
+            if (!reduced) {
+                setInterval(tick, 220);
+            }
         })();
 
         // ── 3. TypewriterText — welcome subtitle (loops: type → pause → erase → repeat)

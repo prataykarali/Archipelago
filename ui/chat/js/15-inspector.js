@@ -1,7 +1,7 @@
 // SIGIR Demo Inspector — tabbed right panel (Graph / Evidence / Trace).
 // Phase 2–7 of D-UX-1.
 import { setPanelOpen, syncPanelToggleUI, isPanelOpen } from './03-wrap-library-inventory-secti.js';
-import { citationPageUrl, citationTitle } from './02--kw-highlights.js';
+import { citationPageUrl, citationTitle, isNonReadableSourceKind, normalizeSourceKind } from './02--kw-highlights.js';
 
 const TAB_IDS = ['graph', 'books', 'trace'];
 const BADGE_COLORS = {
@@ -37,7 +37,7 @@ function switchInspectorTab(tabId) {
 // ── Evidence tab ────────────────────────────────────────────────────────────
 
 function _sourceCategory(cite) {
-    const kind = String(cite.source_kind || '').toLowerCase().trim();
+    const kind = normalizeSourceKind(cite);
     if (kind === 'metadata_only_record') {
         return { label: 'Metadata-Only Record', icon: 'fa-tag', color: 'text-amber-300', badgeCls: 'bg-amber-500/20 border-amber-400/40 text-amber-200', kind };
     }
@@ -66,8 +66,8 @@ function _sourceCategory(cite) {
 
 function _renderCitation(cite, index) {
     const cat = _sourceCategory(cite);
-    const sourceKind = String(cite.source_kind || '').toLowerCase().trim();
-    const isNonReadableRecord = sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document';
+    const sourceKind = normalizeSourceKind(cite);
+    const isNonReadableRecord = isNonReadableSourceKind(cite);
     const title = typeof citationTitle === 'function'
         ? citationTitle(cite, 'Untitled Resource')
         : (cite.title || cite.doc_title || cite.label || cite.doc_id || 'Untitled Resource');
@@ -207,8 +207,7 @@ function renderGroundingBadge(trace, metadata = null) {
             : [];
     const verifiedCitations = rawCitations.filter((cite) => {
         if (!cite || typeof cite !== 'object') return false;
-        const kind = String(cite.source_kind || '').toLowerCase().trim();
-        return kind !== 'metadata_only_record' && kind !== 'unavailable_document';
+        return !isNonReadableSourceKind(cite);
     });
     const explicitNotEvidenceBacked = metadata?.evidence_backed === false || trace.evidence_backed === false;
     const hasCitationEvidence = metadata
@@ -279,7 +278,11 @@ function updateRetrievalModeIndicator(trace) {
 // ── Main population (called from 08-send-message.js) ────────────────────────
 
 function populateInspector(metadata) {
-    if (!metadata) return;
+    if (!metadata) {
+        populateEvidence([]);
+        populateTrace(null);
+        return;
+    }
     const pipeline = document.getElementById('pipeline-panel');
     const trace = metadata.trace || {};
     const citations = metadata.citations || [];

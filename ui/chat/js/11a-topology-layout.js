@@ -225,10 +225,98 @@ function buildArrowMarkerDefs(
     ].join('\n');
 }
 
+function clearStaleInspectorState(isReset = false) {
+    const sidebarSvg = document.getElementById('sidebar-svg-map');
+    const bottomSvg = document.getElementById('bottom-svg-map');
+    if (sidebarSvg) sidebarSvg.innerHTML = '';
+    if (bottomSvg) bottomSvg.innerHTML = '';
+
+    const nodeTitle = document.getElementById('graph-node-title');
+    const nodeSummary = document.getElementById('graph-node-summary');
+    const nodeType = document.getElementById('graph-node-type');
+    const nodeDiff = document.getElementById('graph-node-diff');
+    if (nodeTitle) nodeTitle.textContent = isReset ? 'Loading…' : 'No active concept';
+    if (nodeSummary) nodeSummary.textContent = isReset ? '' : 'No indexed concept anchored for this response.';
+    if (nodeType) nodeType.textContent = isReset ? 'Pending' : 'No Match';
+    if (nodeDiff) nodeDiff.textContent = '—';
+
+    const emptyBadgeHtml = '<span class="text-[10px] text-gray-500 italic">None indexed</span>';
+    ['okf-rel-requires', 'okf-rel-unlocks', 'okf-rel-connects'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = emptyBadgeHtml;
+    });
+
+    if (isReset) {
+        const citationsPlac = document.getElementById('citations-placeholder');
+        const citationsList = document.getElementById('citations-list');
+        const logsPlac = document.getElementById('logs-placeholder');
+        const logsList = document.getElementById('logs-list');
+        if (citationsPlac) {
+            citationsPlac.classList.remove('hidden');
+            citationsPlac.textContent = 'No citations retrieved yet.';
+        }
+        if (citationsList) {
+            citationsList.classList.add('hidden');
+            citationsList.innerHTML = '';
+        }
+        if (logsPlac) {
+            logsPlac.classList.remove('hidden');
+            logsPlac.textContent = 'No logs captured yet.';
+        }
+        if (logsList) {
+            logsList.classList.add('hidden');
+            logsList.innerHTML = '';
+        }
+        const evList = document.getElementById('evidence-list') || document.getElementById('inspector-evidence-list');
+        if (evList) evList.innerHTML = '';
+        const traceContent = document.getElementById('trace-content')
+            || document.getElementById('inspector-trace-content')
+            || document.getElementById('inspector-trace-list');
+        if (traceContent) traceContent.innerHTML = '';
+    }
+}
+
+function ensureSidebarEdgeLegend() {
+    const container = document.getElementById('sidebar-svg-map-container');
+    if (!container || !container.parentNode) return;
+    let legend = document.getElementById('sidebar-graph-legend');
+    if (!legend) {
+        legend = document.createElement('div');
+        legend.id = 'sidebar-graph-legend';
+        legend.className = 'graph-edge-legend-bar';
+        legend.setAttribute('aria-label', 'Graph edge legend');
+        legend.innerHTML = `
+            <span class="graph-legend-item" data-relation="REQUIRES"><span class="graph-legend-swatch swatch-requires" aria-hidden="true">→</span><span>REQUIRES</span></span>
+            <span class="graph-legend-item" data-relation="UNLOCKS"><span class="graph-legend-swatch swatch-unlocks" aria-hidden="true">→</span><span>UNLOCKS</span></span>
+            <span class="graph-legend-item" data-relation="RELATED_TO"><span class="graph-legend-swatch swatch-related" aria-hidden="true">⇢</span><span>RELATED_TO</span></span>
+        `;
+        container.parentNode.insertBefore(legend, container.nextSibling);
+    }
+}
+
+function renderTopologyPlaceholder(placeholder, isReset = false) {
+    if (!placeholder) return;
+    placeholder.classList.remove('hidden');
+    const heading = isReset ? 'Resolving Concept Graph…' : 'No Verified Graph Match';
+    const sub = isReset
+        ? 'Cleared previous turn state while checking indexed concepts.'
+        : 'No indexed concept node is anchored for this response.';
+    placeholder.innerHTML = `
+        <div class="p-4 rounded-xl bg-white/5 border border-white/10 text-center flex flex-col items-center gap-2">
+            <i class="fa-solid fa-circle-nodes text-gray-500 text-lg"></i>
+            <p class="text-xs font-semibold text-gray-300">${heading}</p>
+            <p class="text-[11px] text-gray-400">${sub}</p>
+        </div>
+    `;
+}
+
 export {
     buildArrowMarkerDefs,
     buildDeduplicatedTopology,
     canonicalConceptId,
+    clearStaleInspectorState,
     computeEdgeEndpoints,
+    ensureSidebarEdgeLegend,
+    renderTopologyPlaceholder,
     resolveLabelPositions,
 };
