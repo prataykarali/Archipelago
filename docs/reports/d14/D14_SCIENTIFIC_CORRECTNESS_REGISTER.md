@@ -1,0 +1,38 @@
+# D14.4 Scientific & Mathematical Correctness Register
+
+- **Owner:** `d14-synthesis-math`
+- **Phase:** D14.4 — Scientific Synthesis, Mathematics & Claim Support
+- **Branch:** `sigir/d14-recovery`
+- **Scope:** All 16 scientific, mathematical, and claim-support defects (`D14-DEF-029` through `D14-DEF-044`) from `docs/reports/d14/D14_CONSOLIDATED_DEFECT_REGISTER.csv`.
+- **Anti-Overfitting Policy:** Zero hardcoded answers to the 36 D13 queries. Every fix is implemented as a domain-general epistemic rule, synthesis guardrail, or deterministic mathematical/structural validator in `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py`, `host_inference/engine/reply_plan.py`, `host_inference/engine/prompts/chat_reply.txt`, `host_inference/engine/source_answer_fixes.py`, and `host_inference/engine/answer.py`.
+
+---
+
+## 1. Defect-to-Validator Traceability Matrix
+
+| Defect ID | Domain | Failure Mode Observed in D13 | Systemic Guardrail & Deterministic Validator | Implementation Location | Regression Verification |
+|---|---|---|---|---|---|
+| `D14-DEF-029` | AI & ML (GAT) | Inconsistent dimensions (2D attention vector vs 4D concatenated features), wrong matvec product, and `softmax(0.23, 0.19)` reported as `0.55/0.45` instead of `~0.510/0.490`. | `verify_softmax`, `verify_matvec`, `verify_attention_concat_dims`, prose softmax/dim extractor in `audit_numeric_text` & `audit_scientific_response`, plus GAT dimension/arithmetic synthesis guardrail. | `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_gat_softmax_and_dimensions` |
+| `D14-DEF-030` | AI & ML (DPO) | Implies training or using a separate explicit reward model. | DPO implicit-reward synthesis guardrail + post-generation `dpo_explicit_reward` detector (with negation awareness). | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_dpo_guardrail` |
+| `D14-DEF-031` | Probability & Stats (Gaussian MLE) | Errors in normalization constants/sqrt and conflation of unbiased variance `1/(n-1)` with MLE variance `1/n`. | `verify_gaussian_mle` (enforces `1/n` denominator), Gaussian MLE prompt guardrail, and `gaussian_mle_unbiased_conflation` post-check. | `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_gaussian_mle_validator_and_guard` |
+| `D14-DEF-032` | Probability & Stats (KL Divergence) | Errors in asymmetry direction, log ratio form, support condition `P << Q`, and 1D Gaussian closed form. | `verify_kl_discrete` (checks `P << Q` -> `inf`), `verify_kl_gaussian_1d`, KL synthesis guardrail, and `kl_symmetric_claim` post-check. | `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_kl_divergence_validator_and_guard` |
+| `D14-DEF-033` | Math for Computing (PCA) | Errors on covariance eigendecomposition, mean-centering requirement, and repeated eigenvalues. | PCA synthesis guardrail + `pca_no_centering_or_unique_repeated` post-check. | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_pca_and_svd_guards` |
+| `D14-DEF-034` | Math for Computing (SVD) | False abstention claiming SVD formulation is unavailable when Deisenroth source passages contain it. | `verify_svd_dimensions` (full & reduced forms) + `svd_false_abstention` post-check when retrieved passages contain SVD text. | `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_pca_and_svd_guards` |
+| `D14-DEF-035` | Operating Systems (Paging) | Misstated page offset invariance, hardware MMU vs OS fault conflation, demand-zero omission, and misattributing OSTEP examples as independently derived. | `verify_paging_offset`, `audit_worked_address_translation`, `paging_all_faults_disk_or_hw_resolves`, refined OSTEP paging reply in `source_answer_fixes.py`, and paging prompt guardrail. | `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py`, `host_inference/engine/source_answer_fixes.py` | `test_d14_synthesis_math.py::test_os_paging_and_base_bounds` |
+| `D14-DEF-036` | Operating Systems (Base-and-Bounds) | Misstated valid virtual address interval (`<= bounds` instead of `[0, bounds)`). | `verify_base_and_bounds` (enforces `0 <= VA < bounds` and `PA = base + VA`), `base_bounds_inclusive_upper` post-check, and exact interval in `source_answer_fixes.py`. | `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py`, `host_inference/engine/source_answer_fixes.py` | `test_d14_synthesis_math.py::test_os_paging_and_base_bounds` |
+| `D14-DEF-037` | DSA (Dijkstra) | Omitted or violated non-negative edge weight assumption `w(u,v) >= 0`. | Dijkstra prompt guardrail + `dijkstra_negative_weights` post-check. | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_cs_systems_scientific_guards` |
+| `D14-DEF-038` | Compilers (LALR) | Malformed CFG production `F * F -> T` instead of single-nonterminal LHS `T -> T * F`. | `verify_cfg_production` + `lalr_cfg_production` regex detector in `audit_scientific_response` + LALR prompt guardrail. | `archipelago/inference/math_validator.py`, `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_cfg_and_compiler_guards` |
+| `D14-DEF-039` | Compilers (IR) | Compiler IR prerequisite pipeline omitted Semantic Analysis between Parsing and IR Generation. | Compiler pipeline prompt guardrail + `compiler_ir_semantic_omission` post-check. | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_cfg_and_compiler_guards` |
+| `D14-DEF-040` | Computer Networks (OSI/CRC) | Misordered sender framing layers and conflation of CRC error detection with error correction. | OSI/CRC prompt guardrail + `osi_crc_correction` post-check. | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_cs_systems_scientific_guards` |
+| `D14-DEF-041` | Computer Networks (TCP) | Conflation of 3-way handshake, receiver flow control (`rwnd`), and congestion control (`cwnd`). | TCP prompt guardrail + `tcp_rwnd_cwnd_conflation` post-check. | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_cs_systems_scientific_guards` |
+| `D14-DEF-042` | Automata & Computation | Category error calling finite automata a subset of context-free grammars. | Automata hierarchy prompt guardrail + `automata_machine_subset_grammar` post-check. | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_cs_systems_scientific_guards` |
+| `D14-DEF-043` | Database Systems (ACID) | Implied all SQL isolation levels guarantee serializability. | Database isolation prompt guardrail + `db_all_isolation_serializable` post-check. | `host_inference/engine/math_guard.py` | `test_d14_synthesis_math.py::test_cs_systems_scientific_guards` |
+| `D14-DEF-044` | Information Security (NIDS) | Hallucinated unsupervised/zero-shot architecture claims when paper full text was unavailable. | Unavailable full-text epistemic guardrail + `unavailable_paper_fabrication` post-check + unsupported citation stripping. | `host_inference/engine/math_guard.py`, `host_inference/engine/answer.py` | `test_d14_synthesis_math.py::test_unavailable_paper_abstention_guard` |
+
+---
+
+## 2. Deterministic Validation Execution Summary
+
+- Machine-readable validation suite: `docs/reports/d14/D14_MATHEMATICAL_VALIDATION_TESTS.json`
+- Claim-support and epistemic state contract: `docs/reports/d14/D14_CLAIM_SUPPORT_CONTRACT.md`
+- Automated test suite: `tests/unit/test_d14_synthesis_math.py`
