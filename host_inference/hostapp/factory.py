@@ -7,6 +7,8 @@ can build an app around fakes and production gets the real graph-backed engine.
 from __future__ import annotations
 
 import os
+import threading
+from typing import Any
 
 from flask import Flask
 
@@ -29,17 +31,43 @@ from .security import AuthGuard, RateLimiter
 CONTEXT_KEY = "archipelago"
 
 
+class _LazyEngineProxy:
+    """Defer Engine() hydration until an inference/corpus route accesses it.
+
+    Auth, login, and HTML shell routes (/login, /chat, /api/auth/*) never block
+    on cold-start graph/passage hydration.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._instance: Any = None
+
+    def _ensure(self) -> Any:
+        inst = self._instance
+        if inst is not None:
+            return inst
+        with self._lock:
+            if self._instance is None:
+                from engine import Engine
+
+                self._instance = Engine()
+            return self._instance
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._ensure(), name)
+
+
 def build_context() -> AppContext:
     """Build the production collaborators.
 
-    ``Engine`` is imported lazily so a test can substitute it before the app is
-    created.
+    ``Engine`` is initialized lazily on first attribute access so cold-start
+    auth and HTML routes respond immediately without waiting for corpus/graph
+    hydration.
     """
     from cache_service import cache_metrics, cache_service, request_dedup
-    from engine import Engine
 
     return AppContext(
-        engine=Engine(),
+        engine=_LazyEngineProxy(),
         auth=AuthGuard(),
         limiter=RateLimiter(),
         inventory=InventoryStore(),

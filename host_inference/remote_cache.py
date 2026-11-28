@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 from pathlib import Path
@@ -15,11 +16,21 @@ PACKAGED_CACHE = ROOT / "cache"
 CACHE = Path("/tmp/archipelago/cache") if os.environ.get("VERCEL") else PACKAGED_CACHE
 BUCKET = "archipelago-cache"
 FILES = ("okf_graph.json", "pearson_bookshelf.json", "library_manifest.json")
-HYDRATE_TIMEOUT_SECONDS = 10
+OPEN_ACCESS_FILES = ("okf_graph.json", "library_manifest.json")
+OPEN_ACCESS_PROFILES = frozenset({"open_access", "open-access", "sigir_open_access"})
+HYDRATE_TIMEOUT_SECONDS: tuple[float, float] = (2.0, 3.0)
 HYDRATE_COOLDOWN_SECONDS = 30.0
 _CACHE_LOCK = threading.Lock()
 _LAST_HYDRATE_ATTEMPT: float = 0.0
 _MEM_CACHE: dict[str, tuple[float, object]] = {}
+
+
+def _is_open_access() -> bool:
+    return os.environ.get("ARCHIPELAGO_ACCESS_PROFILE", "").strip().lower() in OPEN_ACCESS_PROFILES
+
+
+def _hydrate_files() -> tuple[str, ...]:
+    return OPEN_ACCESS_FILES if _is_open_access() else FILES
 
 
 def _production_mode() -> bool:
@@ -62,13 +73,18 @@ def hydrate() -> dict[str, str]:
     after Supabase has become unavailable. Local fallback remains available for
     the ingestion workstation and development-only workflows.
     """
+    global _LAST_HYDRATE_ATTEMPT
+    with _CACHE_LOCK:
+        _LAST_HYDRATE_ATTEMPT = time.monotonic()
     CACHE.mkdir(parents=True, exist_ok=True)
+    target_files = _hydrate_files()
     source = "unavailable"
     loaded = 0
     auth = _headers()
     if auth:
         base = auth.pop("url")
-        for name in FILES:
+
+        def _fetch_one(name: str) -> bool:
             target = CACHE / name
             try:
                 response = requests.get(
@@ -82,22 +98,28 @@ def hydrate() -> dict[str, str]:
                             existing_count = len(json.loads(target.read_text()).get("concepts", {}))
                             remote_count = len(json.loads(response.content).get("concepts", {}))
                             if existing_count > remote_count:
-                                loaded += 1
-                                continue
+                                return True
                         except Exception:
                             pass
                     target.write_bytes(response.content)
-                    loaded += 1
+                    return True
             except (requests.RequestException, OSError):
-                pass
-        if loaded == len(FILES):
+                return False
+            return False
+
+        if len(target_files) > 1:
+            with ThreadPoolExecutor(max_workers=len(target_files)) as pool:
+                loaded = sum(1 for ok in pool.map(_fetch_one, target_files) if ok)
+        else:
+            loaded = sum(1 for name in target_files if _fetch_one(name))
+        if loaded == len(target_files):
             source = "supabase"
 
     if source == "supabase":
         return {"source": source, "cache": str(CACHE)}
 
     if _production_mode():
-        for name in FILES:
+        for name in target_files:
             source_file = PACKAGED_CACHE / name if (PACKAGED_CACHE / name).is_file() else (ROOT / "fixtures" / name)
             target = CACHE / name
             if source_file.is_file() and not target.is_file():
@@ -106,7 +128,7 @@ def hydrate() -> dict[str, str]:
             return {"source": "bundled", "cache": str(CACHE)}
         return {"source": source, "cache": str(CACHE)}
 
-    for name in FILES:
+    for name in target_files:
         target = CACHE / name
         if target.is_file():
             continue

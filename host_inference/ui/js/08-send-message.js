@@ -1,7 +1,7 @@
 import { state } from './00-state.js';
 import { setSendButtonState, stopGeneration } from './07-open-page-viewer-modal.js';
 import { dismissGraphChoiceModal, populateTopology, renderOkfNodesCard, renderQuizSectionCard } from './11-populate-topology.js';
-import { API_HOST, CHAT_RESPONSE_TIMEOUT_MS, MAX_HISTORY_TURNS_SENT, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, setLibrarianThinking, showStickyAvatar } from './00-current-origin.js';
+import { API_HOST, CHAT_RESPONSE_TIMEOUT_MS, MAX_HISTORY_TURNS_SENT, STREAM_FIRST_BYTE_TIMEOUT_MS, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, setLibrarianThinking, showStickyAvatar } from './00-current-origin.js';
 import { _addChatBubbleEffects, appendMessage } from './09-patterns.js';
 import { _updateGlowState, renderMarkdownSafely } from './01--hide-welcome-with-transitio.js';
 import { _enrichAssistantMarkup, appendEvidenceRail, getResponseCitations } from './02--kw-highlights.js';
@@ -30,6 +30,13 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
             const inputVal = (inputEl ? inputEl.value : '').trim();
             if (!inputVal) return;
 
+            // Increment sequence & arm AbortController BEFORE session verification
+            // so clicking Stop cancels cleanly even during pre-send auth checks.
+            state.currentQuerySequence = (state.currentQuerySequence || 0) + 1;
+            const thisQuerySequence = state.currentQuerySequence;
+            const preSendController = new AbortController();
+            state.currentAbortController = preSendController;
+
             window.archipelagoChatAuthChecking = true;
             const sendBtnCheck = document.getElementById('send-btn');
             const sendIconCheck = document.getElementById('send-btn-icon');
@@ -41,13 +48,23 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
                 sendIconCheck.className = 'fa-solid fa-spinner fa-spin text-sm';
             }
             try {
-                const session = await window.archipelagoVerifyChatSession();
+                const session = await window.archipelagoVerifyChatSession({ signal: preSendController.signal });
+                if (thisQuerySequence !== state.currentQuerySequence || preSendController.signal.aborted) {
+                    return;
+                }
                 if (!session.authenticated) {
                     window.archipelagoPromptChatSignIn(inputVal, session.reason);
                     return;
                 }
                 window.archipelagoClearChatSignInPrompt?.();
             } catch (error) {
+                if (
+                    thisQuerySequence !== state.currentQuerySequence
+                    || preSendController.signal.aborted
+                    || error?.message === 'USER_CANCELLED'
+                ) {
+                    return;
+                }
                 window.archipelagoPromptChatSignIn(inputVal, error?.reason || 'upstream_unavailable');
                 return;
             } finally {
@@ -61,9 +78,9 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
                 }
             }
 
-            // Increment request sequence to guard against race conditions or out-of-order streams
-            state.currentQuerySequence = (state.currentQuerySequence || 0) + 1;
-            const thisQuerySequence = state.currentQuerySequence;
+            if (thisQuerySequence !== state.currentQuerySequence) {
+                return;
+            }
 
             if (!state.conversationSessionId) {
                 state.conversationSessionId = 'session_' + Date.now();
@@ -106,20 +123,21 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
             setLibrarianThinking(true);
             setSendButtonState('stop');
 
-            state.currentAbortController = new AbortController();
+            state.currentAbortController = preSendController;
             const responseTimeoutId = window.setTimeout(() => {
                 state.currentAbortController?.abort('The response timed out.');
             }, Math.max(CHAT_RESPONSE_TIMEOUT_MS, STREAM_HARD_TIMEOUT_MS));
             state.activeResponseTimeoutId = responseTimeoutId;
             let streamIdleTimeoutId = null;
-            const armStreamIdleWatchdog = () => {
+            const armStreamIdleWatchdog = (timeoutMs = STREAM_IDLE_TIMEOUT_MS, label = 'Stream idle timeout — no tokens received.') => {
                 if (streamIdleTimeoutId) window.clearTimeout(streamIdleTimeoutId);
                 streamIdleTimeoutId = window.setTimeout(() => {
-                    state.currentAbortController?.abort('Stream idle timeout — no tokens received.');
-                }, STREAM_IDLE_TIMEOUT_MS);
+                    state.currentAbortController?.abort(label);
+                }, timeoutMs);
                 state.activeStreamIdleTimeoutId = streamIdleTimeoutId;
             };
-            armStreamIdleWatchdog();
+            // Before response headers arrive, allow full first-byte budget (auth + retrieval + provider failover).
+            armStreamIdleWatchdog(STREAM_FIRST_BYTE_TIMEOUT_MS, 'Stream timed out waiting for first byte.');
 
             // Hoisted so catch/finally can keep partial GPU SLM text on abort.
             let buffer = '';
@@ -147,6 +165,8 @@ import { renderEvidenceExportBar, renderFollowUpChips } from './23-followups-exp
 
             try {
                 const response = await postChatRequest(inputVal, state.currentAbortController.signal, { synthesis: true });
+                // Response headers arrived — tighten watchdog to inter-chunk idle timeout.
+                armStreamIdleWatchdog(STREAM_IDLE_TIMEOUT_MS);
 
                 reader = response.body.getReader();
                 state.activeStreamReader = reader;

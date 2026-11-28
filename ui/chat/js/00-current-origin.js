@@ -55,12 +55,14 @@
             }).join('\n');
         }
 
-const CHAT_RESPONSE_TIMEOUT_MS = 35000;
+const CHAT_RESPONSE_TIMEOUT_MS = 55000;
 
-        // Stream watchdogs: idle gap between chunks (aligned with 8s backend chunk read timeout) vs wall-clock cap.
+        // Stream watchdogs: pre-header first-byte budget (25s), inter-chunk idle gap (14s), and wall-clock cap (55s).
+        const STREAM_FIRST_BYTE_TIMEOUT_MS = 25000;
+
         const STREAM_IDLE_TIMEOUT_MS = 14000;
 
-        const STREAM_HARD_TIMEOUT_MS = 40000;
+        const STREAM_HARD_TIMEOUT_MS = 55000;
 
         // Cap history sent to the API so long chats stay under request size limits.
         const MAX_HISTORY_TURNS_SENT = 12;
@@ -376,4 +378,4 @@ const CHAT_RESPONSE_TIMEOUT_MS = 35000;
             window.addEventListener('pointerdown', unlock, { once: true, passive: true });
         })();
 
-export { API_CONTRACT, API_HOST, AVATAR_HI_SRC, AVATAR_STORY, AVATAR_THINK_KEY, AVATAR_THINK_SRC, CHAT_RESPONSE_TIMEOUT_MS, CURRENT_ORIGIN, GRAPH_HOST, MAX_HISTORY_TURNS_SENT, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, _avatarClipEls, _avatarIndexForKey, _graphPort, _onAvatarClipEnded, _pageHost, _pagePort, _showAvatarClipAt, buildAvatarClipsHtml, buildAvatarHtml, getStickyAvatar, hideStickyAvatar, pauseAvatarRoot, pauseAvatarVideo, playAvatarVideo, primeAvatarVideo, setAvatarThinking, setLibrarianThinking, showStickyAvatar, wireAvatarVideos };
+export { API_CONTRACT, API_HOST, AVATAR_HI_SRC, AVATAR_STORY, AVATAR_THINK_KEY, AVATAR_THINK_SRC, CHAT_RESPONSE_TIMEOUT_MS, CURRENT_ORIGIN, GRAPH_HOST, MAX_HISTORY_TURNS_SENT, STREAM_FIRST_BYTE_TIMEOUT_MS, STREAM_HARD_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS, _avatarClipEls, _avatarIndexForKey, _graphPort, _onAvatarClipEnded, _pageHost, _pagePort, _showAvatarClipAt, buildAvatarClipsHtml, buildAvatarHtml, getStickyAvatar, hideStickyAvatar, pauseAvatarRoot, pauseAvatarVideo, playAvatarVideo, primeAvatarVideo, setAvatarThinking, setLibrarianThinking, showStickyAvatar, wireAvatarVideos };

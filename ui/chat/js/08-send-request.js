@@ -87,7 +87,7 @@ export async function postChatRequest(inputVal, signal, options = { synthesis: t
         signal,
         body: JSON.stringify({
             query: inputVal,
-            reply_detail: 'expanded',
+            reply_detail: options?.replyDetail || 'standard',
             request_id: crypto.randomUUID(),
             mode: state.currentMode,
             history: cleanHistory,

@@ -16,7 +16,7 @@ from typing import Any
 
 import requests
 
-RUNTIME_TIMEOUT_SECONDS = 10
+RUNTIME_TIMEOUT_SECONDS: tuple[float, float] = (2.0, 5.0)
 DEFAULT_DRAIN_TIMEOUT_SECONDS = 5.0
 _RPC_NAME_RE = re.compile(r"^[a-zA-Z0-9_]{1,128}$")
 

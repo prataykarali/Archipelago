@@ -21,7 +21,12 @@ const VERIFY_SESSION_TIMEOUT_MS = 15000;
 const RECENT_SESSION_GRACE_MS = 300000;
 const USER_KEEPALIVE_MIN_GAP_MS = 120000;
 const SUPABASE_CDN_TIMEOUT_MS = 3500;
+const LOGOUT_REQUEST_TIMEOUT_MS = 4000;
+const SUPABASE_LOCAL_SIGNOUT_TIMEOUT_MS = 1000;
+const POST_LOGIN_ME_CACHE_MS = 15000;
 let cachedAccessToken = "";
+let loadedSupabaseClient = null;
+let inFlightMePromise = null;
 let lastPassiveCheckAt = 0;
 let passiveCheckInFlight = false;
 let lastKeepaliveAt = 0;
@@ -39,6 +44,18 @@ async function loadSupabaseCreateClient() {
   } catch (_) {
     return null;
   }
+}
+
+function readCachedMe(maxAgeMs = POST_LOGIN_ME_CACHE_MS) {
+  try {
+    const raw = sessionStorage.getItem(AUTH_ME_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.ts && (Date.now() - parsed.ts) < maxAgeMs && parsed.principal?.authenticated) {
+      return parsed.principal;
+    }
+  } catch (_) {}
+  return null;
 }
 
 function writeCachedMe(principal) {
@@ -306,27 +323,38 @@ window.archipelagoPurgeMyData = async () => {
 window.archipelagoLogout = async ({ redirectUrl = LOGIN_PATH, clearHistory = false } = {}) => {
   if (isHandlingLogout) return;
   isHandlingLogout = true;
+  // Clear in-memory bearer token immediately so no subsequent fetch re-attaches it.
+  cachedAccessToken = "";
+  lastVerifiedSessionAt = 0;
+  lastVerifiedPrincipal = null;
+  inFlightMePromise = null;
   window.archipelagoUserId = null;
   window.archipelagoClearClientStorage({ includeHistory: clearHistory });
   broadcastLogout();
+  // Single server-side logout call (revokes durable session + clears HttpOnly cookie).
+  const logoutController = new AbortController();
+  const logoutTimer = window.setTimeout(() => logoutController.abort(), LOGOUT_REQUEST_TIMEOUT_MS);
   try {
     await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "same-origin",
       headers: { "X-Requested-With": "XMLHttpRequest" },
+      signal: logoutController.signal,
     });
-  } catch (_) {}
-  try {
-    await fetch("/api/auth/session", {
-      method: "DELETE",
-      credentials: "same-origin",
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
-  } catch (_) {}
-  try {
-    const { supabase } = await window.archipelagoAuthReady;
-    if (supabase) await supabase.auth.signOut({ scope: "global" });
-  } catch (_) {}
+  } catch (_) {
+  } finally {
+    window.clearTimeout(logoutTimer);
+  }
+  // Never block logout waiting on external CDN import or unbounded global signOut;
+  // only clear local Supabase client state if already loaded, bounded to 1s.
+  if (loadedSupabaseClient) {
+    try {
+      await Promise.race([
+        loadedSupabaseClient.auth.signOut({ scope: "local" }),
+        new Promise((resolve) => window.setTimeout(resolve, SUPABASE_LOCAL_SIGNOUT_TIMEOUT_MS)),
+      ]);
+    } catch (_) {}
+  }
   // Append ?logout=1 to the redirect so the login page knows not to auto-redirect
   // back (which would cause a loop when the session is fully cleared).
   const finalUrl = redirectUrl === LOGIN_PATH
@@ -345,22 +373,30 @@ async function loadConfig() {
       }
     }
   } catch (_) {}
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    const response = await fetch("/api/auth/config", { cache: "no-store", signal: controller.signal });
-    clearTimeout(timer);
-    if (response.ok) {
-      const cfg = await response.json();
-      try {
-        sessionStorage.setItem(AUTH_CONFIG_CACHE_KEY, JSON.stringify({ ts: Date.now(), config: cfg }));
-      } catch (_) {}
-      return cfg;
-    }
-  } catch (err) {
-    console.warn("Auth config fetch failed, using fallback:", err);
+  if (window._archipelagoConfigPromise) {
+    return window._archipelagoConfigPromise;
   }
-  return { configured: false, required: true };
+  window._archipelagoConfigPromise = (async () => {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const response = await fetch("/api/auth/config", { cache: "no-store", signal: controller.signal });
+      clearTimeout(timer);
+      if (response.ok) {
+        const cfg = await response.json();
+        try {
+          sessionStorage.setItem(AUTH_CONFIG_CACHE_KEY, JSON.stringify({ ts: Date.now(), config: cfg }));
+        } catch (_) {}
+        return cfg;
+      }
+    } catch (err) {
+      console.warn("Auth config fetch failed, using fallback:", err);
+    } finally {
+      window._archipelagoConfigPromise = null;
+    }
+    return { configured: false, required: true };
+  })();
+  return window._archipelagoConfigPromise;
 }
 
 function getApiUrl(input) {
@@ -405,6 +441,7 @@ window.archipelagoAuthReady = (async () => {
       supabase = createClient(config.url, config.publishableKey, {
         auth: { persistSession: true, autoRefreshToken: true },
       });
+      loadedSupabaseClient = supabase;
       supabase.auth.onAuthStateChange((_event, session) => {
         cachedAccessToken = session?.access_token || "";
       });
@@ -421,13 +458,45 @@ window.archipelagoAuthReady = (async () => {
         headers: { "Content-Type": "application/json" },
       });
     }
+    const method = (init?.method || (typeof input !== "string" ? input?.method : "GET") || "GET").toUpperCase();
+    if (apiUrl?.pathname === "/api/auth/me" && method === "GET") {
+      const reqHeaders = new Headers(init?.headers || (typeof input === "string" ? undefined : input?.headers));
+      const isPassive = reqHeaders.get("X-Session-Passive") === "1";
+      if (!isPassive && !init?.signal) {
+        const freshCached = readCachedMe(POST_LOGIN_ME_CACHE_MS);
+        if (freshCached) {
+          return new Response(JSON.stringify(freshCached), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (inFlightMePromise) {
+          const shared = await inFlightMePromise;
+          return shared.clone();
+        }
+        inFlightMePromise = originalFetch(input, await addAccessToken(supabase, input, init))
+          .finally(() => { inFlightMePromise = null; });
+        const shared = await inFlightMePromise;
+        return shared.clone();
+      }
+    }
     return originalFetch(input, await addAccessToken(supabase, input, init));
   };
   return { config, supabase };
 })();
 
-window.archipelagoVerifyChatSession = async ({ force = false } = {}) => {
+window.archipelagoVerifyChatSession = async ({ force = false, signal = null } = {}) => {
+  if (signal?.aborted) {
+    const err = new Error("USER_CANCELLED");
+    err.name = "AbortError";
+    throw err;
+  }
   await window.archipelagoAuthReady;
+  if (signal?.aborted) {
+    const err = new Error("USER_CANCELLED");
+    err.name = "AbortError";
+    throw err;
+  }
   if (
     !force &&
     lastVerifiedPrincipal &&
@@ -439,7 +508,7 @@ window.archipelagoVerifyChatSession = async ({ force = false } = {}) => {
   }
   if (
     !force &&
-    (window.archipelagoUserId || document.querySelector("#user-profile-badge"))
+    (window.archipelagoUserId || document.querySelector("#user-profile-badge") || readCachedMe(RECENT_SESSION_GRACE_MS))
   ) {
     // Active UI session present: let POST /api/chat enforce server-side auth & revocation directly
     // (08-send-message.js handles 401 cleanly while preserving the unsent question).
@@ -447,7 +516,9 @@ window.archipelagoVerifyChatSession = async ({ force = false } = {}) => {
     return { authenticated: true, deferredToServer: true };
   }
   const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), VERIFY_SESSION_TIMEOUT_MS);
+  const onExternalAbort = () => controller.abort("USER_CANCELLED");
+  if (signal) signal.addEventListener("abort", onExternalAbort, { once: true });
+  const timer = window.setTimeout(() => controller.abort("timeout"), VERIFY_SESSION_TIMEOUT_MS);
   try {
     const response = await fetch("/api/auth/me", {
       cache: "no-store",
@@ -474,11 +545,17 @@ window.archipelagoVerifyChatSession = async ({ force = false } = {}) => {
     error.reason = "upstream_unavailable";
     throw error;
   } catch (err) {
+    if (signal?.aborted || controller.signal.reason === "USER_CANCELLED") {
+      const cancelErr = new Error("USER_CANCELLED");
+      cancelErr.name = "AbortError";
+      throw cancelErr;
+    }
     if (err && err.reason) throw err;
     const error = new Error("Session verification timed out. Please try again.");
     error.reason = "upstream_unavailable";
     throw error;
   } finally {
+    if (signal) signal.removeEventListener("abort", onExternalAbort);
     window.clearTimeout(timer);
   }
 };

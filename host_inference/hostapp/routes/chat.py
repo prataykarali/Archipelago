@@ -11,9 +11,9 @@ from datetime import UTC, datetime, timedelta
 import json
 import re
 import time
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from engine.access_profile import is_open_access_profile
+from engine.access_profile import active_access_profile, is_open_access_profile
 from engine.citation_format import (
     has_verified_full_text_citations,
     sanitize_citations,
@@ -55,7 +55,7 @@ STREAM_MIME = "text/plain; charset=utf-8"
 STREAM_MARKER = "\n[STREAM_START]\n"
 STREAM_DONE_MARKER = "[STREAM_DONE]"
 TELEMETRY_NO_CONTENT = 204
-CHAT_REQUEST_DEADLINE_SECONDS = 24.0
+CHAT_REQUEST_DEADLINE_SECONDS = 45.0
 
 
 def _sanitize_history(raw_history: object) -> list[dict[str, str]]:
@@ -350,15 +350,17 @@ def register(app: Flask, ctx: AppContext) -> None:
             return jsonify({"error": "invalid_reply_detail"}), 400
 
         prior_auth_ms = getattr(request, "archipelago_auth_ms", None)
-        quota_ms = 0.0
+        quota_ms: float | None = None
         principal = getattr(request, "archipelago_principal", None)
+        raw_request_id = str(body.get("request_id") or "").strip()
+        if raw_request_id:
+            try:
+                request_id = str(UUID(raw_request_id))
+            except ValueError:
+                return jsonify({"error": "invalid_request_id"}), 400
+        else:
+            request_id = str(uuid4())
         if principal and principal.get("id") and principal.get("role") == "student":
-            request_id = body.get("request_id") or ""
-            if request_id:
-                try:
-                    request_id = str(UUID(str(request_id)))
-                except ValueError:
-                    return jsonify({"error": "invalid_request_id"}), 400
             t_quota_start = time.perf_counter()
             try:
                 limited, quota = ctx.limiter.check_daily_chat(principal["id"], request_id)
@@ -412,7 +414,119 @@ def register(app: Flask, ctx: AppContext) -> None:
             response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
             response.headers["Vary"] = "Authorization, Cookie"
             return response
+        t_res_start = time.perf_counter()
         resolved_query = contextual_query(query, history)
+        query_resolution_ms = round((time.perf_counter() - t_res_start) * 1000, 1)
+
+        graph_version = str(
+            getattr(getattr(ctx.engine, "graph", None), "graph_version", "unknown") or "unknown"
+        )
+        cp_info = getattr(getattr(ctx.engine, "catalog", None), "candidate_passages_info", None)
+        corpus_version = str(
+            (cp_info.get("sha256")[:12] if isinstance(cp_info, dict) and cp_info.get("sha256") else None)
+            or getattr(getattr(ctx.engine, "graph", None), "corpus_source", None)
+            or "bundled"
+        )
+        release_sha = runtime_release_sha()
+        access_profile = active_access_profile()
+        tenant_scope = (
+            f"user:{principal.get('id')}:role:{principal.get('role')}"
+            if isinstance(principal, dict) and principal.get("id")
+            else f"open:{access_profile}"
+        )
+        effective_detail = str(reply_detail or "standard")
+        cache_eligible = not history and getattr(ctx, "cache_service", None) is not None and callable(
+            getattr(ctx.cache_service, "build_versioned_key", None)
+        )
+        cache_key = (
+            ctx.cache_service.build_versioned_key(
+                resolved_query,
+                tenant_scope=tenant_scope,
+                access_profile=access_profile,
+                graph_version=graph_version,
+                corpus_version=corpus_version,
+                release_sha=release_sha,
+                reply_detail=effective_detail,
+                template_id=template_id,
+            )
+            if cache_eligible
+            else ""
+        )
+        auth_ms: float | None = (
+            round(
+                (float(prior_auth_ms) if isinstance(prior_auth_ms, (int, float)) else 0.0)
+                + (float(quota_ms) if isinstance(quota_ms, (int, float)) else 0.0),
+                1,
+            )
+            if (isinstance(prior_auth_ms, (int, float)) or isinstance(quota_ms, (int, float)))
+            else None
+        )
+
+        if cache_key and callable(getattr(ctx.cache_service, "get_versioned_entry", None)):
+            cached = ctx.cache_service.get_versioned_entry(cache_key)
+            if isinstance(cached, dict) and cached.get("text") and isinstance(cached.get("metadata"), dict):
+                cached_meta = dict(cached["metadata"])
+                cached_citations = cached_meta.get("citations") or []
+                if not _withdrawn_notice(cached_citations):
+                    ctx.cache_metrics.record_request()
+                    ctx.cache_metrics.record_hit()
+                    total_hit_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
+                    hit_timings = {
+                        "auth_ms": auth_ms,
+                        "query_resolution_ms": query_resolution_ms,
+                        "retrieval_ms": None,
+                        "evidence_retrieval_ms": None,
+                        "reranking_ms": None,
+                        "provider_ttft_ms": None,
+                        "visible_ttft_ms": total_hit_ms,
+                        "ttft_visible_ms": total_hit_ms,
+                        "ttft_ms": total_hit_ms,
+                        "total_ms": total_hit_ms,
+                    }
+                    cached_meta["stage_timings_ms"] = hit_timings
+                    hit_trace = dict(cached_meta.get("trace") or {})
+                    hit_trace.update(
+                        request_id=request_id,
+                        release_sha=release_sha,
+                        graph_version=graph_version,
+                        graph_revision=graph_version,
+                        corpus_version=corpus_version,
+                        cache_status="hit",
+                        completion_status="complete",
+                        stream_status="complete",
+                        stage_timings_ms=hit_timings,
+                    )
+                    cached_meta["trace"] = hit_trace
+                    terminal_meta = {
+                        "request_id": request_id,
+                        "provider_status": "cached",
+                        "fallback_reason": None,
+                        "cache_status": "hit",
+                        "stream_status": "complete",
+                        "completion_status": "complete",
+                        "auth_ms": auth_ms,
+                        "query_resolution_ms": query_resolution_ms,
+                        "retrieval_ms": None,
+                        "evidence_retrieval_ms": None,
+                        "reranking_ms": None,
+                        "provider_ttft_ms": None,
+                        "visible_ttft_ms": total_hit_ms,
+                        "ttft_visible_ms": total_hit_ms,
+                        "total_ms": total_hit_ms,
+                    }
+                    cached_body = (
+                        json.dumps(cached_meta)
+                        + STREAM_MARKER
+                        + str(cached["text"])
+                        + f"\n[STREAM_META:{json.dumps(terminal_meta)}]\n"
+                        + "\n[STREAM_DONE]\n"
+                    )
+                    response = current_app.response_class(cached_body, mimetype=STREAM_MIME)
+                    response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+                    response.headers["Vary"] = "Authorization, Cookie"
+                    response.headers["X-Accel-Buffering"] = "no"
+                    return response
+
         try:
             t_eng_start = time.perf_counter()
             answer_fn = getattr(ctx.engine, "answer", None)
@@ -449,9 +563,8 @@ def register(app: Flask, ctx: AppContext) -> None:
                     break
 
         ctx.cache_metrics.record_request()
-        # Every chat request gets its own retrieval and provider stream, even
-        # when an identical question is submitted at the same time.
         ctx.cache_metrics.record_miss()
+        cache_status_label = "miss" if cache_key else ("bypass_history" if history else "miss_no_reuse")
 
         logger = current_app.logger
 
@@ -491,18 +604,22 @@ def register(app: Flask, ctx: AppContext) -> None:
                     if pid
                 }
             )
+            synth_mode = metadata.get("synthesis_mode") or "unknown"
             trace.update(
+                request_id=request_id,
                 intent=prepared.get("route") or "unknown",
-                synthesis_mode=metadata.get("synthesis_mode") or "unknown",
+                synthesis_mode=synth_mode,
+                generation_mode=synth_mode,
                 provider=metadata.get("provider") or "deterministic",
                 provider_status=metadata.get("provider_status"),
                 fallback_reason=metadata.get("fallback_reason"),
                 model=model.get("model") if isinstance(model, dict) else "",
-                cache_status="miss_no_reuse",
-                release_sha=runtime_release_sha(),
-                graph_revision=getattr(
-                    getattr(ctx.engine, "graph", None), "graph_version", "unknown"
-                ),
+                cache_status=cache_status_label,
+                release_sha=release_sha,
+                graph_version=graph_version,
+                graph_revision=graph_version,
+                corpus_version=corpus_version,
+                completion_status=metadata.get("completion_status"),
                 source_document_ids=sorted(
                     {
                         str(c.get("doc_id"))
@@ -515,11 +632,6 @@ def register(app: Flask, ctx: AppContext) -> None:
                 retrieved_passage_ids=retrieved_ids,
                 stage_timings_ms=timing,
             )
-
-        auth_ms = round(
-            (float(prior_auth_ms) if isinstance(prior_auth_ms, (int, float)) else 0.0) + quota_ms,
-            1,
-        )
 
         def generate():
             ttft_ms = None
@@ -549,15 +661,20 @@ def register(app: Flask, ctx: AppContext) -> None:
                     ttft_visible_ms = ttft_ms
                     payload["stage_timings_ms"] = {
                         "auth_ms": auth_ms,
+                        "query_resolution_ms": query_resolution_ms,
                         "research_run_ms": research_ms,
                         "intent_and_graph_ms": engine_ms,
+                        "retrieval_ms": ev_ms,
                         "evidence_retrieval_ms": ev_ms,
+                        "reranking_ms": None,
                         "research_enrichment_ms": enrich_ms,
                         "provider_ttft_ms": None,
+                        "visible_ttft_ms": ttft_visible_ms,
                         "ttft_visible_ms": ttft_visible_ms,
                         "ttft_ms": ttft_ms,
                         "total_ms": ttft_ms,
                     }
+                    payload["completion_status"] = "complete"
                     annotate_trace(payload, timing=payload["stage_timings_ms"])
                     payload["trace"]["evidence_backed"] = payload["evidence_backed"]
                     yield json.dumps(payload) + STREAM_MARKER
@@ -571,11 +688,18 @@ def register(app: Flask, ctx: AppContext) -> None:
                         "\n[STREAM_META:"
                         + json.dumps(
                             {
+                                "request_id": request_id,
                                 "provider_status": "not_invoked",
                                 "fallback_reason": None,
+                                "cache_status": cache_status_label,
                                 "stream_status": "complete",
+                                "completion_status": "complete",
                                 "auth_ms": auth_ms,
+                                "query_resolution_ms": query_resolution_ms,
+                                "retrieval_ms": ev_ms,
                                 "evidence_retrieval_ms": ev_ms,
+                                "reranking_ms": None,
+                                "visible_ttft_ms": ttft_visible_ms,
                                 "ttft_visible_ms": ttft_visible_ms,
                                 "provider_ttft_ms": None,
                                 "total_ms": total_now,
@@ -615,6 +739,9 @@ def register(app: Flask, ctx: AppContext) -> None:
                             stream_iter = ctx.engine.stream_chat(resolved_query, **options)
                         except TypeError:
                             stream_iter = ctx.engine.stream_chat(resolved_query)
+                    captured_meta: dict | None = None
+                    captured_prose: list[str] = []
+                    terminal_stream_status = "complete"
                     for chunk in stream_iter:
                         if STREAM_MARKER in chunk:
                             head, rest = chunk.split(STREAM_MARKER, 1)
@@ -650,18 +777,25 @@ def register(app: Flask, ctx: AppContext) -> None:
                             if meta:
                                 meta["stage_timings_ms"] = {
                                     "auth_ms": auth_ms,
+                                    "query_resolution_ms": query_resolution_ms,
                                     "research_run_ms": research_ms,
                                     "intent_and_graph_ms": engine_ms,
+                                    "retrieval_ms": ev_ms,
                                     "evidence_retrieval_ms": ev_ms,
+                                    "reranking_ms": None,
                                     "research_enrichment_ms": enrich_ms,
                                     "provider_ttft_ms": prov_ttft,
+                                    "visible_ttft_ms": now_ms,
                                     "ttft_visible_ms": now_ms,
                                     "ttft_ms": now_ms,
                                     "total_ms": None,
                                 }
                                 annotate_trace(meta, timing=meta["stage_timings_ms"])
                                 meta["trace"]["evidence_backed"] = evidence_backed
+                                captured_meta = dict(meta)
                             yield json.dumps(meta) + STREAM_MARKER + rest
+                            if rest:
+                                captured_prose.append(rest)
                             continue
                         if "[STREAM_META:" in chunk:
                             try:
@@ -669,11 +803,22 @@ def register(app: Flask, ctx: AppContext) -> None:
                                 json_str, suffix = tail.split("]", 1)
                                 tmeta = json.loads(json_str)
                                 total_now = round((time.perf_counter() - t_req_start) * 1000, 1)
-                                tmeta["auth_ms"] = auth_ms
-                                tmeta["evidence_retrieval_ms"] = ev_ms
-                                tmeta["ttft_visible_ms"] = (
+                                visible_now = (
                                     ttft_visible_ms if ttft_visible_ms is not None else total_now
                                 )
+                                terminal_stream_status = str(
+                                    tmeta.get("stream_status") or "complete"
+                                )
+                                tmeta["request_id"] = request_id
+                                tmeta["cache_status"] = cache_status_label
+                                tmeta["completion_status"] = terminal_stream_status
+                                tmeta["auth_ms"] = auth_ms
+                                tmeta["query_resolution_ms"] = query_resolution_ms
+                                tmeta["retrieval_ms"] = ev_ms
+                                tmeta["evidence_retrieval_ms"] = ev_ms
+                                tmeta["reranking_ms"] = None
+                                tmeta["visible_ttft_ms"] = visible_now
+                                tmeta["ttft_visible_ms"] = visible_now
                                 tmeta["provider_ttft_ms"] = (
                                     tmeta.get("provider_ttft_ms")
                                     if (
@@ -699,7 +844,22 @@ def register(app: Flask, ctx: AppContext) -> None:
                             ttft_visible_ms = round((time.perf_counter() - t_req_start) * 1000, 1)
                         if "[" in chunk and active_citations is not None:
                             chunk, _removed = validate_response_citations(chunk, active_citations)
+                        captured_prose.append(chunk)
                         yield chunk
+                    if (
+                        cache_key
+                        and terminal_stream_status == "complete"
+                        and captured_meta is not None
+                        and captured_prose
+                        and not _withdrawn_notice(captured_meta.get("citations") or [])
+                        and callable(getattr(ctx.cache_service, "set_versioned_entry", None))
+                    ):
+                        full_text = "".join(captured_prose).strip()
+                        if full_text:
+                            ctx.cache_service.set_versioned_entry(
+                                cache_key,
+                                {"metadata": captured_meta, "text": full_text},
+                            )
                 yield "\n[STREAM_DONE]\n"
             except Exception as exc:
                 logger.error("Chat stream error: %s", exc)
@@ -711,12 +871,12 @@ def register(app: Flask, ctx: AppContext) -> None:
                     round((t_end - t_stream_start) * 1000, 1) if t_stream_start is not None else 0.0
                 )
                 logger.info(
-                    "[CHAT_TIMING] route=%s auth_ms=%.1f research_ms=%.1f engine_ms=%.1f enrich_ms=%.1f provider_ms=%.1f ttft_visible_ms=%.1f total_ms=%.1f",
+                    "[CHAT_TIMING] route=%s auth_ms=%s research_ms=%.1f engine_ms=%.1f enrich_ms=%s provider_ms=%.1f ttft_visible_ms=%.1f total_ms=%.1f",
                     prepared.get("route"),
-                    auth_ms,
+                    f"{auth_ms:.1f}" if auth_ms is not None else "null",
                     research_ms,
                     engine_ms,
-                    enrich_ms if enrich_ms is not None else 0.0,
+                    f"{enrich_ms:.1f}" if enrich_ms is not None else "null",
                     provider_stream_ms,
                     ttft_visible_ms if ttft_visible_ms is not None else (t_end - t_req_start) * 1000,
                     (t_end - t_req_start) * 1000,

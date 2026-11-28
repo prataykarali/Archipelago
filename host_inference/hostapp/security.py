@@ -45,9 +45,9 @@ from .config import (
 from .runtime_state import hosted_runtime, runtime_rpc
 from .session_store import session_action, verified_session_ids
 
-# Bounded (connect_sec, read_sec) HTTP timeouts so auth/profile calls never stall 95s.
-SUPABASE_USER_TIMEOUT_SEC: tuple[float, float] = (3.0, 5.0)
-SUPABASE_PROFILE_TIMEOUT_SEC: tuple[float, float] = (3.0, 5.0)
+# Bounded (connect_sec, read_sec) HTTP timeouts so auth/profile calls never stall.
+SUPABASE_USER_TIMEOUT_SEC: tuple[float, float] = (2.0, 4.0)
+SUPABASE_PROFILE_TIMEOUT_SEC: tuple[float, float] = (2.0, 4.0)
 # Client IP headers set by Vercel's trusted edge proxy, never client-spoofable headers.
 CLIENT_IP_HEADERS = ("X-Vercel-Forwarded-For", "X-Real-IP")
 # The burst min-gap guards state-changing calls.  Idempotent reads must never be

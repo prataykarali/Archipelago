@@ -234,6 +234,70 @@ class CacheService:
         raw = f"{norm_query}:{self.graph_version}:{self.library_version}:{self.model_version}:{self.prompt_version}"
         return self.hash_str(raw)
 
+    def build_versioned_key(
+        self,
+        query: str,
+        *,
+        tenant_scope: str = "public",
+        access_profile: str = "open_access",
+        graph_version: str = "",
+        corpus_version: str = "",
+        release_sha: str = "",
+        reply_detail: str = "standard",
+        template_id: str = "",
+    ) -> str:
+        """Build a strictly versioned, tenant-isolated cache key."""
+        norm_query = self.normalize_query(query)
+        if not norm_query:
+            return ""
+        raw = "|".join(
+            [
+                norm_query,
+                tenant_scope or "public",
+                access_profile or "open_access",
+                graph_version or self.graph_version,
+                corpus_version or self.library_version,
+                release_sha or "unknown",
+                self.model_version,
+                self.prompt_version,
+                reply_detail or "standard",
+                template_id or "",
+            ]
+        )
+        return self.hash_str(raw)
+
+    def get_versioned_entry(self, cache_key: str) -> dict[str, Any] | None:
+        """Read a versioned, tenant-isolated entry from the in-memory response cache."""
+        if not cache_key:
+            return None
+        now = time.time()
+        with self._lock:
+            entry = self._mem_response.get(cache_key)
+            if entry and entry.get("expires_at_epoch", 0) > now:
+                entry["hit_count"] = entry.get("hit_count", 0) + 1
+                entry["last_hit_at"] = datetime.now(UTC).isoformat()
+                return dict(entry)
+        return None
+
+    def set_versioned_entry(
+        self,
+        cache_key: str,
+        payload: dict[str, Any],
+        *,
+        ttl_seconds: int = RESPONSE_TTL_SEC,
+    ) -> None:
+        """Store a versioned, tenant-isolated entry in the in-memory response cache."""
+        if not cache_key or not isinstance(payload, dict):
+            return
+        now = time.time()
+        record = dict(payload)
+        record["cache_key"] = cache_key
+        record["expires_at_epoch"] = now + ttl_seconds
+        record.setdefault("hit_count", 0)
+        with self._lock:
+            self._evict_if_full(self._mem_response, now)
+            self._mem_response[cache_key] = record
+
     # ─── Supabase REST Helper ────────────────────────────────────────────
 
     def _headers(self) -> dict[str, str]:

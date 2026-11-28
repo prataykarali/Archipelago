@@ -26,34 +26,39 @@ import './21-generate-roadmap.js';
 import { loadWelcomeSuggestions } from './22-welcome-suggestions.js';
 import './23-followups-export.js';
 import './expose.js';
-loadWelcomeSuggestions();
-await window.archipelagoAuthReady;
-await window.archipelagoRequireSession();
+import { applyQuotaCooldown, formatQuotaResetTime } from './08-send-request.js';
+
 if (window.matchMedia('(max-width: 768px)').matches) {
   window.closeAllSidePanels?.();
 }
-if (window.archipelagoUserId) {
-  const { storageKey } = await import('./storage-key.js');
-  window.showGraphCards = localStorage.getItem(storageKey('showGraphCards')) !== 'false';
-  window.updateGraphToggleUI?.();
-}
-import { applyQuotaCooldown, formatQuotaResetTime } from './08-send-request.js';
+loadWelcomeSuggestions();
 
-try {
-  const response = await fetch('/api/chat/quota');
-  if (response.ok) {
-    const quota = await response.json();
-    const label = document.getElementById('query-limit-status');
-    if (label) {
-      if (quota.unrestricted) {
-        label.textContent = `${(quota.role || 'Staff').replace(/^./, letter => letter.toUpperCase())}: no app AI query quota · provider limits may apply`;
-      } else if (quota.limited || Number(quota.retry_after || 0) > 0) {
-        const resetText = formatQuotaResetTime(quota.reset_at, quota.retry_after);
-        label.textContent = `Hourly chat limit reached (${quota.used ?? 10}/10). You can ask another question after ${resetText}.`;
-        applyQuotaCooldown(quota.reset_at, quota.retry_after);
-      } else {
-        label.textContent = `Student chat queries: ${quota.used ?? 0} / 10 this hour`;
+// Run auth + quota hydration asynchronously so slow CDN/auth responses never
+// block module evaluation or freeze the /chat shell on mount.
+(async () => {
+  try {
+    await window.archipelagoAuthReady;
+    await window.archipelagoRequireSession();
+    if (window.archipelagoUserId) {
+      const { storageKey } = await import('./storage-key.js');
+      window.showGraphCards = localStorage.getItem(storageKey('showGraphCards')) !== 'false';
+      window.updateGraphToggleUI?.();
+    }
+    const response = await fetch('/api/chat/quota');
+    if (response.ok) {
+      const quota = await response.json();
+      const label = document.getElementById('query-limit-status');
+      if (label) {
+        if (quota.unrestricted) {
+          label.textContent = `${(quota.role || 'Staff').replace(/^./, letter => letter.toUpperCase())}: no app AI query quota · provider limits may apply`;
+        } else if (quota.limited || Number(quota.retry_after || 0) > 0) {
+          const resetText = formatQuotaResetTime(quota.reset_at, quota.retry_after);
+          label.textContent = `Hourly chat limit reached (${quota.used ?? 10}/10). You can ask another question after ${resetText}.`;
+          applyQuotaCooldown(quota.reset_at, quota.retry_after);
+        } else {
+          label.textContent = `Student chat queries: ${quota.used ?? 0} / 10 this hour`;
+        }
       }
     }
-  }
-} catch (_) {}
+  } catch (_) {}
+})();

@@ -139,8 +139,9 @@ def _load_hf_repo_map() -> tuple[list[str], dict[str, str]]:
             except (OSError, json.JSONDecodeError):
                 pass
 
-    # Live HF Hub tree refresh for both Library_books and graphier when HF_TOKEN is set.
-    if token:
+    # Only perform live HF Hub tree fetches when local/manifest paths are absent,
+    # avoiding up to 16s of synchronous cold-start blocking on Vercel.
+    if token and not path_to_repo:
         for repo in (lib_repo, graph_repo):
             for sp in _fetch_hf_repo_pdfs(repo, token):
                 clean = sp.strip().lstrip("/")
@@ -300,7 +301,7 @@ class Catalog:
                 resp = requests.get(
                     f"{url}/storage/v1/object/{storage_object.lstrip('/')}",
                     headers={"apikey": key, "Authorization": f"Bearer {key}"},
-                    timeout=15,
+                    timeout=(3.0, 8.0),
                 )
                 if resp.status_code != 200 or not resp.content:
                     self.candidate_passages_info["error"] = f"remote_http_{resp.status_code}"

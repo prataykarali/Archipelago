@@ -1,5 +1,5 @@
 // Incremental stream control-marker parser safe across arbitrary network chunk boundaries.
-const MARKER_TAIL_GUARD = 48;
+const MARKER_TAIL_GUARD = 512;
 const STREAM_STATUS_RE = /\[(STREAM_TRUNCATED|STREAM_INCOMPLETE):([a-zA-Z0-9_-]+)\]/g;
 const STREAM_META_RE = /\[STREAM_META:(\{[^\n]*\})\]/g;
 
@@ -43,6 +43,38 @@ export function extractStreamStatusMarkers(text) {
             terminalMeta = JSON.parse(jsonStr);
             if (window && window._lastChatMetadata && terminalMeta) {
                 Object.assign(window._lastChatMetadata, terminalMeta);
+                const trace = (window._lastChatMetadata.trace && typeof window._lastChatMetadata.trace === 'object')
+                    ? window._lastChatMetadata.trace
+                    : (window._lastChatMetadata.trace = {});
+                const timings = (trace.stage_timings_ms && typeof trace.stage_timings_ms === 'object')
+                    ? trace.stage_timings_ms
+                    : (trace.stage_timings_ms = {});
+                const rootTimings = (window._lastChatMetadata.stage_timings_ms && typeof window._lastChatMetadata.stage_timings_ms === 'object')
+                    ? window._lastChatMetadata.stage_timings_ms
+                    : (window._lastChatMetadata.stage_timings_ms = {});
+                const timingFields = [
+                    'auth_ms',
+                    'query_resolution_ms',
+                    'retrieval_ms',
+                    'evidence_retrieval_ms',
+                    'reranking_ms',
+                    'provider_ttft_ms',
+                    'visible_ttft_ms',
+                    'ttft_visible_ms',
+                    'provider_stream_ms',
+                    'total_ms',
+                ];
+                for (const key of timingFields) {
+                    if (Object.prototype.hasOwnProperty.call(terminalMeta, key) && terminalMeta[key] !== undefined) {
+                        timings[key] = terminalMeta[key];
+                        rootTimings[key] = terminalMeta[key];
+                    }
+                }
+                for (const key of ['request_id', 'provider_status', 'fallback_reason', 'cache_status', 'stream_status', 'completion_status', 'finish_reason']) {
+                    if (Object.prototype.hasOwnProperty.call(terminalMeta, key) && terminalMeta[key] !== undefined) {
+                        trace[key] = terminalMeta[key];
+                    }
+                }
                 if (typeof window.populateInspector === 'function') {
                     window.populateInspector(window._lastChatMetadata);
                 }
