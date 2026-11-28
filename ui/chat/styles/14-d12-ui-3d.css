@@ -65,42 +65,46 @@
   -webkit-backdrop-filter: blur(14px);
 }
 
-/* ── 3. Centered, Moderately Enlarged Animated Librarian Avatar + Clean Label Above ── */
+/* ── 3. Centered BIG Circle Librarian Avatar + Clean Label Above (NO Rectangle) ── */
+#chat-stage {
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+
 .welcome-avatar-stack {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .welcome-avatar-label,
 #sticky-avatar-dock .avatar-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.7rem;
-  border-radius: 9999px;
-  font-size: 0.6875rem !important;
+  display: inline-block;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: 0.78rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.14em !important;
   text-transform: uppercase;
-  color: #e9d5ff !important;
-  background: rgba(88, 28, 135, 0.36);
-  border: 1px solid rgba(196, 160, 255, 0.38);
-  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.22);
+  color: #f3e8ff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: 0 0 14px rgba(192, 132, 252, 0.75);
   margin: 0 !important;
 }
 
 #welcome-avatar.welcome-avatar {
-  --avatar-size: 6.25rem !important;
-  width: 6.25rem !important;
-  height: 6.25rem !important;
-  border: 2.5px solid rgba(196, 160, 255, 0.92) !important;
+  --avatar-size: 7.25rem !important;
+  width: 7.25rem !important;
+  height: 7.25rem !important;
+  border: 2.5px solid rgba(216, 180, 254, 0.95) !important;
   box-shadow:
     0 0 0 2px rgba(139, 92, 246, 0.35),
-    0 0 22px rgba(168, 85, 247, 0.52),
-    0 0 44px rgba(139, 92, 246, 0.28),
+    0 0 26px rgba(168, 85, 247, 0.56),
+    0 0 52px rgba(139, 92, 246, 0.3),
     inset 0 0 12px rgba(0, 0, 0, 0.35) !important;
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
   transform: translateZ(0);
@@ -110,35 +114,35 @@
   transform: translateY(-2px) scale(1.03) translateZ(0);
 }
 
-/* Sticky dock during active chat: label cleanly above moderately sized glowing ring */
+/* Sticky dock during active chat: centered BIG glowing circle, label above, ZERO rectangle */
 #sticky-avatar-dock {
   flex-direction: column !important;
   align-items: center !important;
-  justify-content: flex-start !important;
-  align-self: flex-start !important;
-  margin: 0.65rem 0 0 0.85rem !important;
-  padding: 0.55rem 0.65rem !important;
+  justify-content: center !important;
+  align-self: center !important;
+  margin: 0.75rem auto 0.25rem !important;
+  padding: 0 !important;
   gap: 0.45rem !important;
-  width: auto !important;
-  max-width: 7.25rem !important;
+  width: 100% !important;
+  max-width: none !important;
   flex: 0 0 auto !important;
-  border-radius: 1.125rem !important;
-  background: linear-gradient(160deg, rgba(28, 19, 54, 0.82), rgba(15, 23, 42, 0.86)) !important;
-  border: 1px solid rgba(167, 139, 250, 0.34) !important;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 10px 28px rgba(7, 4, 18, 0.42), 0 0 20px rgba(139, 92, 246, 0.16) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
 }
 
 #sticky-avatar-dock .avatar-shell {
-  --avatar-size: 4rem !important;
-  width: 4rem !important;
-  height: 4rem !important;
-  border: 2px solid rgba(196, 160, 255, 0.9) !important;
+  --avatar-size: 6.25rem !important;
+  width: 6.25rem !important;
+  height: 6.25rem !important;
+  border: 2.5px solid rgba(216, 180, 254, 0.95) !important;
   box-shadow:
-    0 0 0 1.5px rgba(139, 92, 246, 0.35),
-    0 0 16px rgba(168, 85, 247, 0.48),
-    0 0 30px rgba(139, 92, 246, 0.22) !important;
+    0 0 0 2px rgba(139, 92, 246, 0.35),
+    0 0 24px rgba(168, 85, 247, 0.54),
+    0 0 46px rgba(139, 92, 246, 0.28) !important;
 }
 
 #sticky-avatar-dock .avatar-shell.is-thinking,

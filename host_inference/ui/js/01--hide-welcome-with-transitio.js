@@ -38,9 +38,46 @@ import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-h
         window.WELCOME_SUBTITLE_TEXT = 'A high-fidelity local RAG research tool. Ask questions to query the concept database, traverse topology, and receive streamed synthesis answers.';
 
         window._welcomeTypewriterTimer = null;
+        window._welcomeTitleTimer = null;
+
+        function startTitleTypewriter(titleEl) {
+            if (!titleEl) return;
+            const fullTitle = titleEl.dataset.fullTitle || titleEl.textContent.trim() || 'Welcome to Archipelago';
+            titleEl.dataset.fullTitle = fullTitle;
+            if (window._welcomeTitleTimer) {
+                clearTimeout(window._welcomeTitleTimer);
+                window._welcomeTitleTimer = null;
+            }
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduced) {
+                titleEl.textContent = fullTitle;
+                titleEl.classList.remove('typewriter-cursor');
+                return;
+            }
+            titleEl.classList.add('typewriter-cursor');
+            titleEl.textContent = '';
+            let i = 0;
+            function stepTitle() {
+                if (!titleEl.isConnected) {
+                    window._welcomeTitleTimer = null;
+                    return;
+                }
+                i += 1;
+                titleEl.textContent = fullTitle.slice(0, i);
+                if (i < fullTitle.length) {
+                    window._welcomeTitleTimer = setTimeout(stepTitle, 42);
+                } else {
+                    titleEl.classList.remove('typewriter-cursor');
+                    window._welcomeTitleTimer = null;
+                }
+            }
+            stepTitle();
+        }
 
         window.startWelcomeTypewriter = function startWelcomeTypewriter(el) {
             if (!el) return;
+            const titleEl = document.querySelector('#welcome-container .welcome-title');
+            startTitleTypewriter(titleEl);
             const text = window.WELCOME_SUBTITLE_TEXT;
             if (window._welcomeTypewriterTimer) {
                 clearTimeout(window._welcomeTypewriterTimer);

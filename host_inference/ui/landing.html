@@ -103,19 +103,52 @@
       >
         KNOWLEDGE
       </h1>
-      <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/75 md:text-base" style="text-shadow: 0 2px 10px rgba(0,0,0,0.95);">
+      <p id="landing-hero-tagline" class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/75 md:text-base" style="text-shadow: 0 2px 10px rgba(0,0,0,0.95); min-height: 2.5rem;">
         Islands of insight, connected — ask the corpus, follow citations, explore the graph.
       </p>
     </section>
 
     <!-- Serif promise + direct CTAs -->
     <section class="relative mt-8 flex w-full max-w-3xl flex-col items-center md:mt-12" aria-label="Archipelago introduction">
-      <h2 class="font-serif-title text-center text-4xl sm:text-5xl md:text-6xl text-white font-normal" style="text-shadow: 0 4px 24px rgba(0,0,0,0.9);">
+      <h2 id="landing-promise-title" class="font-serif-title text-center text-4xl sm:text-5xl md:text-6xl text-white font-normal" style="text-shadow: 0 4px 24px rgba(0,0,0,0.9); min-height: 1.2em;">
         Built for the curious
       </h2>
-      <p class="mx-auto mt-3 max-w-md text-center text-xs leading-relaxed text-white/85 sm:text-sm" style="text-shadow: 0 2px 8px rgba(0,0,0,0.95);">
+      <p id="landing-promise-sub" class="mx-auto mt-3 max-w-md text-center text-xs leading-relaxed text-white/85 sm:text-sm" style="text-shadow: 0 2px 8px rgba(0,0,0,0.95); min-height: 2.2rem;">
         Your campus AI/ML co-pilot for deep questions, sharp sources, and quiet focus.
       </p>
+      <script>
+        (function () {
+          if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          function typeLoop(el, speed, loop) {
+            if (!el) return;
+            var full = (el.textContent || '').trim();
+            if (!full) return;
+            el.textContent = '';
+            var i = 0, erasing = false;
+            function tick() {
+              if (!erasing) {
+                i += 1;
+                el.textContent = full.slice(0, i);
+                if (i < full.length) setTimeout(tick, speed);
+                else if (loop) setTimeout(function () { erasing = true; tick(); }, 2800);
+              } else {
+                i -= 1;
+                el.textContent = full.slice(0, Math.max(0, i));
+                if (i > 0) setTimeout(tick, Math.max(10, Math.floor(speed / 2)));
+                else { erasing = false; setTimeout(tick, 450); }
+              }
+            }
+            tick();
+          }
+          window.addEventListener('DOMContentLoaded', function () {
+            typeLoop(document.getElementById('landing-promise-title'), 48, false);
+            setTimeout(function () {
+              typeLoop(document.getElementById('landing-hero-tagline'), 24, true);
+              typeLoop(document.getElementById('landing-promise-sub'), 26, true);
+            }, 350);
+          });
+        })();
+      </script>
       <div class="mt-7 flex flex-wrap items-center justify-center gap-4">
         <a
           id="enter-chat-link"
