@@ -40,8 +40,17 @@ _RESTRICTED_ARTIFACT_MARKERS = (
 )
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_D14_INVENTORY_PATH = _REPO_ROOT / "docs" / "reports" / "d14" / "D14_SOURCE_INVENTORY.csv"
-_D14_LICENSE_PATH = _REPO_ROOT / "docs" / "reports" / "d14" / "D14_SOURCE_LICENSE_REGISTER.csv"
+_FIXTURES_D14 = Path(__file__).resolve().parents[1] / "fixtures" / "d14"
+_D14_INVENTORY_PATH = (
+    _REPO_ROOT / "docs" / "reports" / "d14" / "D14_SOURCE_INVENTORY.csv"
+    if (_REPO_ROOT / "docs" / "reports" / "d14" / "D14_SOURCE_INVENTORY.csv").is_file()
+    else _FIXTURES_D14 / "D14_SOURCE_INVENTORY.csv"
+)
+_D14_LICENSE_PATH = (
+    _REPO_ROOT / "docs" / "reports" / "d14" / "D14_SOURCE_LICENSE_REGISTER.csv"
+    if (_REPO_ROOT / "docs" / "reports" / "d14" / "D14_SOURCE_LICENSE_REGISTER.csv").is_file()
+    else _FIXTURES_D14 / "D14_SOURCE_LICENSE_REGISTER.csv"
+)
 
 
 def _parse_int(value: object) -> int | None:

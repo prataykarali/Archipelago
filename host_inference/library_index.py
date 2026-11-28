@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import os
@@ -9,7 +10,7 @@ from pathlib import Path
 import re
 import threading
 import time
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import requests
 
@@ -62,11 +63,17 @@ CORPUS_V3_ID = "corpus_v3_d14"
 CORPUS_V2_ID = "corpus_v2_d10_3025"
 ENV_CORPUS_VERSION = "ARCHIPELAGO_CORPUS_VERSION"
 V3_PASSAGES_FILENAME = "d14_candidate_passages_v3.jsonl"
+V3_PASSAGES_GZ_FILENAME = "d14_candidate_passages_v3.jsonl.gz"
 V2_PASSAGES_FILENAME = "d10_candidate_passages.jsonl"
 V3_MANIFEST_REL = Path("docs") / "reports" / "d14" / "D14_CORPUS_V3_MANIFEST.json"
 V2_MANIFEST_REL = Path("docs") / "reports" / "D10_S4_CANDIDATE_PASSAGE_MANIFEST.json"
 V3_ARTIFACTS_REL = Path("data") / "artifacts" / "corpus_v3_d14" / V3_PASSAGES_FILENAME
+V3_ARTIFACTS_GZ_REL = Path("data") / "artifacts" / "corpus_v3_d14" / V3_PASSAGES_GZ_FILENAME
 _V2_ALIASES = frozenset({CORPUS_V2_ID, "v2", "v2_d10", "d10", "d5-775"})
+_V2_LEGACY_SHA256 = "93f6db39cb10d03beeb41c48469d138be27b62ed90aa59d20dd4c5107fbb2e52"
+_V3_BUNDLED_MANIFEST = HERE / "fixtures" / "d14" / "D14_CORPUS_V3_MANIFEST.json"
+_GZIP_MAGIC = b"\x1f\x8b"
+_REMOTE_FETCH_TIMEOUT_SEC = (3.0, 20.0)
 
 
 def resolve_candidate_passages_path(here: Path = HERE) -> tuple[Path | None, str, str]:
@@ -90,11 +97,18 @@ def resolve_candidate_passages_path(here: Path = HERE) -> tuple[Path | None, str
 
     v3_candidates = (
         (here.parent / V3_ARTIFACTS_REL, "local_v3_artifacts"),
+        (here.parent / V3_ARTIFACTS_GZ_REL, "local_v3_artifacts_gz"),
         (here / "cache" / V3_PASSAGES_FILENAME, "local_cache_v3"),
+        (here / "cache" / V3_PASSAGES_GZ_FILENAME, "local_cache_v3_gz"),
+        (here / "fixtures" / V3_PASSAGES_FILENAME, "local_fixtures_v3"),
+        (here / "fixtures" / V3_PASSAGES_GZ_FILENAME, "local_fixtures_v3_gz"),
     )
     for candidate, src_label in v3_candidates:
         if candidate.is_file():
             return candidate, src_label, CORPUS_V3_ID
+
+    if os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_URL", "").strip():
+        return None, "remote", CORPUS_V3_ID
 
     if v2_cache.is_file():
         return v2_cache, "local_cache_v2", CORPUS_V2_ID
@@ -317,7 +331,8 @@ class Catalog:
         }
         self._retriever_cache: tuple[int, object] | None = None
         candidate_index = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES", "").strip()
-        if candidate_index or not os.environ.get("PYTEST_CURRENT_TEST"):
+        candidate_url = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_URL", "").strip()
+        if candidate_index or candidate_url or not os.environ.get("PYTEST_CURRENT_TEST"):
             resolved_path, resolved_src, resolved_ver = resolve_candidate_passages_path(HERE)
             if resolved_path is not None:
                 self._load_candidate_passages(
@@ -343,7 +358,42 @@ class Catalog:
         return retriever
 
     def _load_remote_candidate_passages(self) -> None:
-        """Fetch the checksum-verified passage index from private staging Supabase Storage."""
+        """Fetch the checksum-verified passage index from HTTPS URL or Supabase Storage."""
+        remote_url = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_URL", "").strip()
+        if remote_url:
+            parsed = urlparse(remote_url)
+            if parsed.scheme.lower() != "https" or not parsed.netloc:
+                self.candidate_passages_info["error"] = "invalid_candidate_passages_url"
+                return
+            cache_key = hashlib.sha256(remote_url.encode("utf-8")).hexdigest()[:12]
+            suffix = ".jsonl.gz" if parsed.path.lower().endswith(".gz") else ".jsonl"
+            cache_path = Path(f"/tmp/archipelago_candidate_passages_url_{cache_key}{suffix}")
+            if not cache_path.is_file():
+                headers: dict[str, str] = {}
+                hf_token = os.environ.get("HF_TOKEN", "").strip()
+                if hf_token and parsed.netloc.lower().endswith("huggingface.co"):
+                    headers["Authorization"] = f"Bearer {hf_token}"
+                try:
+                    resp = requests.get(
+                        remote_url,
+                        headers=headers,
+                        timeout=_REMOTE_FETCH_TIMEOUT_SEC,
+                    )
+                    if resp.status_code != 200 or not resp.content:
+                        self.candidate_passages_info["error"] = f"remote_http_{resp.status_code}"
+                        return
+                    cache_path.write_bytes(resp.content)
+                except (requests.RequestException, OSError):
+                    self.candidate_passages_info["error"] = "remote_fetch_failed"
+                    return
+            ver = (
+                CORPUS_V3_ID
+                if "v3" in remote_url.lower() or "d14" in remote_url.lower()
+                else CORPUS_V2_ID
+            )
+            self._load_candidate_passages(cache_path, source="https_url", corpus_version=ver)
+            return
+
         storage_object = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_STORAGE", "").strip()
         if not storage_object:
             return
@@ -355,13 +405,14 @@ class Catalog:
         if not url or not key:
             return
         cache_key = hashlib.sha256(storage_object.encode("utf-8")).hexdigest()[:12]
-        cache_path = Path(f"/tmp/archipelago_candidate_passages_{cache_key}.jsonl")
+        suffix = ".jsonl.gz" if storage_object.lower().endswith(".gz") else ".jsonl"
+        cache_path = Path(f"/tmp/archipelago_candidate_passages_{cache_key}{suffix}")
         if not cache_path.is_file():
             try:
                 resp = requests.get(
                     f"{url}/storage/v1/object/{storage_object.lstrip('/')}",
                     headers={"apikey": key, "Authorization": f"Bearer {key}"},
-                    timeout=(3.0, 20.0),
+                    timeout=_REMOTE_FETCH_TIMEOUT_SEC,
                 )
                 if resp.status_code != 200 or not resp.content:
                     self.candidate_passages_info["error"] = f"remote_http_{resp.status_code}"
@@ -380,15 +431,23 @@ class Catalog:
         if not index_path.is_file():
             return
         raw_bytes = index_path.read_bytes()
+        if index_path.suffix.lower() == ".gz" or raw_bytes[:2] == _GZIP_MAGIC:
+            try:
+                raw_bytes = gzip.decompress(raw_bytes)
+            except OSError:
+                self.candidate_passages_info["error"] = "gzip_decompress_failed"
+                return
         actual_sha = hashlib.sha256(raw_bytes).hexdigest()
         expected_sha = os.environ.get("ARCHIPELAGO_CANDIDATE_PASSAGES_SHA256", "").strip().lower()
         detected_version = corpus_version
+        if detected_version == CORPUS_V3_ID and expected_sha == _V2_LEGACY_SHA256:
+            expected_sha = ""
         if not expected_sha:
-            for manifest_rel, ver_id in (
-                (V3_MANIFEST_REL, CORPUS_V3_ID),
-                (V2_MANIFEST_REL, CORPUS_V2_ID),
+            for manifest_path, ver_id in (
+                (HERE.parent / V3_MANIFEST_REL, CORPUS_V3_ID),
+                (_V3_BUNDLED_MANIFEST, CORPUS_V3_ID),
+                (HERE.parent / V2_MANIFEST_REL, CORPUS_V2_ID),
             ):
-                manifest_path = HERE.parent / manifest_rel
                 if not manifest_path.is_file():
                     continue
                 try:

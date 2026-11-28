@@ -47,15 +47,96 @@ METHOD_BM25_LEXICAL = "bm25_lexical"
 _TOKEN_RE = re.compile(r"b\+|[a-z0-9][a-z0-9_+#-]*")
 _STOPWORDS: frozenset[str] = frozenset(
     {
-        "a", "an", "and", "are", "as", "at", "be", "been", "being", "by", "can",
-        "could", "did", "do", "does", "done", "for", "from", "had", "has", "have",
-        "he", "her", "here", "him", "his", "how", "if", "in", "into", "is", "it",
-        "its", "may", "me", "might", "more", "most", "my", "no", "not", "of", "on",
-        "one", "only", "or", "other", "our", "out", "over", "should", "so", "some",
-        "such", "than", "that", "the", "their", "them", "then", "there", "these",
-        "they", "this", "those", "through", "to", "too", "under", "up", "us", "use",
-        "used", "using", "very", "was", "we", "were", "what", "when", "where",
-        "which", "while", "who", "why", "will", "with", "would", "you", "your",
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "been",
+        "being",
+        "by",
+        "can",
+        "could",
+        "did",
+        "do",
+        "does",
+        "done",
+        "for",
+        "from",
+        "had",
+        "has",
+        "have",
+        "he",
+        "her",
+        "here",
+        "him",
+        "his",
+        "how",
+        "if",
+        "in",
+        "into",
+        "is",
+        "it",
+        "its",
+        "may",
+        "me",
+        "might",
+        "more",
+        "most",
+        "my",
+        "no",
+        "not",
+        "of",
+        "on",
+        "one",
+        "only",
+        "or",
+        "other",
+        "our",
+        "out",
+        "over",
+        "should",
+        "so",
+        "some",
+        "such",
+        "than",
+        "that",
+        "the",
+        "their",
+        "them",
+        "then",
+        "there",
+        "these",
+        "they",
+        "this",
+        "those",
+        "through",
+        "to",
+        "too",
+        "under",
+        "up",
+        "us",
+        "use",
+        "used",
+        "using",
+        "very",
+        "was",
+        "we",
+        "were",
+        "what",
+        "when",
+        "where",
+        "which",
+        "while",
+        "who",
+        "why",
+        "will",
+        "with",
+        "would",
+        "you",
+        "your",
     }
 )
 _INTRO_SECTION_RE = re.compile(
@@ -189,8 +270,8 @@ class DensePassageEncoder:
         cache_path: Path | None = None,
     ) -> None:
         self.model_name = (
-            (model_name or os.environ.get(ENV_DENSE_MODEL, "")).strip() or DEFAULT_DENSE_MODEL
-        )
+            model_name or os.environ.get(ENV_DENSE_MODEL, "")
+        ).strip() or DEFAULT_DENSE_MODEL
         self._encode_fn = encode_fn
         self._local_files_only = local_files_only
         self._cache_path = cache_path
@@ -222,7 +303,9 @@ class DensePassageEncoder:
             )
             self._available = True
         except Exception as exc:
-            LOGGER.info("Dense neural encoder %s unavailable (%s); lexical-only mode.", self.model_name, exc)
+            LOGGER.info(
+                "Dense neural encoder %s unavailable (%s); lexical-only mode.", self.model_name, exc
+            )
             self._available = False
 
     def encode(self, texts: Sequence[str]) -> np.ndarray | None:
@@ -346,7 +429,9 @@ class HybridPassageRetriever:
                 hits=[],
                 method=METHOD_BM25_LEXICAL,
                 dense_available=self.dense_available,
-                dense_model=self.dense_encoder.model_name if self.dense_available and self.dense_encoder else None,
+                dense_model=self.dense_encoder.model_name
+                if self.dense_available and self.dense_encoder
+                else None,
                 corpus_version=self.corpus_version,
             )
 
@@ -389,7 +474,9 @@ class HybridPassageRetriever:
                 hits=[],
                 method=METHOD_DENSE_NEURAL if use_dense else METHOD_BM25_LEXICAL,
                 dense_available=use_dense,
-                dense_model=self.dense_encoder.model_name if use_dense and self.dense_encoder else None,
+                dense_model=self.dense_encoder.model_name
+                if use_dense and self.dense_encoder
+                else None,
                 corpus_version=self.corpus_version,
             )
 
@@ -432,6 +519,8 @@ class HybridPassageRetriever:
             hits=hits,
             method=method,
             dense_available=bool(dense_ranked),
-            dense_model=self.dense_encoder.model_name if dense_ranked and self.dense_encoder else None,
+            dense_model=self.dense_encoder.model_name
+            if dense_ranked and self.dense_encoder
+            else None,
             corpus_version=self.corpus_version,
         )

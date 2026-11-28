@@ -267,6 +267,11 @@ def _retrieve_graph_independent_passages(
         anchor_cid="",
         chunk_index=getattr(graph, "_chunk_provenance_index", None),
     )
+    cites = [
+        c
+        for c in cites
+        if str(c.get("source_category") or "") != "pearson_catalogue_only"
+    ]
     if not cites:
         return [], ""
     method = str(cites[0].get("retrieval_method") or "bm25_lexical")

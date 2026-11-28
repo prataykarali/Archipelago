@@ -124,6 +124,8 @@ def load_d14_alias_register() -> dict[str, str]:
         return dict(_D14_ALIAS_CACHE)
     repo_root = Path(__file__).resolve().parents[2]
     csv_path = repo_root / _ALIAS_REGISTER_REL
+    if not csv_path.is_file():
+        csv_path = Path(__file__).resolve().parents[1] / "fixtures" / "d14" / "D14_CONCEPT_ALIAS_REGISTER.csv"
     mapping: dict[str, str] = {}
     if csv_path.is_file():
         try:

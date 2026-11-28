@@ -196,16 +196,16 @@ class Engine:
     def __init__(self, graph_path: Path | None = None):
         self.cache_info = hydrate()
         if graph_path:
-            path = graph_path
-        elif (CACHE / "okf_graph.json").is_file():
-            path = CACHE / "okf_graph.json"
-        elif (HERE / "fixtures" / "okf_graph.json").is_file():
-            path = HERE / "fixtures" / "okf_graph.json"
-        elif (HERE / "okf_graph.json").is_file():
-            path = HERE / "okf_graph.json"
+            self.graph = LibraryGraph(graph_path)
         else:
-            path = HERE / "fixtures" / "okf_graph.json"
-        self.graph = LibraryGraph(path)
+            fallback: Path | None = None
+            if (HERE / "fixtures" / "okf_graph.json").is_file():
+                fallback = HERE / "fixtures" / "okf_graph.json"
+            elif (CACHE / "okf_graph.json").is_file():
+                fallback = CACHE / "okf_graph.json"
+            elif (HERE / "okf_graph.json").is_file():
+                fallback = HERE / "okf_graph.json"
+            self.graph = LibraryGraph.load_default(fallback)
         self.books = load_books()
         self.catalog = Catalog(self.graph.nodes, self.books)
 
@@ -459,7 +459,10 @@ class Engine:
                 payload["prerequisites"] = []
                 payload["unlocks"] = []
                 payload["related_concepts"] = []
-                payload["citations"] = []
+                if not extra.get("graph_independent_retrieval"):
+                    payload["citations"] = []
+                elif extra.get("citations"):
+                    payload["citations"] = list(extra["citations"])
             elif not payload.get("citations") or not any(
                 c.get("label") or c.get("doc_id") or c.get("url")
                 for c in (payload.get("citations") or [])

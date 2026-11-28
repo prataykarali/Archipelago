@@ -134,7 +134,10 @@ def _is_explicitly_invalid_edge(src: str, dst: str, rel: str) -> tuple[str, str]
         and rel in PREREQUISITE_RELATIONS
         and (src, dst, rel) not in _SUPPORTED_RAG_PREREQS
     ):
-        return ("D10-S4-RAG", "Unverified RAG prerequisite/unlock edge quarantined per D10_S4.")
+        return (
+            "D14-DEF-GRAPH",
+            "Unverified RAG prerequisite/unlock edge quarantined during graph_v2_d14 reconstruction.",
+        )
     return None
 
 
