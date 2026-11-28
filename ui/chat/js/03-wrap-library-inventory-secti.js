@@ -1,7 +1,7 @@
 // Auto-split from ui/chat/index.html — 03-wrap-library-inventory-secti.js
 // Feature module 4 of 22.
 import { state } from './00-state.js';
-import { citationPageUrl, citationTitle, getResponseCitations } from './02--kw-highlights.js';
+import { citationPageUrl, citationTitle, getResponseCitations, isNonReadableSourceKind, normalizeSourceKind } from './02--kw-highlights.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
 import { API_CONTRACT } from './00-current-origin.js';
 import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
@@ -146,9 +146,14 @@ import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
                                     <tbody>
                                         ${verifiedHoldings.map((c, i) => {
                                             const title = citationTitle(c, 'Resource');
-                                            const pageNum = c.page_number || c.page;
+                                            const rawPage = Number(c.page_number || c.page);
+                                            const pageNum = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                                             const badgeStr = c.evidence_id || `S${i+1}`;
-                                            const pageUrl = citationPageUrl(c);
+                                            const sourceKind = normalizeSourceKind(c);
+                                            const pageUrl = isNonReadableSourceKind(c) ? '' : citationPageUrl(c);
+                                            const holdingAction = pageUrl
+                                                ? `<a class="view-page-link inline-block whitespace-nowrap text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>`
+                                                : `<span class="${sourceKind === 'unavailable_document' ? 'evidence-pill-unavailable' : 'evidence-pill-metadata-only'} shrink-0 whitespace-nowrap" data-source-kind="${escapeHTML(sourceKind || 'metadata_only_record')}">${sourceKind === 'unavailable_document' ? 'Unavailable Document' : (sourceKind === 'institutional_licensed' ? 'Institutional Licensed' : 'Metadata-Only Record')}</span>`;
                                             return `
                                                 <tr class="border-b border-white/10 hover:bg-white/5 transition-colors">
                                                     <td class="py-2.5 px-3 font-semibold text-gray-200">
@@ -159,7 +164,7 @@ import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
                                                     <td class="py-2.5 px-3 text-right text-gray-400 whitespace-nowrap">${c.total_copies ?? '—'}</td>
                                                     <td class="py-2.5 px-3 text-right font-bold text-emerald-400 whitespace-nowrap">${c.available_copies ?? '—'}</td>
                                                     <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                                        <a class="view-page-link inline-block whitespace-nowrap text-indigo-200 text-xs font-bold underline" href="${escapeHTML(pageUrl)}" target="_blank" rel="noopener noreferrer">${pageNum ? `Open page ${pageNum}` : 'Open source'}</a>
+                                                        ${holdingAction}
                                                     </td>
                                                 </tr>
                                             `;
@@ -189,8 +194,8 @@ import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
                                         const rawPage = Number(c.page_number || c.page);
                                         const pageNum = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                                         const badgeStr = c.evidence_id || `S${i+1}`;
-                                        const sourceKind = String(c.source_kind || '').toLowerCase().trim();
-                                        const pageUrl = citationPageUrl(c);
+                                        const sourceKind = normalizeSourceKind(c);
+                                        const pageUrl = isNonReadableSourceKind(c) ? '' : citationPageUrl(c);
                                         const isPearsonUrl = typeof pageUrl === 'string' && (pageUrl.startsWith('/open/') || pageUrl.includes('pearson.com'));
                                         let actionHtml;
                                         if (pageUrl) {
@@ -204,7 +209,7 @@ import { applyCorpusProfileUi } from './22-welcome-suggestions.js';
                                                 : 'evidence-pill-metadata-only';
                                             const tagText = sourceKind === 'unavailable_document'
                                                 ? 'Unavailable Document'
-                                                : (sourceKind === 'institutional_licensed' ? 'Institutional License' : 'Metadata-Only Record');
+                                                : (sourceKind === 'institutional_licensed' ? 'Institutional Licensed' : 'Metadata-Only Record');
                                             actionHtml = `<span class="${tagClass} shrink-0 whitespace-nowrap" data-source-kind="${escapeHTML(sourceKind || 'metadata_only_record')}">${tagText}</span>`;
                                         }
                                         return `

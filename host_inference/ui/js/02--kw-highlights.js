@@ -236,10 +236,40 @@ import { state } from './00-state.js';
             return trimmed === '/chat' || trimmed.startsWith('/chat?') || trimmed.startsWith('/chat#') || /^https?:\/\/[^/]+\/chat(?:[?#]|$)/.test(trimmed);
         }
 
+        function normalizeSourceKind(citation) {
+            if (!citation || typeof citation !== 'object') return '';
+            const raw = String(citation.source_kind || '').toLowerCase().trim();
+            if (
+                raw === 'unavailable_document' ||
+                citation.withdrawn === true ||
+                citation.pdf_available === false
+            ) {
+                return 'unavailable_document';
+            }
+            if (raw === 'metadata_only_record' || citation.metadata_only === true) {
+                return 'metadata_only_record';
+            }
+            if (
+                raw === 'institutional_licensed' ||
+                citation.is_pearson === true ||
+                Boolean(citation.subscription_id)
+            ) {
+                return 'institutional_licensed';
+            }
+            if (raw === 'verified_full_text_passage') {
+                return 'verified_full_text_passage';
+            }
+            return raw;
+        }
+
+        function isNonReadableSourceKind(citation) {
+            const kind = normalizeSourceKind(citation);
+            return kind === 'metadata_only_record' || kind === 'unavailable_document';
+        }
+
         function citationPageUrl(citation) {
             if (!citation || typeof citation !== 'object') return '';
-            const sourceKind = String(citation.source_kind || '').toLowerCase().trim();
-            if (sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document') return '';
+            if (isNonReadableSourceKind(citation)) return '';
             if (citation.reader_resolvable === false || citation.withdrawn) return '';
             const rawPage = Number(citation.page_number ?? citation.page);
             const verifiedPage = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
@@ -330,10 +360,11 @@ import { state } from './00-state.js';
             const deduped = [];
             const seenDocs = new Set();
             for (const citation of rawCitations) {
-                const sourceKind = String(citation.source_kind || '').toLowerCase().trim();
-                const isNonClickableTag = sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document';
+                const sourceKind = normalizeSourceKind(citation);
+                const isNonClickableTag = isNonReadableSourceKind(citation);
                 const href = isNonClickableTag ? '' : citationPageUrl(citation);
-                if (!href && !isNonClickableTag) continue;
+                const showInstitutionalBadge = !href && sourceKind === 'institutional_licensed';
+                if (!href && !isNonClickableTag && !showInstitutionalBadge) continue;
                 const docKey = String(
                     citation.doc_id || citation.document_id || citation.book_id || citation.title || citation.url || (href ? href.split('#')[0].split('&page=')[0] : '')
                 ).toLowerCase().split('/').pop();
@@ -358,14 +389,17 @@ import { state } from './00-state.js';
                 const rawPage = Number(citation.page_number ?? citation.page);
                 const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : null;
                 const title = citationTitle(citation, `Source ${index + 1}`);
-                if (sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document') {
+                if (sourceKind === 'metadata_only_record' || sourceKind === 'unavailable_document' || (!href && sourceKind === 'institutional_licensed')) {
                     const tag = document.createElement('span');
                     const isUnavailable = sourceKind === 'unavailable_document';
+                    const isInstitutional = sourceKind === 'institutional_licensed';
                     tag.className = isUnavailable ? 'evidence-pill-unavailable' : 'evidence-pill-metadata-only';
                     tag.dataset.sourceKind = sourceKind;
                     tag.textContent = isUnavailable
                         ? `${title} · Unavailable Document`
-                        : `${title} · Metadata-Only Record`;
+                        : isInstitutional
+                            ? `${title} · Institutional Licensed`
+                            : `${title} · Metadata-Only Record`;
                     linksWrap.appendChild(tag);
                     return;
                 }
@@ -405,4 +439,4 @@ import { state } from './00-state.js';
             messageBody.appendChild(rail);
         }
 
-export { HF_CANONICAL_DOCS, HF_DATASET_BASE, _KW_HIGHLIGHTS, _enrichAssistantMarkup, appendEvidenceRail, citationPageUrl, citationTitle, copyPearsonCreds, getPearsonBookEntry, getResponseCitations, showPearsonCredentialToast };
+export { HF_CANONICAL_DOCS, HF_DATASET_BASE, _KW_HIGHLIGHTS, _enrichAssistantMarkup, appendEvidenceRail, citationPageUrl, citationTitle, copyPearsonCreds, getPearsonBookEntry, getResponseCitations, isNonReadableSourceKind, normalizeSourceKind, showPearsonCredentialToast };

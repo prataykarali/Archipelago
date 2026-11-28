@@ -97,9 +97,9 @@
 }
 
 #welcome-avatar.welcome-avatar {
-  --avatar-size: 7.25rem !important;
-  width: 7.25rem !important;
-  height: 7.25rem !important;
+  --avatar-size: 8.25rem !important;
+  width: 8.25rem !important;
+  height: 8.25rem !important;
   border: 2.5px solid rgba(216, 180, 254, 0.95) !important;
   box-shadow:
     0 0 0 2px rgba(139, 92, 246, 0.35),
@@ -135,9 +135,9 @@
 }
 
 #sticky-avatar-dock .avatar-shell {
-  --avatar-size: 6.25rem !important;
-  width: 6.25rem !important;
-  height: 6.25rem !important;
+  --avatar-size: 6.75rem !important;
+  width: 6.75rem !important;
+  height: 6.75rem !important;
   border: 2.5px solid rgba(216, 180, 254, 0.95) !important;
   box-shadow:
     0 0 0 2px rgba(139, 92, 246, 0.35),
@@ -156,9 +156,9 @@
 
 @media (max-width: 767px) {
   #welcome-avatar.welcome-avatar {
-    --avatar-size: 5.25rem !important;
-    width: 5.25rem !important;
-    height: 5.25rem !important;
+    --avatar-size: 5.75rem !important;
+    width: 5.75rem !important;
+    height: 5.75rem !important;
   }
   #sticky-avatar-dock {
     display: none !important;
@@ -245,7 +245,76 @@
   opacity: 0.94;
 }
 
-/* ── 7. Reduced Motion Accessibility ── */
+/* ── 7. D14.6 Math, Markdown, Scroll Stability, Edge Legend & Focus Polish ── */
+.assistant-answer-prose,
+.chat-bubble {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.assistant-answer-prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding: 0.35rem 0;
+  margin: 0.65rem 0;
+}
+
+.assistant-answer-prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+#chat-messages {
+  overflow-anchor: auto;
+}
+
+.welcome-area-index,
+#books-count,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.graph-edge-legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.6rem;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.graph-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.graph-legend-swatch {
+  font-family: var(--font-mono, ui-monospace, monospace) !important;
+  font-weight: 700;
+}
+
+.swatch-requires { color: #c084fc; }
+.swatch-unlocks { color: #22d3ee; }
+.swatch-related { color: #fbbf24; }
+
+.graph-node-group:focus-visible,
+#pipeline-panel button:focus-visible,
+#left-sidebar button:focus-visible,
+#left-sidebar a:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* ── 8. Reduced Motion Accessibility ── */
 @media (prefers-reduced-motion: reduce) {
   #chromatic-waves-bg {
     display: none !important;
@@ -254,5 +323,12 @@
   .welcome-question-pill:hover,
   .welcome-suggestions-card {
     transform: none !important;
+  }
+  .graph-pulse-ring,
+  #status-dot {
+    animation: none !important;
+  }
+  #chat-messages {
+    scroll-behavior: auto !important;
   }
 }

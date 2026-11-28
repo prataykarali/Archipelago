@@ -4,6 +4,7 @@
 // Evidence export strips all cookies, bearer tokens, JWTs, and credentials.
 
 const MAX_FOLLOW_UP_CHIPS = 5;
+const MAX_FALLBACK_FOLLOW_UP_CHIPS = 3;
 
 const SENSITIVE_KEY_RE = /(?:token|cookie|auth|secret|password|passwd|credential|api[_-]?key|bearer|jwt|session[_-]?id|supabase|private[_-]?key|set-cookie|x-api-key)/i;
 const SENSITIVE_VALUE_RE = /(?:Bearer\s+[A-Za-z0-9\-._~+/]+=*|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}|(?:^|[\s;])(?:session|auth|sb-[a-z0-9_-]+)=[^\s;]+|sk-[A-Za-z0-9_-]{12,}|sbp_[A-Za-z0-9_-]{12,})/i;
@@ -25,6 +26,8 @@ function extractFollowUpQuestions(metadata) {
             ? metadata.followups
             : [];
 
+    const isFallback = metadata.fallback_mode === 'abstention' || metadata.fallback_mode === 'general_explanation';
+    const limit = isFallback ? MAX_FALLBACK_FOLLOW_UP_CHIPS : MAX_FOLLOW_UP_CHIPS;
     const seen = new Set();
     const out = [];
     for (const item of raw) {
@@ -36,7 +39,7 @@ function extractFollowUpQuestions(metadata) {
         if (seen.has(key)) continue;
         seen.add(key);
         out.push(text);
-        if (out.length >= MAX_FOLLOW_UP_CHIPS) break;
+        if (out.length >= limit) break;
     }
     return out;
 }

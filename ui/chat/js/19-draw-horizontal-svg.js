@@ -225,6 +225,7 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 if (marker) path.setAttribute('marker-end', marker);
                 path.setAttribute('class', `graph-edge-${edge.type}`);
                 path.setAttribute('data-edge-type', edge.type);
+                path.setAttribute('data-relation', edge.type === 'prereq' ? 'REQUIRES' : edge.type === 'unlock' ? 'UNLOCKS' : 'RELATED_TO');
                 path.setAttribute('data-from', u.id);
                 path.setAttribute('data-to', v.id);
                 path.setAttribute('data-review-status', 'review_pending');
@@ -285,11 +286,14 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 core.setAttribute('filter', `url(#neon-${sid})`);
                 g.appendChild(core);
 
-                // Monospace white text label
+                // Monospace white text label (clamped inside SVG bounds so text is never clipped)
                 const shortLabel = (n.label || n.id || '').length > 26 ? (n.label || n.id).slice(0, 25) + '…' : (n.label || n.id || '');
+                const halfLabelW = Math.max(24, shortLabel.length * 3.6);
+                const labelX = Math.max(halfLabelW + 8, Math.min(w - halfLabelW - 8, n.x));
+                const labelY = Math.min(h - 20, n.y + r + 15);
                 const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', n.x);
-                text.setAttribute('y', n.y + r + 15);
+                text.setAttribute('x', labelX);
+                text.setAttribute('y', labelY);
                 text.setAttribute('text-anchor', 'middle');
                 text.setAttribute('fill', '#ffffff');
                 text.setAttribute('font-size', '11px');
@@ -301,18 +305,34 @@ import { selectHorizontalNode } from './18--init-graph-ripple.js';
                 // Type badge below text
                 const badge = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 badge.setAttribute('class', 'graph-node-badge');
-                badge.setAttribute('x', n.x);
-                badge.setAttribute('y', n.y + r + 28);
+                badge.setAttribute('x', labelX);
+                badge.setAttribute('y', Math.min(h - 6, labelY + 13));
                 badge.setAttribute('text-anchor', 'middle');
                 badge.setAttribute('fill', c.stroke);
                 badge.setAttribute('font-size', '10px');
                 badge.setAttribute('font-weight', '700');
                 badge.setAttribute('font-family', "Inter, system-ui, -apple-system, sans-serif");
-                badge.textContent = n.type === 'anchor' ? '🎯 TARGET' : n.type === 'prereq' ? '↑ REQUIRES' : n.type === 'unlock' ? '↓ UNLOCKS' : '◈ CONNECTS';
+                badge.textContent = n.type === 'anchor' ? '● TARGET' : n.type === 'prereq' ? '↑ REQUIRES' : n.type === 'unlock' ? '↓ UNLOCKS' : '◈ RELATED_TO';
                 g.appendChild(badge);
 
                 svgElement.appendChild(g);
             });
+
+            // Inline SVG edge-direction legend (REQUIRES vs UNLOCKS vs RELATED_TO)
+            const legend = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            legend.setAttribute('class', 'graph-edge-legend');
+            legend.setAttribute('data-legend', 'edge-types');
+            legend.setAttribute('transform', 'translate(14, 16)');
+            legend.innerHTML = `
+                <rect x="-6" y="-11" width="292" height="20" rx="6" fill="rgba(15,23,42,0.78)" stroke="rgba(148,163,184,0.28)" stroke-width="1"/>
+                <line x1="2" y1="-1" x2="18" y2="-1" stroke="#818cf8" stroke-width="2"/>
+                <text x="23" y="2" fill="#c7d2fe" font-size="10" font-weight="600" font-family="Inter, system-ui, sans-serif">REQUIRES →</text>
+                <line x1="102" y1="-1" x2="118" y2="-1" stroke="#10b981" stroke-width="2"/>
+                <text x="123" y="2" fill="#a7f3d0" font-size="10" font-weight="600" font-family="Inter, system-ui, sans-serif">UNLOCKS →</text>
+                <line x1="196" y1="-1" x2="212" y2="-1" stroke="#f43f5e" stroke-width="2" stroke-dasharray="3 3"/>
+                <text x="217" y="2" fill="#fecdd3" font-size="10" font-weight="600" font-family="Inter, system-ui, sans-serif">RELATED_TO</text>
+            `;
+            svgElement.appendChild(legend);
 
             // Synchronize OKF Key Relationship badges with ALL nodes displayed in the in-chat graph
             const reqDiv = document.getElementById(`okf-card-req-${cardId}`);

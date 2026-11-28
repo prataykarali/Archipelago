@@ -1,7 +1,8 @@
-"""Dynamic welcome suggestions and supported-topic discovery from the active graph.
+"""Dynamic welcome suggestions and 12-domain topic discovery from the active graph.
 
 One concern: inspect the live ``LibraryGraph`` and open-access corpus inventory
-to derive numbered knowledge areas (with zero hardcoded domain counts) and
+to derive numbered knowledge areas aligned with the 12 domains in ``graph_v2_d14``
+(using word-boundary, score-ranked classification and zero hardcoded counts) and
 shuffled starter questions grounded strictly in indexed concepts.
 """
 
@@ -19,190 +20,169 @@ DEFAULT_SUGGESTION_COUNT = 5
 MIN_SUGGESTION_COUNT = 4
 MAX_SUGGESTION_COUNT = 5
 QUESTION_BANK_SIZE = 40
+DEFAULT_BANK_SEED = 42
 NON_AI_FALLBACK_SUGGESTION_COUNT = 3
 MAX_SAMPLE_CONCEPTS = 4
 MIN_LABEL_LEN = 3
 MAX_LABEL_LEN = 60
+SUMMARY_PREVIEW_CHARS = 300
+DOC_MATCH_WEIGHT = 3
+LABEL_MATCH_WEIGHT = 2
+SUMMARY_MATCH_WEIGHT = 1
 
-# Classifier descriptors (keys, display labels, doc/text markers).
-# Counts are NEVER hardcoded — they are computed live from ``graph.nodes``
-# and ``load_hf_paths()``.
-_KNOWLEDGE_AREA_SPECS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+_OPEN_ACCESS_DOC_MARKERS: tuple[str, ...] = ("papers/", "textbooks/", "ostep", "deisenroth", ".pdf")
+
+# 12 canonical domains aligned with graph_v2_d14.
+# Word-boundary patterns prevent bare "process", "lock", or "thread" substrings
+# from misclassifying Chain-of-Thought, RNNs, or other AI concepts under OS.
+_KNOWLEDGE_AREA_SPECS: tuple[tuple[str, str, re.Pattern[str]], ...] = (
     (
         "os",
         "Operating Systems",
-        (
-            "ostep",
-            "operating system",
-            "paging",
-            "virtual memory",
-            "address translation",
-            "cpu scheduling",
-            "deadlock",
-            "semaphore",
-            "mutex",
-            "thread",
-            "process",
-            "tlb",
-            "raid",
-            "file system",
-            "concurrency",
-            "lock",
+        re.compile(
+            r"\b(?:ostep|operating\s+systems?|virtual\s+memory|paging|page\s+tables?|"
+            r"page\s+faults?|page\s+frames?|address\s+translation|address\s+spaces?|\btlbs?\b|"
+            r"cpu\s+scheduling|context\s+switch(?:ing)?|deadlocks?|semaphores?|mutex(?:es)?|"
+            r"spinlocks?|condition\s+variables?|process\s+api|limited\s+direct\s+execution|"
+            r"file\s+systems?|inodes?|log[-\s]?structured\s+fs|\braid\b|concurrency\s+bugs?)\b",
+            re.I,
         ),
     ),
     (
-        "llm_nlp",
-        "Transformers, LLMs & Retrieval",
-        (
-            "vaswani",
-            "devlin",
-            "bert",
-            "gpt3",
-            "brown2020",
-            "lora",
-            "qlora",
-            "rag",
-            "graphrag",
-            "dpr",
-            "karpukhin",
-            "vllm",
-            "kwon2023",
-            "dpo",
-            "rafailov",
-            "instructgpt",
-            "ouyang",
-            "constitutionalai",
-            "chainofthought",
-            "react",
-            "yao2022",
-            "outlines",
-            "willard2023",
-            "bahdanau",
-            "flashattention",
-            "attention",
-            "transformer",
-            "prompt",
-            "language model",
-            "retrieval",
+        "ai_ml",
+        "AI & Machine Learning",
+        re.compile(
+            r"\b(?:vaswani|devlin|\bbert\b|gpt[-\s]?[234]?|brown2020|\blora\b|\bqlora\b|"
+            r"\brag\b|retrieval[-\s]?augmented|graphrag|\bdpr\b|karpukhin|\bvllm\b|kwon2023|"
+            r"pagedattention|\bdpo\b|rafailov|direct\s+preference\s+optimization|instructgpt|"
+            r"ouyang|constitutional\s+ai|chain[-\s]?of[-\s]?thought|wei2022|react\s+agent|"
+            r"yao2022|willard2023|bahdanau|flashattention|self[-\s]?attention|"
+            r"multi[-\s]?head\s+attention|transformers?|prompting|language\s+models?|"
+            r"in[-\s]?context\s+learning|rlhf|backpropagation|rumelhart|convnets?|lecun|"
+            r"alexnet|krizhevsky|\blstms?\b|hochreiter|\brnns?\b|recurrent\s+neural|\bgans?\b|"
+            r"goodfellow|\bvaes?\b|kingma|\bddpm\b|ho2020|diffusion\s+models?|neural\s+networks?|"
+            r"convolutional|autoencoders?|deep\s+learning|machine\s+learning|kipf|\bgcn\b|"
+            r"velickovic|\bgat\b|graph\s+neural|message\s+passing|knowledge\s+graphs?|"
+            r"reinforcement\s+learning|random\s+forest|decision\s+trees?|gradient\s+boosting)\b",
+            re.I,
         ),
     ),
     (
-        "deep_learning",
-        "Deep Learning & Generative Models",
-        (
-            "backpropagation",
-            "rumelhart",
-            "convnet",
-            "lecun",
-            "alexnet",
-            "krizhevsky",
-            "lstm",
-            "hochreiter",
-            "gan",
-            "goodfellow",
-            "vae",
-            "kingma",
-            "ddpm",
-            "ho2020",
-            "diffusion",
-            "neural network",
-            "convolutional",
-            "recurrent",
-            "generative",
-            "autoencoder",
+        "math_computing",
+        "Mathematics for Computing",
+        re.compile(
+            r"\b(?:deisenroth|math_for_ml|linear\s+algebra|eigenvalues?|eigenvectors?|"
+            r"eigendecomposition|singular\s+value|\bsvd\b|matrix\s+decomposition|vector\s+spaces?|"
+            r"gradient\s+descent|convex\s+optimization|calculus|jacobian|hessian|\bpca\b|"
+            r"principal\s+component|discrete\s+mathematics|recurrence\s+relations?|"
+            r"number\s+theory|graph\s+theory|combinatorics|propositional\s+logic)\b",
+            re.I,
         ),
     ),
     (
-        "graph_ml",
-        "Graph Neural Networks & Graph Learning",
-        (
-            "kipf",
-            "gcn",
-            "velickovic",
-            "gat",
-            "graph convolutional",
-            "graph attention",
-            "message passing",
-            "node embedding",
-            "knowledge graph",
+        "prob_stats",
+        "Probability & Statistics",
+        re.compile(
+            r"\b(?:probability|statistics|bayes(?:'s)?\s+theorem|bayesian|"
+            r"maximum\s+likelihood|\bmle\b|kl\s+divergence|kullback[-\s]?leibler|"
+            r"variational\s+inference|gaussian\s+distribution|normal\s+distribution|"
+            r"random\s+variables?|conditional\s+probability|markov\s+chains?|"
+            r"hypothesis\s+testing|central\s+limit\s+theorem|expectations?)\b",
+            re.I,
         ),
     ),
     (
-        "math_ml",
-        "Mathematics for Machine Learning",
-        (
-            "deisenroth",
-            "math_for_ml",
-            "linear algebra",
-            "eigenvalue",
-            "eigenvector",
-            "gradient descent",
-            "probability",
-            "bayes",
-            "matrix",
-            "vector space",
-            "calculus",
-            "optimization",
-            "singular value",
-            "pca",
-            "gaussian",
+        "dsa",
+        "Data Structures & Algorithms",
+        re.compile(
+            r"\b(?:algorithms?|data\s+structures?|dynamic\s+programming|dijkstra|"
+            r"bellman[-\s]?ford|binary\s+search|priority\s+queues?|heaps?|linked\s+lists?|"
+            r"hash\s+tables?|avl\s+trees?|red[-\s]?black\s+trees?|topological\s+sort|\bclrs\b|"
+            r"breadth[-\s]?first|depth[-\s]?first|minimum\s+spanning\s+tree|quicksort|mergesort)\b",
+            re.I,
         ),
     ),
     (
         "dbms",
         "Database Systems",
-        (
-            "database",
-            "dbms",
-            "sql",
-            "acid",
-            "normal form",
-            "3nf",
-            "b-tree",
-            "b+ tree",
-            "transaction",
-            "relational",
-            "query optimization",
-            "indexing",
+        re.compile(
+            r"\b(?:databases?|dbms|\bsql\b|acid\s+properties|normal\s+forms?|\b3nf\b|\bbcnf\b|"
+            r"b\+?\s*trees?|lsm[-\s]?trees?|transactions?|relational\s+algebra|"
+            r"query\s+optimization|buffer\s+pool|serializability|silberschatz|"
+            r"two[-\s]?phase\s+locking|write[-\s]?ahead\s+logging)\b",
+            re.I,
         ),
     ),
     (
-        "networks_sec",
-        "Computer Networks & Security",
-        (
-            "network security",
-            "tcp",
-            "udp",
-            "routing",
-            "packet",
-            "cryptography",
-            "encryption",
-            "tls",
-            "congestion",
-            "socket",
-            "dns",
-            "http",
+        "networks",
+        "Computer Networks",
+        re.compile(
+            r"\b(?:computer\s+networks?|\btcp\b|\budp\b|congestion\s+control|flow\s+control|"
+            r"routing\s+protocols?|osi\s+model|data\s+link\s+layer|transport\s+layer|"
+            r"three[-\s]?way\s+handshake|\bdns\b|\bhttp\b|tanenbaum|sliding\s+window|"
+            r"distance\s+vector|link\s+state|\bbgp\b|packet\s+switching)\b",
+            re.I,
         ),
     ),
     (
-        "algorithms_systems",
-        "Algorithms, Compilers & Architecture",
-        (
-            "algorithm",
-            "dynamic programming",
-            "dijkstra",
-            "sorting",
-            "binary search",
-            "compiler",
-            "parser",
-            "syntax tree",
-            "automata",
-            "turing",
-            "cache",
-            "pipeline",
+        "compilers",
+        "Compilers & Languages",
+        re.compile(
+            r"\b(?:compilers?|lexical\s+analysis|syntax\s+analysis|\blalr\b|parsers?|"
+            r"abstract\s+syntax\s+tree|semantic\s+analysis|intermediate\s+representation|"
+            r"three[-\s]?address\s+code|register\s+allocation|code\s+generation|"
+            r"symbol\s+tables?|type\s+checking|shift[-\s]?reduce)\b",
+            re.I,
+        ),
+    ),
+    (
+        "automata",
+        "Automata & Computation",
+        re.compile(
+            r"\b(?:automata|pumping\s+lemma|regular\s+languages?|regular\s+expressions?|"
+            r"\bdfa\b|\bnfa\b|finite\s+automat(?:a|on)|context[-\s]?free\s+grammars?|\bcfg\b|"
+            r"\bpda\b|pushdown\s+automat(?:a|on)|turing\s+machines?|decidability|halting\s+problem|"
+            r"chomsky\s+hierarchy|np[-\s]?complete(?:ness)?|formal\s+languages?)\b",
+            re.I,
+        ),
+    ),
+    (
+        "security",
+        "Information Security",
+        re.compile(
+            r"\b(?:cryptography|information\s+security|network\s+security|\brsa\b|\baes\b|"
+            r"\btls\b|\bssl\b|public[-\s]?key|digital\s+signatures?|intrusion\s+detection|"
+            r"\bnids\b|encryption|diffie[-\s]?hellman|\bhmac\b|x\.?509|access\s+control)\b",
+            re.I,
+        ),
+    ),
+    (
+        "software_eng",
+        "Software Engineering",
+        re.compile(
+            r"\b(?:software\s+engineering|\bsdlc\b|agile\s+methodology|scrum|waterfall\s+model|"
+            r"requirements\s+engineering|\buml\b|design\s+patterns?|solid\s+principles?|"
+            r"unit\s+testing|integration\s+testing|refactoring|technical\s+debt|"
+            r"coupling\s+and\s+cohesion|software\s+architecture|continuous\s+integration)\b",
+            re.I,
+        ),
+    ),
+    (
+        "architecture",
+        "Computer Architecture",
+        re.compile(
+            r"\b(?:computer\s+architecture|computer\s+organization|cpu\s+pipelin(?:e|ing)|"
+            r"pipeline\s+hazards?|data\s+hazards?|control\s+hazards?|structural\s+hazards?|"
+            r"branch\s+prediction|branch\s+target\s+buffer|cache\s+coherence|cache\s+hierarchy|"
+            r"\bisa\b|\brisc\b|\bcisc\b|\balu\b|superscalar|tomasulo|instruction\s+cycle)\b",
+            re.I,
         ),
     ),
 )
+
+_DOMAIN_LABEL_TO_KEY: dict[str, str] = {
+    label.lower(): key for key, label, _ in _KNOWLEDGE_AREA_SPECS
+}
 
 _QUESTION_TEMPLATES: tuple[str, ...] = (
     "Explain {label} and how it works.",
@@ -212,12 +192,33 @@ _QUESTION_TEMPLATES: tuple[str, ...] = (
 )
 
 
+def classify_domain_best(
+    doc_text: str,
+    label_text: str,
+    summary_text: str = "",
+    explicit_domain: str = "",
+) -> str:
+    """Score all 12 domains with word-boundary regexes and return the best domain key."""
+    best_key = ""
+    best_score = 0
+    for key, _label, pattern in _KNOWLEDGE_AREA_SPECS:
+        score = (
+            len(pattern.findall(doc_text)) * DOC_MATCH_WEIGHT
+            + len(pattern.findall(label_text)) * LABEL_MATCH_WEIGHT
+            + len(pattern.findall(summary_text)) * SUMMARY_MATCH_WEIGHT
+        )
+        if score > best_score:
+            best_score = score
+            best_key = key
+    if best_key:
+        return best_key
+    norm_explicit = (explicit_domain or "").strip().lower()
+    return _DOMAIN_LABEL_TO_KEY.get(norm_explicit, "")
+
+
 def _classify_text_area(text: str) -> str:
-    low = (text or "").lower()
-    for key, _label, markers in _KNOWLEDGE_AREA_SPECS:
-        if any(marker in low for marker in markers):
-            return key
-    return ""
+    cleaned = (text or "").replace("_", " ").replace("/", " ")
+    return classify_domain_best("", cleaned, "")
 
 
 def _open_corpus_paths() -> list[str]:
@@ -250,61 +251,91 @@ def _node_is_supported(node: dict[str, Any], *, open_only: bool) -> bool:
         if not isinstance(src, dict):
             continue
         doc_id = str(src.get("doc_id") or "").lower()
-        if any(
-            marker in doc_id
-            for marker in ("papers/", "textbooks/", "ostep", "deisenroth", ".pdf")
-        ) and not doc_id.startswith("upload_"):
+        if any(m in doc_id for m in _OPEN_ACCESS_DOC_MARKERS) and not doc_id.startswith("upload_"):
             return True
     return False
 
 
-def discover_knowledge_areas(graph: Any) -> list[dict[str, Any]]:
-    """Derive numbered knowledge areas from the actual graph and open corpus inventory."""
+def _node_area(cid: str, node: dict[str, Any]) -> str:
+    label = str(node.get("label") or node.get("name") or cid).strip()
+    summary = str(node.get("summary") or "")
+    doc_ids = " ".join(
+        str(s.get("doc_id") or "").replace("_", " ").replace("/", " ")
+        for s in (node.get("sources") or [])
+        if isinstance(s, dict)
+    )
+    return classify_domain_best(
+        doc_ids,
+        f"{cid.replace('_', ' ')} {label}",
+        summary[:SUMMARY_PREVIEW_CHARS],
+        explicit_domain=str(node.get("domain") or ""),
+    )
+
+
+def discover_domain_coverage(graph: Any) -> dict[str, list[dict[str, Any]]]:
+    """Classify live corpus & graph into full-text, graph-only, and unavailable tiers."""
     nodes = getattr(graph, "nodes", None) or {}
     open_only = is_open_access_profile()
     area_labels = {key: label for key, label, _ in _KNOWLEDGE_AREA_SPECS}
-    area_concepts: dict[str, list[tuple[int, str]]] = {key: [] for key, _, _ in _KNOWLEDGE_AREA_SPECS}
-    area_docs: dict[str, set[str]] = {key: set() for key, _, _ in _KNOWLEDGE_AREA_SPECS}
+    area_concepts: dict[str, list[tuple[int, str]]] = {k: [] for k, _, _ in _KNOWLEDGE_AREA_SPECS}
+    area_docs: dict[str, set[str]] = {k: set() for k, _, _ in _KNOWLEDGE_AREA_SPECS}
 
     for path in _open_corpus_paths():
-        area = _classify_text_area(path)
-        if area:
-            area_docs[area].add(path)
+        dom = classify_domain_best(path.replace("_", " ").replace("/", " "), "")
+        if dom:
+            area_docs[dom].add(path)
 
     for cid, node in nodes.items():
         if not isinstance(node, dict) or not _node_is_supported(node, open_only=open_only):
             continue
-        label = str(node.get("label") or node.get("name") or cid).strip()
-        summary = str(node.get("summary") or "")
-        doc_ids = " ".join(
-            str(s.get("doc_id") or "") for s in (node.get("sources") or []) if isinstance(s, dict)
-        )
-        area = _classify_text_area(f"{doc_ids} {label} {summary}")
-        if not area:
+        dom = _node_area(cid, node)
+        if not dom:
             continue
+        label = str(node.get("label") or node.get("name") or cid).strip()
         weight = int(node.get("source_count") or len(node.get("sources") or [])) + int(
             node.get("degree") or 0
         )
-        area_concepts[area].append((weight, label))
+        area_concepts[dom].append((weight, label))
 
-    populated: list[dict[str, Any]] = []
-    for key, _label, _markers in _KNOWLEDGE_AREA_SPECS:
+    full_text: list[dict[str, Any]] = []
+    graph_only: list[dict[str, Any]] = []
+    unavailable: list[dict[str, Any]] = []
+
+    for key, _label, _pat in _KNOWLEDGE_AREA_SPECS:
         concepts = area_concepts[key]
         docs = area_docs[key]
-        if not concepts and not docs:
-            continue
         concepts.sort(key=lambda item: (-item[0], item[1].lower()))
-        samples = [lbl for _, lbl in concepts[:MAX_SAMPLE_CONCEPTS]]
-        populated.append(
-            {
-                "key": key,
-                "label": area_labels[key],
-                "concept_count": len(concepts),
-                "doc_count": len(docs),
-                "sample_concepts": samples,
-            }
-        )
+        entry = {
+            "key": key,
+            "label": area_labels[key],
+            "concept_count": len(concepts),
+            "doc_count": len(docs),
+            "sample_concepts": [lbl for _, lbl in concepts[:MAX_SAMPLE_CONCEPTS]],
+        }
+        if docs:
+            entry["coverage_tier"] = "full_text"
+            full_text.append(entry)
+        elif concepts:
+            entry["coverage_tier"] = "graph_only"
+            graph_only.append(entry)
+        else:
+            entry["coverage_tier"] = "unavailable"
+            unavailable.append(entry)
 
+    full_text.sort(key=lambda item: (-item["concept_count"], -item["doc_count"], item["label"]))
+    graph_only.sort(key=lambda item: (-item["concept_count"], item["label"]))
+    for idx, item in enumerate(full_text, start=1):
+        item["index"] = idx
+    for idx, item in enumerate(graph_only, start=len(full_text) + 1):
+        item["index"] = idx
+
+    return {"full_text": full_text, "graph_only": graph_only, "unavailable": unavailable}
+
+
+def discover_knowledge_areas(graph: Any) -> list[dict[str, Any]]:
+    """Derive numbered knowledge areas from the actual graph and open corpus inventory."""
+    coverage = discover_domain_coverage(graph)
+    populated = list(coverage["full_text"]) + list(coverage["graph_only"])
     populated.sort(key=lambda item: (-item["concept_count"], -item["doc_count"], item["label"]))
     for idx, item in enumerate(populated, start=1):
         item["index"] = idx
@@ -323,16 +354,12 @@ def generate_starter_questions(
     open_only = is_open_access_profile()
     rng = random.Random(seed)
 
-    # Gather diverse supported concepts across knowledge areas.
     candidates: list[tuple[str, str, str]] = []
     for cid, node in sorted(nodes.items()):
         if not isinstance(node, dict) or not _node_is_supported(node, open_only=open_only):
             continue
         label = str(node.get("label") or node.get("name") or cid).strip()
-        doc_ids = " ".join(
-            str(s.get("doc_id") or "") for s in (node.get("sources") or []) if isinstance(s, dict)
-        )
-        area = _classify_text_area(f"{doc_ids} {label} {node.get('summary') or ''}") or "general"
+        area = _node_area(cid, node) or "general"
         candidates.append((area, cid, label))
 
     if not candidates:
@@ -343,7 +370,6 @@ def generate_starter_questions(
     used_areas: set[str] = set()
     used_cids: set[str] = set()
 
-    # First pass: pick one concept per distinct area for topic breadth.
     for area, cid, label in candidates:
         if len(selected_questions) >= clamped:
             break
@@ -351,18 +377,15 @@ def generate_starter_questions(
             continue
         used_areas.add(area)
         used_cids.add(cid)
-        template = rng.choice(_QUESTION_TEMPLATES)
-        selected_questions.append(template.format(label=label))
+        selected_questions.append(rng.choice(_QUESTION_TEMPLATES).format(label=label))
 
-    # Second pass: fill remaining slots if fewer areas than requested count.
     for _area, cid, label in candidates:
         if len(selected_questions) >= clamped:
             break
         if cid in used_cids:
             continue
         used_cids.add(cid)
-        template = rng.choice(_QUESTION_TEMPLATES)
-        selected_questions.append(template.format(label=label))
+        selected_questions.append(rng.choice(_QUESTION_TEMPLATES).format(label=label))
 
     return selected_questions
 
@@ -371,7 +394,7 @@ def generate_question_bank(
     graph: Any,
     *,
     size: int = QUESTION_BANK_SIZE,
-    seed: int = 42,
+    seed: int = DEFAULT_BANK_SEED,
 ) -> list[str]:
     """Build a diverse 30-50 question bank grounded strictly in indexed concepts."""
     nodes = getattr(graph, "nodes", None) or {}
@@ -383,10 +406,7 @@ def generate_question_bank(
         if not isinstance(node, dict) or not _node_is_supported(node, open_only=open_only):
             continue
         label = str(node.get("label") or node.get("name") or cid).strip()
-        doc_ids = " ".join(
-            str(s.get("doc_id") or "") for s in (node.get("sources") or []) if isinstance(s, dict)
-        )
-        area = _classify_text_area(f"{doc_ids} {label} {node.get('summary') or ''}") or "general"
+        area = _node_area(cid, node) or "general"
         by_area.setdefault(area, []).append((cid, label))
 
     if not by_area:
@@ -457,12 +477,15 @@ def build_suggestions_payload(
 
 
 __all__ = [
+    "DEFAULT_BANK_SEED",
     "DEFAULT_SUGGESTION_COUNT",
     "MAX_SUGGESTION_COUNT",
     "MIN_SUGGESTION_COUNT",
     "NON_AI_FALLBACK_SUGGESTION_COUNT",
     "QUESTION_BANK_SIZE",
     "build_suggestions_payload",
+    "classify_domain_best",
+    "discover_domain_coverage",
     "discover_knowledge_areas",
     "generate_question_bank",
     "generate_starter_questions",

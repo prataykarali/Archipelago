@@ -3,6 +3,7 @@
 import { getOrCreateQuizZone } from './11-populate-topology.js';
 import { _nodeLabel } from './10-populate-pipeline.js';
 import { escapeHTML } from './01--hide-welcome-with-transitio.js';
+import { isNonReadableSourceKind, normalizeSourceKind } from './02--kw-highlights.js';
 import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
 
         // ── Personalized Knowledge Graph Card Rendering ──
@@ -153,10 +154,12 @@ import { drawPersonalizedSVG } from './17-draw-personalized-svg.js';
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-2 shrink-0">
-                                                ${st.doc_id ? `
+                                                ${st.doc_id && !isNonReadableSourceKind(st) ? `
                                                     <button onclick="openPrerequisiteRemediationReader('${st.doc_id}', ${st.page_number || 1}, '${escapeHTML(st.name || st.id)}', '${escapeHTML(st.summary)}')" class="px-2 py-1 rounded bg-white/10 hover:bg-white/15 text-[10px] font-bold text-gray-300 hover:text-white transition-all flex items-center gap-1">
                                                         <i class="fa-solid fa-book-bookmark text-[9px]"></i> <span>${st.printed_page || st.page_number ? `p. ${st.printed_page || st.page_number}` : 'Open source'}</span>
                                                     </button>
+                                                ` : isNonReadableSourceKind(st) ? `
+                                                    <span class="${normalizeSourceKind(st) === 'unavailable_document' ? 'evidence-pill-unavailable' : 'evidence-pill-metadata-only'}" data-source-kind="${escapeHTML(normalizeSourceKind(st))}">${normalizeSourceKind(st) === 'unavailable_document' ? 'Unavailable Document' : 'Metadata-Only Record'}</span>
                                                 ` : ''}
                                             </div>
                                         </div>

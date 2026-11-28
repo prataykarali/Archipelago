@@ -54,8 +54,11 @@ function startNewChat() {
     welcome.dataset.exiting = '0';
     welcome.innerHTML = `
         <!-- Avatar (5-clip story loop: hi → think → type → goit → success) -->
-        <div class="avatar-shell welcome-avatar" id="welcome-avatar" data-avatar>
-            ${buildAvatarClipsHtml('hi')}
+        <div class="welcome-avatar-stack">
+            <span class="avatar-label welcome-avatar-label">AI Librarian</span>
+            <div class="avatar-shell welcome-avatar" id="welcome-avatar" data-avatar>
+                ${buildAvatarClipsHtml('hi')}
+            </div>
         </div>
         <!-- ShineText + TypewriterText -->
         <div>
@@ -96,20 +99,22 @@ function startNewChat() {
         if (!red) setTimeout(() => {
             document.querySelectorAll('#welcome-container .depth-word').forEach(w => w.classList.add('visible'));
         }, 150);
-        // Hover 3d (suggestion cards only — never on chat message text)
-        document.querySelectorAll('#welcome-container .hover-3d-card').forEach(card => {
-            card.addEventListener('mousemove', e => {
-                const r = card.getBoundingClientRect();
-                const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-                const dx = (e.clientX - cx) / (r.width / 2), dy = (e.clientY - cy) / (r.height / 2);
-                card.style.transform = `perspective(800px) rotateY(${dx * 8}deg) rotateX(${-dy * 6}deg) scale(1.03)`;
-                card.style.transition = 'transform 0.08s ease-out';
+        // Hover 3d (suggestion cards only — never on chat message text, disabled under reduced motion)
+        if (!red) {
+            document.querySelectorAll('#welcome-container .hover-3d-card').forEach(card => {
+                card.addEventListener('mousemove', e => {
+                    const r = card.getBoundingClientRect();
+                    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+                    const dx = (e.clientX - cx) / (r.width / 2), dy = (e.clientY - cy) / (r.height / 2);
+                    card.style.transform = `perspective(800px) rotateY(${dx * 8}deg) rotateX(${-dy * 6}deg) scale(1.03)`;
+                    card.style.transition = 'transform 0.08s ease-out';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                    card.style.transition = 'transform 0.35s cubic-bezier(0.22,1,0.36,1)';
+                });
             });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = '';
-                card.style.transition = 'transform 0.35s cubic-bezier(0.22,1,0.36,1)';
-            });
-        });
+        }
         // Ensure full-stage Chromatic Waves still running after reset
         if (typeof window._remountChromaticWaves === 'function') {
             window._remountChromaticWaves();
@@ -164,6 +169,9 @@ function startNewChat() {
         bottomMap.classList.remove('is-visible', 'flex');
     }
     if (typeof populateTopology === 'function') populateTopology(null, null, null, null, true);
+    if (typeof window.populateInspector === 'function') {
+        try { window.populateInspector(null); } catch (_) {}
+    }
     if (typeof renderChatHistory === 'function') renderChatHistory();
 }
 
